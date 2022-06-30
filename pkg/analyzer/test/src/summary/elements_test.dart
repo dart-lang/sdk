@@ -32861,6 +32861,7 @@ library
 ''');
   }
 
+  /// TODO(scheglov) The part should disappear after finishing [PartElement].
   test_part_emptyUri() async {
     var library = await buildLibrary(r'''
 part '';
@@ -32873,6 +32874,12 @@ library
       class B @15
         constructors
           synthetic @-1
+  parts
+
+      classes
+        class B @15
+          constructors
+            synthetic @-1
 ''');
   }
 

@@ -91,7 +91,7 @@ class MacroClass {
 }
 
 class UnlinkedImportAugmentationDirective {
-  final String uri;
+  final String? uri;
 
   UnlinkedImportAugmentationDirective({
     required this.uri,
@@ -101,17 +101,17 @@ class UnlinkedImportAugmentationDirective {
     SummaryDataReader reader,
   ) {
     return UnlinkedImportAugmentationDirective(
-      uri: reader.readStringUtf8(),
+      uri: reader.readOptionalStringUtf8(),
     );
   }
 
   void write(BufferedSink sink) {
-    sink.writeStringUtf8(uri);
+    sink.writeOptionalStringUtf8(uri);
   }
 }
 
 class UnlinkedLibraryAugmentationDirective {
-  final String uri;
+  final String? uri;
   final UnlinkedSourceRange uriRange;
 
   UnlinkedLibraryAugmentationDirective({
@@ -123,13 +123,13 @@ class UnlinkedLibraryAugmentationDirective {
     SummaryDataReader reader,
   ) {
     return UnlinkedLibraryAugmentationDirective(
-      uri: reader.readStringUtf8(),
+      uri: reader.readOptionalStringUtf8(),
       uriRange: UnlinkedSourceRange.read(reader),
     );
   }
 
   void write(BufferedSink sink) {
-    sink.writeStringUtf8(uri);
+    sink.writeOptionalStringUtf8(uri);
     uriRange.write(sink);
   }
 }
@@ -163,7 +163,7 @@ class UnlinkedNamespaceDirective {
 
   /// The URI referenced by this directive, nad used by default when none
   /// of the [configurations] matches.
-  final String uri;
+  final String? uri;
 
   UnlinkedNamespaceDirective({
     required this.configurations,
@@ -176,7 +176,7 @@ class UnlinkedNamespaceDirective {
       configurations: reader.readTypedList(
         () => UnlinkedNamespaceDirectiveConfiguration.read(reader),
       ),
-      uri: reader.readStringUtf8(),
+      uri: reader.readOptionalStringUtf8(),
       isSyntheticDartCoreImport: reader.readBool(),
     );
   }
@@ -188,7 +188,7 @@ class UnlinkedNamespaceDirective {
         x.write(sink);
       },
     );
-    sink.writeStringUtf8(uri);
+    sink.writeOptionalStringUtf8(uri);
     sink.writeBool(isSyntheticDartCoreImport);
   }
 }
@@ -199,7 +199,7 @@ class UnlinkedNamespaceDirectiveConfiguration {
   final String name;
 
   /// The URI to be used if the condition is true.
-  final String uri;
+  final String? uri;
 
   /// The value to which the value of the declared variable will be compared,
   /// or the empty string if the condition does not include an equality test.
@@ -216,20 +216,20 @@ class UnlinkedNamespaceDirectiveConfiguration {
   ) {
     return UnlinkedNamespaceDirectiveConfiguration(
       name: reader.readStringUtf8(),
-      uri: reader.readStringUtf8(),
+      uri: reader.readOptionalStringUtf8(),
       value: reader.readStringUtf8(),
     );
   }
 
   void write(BufferedSink sink) {
     sink.writeStringUtf8(name);
-    sink.writeStringUtf8(uri);
+    sink.writeOptionalStringUtf8(uri);
     sink.writeStringUtf8(value);
   }
 }
 
 class UnlinkedPartDirective {
-  final String uri;
+  final String? uri;
 
   UnlinkedPartDirective({
     required this.uri,
@@ -239,12 +239,12 @@ class UnlinkedPartDirective {
     SummaryDataReader reader,
   ) {
     return UnlinkedPartDirective(
-      uri: reader.readStringUtf8(),
+      uri: reader.readOptionalStringUtf8(),
     );
   }
 
   void write(BufferedSink sink) {
-    sink.writeStringUtf8(uri);
+    sink.writeOptionalStringUtf8(uri);
   }
 }
 
@@ -273,7 +273,7 @@ class UnlinkedPartOfNameDirective {
 }
 
 class UnlinkedPartOfUriDirective {
-  final String uri;
+  final String? uri;
   final UnlinkedSourceRange uriRange;
 
   UnlinkedPartOfUriDirective({
@@ -285,13 +285,13 @@ class UnlinkedPartOfUriDirective {
     SummaryDataReader reader,
   ) {
     return UnlinkedPartOfUriDirective(
-      uri: reader.readStringUtf8(),
+      uri: reader.readOptionalStringUtf8(),
       uriRange: UnlinkedSourceRange.read(reader),
     );
   }
 
   void write(BufferedSink sink) {
-    sink.writeStringUtf8(uri);
+    sink.writeOptionalStringUtf8(uri);
     uriRange.write(sink);
   }
 }

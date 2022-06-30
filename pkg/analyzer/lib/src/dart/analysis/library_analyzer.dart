@@ -618,13 +618,15 @@ class LibraryAnalyzer {
             directive.prefix?.staticElement = importElement.prefix;
             final importDirectiveState = _library.imports[index];
             // TODO(scheglov) rewrite
-            if (importDirectiveState.importedSource != null) {
-              if (importDirectiveState.importedLibrarySource == null) {
-                libraryErrorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
-                  directive.uri,
-                  [importDirectiveState.directive.uri],
-                );
+            if (importDirectiveState is ImportDirectiveWithUri) {
+              if (importDirectiveState.importedSource != null) {
+                if (importDirectiveState.importedLibrarySource == null) {
+                  libraryErrorReporter.reportErrorForNode(
+                    CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+                    directive.uri,
+                    [importDirectiveState.selectedUriStr],
+                  );
+                }
               }
             }
           }
@@ -637,13 +639,15 @@ class LibraryAnalyzer {
             directive.element = exportElement;
             final exportDirectiveState = _library.exports[index];
             // TODO(scheglov) rewrite
-            if (exportDirectiveState.exportedSource != null) {
-              if (exportDirectiveState.exportedLibrarySource == null) {
-                libraryErrorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
-                  directive.uri,
-                  [exportDirectiveState.directive.uri],
-                );
+            if (exportDirectiveState is ExportDirectiveWithUri) {
+              if (exportDirectiveState.exportedSource != null) {
+                if (exportDirectiveState.exportedLibrarySource == null) {
+                  libraryErrorReporter.reportErrorForNode(
+                    CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+                    directive.uri,
+                    [exportDirectiveState.selectedUriStr],
+                  );
+                }
               }
             }
           }
