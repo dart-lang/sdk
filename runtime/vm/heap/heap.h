@@ -131,13 +131,6 @@ class Heap {
   void WaitForSweeperTasks(Thread* thread);
   void WaitForSweeperTasksAtSafepoint(Thread* thread);
 
-  // Enables growth control on the page space heaps.  This should be
-  // called before any user code is executed.
-  void InitGrowthControl();
-  void DisableGrowthControl() { SetGrowthControlState(false); }
-  void SetGrowthControlState(bool state);
-  bool GrowthControlState();
-
   // Protect access to the heap. Note: Code pages are made
   // executable/non-executable when 'read_only' is true/false, respectively.
   void WriteProtect(bool read_only);
@@ -424,14 +417,13 @@ class HeapIterationScope : public ThreadStackResource {
   DISALLOW_COPY_AND_ASSIGN(HeapIterationScope);
 };
 
-class NoHeapGrowthControlScope : public ThreadStackResource {
+class ForceGrowthScope : public ThreadStackResource {
  public:
-  NoHeapGrowthControlScope();
-  ~NoHeapGrowthControlScope();
+  explicit ForceGrowthScope(Thread* thread);
+  ~ForceGrowthScope();
 
  private:
-  bool current_growth_controller_state_;
-  DISALLOW_COPY_AND_ASSIGN(NoHeapGrowthControlScope);
+  DISALLOW_COPY_AND_ASSIGN(ForceGrowthScope);
 };
 
 // Note: During this scope all pages are writable and the code pages are

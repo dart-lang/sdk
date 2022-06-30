@@ -471,7 +471,7 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
   ASSERT(Heap::IsAllocatableViaFreeLists(size));
 
   if (growth_policy != kForceGrowth) {
-    ASSERT(GrowthControlState());
+    ASSERT(!Thread::Current()->force_growth());
     if (heap_ != nullptr) {  // Some unit tests.
       heap_->CheckConcurrentMarking(Thread::Current(), GCReason::kOldSpace,
                                     kOldPageSize);
@@ -513,7 +513,7 @@ uword PageSpace::TryAllocateInFreshLargePage(intptr_t size,
   ASSERT(!Heap::IsAllocatableViaFreeLists(size));
 
   if (growth_policy != kForceGrowth) {
-    ASSERT(GrowthControlState());
+    ASSERT(!Thread::Current()->force_growth());
     if (heap_ != nullptr) {  // Some unit tests.
       heap_->CheckConcurrentMarking(Thread::Current(), GCReason::kOldSpace,
                                     size);
@@ -1110,7 +1110,7 @@ void PageSpace::VisitRoots(ObjectPointerVisitor* visitor) {
 }
 
 void PageSpace::CollectGarbage(Thread* thread, bool compact, bool finalize) {
-  ASSERT(GrowthControlState());
+  ASSERT(!Thread::Current()->force_growth());
 
   if (!finalize) {
 #if defined(TARGET_ARCH_IA32)
@@ -1509,7 +1509,6 @@ PageSpaceController::PageSpaceController(Heap* heap,
                                          int heap_growth_max,
                                          int garbage_collection_time_ratio)
     : heap_(heap),
-      is_enabled_(false),
       heap_growth_ratio_(heap_growth_ratio),
       desired_utilization_((100.0 - heap_growth_ratio) / 100.0),
       heap_growth_max_(heap_growth_max),
@@ -1522,9 +1521,6 @@ PageSpaceController::PageSpaceController(Heap* heap,
 PageSpaceController::~PageSpaceController() {}
 
 bool PageSpaceController::ReachedHardThreshold(SpaceUsage after) const {
-  if (!is_enabled_) {
-    return false;
-  }
   if (heap_growth_ratio_ == 100) {
     return false;
   }
@@ -1532,9 +1528,6 @@ bool PageSpaceController::ReachedHardThreshold(SpaceUsage after) const {
 }
 
 bool PageSpaceController::ReachedSoftThreshold(SpaceUsage after) const {
-  if (!is_enabled_) {
-    return false;
-  }
   if (heap_growth_ratio_ == 100) {
     return false;
   }
@@ -1542,9 +1535,6 @@ bool PageSpaceController::ReachedSoftThreshold(SpaceUsage after) const {
 }
 
 bool PageSpaceController::ReachedIdleThreshold(SpaceUsage current) const {
-  if (!is_enabled_) {
-    return false;
-  }
   if (heap_growth_ratio_ == 100) {
     return false;
   }

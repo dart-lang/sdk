@@ -270,10 +270,6 @@ class PageSpaceController {
 
   void set_last_usage(SpaceUsage current) { last_usage_ = current; }
 
-  void Enable() { is_enabled_ = true; }
-  void Disable() { is_enabled_ = false; }
-  bool is_enabled() { return is_enabled_; }
-
  private:
   friend class PageSpace;  // For MergeOtherPageSpaceController
 
@@ -284,8 +280,6 @@ class PageSpaceController {
                     const char* reason);
 
   Heap* heap_;
-
-  bool is_enabled_;
 
   // Usage after last evaluated GC or last enabled.
   SpaceUsage last_usage_;
@@ -414,21 +408,6 @@ class PageSpace {
   void CollectGarbage(Thread* thread, bool compact, bool finalize);
 
   void AddRegionsToObjectSet(ObjectSet* set) const;
-
-  void InitGrowthControl() {
-    page_space_controller_.set_last_usage(usage_);
-    page_space_controller_.Enable();
-  }
-
-  void SetGrowthControlState(bool state) {
-    if (state) {
-      page_space_controller_.Enable();
-    } else {
-      page_space_controller_.Disable();
-    }
-  }
-
-  bool GrowthControlState() { return page_space_controller_.is_enabled(); }
 
   // Note: Code pages are made executable/non-executable when 'read_only' is
   // true/false, respectively.

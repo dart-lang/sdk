@@ -74,7 +74,7 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
   if (LIKELY(addr != 0)) {
     return addr;
   }
-  if (!assume_scavenge_will_fail_ && new_space_.GrowthControlState()) {
+  if (!assume_scavenge_will_fail_ && !thread->force_growth()) {
     // This call to CollectGarbage might end up "reusing" a collection spawned
     // from a different thread and will be racing to allocate the requested
     // memory with other threads being released after the collection.
@@ -93,7 +93,7 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
 
 uword Heap::AllocateOld(Thread* thread, intptr_t size, OldPage::PageType type) {
   ASSERT(thread->no_safepoint_scope_depth() == 0);
-  if (old_space_.GrowthControlState()) {
+  if (!thread->force_growth()) {
     CollectForDebugging(thread);
     uword addr = old_space_.TryAllocate(size, type);
     if (addr != 0) {
@@ -132,7 +132,7 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, OldPage::PageType type) {
     return addr;
   }
 
-  if (old_space_.GrowthControlState()) {
+  if (!thread->force_growth()) {
     WaitForSweeperTasks(thread);
     old_space_.TryReleaseReservation();
   } else {
@@ -155,10 +155,10 @@ void Heap::AllocatedExternal(intptr_t size, Space space) {
   }
 
   Thread* thread = Thread::Current();
-  if (thread->no_callback_scope_depth() == 0) {
+  if ((thread->no_callback_scope_depth() == 0) && !thread->force_growth()) {
     CheckExternalGC(thread);
   } else {
-    // Check delayed until Dart_TypedDataRelease.
+    // Check delayed until Dart_TypedDataRelease/~ForceGrowthScope.
   }
 }
 
@@ -179,6 +179,7 @@ void Heap::PromotedExternal(intptr_t size) {
 void Heap::CheckExternalGC(Thread* thread) {
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   ASSERT(thread->no_callback_scope_depth() == 0);
+  ASSERT(!thread->force_growth());
   if (new_space_.ExternalInWords() >= (4 * new_space_.CapacityInWords())) {
     // Attempt to free some external allocation by a scavenge. (If the total
     // remains above the limit, next external alloc will trigger another.)
@@ -566,6 +567,8 @@ void Heap::CollectAllGarbage(GCReason reason, bool compact) {
 void Heap::CheckConcurrentMarking(Thread* thread,
                                   GCReason reason,
                                   intptr_t size) {
+  ASSERT(!thread->force_growth());
+
   PageSpace::Phase phase;
   {
     MonitorLocker ml(old_space_.tasks_lock());
@@ -660,21 +663,6 @@ void Heap::UpdateGlobalMaxUsed() {
   isolate_group_->GetHeapGlobalUsedMaxMetric()->SetValue(
       (UsedInWords(Heap::kNew) * kWordSize) +
       (UsedInWords(Heap::kOld) * kWordSize));
-}
-
-void Heap::InitGrowthControl() {
-  new_space_.InitGrowthControl();
-  old_space_.InitGrowthControl();
-}
-
-void Heap::SetGrowthControlState(bool state) {
-  new_space_.SetGrowthControlState(state);
-  old_space_.SetGrowthControlState(state);
-}
-
-bool Heap::GrowthControlState() {
-  ASSERT(new_space_.GrowthControlState() == old_space_.GrowthControlState());
-  return old_space_.GrowthControlState();
 }
 
 void Heap::WriteProtect(bool read_only) {
@@ -1187,16 +1175,13 @@ Heap::Space Heap::SpaceForExternal(intptr_t size) const {
   }
 }
 
-NoHeapGrowthControlScope::NoHeapGrowthControlScope()
-    : ThreadStackResource(Thread::Current()) {
-  Heap* heap = isolate_group()->heap();
-  current_growth_controller_state_ = heap->GrowthControlState();
-  heap->DisableGrowthControl();
+ForceGrowthScope::ForceGrowthScope(Thread* thread)
+    : ThreadStackResource(thread) {
+  thread->IncrementForceGrowthScopeDepth();
 }
 
-NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
-  Heap* heap = isolate_group()->heap();
-  heap->SetGrowthControlState(current_growth_controller_state_);
+ForceGrowthScope::~ForceGrowthScope() {
+  thread()->DecrementForceGrowthScopeDepth();
 }
 
 WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread)

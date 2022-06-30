@@ -37,13 +37,10 @@ ForceGrowthSafepointOperationScope::ForceGrowthSafepointOperationScope(
   IsolateGroup* IG = T->isolate_group();
   ASSERT(IG != NULL);
 
+  T->IncrementForceGrowthScopeDepth();
+
   auto handler = IG->safepoint_handler();
   handler->SafepointThreads(T, level_);
-
-  // N.B.: Change growth policy inside the safepoint to prevent racy access.
-  Heap* heap = IG->heap();
-  current_growth_controller_state_ = heap->GrowthControlState();
-  heap->DisableGrowthControl();
 }
 
 ForceGrowthSafepointOperationScope::~ForceGrowthSafepointOperationScope() {
@@ -52,16 +49,14 @@ ForceGrowthSafepointOperationScope::~ForceGrowthSafepointOperationScope() {
   IsolateGroup* IG = T->isolate_group();
   ASSERT(IG != NULL);
 
-  // N.B.: Change growth policy inside the safepoint to prevent racy access.
-  Heap* heap = IG->heap();
-  heap->SetGrowthControlState(current_growth_controller_state_);
-
   auto handler = IG->safepoint_handler();
   handler->ResumeThreads(T, level_);
 
-  if (current_growth_controller_state_) {
+  T->DecrementForceGrowthScopeDepth();
+  if (!T->force_growth()) {
     ASSERT(T->CanCollectGarbage());
     // Check if we passed the growth limit during the scope.
+    Heap* heap = T->heap();
     if (heap->old_space()->ReachedHardThreshold()) {
       heap->CollectGarbage(T, GCType::kMarkSweep, GCReason::kOldSpace);
     } else {

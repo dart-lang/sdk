@@ -1313,9 +1313,6 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
   }
 
   if (success) {
-    if (is_new_group) {
-      group->heap()->InitGrowthControl();
-    }
     // A Thread structure has been associated to the thread, we do the
     // safepoint transition explicitly here instead of using the
     // TransitionXXX scope objects as the reverse transition happens

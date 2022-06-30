@@ -3280,7 +3280,7 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
     {
       // GCs due to allocations or weak handle creation can cause early
       // promotion and interfere with the scenario this test is verifying.
-      NoHeapGrowthControlScope force_growth;
+      ForceGrowthScope force_growth(thread);
 
       // Create an object in new space.
       new_ref = AllocateNewString("new string");
@@ -3425,7 +3425,7 @@ TEST_CASE(DartAPI_FinalizableHandle) {
     {
       // GCs due to allocations or weak handle creation can cause early
       // promotion and interfere with the scenario this test is verifying.
-      NoHeapGrowthControlScope force_growth;
+      ForceGrowthScope force_growth(thread);
 
       // Create an object in new space.
       new_ref = AllocateNewString("new string");

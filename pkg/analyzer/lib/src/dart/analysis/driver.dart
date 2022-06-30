@@ -1363,7 +1363,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         return result;
       } catch (exception, stackTrace) {
         String? contextKey =
-            _storeExceptionContext(path, library.file, exception, stackTrace);
+            _storeExceptionContext(path, library, exception, stackTrace);
         throw _ExceptionState(exception, stackTrace, contextKey);
       }
     });
@@ -1500,7 +1500,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// When we look at a part that has a `part of name;` directive, we
   /// usually don't know the library (in contrast to `part of uri;`).
   /// So, we have no choice than to resolve this part as its own library.
-  /// TODO(scheglov) Maybe just return an error result instead?
   ///
   /// But parts of `dart:xyz` libraries are special. The reason is that
   /// `dart:core` is always implicitly imported. So, when we start building
@@ -1519,7 +1518,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     _fsState.getFileForUri(Uri.parse('dart:core')).map(
       (file) {
-        file?.transitiveFiles;
+        final kind = file?.kind as LibraryFileStateKind;
+        kind.discoverReferencedFiles();
       },
       (externalLibrary) {},
     );
@@ -1810,7 +1810,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         .toBuffer();
   }
 
-  String? _storeExceptionContext(String path, FileState libraryFile,
+  String? _storeExceptionContext(String path, LibraryFileStateKind library,
       Object exception, StackTrace stackTrace) {
     if (allowedNumberOfContextsToWrite <= 0) {
       return null;
@@ -1818,8 +1818,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       allowedNumberOfContextsToWrite--;
     }
     try {
-      List<AnalysisDriverExceptionFileBuilder> contextFiles = libraryFile
-          .transitiveFiles
+      final contextFiles = library.files
           .map((file) => AnalysisDriverExceptionFileBuilder(
               path: file.path, content: file.content))
           .toList();

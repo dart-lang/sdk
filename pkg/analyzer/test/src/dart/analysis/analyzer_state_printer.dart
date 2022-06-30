@@ -96,13 +96,13 @@ class AnalyzerStatePrinter {
     _writeElements<ImportAugmentationDirectiveState>(
       'augmentations',
       container.augmentations,
-      (augmentation) {
-        expect(augmentation.container, same(container));
-        if (augmentation is ImportAugmentationDirectiveWithFile) {
-          final file = augmentation.importedFile;
+      (import) {
+        if (import is ImportAugmentationDirectiveWithFile) {
+          expect(import.container, same(container));
+          final file = import.importedFile;
           sink.write(_indent);
 
-          final importedAugmentation = augmentation.importedAugmentation;
+          final importedAugmentation = import.importedAugmentation;
           if (importedAugmentation != null) {
             expect(importedAugmentation.file, file);
             sink.write(idProvider.fileStateKind(importedAugmentation));
@@ -112,7 +112,7 @@ class AnalyzerStatePrinter {
           sink.writeln();
         } else {
           sink.write(_indent);
-          sink.write('uri: ${_stringOfUriStr(augmentation.directive.uri)}');
+          sink.write('uri: ${_stringOfUriStr(import.directive.uri)}');
           sink.writeln();
         }
       },
@@ -169,89 +169,99 @@ class AnalyzerStatePrinter {
     });
   }
 
-  void _writeFileExports(LibraryOrAugmentationFileKind file) {
-    _writeElements<ExportDirectiveState>('exports', file.exports, (export) {
-      if (export is ExportDirectiveWithFile) {
-        final file = export.exportedFile;
-        sink.write(_indent);
+  void _writeFileExports(LibraryOrAugmentationFileKind container) {
+    _writeElements<ExportDirectiveState>(
+      'exports',
+      container.exports,
+      (export) {
+        if (export is ExportDirectiveWithFile) {
+          expect(export.container, same(container));
+          final file = export.exportedFile;
+          sink.write(_indent);
 
-        final exportedLibrary = export.exportedLibrary;
-        if (exportedLibrary != null) {
-          expect(exportedLibrary.file, file);
-          sink.write(idProvider.fileStateKind(exportedLibrary));
+          final exportedLibrary = export.exportedLibrary;
+          if (exportedLibrary != null) {
+            expect(exportedLibrary.file, file);
+            sink.write(idProvider.fileStateKind(exportedLibrary));
+          } else {
+            sink.write('notLibrary ${idProvider.fileState(file)}');
+          }
+
+          if (omitSdkFiles && file.uri.isScheme('dart')) {
+            sink.write(' ${file.uri}');
+          }
+          sink.writeln();
+        } else if (export is ExportDirectiveWithInSummarySource) {
+          sink.write(_indent);
+          sink.write('inSummary ${export.exportedSource.uri}');
+
+          final librarySource = export.exportedLibrarySource;
+          if (librarySource != null) {
+            expect(librarySource, same(export.exportedSource));
+          } else {
+            sink.write(' notLibrary');
+          }
+          sink.writeln();
         } else {
-          sink.write('notLibrary ${idProvider.fileState(file)}');
+          sink.write(_indent);
+          sink.write('uri: ${_stringOfUriStr(export.directive.uri)}');
+          sink.writeln();
         }
-
-        if (omitSdkFiles && file.uri.isScheme('dart')) {
-          sink.write(' ${file.uri}');
-        }
-        sink.writeln();
-      } else if (export is ExportDirectiveWithInSummarySource) {
-        sink.write(_indent);
-        sink.write('inSummary ${export.exportedSource.uri}');
-
-        final librarySource = export.exportedLibrarySource;
-        if (librarySource != null) {
-          expect(librarySource, same(export.exportedSource));
-        } else {
-          sink.write(' notLibrary');
-        }
-        sink.writeln();
-      } else {
-        sink.write(_indent);
-        sink.write('uri: ${_stringOfUriStr(export.directive.uri)}');
-        sink.writeln();
-      }
-    });
+      },
+    );
   }
 
-  void _writeFileImports(LibraryOrAugmentationFileKind file) {
-    _writeElements<ImportDirectiveState>('imports', file.imports, (import) {
-      if (import is ImportDirectiveWithFile) {
-        final file = import.importedFile;
-        sink.write(_indent);
+  void _writeFileImports(LibraryOrAugmentationFileKind container) {
+    _writeElements<ImportDirectiveState>(
+      'imports',
+      container.imports,
+      (import) {
+        if (import is ImportDirectiveWithFile) {
+          expect(import.container, same(container));
+          final file = import.importedFile;
+          sink.write(_indent);
 
-        final importedLibrary = import.importedLibrary;
-        if (importedLibrary != null) {
-          expect(importedLibrary.file, file);
-          sink.write(idProvider.fileStateKind(importedLibrary));
+          final importedLibrary = import.importedLibrary;
+          if (importedLibrary != null) {
+            expect(importedLibrary.file, file);
+            sink.write(idProvider.fileStateKind(importedLibrary));
+          } else {
+            sink.write('notLibrary ${idProvider.fileState(file)}');
+          }
+
+          if (omitSdkFiles && file.uri.isScheme('dart')) {
+            sink.write(' ${file.uri}');
+          }
+
+          if (import.isSyntheticDartCoreImport) {
+            sink.write(' synthetic');
+          }
+          sink.writeln();
+        } else if (import is ImportDirectiveWithInSummarySource) {
+          sink.write(_indent);
+          sink.write('inSummary ${import.importedSource.uri}');
+
+          final librarySource = import.importedLibrarySource;
+          if (librarySource != null) {
+            expect(librarySource, same(import.importedSource));
+          } else {
+            sink.write(' notLibrary');
+          }
+
+          if (import.isSyntheticDartCoreImport) {
+            sink.write(' synthetic');
+          }
+          sink.writeln();
         } else {
-          sink.write('notLibrary ${idProvider.fileState(file)}');
+          sink.write(_indent);
+          sink.write('uri: ${_stringOfUriStr(import.directive.uri)}');
+          if (import.isSyntheticDartCoreImport) {
+            sink.write(' synthetic');
+          }
+          sink.writeln();
         }
-
-        if (omitSdkFiles && file.uri.isScheme('dart')) {
-          sink.write(' ${file.uri}');
-        }
-
-        if (import.isSyntheticDartCoreImport) {
-          sink.write(' synthetic');
-        }
-        sink.writeln();
-      } else if (import is ImportDirectiveWithInSummarySource) {
-        sink.write(_indent);
-        sink.write('inSummary ${import.importedSource.uri}');
-
-        final librarySource = import.importedLibrarySource;
-        if (librarySource != null) {
-          expect(librarySource, same(import.importedSource));
-        } else {
-          sink.write(' notLibrary');
-        }
-
-        if (import.isSyntheticDartCoreImport) {
-          sink.write(' synthetic');
-        }
-        sink.writeln();
-      } else {
-        sink.write(_indent);
-        sink.write('uri: ${_stringOfUriStr(import.directive.uri)}');
-        if (import.isSyntheticDartCoreImport) {
-          sink.write(' synthetic');
-        }
-        sink.writeln();
-      }
-    });
+      },
+    );
   }
 
   void _writeFileKind(FileState file) {

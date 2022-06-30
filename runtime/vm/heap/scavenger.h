@@ -349,16 +349,6 @@ class Scavenger {
   void MakeNewSpaceIterable();
   int64_t FreeSpaceInWords(Isolate* isolate) const;
 
-  void InitGrowthControl() {
-    growth_control_ = true;
-  }
-
-  void SetGrowthControlState(bool state) {
-    growth_control_ = state;
-  }
-
-  bool GrowthControlState() { return growth_control_; }
-
   bool scavenging() const { return scavenging_; }
 
   // The maximum number of Dart mutator threads we allow to execute at the same
@@ -456,10 +446,6 @@ class Scavenger {
 
   RelaxedAtomic<bool> failed_to_promote_;
   RelaxedAtomic<bool> abort_;
-
-  // When the isolate group is ready it will enable growth control via
-  // InitGrowthControl.
-  bool growth_control_ = false;
 
   // Protects new space during the allocation of new TLABs
   mutable Mutex space_lock_;

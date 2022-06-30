@@ -1059,9 +1059,6 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
     return error.ptr();
   }
 
-  if (!was_child_cloned_into_existing_isolate) {
-    IG->heap()->InitGrowthControl();
-  }
   I->set_init_callback_data(isolate_data);
   if (FLAG_print_class_table) {
     IG->class_table()->Print();
