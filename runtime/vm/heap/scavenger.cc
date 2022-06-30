@@ -1678,7 +1678,7 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
 
   AbandonRemainingTLAB(thread);
 
-  if (can_safepoint) {
+  if (can_safepoint && !thread->force_growth()) {
     ASSERT(thread->no_safepoint_scope_depth() == 0);
     heap_->CheckConcurrentMarking(thread, GCReason::kNewSpace, kNewPageSize);
   }

@@ -753,7 +753,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
           // "become" operation below replaces all the instances of the old
           // size with forwarding corpses. Force heap growth to prevent size
           // confusion during this period.
-          NoHeapGrowthControlScope scope;
+          ForceGrowthScope force_growth(thread);
           // The HeapIterationScope above ensures no other GC tasks can be
           // active.
           ASSERT(HasNoTasks(heap));

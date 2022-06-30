@@ -586,15 +586,23 @@ class Thread : public ThreadState {
   }
 
   int32_t no_callback_scope_depth() const { return no_callback_scope_depth_; }
-
   void IncrementNoCallbackScopeDepth() {
     ASSERT(no_callback_scope_depth_ < INT_MAX);
     no_callback_scope_depth_ += 1;
   }
-
   void DecrementNoCallbackScopeDepth() {
     ASSERT(no_callback_scope_depth_ > 0);
     no_callback_scope_depth_ -= 1;
+  }
+
+  bool force_growth() const { return force_growth_scope_depth_ != 0; }
+  void IncrementForceGrowthScopeDepth() {
+    ASSERT(force_growth_scope_depth_ < INT_MAX);
+    force_growth_scope_depth_ += 1;
+  }
+  void DecrementForceGrowthScopeDepth() {
+    ASSERT(force_growth_scope_depth_ > 0);
+    force_growth_scope_depth_ -= 1;
   }
 
   bool is_unwind_in_progress() const { return is_unwind_in_progress_; }
@@ -1219,6 +1227,7 @@ class Thread : public ThreadState {
   mutable Monitor thread_lock_;
   ApiLocalScope* api_reusable_scope_;
   int32_t no_callback_scope_depth_;
+  int32_t force_growth_scope_depth_ = 0;
   intptr_t no_reload_scope_depth_ = 0;
   intptr_t stopped_mutators_scope_depth_ = 0;
 #if defined(DEBUG)
