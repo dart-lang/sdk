@@ -1442,8 +1442,3 @@ int main(int argc, char** argv) {
   dart::bin::main(argc, argv);
   UNREACHABLE();
 }
-
-// TODO(riscv): Why is this missing from libc?
-#if defined(__riscv)
-char __libc_single_threaded = 0;
-#endif
