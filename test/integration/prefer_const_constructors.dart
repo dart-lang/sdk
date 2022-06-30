@@ -30,8 +30,6 @@ void main() {
       await cli.runLinter([
         '$integrationTestDir/prefer_const_constructors',
         '--rules=prefer_const_constructors',
-        '--packages',
-        '$ruleTestDir/.mock_packages',
       ], LinterOptions());
       expect(
           collectingOut.trim(),

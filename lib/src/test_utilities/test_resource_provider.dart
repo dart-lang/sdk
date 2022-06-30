@@ -20,13 +20,6 @@ DartLinter buildDriver(LintRule rule, File file, {String? analysisOptions}) {
       context: PhysicalResourceProvider.INSTANCE.pathContext);
   var resourceProvider = TestResourceProvider(memoryResourceProvider);
 
-  var pathContext = memoryResourceProvider.pathContext;
-  String? packageConfigPath = memoryResourceProvider.convertPath(pathContext
-      .join(pathContext.dirname(file.absolute.path), '.mock_packages'));
-  if (!resourceProvider.getFile(packageConfigPath).exists) {
-    packageConfigPath = null;
-  }
-
   var sdkRoot = memoryResourceProvider.getFolder(
     memoryResourceProvider.convertPath('/sdk'),
   );
@@ -37,8 +30,7 @@ DartLinter buildDriver(LintRule rule, File file, {String? analysisOptions}) {
 
   var options = LinterOptions([rule], analysisOptions)
     ..dartSdkPath = sdkRoot.path
-    ..resourceProvider = resourceProvider
-    ..packageConfigPath = packageConfigPath;
+    ..resourceProvider = resourceProvider;
 
   return DartLinter(options);
 }
