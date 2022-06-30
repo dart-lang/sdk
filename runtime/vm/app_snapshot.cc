@@ -1988,14 +1988,12 @@ class CodeSerializationCluster : public SerializationCluster {
         // indirectly by passing the field to the runtime. A const closure
         // is a call target because its function may be called indirectly
         // via a closure call.
-        if (!only_call_targets || target->IsCode() || target->IsFunction() ||
-            target->IsField() || target->IsClosure()) {
+        intptr_t cid = target->GetClassIdMayBeSmi();
+        if (!only_call_targets || (cid == kCodeCid) || (cid == kFunctionCid) ||
+            (cid == kFieldCid) || (cid == kClosureCid)) {
           s->Push(target);
-        } else {
-          intptr_t cid = target->GetClassIdMayBeSmi();
-          if (cid >= kNumPredefinedCids) {
-            s->Push(s->isolate_group()->class_table()->At(cid));
-          }
+        } else if (cid >= kNumPredefinedCids) {
+          s->Push(s->isolate_group()->class_table()->At(cid));
         }
       }
     }
