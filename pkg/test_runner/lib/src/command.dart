@@ -267,6 +267,18 @@ class Dart2jsCompilationCommand extends CompilationCommand {
             index: index);
 
   @override
+  Dart2jsCompilationCommand indexedCopy(int index) => Dart2jsCompilationCommand(
+      outputFile,
+      _bootstrapDependencies,
+      executable,
+      arguments,
+      environmentOverrides,
+      useSdk: useSdk,
+      alwaysCompile: _alwaysCompile,
+      workingDirectory: workingDirectory,
+      index: index);
+
+  @override
   CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
       List<int> stderr, Duration time, bool compilationSkipped,
       [int? pid = 0]) {
@@ -320,6 +332,15 @@ class DevCompilerCompilationCommand extends CompilationCommand {
             alwaysCompile: alwaysCompile,
             workingDirectory: workingDirectory,
             index: index);
+
+  @override
+  DevCompilerCompilationCommand indexedCopy(int index) =>
+      DevCompilerCompilationCommand(outputFile, _bootstrapDependencies,
+          executable, arguments, environmentOverrides,
+          compilerPath: compilerPath,
+          alwaysCompile: _alwaysCompile,
+          workingDirectory: workingDirectory,
+          index: index);
 
   @override
   CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
