@@ -85,7 +85,6 @@ class CiderCompletionComputer {
         enclosingNode: enclosingNode,
         offset: offset,
         dartdocDirectiveInfo: null,
-        documentationCache: null,
       );
 
       var suggestions = await performance.runAsync(

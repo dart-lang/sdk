@@ -114,7 +114,6 @@ class CompletionGetSuggestionsHandler extends CompletionGetSuggestions2Handler {
           dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(
             resolvedUnit,
           ),
-          documentationCache: server.getDocumentationCacheFor(resolvedUnit),
         );
 
         var completionId =

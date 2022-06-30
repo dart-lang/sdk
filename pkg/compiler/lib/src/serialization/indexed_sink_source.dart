@@ -88,7 +88,8 @@ class UnorderedIndexedSource<E> implements IndexedSource<E> {
 
   UnorderedIndexedSource(this._sourceReader, {this.previousSource})
       // [cache] slot 1 is pre-allocated to `null`.
-      : _cache = previousSource?._cache ?? {1: null};
+      : _cache =
+            previousSource != null ? {...previousSource._cache} : {1: null};
 
   /// Reads a reference to an [E?] value from the data source.
   ///

@@ -96,11 +96,15 @@ class DataSourceReader {
 
   DataSourceReader(this._sourceReader, CompilerOptions options,
       {this.useDataKinds = false,
-      this.importedIndices,
+      DataSourceIndices? importedIndices,
       this.interner,
       this.useDeferredStrategy = false})
       : enableDeferredStrategy =
             (options.features.deferredSerialization.isEnabled),
+        this.importedIndices = importedIndices == null
+            ? null
+            : (DataSourceIndices(importedIndices.previousSourceReader)
+              ..caches.addAll(importedIndices.caches)),
         endOffset = (importedIndices?.previousSourceReader?.endOffset ?? 0) +
             _sourceReader.length {
     if (!enableDeferredStrategy) {

@@ -5,7 +5,6 @@
 import 'dart:io' show stdout;
 import 'dart:math' as math;
 
-import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -14,7 +13,6 @@ import 'package:analyzer/error/error.dart' as err;
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:args/args.dart';
 import 'package:cli_util/cli_logging.dart';
@@ -60,11 +58,9 @@ abstract class CompletionMetricsComputer {
     setupForResolution(context);
 
     logger.write('Computing completions at root: ${root.root.path}\n');
-    var documentationCache = DocumentationCache(DartdocDirectiveInfo());
 
     var results = await resolveAnalyzedFiles(
       context: context,
-      documentationCache: documentationCache,
     );
 
     logger.write('Analyzing completion suggestions...\n');
@@ -84,7 +80,6 @@ abstract class CompletionMetricsComputer {
         await computeSuggestionsAndMetrics(
           expectedCompletion,
           context,
-          documentationCache,
         );
 
         await removeOverlay(filePath);
@@ -109,7 +104,6 @@ abstract class CompletionMetricsComputer {
   Future<void> computeSuggestionsAndMetrics(
     ExpectedCompletion expectedCompletion,
     AnalysisContext context,
-    DocumentationCache documentationCache,
   );
 
   /// Removes the overlay which has been applied to [filePath].
@@ -118,7 +112,6 @@ abstract class CompletionMetricsComputer {
   /// Resolves all analyzed files within [context].
   Future<List<ResolvedUnitResult>> resolveAnalyzedFiles({
     required AnalysisContext context,
-    required DocumentationCache documentationCache,
   }) async {
     final analyzedFileCount = context.contextRoot.analyzedFiles().length;
     logger.write('Resolving $analyzedFileCount files...\n');
@@ -141,7 +134,6 @@ abstract class CompletionMetricsComputer {
             continue;
           } else {
             results.add(result);
-            documentationCache.cacheFromResult(result);
           }
         } catch (exception, stackTrace) {
           progress.clear();

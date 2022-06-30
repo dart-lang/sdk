@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/server/driver.dart';
-import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
@@ -506,7 +505,6 @@ class _CompletionClientMetricsComputer extends CompletionMetricsComputer {
   Future<void> computeSuggestionsAndMetrics(
     ExpectedCompletion expectedCompletion,
     AnalysisContext context,
-    DocumentationCache documentationCache,
   ) async {
     var stopwatch = Stopwatch()..start();
     var suggestionsData = await client.requestCompletion(

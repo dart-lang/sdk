@@ -1250,6 +1250,7 @@ class Thread : public AllStatic {
   THREAD_XMM_CONSTANT_LIST(DECLARE_CONSTANT_OFFSET_GETTER)
 #undef DECLARE_CONSTANT_OFFSET_GETTER
 
+  static word next_task_id_offset();
   static word random_offset();
 
   static word suspend_state_init_async_entry_point_offset();

@@ -12,7 +12,6 @@ import 'package:analysis_server/src/domains/completion/available_suggestions.dar
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/probability_range.dart';
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
@@ -836,7 +835,6 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   Future<void> computeSuggestionsAndMetrics(
     ExpectedCompletion expectedCompletion,
     AnalysisContext context,
-    DocumentationCache documentationCache,
   ) async {
     // As this point the completion suggestions are computed,
     // and results are collected with varying settings for
@@ -850,7 +848,6 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       var request = DartCompletionRequest.forResolvedUnit(
         resolvedUnit: resolvedUnitResult,
         offset: expectedCompletion.offset,
-        documentationCache: documentationCache,
       );
 
       var opType = OpType.forCompletion(request.target, request.offset);

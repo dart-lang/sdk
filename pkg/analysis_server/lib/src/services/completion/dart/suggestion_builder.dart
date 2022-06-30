@@ -1354,14 +1354,6 @@ class SuggestionBuilder {
 
   /// If the [element] has a documentation comment, return it.
   _ElementDocumentation? _getDocumentation(Element element) {
-    var documentationCache = request.documentationCache;
-    var data = documentationCache?.dataFor(element);
-    if (data != null) {
-      return _ElementDocumentation(
-        full: data.full,
-        summary: data.summary,
-      );
-    }
     var doc = DartUnitHoverComputer.computeDocumentation(
       request.dartdocDirectiveInfo,
       element,
@@ -1452,13 +1444,6 @@ class SuggestionBuilder {
   /// If the [element] has a documentation comment, fill the [suggestion]'s
   /// documentation fields.
   void _setDocumentation(CompletionSuggestion suggestion, Element element) {
-    var documentationCache = request.documentationCache;
-    var data = documentationCache?.dataFor(element);
-    if (data != null) {
-      suggestion.docComplete = data.full;
-      suggestion.docSummary = data.summary;
-      return;
-    }
     var doc = DartUnitHoverComputer.computeDocumentation(
         request.dartdocDirectiveInfo, element,
         includeSummary: true);

@@ -49,7 +49,7 @@ int _getTraceClock() => _traceClock++;
 int _traceClock = 0;
 
 @patch
-int _getNextAsyncId() => 0;
+int _getNextTaskId() => 0;
 
 @patch
 void _reportTaskEvent(int taskId, String phase, String category, String name,
