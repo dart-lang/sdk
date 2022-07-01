@@ -163,6 +163,8 @@ class DumpInfoDataComputer extends DataComputer<Features> {
       for (final closure in functionInfo.closures) {
         features.addElement(
             Tags.closure, jsonEncode(closure.accept(converter)));
+        features.addElement(
+            Tags.function, jsonEncode(closure.function.accept(converter)));
       }
     }
 
@@ -176,6 +178,8 @@ class DumpInfoDataComputer extends DataComputer<Features> {
       for (final closure in functionInfo.closures) {
         features.addElement(
             Tags.closure, jsonEncode(closure.accept(converter)));
+        features.addElement(
+            Tags.function, jsonEncode(closure.function.accept(converter)));
       }
     }
 
