@@ -60,7 +60,7 @@ Map transformJsonObjectForComparison(Map object) {
     }
 
     // Remove disambiguation portions of names. E.g., name%N -> name.
-    if (key == 'id' || key == 'name' || key == 'function') {
+    if (key == 'id' || key == 'name' || key == 'function' || key == 'parent') {
       newValue = value.replaceAll(RegExp(r'%\d+'), '');
     } else if (key == 'children') {
       List values = object[key];
@@ -214,6 +214,8 @@ class DumpInfoDataComputer extends DataComputer<Features> {
       for (final closure in functionInfo.closures) {
         features.addElement(
             Tags.closure, jsonEncode(closure.accept(converter)));
+        features.addElement(
+            Tags.function, jsonEncode(closure.function.accept(converter)));
       }
     }
 
@@ -227,6 +229,8 @@ class DumpInfoDataComputer extends DataComputer<Features> {
       for (final closure in functionInfo.closures) {
         features.addElement(
             Tags.closure, jsonEncode(closure.accept(converter)));
+        features.addElement(
+            Tags.function, jsonEncode(closure.function.accept(converter)));
       }
     }
 

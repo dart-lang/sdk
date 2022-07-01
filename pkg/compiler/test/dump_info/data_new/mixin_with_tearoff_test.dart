@@ -356,7 +356,8 @@ class Subclass extends Clazz {
   "parent": "function/memory:sdk/tests/web/native/main.dart::main",
   "function": "function/memory:sdk/tests/web/native/main.dart::main.main_closure.call"
 }],
- function=[{
+ function=[
+  {
   "id": "function/memory:sdk/tests/web/native/main.dart::main",
   "kind": "function",
   "name": "main",
@@ -380,6 +381,29 @@ class Subclass extends Clazz {
   "code": "main() {\n      var s = new A.Subclass();\n      A.Clazz.prototype.get$method.call(s).call$1(0);\n      A.Expect_throws(new A.main_closure(s), type$.legacy_Object);\n    }",
   "type": "dynamic Function()*",
   "functionKind": 0
+},
+  {
+  "id": "function/memory:sdk/tests/web/native/main.dart::main.main_closure.call",
+  "kind": "function",
+  "name": "call",
+  "size": 71,
+  "outputUnit": "outputUnit/main",
+  "parent": "closure/memory:sdk/tests/web/native/main.dart::main.main_closure",
+  "children": [],
+  "modifiers": {
+    "static": false,
+    "const": false,
+    "factory": false,
+    "external": false
+  },
+  "returnType": "void",
+  "inferredReturnType": "[null]",
+  "parameters": [],
+  "sideEffects": "SideEffects(reads nothing; writes nothing)",
+  "inlinedCount": 0,
+  "code": "call$0() {\n      return this.s.super$Mixin$method(A._asIntS(\"\"));\n    }",
+  "type": "void Function()",
+  "functionKind": 2
 }],
  holding=[
   {"id":"function/dart:_js_helper::closureFromTearOff","mask":null},

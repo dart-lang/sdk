@@ -56,8 +56,12 @@ import '../universe/selector.dart';
 import '../universe/world_impact.dart';
 
 import 'element_map.dart';
-import 'element_map_interfaces.dart'
-    show KernelToElementMapForClassHierarchy, KernelToElementMapForImpactData;
+import 'element_map_interfaces.dart' as interfaces
+    show
+        KernelElementEnvironment,
+        KernelToElementMapForClassHierarchy,
+        KernelToElementMapForImpactData,
+        KernelToElementMapForNativeData;
 import 'env.dart';
 import 'kelements.dart';
 import 'kernel_impact.dart';
@@ -66,9 +70,10 @@ import 'kernel_impact.dart';
 /// impact computation.
 class KernelToElementMap
     implements
-        IrToElementMap,
-        KernelToElementMapForClassHierarchy,
-        KernelToElementMapForImpactData {
+        interfaces.KernelToElementMapForClassHierarchy,
+        interfaces.KernelToElementMapForImpactData,
+        interfaces.KernelToElementMapForNativeData,
+        IrToElementMap {
   @override
   final CompilerOptions options;
   @override
@@ -136,6 +141,7 @@ class KernelToElementMap
   @override
   DartTypes get types => _types;
 
+  @override
   KernelElementEnvironment get elementEnvironment => _elementEnvironment;
 
   /// Access to the commonly used elements and types.
@@ -1649,6 +1655,7 @@ class KernelToElementMap
 
   /// Computes the native behavior for reading the native [field].
   /// TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
       Iterable<String> createsAnnotations, Iterable<String> returnsAnnotations,
       {bool isJsInterop}) {
@@ -1660,6 +1667,7 @@ class KernelToElementMap
 
   /// Computes the native behavior for writing to the native [field].
   /// TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForFieldStore(ir.Field field) {
     DartType type = getDartType(field.type);
     return nativeBehaviorBuilder.buildFieldStoreBehavior(type);
@@ -1668,6 +1676,7 @@ class KernelToElementMap
   /// Computes the native behavior for calling the function or constructor
   /// [member].
   /// TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForMethod(ir.Member member,
       Iterable<String> createsAnnotations, Iterable<String> returnsAnnotations,
       {bool isJsInterop}) {
@@ -1762,7 +1771,7 @@ class KernelToElementMap
 }
 
 class KernelElementEnvironment extends ElementEnvironment
-    implements KElementEnvironment {
+    implements KElementEnvironment, interfaces.KernelElementEnvironment {
   final KernelToElementMap elementMap;
 
   KernelElementEnvironment(this.elementMap);

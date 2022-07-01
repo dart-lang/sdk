@@ -546,8 +546,8 @@ class KernelInfoCollector {
   FunctionInfo visitFunction(ir.FunctionNode function,
       {FunctionEntity functionEntity, LocalFunctionInfo localFunctionInfo}) {
     final parent = function.parent;
-    String name =
-        parent is ir.LocalFunction ? 'call' : parent.toStringInternal();
+    bool isClosureCallMethod = parent is ir.LocalFunction;
+    String name = isClosureCallMethod ? 'call' : parent.toStringInternal();
     bool isConstructor = parent is ir.Constructor;
     bool isFactory = parent is ir.Procedure && parent.isFactory;
     // Kernel `isStatic` refers to static members, constructors, and top-level
@@ -562,7 +562,8 @@ class KernelInfoCollector {
         !isFactory;
     bool isConst = parent is ir.Member && parent.isConst;
     bool isExternal = parent is ir.Member && parent.isExternal;
-    bool isMethod = parent is ir.Member && parent.enclosingClass != null;
+    bool isMethod = isClosureCallMethod ||
+        (parent is ir.Member && parent.enclosingClass != null);
     bool isGetter = parent is ir.Procedure && parent.isGetter;
     bool isSetter = parent is ir.Procedure && parent.isSetter;
     int kind;
