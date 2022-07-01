@@ -333,16 +333,19 @@ class TestConfiguration {
       _compilerConfiguration ??= CompilerConfiguration(this);
 
   /// The set of [Feature]s supported by this configuration.
-  late final Set<Feature> supportedFeatures = {
-    // TODO(rnystrom): Define more features for things like "dart:io", separate
-    // int/double representation, etc.
-    if (NnbdMode.legacy == configuration.nnbdMode)
-      Feature.nnbdLegacy
-    else
-      Feature.nnbd,
-    if (NnbdMode.weak == configuration.nnbdMode) Feature.nnbdWeak,
-    if (NnbdMode.strong == configuration.nnbdMode) Feature.nnbdStrong,
-  };
+  late final Set<Feature> supportedFeatures = compiler == Compiler.dart2analyzer
+      // The analyzer should parse all tests.
+      ? {...Feature.all}
+      : {
+          // TODO(rnystrom): Define more features for things like "dart:io", separate
+          // int/double representation, etc.
+          if (NnbdMode.legacy == configuration.nnbdMode)
+            Feature.nnbdLegacy
+          else
+            Feature.nnbd,
+          if (NnbdMode.weak == configuration.nnbdMode) Feature.nnbdWeak,
+          if (NnbdMode.strong == configuration.nnbdMode) Feature.nnbdStrong,
+        };
 
   /// Determines if this configuration has a compatible compiler and runtime
   /// and other valid fields.
