@@ -228,16 +228,14 @@ class TypeInferrerImpl implements TypeInferrer {
 
   @override
   late final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
-          DartType> flowAnalysis =
-      libraryBuilder.isNonNullableByDefault
-          ? new FlowAnalysis(
-              new TypeOperationsCfe(engine.typeSchemaEnvironment),
-              assignedVariables,
-              respectImplicitlyTypedVarInitializers:
-                  libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled)
-          : new FlowAnalysis.legacy(
-              new TypeOperationsCfe(engine.typeSchemaEnvironment),
-              assignedVariables);
+      DartType> flowAnalysis = libraryBuilder
+          .isNonNullableByDefault
+      ? new FlowAnalysis(
+          new OperationsCfe(engine.typeSchemaEnvironment), assignedVariables,
+          respectImplicitlyTypedVarInitializers:
+              libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled)
+      : new FlowAnalysis.legacy(
+          new OperationsCfe(engine.typeSchemaEnvironment), assignedVariables);
 
   @override
   final AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
