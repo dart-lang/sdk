@@ -1937,24 +1937,6 @@ void AsmIntrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
 #endif
 }
 
-void AsmIntrinsifier::Timeline_getNextTaskId(Assembler* assembler,
-                                             Label* normal_ir_body) {
-#if !defined(SUPPORT_TIMELINE)
-  __ LoadImmediate(EAX, target::ToRawSmi(0));
-  __ ret();
-#else
-  __ movl(EBX, Address(THR, target::Thread::next_task_id_offset()));
-  __ movl(ECX, Address(THR, target::Thread::next_task_id_offset() + 4));
-  __ movl(EAX, EBX);
-  __ SmiTag(EAX);  // Ignore loss of precision.
-  __ addl(EBX, Immediate(1));
-  __ adcl(ECX, Immediate(0));
-  __ movl(Address(THR, target::Thread::next_task_id_offset()), EBX);
-  __ movl(Address(THR, target::Thread::next_task_id_offset() + 4), ECX);
-  __ ret();
-#endif
-}
-
 #undef __
 
 }  // namespace compiler

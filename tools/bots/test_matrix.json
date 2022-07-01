@@ -979,20 +979,6 @@
         "enable-asserts": true,
         "use-sdk": true
       }
-    },
-    "analyzer-asserts-strong-(linux|mac|win)": {
-      "options": {
-        "compiler": "dart2analyzer",
-        "enable-asserts": true,
-        "use-sdk": true
-      }
-    },
-    "analyzer-asserts-weak-(linux|mac|win)": {
-      "options": {
-        "compiler": "dart2analyzer",
-        "enable-asserts": true,
-        "use-sdk": true
-      }
     }
   },
   "builder_configurations": [
@@ -3298,9 +3284,29 @@
           "fileset": "analyzer_unit_tests"
         },
         {
+          "name": "nnbd_migration unit tests",
+          "arguments": [
+            "-nanalyzer-unittest-asserts-${mode}-${system}",
+            "pkg/nnbd_migration"
+          ],
+          "shards": 2,
+          "fileset": "analyzer_unit_tests"
+        },
+        {
           "name": "analyze tests enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-${system}"
+          ]
+        },
+        {
+          "name": "analyze migrated tests enable-asserts",
+          "arguments": [
+            "-nanalyzer-asserts-${system}",
+            "corelib",
+            "ffi",
+            "language",
+            "lib",
+            "standalone"
           ]
         },
         {
@@ -3325,75 +3331,11 @@
           ]
         },
         {
-          "name": "nnbd_migration unit tests",
-          "arguments": [
-            "-nanalyzer-unittest-asserts-${mode}-${system}",
-            "pkg/nnbd_migration"
-          ],
-          "shards": 2,
-          "fileset": "analyzer_unit_tests"
-        },
-        {
-          "name": "analyze tests co19_2",
+          "name": "analyze co19 tests",
           "arguments": [
             "-nanalyzer-asserts-${system}",
+            "co19",
             "co19_2"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "analyzer-nnbd-linux-release",
-        "analyzer-nnbd-mac-release",
-        "analyzer-nnbd-win-release"
-      ],
-      "meta": {
-        "description": "This configuration is used by the nnbd analyzer builders."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "create_sdk"
-          ]
-        },
-        {
-          "name": "analyze nnbd strong tests enable-asserts",
-          "arguments": [
-            "-nanalyzer-asserts-strong-${system}",
-            "corelib",
-            "ffi",
-            "language",
-            "lib",
-            "standalone"
-          ]
-        },
-        {
-          "name": "analyze nnbd weak tests enable-asserts",
-          "arguments": [
-            "-nanalyzer-asserts-weak-${system}",
-            "corelib",
-            "ffi",
-            "language",
-            "lib",
-            "service",
-            "standalone"
-          ]
-        },
-        {
-          "name": "analyze nnbd strong co19 tests",
-          "arguments": [
-            "-nanalyzer-asserts-strong-${system}",
-            "co19"
-          ]
-        },
-        {
-          "name": "analyze nnbd weak co19 tests",
-          "arguments": [
-            "-nanalyzer-asserts-weak-${system}",
-            "co19"
           ]
         }
       ]

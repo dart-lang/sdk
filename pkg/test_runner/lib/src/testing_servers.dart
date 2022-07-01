@@ -48,7 +48,7 @@ class DispatchingServer {
 ///                directory (i.e. '$BuildDirectory/X').
 /// /FOO/packages/PAZ/BAR: This will serve files from the packages listed in
 ///      the package spec .packages.  Supports a package
-///      root or custom package spec, and uses [dart_dir]/.packages
+///      root or custom package spec, and uses $dart_dir/.packages
 ///      as the default. This will serve file lib/BAR from the package PAZ.
 /// /ws: This will upgrade the connection to a WebSocket connection and echo
 ///      all data back to the client.

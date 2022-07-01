@@ -8531,9 +8531,20 @@ class Parser {
         if (comment.indexOf('```', /* start = */ 3) != -1) {
           inCodeBlock = !inCodeBlock;
         }
-        if (!inCodeBlock && !comment.startsWith('///    ')) {
-          count += parseCommentReferencesInText(
-              token, /* start = */ 3, comment.length);
+        if (!inCodeBlock) {
+          bool parseReferences;
+          if (comment.startsWith('///    ')) {
+            String? previousComment = token.previous?.lexeme;
+            parseReferences = previousComment != null &&
+                previousComment.startsWith('///') &&
+                previousComment.trim().length > 3;
+          } else {
+            parseReferences = true;
+          }
+          if (parseReferences) {
+            count += parseCommentReferencesInText(
+                token, /* start = */ 3, comment.length);
+          }
         }
       }
       token = token.next;

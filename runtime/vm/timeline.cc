@@ -202,7 +202,7 @@ void Timeline::Init() {
   ASSERT(recorder_ != NULL);
   enabled_streams_ = GetEnabledByDefaultTimelineStreams();
 // Global overrides.
-#define TIMELINE_STREAM_FLAG_DEFAULT(name, ...)                                \
+#define TIMELINE_STREAM_FLAG_DEFAULT(name, fuchsia_name)                       \
   stream_##name##_.set_enabled(HasStream(enabled_streams_, #name));
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_FLAG_DEFAULT)
 #undef TIMELINE_STREAM_FLAG_DEFAULT
@@ -218,7 +218,7 @@ void Timeline::Cleanup() {
 #endif
 
 // Disable global streams.
-#define TIMELINE_STREAM_DISABLE(name, ...)                                     \
+#define TIMELINE_STREAM_DISABLE(name, fuchsia_name)                            \
   Timeline::stream_##name##_.set_enabled(false);
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
 #undef TIMELINE_STREAM_DISABLE
@@ -265,7 +265,7 @@ void Timeline::ReclaimCachedBlocksFromThreadsUnsafe() {
 
 #ifndef PRODUCT
 void Timeline::PrintFlagsToJSONArray(JSONArray* arr) {
-#define ADD_RECORDED_STREAM_NAME(name, ...)                                    \
+#define ADD_RECORDED_STREAM_NAME(name, fuchsia_name)                           \
   if (stream_##name##_.enabled()) {                                            \
     arr->AddValue(#name);                                                      \
   }
@@ -285,13 +285,13 @@ void Timeline::PrintFlagsToJSON(JSONStream* js) {
   }
   {
     JSONArray availableStreams(&obj, "availableStreams");
-#define ADD_STREAM_NAME(name, ...) availableStreams.AddValue(#name);
+#define ADD_STREAM_NAME(name, fuchsia_name) availableStreams.AddValue(#name);
     TIMELINE_STREAM_LIST(ADD_STREAM_NAME);
 #undef ADD_STREAM_NAME
   }
   {
     JSONArray recordedStreams(&obj, "recordedStreams");
-#define ADD_RECORDED_STREAM_NAME(name, ...)                                    \
+#define ADD_RECORDED_STREAM_NAME(name, fuchsia_name)                           \
   if (stream_##name##_.enabled()) {                                            \
     recordedStreams.AddValue(#name);                                           \
   }
@@ -402,9 +402,8 @@ TimelineEventRecorder* Timeline::recorder_ = NULL;
 MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
 bool Timeline::recorder_discards_clock_values_ = false;
 
-#define TIMELINE_STREAM_DEFINE(name, fuchsia_name, static_labels)              \
-  TimelineStream Timeline::stream_##name##_(#name, fuchsia_name,               \
-                                            static_labels, false);
+#define TIMELINE_STREAM_DEFINE(name, fuchsia_name)                             \
+  TimelineStream Timeline::stream_##name##_(#name, fuchsia_name, false);
 TIMELINE_STREAM_LIST(TIMELINE_STREAM_DEFINE)
 #undef TIMELINE_STREAM_DEFINE
 
@@ -499,25 +498,19 @@ void TimelineEvent::Duration(const char* label,
 }
 
 void TimelineEvent::Begin(const char* label,
-                          int64_t id,
                           int64_t micros,
                           int64_t thread_micros) {
   Init(kBegin, label);
   set_timestamp0(micros);
   set_thread_timestamp0(thread_micros);
-  // Overload timestamp1_ with the async_id.
-  set_timestamp1(id);
 }
 
 void TimelineEvent::End(const char* label,
-                        int64_t id,
                         int64_t micros,
                         int64_t thread_micros) {
   Init(kEnd, label);
   set_timestamp0(micros);
   set_thread_timestamp0(thread_micros);
-  // Overload timestamp1_ with the async_id.
-  set_timestamp1(id);
 }
 
 void TimelineEvent::Counter(const char* label, int64_t micros) {
@@ -662,31 +655,31 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
     } break;
     case kAsyncBegin: {
       writer->PrintProperty("ph", "b");
-      writer->PrintfProperty("id", "%" Px64 "", Id());
+      writer->PrintfProperty("id", "%" Px64 "", AsyncId());
     } break;
     case kAsyncInstant: {
       writer->PrintProperty("ph", "n");
-      writer->PrintfProperty("id", "%" Px64 "", Id());
+      writer->PrintfProperty("id", "%" Px64 "", AsyncId());
     } break;
     case kAsyncEnd: {
       writer->PrintProperty("ph", "e");
-      writer->PrintfProperty("id", "%" Px64 "", Id());
+      writer->PrintfProperty("id", "%" Px64 "", AsyncId());
     } break;
     case kCounter: {
       writer->PrintProperty("ph", "C");
     } break;
     case kFlowBegin: {
       writer->PrintProperty("ph", "s");
-      writer->PrintfProperty("id", "%" Px64 "", Id());
+      writer->PrintfProperty("id", "%" Px64 "", AsyncId());
     } break;
     case kFlowStep: {
       writer->PrintProperty("ph", "t");
-      writer->PrintfProperty("id", "%" Px64 "", Id());
+      writer->PrintfProperty("id", "%" Px64 "", AsyncId());
     } break;
     case kFlowEnd: {
       writer->PrintProperty("ph", "f");
       writer->PrintProperty("bp", "e");
-      writer->PrintfProperty("id", "%" Px64 "", Id());
+      writer->PrintfProperty("id", "%" Px64 "", AsyncId());
     } break;
     case kMetadata: {
       writer->PrintProperty("ph", "M");
@@ -735,6 +728,14 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
   writer->CloseObject();
 }
 
+int64_t TimelineEvent::TimeOrigin() const {
+  return timestamp0_;
+}
+
+int64_t TimelineEvent::AsyncId() const {
+  return timestamp1_;
+}
+
 int64_t TimelineEvent::LowTime() const {
   return timestamp0_;
 }
@@ -775,7 +776,6 @@ int64_t TimelineEvent::ThreadCPUTimeDuration() const {
 
 TimelineStream::TimelineStream(const char* name,
                                const char* fuchsia_name,
-                               bool has_static_labels,
                                bool enabled)
     : name_(name),
       fuchsia_name_(fuchsia_name),
@@ -788,7 +788,6 @@ TimelineStream::TimelineStream(const char* name,
 #if defined(DART_HOST_OS_MACOS)
   if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
     macos_log_ = os_log_create("Dart", name);
-    has_static_labels_ = has_static_labels;
   }
 #endif
 }
@@ -842,13 +841,6 @@ void TimelineEventScope::Init() {
     return;
   }
   enabled_ = true;
-  Thread* thread = static_cast<Thread*>(this->thread());
-  if (thread != NULL) {
-    id_ = thread->GetNextTaskId();
-  } else {
-    static RelaxedAtomic<int64_t> next_bootstrap_task_id = {0};
-    id_ = next_bootstrap_task_id.fetch_add(1);
-  }
 }
 
 void TimelineEventScope::SetNumArguments(intptr_t length) {
@@ -927,7 +919,7 @@ void TimelineBeginEndScope::EmitBegin() {
   }
   ASSERT(event != NULL);
   // Emit a begin event.
-  event->Begin(label(), id());
+  event->Begin(label());
   event->Complete();
 }
 
@@ -943,7 +935,7 @@ void TimelineBeginEndScope::EmitEnd() {
   }
   ASSERT(event != NULL);
   // Emit an end event.
-  event->End(label(), id());
+  event->End(label());
   StealArguments(event);
   event->Complete();
 }
@@ -966,7 +958,7 @@ IsolateTimelineEventFilter::IsolateTimelineEventFilter(
       isolate_id_(isolate_id) {}
 
 TimelineEventRecorder::TimelineEventRecorder()
-    : time_low_micros_(0), time_high_micros_(0) {}
+    : async_id_(0), time_low_micros_(0), time_high_micros_(0) {}
 
 #ifndef PRODUCT
 void TimelineEventRecorder::PrintJSONMeta(JSONArray* events) const {
@@ -1127,6 +1119,16 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
   return;
 }
 #endif
+
+int64_t TimelineEventRecorder::GetNextAsyncId() {
+  // TODO(johnmccutchan): Gracefully handle wrap around.
+#if defined(DART_HOST_OS_FUCHSIA)
+  return trace_generate_nonce();
+#else
+  uint32_t next = static_cast<uint32_t>(async_id_.fetch_add(1u));
+  return static_cast<int64_t>(next);
+#endif
+}
 
 void TimelineEventRecorder::FinishBlock(TimelineEventBlock* block) {
   if (block == NULL) {
@@ -1704,10 +1706,10 @@ void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
       event->AsyncEnd(name, id, start);
       break;
     case 'B':
-      event->Begin(name, id, start, start_cpu);
+      event->Begin(name, start, start_cpu);
       break;
     case 'E':
-      event->End(name, id, start, start_cpu);
+      event->End(name, start, start_cpu);
       break;
     default:
       UNREACHABLE();
