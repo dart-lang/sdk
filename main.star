@@ -460,27 +460,6 @@ dart.ci_sandbox_builder(
     experiments = {"dart.use_update_script": 100},
 )
 
-# analyzer|nnbd
-dart.ci_sandbox_builder(
-    "analyzer-nnbd-linux-release",
-    category = "analyzer|nnbd|l",
-    location_regexp = paths.to_location_regexp(paths.analyzer_nnbd),
-    channels = dart.channels,
-)
-cron.nightly_builder(
-    "analyzer-nnbd-mac-release",
-    category = "analyzer|nnbd|m",
-    channels = ["try"],
-    dimensions = mac,
-    properties = pinned_xcode,
-)
-cron.nightly_builder(
-    "analyzer-nnbd-win-release",
-    category = "analyzer|nnbd|w",
-    channels = ["try"],
-    dimensions = windows,
-)
-
 # sdk
 dart.try_builder(
     "dart-sdk-linux",
