@@ -322,13 +322,13 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 300;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 140;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 912;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 904;
 static constexpr dart::compiler::target::word
     Thread_dispatch_table_array_offset = 44;
 static constexpr dart::compiler::target::word
     Thread_double_truncate_round_supported_offset = 880;
 static constexpr dart::compiler::target::word
-    Thread_service_extension_stream_offset = 916;
+    Thread_service_extension_stream_offset = 908;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     340;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 252;
@@ -372,7 +372,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Thread_exit_through_ffi_offset =
     872;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 40;
-static constexpr dart::compiler::target::word Thread_isolate_group_offset = 920;
+static constexpr dart::compiler::target::word Thread_isolate_group_offset = 912;
 static constexpr dart::compiler::target::word Thread_field_table_values_offset =
     64;
 static constexpr dart::compiler::target::word
@@ -486,11 +486,10 @@ static constexpr dart::compiler::target::word Thread_heap_base_offset = 36;
 static constexpr dart::compiler::target::word Thread_callback_code_offset = 864;
 static constexpr dart::compiler::target::word
     Thread_callback_stack_return_offset = 868;
-static constexpr dart::compiler::target::word Thread_next_task_id_offset = 888;
-static constexpr dart::compiler::target::word Thread_random_offset = 896;
+static constexpr dart::compiler::target::word Thread_random_offset = 888;
 static constexpr dart::compiler::target::word
     Thread_jump_to_frame_entry_point_offset = 352;
-static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 904;
+static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 896;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_function_offset =
     0;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_buffer_offset =
@@ -991,13 +990,13 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 576;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 256;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1800;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1792;
 static constexpr dart::compiler::target::word
     Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     Thread_double_truncate_round_supported_offset = 1760;
 static constexpr dart::compiler::target::word
-    Thread_service_extension_stream_offset = 1808;
+    Thread_service_extension_stream_offset = 1800;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 480;
@@ -1042,7 +1041,7 @@ static constexpr dart::compiler::target::word Thread_exit_through_ffi_offset =
     1744;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word Thread_isolate_group_offset =
-    1816;
+    1808;
 static constexpr dart::compiler::target::word Thread_field_table_values_offset =
     128;
 static constexpr dart::compiler::target::word
@@ -1157,11 +1156,10 @@ static constexpr dart::compiler::target::word Thread_callback_code_offset =
     1728;
 static constexpr dart::compiler::target::word
     Thread_callback_stack_return_offset = 1736;
-static constexpr dart::compiler::target::word Thread_next_task_id_offset = 1768;
-static constexpr dart::compiler::target::word Thread_random_offset = 1776;
+static constexpr dart::compiler::target::word Thread_random_offset = 1768;
 static constexpr dart::compiler::target::word
     Thread_jump_to_frame_entry_point_offset = 680;
-static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1784;
+static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1776;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_function_offset =
     0;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_buffer_offset =
@@ -1661,13 +1659,13 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 300;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 140;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 880;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 872;
 static constexpr dart::compiler::target::word
     Thread_dispatch_table_array_offset = 44;
 static constexpr dart::compiler::target::word
     Thread_double_truncate_round_supported_offset = 848;
 static constexpr dart::compiler::target::word
-    Thread_service_extension_stream_offset = 884;
+    Thread_service_extension_stream_offset = 876;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     340;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 252;
@@ -1711,7 +1709,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Thread_exit_through_ffi_offset =
     840;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 40;
-static constexpr dart::compiler::target::word Thread_isolate_group_offset = 888;
+static constexpr dart::compiler::target::word Thread_isolate_group_offset = 880;
 static constexpr dart::compiler::target::word Thread_field_table_values_offset =
     64;
 static constexpr dart::compiler::target::word
@@ -1825,11 +1823,10 @@ static constexpr dart::compiler::target::word Thread_heap_base_offset = 36;
 static constexpr dart::compiler::target::word Thread_callback_code_offset = 832;
 static constexpr dart::compiler::target::word
     Thread_callback_stack_return_offset = 836;
-static constexpr dart::compiler::target::word Thread_next_task_id_offset = 856;
-static constexpr dart::compiler::target::word Thread_random_offset = 864;
+static constexpr dart::compiler::target::word Thread_random_offset = 856;
 static constexpr dart::compiler::target::word
     Thread_jump_to_frame_entry_point_offset = 352;
-static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 872;
+static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 864;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_function_offset =
     0;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_buffer_offset =
@@ -2327,13 +2324,13 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 576;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 256;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1864;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1856;
 static constexpr dart::compiler::target::word
     Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     Thread_double_truncate_round_supported_offset = 1824;
 static constexpr dart::compiler::target::word
-    Thread_service_extension_stream_offset = 1872;
+    Thread_service_extension_stream_offset = 1864;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 480;
@@ -2378,7 +2375,7 @@ static constexpr dart::compiler::target::word Thread_exit_through_ffi_offset =
     1808;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word Thread_isolate_group_offset =
-    1880;
+    1872;
 static constexpr dart::compiler::target::word Thread_field_table_values_offset =
     128;
 static constexpr dart::compiler::target::word
@@ -2493,11 +2490,10 @@ static constexpr dart::compiler::target::word Thread_callback_code_offset =
     1792;
 static constexpr dart::compiler::target::word
     Thread_callback_stack_return_offset = 1800;
-static constexpr dart::compiler::target::word Thread_next_task_id_offset = 1832;
-static constexpr dart::compiler::target::word Thread_random_offset = 1840;
+static constexpr dart::compiler::target::word Thread_random_offset = 1832;
 static constexpr dart::compiler::target::word
     Thread_jump_to_frame_entry_point_offset = 680;
-static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1848;
+static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1840;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_function_offset =
     0;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_buffer_offset =
@@ -3000,13 +2996,13 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 576;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 256;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1800;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1792;
 static constexpr dart::compiler::target::word
     Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     Thread_double_truncate_round_supported_offset = 1760;
 static constexpr dart::compiler::target::word
-    Thread_service_extension_stream_offset = 1808;
+    Thread_service_extension_stream_offset = 1800;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 480;
@@ -3051,7 +3047,7 @@ static constexpr dart::compiler::target::word Thread_exit_through_ffi_offset =
     1744;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word Thread_isolate_group_offset =
-    1816;
+    1808;
 static constexpr dart::compiler::target::word Thread_field_table_values_offset =
     128;
 static constexpr dart::compiler::target::word
@@ -3166,11 +3162,10 @@ static constexpr dart::compiler::target::word Thread_callback_code_offset =
     1728;
 static constexpr dart::compiler::target::word
     Thread_callback_stack_return_offset = 1736;
-static constexpr dart::compiler::target::word Thread_next_task_id_offset = 1768;
-static constexpr dart::compiler::target::word Thread_random_offset = 1776;
+static constexpr dart::compiler::target::word Thread_random_offset = 1768;
 static constexpr dart::compiler::target::word
     Thread_jump_to_frame_entry_point_offset = 680;
-static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1784;
+static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1776;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_function_offset =
     0;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_buffer_offset =
@@ -3672,13 +3667,13 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 576;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 256;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1864;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1856;
 static constexpr dart::compiler::target::word
     Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     Thread_double_truncate_round_supported_offset = 1824;
 static constexpr dart::compiler::target::word
-    Thread_service_extension_stream_offset = 1872;
+    Thread_service_extension_stream_offset = 1864;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 480;
@@ -3723,7 +3718,7 @@ static constexpr dart::compiler::target::word Thread_exit_through_ffi_offset =
     1808;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word Thread_isolate_group_offset =
-    1880;
+    1872;
 static constexpr dart::compiler::target::word Thread_field_table_values_offset =
     128;
 static constexpr dart::compiler::target::word
@@ -3838,11 +3833,10 @@ static constexpr dart::compiler::target::word Thread_callback_code_offset =
     1792;
 static constexpr dart::compiler::target::word
     Thread_callback_stack_return_offset = 1800;
-static constexpr dart::compiler::target::word Thread_next_task_id_offset = 1832;
-static constexpr dart::compiler::target::word Thread_random_offset = 1840;
+static constexpr dart::compiler::target::word Thread_random_offset = 1832;
 static constexpr dart::compiler::target::word
     Thread_jump_to_frame_entry_point_offset = 680;
-static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1848;
+static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1840;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_function_offset =
     0;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_buffer_offset =
@@ -4343,13 +4337,13 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 300;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 140;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 952;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 944;
 static constexpr dart::compiler::target::word
     Thread_dispatch_table_array_offset = 44;
 static constexpr dart::compiler::target::word
     Thread_double_truncate_round_supported_offset = 920;
 static constexpr dart::compiler::target::word
-    Thread_service_extension_stream_offset = 956;
+    Thread_service_extension_stream_offset = 948;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     340;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 252;
@@ -4393,7 +4387,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Thread_exit_through_ffi_offset =
     912;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 40;
-static constexpr dart::compiler::target::word Thread_isolate_group_offset = 960;
+static constexpr dart::compiler::target::word Thread_isolate_group_offset = 952;
 static constexpr dart::compiler::target::word Thread_field_table_values_offset =
     64;
 static constexpr dart::compiler::target::word
@@ -4507,11 +4501,10 @@ static constexpr dart::compiler::target::word Thread_heap_base_offset = 36;
 static constexpr dart::compiler::target::word Thread_callback_code_offset = 904;
 static constexpr dart::compiler::target::word
     Thread_callback_stack_return_offset = 908;
-static constexpr dart::compiler::target::word Thread_next_task_id_offset = 928;
-static constexpr dart::compiler::target::word Thread_random_offset = 936;
+static constexpr dart::compiler::target::word Thread_random_offset = 928;
 static constexpr dart::compiler::target::word
     Thread_jump_to_frame_entry_point_offset = 352;
-static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 944;
+static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 936;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_function_offset =
     0;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_buffer_offset =
@@ -5014,13 +5007,13 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 576;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 256;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1856;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1848;
 static constexpr dart::compiler::target::word
     Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     Thread_double_truncate_round_supported_offset = 1816;
 static constexpr dart::compiler::target::word
-    Thread_service_extension_stream_offset = 1864;
+    Thread_service_extension_stream_offset = 1856;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 480;
@@ -5065,7 +5058,7 @@ static constexpr dart::compiler::target::word Thread_exit_through_ffi_offset =
     1800;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word Thread_isolate_group_offset =
-    1872;
+    1864;
 static constexpr dart::compiler::target::word Thread_field_table_values_offset =
     128;
 static constexpr dart::compiler::target::word
@@ -5180,11 +5173,10 @@ static constexpr dart::compiler::target::word Thread_callback_code_offset =
     1784;
 static constexpr dart::compiler::target::word
     Thread_callback_stack_return_offset = 1792;
-static constexpr dart::compiler::target::word Thread_next_task_id_offset = 1824;
-static constexpr dart::compiler::target::word Thread_random_offset = 1832;
+static constexpr dart::compiler::target::word Thread_random_offset = 1824;
 static constexpr dart::compiler::target::word
     Thread_jump_to_frame_entry_point_offset = 680;
-static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1840;
+static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1832;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_function_offset =
     0;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_buffer_offset =
@@ -5679,13 +5671,13 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 300;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 140;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 912;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 904;
 static constexpr dart::compiler::target::word
     Thread_dispatch_table_array_offset = 44;
 static constexpr dart::compiler::target::word
     Thread_double_truncate_round_supported_offset = 880;
 static constexpr dart::compiler::target::word
-    Thread_service_extension_stream_offset = 916;
+    Thread_service_extension_stream_offset = 908;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     340;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 252;
@@ -5729,7 +5721,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Thread_exit_through_ffi_offset =
     872;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 40;
-static constexpr dart::compiler::target::word Thread_isolate_group_offset = 920;
+static constexpr dart::compiler::target::word Thread_isolate_group_offset = 912;
 static constexpr dart::compiler::target::word Thread_field_table_values_offset =
     64;
 static constexpr dart::compiler::target::word
@@ -5843,11 +5835,10 @@ static constexpr dart::compiler::target::word Thread_heap_base_offset = 36;
 static constexpr dart::compiler::target::word Thread_callback_code_offset = 864;
 static constexpr dart::compiler::target::word
     Thread_callback_stack_return_offset = 868;
-static constexpr dart::compiler::target::word Thread_next_task_id_offset = 888;
-static constexpr dart::compiler::target::word Thread_random_offset = 896;
+static constexpr dart::compiler::target::word Thread_random_offset = 888;
 static constexpr dart::compiler::target::word
     Thread_jump_to_frame_entry_point_offset = 352;
-static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 904;
+static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 896;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_function_offset =
     0;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_buffer_offset =
@@ -6340,13 +6331,13 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 576;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 256;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1800;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1792;
 static constexpr dart::compiler::target::word
     Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     Thread_double_truncate_round_supported_offset = 1760;
 static constexpr dart::compiler::target::word
-    Thread_service_extension_stream_offset = 1808;
+    Thread_service_extension_stream_offset = 1800;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 480;
@@ -6391,7 +6382,7 @@ static constexpr dart::compiler::target::word Thread_exit_through_ffi_offset =
     1744;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word Thread_isolate_group_offset =
-    1816;
+    1808;
 static constexpr dart::compiler::target::word Thread_field_table_values_offset =
     128;
 static constexpr dart::compiler::target::word
@@ -6506,11 +6497,10 @@ static constexpr dart::compiler::target::word Thread_callback_code_offset =
     1728;
 static constexpr dart::compiler::target::word
     Thread_callback_stack_return_offset = 1736;
-static constexpr dart::compiler::target::word Thread_next_task_id_offset = 1768;
-static constexpr dart::compiler::target::word Thread_random_offset = 1776;
+static constexpr dart::compiler::target::word Thread_random_offset = 1768;
 static constexpr dart::compiler::target::word
     Thread_jump_to_frame_entry_point_offset = 680;
-static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1784;
+static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1776;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_function_offset =
     0;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_buffer_offset =
@@ -7002,13 +6992,13 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 300;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 140;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 880;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 872;
 static constexpr dart::compiler::target::word
     Thread_dispatch_table_array_offset = 44;
 static constexpr dart::compiler::target::word
     Thread_double_truncate_round_supported_offset = 848;
 static constexpr dart::compiler::target::word
-    Thread_service_extension_stream_offset = 884;
+    Thread_service_extension_stream_offset = 876;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     340;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 252;
@@ -7052,7 +7042,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Thread_exit_through_ffi_offset =
     840;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 40;
-static constexpr dart::compiler::target::word Thread_isolate_group_offset = 888;
+static constexpr dart::compiler::target::word Thread_isolate_group_offset = 880;
 static constexpr dart::compiler::target::word Thread_field_table_values_offset =
     64;
 static constexpr dart::compiler::target::word
@@ -7166,11 +7156,10 @@ static constexpr dart::compiler::target::word Thread_heap_base_offset = 36;
 static constexpr dart::compiler::target::word Thread_callback_code_offset = 832;
 static constexpr dart::compiler::target::word
     Thread_callback_stack_return_offset = 836;
-static constexpr dart::compiler::target::word Thread_next_task_id_offset = 856;
-static constexpr dart::compiler::target::word Thread_random_offset = 864;
+static constexpr dart::compiler::target::word Thread_random_offset = 856;
 static constexpr dart::compiler::target::word
     Thread_jump_to_frame_entry_point_offset = 352;
-static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 872;
+static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 864;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_function_offset =
     0;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_buffer_offset =
@@ -7660,13 +7649,13 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 576;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 256;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1864;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1856;
 static constexpr dart::compiler::target::word
     Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     Thread_double_truncate_round_supported_offset = 1824;
 static constexpr dart::compiler::target::word
-    Thread_service_extension_stream_offset = 1872;
+    Thread_service_extension_stream_offset = 1864;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 480;
@@ -7711,7 +7700,7 @@ static constexpr dart::compiler::target::word Thread_exit_through_ffi_offset =
     1808;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word Thread_isolate_group_offset =
-    1880;
+    1872;
 static constexpr dart::compiler::target::word Thread_field_table_values_offset =
     128;
 static constexpr dart::compiler::target::word
@@ -7826,11 +7815,10 @@ static constexpr dart::compiler::target::word Thread_callback_code_offset =
     1792;
 static constexpr dart::compiler::target::word
     Thread_callback_stack_return_offset = 1800;
-static constexpr dart::compiler::target::word Thread_next_task_id_offset = 1832;
-static constexpr dart::compiler::target::word Thread_random_offset = 1840;
+static constexpr dart::compiler::target::word Thread_random_offset = 1832;
 static constexpr dart::compiler::target::word
     Thread_jump_to_frame_entry_point_offset = 680;
-static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1848;
+static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1840;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_function_offset =
     0;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_buffer_offset =
@@ -8325,13 +8313,13 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 576;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 256;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1800;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1792;
 static constexpr dart::compiler::target::word
     Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     Thread_double_truncate_round_supported_offset = 1760;
 static constexpr dart::compiler::target::word
-    Thread_service_extension_stream_offset = 1808;
+    Thread_service_extension_stream_offset = 1800;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 480;
@@ -8376,7 +8364,7 @@ static constexpr dart::compiler::target::word Thread_exit_through_ffi_offset =
     1744;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word Thread_isolate_group_offset =
-    1816;
+    1808;
 static constexpr dart::compiler::target::word Thread_field_table_values_offset =
     128;
 static constexpr dart::compiler::target::word
@@ -8491,11 +8479,10 @@ static constexpr dart::compiler::target::word Thread_callback_code_offset =
     1728;
 static constexpr dart::compiler::target::word
     Thread_callback_stack_return_offset = 1736;
-static constexpr dart::compiler::target::word Thread_next_task_id_offset = 1768;
-static constexpr dart::compiler::target::word Thread_random_offset = 1776;
+static constexpr dart::compiler::target::word Thread_random_offset = 1768;
 static constexpr dart::compiler::target::word
     Thread_jump_to_frame_entry_point_offset = 680;
-static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1784;
+static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1776;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_function_offset =
     0;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_buffer_offset =
@@ -8989,13 +8976,13 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 576;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 256;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1864;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1856;
 static constexpr dart::compiler::target::word
     Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     Thread_double_truncate_round_supported_offset = 1824;
 static constexpr dart::compiler::target::word
-    Thread_service_extension_stream_offset = 1872;
+    Thread_service_extension_stream_offset = 1864;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 480;
@@ -9040,7 +9027,7 @@ static constexpr dart::compiler::target::word Thread_exit_through_ffi_offset =
     1808;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word Thread_isolate_group_offset =
-    1880;
+    1872;
 static constexpr dart::compiler::target::word Thread_field_table_values_offset =
     128;
 static constexpr dart::compiler::target::word
@@ -9155,11 +9142,10 @@ static constexpr dart::compiler::target::word Thread_callback_code_offset =
     1792;
 static constexpr dart::compiler::target::word
     Thread_callback_stack_return_offset = 1800;
-static constexpr dart::compiler::target::word Thread_next_task_id_offset = 1832;
-static constexpr dart::compiler::target::word Thread_random_offset = 1840;
+static constexpr dart::compiler::target::word Thread_random_offset = 1832;
 static constexpr dart::compiler::target::word
     Thread_jump_to_frame_entry_point_offset = 680;
-static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1848;
+static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1840;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_function_offset =
     0;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_buffer_offset =
@@ -9652,13 +9638,13 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 300;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 140;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 952;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 944;
 static constexpr dart::compiler::target::word
     Thread_dispatch_table_array_offset = 44;
 static constexpr dart::compiler::target::word
     Thread_double_truncate_round_supported_offset = 920;
 static constexpr dart::compiler::target::word
-    Thread_service_extension_stream_offset = 956;
+    Thread_service_extension_stream_offset = 948;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     340;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 252;
@@ -9702,7 +9688,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Thread_exit_through_ffi_offset =
     912;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 40;
-static constexpr dart::compiler::target::word Thread_isolate_group_offset = 960;
+static constexpr dart::compiler::target::word Thread_isolate_group_offset = 952;
 static constexpr dart::compiler::target::word Thread_field_table_values_offset =
     64;
 static constexpr dart::compiler::target::word
@@ -9816,11 +9802,10 @@ static constexpr dart::compiler::target::word Thread_heap_base_offset = 36;
 static constexpr dart::compiler::target::word Thread_callback_code_offset = 904;
 static constexpr dart::compiler::target::word
     Thread_callback_stack_return_offset = 908;
-static constexpr dart::compiler::target::word Thread_next_task_id_offset = 928;
-static constexpr dart::compiler::target::word Thread_random_offset = 936;
+static constexpr dart::compiler::target::word Thread_random_offset = 928;
 static constexpr dart::compiler::target::word
     Thread_jump_to_frame_entry_point_offset = 352;
-static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 944;
+static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 936;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_function_offset =
     0;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_buffer_offset =
@@ -10315,13 +10300,13 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 576;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 256;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1856;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1848;
 static constexpr dart::compiler::target::word
     Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     Thread_double_truncate_round_supported_offset = 1816;
 static constexpr dart::compiler::target::word
-    Thread_service_extension_stream_offset = 1864;
+    Thread_service_extension_stream_offset = 1856;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 480;
@@ -10366,7 +10351,7 @@ static constexpr dart::compiler::target::word Thread_exit_through_ffi_offset =
     1800;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word Thread_isolate_group_offset =
-    1872;
+    1864;
 static constexpr dart::compiler::target::word Thread_field_table_values_offset =
     128;
 static constexpr dart::compiler::target::word
@@ -10481,11 +10466,10 @@ static constexpr dart::compiler::target::word Thread_callback_code_offset =
     1784;
 static constexpr dart::compiler::target::word
     Thread_callback_stack_return_offset = 1792;
-static constexpr dart::compiler::target::word Thread_next_task_id_offset = 1824;
-static constexpr dart::compiler::target::word Thread_random_offset = 1832;
+static constexpr dart::compiler::target::word Thread_random_offset = 1824;
 static constexpr dart::compiler::target::word
     Thread_jump_to_frame_entry_point_offset = 680;
-static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1840;
+static constexpr dart::compiler::target::word Thread_tsan_utils_offset = 1832;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_function_offset =
     0;
 static constexpr dart::compiler::target::word TsanUtils_setjmp_buffer_offset =
@@ -11018,13 +11002,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_Thread_call_to_runtime_stub_offset = 140;
 static constexpr dart::compiler::target::word AOT_Thread_dart_stream_offset =
-    912;
+    904;
 static constexpr dart::compiler::target::word
     AOT_Thread_dispatch_table_array_offset = 44;
 static constexpr dart::compiler::target::word
     AOT_Thread_double_truncate_round_supported_offset = 880;
 static constexpr dart::compiler::target::word
-    AOT_Thread_service_extension_stream_offset = 916;
+    AOT_Thread_service_extension_stream_offset = 908;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_entry_offset =
     340;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_stub_offset =
@@ -11070,7 +11054,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_exit_through_ffi_offset = 872;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_offset = 40;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_group_offset =
-    920;
+    912;
 static constexpr dart::compiler::target::word
     AOT_Thread_field_table_values_offset = 64;
 static constexpr dart::compiler::target::word
@@ -11190,13 +11174,11 @@ static constexpr dart::compiler::target::word AOT_Thread_callback_code_offset =
     864;
 static constexpr dart::compiler::target::word
     AOT_Thread_callback_stack_return_offset = 868;
-static constexpr dart::compiler::target::word AOT_Thread_next_task_id_offset =
-    888;
-static constexpr dart::compiler::target::word AOT_Thread_random_offset = 896;
+static constexpr dart::compiler::target::word AOT_Thread_random_offset = 888;
 static constexpr dart::compiler::target::word
     AOT_Thread_jump_to_frame_entry_point_offset = 352;
 static constexpr dart::compiler::target::word AOT_Thread_tsan_utils_offset =
-    904;
+    896;
 static constexpr dart::compiler::target::word
     AOT_TsanUtils_setjmp_function_offset = 0;
 static constexpr dart::compiler::target::word
@@ -11759,13 +11741,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_Thread_call_to_runtime_stub_offset = 256;
 static constexpr dart::compiler::target::word AOT_Thread_dart_stream_offset =
-    1800;
+    1792;
 static constexpr dart::compiler::target::word
     AOT_Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Thread_double_truncate_round_supported_offset = 1760;
 static constexpr dart::compiler::target::word
-    AOT_Thread_service_extension_stream_offset = 1808;
+    AOT_Thread_service_extension_stream_offset = 1800;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_stub_offset =
@@ -11811,7 +11793,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_exit_through_ffi_offset = 1744;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_group_offset =
-    1816;
+    1808;
 static constexpr dart::compiler::target::word
     AOT_Thread_field_table_values_offset = 128;
 static constexpr dart::compiler::target::word
@@ -11932,13 +11914,11 @@ static constexpr dart::compiler::target::word AOT_Thread_callback_code_offset =
     1728;
 static constexpr dart::compiler::target::word
     AOT_Thread_callback_stack_return_offset = 1736;
-static constexpr dart::compiler::target::word AOT_Thread_next_task_id_offset =
-    1768;
-static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1776;
+static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1768;
 static constexpr dart::compiler::target::word
     AOT_Thread_jump_to_frame_entry_point_offset = 680;
 static constexpr dart::compiler::target::word AOT_Thread_tsan_utils_offset =
-    1784;
+    1776;
 static constexpr dart::compiler::target::word
     AOT_TsanUtils_setjmp_function_offset = 0;
 static constexpr dart::compiler::target::word
@@ -12506,13 +12486,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_Thread_call_to_runtime_stub_offset = 256;
 static constexpr dart::compiler::target::word AOT_Thread_dart_stream_offset =
-    1864;
+    1856;
 static constexpr dart::compiler::target::word
     AOT_Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Thread_double_truncate_round_supported_offset = 1824;
 static constexpr dart::compiler::target::word
-    AOT_Thread_service_extension_stream_offset = 1872;
+    AOT_Thread_service_extension_stream_offset = 1864;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_stub_offset =
@@ -12558,7 +12538,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_exit_through_ffi_offset = 1808;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_group_offset =
-    1880;
+    1872;
 static constexpr dart::compiler::target::word
     AOT_Thread_field_table_values_offset = 128;
 static constexpr dart::compiler::target::word
@@ -12679,13 +12659,11 @@ static constexpr dart::compiler::target::word AOT_Thread_callback_code_offset =
     1792;
 static constexpr dart::compiler::target::word
     AOT_Thread_callback_stack_return_offset = 1800;
-static constexpr dart::compiler::target::word AOT_Thread_next_task_id_offset =
-    1832;
-static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1840;
+static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1832;
 static constexpr dart::compiler::target::word
     AOT_Thread_jump_to_frame_entry_point_offset = 680;
 static constexpr dart::compiler::target::word AOT_Thread_tsan_utils_offset =
-    1848;
+    1840;
 static constexpr dart::compiler::target::word
     AOT_TsanUtils_setjmp_function_offset = 0;
 static constexpr dart::compiler::target::word
@@ -13250,13 +13228,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_Thread_call_to_runtime_stub_offset = 256;
 static constexpr dart::compiler::target::word AOT_Thread_dart_stream_offset =
-    1800;
+    1792;
 static constexpr dart::compiler::target::word
     AOT_Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Thread_double_truncate_round_supported_offset = 1760;
 static constexpr dart::compiler::target::word
-    AOT_Thread_service_extension_stream_offset = 1808;
+    AOT_Thread_service_extension_stream_offset = 1800;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_stub_offset =
@@ -13302,7 +13280,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_exit_through_ffi_offset = 1744;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_group_offset =
-    1816;
+    1808;
 static constexpr dart::compiler::target::word
     AOT_Thread_field_table_values_offset = 128;
 static constexpr dart::compiler::target::word
@@ -13423,13 +13401,11 @@ static constexpr dart::compiler::target::word AOT_Thread_callback_code_offset =
     1728;
 static constexpr dart::compiler::target::word
     AOT_Thread_callback_stack_return_offset = 1736;
-static constexpr dart::compiler::target::word AOT_Thread_next_task_id_offset =
-    1768;
-static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1776;
+static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1768;
 static constexpr dart::compiler::target::word
     AOT_Thread_jump_to_frame_entry_point_offset = 680;
 static constexpr dart::compiler::target::word AOT_Thread_tsan_utils_offset =
-    1784;
+    1776;
 static constexpr dart::compiler::target::word
     AOT_TsanUtils_setjmp_function_offset = 0;
 static constexpr dart::compiler::target::word
@@ -13993,13 +13969,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_Thread_call_to_runtime_stub_offset = 256;
 static constexpr dart::compiler::target::word AOT_Thread_dart_stream_offset =
-    1864;
+    1856;
 static constexpr dart::compiler::target::word
     AOT_Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Thread_double_truncate_round_supported_offset = 1824;
 static constexpr dart::compiler::target::word
-    AOT_Thread_service_extension_stream_offset = 1872;
+    AOT_Thread_service_extension_stream_offset = 1864;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_stub_offset =
@@ -14045,7 +14021,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_exit_through_ffi_offset = 1808;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_group_offset =
-    1880;
+    1872;
 static constexpr dart::compiler::target::word
     AOT_Thread_field_table_values_offset = 128;
 static constexpr dart::compiler::target::word
@@ -14166,13 +14142,11 @@ static constexpr dart::compiler::target::word AOT_Thread_callback_code_offset =
     1792;
 static constexpr dart::compiler::target::word
     AOT_Thread_callback_stack_return_offset = 1800;
-static constexpr dart::compiler::target::word AOT_Thread_next_task_id_offset =
-    1832;
-static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1840;
+static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1832;
 static constexpr dart::compiler::target::word
     AOT_Thread_jump_to_frame_entry_point_offset = 680;
 static constexpr dart::compiler::target::word AOT_Thread_tsan_utils_offset =
-    1848;
+    1840;
 static constexpr dart::compiler::target::word
     AOT_TsanUtils_setjmp_function_offset = 0;
 static constexpr dart::compiler::target::word
@@ -14737,13 +14711,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_Thread_call_to_runtime_stub_offset = 140;
 static constexpr dart::compiler::target::word AOT_Thread_dart_stream_offset =
-    952;
+    944;
 static constexpr dart::compiler::target::word
     AOT_Thread_dispatch_table_array_offset = 44;
 static constexpr dart::compiler::target::word
     AOT_Thread_double_truncate_round_supported_offset = 920;
 static constexpr dart::compiler::target::word
-    AOT_Thread_service_extension_stream_offset = 956;
+    AOT_Thread_service_extension_stream_offset = 948;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_entry_offset =
     340;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_stub_offset =
@@ -14789,7 +14763,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_exit_through_ffi_offset = 912;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_offset = 40;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_group_offset =
-    960;
+    952;
 static constexpr dart::compiler::target::word
     AOT_Thread_field_table_values_offset = 64;
 static constexpr dart::compiler::target::word
@@ -14909,13 +14883,11 @@ static constexpr dart::compiler::target::word AOT_Thread_callback_code_offset =
     904;
 static constexpr dart::compiler::target::word
     AOT_Thread_callback_stack_return_offset = 908;
-static constexpr dart::compiler::target::word AOT_Thread_next_task_id_offset =
-    928;
-static constexpr dart::compiler::target::word AOT_Thread_random_offset = 936;
+static constexpr dart::compiler::target::word AOT_Thread_random_offset = 928;
 static constexpr dart::compiler::target::word
     AOT_Thread_jump_to_frame_entry_point_offset = 352;
 static constexpr dart::compiler::target::word AOT_Thread_tsan_utils_offset =
-    944;
+    936;
 static constexpr dart::compiler::target::word
     AOT_TsanUtils_setjmp_function_offset = 0;
 static constexpr dart::compiler::target::word
@@ -15480,13 +15452,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_Thread_call_to_runtime_stub_offset = 256;
 static constexpr dart::compiler::target::word AOT_Thread_dart_stream_offset =
-    1856;
+    1848;
 static constexpr dart::compiler::target::word
     AOT_Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Thread_double_truncate_round_supported_offset = 1816;
 static constexpr dart::compiler::target::word
-    AOT_Thread_service_extension_stream_offset = 1864;
+    AOT_Thread_service_extension_stream_offset = 1856;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_stub_offset =
@@ -15532,7 +15504,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_exit_through_ffi_offset = 1800;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_group_offset =
-    1872;
+    1864;
 static constexpr dart::compiler::target::word
     AOT_Thread_field_table_values_offset = 128;
 static constexpr dart::compiler::target::word
@@ -15653,13 +15625,11 @@ static constexpr dart::compiler::target::word AOT_Thread_callback_code_offset =
     1784;
 static constexpr dart::compiler::target::word
     AOT_Thread_callback_stack_return_offset = 1792;
-static constexpr dart::compiler::target::word AOT_Thread_next_task_id_offset =
-    1824;
-static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1832;
+static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1824;
 static constexpr dart::compiler::target::word
     AOT_Thread_jump_to_frame_entry_point_offset = 680;
 static constexpr dart::compiler::target::word AOT_Thread_tsan_utils_offset =
-    1840;
+    1832;
 static constexpr dart::compiler::target::word
     AOT_TsanUtils_setjmp_function_offset = 0;
 static constexpr dart::compiler::target::word
@@ -16217,13 +16187,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_Thread_call_to_runtime_stub_offset = 140;
 static constexpr dart::compiler::target::word AOT_Thread_dart_stream_offset =
-    912;
+    904;
 static constexpr dart::compiler::target::word
     AOT_Thread_dispatch_table_array_offset = 44;
 static constexpr dart::compiler::target::word
     AOT_Thread_double_truncate_round_supported_offset = 880;
 static constexpr dart::compiler::target::word
-    AOT_Thread_service_extension_stream_offset = 916;
+    AOT_Thread_service_extension_stream_offset = 908;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_entry_offset =
     340;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_stub_offset =
@@ -16269,7 +16239,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_exit_through_ffi_offset = 872;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_offset = 40;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_group_offset =
-    920;
+    912;
 static constexpr dart::compiler::target::word
     AOT_Thread_field_table_values_offset = 64;
 static constexpr dart::compiler::target::word
@@ -16389,13 +16359,11 @@ static constexpr dart::compiler::target::word AOT_Thread_callback_code_offset =
     864;
 static constexpr dart::compiler::target::word
     AOT_Thread_callback_stack_return_offset = 868;
-static constexpr dart::compiler::target::word AOT_Thread_next_task_id_offset =
-    888;
-static constexpr dart::compiler::target::word AOT_Thread_random_offset = 896;
+static constexpr dart::compiler::target::word AOT_Thread_random_offset = 888;
 static constexpr dart::compiler::target::word
     AOT_Thread_jump_to_frame_entry_point_offset = 352;
 static constexpr dart::compiler::target::word AOT_Thread_tsan_utils_offset =
-    904;
+    896;
 static constexpr dart::compiler::target::word
     AOT_TsanUtils_setjmp_function_offset = 0;
 static constexpr dart::compiler::target::word
@@ -16949,13 +16917,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_Thread_call_to_runtime_stub_offset = 256;
 static constexpr dart::compiler::target::word AOT_Thread_dart_stream_offset =
-    1800;
+    1792;
 static constexpr dart::compiler::target::word
     AOT_Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Thread_double_truncate_round_supported_offset = 1760;
 static constexpr dart::compiler::target::word
-    AOT_Thread_service_extension_stream_offset = 1808;
+    AOT_Thread_service_extension_stream_offset = 1800;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_stub_offset =
@@ -17001,7 +16969,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_exit_through_ffi_offset = 1744;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_group_offset =
-    1816;
+    1808;
 static constexpr dart::compiler::target::word
     AOT_Thread_field_table_values_offset = 128;
 static constexpr dart::compiler::target::word
@@ -17122,13 +17090,11 @@ static constexpr dart::compiler::target::word AOT_Thread_callback_code_offset =
     1728;
 static constexpr dart::compiler::target::word
     AOT_Thread_callback_stack_return_offset = 1736;
-static constexpr dart::compiler::target::word AOT_Thread_next_task_id_offset =
-    1768;
-static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1776;
+static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1768;
 static constexpr dart::compiler::target::word
     AOT_Thread_jump_to_frame_entry_point_offset = 680;
 static constexpr dart::compiler::target::word AOT_Thread_tsan_utils_offset =
-    1784;
+    1776;
 static constexpr dart::compiler::target::word
     AOT_TsanUtils_setjmp_function_offset = 0;
 static constexpr dart::compiler::target::word
@@ -17687,13 +17653,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_Thread_call_to_runtime_stub_offset = 256;
 static constexpr dart::compiler::target::word AOT_Thread_dart_stream_offset =
-    1864;
+    1856;
 static constexpr dart::compiler::target::word
     AOT_Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Thread_double_truncate_round_supported_offset = 1824;
 static constexpr dart::compiler::target::word
-    AOT_Thread_service_extension_stream_offset = 1872;
+    AOT_Thread_service_extension_stream_offset = 1864;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_stub_offset =
@@ -17739,7 +17705,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_exit_through_ffi_offset = 1808;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_group_offset =
-    1880;
+    1872;
 static constexpr dart::compiler::target::word
     AOT_Thread_field_table_values_offset = 128;
 static constexpr dart::compiler::target::word
@@ -17860,13 +17826,11 @@ static constexpr dart::compiler::target::word AOT_Thread_callback_code_offset =
     1792;
 static constexpr dart::compiler::target::word
     AOT_Thread_callback_stack_return_offset = 1800;
-static constexpr dart::compiler::target::word AOT_Thread_next_task_id_offset =
-    1832;
-static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1840;
+static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1832;
 static constexpr dart::compiler::target::word
     AOT_Thread_jump_to_frame_entry_point_offset = 680;
 static constexpr dart::compiler::target::word AOT_Thread_tsan_utils_offset =
-    1848;
+    1840;
 static constexpr dart::compiler::target::word
     AOT_TsanUtils_setjmp_function_offset = 0;
 static constexpr dart::compiler::target::word
@@ -18422,13 +18386,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_Thread_call_to_runtime_stub_offset = 256;
 static constexpr dart::compiler::target::word AOT_Thread_dart_stream_offset =
-    1800;
+    1792;
 static constexpr dart::compiler::target::word
     AOT_Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Thread_double_truncate_round_supported_offset = 1760;
 static constexpr dart::compiler::target::word
-    AOT_Thread_service_extension_stream_offset = 1808;
+    AOT_Thread_service_extension_stream_offset = 1800;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_stub_offset =
@@ -18474,7 +18438,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_exit_through_ffi_offset = 1744;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_group_offset =
-    1816;
+    1808;
 static constexpr dart::compiler::target::word
     AOT_Thread_field_table_values_offset = 128;
 static constexpr dart::compiler::target::word
@@ -18595,13 +18559,11 @@ static constexpr dart::compiler::target::word AOT_Thread_callback_code_offset =
     1728;
 static constexpr dart::compiler::target::word
     AOT_Thread_callback_stack_return_offset = 1736;
-static constexpr dart::compiler::target::word AOT_Thread_next_task_id_offset =
-    1768;
-static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1776;
+static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1768;
 static constexpr dart::compiler::target::word
     AOT_Thread_jump_to_frame_entry_point_offset = 680;
 static constexpr dart::compiler::target::word AOT_Thread_tsan_utils_offset =
-    1784;
+    1776;
 static constexpr dart::compiler::target::word
     AOT_TsanUtils_setjmp_function_offset = 0;
 static constexpr dart::compiler::target::word
@@ -19156,13 +19118,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_Thread_call_to_runtime_stub_offset = 256;
 static constexpr dart::compiler::target::word AOT_Thread_dart_stream_offset =
-    1864;
+    1856;
 static constexpr dart::compiler::target::word
     AOT_Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Thread_double_truncate_round_supported_offset = 1824;
 static constexpr dart::compiler::target::word
-    AOT_Thread_service_extension_stream_offset = 1872;
+    AOT_Thread_service_extension_stream_offset = 1864;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_stub_offset =
@@ -19208,7 +19170,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_exit_through_ffi_offset = 1808;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_group_offset =
-    1880;
+    1872;
 static constexpr dart::compiler::target::word
     AOT_Thread_field_table_values_offset = 128;
 static constexpr dart::compiler::target::word
@@ -19329,13 +19291,11 @@ static constexpr dart::compiler::target::word AOT_Thread_callback_code_offset =
     1792;
 static constexpr dart::compiler::target::word
     AOT_Thread_callback_stack_return_offset = 1800;
-static constexpr dart::compiler::target::word AOT_Thread_next_task_id_offset =
-    1832;
-static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1840;
+static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1832;
 static constexpr dart::compiler::target::word
     AOT_Thread_jump_to_frame_entry_point_offset = 680;
 static constexpr dart::compiler::target::word AOT_Thread_tsan_utils_offset =
-    1848;
+    1840;
 static constexpr dart::compiler::target::word
     AOT_TsanUtils_setjmp_function_offset = 0;
 static constexpr dart::compiler::target::word
@@ -19891,13 +19851,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_Thread_call_to_runtime_stub_offset = 140;
 static constexpr dart::compiler::target::word AOT_Thread_dart_stream_offset =
-    952;
+    944;
 static constexpr dart::compiler::target::word
     AOT_Thread_dispatch_table_array_offset = 44;
 static constexpr dart::compiler::target::word
     AOT_Thread_double_truncate_round_supported_offset = 920;
 static constexpr dart::compiler::target::word
-    AOT_Thread_service_extension_stream_offset = 956;
+    AOT_Thread_service_extension_stream_offset = 948;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_entry_offset =
     340;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_stub_offset =
@@ -19943,7 +19903,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_exit_through_ffi_offset = 912;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_offset = 40;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_group_offset =
-    960;
+    952;
 static constexpr dart::compiler::target::word
     AOT_Thread_field_table_values_offset = 64;
 static constexpr dart::compiler::target::word
@@ -20063,13 +20023,11 @@ static constexpr dart::compiler::target::word AOT_Thread_callback_code_offset =
     904;
 static constexpr dart::compiler::target::word
     AOT_Thread_callback_stack_return_offset = 908;
-static constexpr dart::compiler::target::word AOT_Thread_next_task_id_offset =
-    928;
-static constexpr dart::compiler::target::word AOT_Thread_random_offset = 936;
+static constexpr dart::compiler::target::word AOT_Thread_random_offset = 928;
 static constexpr dart::compiler::target::word
     AOT_Thread_jump_to_frame_entry_point_offset = 352;
 static constexpr dart::compiler::target::word AOT_Thread_tsan_utils_offset =
-    944;
+    936;
 static constexpr dart::compiler::target::word
     AOT_TsanUtils_setjmp_function_offset = 0;
 static constexpr dart::compiler::target::word
@@ -20625,13 +20583,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_Thread_call_to_runtime_stub_offset = 256;
 static constexpr dart::compiler::target::word AOT_Thread_dart_stream_offset =
-    1856;
+    1848;
 static constexpr dart::compiler::target::word
     AOT_Thread_dispatch_table_array_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Thread_double_truncate_round_supported_offset = 1816;
 static constexpr dart::compiler::target::word
-    AOT_Thread_service_extension_stream_offset = 1864;
+    AOT_Thread_service_extension_stream_offset = 1856;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_entry_offset =
     656;
 static constexpr dart::compiler::target::word AOT_Thread_optimize_stub_offset =
@@ -20677,7 +20635,7 @@ static constexpr dart::compiler::target::word
     AOT_Thread_exit_through_ffi_offset = 1800;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_offset = 80;
 static constexpr dart::compiler::target::word AOT_Thread_isolate_group_offset =
-    1872;
+    1864;
 static constexpr dart::compiler::target::word
     AOT_Thread_field_table_values_offset = 128;
 static constexpr dart::compiler::target::word
@@ -20798,13 +20756,11 @@ static constexpr dart::compiler::target::word AOT_Thread_callback_code_offset =
     1784;
 static constexpr dart::compiler::target::word
     AOT_Thread_callback_stack_return_offset = 1792;
-static constexpr dart::compiler::target::word AOT_Thread_next_task_id_offset =
-    1824;
-static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1832;
+static constexpr dart::compiler::target::word AOT_Thread_random_offset = 1824;
 static constexpr dart::compiler::target::word
     AOT_Thread_jump_to_frame_entry_point_offset = 680;
 static constexpr dart::compiler::target::word AOT_Thread_tsan_utils_offset =
-    1840;
+    1832;
 static constexpr dart::compiler::target::word
     AOT_TsanUtils_setjmp_function_offset = 0;
 static constexpr dart::compiler::target::word

@@ -143,12 +143,6 @@ Thread::Thread(bool is_vm_isolate)
   if (!is_vm_isolate) {
     InitVMConstants();
   }
-
-#if defined(DART_HOST_OS_FUCHSIA)
-  next_task_id_ = trace_generate_nonce();
-#else
-  next_task_id_ = Random::GlobalNextUInt64();
-#endif
 }
 
 static const double double_nan_constant = NAN;

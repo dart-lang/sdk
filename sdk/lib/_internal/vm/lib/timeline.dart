@@ -13,8 +13,8 @@ external bool _isDartStreamEnabled();
 external int _getTraceClock();
 
 @patch
-@pragma("vm:external-name", "Timeline_getNextTaskId")
-external int _getNextTaskId();
+@pragma("vm:external-name", "Timeline_getNextAsyncId")
+external int _getNextAsyncId();
 
 @patch
 @pragma("vm:external-name", "Timeline_reportTaskEvent")

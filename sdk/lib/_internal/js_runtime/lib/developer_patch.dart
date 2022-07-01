@@ -80,7 +80,7 @@ void _reportInstantEvent(String category, String name, String argumentsAsJson) {
 }
 
 @patch
-int _getNextTaskId() {
+int _getNextAsyncId() {
   return 0;
 }
 
