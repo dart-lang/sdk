@@ -6534,7 +6534,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   String? _annotationName(NamedNode node, bool Function(Expression) test) {
     var annotation = findAnnotation(node, test);
     return annotation != null
-        ? _constants.getFieldValueFromAnnotation(annotation, 'name') as String
+        ? _constants.getFieldValueFromAnnotation(annotation, 'name') as String?
         : null;
   }
 
