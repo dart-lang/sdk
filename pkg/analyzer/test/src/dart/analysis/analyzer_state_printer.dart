@@ -110,10 +110,11 @@ class AnalyzerStatePrinter {
             sink.write('notAugmentation ${idProvider.fileState(file)}');
           }
           sink.writeln();
+        } else if (import is ImportAugmentationWithUri) {
+          final uriStr = _stringOfUriStr(import.uriStr);
+          _writelnWithIndent('uri: $uriStr');
         } else {
-          sink.write(_indent);
-          sink.write('uri: ${_stringOfUriStr(import.directive.uri)}');
-          sink.writeln();
+          _writelnWithIndent('noUri');
         }
       },
     );
@@ -202,10 +203,11 @@ class AnalyzerStatePrinter {
             sink.write(' notLibrary');
           }
           sink.writeln();
+        } else if (export is ExportDirectiveWithUri) {
+          final uriStr = _stringOfUriStr(export.selectedUriStr);
+          _writelnWithIndent('uri: $uriStr');
         } else {
-          sink.write(_indent);
-          sink.write('uri: ${_stringOfUriStr(export.directive.uri)}');
-          sink.writeln();
+          _writelnWithIndent('noUri');
         }
       },
     );
@@ -252,13 +254,15 @@ class AnalyzerStatePrinter {
             sink.write(' synthetic');
           }
           sink.writeln();
-        } else {
+        } else if (import is ImportDirectiveWithUri) {
           sink.write(_indent);
-          sink.write('uri: ${_stringOfUriStr(import.directive.uri)}');
+          sink.write('uri: ${_stringOfUriStr(import.selectedUriStr)}');
           if (import.isSyntheticDartCoreImport) {
             sink.write(' synthetic');
           }
           sink.writeln();
+        } else {
+          _writelnWithIndent('noUri');
         }
       },
     );
@@ -548,10 +552,11 @@ class AnalyzerStatePrinter {
           sink.write('notPart ${idProvider.fileState(file)}');
         }
         sink.writeln();
+      } else if (part is PartDirectiveWithUri) {
+        final uriStr = _stringOfUriStr(part.uriStr);
+        _writelnWithIndent('uri: $uriStr');
       } else {
-        sink.write(_indent);
-        sink.write('uri: ${_stringOfUriStr(part.directive.uri)}');
-        sink.writeln();
+        _writelnWithIndent('noUri');
       }
     });
   }

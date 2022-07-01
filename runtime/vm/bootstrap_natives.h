@@ -66,6 +66,7 @@ namespace dart {
   V(SendPortImpl_sendInternal_, 2)                                             \
   V(Smi_bitNegate, 1)                                                          \
   V(Smi_bitLength, 1)                                                          \
+  V(SuspendState_instantiateClosureWithFutureTypeArgument, 2)                  \
   V(Mint_bitNegate, 1)                                                         \
   V(Mint_bitLength, 1)                                                         \
   V(Developer_debugger, 2)                                                     \
