@@ -46,7 +46,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
   {
     LeafRuntimeScope rt(assembler,
                         /*frame_size=*/0,
-                        /*preserve_registers=*/false);
+                        /*preserve_registers=*/preserve_registers);
     // [R0] already contains first argument.
     __ mov(R1, Operand(THR));
     rt.Call(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
