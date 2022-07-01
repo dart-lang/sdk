@@ -1,5 +1,11 @@
 ## 2.19.0
 
+#### Dart command line
+
+- **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The standalone `dartanalyzer` tool has been removed as previously
+  announced. `dartanalyzer` is replaced by the `dart analyze` command.
+
 ### Language
 
 - **Breaking Change** [#48167](https://github.com/dart-lang/sdk/issues/48167):

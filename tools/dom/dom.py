@@ -14,7 +14,7 @@ from sys import argv
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import utils
 
-dart_out_dir = utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32')
+dart_out_dir = utils.GetBuildRoot(utils.GuessOS(), 'release', '64')
 if utils.IsWindows():
     dart_bin = os.path.join(dart_out_dir, 'dart.exe')
 else:
@@ -43,10 +43,9 @@ def help():
 def analyze():
     ''' Runs the dart analyzer. '''
     return call([
-        os.path.join(dart_out_dir, 'dart-sdk', 'bin', 'dartanalyzer'),
-        os.path.join('tests', 'html', 'element_test.dart'),
-        '--dart-sdk=sdk',
-        '--show-package-warnings',
+        os.path.join(dart_out_dir, 'dart-sdk', 'bin', 'dart'),
+        'analyze',
+        os.path.join('tests', 'lib', 'html', 'element_test.dart'),
     ])
 
 

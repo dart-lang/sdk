@@ -85,7 +85,7 @@ List<String> _selectBuildTargets(Configuration inner) {
     Compiler.fasta: ['create_sdk', 'dartdevc_test', 'kernel_platform_files'],
     Compiler.dartdevk: ['dartdevc_test'],
     Compiler.dart2js: ['create_sdk'],
-    Compiler.dart2analyzer: ['create_sdk'],
+    Compiler.dart2analyzer: ['create_sdk', 'utils/dartanalyzer'],
     Compiler.specParser: <String>[],
   };
   final result = [...targetsForCompilers[compiler]!];
