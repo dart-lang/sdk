@@ -369,15 +369,20 @@ Future writeAppendedMachOExecutable(
     // Thus, to sign the binary, the developer must force signature overwriting.
     final signingProcess = await Process.run('codesign', args);
     if (signingProcess.exitCode != 0) {
-      print('Failed to replace the dartaotruntime signature, ');
-      print('subcommand terminated with exit code ${signingProcess.exitCode}.');
+      stderr
+        ..write('Failed to replace the dartaotruntime signature, ')
+        ..write('subcommand terminated with exit code ')
+        ..write(signingProcess.exitCode)
+        ..writeln('.');
       if (signingProcess.stdout.isNotEmpty) {
-        print('Subcommand stdout:');
-        print(signingProcess.stdout);
+        stderr
+          ..writeln('Subcommand stdout:')
+          ..writeln(signingProcess.stdout);
       }
       if (signingProcess.stderr.isNotEmpty) {
-        print('Subcommand stderr:');
-        print(signingProcess.stderr);
+        stderr
+          ..writeln('Subcommand stderr:')
+          ..writeln(signingProcess.stderr);
       }
       throw 'Could not sign the new executable';
     }
