@@ -57,26 +57,23 @@ class Zone;
 #define STARTUP_RECORDER_NAME "Startup"
 #define SYSTRACE_RECORDER_NAME "Systrace"
 
-// (name, fuchsia_name, has_static_labels).
+// (name, fuchsia_name).
 #define TIMELINE_STREAM_LIST(V)                                                \
-  V(API, "dart:api", true)                                                     \
-  V(Compiler, "dart:compiler", true)                                           \
-  V(CompilerVerbose, "dart:compiler.verbose", true)                            \
-  V(Dart, "dart:dart", false)                                                  \
-  V(Debugger, "dart:debugger", true)                                           \
-  V(Embedder, "dart:embedder", false)                                          \
-  V(GC, "dart:gc", true)                                                       \
-  V(Isolate, "dart:isolate", true)                                             \
-  V(VM, "dart:vm", true)
+  V(API, "dart:api")                                                           \
+  V(Compiler, "dart:compiler")                                                 \
+  V(CompilerVerbose, "dart:compiler.verbose")                                  \
+  V(Dart, "dart:dart")                                                         \
+  V(Debugger, "dart:debugger")                                                 \
+  V(Embedder, "dart:embedder")                                                 \
+  V(GC, "dart:gc")                                                             \
+  V(Isolate, "dart:isolate")                                                   \
+  V(VM, "dart:vm")
 
 // A stream of timeline events. A stream has a name and can be enabled or
 // disabled (globally and per isolate).
 class TimelineStream {
  public:
-  TimelineStream(const char* name,
-                 const char* fuchsia_name,
-                 bool static_labels,
-                 bool enabled);
+  TimelineStream(const char* name, const char* fuchsia_name, bool enabled);
 
   const char* name() const { return name_; }
   const char* fuchsia_name() const { return fuchsia_name_; }
@@ -108,8 +105,7 @@ class TimelineStream {
 #if defined(DART_HOST_OS_FUCHSIA)
   trace_site_t* trace_site() { return &trace_site_; }
 #elif defined(DART_HOST_OS_MACOS)
-  os_log_t macos_log() const { return macos_log_; }
-  bool has_static_labels() const { return has_static_labels_; }
+  os_log_t macos_log() { return macos_log_; }
 #endif
 
  private:
@@ -124,7 +120,6 @@ class TimelineStream {
   trace_site_t trace_site_ = {};
 #elif defined(DART_HOST_OS_MACOS)
   os_log_t macos_log_ = {};
-  bool has_static_labels_ = false;
 #endif
 };
 
@@ -201,12 +196,12 @@ class Timeline : public AllStatic {
   static void PrintFlagsToJSONArray(JSONArray* arr);
 #endif
 
-#define TIMELINE_STREAM_ACCESSOR(name, ...)                                    \
+#define TIMELINE_STREAM_ACCESSOR(name, fuchsia_name)                           \
   static TimelineStream* Get##name##Stream() { return &stream_##name##_; }
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_ACCESSOR)
 #undef TIMELINE_STREAM_ACCESSOR
 
-#define TIMELINE_STREAM_FLAGS(name, ...)                                       \
+#define TIMELINE_STREAM_FLAGS(name, fuchsia_name)                              \
   static void SetStream##name##Enabled(bool enabled) {                         \
     stream_##name##_.set_enabled(enabled);                                     \
   }
@@ -221,7 +216,7 @@ class Timeline : public AllStatic {
   static MallocGrowableArray<char*>* enabled_streams_;
   static bool recorder_discards_clock_values_;
 
-#define TIMELINE_STREAM_DECLARE(name, ...)                                     \
+#define TIMELINE_STREAM_DECLARE(name, fuchsia_name)                            \
   static TimelineStream stream_##name##_;
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DECLARE)
 #undef TIMELINE_STREAM_DECLARE

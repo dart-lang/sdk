@@ -296,7 +296,7 @@ class EnumListParameter : public MethodParameter {
 #if defined(SUPPORT_TIMELINE)
 static const char* const timeline_streams_enum_names[] = {
     "all",
-#define DEFINE_NAME(name, ...) #name,
+#define DEFINE_NAME(name, unused) #name,
     TIMELINE_STREAM_LIST(DEFINE_NAME)
 #undef DEFINE_NAME
         NULL};
@@ -328,7 +328,7 @@ bool Service::EnableTimelineStreams(char* categories_list) {
     return false;
   }
 
-#define SET_ENABLE_STREAM(name, ...)                                           \
+#define SET_ENABLE_STREAM(name, unused)                                        \
   Timeline::SetStream##name##Enabled(HasStream(streams, #name));
   TIMELINE_STREAM_LIST(SET_ENABLE_STREAM);
 #undef SET_ENABLE_STREAM

@@ -202,7 +202,7 @@ void Timeline::Init() {
   ASSERT(recorder_ != NULL);
   enabled_streams_ = GetEnabledByDefaultTimelineStreams();
 // Global overrides.
-#define TIMELINE_STREAM_FLAG_DEFAULT(name, ...)                                \
+#define TIMELINE_STREAM_FLAG_DEFAULT(name, fuchsia_name)                       \
   stream_##name##_.set_enabled(HasStream(enabled_streams_, #name));
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_FLAG_DEFAULT)
 #undef TIMELINE_STREAM_FLAG_DEFAULT
@@ -218,7 +218,7 @@ void Timeline::Cleanup() {
 #endif
 
 // Disable global streams.
-#define TIMELINE_STREAM_DISABLE(name, ...)                                     \
+#define TIMELINE_STREAM_DISABLE(name, fuchsia_name)                            \
   Timeline::stream_##name##_.set_enabled(false);
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
 #undef TIMELINE_STREAM_DISABLE
@@ -265,7 +265,7 @@ void Timeline::ReclaimCachedBlocksFromThreadsUnsafe() {
 
 #ifndef PRODUCT
 void Timeline::PrintFlagsToJSONArray(JSONArray* arr) {
-#define ADD_RECORDED_STREAM_NAME(name, ...)                                    \
+#define ADD_RECORDED_STREAM_NAME(name, fuchsia_name)                           \
   if (stream_##name##_.enabled()) {                                            \
     arr->AddValue(#name);                                                      \
   }
@@ -285,13 +285,13 @@ void Timeline::PrintFlagsToJSON(JSONStream* js) {
   }
   {
     JSONArray availableStreams(&obj, "availableStreams");
-#define ADD_STREAM_NAME(name, ...) availableStreams.AddValue(#name);
+#define ADD_STREAM_NAME(name, fuchsia_name) availableStreams.AddValue(#name);
     TIMELINE_STREAM_LIST(ADD_STREAM_NAME);
 #undef ADD_STREAM_NAME
   }
   {
     JSONArray recordedStreams(&obj, "recordedStreams");
-#define ADD_RECORDED_STREAM_NAME(name, ...)                                    \
+#define ADD_RECORDED_STREAM_NAME(name, fuchsia_name)                           \
   if (stream_##name##_.enabled()) {                                            \
     recordedStreams.AddValue(#name);                                           \
   }
@@ -402,9 +402,8 @@ TimelineEventRecorder* Timeline::recorder_ = NULL;
 MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
 bool Timeline::recorder_discards_clock_values_ = false;
 
-#define TIMELINE_STREAM_DEFINE(name, fuchsia_name, static_labels)              \
-  TimelineStream Timeline::stream_##name##_(#name, fuchsia_name,               \
-                                            static_labels, false);
+#define TIMELINE_STREAM_DEFINE(name, fuchsia_name)                             \
+  TimelineStream Timeline::stream_##name##_(#name, fuchsia_name, false);
 TIMELINE_STREAM_LIST(TIMELINE_STREAM_DEFINE)
 #undef TIMELINE_STREAM_DEFINE
 
@@ -775,7 +774,6 @@ int64_t TimelineEvent::ThreadCPUTimeDuration() const {
 
 TimelineStream::TimelineStream(const char* name,
                                const char* fuchsia_name,
-                               bool has_static_labels,
                                bool enabled)
     : name_(name),
       fuchsia_name_(fuchsia_name),
@@ -788,7 +786,6 @@ TimelineStream::TimelineStream(const char* name,
 #if defined(DART_HOST_OS_MACOS)
   if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
     macos_log_ = os_log_create("Dart", name);
-    has_static_labels_ = has_static_labels;
   }
 #endif
 }
