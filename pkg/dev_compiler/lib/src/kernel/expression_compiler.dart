@@ -163,13 +163,17 @@ class DartScopeBuilder extends Visitor<void> with VisitorVoidMixin {
 
   @override
   void visitVariableDeclaration(VariableDeclaration decl) {
+    var name = decl.name;
     // Collect locals and formals appearing before current breakpoint.
     // Note that we include variables with no offset because the offset
     // is not set in many cases in generated code, so omitting them would
     // make expression evaluation fail in too many cases.
     // Issue: https://github.com/dart-lang/sdk/issues/43966
-    if (decl.fileOffset < 0 || decl.fileOffset < _offset) {
-      _definitions[decl.name!] = decl.type;
+    //
+    // A null name signals that the variable was synthetically introduced by the
+    // compiler so they are skipped.
+    if ((decl.fileOffset < 0 || decl.fileOffset < _offset) && name != null) {
+      _definitions[name] = decl.type;
     }
     super.visitVariableDeclaration(decl);
   }

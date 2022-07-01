@@ -356,6 +356,35 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
           expectedResult: 'true');
     });
   });
+
+  group('Synthetic variables', () {
+    var source = r'''
+      dynamic couldReturnNull() => null;
+
+      main() {
+        var i = couldReturnNull() ?? 10;
+        // Breakpoint: bp
+        print(i);
+      }
+        ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, source);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('do not cause a crash the expression compiler', () async {
+      // The null aware code in the test source causes the compiler to introduce
+      // a let statement that includes a synthetic variable declaration.
+      // That variable has no name and was causing a crash in the expression
+      // compiler https://github.com/dart-lang/sdk/issues/49373.
+      await driver.check(
+          breakpointId: 'bp', expression: 'true', expectedResult: 'true');
+    });
+  });
 }
 
 /// Shared tests that are valid in legacy (before 2.12) and are agnostic to
