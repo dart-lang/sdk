@@ -3382,294 +3382,6 @@
           ]
         },
         {
-          "name": "analyze pkg/analysis_server",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/analysis_server"
-          ]
-        },
-        {
-          "name": "analyze pkg/analysis_server_client",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/analysis_server_client"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/analyzer"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer_cli",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/analyzer_cli"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer_plugin",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/analyzer_plugin"
-          ]
-        },
-        {
-          "name": "analyze pkg/async_helper",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/async_helper"
-          ]
-        },
-        {
-          "name": "analyze pkg/build_integration",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/build_integration"
-          ]
-        },
-        {
-          "name": "analyze pkg/compiler",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/compiler"
-          ]
-        },
-        {
-          "name": "analyze pkg/dart2native",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/dart2native"
-          ]
-        },
-        {
-          "name": "analyze pkg/dartdev",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/dartdev"
-          ]
-        },
-        {
-          "name": "analyze pkg/dart2js_info",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/dart2js_info"
-          ]
-        },
-        {
-          "name": "analyze pkg/dart2js_tools",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/dart2js_tools"
-          ]
-        },
-        {
-          "name": "analyze pkg/dart_internal",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/dart_internal"
-          ]
-        },
-        {
-          "name": "analyze pkg/dev_compiler",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/dev_compiler"
-          ]
-        },
-        {
-          "name": "analyze pkg/expect",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/expect"
-          ]
-        },
-        {
-          "name": "analyze pkg/front_end",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/front_end"
-          ]
-        },
-        {
-          "name": "analyze pkg/js",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/js"
-          ]
-        },
-        {
-          "name": "analyze pkg/js_ast",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/js_ast"
-          ]
-        },
-        {
-          "name": "analyze pkg/kernel",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/kernel"
-          ]
-        },
-        {
-          "name": "analyze pkg/meta",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/meta"
-          ]
-        },
-        {
-          "name": "analyze pkg/native_stack_traces",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/native_stack_traces"
-          ]
-        },
-        {
-          "name": "analyze pkg/nnbd_migration",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/nnbd_migration"
-          ]
-        },
-        {
-          "name": "analyze pkg/smith",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/smith"
-          ]
-        },
-        {
-          "name": "analyze pkg/sourcemap_testing",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/sourcemap_testing"
-          ]
-        },
-        {
-          "name": "analyze pkg/status_file",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/status_file"
-          ]
-        },
-        {
-          "name": "analyze pkg/telemetry",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/telemetry"
-          ]
-        },
-        {
-          "name": "analyze pkg/test_runner",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/test_runner"
-          ]
-        },
-        {
-          "name": "analyze pkg/testing",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/testing"
-          ]
-        },
-        {
-          "name": "analyze pkg/vm",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/vm"
-          ]
-        },
-        {
-          "name": "analyze pkg/vm_service",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/vm_service"
-          ]
-        },
-        {
-          "name": "analyze pkg/vm_snapshot_analysis",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/vm_snapshot_analysis"
-          ]
-        },
-        {
-          "name": "analyze pkg/dds",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/dds"
-          ]
-        },
-        {
-          "name": "analyze pkg/dds_service_extensions",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/dds_service_extensions"
-          ]
-        },
-        {
           "name": "analyze runtime/observatory",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
@@ -3756,6 +3468,15 @@
           ]
         },
         {
+          "name": "analyze pkg/",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "--fatal-infos",
+            "pkg"
+          ]
+        },
+        {
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
@@ -3775,6 +3496,15 @@
           "script": "tools/bots/pub_integration_test.py",
           "arguments": [
             "--mode=release"
+          ]
+        },
+        {
+          "name": "analyze tools/",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "--fatal-infos",
+            "tools"
           ]
         }
       ]
