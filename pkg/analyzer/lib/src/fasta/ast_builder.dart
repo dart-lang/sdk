@@ -1824,7 +1824,7 @@ class AstBuilder extends StackListener {
     var asKeyword = pop(NullValue.As) as Token?;
     var prefix = pop(NullValue.Prefix) as SimpleIdentifier?;
     var configurations = pop() as List<Configuration>?;
-    var uri = pop() as StringLiteral;
+    var uri = pop() as StringLiteralImpl;
     var metadata = pop() as List<Annotation>?;
     var comment = _findComment(metadata, importKeyword);
 
@@ -1839,18 +1839,33 @@ class AstBuilder extends StackListener {
       }
     }
 
-    directives.add(ast.importDirective(
-        comment,
-        metadata,
-        importKeyword,
-        uri,
-        configurations,
-        deferredKeyword,
-        asKeyword,
-        prefix,
-        combinators,
-        semicolon ?? Tokens.semicolon(),
-        augmentKeyword: augmentToken));
+    if (augmentToken != null) {
+      directives.add(
+        AugmentationImportDirectiveImpl(
+          comment: comment,
+          uri: uri,
+          importKeyword: importKeyword,
+          augmentKeyword: augmentToken,
+          metadata: metadata,
+          semicolon: semicolon ?? Tokens.semicolon(),
+        ),
+      );
+    } else {
+      directives.add(
+        ast.importDirective(
+          comment,
+          metadata,
+          importKeyword,
+          uri,
+          configurations,
+          deferredKeyword,
+          asKeyword,
+          prefix,
+          combinators,
+          semicolon ?? Tokens.semicolon(),
+        ),
+      );
+    }
   }
 
   @override

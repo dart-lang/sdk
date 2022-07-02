@@ -365,6 +365,8 @@ abstract class AstVisitor<R> {
 
   R? visitAssignmentExpression(AssignmentExpression node);
 
+  R? visitAugmentationImportDirective(AugmentationImportDirective node);
+
   R? visitAwaitExpression(AwaitExpression node);
 
   R? visitBinaryExpression(BinaryExpression node);
@@ -615,6 +617,29 @@ abstract class AstVisitor<R> {
   R? visitWithClause(WithClause node);
 
   R? visitYieldStatement(YieldStatement node);
+}
+
+/// An augmentation import directive.
+///
+///    importDirective ::=
+///        [Annotation] 'import' 'augment' [StringLiteral] ';'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class AugmentationImportDirective implements UriBasedDirective {
+  /// The token representing the 'augment' keyword.
+  Token get augmentKeyword;
+
+  /// Return the element associated with this directive, or `null` if the AST
+  /// structure has not been resolved.
+  @override
+  AugmentationImportElement? get element;
+
+  /// The token representing the 'import' keyword.
+  Token get importKeyword;
+
+  /// Return the semicolon terminating the directive.
+  Token get semicolon;
 }
 
 /// An await expression.

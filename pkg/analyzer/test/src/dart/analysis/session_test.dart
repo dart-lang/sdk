@@ -670,18 +670,10 @@ part 'c.dart';
     var session = contextFor(testFilePath).currentSession;
     var resolvedLibrary = await session.getResolvedLibraryValid(test.path);
 
-    expect(resolvedLibrary.units, hasLength(3));
+    expect(resolvedLibrary.units, hasLength(1));
     expect(
       resolvedLibrary.units[0].path,
       convertPath('/home/test/lib/test.dart'),
-    );
-    expect(
-      resolvedLibrary.units[1].path,
-      convertPath('/home/test/lib/a.dart'),
-    );
-    expect(
-      resolvedLibrary.units[2].path,
-      convertPath('/home/test/lib/c.dart'),
     );
   }
 

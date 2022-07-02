@@ -41,16 +41,13 @@ import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/ffi_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/hint/sdk_constraint_verifier.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/src/util/uri.dart';
 
 class AnalysisForCompletionResult {
   final CompilationUnit parsedUnit;
@@ -66,7 +63,6 @@ class AnalysisForCompletionResult {
 class LibraryAnalyzer {
   final AnalysisOptionsImpl _analysisOptions;
   final DeclaredVariables _declaredVariables;
-  final SourceFactory _sourceFactory;
   final LibraryFileStateKind _library;
   final InheritanceManager3 _inheritance;
 
@@ -79,13 +75,8 @@ class LibraryAnalyzer {
   final Map<FileState, ErrorReporter> _errorReporters = {};
   final TestingData? _testingData;
 
-  LibraryAnalyzer(
-      this._analysisOptions,
-      this._declaredVariables,
-      this._sourceFactory,
-      this._libraryElement,
-      this._inheritance,
-      this._library,
+  LibraryAnalyzer(this._analysisOptions, this._declaredVariables,
+      this._libraryElement, this._inheritance, this._library,
       {TestingData? testingData})
       : _testingData = testingData;
 
@@ -296,13 +287,17 @@ class LibraryAnalyzer {
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
     for (var file in _library.files) {
-      IgnoreValidator(
-        _getErrorReporter(file),
-        _getErrorListener(file).errors,
-        _fileToIgnoreInfo[file]!,
-        _fileToLineInfo[file]!,
-        _analysisOptions.unignorableNames,
-      ).reportErrors();
+      final ignoreInfo = _fileToIgnoreInfo[file];
+      // TODO(scheglov) make it safer
+      if (ignoreInfo != null) {
+        IgnoreValidator(
+          _getErrorReporter(file),
+          _getErrorListener(file).errors,
+          ignoreInfo,
+          _fileToLineInfo[file]!,
+          _analysisOptions.unignorableNames,
+        ).reportErrors();
+      }
     }
   }
 
@@ -440,11 +435,6 @@ class LibraryAnalyzer {
     }
 
     //
-    // Validate the directives.
-    //
-    _validateUriBasedDirectives(file, unit);
-
-    //
     // Use the ConstantVerifier to compute errors.
     //
     _computeConstantErrors(errorReporter, unit);
@@ -515,42 +505,6 @@ class LibraryAnalyzer {
     });
   }
 
-  /// Return the name of the library that the given part is declared to be a
-  /// part of, or `null` if the part does not contain a part-of directive.
-  _NameOrSource? _getPartLibraryNameOrUri(Source partSource,
-      CompilationUnit partUnit, List<Directive> directivesToResolve) {
-    for (Directive directive in partUnit.directives) {
-      if (directive is PartOfDirective) {
-        directivesToResolve.add(directive);
-        LibraryIdentifier? libraryName = directive.libraryName;
-        if (libraryName != null) {
-          return _NameOrSource(libraryName.name, null);
-        }
-        String? uri = directive.uri?.stringValue;
-        if (uri != null) {
-          Source? librarySource = _sourceFactory.resolveUri(partSource, uri);
-          if (librarySource != null) {
-            return _NameOrSource(null, librarySource);
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  bool _isExistingSource(Source source) {
-    if (source is InSummarySource) {
-      return true;
-    }
-    for (var file in _library.file.directReferencedFiles) {
-      if (file.uri == source.uri) {
-        return file.exists;
-      }
-    }
-    // A library can refer to itself with an empty URI.
-    return source == _library.file.source;
-  }
-
   /// Return a new parsed unresolved [CompilationUnit].
   CompilationUnitImpl _parse(FileState file) {
     AnalysisErrorListener errorListener = _getErrorListener(file);
@@ -565,21 +519,28 @@ class LibraryAnalyzer {
 
   /// Parse and resolve all files in [_library].
   Map<FileState, CompilationUnitImpl> _parseAndResolve() {
-    var units = <FileState, CompilationUnitImpl>{};
-
     // Parse all files.
-    for (FileState file in _library.files) {
-      units[file] = _parse(file);
+    final libraryFile = _library.file;
+    final libraryUnit = _parse(libraryFile);
+    final units = <FileState, CompilationUnitImpl>{
+      libraryFile: libraryUnit,
+    };
+    for (final part in _library.parts) {
+      if (part is PartDirectiveWithFile) {
+        final partFile = part.includedPart?.file;
+        if (partFile != null) {
+          units[partFile] = _parse(partFile);
+        }
+      }
     }
 
     // Resolve URIs in directives to corresponding sources.
-    FeatureSet featureSet = units[_library.file]!.featureSet;
+    final featureSet = _libraryElement.featureSet;
     units.forEach((file, unit) {
       _validateFeatureSet(unit, featureSet);
-      _resolveUriBasedDirectives(file, unit);
     });
 
-    _resolveDirectives(units);
+    _resolveDirectives(units, libraryUnit);
 
     units.forEach((file, unit) {
       _resolveFile(file, unit);
@@ -590,136 +551,54 @@ class LibraryAnalyzer {
     return units;
   }
 
-  void _resolveDirectives(Map<FileState, CompilationUnitImpl> units) {
-    var definingCompilationUnit = units[_library.file]!;
-    definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
-
-    bool matchNodeElement(Directive node, Element element) {
-      return node.keyword.offset == element.nameOffset;
-    }
+  void _resolveDirectives(
+    Map<FileState, CompilationUnitImpl> units,
+    CompilationUnitImpl libraryUnit,
+  ) {
+    libraryUnit.element = _libraryElement.definingCompilationUnit;
 
     ErrorReporter libraryErrorReporter = _getErrorReporter(_library.file);
+
+    var importIndex = 0;
+    var exportIndex = 0;
 
     LibraryIdentifier? libraryNameNode;
     var seenPartSources = <Source>{};
     var directivesToResolve = <DirectiveImpl>[];
-    int partDirectiveIndex = 0;
-    int partElementIndex = 0;
-    for (Directive directive in definingCompilationUnit.directives) {
+    final partIndexes = _PartDirectiveIndexes();
+    for (Directive directive in libraryUnit.directives) {
       if (directive is LibraryDirectiveImpl) {
         libraryNameNode = directive.name;
         directivesToResolve.add(directive);
+      } else if (directive is AugmentationImportDirective) {
+        // TODO(scheglov) implement
+        throw UnimplementedError();
       } else if (directive is ImportDirectiveImpl) {
-        // TODO(scheglov) Rewrite to iterating `ImportDirectiveState`.
-        for (var index = 0; index < _libraryElement.imports.length; index++) {
-          final importElement = _libraryElement.imports[index];
-          if (matchNodeElement(directive, importElement)) {
-            directive.element = importElement;
-            directive.prefix?.staticElement = importElement.prefix;
-            final importDirectiveState = _library.imports[index];
-            // TODO(scheglov) rewrite
-            if (importDirectiveState is ImportDirectiveWithUri) {
-              if (importDirectiveState.importedSource != null) {
-                if (importDirectiveState.importedLibrarySource == null) {
-                  libraryErrorReporter.reportErrorForNode(
-                    CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
-                    directive.uri,
-                    [importDirectiveState.selectedUriStr],
-                  );
-                }
-              }
-            }
-          }
-        }
+        _resolveImportDirective(
+          directive: directive,
+          importElement: _libraryElement.imports[importIndex],
+          importState: _library.imports[importIndex],
+          libraryErrorReporter: libraryErrorReporter,
+        );
+        importIndex++;
       } else if (directive is ExportDirectiveImpl) {
-        // TODO(scheglov) Rewrite to iterating `ExportDirectiveState`.
-        for (var index = 0; index < _libraryElement.exports.length; index++) {
-          final exportElement = _libraryElement.exports[index];
-          if (matchNodeElement(directive, exportElement)) {
-            directive.element = exportElement;
-            final exportDirectiveState = _library.exports[index];
-            // TODO(scheglov) rewrite
-            if (exportDirectiveState is ExportDirectiveWithUri) {
-              if (exportDirectiveState.exportedSource != null) {
-                if (exportDirectiveState.exportedLibrarySource == null) {
-                  libraryErrorReporter.reportErrorForNode(
-                    CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
-                    directive.uri,
-                    [exportDirectiveState.selectedUriStr],
-                  );
-                }
-              }
-            }
-          }
-        }
+        _resolveExportDirective(
+          directive: directive,
+          exportElement: _libraryElement.exports[exportIndex],
+          exportState: _library.exports[exportIndex],
+          libraryErrorReporter: libraryErrorReporter,
+        );
+        exportIndex++;
       } else if (directive is PartDirectiveImpl) {
-        StringLiteral partUri = directive.uri;
-
-        if (partElementIndex >= _libraryElement.parts.length) {
-          continue;
-        }
-
-        final partState = _library.parts[partDirectiveIndex++];
-        if (partState is! PartDirectiveWithFile) {
-          continue;
-        }
-        final partFile = partState.includedFile;
-
-        var partUnit = units[partFile]!;
-        var partElement = _libraryElement.parts[partElementIndex++];
-        partUnit.element = partElement;
-        directive.element = partElement;
-
-        Source? partSource = directive.uriSource;
-        if (partSource == null) {
-          continue;
-        }
-
-        //
-        // Validate that the part source is unique in the library.
-        //
-        if (!seenPartSources.add(partSource)) {
-          libraryErrorReporter.reportErrorForNode(
-              CompileTimeErrorCode.DUPLICATE_PART, partUri, [partSource.uri]);
-        }
-
-        //
-        // Validate that the part contains a part-of directive with the same
-        // name or uri as the library.
-        //
-        if (_isExistingSource(partSource)) {
-          _NameOrSource? nameOrSource = _getPartLibraryNameOrUri(
-              partSource, partUnit, directivesToResolve);
-          if (nameOrSource == null) {
-            libraryErrorReporter.reportErrorForNode(
-                CompileTimeErrorCode.PART_OF_NON_PART,
-                partUri,
-                [partUri.toSource()]);
-          } else {
-            String? name = nameOrSource.name;
-            if (name != null) {
-              if (libraryNameNode == null) {
-                libraryErrorReporter.reportErrorForNode(
-                    CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY,
-                    partUri,
-                    [name]);
-              } else if (libraryNameNode.name != name) {
-                libraryErrorReporter.reportErrorForNode(
-                    CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
-                    partUri,
-                    [libraryNameNode.name, name]);
-              }
-            } else {
-              Source source = nameOrSource.source!;
-              if (source != _library.file.source) {
-                libraryErrorReporter.reportErrorForNode(
-                    CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
-                    partUri,
-                    [_library.file.uriStr, source.uri]);
-              }
-            }
-          }
-        }
+        _resolvePartDirective(
+          directive: directive,
+          partIndexes: partIndexes,
+          libraryErrorReporter: libraryErrorReporter,
+          libraryNameNode: libraryNameNode,
+          units: units,
+          directivesToResolve: directivesToResolve,
+          seenPartSources: seenPartSources,
+        );
       }
     }
 
@@ -731,6 +610,62 @@ class LibraryAnalyzer {
     //
     for (var directive in directivesToResolve) {
       directive.element = _libraryElement;
+    }
+  }
+
+  void _resolveExportDirective({
+    required ExportDirectiveImpl directive,
+    required ExportElement exportElement,
+    required ExportDirectiveState exportState,
+    required ErrorReporter libraryErrorReporter,
+  }) {
+    directive.element = exportElement;
+    _resolveNamespaceDirective(
+      directive: directive,
+      primaryUriNode: directive.uri,
+      primaryUriState: exportState.uris.primary,
+      configurationNodes: directive.configurations,
+      configurationUris: exportState.uris.configurations,
+      selectedUriState: exportState.selectedUri,
+    );
+    if (exportState is ExportDirectiveWithUri) {
+      final selectedUriStr = exportState.selectedUri.relativeUriStr;
+      if (selectedUriStr.startsWith('dart-ext:')) {
+        libraryErrorReporter.reportErrorForNode(
+          CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
+          directive.uri,
+        );
+      } else if (exportState.exportedSource == null) {
+        final errorCode = exportState.selectedUri.isValid
+            ? CompileTimeErrorCode.URI_DOES_NOT_EXIST
+            : CompileTimeErrorCode.INVALID_URI;
+        libraryErrorReporter.reportErrorForNode(
+          errorCode,
+          directive.uri,
+          [selectedUriStr],
+        );
+      } else if (exportState is ExportDirectiveWithFile &&
+          !exportState.exportedFile.exists) {
+        final errorCode = isGeneratedSource(exportState.exportedSource)
+            ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
+            : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
+        libraryErrorReporter.reportErrorForNode(
+          errorCode,
+          directive.uri,
+          [selectedUriStr],
+        );
+      } else if (exportState.exportedLibrarySource == null) {
+        libraryErrorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+          directive.uri,
+          [selectedUriStr],
+        );
+      }
+    } else {
+      libraryErrorReporter.reportErrorForNode(
+        CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+        directive.uri,
+      );
     }
   }
 
@@ -772,86 +707,202 @@ class LibraryAnalyzer {
         featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper));
   }
 
-  Uri? _resolveRelativeUri(String relativeUriStr) {
-    Uri relativeUri;
-    try {
-      relativeUri = Uri.parse(relativeUriStr);
-    } on FormatException {
-      return null;
+  void _resolveImportDirective({
+    required ImportDirectiveImpl directive,
+    required ImportElement importElement,
+    required ImportDirectiveState importState,
+    required ErrorReporter libraryErrorReporter,
+  }) {
+    directive.element = importElement;
+    directive.prefix?.staticElement = importElement.prefix;
+    _resolveNamespaceDirective(
+      directive: directive,
+      primaryUriNode: directive.uri,
+      primaryUriState: importState.uris.primary,
+      configurationNodes: directive.configurations,
+      configurationUris: importState.uris.configurations,
+      selectedUriState: importState.selectedUri,
+    );
+    if (importState is ImportDirectiveWithUri) {
+      final selectedUriStr = importState.selectedUri.relativeUriStr;
+      if (selectedUriStr.startsWith('dart-ext:')) {
+        libraryErrorReporter.reportErrorForNode(
+          CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
+          directive.uri,
+        );
+      } else if (importState.importedSource == null) {
+        final errorCode = importState.selectedUri.isValid
+            ? CompileTimeErrorCode.URI_DOES_NOT_EXIST
+            : CompileTimeErrorCode.INVALID_URI;
+        libraryErrorReporter.reportErrorForNode(
+          errorCode,
+          directive.uri,
+          [selectedUriStr],
+        );
+      } else if (importState is ImportDirectiveWithFile &&
+          !importState.importedFile.exists) {
+        final errorCode = isGeneratedSource(importState.importedSource)
+            ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
+            : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
+        libraryErrorReporter.reportErrorForNode(
+          errorCode,
+          directive.uri,
+          [selectedUriStr],
+        );
+      } else if (importState.importedLibrarySource == null) {
+        libraryErrorReporter.reportErrorForNode(
+          CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+          directive.uri,
+          [selectedUriStr],
+        );
+      }
+    } else {
+      libraryErrorReporter.reportErrorForNode(
+        CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+        directive.uri,
+      );
     }
-
-    var absoluteUri = resolveRelativeUri(_library.file.uri, relativeUri);
-    return rewriteToCanonicalUri(_sourceFactory, absoluteUri);
   }
 
-  /// Return the result of resolve the given [uriContent], reporting errors
-  /// against the [uriLiteral].
-  Source? _resolveUri(FileState file, bool isImport, StringLiteral uriLiteral,
-      String? uriContent) {
-    UriValidationCode? code =
-        UriBasedDirectiveImpl.validateUri(isImport, uriLiteral, uriContent);
-    if (code == null) {
-      try {
-        Uri.parse(uriContent!);
-      } on FormatException {
-        return null;
-      }
-      return _sourceFactory.resolveUri(file.source, uriContent);
-    } else if (code == UriValidationCode.URI_WITH_INTERPOLATION) {
-      _getErrorReporter(file).reportErrorForNode(
-          CompileTimeErrorCode.URI_WITH_INTERPOLATION, uriLiteral);
-      return null;
-    } else if (code == UriValidationCode.INVALID_URI) {
-      // It is safe to assume [uriContent] is non-null because the only way for
-      // it to be null is if the string literal contained an interpolation, and
-      // in that case the validation code would have been
-      // UriValidationCode.URI_WITH_INTERPOLATION.
-      assert(uriContent != null);
-      _getErrorReporter(file).reportErrorForNode(
-          CompileTimeErrorCode.INVALID_URI, uriLiteral, [uriContent!]);
-      return null;
+  void _resolveNamespaceDirective({
+    required NamespaceDirectiveImpl directive,
+    required StringLiteralImpl primaryUriNode,
+    required DirectiveUri primaryUriState,
+    required DirectiveUri selectedUriState,
+    required List<Configuration> configurationNodes,
+    required List<DirectiveUri> configurationUris,
+  }) {
+    for (var i = 0; i < configurationNodes.length; i++) {
+      final configurationNode = configurationNodes[i];
+      configurationNode as ConfigurationImpl;
+      configurationNode.uriSource = configurationUris[i].source;
     }
-    return null;
+
+    if (primaryUriState is DirectiveUriWithString) {
+      directive.uriContent = primaryUriState.relativeUriStr;
+      directive.uriSource = primaryUriState.source;
+    }
+
+    if (selectedUriState is DirectiveUriWithString) {
+      directive.selectedUriContent = selectedUriState.relativeUriStr;
+      directive.selectedSource = selectedUriState.source;
+    }
   }
 
-  void _resolveUriBasedDirectives(FileState file, CompilationUnit unit) {
-    for (var directive in unit.directives) {
-      if (directive is UriBasedDirectiveImpl) {
-        StringLiteral uriLiteral = directive.uri;
-        String? uriContent = uriLiteral.stringValue?.trim();
-        directive.uriContent = uriContent;
-        Source? defaultSource = _resolveUri(
-            file, directive is ImportDirective, uriLiteral, uriContent);
-        directive.uriSource = defaultSource;
+  void _resolvePartDirective({
+    required PartDirectiveImpl directive,
+    required _PartDirectiveIndexes partIndexes,
+    required ErrorReporter libraryErrorReporter,
+    required LibraryIdentifier? libraryNameNode,
+    required Map<FileState, CompilationUnitImpl> units,
+    required List<DirectiveImpl> directivesToResolve,
+    required Set<Source> seenPartSources,
+  }) {
+    StringLiteral partUri = directive.uri;
+
+    final partState = _library.parts[partIndexes.directive++];
+    directive.uriSource = partState.includedSource;
+    if (partState is! PartDirectiveWithUri) {
+      libraryErrorReporter.reportErrorForNode(
+        CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+        directive.uri,
+      );
+      return;
+    }
+
+    // TODO(scheglov) This should not be necessary if we build `PartElement`
+    // for every `part` directive.
+    if (partIndexes.element >= _libraryElement.parts.length) {
+      final errorCode = partState.uri.isValid
+          ? CompileTimeErrorCode.URI_DOES_NOT_EXIST
+          : CompileTimeErrorCode.INVALID_URI;
+      libraryErrorReporter.reportErrorForNode(
+        errorCode,
+        directive.uri,
+        [partState.uri.relativeUriStr],
+      );
+      return;
+    }
+
+    if (partState is! PartDirectiveWithFile) {
+      libraryErrorReporter.reportErrorForNode(
+        CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+        directive.uri,
+        [partState.uri.relativeUriStr],
+      );
+      return;
+    }
+    final includedFile = partState.includedFile;
+    final includedKind = includedFile.kind;
+
+    if (includedKind is! PartFileStateKind) {
+      if (includedFile.exists) {
+        libraryErrorReporter.reportErrorForNode(
+          CompileTimeErrorCode.PART_OF_NON_PART,
+          partUri,
+          [partUri.toSource()],
+        );
+      } else {
+        final errorCode = isGeneratedSource(includedFile.source)
+            ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
+            : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
+        libraryErrorReporter.reportErrorForNode(
+          errorCode,
+          directive.uri,
+          [partUri.toSource()],
+        );
       }
-      if (directive is NamespaceDirectiveImpl) {
-        var relativeUriStr = _selectRelativeUri(directive);
-        directive.selectedUriContent = relativeUriStr;
-        var absoluteUri = _resolveRelativeUri(relativeUriStr);
-        if (absoluteUri != null) {
-          directive.selectedSource = _sourceFactory.forUri2(absoluteUri);
+      return;
+    }
+
+    if (includedKind is PartOfNameFileStateKind) {
+      if (!includedKind.libraries.contains(_library)) {
+        final name = includedKind.directive.name;
+        if (libraryNameNode == null) {
+          libraryErrorReporter.reportErrorForNode(
+            CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY,
+            partUri,
+            [name],
+          );
+        } else {
+          libraryErrorReporter.reportErrorForNode(
+            CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
+            partUri,
+            [libraryNameNode.name, name],
+          );
         }
-        for (var configuration in directive.configurations) {
-          configuration as ConfigurationImpl;
-          var uriLiteral = configuration.uri;
-          String? uriContent = uriLiteral.stringValue?.trim();
-          Source? defaultSource = _resolveUri(
-              file, directive is ImportDirective, uriLiteral, uriContent);
-          configuration.uriSource = defaultSource;
-        }
+        return;
       }
+    } else if (includedKind.library != _library) {
+      libraryErrorReporter.reportErrorForNode(
+        CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
+        partUri,
+        [_library.file.uriStr, includedFile.uriStr],
+      );
+      return;
     }
-  }
 
-  String _selectRelativeUri(NamespaceDirective directive) {
-    for (var configuration in directive.configurations) {
-      var name = configuration.name.components.join('.');
-      var value = configuration.value?.stringValue ?? 'true';
-      if (_declaredVariables.get(name) == value) {
-        return configuration.uri.stringValue ?? '';
+    var partUnit = units[includedFile]!;
+    var partElement = _libraryElement.parts[partIndexes.element++];
+    partUnit.element = partElement;
+    directive.element = partElement;
+
+    final partSource = includedKind.file.source;
+    directive.uriSource = partSource;
+
+    for (final directive in partUnit.directives) {
+      if (directive is PartOfDirectiveImpl) {
+        directivesToResolve.add(directive);
       }
     }
-    return directive.uri.stringValue ?? '';
+
+    //
+    // Validate that the part source is unique in the library.
+    //
+    if (!seenPartSources.add(partSource)) {
+      libraryErrorReporter.reportErrorForNode(
+          CompileTimeErrorCode.DUPLICATE_PART, partUri, [partSource.uri]);
+    }
   }
 
   /// Validate that the feature set associated with the compilation [unit] is
@@ -860,61 +911,6 @@ class LibraryAnalyzer {
     FeatureSet actualSet = unit.featureSet;
     if (actualSet != expectedSet) {
       // TODO(brianwilkerson) Generate a diagnostic.
-    }
-  }
-
-  /// Check the given [directive] to see if the referenced source exists and
-  /// report an error if it does not.
-  void _validateUriBasedDirective(
-      FileState file, UriBasedDirectiveImpl directive) {
-    String? uriContent;
-    Source? source;
-    if (directive is NamespaceDirectiveImpl) {
-      uriContent = directive.selectedUriContent;
-      source = directive.selectedSource;
-    } else {
-      uriContent = directive.uriContent;
-      source = directive.uriSource;
-    }
-    if (source != null) {
-      if (_isExistingSource(source)) {
-        return;
-      }
-    } else {
-      // Don't report errors already reported by ParseDartTask.resolveDirective
-      // TODO(scheglov) we don't use this task here
-      if (directive.validate() != null) {
-        return;
-      }
-    }
-
-    if (uriContent != null && uriContent.startsWith('dart-ext:')) {
-      _getErrorReporter(file).reportErrorForNode(
-        CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
-        directive.uri,
-      );
-      return;
-    }
-
-    CompileTimeErrorCode errorCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
-    if (isGeneratedSource(source)) {
-      errorCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
-    }
-    // It is safe to assume that [uriContent] is non-null because the only way
-    // for it to be null is if the string literal contained an interpolation,
-    // and in that case the call to `directive.validate()` above would have
-    // returned a non-null validation code.
-    _getErrorReporter(file)
-        .reportErrorForNode(errorCode, directive.uri, [uriContent!]);
-  }
-
-  /// Check each directive in the given [unit] to see if the referenced source
-  /// exists and report an error if it does not.
-  void _validateUriBasedDirectives(FileState file, CompilationUnit unit) {
-    for (Directive directive in unit.directives) {
-      if (directive is UriBasedDirectiveImpl) {
-        _validateUriBasedDirective(file, directive);
-      }
     }
   }
 
@@ -1016,10 +1012,7 @@ class UnitAnalysisResult {
   UnitAnalysisResult(this.file, this.unit, this.errors);
 }
 
-/// Either the name or the source associated with a part-of directive.
-class _NameOrSource {
-  final String? name;
-  final Source? source;
-
-  _NameOrSource(this.name, this.source);
+class _PartDirectiveIndexes {
+  int directive = 0;
+  int element = 0;
 }

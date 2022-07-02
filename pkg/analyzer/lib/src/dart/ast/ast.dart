@@ -875,6 +875,64 @@ abstract class AstNodeImpl implements AstNode {
   }
 }
 
+/// An augmentation import directive.
+///
+///    importDirective ::=
+///        [Annotation] 'import' 'augment' [StringLiteral] ';'
+class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
+    implements AugmentationImportDirective {
+  @override
+  Token importKeyword;
+
+  @override
+  Token augmentKeyword;
+
+  @override
+  Token semicolon;
+
+  AugmentationImportDirectiveImpl({
+    required CommentImpl? comment,
+    required List<Annotation>? metadata,
+    required this.importKeyword,
+    required this.augmentKeyword,
+    required this.semicolon,
+    required StringLiteralImpl uri,
+  }) : super(comment, metadata, uri) {
+    _becomeParentOf(_uri);
+  }
+
+  @override
+  AugmentationImportElement? get element {
+    return super.element as AugmentationImportElement?;
+  }
+
+  @override
+  Token get endToken => semicolon;
+
+  @override
+  Token get firstTokenAfterCommentAndMetadata => keyword;
+
+  @override
+  Token get keyword => importKeyword;
+
+  @override
+  LibraryAugmentationElement? get uriElement {
+    return element?.augmentation;
+  }
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('keyword', keyword)
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addNode('uri', uri)
+    ..addToken('semicolon', semicolon);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitAugmentationImportDirective(this);
+  }
+}
+
 /// An await expression.
 ///
 ///    awaitExpression ::=
@@ -6311,10 +6369,6 @@ class ImplicitCallReferenceImpl extends ExpressionImpl
 //         [Combinator]* ';'
 class ImportDirectiveImpl extends NamespaceDirectiveImpl
     implements ImportDirective {
-  /// The token representing the 'augment' keyword, or `null` if the import is
-  /// not a library augmentation import.
-  Token? augmentKeyword;
-
   /// The token representing the 'deferred' keyword, or `null` if the imported
   /// is not deferred.
   @override
@@ -6339,7 +6393,6 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
       CommentImpl? comment,
       List<Annotation>? metadata,
       Token keyword,
-      this.augmentKeyword,
       StringLiteralImpl libraryUri,
       List<Configuration>? configurations,
       this.deferredKeyword,
@@ -6370,7 +6423,6 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('keyword', keyword)
-    ..addToken('augmentKeyword', augmentKeyword)
     ..addNode('uri', uri)
     ..addToken('deferredKeyword', deferredKeyword)
     ..addToken('asKeyword', asKeyword)

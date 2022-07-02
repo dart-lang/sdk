@@ -55,6 +55,10 @@ class FindNode {
     return _node(search, (n) => n is AssignmentExpression);
   }
 
+  AugmentationImportDirective augmentationImportDirective(String search) {
+    return _node(search, (n) => n is AugmentationImportDirective);
+  }
+
   AwaitExpression awaitExpression(String search) {
     return _node(search, (n) => n is AwaitExpression);
   }

@@ -162,6 +162,17 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitAugmentationImportDirective(AugmentationImportDirective node) {
+    final other = _other as AugmentationImportDirective;
+    return isEqualNodes(
+            node.documentationComment, other.documentationComment) &&
+        _isEqualNodeLists(node.metadata, other.metadata) &&
+        isEqualTokens(node.keyword, other.keyword) &&
+        isEqualNodes(node.uri, other.uri) &&
+        isEqualTokens(node.semicolon, other.semicolon);
+  }
+
+  @override
   bool visitAwaitExpression(AwaitExpression node) {
     AwaitExpression other = _other as AwaitExpression;
     return isEqualTokens(node.awaitKeyword, other.awaitKeyword) &&
@@ -1695,6 +1706,13 @@ class NodeReplacer implements AstVisitor<bool> {
       return true;
     }
     return visitNode(node);
+  }
+
+  @override
+  bool visitAugmentationImportDirective(
+    covariant AugmentationImportDirectiveImpl node,
+  ) {
+    return visitUriBasedDirective(node);
   }
 
   @override
