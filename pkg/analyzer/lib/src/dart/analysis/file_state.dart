@@ -131,12 +131,82 @@ class DirectiveState {
   void dispose() {}
 }
 
-/// Information about a single `import` directive.
-class ExportDirectiveState extends DirectiveState {
+/// Meaning of a URI referenced in a directive.
+class DirectiveUri {
+  Source? get source => null;
+}
+
+/// [DirectiveUriWithUri] with URI that resolves to a [FileState].
+class DirectiveUriWithFile extends DirectiveUriWithUri {
+  final FileState file;
+
+  DirectiveUriWithFile({
+    required super.relativeUriStr,
+    required super.relativeUri,
+    required this.file,
+  });
+
+  @override
+  Source? get source => file.source;
+
+  @override
+  String toString() => '$file';
+}
+
+/// [DirectiveUriWithUri] with URI that resolves to a [InSummarySource].
+class DirectiveUriWithInSummarySource extends DirectiveUriWithUri {
+  @override
+  final InSummarySource source;
+
+  DirectiveUriWithInSummarySource({
+    required super.relativeUriStr,
+    required super.relativeUri,
+    required this.source,
+  });
+
+  @override
+  String toString() => '$source';
+}
+
+/// [DirectiveUri] for which we can get its relative URI string.
+class DirectiveUriWithString extends DirectiveUri {
+  final String relativeUriStr;
+
+  DirectiveUriWithString({
+    required this.relativeUriStr,
+  });
+
+  @override
+  String toString() => relativeUriStr;
+}
+
+/// [DirectiveUriWithString] that can be parsed into a relative URI.
+class DirectiveUriWithUri extends DirectiveUriWithString {
+  final Uri relativeUri;
+
+  DirectiveUriWithUri({
+    required super.relativeUriStr,
+    required this.relativeUri,
+  });
+
+  bool get isValid {
+    return relativeUri.path.isNotEmpty;
+  }
+
+  @override
+  String toString() => '$relativeUri';
+}
+
+/// Information about a single `export` directive.
+class ExportDirectiveState<U extends DirectiveUri> extends DirectiveState {
   final UnlinkedNamespaceDirective directive;
+  final U selectedUri;
+  final NamespaceDirectiveUris uris;
 
   ExportDirectiveState({
     required this.directive,
+    required this.selectedUri,
+    required this.uris,
   });
 
   /// If [exportedSource] corresponds to a library, returns it.
@@ -151,18 +221,20 @@ class ExportDirectiveState extends DirectiveState {
 }
 
 /// [ExportDirectiveWithUri] that has a valid URI that references a file.
-class ExportDirectiveWithFile extends ExportDirectiveWithUri {
+class ExportDirectiveWithFile
+    extends ExportDirectiveWithUri<DirectiveUriWithFile> {
   final LibraryOrAugmentationFileKind container;
-  final FileState exportedFile;
 
   ExportDirectiveWithFile({
     required this.container,
     required super.directive,
-    required this.exportedFile,
-    required super.selectedUriStr,
+    required super.selectedUri,
+    required super.uris,
   }) {
     exportedFile.referencingFiles.add(container.file);
   }
+
+  FileState get exportedFile => selectedUri.file;
 
   /// Returns [exportedFile] if it is a library.
   LibraryFileStateKind? get exportedLibrary {
@@ -191,14 +263,12 @@ class ExportDirectiveWithFile extends ExportDirectiveWithUri {
 }
 
 /// [ExportDirectiveWithUri] with a URI that resolves to [InSummarySource].
-class ExportDirectiveWithInSummarySource extends ExportDirectiveWithUri {
-  @override
-  final InSummarySource exportedSource;
-
+class ExportDirectiveWithInSummarySource
+    extends ExportDirectiveWithUri<DirectiveUriWithInSummarySource> {
   ExportDirectiveWithInSummarySource({
     required super.directive,
-    required this.exportedSource,
-    required super.selectedUriStr,
+    required super.selectedUri,
+    required super.uris,
   });
 
   @override
@@ -209,15 +279,18 @@ class ExportDirectiveWithInSummarySource extends ExportDirectiveWithUri {
       return null;
     }
   }
+
+  @override
+  InSummarySource get exportedSource => selectedUri.source;
 }
 
-/// [ExportDirectiveState] that has a valid URI string.
-class ExportDirectiveWithUri extends ExportDirectiveState {
-  final String selectedUriStr;
-
+/// [ExportDirectiveState] that has a valid URI.
+class ExportDirectiveWithUri<U extends DirectiveUriWithUri>
+    extends ExportDirectiveState<U> {
   ExportDirectiveWithUri({
     required super.directive,
-    required this.selectedUriStr,
+    required super.selectedUri,
+    required super.uris,
   });
 }
 
@@ -591,6 +664,70 @@ class FileState {
   @override
   String toString() {
     return '$uri = $path';
+  }
+
+  DirectiveUri _buildDirectiveUri(String? relativeUriStr) {
+    if (relativeUriStr == null) {
+      return DirectiveUri();
+    }
+
+    final relativeUri = Uri.tryParse(relativeUriStr);
+    if (relativeUri == null) {
+      return DirectiveUriWithString(
+        relativeUriStr: relativeUriStr,
+      );
+    }
+
+    final absoluteUri = resolveRelativeUri(uri, relativeUri);
+    return _fsState.getFileForUri(absoluteUri).map(
+      (file) {
+        if (file != null) {
+          return DirectiveUriWithFile(
+            relativeUriStr: relativeUriStr,
+            relativeUri: relativeUri,
+            file: file,
+          );
+        } else {
+          return DirectiveUriWithUri(
+            relativeUriStr: relativeUriStr,
+            relativeUri: relativeUri,
+          );
+        }
+      },
+      (externalLibrary) {
+        return DirectiveUriWithInSummarySource(
+          relativeUriStr: relativeUriStr,
+          relativeUri: relativeUri,
+          source: externalLibrary.source,
+        );
+      },
+    );
+  }
+
+  /// TODO(scheglov) move to _fsState?
+  NamespaceDirectiveUris _buildNamespaceDirectiveUris(
+    UnlinkedNamespaceDirective directive,
+  ) {
+    final primaryUri = _buildDirectiveUri(directive.uri);
+
+    final configurationUris = <DirectiveUri>[];
+    DirectiveUri? selectedConfigurationUri;
+    for (final configuration in directive.configurations) {
+      final configurationUri = _buildDirectiveUri(configuration.uri);
+      configurationUris.add(configurationUri);
+      // Maybe select this URI.
+      final name = configuration.name;
+      final value = configuration.valueOrTrue;
+      if (_fsState._declaredVariables.get(name) == value) {
+        selectedConfigurationUri ??= configurationUri;
+      }
+    }
+
+    return NamespaceDirectiveUris(
+      primary: primaryUri,
+      configurations: configurationUris,
+      selected: selectedConfigurationUri ?? primaryUri,
+    );
   }
 
   /// Return the [FileState] for the given [relativeUri], or `null` if the
@@ -1092,17 +1229,13 @@ class FileSystemState {
 
     _uriToFile.remove(file.uri);
 
-    // The removed file does not reference other file anymore.
-    for (var referencedFile in file.directReferencedFiles) {
-      referencedFile.referencingFiles.remove(file);
-    }
+    // The removed file does not reference other files anymore.
+    file._kind?.dispose();
 
     // Recursively remove files that reference the removed file.
     for (var reference in file.referencingFiles.toList()) {
       changeFile(reference.path, removedFiles);
     }
-
-    file._kind?.dispose();
   }
 
   /// Collected files that transitively reference a file with the [path].
@@ -1454,11 +1587,14 @@ class FileUriProperties {
 }
 
 /// Information about a single `import augment` directive.
-class ImportAugmentationDirectiveState extends DirectiveState {
+class ImportAugmentationDirectiveState<U extends DirectiveUri>
+    extends DirectiveState {
   final UnlinkedImportAugmentationDirective directive;
+  final U uri;
 
   ImportAugmentationDirectiveState({
     required this.directive,
+    required this.uri,
   });
 
   /// Returns a [Source] that is referenced by this directive.
@@ -1469,14 +1605,13 @@ class ImportAugmentationDirectiveState extends DirectiveState {
 
 /// [ImportAugmentationWithUri] that has a valid URI that references a file.
 class ImportAugmentationDirectiveWithFile
-    extends ImportAugmentationDirectiveState {
+    extends ImportAugmentationWithUri<DirectiveUriWithFile> {
   final LibraryOrAugmentationFileKind container;
-  final FileState importedFile;
 
   ImportAugmentationDirectiveWithFile({
     required this.container,
     required super.directive,
-    required this.importedFile,
+    required super.uri,
   }) {
     importedFile.referencingFiles.add(container.file);
   }
@@ -1491,6 +1626,8 @@ class ImportAugmentationDirectiveWithFile
     return null;
   }
 
+  FileState get importedFile => uri.file;
+
   @override
   Source? get importedSource => importedFile.source;
 
@@ -1501,21 +1638,24 @@ class ImportAugmentationDirectiveWithFile
 }
 
 /// [ImportAugmentationDirectiveState] that has a valid URI.
-class ImportAugmentationWithUri extends ImportAugmentationDirectiveState {
-  final String uriStr;
-
+class ImportAugmentationWithUri<U extends DirectiveUriWithUri>
+    extends ImportAugmentationDirectiveState<U> {
   ImportAugmentationWithUri({
     required super.directive,
-    required this.uriStr,
+    required super.uri,
   });
 }
 
 /// Information about a single `import` directive.
-class ImportDirectiveState extends DirectiveState {
+class ImportDirectiveState<U extends DirectiveUri> extends DirectiveState {
   final UnlinkedNamespaceDirective directive;
+  final U selectedUri;
+  final NamespaceDirectiveUris uris;
 
   ImportDirectiveState({
     required this.directive,
+    required this.selectedUri,
+    required this.uris,
   });
 
   /// If [importedSource] corresponds to a library, returns it.
@@ -1532,18 +1672,20 @@ class ImportDirectiveState extends DirectiveState {
 }
 
 /// [ImportDirectiveWithUri] that has a valid URI that references a file.
-class ImportDirectiveWithFile extends ImportDirectiveWithUri {
+class ImportDirectiveWithFile
+    extends ImportDirectiveWithUri<DirectiveUriWithFile> {
   final LibraryOrAugmentationFileKind container;
-  final FileState importedFile;
 
   ImportDirectiveWithFile({
     required this.container,
     required super.directive,
-    required this.importedFile,
-    required super.selectedUriStr,
+    required super.selectedUri,
+    required super.uris,
   }) {
     importedFile.referencingFiles.add(container.file);
   }
+
+  FileState get importedFile => selectedUri.file;
 
   /// Returns [importedFile] if it is a library.
   LibraryFileStateKind? get importedLibrary {
@@ -1572,14 +1714,12 @@ class ImportDirectiveWithFile extends ImportDirectiveWithUri {
 }
 
 /// [ImportDirectiveWithUri] with a URI that resolves to [InSummarySource].
-class ImportDirectiveWithInSummarySource extends ImportDirectiveWithUri {
-  @override
-  final InSummarySource importedSource;
-
+class ImportDirectiveWithInSummarySource
+    extends ImportDirectiveWithUri<DirectiveUriWithInSummarySource> {
   ImportDirectiveWithInSummarySource({
     required super.directive,
-    required this.importedSource,
-    required super.selectedUriStr,
+    required super.selectedUri,
+    required super.uris,
   });
 
   @override
@@ -1590,15 +1730,18 @@ class ImportDirectiveWithInSummarySource extends ImportDirectiveWithUri {
       return null;
     }
   }
+
+  @override
+  InSummarySource get importedSource => selectedUri.source;
 }
 
 /// [ImportDirectiveState] that has a valid URI.
-class ImportDirectiveWithUri extends ImportDirectiveState {
-  final String selectedUriStr;
-
+class ImportDirectiveWithUri<U extends DirectiveUriWithUri>
+    extends ImportDirectiveState<U> {
   ImportDirectiveWithUri({
     required super.directive,
-    required this.selectedUriStr,
+    required super.selectedUri,
+    required super.uris,
   });
 }
 
@@ -1658,37 +1801,24 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
 
   List<PartDirectiveState> get parts {
     return _parts ??= file.unlinked2.parts.map((directive) {
-      final uriStr = directive.uri;
-      if (uriStr != null) {
-        return file._fileForRelativeUri(uriStr).map(
-          (refFile) {
-            if (refFile != null) {
-              return PartDirectiveWithFile(
-                library: this,
-                directive: directive,
-                includedFile: refFile,
-                uriStr: uriStr,
-              );
-            } else {
-              return PartDirectiveWithUri(
-                library: this,
-                directive: directive,
-                uriStr: uriStr,
-              );
-            }
-          },
-          (externalLibrary) {
-            return PartDirectiveWithUri(
-              library: this,
-              directive: directive,
-              uriStr: uriStr,
-            );
-          },
+      final uri = file._buildDirectiveUri(directive.uri);
+      if (uri is DirectiveUriWithFile) {
+        return PartDirectiveWithFile(
+          library: this,
+          directive: directive,
+          uri: uri,
+        );
+      } else if (uri is DirectiveUriWithUri) {
+        return PartDirectiveWithUri(
+          library: this,
+          directive: directive,
+          uri: uri,
         );
       } else {
         return PartDirectiveState(
           library: this,
           directive: directive,
+          uri: uri,
         );
       }
     }).toList();
@@ -1750,105 +1880,90 @@ abstract class LibraryOrAugmentationFileKind extends FileStateKind {
 
   List<ImportAugmentationDirectiveState> get augmentations {
     return _augmentations ??= file.unlinked2.augmentations.map((directive) {
-      final uriStr = directive.uri;
-      if (uriStr != null) {
-        return file._fileForRelativeUri(uriStr).map(
-          (refFile) {
-            if (refFile != null) {
-              return ImportAugmentationDirectiveWithFile(
-                container: this,
-                directive: directive,
-                importedFile: refFile,
-              );
-            } else {
-              return ImportAugmentationWithUri(
-                directive: directive,
-                uriStr: uriStr,
-              );
-            }
-          },
-          (externalLibrary) {
-            return ImportAugmentationWithUri(
-              directive: directive,
-              uriStr: uriStr,
-            );
-          },
+      final uri = file._buildDirectiveUri(directive.uri);
+      if (uri is DirectiveUriWithFile) {
+        return ImportAugmentationDirectiveWithFile(
+          container: this,
+          directive: directive,
+          uri: uri,
+        );
+      } else if (uri is DirectiveUriWithUri) {
+        return ImportAugmentationWithUri(
+          directive: directive,
+          uri: uri,
         );
       } else {
         return ImportAugmentationDirectiveState(
           directive: directive,
+          uri: uri,
         );
       }
     }).toList();
   }
 
   List<ExportDirectiveState> get exports {
-    return _exports ??= file.unlinked2.exports.map((directive) {
-      final uriStr = file._selectRelativeUri(directive);
-      if (uriStr != null) {
-        return file._fileForRelativeUri(uriStr).map(
-          (refFile) {
-            if (refFile != null) {
-              return ExportDirectiveWithFile(
-                container: this,
-                directive: directive,
-                exportedFile: refFile,
-                selectedUriStr: uriStr,
-              );
-            } else {
-              return ExportDirectiveWithUri(
-                directive: directive,
-                selectedUriStr: uriStr,
-              );
-            }
-          },
-          (externalLibrary) {
-            return ExportDirectiveWithInSummarySource(
-              directive: directive,
-              exportedSource: externalLibrary.source,
-              selectedUriStr: uriStr,
-            );
-          },
+    return _exports ??=
+        file.unlinked2.exports.map<ExportDirectiveState>((directive) {
+      final uris = file._buildNamespaceDirectiveUris(directive);
+      final selectedUri = uris.selected;
+      if (selectedUri is DirectiveUriWithFile) {
+        return ExportDirectiveWithFile(
+          container: this,
+          directive: directive,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
+      } else if (selectedUri is DirectiveUriWithInSummarySource) {
+        return ExportDirectiveWithInSummarySource(
+          directive: directive,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
+      } else if (selectedUri is DirectiveUriWithUri) {
+        return ExportDirectiveWithUri(
+          directive: directive,
+          selectedUri: selectedUri,
+          uris: uris,
         );
       } else {
         return ExportDirectiveState(
           directive: directive,
+          selectedUri: selectedUri,
+          uris: uris,
         );
       }
     }).toList();
   }
 
   List<ImportDirectiveState> get imports {
-    return _imports ??= file.unlinked2.imports.map((directive) {
-      final uriStr = file._selectRelativeUri(directive);
-      if (uriStr != null) {
-        return file._fileForRelativeUri(uriStr).map(
-          (refFile) {
-            if (refFile != null) {
-              return ImportDirectiveWithFile(
-                container: this,
-                directive: directive,
-                importedFile: refFile,
-                selectedUriStr: uriStr,
-              );
-            } else {
-              return ImportDirectiveWithUri(
-                directive: directive,
-                selectedUriStr: uriStr,
-              );
-            }
-          },
-          (externalLibrary) {
-            return ImportDirectiveWithInSummarySource(
-              directive: directive,
-              importedSource: externalLibrary.source,
-              selectedUriStr: uriStr,
-            );
-          },
+    return _imports ??=
+        file.unlinked2.imports.map<ImportDirectiveState>((directive) {
+      final uris = file._buildNamespaceDirectiveUris(directive);
+      final selectedUri = uris.selected;
+      if (selectedUri is DirectiveUriWithFile) {
+        return ImportDirectiveWithFile(
+          container: this,
+          directive: directive,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
+      } else if (selectedUri is DirectiveUriWithInSummarySource) {
+        return ImportDirectiveWithInSummarySource(
+          directive: directive,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
+      } else if (selectedUri is DirectiveUriWithUri) {
+        return ImportDirectiveWithUri(
+          directive: directive,
+          selectedUri: selectedUri,
+          uris: uris,
         );
       } else {
         return ImportDirectiveState(
           directive: directive,
+          selectedUri: selectedUri,
+          uris: uris,
         );
       }
     }).toList();
@@ -1912,14 +2027,28 @@ abstract class LibraryOrAugmentationFileKind extends FileStateKind {
   }
 }
 
+class NamespaceDirectiveUris {
+  final DirectiveUri primary;
+  final List<DirectiveUri> configurations;
+  final DirectiveUri selected;
+
+  NamespaceDirectiveUris({
+    required this.primary,
+    required this.configurations,
+    required this.selected,
+  });
+}
+
 /// Information about a single `part` directive.
-class PartDirectiveState extends DirectiveState {
+class PartDirectiveState<U extends DirectiveUri> extends DirectiveState {
   final LibraryFileStateKind library;
   final UnlinkedPartDirective directive;
+  final U uri;
 
   PartDirectiveState({
     required this.library,
     required this.directive,
+    required this.uri,
   });
 
   /// Returns a [Source] that is referenced by this directive.
@@ -1929,17 +2058,16 @@ class PartDirectiveState extends DirectiveState {
 }
 
 /// [PartDirectiveWithUri] that has a valid URI that references a file.
-class PartDirectiveWithFile extends PartDirectiveWithUri {
-  final FileState includedFile;
-
+class PartDirectiveWithFile extends PartDirectiveWithUri<DirectiveUriWithFile> {
   PartDirectiveWithFile({
     required super.library,
     required super.directive,
-    required super.uriStr,
-    required this.includedFile,
+    required super.uri,
   }) {
     includedFile.referencingFiles.add(library.file);
   }
+
+  FileState get includedFile => uri.file;
 
   /// If [includedFile] is a [PartFileStateKind], and it confirms that it
   /// is a part of the [library], returns the [includedFile].
@@ -1961,13 +2089,12 @@ class PartDirectiveWithFile extends PartDirectiveWithUri {
 }
 
 /// [PartDirectiveState] that has a valid URI.
-class PartDirectiveWithUri extends PartDirectiveState {
-  final String uriStr;
-
+class PartDirectiveWithUri<U extends DirectiveUriWithUri>
+    extends PartDirectiveState<U> {
   PartDirectiveWithUri({
     required super.library,
     required super.directive,
-    required this.uriStr,
+    required super.uri,
   });
 }
 

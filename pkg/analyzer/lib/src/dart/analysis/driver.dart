@@ -1330,7 +1330,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         var results = LibraryAnalyzer(
           analysisOptions as AnalysisOptionsImpl,
           declaredVariables,
-          sourceFactory,
           libraryContext.elementFactory.libraryOfUri2(library.file.uri),
           libraryContext.elementFactory.analysisSession.inheritanceManager,
           library,
@@ -1397,7 +1396,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       var unitResults = LibraryAnalyzer(
               analysisOptions as AnalysisOptionsImpl,
               declaredVariables,
-              sourceFactory,
               libraryContext.elementFactory.libraryOfUri2(library.file.uri),
               libraryContext.elementFactory.analysisSession.inheritanceManager,
               library,
@@ -1771,7 +1769,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var analysisResult = LibraryAnalyzer(
       analysisOptions as AnalysisOptionsImpl,
       declaredVariables,
-      sourceFactory,
       libraryContext.elementFactory.libraryOfUri2(library.file.uri),
       libraryContext.elementFactory.analysisSession.inheritanceManager,
       library,

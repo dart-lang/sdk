@@ -34,11 +34,19 @@ export 'unknown.dart';
     ]);
   }
 
+  test_export_cannotResolve() async {
+    await assertErrorsInCode(r'''
+export 'dart:foo';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 10),
+    ]);
+  }
+
   test_export_dart() async {
     await assertErrorsInCode('''
-export 'dart:foo/bar.dart';
+export 'dart:math/bar.dart';
 ''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 19),
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 20),
     ]);
   }
 
@@ -72,11 +80,19 @@ import 'target.dart';
     ]);
   }
 
+  test_import_cannotResolve() async {
+    await assertErrorsInCode(r'''
+import 'dart:foo';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 10),
+    ]);
+  }
+
   test_import_dart() async {
     await assertErrorsInCode('''
-import 'dart:foo/bar.dart';
+import 'dart:math/bar.dart';
 ''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 19),
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 20),
     ]);
   }
 
@@ -105,6 +121,14 @@ library lib;
 part 'unknown.dart';
 ''', [
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 18, 14),
+    ]);
+  }
+
+  test_part_cannotResolve() async {
+    await assertErrorsInCode(r'''
+part 'dart:foo';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 10),
     ]);
   }
 }

@@ -111,7 +111,7 @@ class AnalyzerStatePrinter {
           }
           sink.writeln();
         } else if (import is ImportAugmentationWithUri) {
-          final uriStr = _stringOfUriStr(import.uriStr);
+          final uriStr = _stringOfUriStr(import.uri.relativeUriStr);
           _writelnWithIndent('uri: $uriStr');
         } else {
           _writelnWithIndent('noUri');
@@ -204,7 +204,7 @@ class AnalyzerStatePrinter {
           }
           sink.writeln();
         } else if (export is ExportDirectiveWithUri) {
-          final uriStr = _stringOfUriStr(export.selectedUriStr);
+          final uriStr = _stringOfUriStr(export.selectedUri.relativeUriStr);
           _writelnWithIndent('uri: $uriStr');
         } else {
           _writelnWithIndent('noUri');
@@ -255,8 +255,9 @@ class AnalyzerStatePrinter {
           }
           sink.writeln();
         } else if (import is ImportDirectiveWithUri) {
+          final uriStr = _stringOfUriStr(import.selectedUri.relativeUriStr);
           sink.write(_indent);
-          sink.write('uri: ${_stringOfUriStr(import.selectedUriStr)}');
+          sink.write('uri: $uriStr');
           if (import.isSyntheticDartCoreImport) {
             sink.write(' synthetic');
           }
@@ -553,7 +554,7 @@ class AnalyzerStatePrinter {
         }
         sink.writeln();
       } else if (part is PartDirectiveWithUri) {
-        final uriStr = _stringOfUriStr(part.uriStr);
+        final uriStr = _stringOfUriStr(part.uri.relativeUriStr);
         _writelnWithIndent('uri: $uriStr');
       } else {
         _writelnWithIndent('noUri');

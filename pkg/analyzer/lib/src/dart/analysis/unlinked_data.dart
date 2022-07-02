@@ -221,6 +221,14 @@ class UnlinkedNamespaceDirectiveConfiguration {
     );
   }
 
+  String get valueOrTrue {
+    if (value.isEmpty) {
+      return 'true';
+    } else {
+      return value;
+    }
+  }
+
   void write(BufferedSink sink) {
     sink.writeStringUtf8(name);
     sink.writeOptionalStringUtf8(uri);

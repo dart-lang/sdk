@@ -581,7 +581,6 @@ class FileResolver {
         var libraryAnalyzer = LibraryAnalyzer(
           fileContext.analysisOptions,
           contextObjects!.declaredVariables,
-          sourceFactory,
           elementFactory.libraryOfUri2(libraryKind.file.uri),
           analysisSession.inheritanceManager,
           libraryKind,
@@ -647,7 +646,6 @@ class FileResolver {
         var libraryAnalyzer = LibraryAnalyzer(
           fileContext.analysisOptions,
           contextObjects!.declaredVariables,
-          sourceFactory,
           libraryContext!.elementFactory.libraryOfUri2(libraryKind.file.uri),
           libraryContext!.elementFactory.analysisSession.inheritanceManager,
           libraryKind,
