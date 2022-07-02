@@ -559,20 +559,37 @@ class BrowserTestCommand extends Command {
 }
 
 class AnalysisCommand extends ProcessCommand {
+  final List<String> commonAnalyzerCliArguments;
+
   AnalysisCommand(String executable, List<String> arguments,
-      Map<String, String> environmentOverrides, {int index = 0})
+      this.commonAnalyzerCliArguments, Map<String, String> environmentOverrides,
+      {int index = 0})
       : super('dart2analyzer', executable, arguments, environmentOverrides,
             null, index);
 
-  AnalysisCommand indexedCopy(int index) =>
-      AnalysisCommand(executable, arguments, environmentOverrides,
-          index: index);
+  AnalysisCommand indexedCopy(int index) => AnalysisCommand(
+      executable, arguments, commonAnalyzerCliArguments, environmentOverrides,
+      index: index);
 
   CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
           List<int> stderr, Duration time, bool compilationSkipped,
           [int? pid = 0]) =>
       AnalysisCommandOutput(
           this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
+
+  @override
+  List<String> get batchArguments => commonAnalyzerCliArguments;
+
+  @override
+  List<String> get nonBatchArguments => commonAnalyzerCliArguments;
+
+  @override
+  bool _equal(covariant ProcessCommand other) {
+    return other is AnalysisCommand &&
+        super._equal(other) &&
+        deepJsonCompare(
+            commonAnalyzerCliArguments, other.commonAnalyzerCliArguments);
+  }
 }
 
 class CompareAnalyzerCfeCommand extends ProcessCommand {

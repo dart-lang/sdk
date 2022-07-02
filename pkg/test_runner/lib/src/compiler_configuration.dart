@@ -1188,6 +1188,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
 
   int get timeoutMultiplier => 4;
 
+  @override
   String computeCompilerPath() {
     var prefix = 'sdk/bin';
     if (_isHostChecked) {
@@ -1196,31 +1197,55 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
     if (_useSdk) {
       prefix = '${_configuration.buildDirectory}/dart-sdk/bin';
     }
-    return '$prefix/dartanalyzer$shellScriptExtension';
+    return '$prefix/dart$shellScriptExtension';
   }
 
+  String computeAnalyzerCliPath() {
+    if (_useSdk) {
+      // This is a non-standard use of _useSdk, as dartanalyzer is not part
+      // of the SDK anymore, but there is no way to specify "use generated
+      // snapshot" directly.
+      return '${_configuration.buildDirectory}/gen/dartanalyzer.dart.snapshot';
+    }
+    return 'pkg/analyzer_cli/bin/analyzer.dart';
+  }
+
+  late final String compilerPath = computeCompilerPath();
+
+  // TODO(jcollins-g): move most of this into analyzer.dart defaults once it
+  // becomes an unpublished utility.
+  late final List<String> analyzerCliCommonArgs = [
+    ...computeDartOptions(),
+    computeAnalyzerCliPath(),
+    ...computeDartAnalyzerOptions(),
+  ];
+
+  /// [arguments].last must be the Dart source file.
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    var args = [
-      ...arguments,
+    // Since this is not a real compilation, no artifacts are produced.
+    return CommandArtifact([
+      AnalysisCommand(
+          compilerPath, arguments, analyzerCliCommonArgs, environmentOverrides)
+    ], arguments.last, 'application/vnd.dart');
+  }
+
+  /// Arguments passed to the Dart VM.
+  List<String> computeDartOptions() {
+    return _useSdk ? [] : ['--packages=.dart_tool/package_config.json'];
+  }
+
+  /// Arguments passed to the snapshot or CLI dart file.
+  List<String> computeDartAnalyzerOptions() {
+    return [
+      // analyzer.dart requires normalized path for dart-sdk.
+      if (!_useSdk) ...[
+        '--use-analysis-driver-memory-byte-store',
+        '--dart-sdk=${Repository.dir.absolute.join(Path('sdk'))}'
+      ],
       if (_configuration.useAnalyzerCfe) '--use-cfe',
       if (_configuration.useAnalyzerFastaParser) '--use-fasta-parser',
     ];
-
-    // Since this is not a real compilation, no artifacts are produced.
-    return CommandArtifact(
-        [AnalysisCommand(computeCompilerPath(), args, environmentOverrides)],
-        args.singleWhere((arg) => arg.endsWith('.dart')),
-        'application/vnd.dart');
-  }
-
-  List<String> computeRuntimeArguments(
-      RuntimeConfiguration runtimeConfiguration,
-      TestFile testFile,
-      List<String> vmOptions,
-      List<String> originalArguments,
-      CommandArtifact? artifact) {
-    return [];
   }
 }
 

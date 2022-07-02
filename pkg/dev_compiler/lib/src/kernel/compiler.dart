@@ -32,6 +32,7 @@ import '../js_ast/js_ast.dart' show ModuleItem, js;
 import '../js_ast/source_map_printer.dart'
     show NodeEnd, NodeSpan, HoverComment, continueSourceMap;
 import 'constants.dart';
+import 'future_or_normalizer.dart';
 import 'js_interop.dart';
 import 'js_typerep.dart';
 import 'kernel_helpers.dart';
@@ -939,7 +940,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           }
           return _emitInterfaceType(t, emitNullability: emitNullability);
         } else if (t is FutureOrType) {
-          var normalizedType = _normalizeFutureOr(t);
+          var normalizedType = normalizeFutureOr(t, _coreTypes);
           if (normalizedType is FutureOrType) {
             _declareBeforeUse(_coreTypes.deprecatedFutureOrClass);
             var typeRep = _emitFutureOrTypeWithArgument(
@@ -2911,64 +2912,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           ? visitNullType(const NullType())
           : _emitNullabilityWrapper(runtimeCall('Never'), type.nullability);
 
-  /// Normalizes `FutureOr` types.
-  ///
-  /// Any changes to the normalization logic here should be mirrored in the
-  /// classes.dart runtime library method named `normalizeFutureOr`.
-  DartType _normalizeFutureOr(FutureOrType futureOr) {
-    var typeArgument = futureOr.typeArgument;
-    if (typeArgument is DynamicType) {
-      // FutureOr<dynamic> --> dynamic
-      return typeArgument;
-    }
-    if (typeArgument is VoidType) {
-      // FutureOr<void> --> void
-      return typeArgument;
-    }
-
-    if (typeArgument is InterfaceType &&
-        typeArgument.classNode == _coreTypes.objectClass) {
-      // Normalize FutureOr of Object, Object?, Object*.
-      var nullable = futureOr.nullability == Nullability.nullable ||
-          typeArgument.nullability == Nullability.nullable;
-      var legacy = futureOr.nullability == Nullability.legacy ||
-          typeArgument.nullability == Nullability.legacy;
-      var nullability = nullable
-          ? Nullability.nullable
-          : legacy
-              ? Nullability.legacy
-              : Nullability.nonNullable;
-      return typeArgument.withDeclaredNullability(nullability);
-    } else if (typeArgument is NeverType) {
-      // FutureOr<Never> --> Future<Never>
-      return InterfaceType(
-          _coreTypes.futureClass, futureOr.nullability, [typeArgument]);
-    } else if (typeArgument is NullType) {
-      // FutureOr<Null> --> Future<Null>?
-      return InterfaceType(
-          _coreTypes.futureClass, Nullability.nullable, [typeArgument]);
-    } else if (futureOr.declaredNullability == Nullability.nullable &&
-        typeArgument.nullability == Nullability.nullable) {
-      // FutureOr<T?>? --> FutureOr<T?>
-      return futureOr.withDeclaredNullability(Nullability.nonNullable);
-    }
-    // The following is not part of the normalization spec but this is a
-    // convenient place to perform this change of nullability consistently. This
-    // only applies at compile-time and is not needed in the runtime version of
-    // the FutureOr normalization.
-    // FutureOr<T%>% --> FutureOr<T%>
-    //
-    // If the type argument has undetermined nullability the CFE propagates
-    // it to the FutureOr type as well. In this case we can represent the
-    // FutureOr type without any nullability wrappers and rely on the runtime to
-    // handle the nullability of the instantiated type appropriately.
-    if (futureOr.nullability == Nullability.undetermined &&
-        typeArgument.nullability == Nullability.undetermined) {
-      return futureOr.withDeclaredNullability(Nullability.nonNullable);
-    }
-    return futureOr;
-  }
-
   @override
   js_ast.Expression visitInterfaceType(InterfaceType type) =>
       _emitInterfaceType(type);
@@ -2979,7 +2922,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitFutureOrType(FutureOrType type) {
-    var normalizedType = _normalizeFutureOr(type);
+    var normalizedType = normalizeFutureOr(type, _coreTypes);
     return normalizedType is FutureOrType
         ? _emitFutureOrType(normalizedType)
         : normalizedType.accept(this);
@@ -6534,7 +6477,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   String? _annotationName(NamedNode node, bool Function(Expression) test) {
     var annotation = findAnnotation(node, test);
     return annotation != null
-        ? _constants.getFieldValueFromAnnotation(annotation, 'name') as String
+        ? _constants.getFieldValueFromAnnotation(annotation, 'name') as String?
         : null;
   }
 

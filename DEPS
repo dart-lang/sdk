@@ -108,7 +108,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "d7b73536a8079331c888b7da539b80e6825270ea", # manually rev'd
 
-  "dartdoc_rev": "d8195107d3e65e20094bb2ca0a8e8576e3a765bf",
+  "dartdoc_rev": "900432d8cb1e75c4f28c79d94c3036fd3b3ec21d",
   "devtools_rev": "0aa619c42a68d6db4c94a7838121811aba8f5eb1",
   "ffi_rev": "18b2b549d55009ff594600b04705ff6161681e07",
   "file_rev": "0132eeedea2933513bf230513a766a8baeab0c4f",
@@ -135,7 +135,7 @@ vars = {
   "path_rev": "7a0ed40280345b1c11df4c700c71e590738f4257",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "fa84ddd0e39f45bf3f09dcc5d6b9fbdda7820fef",
-  "protobuf_rev": "7ac39080eb886e6eec55983dcba76e855c038701",
+  "protobuf_rev": "66593ca5a4d163b2f9a469a2b6368e12a710e550",
   "pub_rev": "9bf4289d6fd5d6872a8929d6312bbd7098f3ea9c", # manually rev'd
   "pub_semver_rev": "5c0b4bfd5ca57fe16f1319c581dc8c882e9b8cb2",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
@@ -153,7 +153,7 @@ vars = {
   "test_descriptor_rev": "5ed5d7f6bf1191592995dcb8eedbbc17df69d386",
   "test_process_rev": "3e695bcfeab551473ddc288970f345f30e5e1375",
   "test_reflective_loader_rev": "8d0de01bbe852fea1f8e33aba907abcba50a8a1e",
-  "test_rev": "6d656f60f2c486efce5f4f22ff00dbb037a825f1",
+  "test_rev": "ed73bb93b06280cd47108d202cd96bcf3494df65",
   "typed_data_rev": "bb10b64f9a56b8fb49307d4465474bf1c1309f6d",
   "usage_rev": "1d3c31e780af665fb796a27898a441fcb7d263db",
   "vector_math_rev": "cdcee487bde4353a6ba7a29bfc7db3840426e50f",
@@ -161,7 +161,7 @@ vars = {
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "99dbdc5769e19b9eeaf69449a59079153c6a8b1f",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
-  "webdev_rev": "b0a4059dcdfb3af2a011cbefc5eb21fb0cfd8032",
+  "webdev_rev": "9c4428472b04f50748ea4871829897cff43455a3",
   "webdriver_rev": "e1a9ad671ee82e05eee463f922a34585ed2d2f15",
   "webkit_inspection_protocol_rev": "57522d6b29d94903b765c757079d906555d5a171",
   "yaml_edit_rev": "01589b3ce447b03aed991db49f1ec6445ad5476d",
