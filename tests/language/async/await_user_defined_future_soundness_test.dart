@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Verifies that user-define Future cannot provide a value of incorrect
+// Verifies that a user-defined Future cannot provide a value of incorrect
 // type by casting 'onValue' callback.
 // Regression test for https://github.com/dart-lang/sdk/issues/49345.
 
@@ -10,42 +10,60 @@ import 'dart:async';
 
 import "package:expect/expect.dart";
 
-import 'dart:async';
-
-bool checkpoint1 = false;
-bool checkpoint2 = false;
-bool checkpoint3 = false;
-bool checkpoint4 = false;
+List<String> executionTrace = <String>[];
 
 Future<void> foo(Future<String> f) async {
-  checkpoint1 = true;
+  executionTrace.add('Checkpoint 1');
   final String result = await f;
-  checkpoint3 = true;
+  executionTrace.add('Checkpoint 3');
   print(result.runtimeType);
 }
 
-class F implements Future<String> {
+// Immediately calls onValue callback with an ill-typed argument.
+class CustomFuture1 implements Future<String> {
   Future<R> then<R>(FutureOr<R> Function(String) onValue, {Function? onError}) {
-    checkpoint2 = true;
+    executionTrace.add('Checkpoint 2');
     final result = (onValue as FutureOr<R> Function(dynamic))(10);
-    checkpoint4 = true;
+    executionTrace.add('Checkpoint 4');
     return Future.value(result);
   }
 
   @override
-  dynamic noSuchMethod(i) => throw 'Unimplimented';
+  dynamic noSuchMethod(i) => throw UnimplementedError();
 }
 
-void main() {
+// Schedules microtask to call onValue callback with an ill-typed argument.
+class CustomFuture2<S, T> implements Future<T> {
+  final Completer done = Completer();
+  Future<R> then<R>(FutureOr<R> Function(T) onValue, {Function? onError}) {
+    scheduleMicrotask(() {
+      Expect.throws(() {
+        executionTrace.add('Checkpoint 2');
+        (onValue as FutureOr<R> Function(dynamic))(10);
+        executionTrace.add('Checkpoint 4');
+      });
+      done.complete();
+    });
+    return Future<R>.value();
+  }
+
+  @override
+  dynamic noSuchMethod(i) => throw UnimplementedError();
+}
+
+void main() async {
   bool seenError = false;
   runZoned(() {
-    foo(F());
+    foo(CustomFuture1());
   }, onError: (e, st) {
     seenError = true;
   });
-  Expect.isTrue(checkpoint1);
-  Expect.isTrue(checkpoint2);
-  Expect.isFalse(checkpoint3);
-  Expect.isFalse(checkpoint4);
+  Expect.listEquals(<String>['Checkpoint 1', 'Checkpoint 2'], executionTrace);
   Expect.isTrue(seenError);
+
+  executionTrace.clear();
+  final customFuture2 = CustomFuture2<int, String>();
+  foo(customFuture2);
+  await customFuture2.done.future;
+  Expect.listEquals(<String>['Checkpoint 1', 'Checkpoint 2'], executionTrace);
 }
