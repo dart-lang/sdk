@@ -154,6 +154,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitExpression(node);
 
   @override
+  R? visitAugmentationImportDirective(AugmentationImportDirective node) =>
+      visitUriBasedDirective(node);
+
+  @override
   R? visitAwaitExpression(AwaitExpression node) => visitExpression(node);
 
   @override
@@ -693,6 +697,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitAssignmentExpression(AssignmentExpression node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitAugmentationImportDirective(AugmentationImportDirective node) {
     node.visitChildren(this);
     return null;
   }
@@ -1481,6 +1491,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitAssignmentExpression(AssignmentExpression node) => null;
 
   @override
+  R? visitAugmentationImportDirective(AugmentationImportDirective node) => null;
+
+  @override
   R? visitAwaitExpression(AwaitExpression node) => null;
 
   @override
@@ -1895,6 +1908,10 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitAssignmentExpression(AssignmentExpression node) => _throw(node);
+
+  @override
+  R? visitAugmentationImportDirective(AugmentationImportDirective node) =>
+      _throw(node);
 
   @override
   R? visitAwaitExpression(AwaitExpression node) => _throw(node);
@@ -2358,6 +2375,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitAssignmentExpression(AssignmentExpression node) {
     stopwatch.start();
     T? result = _baseVisitor.visitAssignmentExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitAugmentationImportDirective(AugmentationImportDirective node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitAugmentationImportDirective(node);
     stopwatch.stop();
     return result;
   }
@@ -3399,6 +3424,10 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitAssignmentExpression(AssignmentExpression node) => visitNode(node);
+
+  @override
+  R? visitAugmentationImportDirective(AugmentationImportDirective node) =>
+      visitNode(node);
 
   @override
   R? visitAwaitExpression(AwaitExpression node) => visitNode(node);

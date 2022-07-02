@@ -931,19 +931,17 @@ class FileState {
       if (directive is ExportDirective) {
         var builder = _serializeNamespaceDirective(directive);
         exports.add(builder);
+      } else if (directive is AugmentationImportDirectiveImpl) {
+        augmentations.add(
+          UnlinkedImportAugmentationDirective(
+            uri: directive.uri.stringValue,
+          ),
+        );
       } else if (directive is ImportDirectiveImpl) {
-        if (directive.augmentKeyword != null) {
-          augmentations.add(
-            UnlinkedImportAugmentationDirective(
-              uri: directive.uri.stringValue,
-            ),
-          );
-        } else {
-          var builder = _serializeNamespaceDirective(directive);
-          imports.add(builder);
-          if (builder.uri == 'dart:core') {
-            hasDartCoreImport = true;
-          }
+        var builder = _serializeNamespaceDirective(directive);
+        imports.add(builder);
+        if (builder.uri == 'dart:core') {
+          hasDartCoreImport = true;
         }
       } else if (directive is LibraryAugmentationDirective) {
         final uri = directive.uri;

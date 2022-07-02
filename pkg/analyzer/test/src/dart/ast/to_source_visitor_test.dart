@@ -105,6 +105,16 @@ void f() {
             TokenType.EQ, AstTestFactory.identifier3("b")));
   }
 
+  void test_visitAugmentationImportDirective() {
+    var findNode = _parseStringToFindNode(r'''
+import augment 'a.dart';
+''');
+    _assertSource(
+      "import augment 'a.dart';",
+      findNode.augmentationImportDirective('import'),
+    );
+  }
+
   void test_visitAwaitExpression() {
     var findNode = _parseStringToFindNode(r'''
 void f() async => await e;

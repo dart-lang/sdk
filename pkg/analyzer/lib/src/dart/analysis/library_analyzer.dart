@@ -570,19 +570,17 @@ class LibraryAnalyzer {
       if (directive is LibraryDirectiveImpl) {
         libraryNameNode = directive.name;
         directivesToResolve.add(directive);
+      } else if (directive is AugmentationImportDirective) {
+        // TODO(scheglov) implement
+        throw UnimplementedError();
       } else if (directive is ImportDirectiveImpl) {
-        if (directive.augmentKeyword != null) {
-          // TODO(scheglov) implement
-          throw UnimplementedError();
-        } else {
-          _resolveImportDirective(
-            directive: directive,
-            importElement: _libraryElement.imports[importIndex],
-            importState: _library.imports[importIndex],
-            libraryErrorReporter: libraryErrorReporter,
-          );
-          importIndex++;
-        }
+        _resolveImportDirective(
+          directive: directive,
+          importElement: _libraryElement.imports[importIndex],
+          importState: _library.imports[importIndex],
+          libraryErrorReporter: libraryErrorReporter,
+        );
+        importIndex++;
       } else if (directive is ExportDirectiveImpl) {
         _resolveExportDirective(
           directive: directive,
