@@ -95,12 +95,12 @@ class MyFixContributor extends Object
   Future<void> _defineComponent(AnalysisError error) async {
     // TODO Get the name from the source code.
     String componentName = null;
-    ChangeBuilder builder = ChangeBuilder(session: session);
+    ChangeBuilder changeBuilder = ChangeBuilder(session: session);
     await changeBuilder.addDartFileEdit(path,
         (DartFileEditBuilder fileEditBuilder) {
       // TODO Build the edit to insert the definition of the component.
     });
-    addFix(error, defineComponent, builder, args: [componentName]);
+    addFix(error, defineComponent, changeBuilder, args: [componentName]);
   }
 
   Future<void> _useExistingComponent(AnalysisError error) async {

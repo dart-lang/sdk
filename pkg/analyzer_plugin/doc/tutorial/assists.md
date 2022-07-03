@@ -80,12 +80,12 @@ class MyAssistContributor extends Object
   }
 
   Future<void> _wrapInIf() async {
-    ChangeBuilder builder = ChangeBuilder(session: session);
+    ChangeBuilder changeBuilder = ChangeBuilder(session: session);
     await changeBuilder.addDartFileEdit(path,
         (DartFileEditBuilder fileEditBuilder) {
       // TODO Build the edit to wrap the selection in a 'if' statement.
     });
-    addAssist(wrapInIf, builder);
+    addAssist(wrapInIf, changeBuilder);
   }
 
   Future<void> _wrapInWhile() async {
