@@ -117,7 +117,7 @@ vars = {
   "html_rev": "8243e967caad9932c13971af3b2a7c8f028383d5",
   "http_multi_server_rev": "20bf079c8955d1250a45afb9cb096472a724a551",
   "http_parser_rev": "eaa63304c333316acd114e3be7ed701d7d7ba32c",
-  "http_rev": "0c2293062d7c1fa472f299da764a7dbb3895ee22", # b/237080804
+  "http_rev": "843c5ecb1ea2233ba7b7049833b5801b149fba86",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "intl_rev": "e9b573679de5e703d89a242b9dca331c772979ef",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
@@ -153,7 +153,7 @@ vars = {
   "test_descriptor_rev": "5ed5d7f6bf1191592995dcb8eedbbc17df69d386",
   "test_process_rev": "3e695bcfeab551473ddc288970f345f30e5e1375",
   "test_reflective_loader_rev": "8d0de01bbe852fea1f8e33aba907abcba50a8a1e",
-  "test_rev": "ed73bb93b06280cd47108d202cd96bcf3494df65",
+  "test_rev": "fb4ccaf6c68fcc1d208c5c53a52d8e0e718bdffe",
   "typed_data_rev": "bb10b64f9a56b8fb49307d4465474bf1c1309f6d",
   "usage_rev": "1d3c31e780af665fb796a27898a441fcb7d263db",
   "vector_math_rev": "cdcee487bde4353a6ba7a29bfc7db3840426e50f",
