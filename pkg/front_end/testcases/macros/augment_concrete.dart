@@ -27,5 +27,6 @@ main() {
   topLevelMethod();
   new Class().instanceMethod();
   Class.staticMethod();
+  externalTopLevelMethod();
   new Class().externalInstanceMethod();
 }

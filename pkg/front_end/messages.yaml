@@ -5647,3 +5647,12 @@ MixinApplicationNoConcreteSetter:
 MixinApplicationNoConcreteMemberContext:
   problemMessage: "This is the super-access that doesn't have a concrete target."
   severity: CONTEXT
+
+NoAugmentSuperReadTarget:
+  problemMessage: "Cannot read from 'augment super'."
+
+NoAugmentSuperWriteTarget:
+  problemMessage: "Cannot write to 'augment super'."
+
+NoAugmentSuperInvokeTarget:
+  problemMessage: "Cannot call 'augment super'."

@@ -790,23 +790,22 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   void set isConflictingAugmentationMember(bool value) {
-    throw new UnsupportedError(
-        'AmbiguousMemberBuilder.isConflictingAugmentationMember=');
+    throw new UnsupportedError('$runtimeType.isConflictingAugmentationMember=');
   }
 
   @override
   void set parent(Builder? value) {
-    throw new UnsupportedError('AmbiguousMemberBuilder.parent=');
+    throw new UnsupportedError('$runtimeType.parent=');
   }
 
   @override
   ClassBuilder get classBuilder {
-    throw new UnsupportedError('AmbiguousMemberBuilder.classBuilder');
+    throw new UnsupportedError('$runtimeType.classBuilder');
   }
 
   @override
   SourceLibraryBuilder get libraryBuilder {
-    throw new UnsupportedError('AmbiguousMemberBuilder.library');
+    throw new UnsupportedError('$runtimeType.library');
   }
 
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
@@ -818,8 +817,7 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    throw new UnsupportedError(
-        'AmbiguousMemberBuilder.buildOutlineExpressions');
+    throw new UnsupportedError('$runtimeType.buildOutlineExpressions');
   }
 
   @override
@@ -853,7 +851,12 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   bool get isAugmentation {
-    throw new UnsupportedError('AmbiguousMemberBuilder.isAugmentation');
+    throw new UnsupportedError('$runtimeType.isAugmentation');
+  }
+
+  @override
+  AugmentSuperTarget? get augmentSuperTarget {
+    throw new UnsupportedError('$runtimeType.augmentSuperTarget}');
   }
 }
 

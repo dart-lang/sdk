@@ -954,6 +954,50 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     super.visitTypedefTearOffConstant(node);
     undeclareTypeParameters(node.parameters);
   }
+
+  @override
+  void visitInstanceInvocation(InstanceInvocation node) {
+    if (node.name != node.interfaceTarget.name) {
+      problem(
+          node,
+          "Instance invocation with name '${node.name}' has a "
+          "target with name '${node.interfaceTarget.name}'.");
+    }
+    super.visitInstanceInvocation(node);
+  }
+
+  @override
+  void visitInstanceGet(InstanceGet node) {
+    if (node.name != node.interfaceTarget.name) {
+      problem(
+          node,
+          "Instance get with name '${node.name}' has a "
+          "target with name '${node.interfaceTarget.name}'.");
+    }
+    super.visitInstanceGet(node);
+  }
+
+  @override
+  void visitInstanceTearOff(InstanceTearOff node) {
+    if (node.name != node.interfaceTarget.name) {
+      problem(
+          node,
+          "Instance tear-off with name '${node.name}' has a "
+          "target with name '${node.interfaceTarget.name}'.");
+    }
+    super.visitInstanceTearOff(node);
+  }
+
+  @override
+  void visitInstanceSet(InstanceSet node) {
+    if (node.name != node.interfaceTarget.name) {
+      problem(
+          node,
+          "Instance set with name '${node.name}' has a "
+          "target with name '${node.interfaceTarget.name}'.");
+    }
+    super.visitInstanceSet(node);
+  }
 }
 
 void verifyGetStaticType(TypeEnvironment env, Component component) {

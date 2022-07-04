@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 augment void topLevelMethod() {
+  augment super();
   print('topLevelMethod augmentation 1');
+  augment super();
 }
 
 augment void externalTopLevelMethod() {
@@ -12,10 +14,14 @@ augment void externalTopLevelMethod() {
 
 augment class Class {
   augment void instanceMethod() {
+    augment super();
     print('instanceMethod augmentation 1');
+    augment super();
   }
 
   augment static void staticMethod() {
+    augment super();
     print('staticMethod augmentation 1');
+    augment super();
   }
 }

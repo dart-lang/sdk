@@ -57,7 +57,14 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   @override
   final ProcedureKind kind;
 
-  SourceProcedureBuilder? actualOrigin;
+  /// The builder for the original declaration.
+  SourceProcedureBuilder? _origin;
+
+  /// If this builder is a patch or an augmentation, this is the builder for
+  /// the immediately augmented procedure.
+  SourceProcedureBuilder? _augmentedBuilder;
+
+  int _augmentationIndex = 0;
 
   List<SourceProcedureBuilder>? _patches;
 
@@ -142,12 +149,14 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   Member get member => procedure;
 
   @override
-  SourceProcedureBuilder get origin => actualOrigin ?? this;
+  SourceProcedureBuilder get origin => _origin ?? this;
 
   @override
   Procedure get procedure => isPatch ? origin.procedure : _procedure;
 
   Procedure get actualProcedure => _procedure;
+
+  Procedure? _augmentedProcedure;
 
   @override
   FunctionNode get function => _procedure.function;
@@ -459,7 +468,11 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   void applyPatch(Builder patch) {
     if (patch is SourceProcedureBuilder) {
       if (checkPatch(patch)) {
-        patch.actualOrigin = this;
+        patch._origin = this;
+        SourceProcedureBuilder augmentedBuilder =
+            _patches == null ? this : _patches!.last;
+        patch._augmentedBuilder = augmentedBuilder;
+        patch._augmentationIndex = augmentedBuilder._augmentationIndex + 1;
         (_patches ??= []).add(patch);
       }
     } else {
@@ -467,30 +480,93 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     }
   }
 
+  Map<SourceProcedureBuilder, AugmentSuperTarget?> _augmentedProcedures = {};
+
+  AugmentSuperTarget? _createAugmentSuperTarget(
+      SourceProcedureBuilder? targetBuilder) {
+    if (targetBuilder == null) return null;
+    Procedure declaredProcedure = targetBuilder.actualProcedure;
+
+    if (declaredProcedure.isAbstract || declaredProcedure.isExternal) {
+      return targetBuilder._augmentedBuilder != null
+          ? _getAugmentSuperTarget(targetBuilder._augmentedBuilder!)
+          : null;
+    }
+
+    Procedure augmentedProcedure =
+        targetBuilder._augmentedProcedure = new Procedure(
+            augmentedName(declaredProcedure.name.text, libraryBuilder.library,
+                targetBuilder._augmentationIndex),
+            declaredProcedure.kind,
+            declaredProcedure.function,
+            fileUri: declaredProcedure.fileUri)
+          ..flags = declaredProcedure.flags
+          ..isStatic = procedure.isStatic
+          ..parent = procedure.parent
+          ..isInternalImplementation = true;
+
+    Member? readTarget;
+    Member? invokeTarget;
+    Member? writeTarget;
+    switch (kind) {
+      case ProcedureKind.Method:
+        readTarget = extensionTearOff ?? augmentedProcedure;
+        invokeTarget = augmentedProcedure;
+        break;
+      case ProcedureKind.Getter:
+        readTarget = augmentedProcedure;
+        invokeTarget = augmentedProcedure;
+        break;
+      case ProcedureKind.Factory:
+        readTarget = augmentedProcedure;
+        invokeTarget = augmentedProcedure;
+        break;
+      case ProcedureKind.Operator:
+        invokeTarget = augmentedProcedure;
+        break;
+      case ProcedureKind.Setter:
+        writeTarget = augmentedProcedure;
+        break;
+    }
+    return new AugmentSuperTarget(
+        declaration: targetBuilder,
+        readTarget: readTarget,
+        invokeTarget: invokeTarget,
+        writeTarget: writeTarget);
+  }
+
+  AugmentSuperTarget? _getAugmentSuperTarget(
+      SourceProcedureBuilder augmentation) {
+    return _augmentedProcedures[augmentation] ??=
+        _createAugmentSuperTarget(augmentation._augmentedBuilder);
+  }
+
+  @override
+  AugmentSuperTarget? get augmentSuperTarget =>
+      origin._getAugmentSuperTarget(this);
+
   @override
   int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
     List<SourceProcedureBuilder>? patches = _patches;
     if (patches != null) {
-      Procedure augmentedProcedure = _procedure;
-      int index = 0;
-      for (SourceProcedureBuilder patch in patches) {
-        if (!augmentedProcedure.isExternal && !augmentedProcedure.isAbstract) {
-          Procedure newProcedure = new Procedure(
-              augmentedName(augmentedProcedure.name.text,
-                  libraryBuilder.library, index++),
-              augmentedProcedure.kind,
-              augmentedProcedure.function,
-              fileUri: augmentedProcedure.fileUri)
-            ..fileOffset = augmentedProcedure.fileOffset
-            ..fileEndOffset = augmentedProcedure.fileEndOffset
-            ..fileStartOffset = augmentedProcedure.fileStartOffset
-            ..signatureType = augmentedProcedure.signatureType
-            ..flags = augmentedProcedure.flags;
-          f(newProcedure, BuiltMemberKind.Method);
+      void addAugmentedProcedure(SourceProcedureBuilder builder) {
+        Procedure? augmentedProcedure = builder._augmentedProcedure;
+        if (augmentedProcedure != null) {
+          augmentedProcedure
+            ..fileOffset = builder.actualProcedure.fileOffset
+            ..fileEndOffset = builder.actualProcedure.fileEndOffset
+            ..fileStartOffset = builder.actualProcedure.fileStartOffset
+            ..signatureType = builder.actualProcedure.signatureType
+            ..flags = builder.actualProcedure.flags;
+          f(augmentedProcedure, BuiltMemberKind.Method);
         }
-        augmentedProcedure = patch.actualProcedure;
       }
-      finishProcedurePatch(procedure, augmentedProcedure);
+
+      addAugmentedProcedure(this);
+      for (SourceProcedureBuilder patch in patches) {
+        addAugmentedProcedure(patch);
+      }
+      finishProcedurePatch(procedure, patches.last.actualProcedure);
 
       return patches.length;
     }

@@ -8185,6 +8185,32 @@ const MessageCode messageNewAsSelector = const MessageCode("NewAsSelector",
     problemMessage: r"""'new' can only be used as a constructor reference.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNoAugmentSuperInvokeTarget =
+    messageNoAugmentSuperInvokeTarget;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNoAugmentSuperInvokeTarget = const MessageCode(
+    "NoAugmentSuperInvokeTarget",
+    problemMessage: r"""Cannot call 'augment super'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNoAugmentSuperReadTarget = messageNoAugmentSuperReadTarget;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNoAugmentSuperReadTarget = const MessageCode(
+    "NoAugmentSuperReadTarget",
+    problemMessage: r"""Cannot read from 'augment super'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNoAugmentSuperWriteTarget =
+    messageNoAugmentSuperWriteTarget;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNoAugmentSuperWriteTarget = const MessageCode(
+    "NoAugmentSuperWriteTarget",
+    problemMessage: r"""Cannot write to 'augment super'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(Token token)> templateNoFormals = const Template<
         Message Function(Token token)>(

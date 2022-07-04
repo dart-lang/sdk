@@ -3020,6 +3020,63 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isImplicitCall: false);
   }
 
+  ExpressionInferenceResult visitAugmentSuperInvocation(
+      AugmentSuperInvocation node, DartType typeContext) {
+    Member member = node.target;
+    if (member.isInstanceMember) {
+      ObjectAccessTarget target = new ObjectAccessTarget.interfaceMember(member,
+          isPotentiallyNullable: false);
+      Link<NullAwareGuard> nullAwareGuards = const Link<NullAwareGuard>();
+      Expression receiver = new ThisExpression()..fileOffset = node.fileOffset;
+      DartType receiverType = thisType!;
+      return inferMethodInvocation(
+          this,
+          node.fileOffset,
+          nullAwareGuards,
+          receiver,
+          receiverType,
+          member.name,
+          node.arguments as ArgumentsImpl,
+          typeContext,
+          isExpressionInvocation: false,
+          isImplicitCall: false,
+          target: target);
+    } else if (member is Procedure) {
+      FunctionType calleeType =
+          member.function.computeFunctionType(libraryBuilder.nonNullable);
+      TypeArgumentsInfo typeArgumentsInfo =
+          getTypeArgumentsInfo(node.arguments);
+      InvocationInferenceResult result = inferInvocation(this, typeContext,
+          node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
+          staticTarget: node.target);
+      StaticInvocation invocation =
+          new StaticInvocation(member, node.arguments);
+      if (!isTopLevel) {
+        libraryBuilder.checkBoundsInStaticInvocation(
+            invocation, typeSchemaEnvironment, helper.uri, typeArgumentsInfo);
+      }
+      return new ExpressionInferenceResult(
+          result.inferredType, result.applyResult(invocation));
+    } else {
+      // TODO(johnniwinther): Handle augmentation of field with inferred types.
+      TypeInferenceEngine.resolveInferenceNode(member, classHierarchy);
+      Link<NullAwareGuard> nullAwareGuards = const Link<NullAwareGuard>();
+      DartType receiverType = member.getterType;
+      Expression receiver = new StaticGet(member)..fileOffset = node.fileOffset;
+      return inferMethodInvocation(
+          this,
+          node.fileOffset,
+          nullAwareGuards,
+          receiver,
+          receiverType,
+          callName,
+          node.arguments as ArgumentsImpl,
+          typeContext,
+          isExpressionInvocation: true,
+          isImplicitCall: true);
+    }
+  }
+
   ExpressionInferenceResult visitExpressionInvocation(
       ExpressionInvocation node, DartType typeContext) {
     ExpressionInferenceResult result =
@@ -4788,12 +4845,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       DartType receiverType,
       Name propertyName,
       DartType typeContext,
-      {required bool isThisReceiver}) {
+      {required bool isThisReceiver,
+      ObjectAccessTarget? readTarget}) {
     // ignore: unnecessary_null_comparison
     assert(isThisReceiver != null);
 
-    ObjectAccessTarget readTarget = findInterfaceMember(
-        receiverType, propertyName, fileOffset,
+    readTarget ??= findInterfaceMember(receiverType, propertyName, fileOffset,
         includeExtensionMethods: true,
         callSiteAccessKind: CallSiteAccessKind.getterInvocation);
 
@@ -5741,6 +5798,50 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         rhsType, replacement, nullAwareGuards);
   }
 
+  ExpressionInferenceResult visitAugmentSuperSet(
+      AugmentSuperSet node, DartType typeContext) {
+    Member member = node.target;
+    if (member.isInstanceMember) {
+      Expression receiver = new ThisExpression()..fileOffset = node.fileOffset;
+      DartType receiverType = thisType!;
+
+      ObjectAccessTarget target = new ObjectAccessTarget.interfaceMember(member,
+          isPotentiallyNullable: false);
+      if (target.isInstanceMember || target.isObjectMember) {
+        if (instrumentation != null && receiverType == const DynamicType()) {
+          instrumentation!.record(uriForInstrumentation, node.fileOffset,
+              'target', new InstrumentationValueForMember(target.member!));
+        }
+      }
+      DartType writeContext = getSetterType(target, receiverType);
+      ExpressionInferenceResult rhsResult =
+          inferExpression(node.value, writeContext, true, isVoidAllowed: true);
+      rhsResult = ensureAssignableResult(writeContext, rhsResult,
+          fileOffset: node.fileOffset, isVoidAllowed: writeContext is VoidType);
+      Expression rhs = rhsResult.expression;
+      DartType rhsType = rhsResult.inferredType;
+
+      Expression replacement = _computePropertySet(
+          node.fileOffset, receiver, receiverType, member.name, target, rhs,
+          valueType: rhsType, forEffect: node.forEffect);
+
+      return new ExpressionInferenceResult(rhsType, replacement);
+    } else {
+      // TODO(johnniwinther): Handle augmentation of field with inferred types.
+      TypeInferenceEngine.resolveInferenceNode(member, classHierarchy);
+      DartType writeContext = member.setterType;
+      ExpressionInferenceResult rhsResult =
+          inferExpression(node.value, writeContext, true, isVoidAllowed: true);
+      rhsResult = ensureAssignableResult(writeContext, rhsResult,
+          fileOffset: node.fileOffset, isVoidAllowed: writeContext is VoidType);
+      Expression rhs = rhsResult.expression;
+      StaticSet result = new StaticSet(member, rhs)
+        ..fileOffset = node.fileOffset;
+      DartType rhsType = rhsResult.inferredType;
+      return new ExpressionInferenceResult(rhsType, result);
+    }
+  }
+
   ExpressionInferenceResult visitNullAwareIfNullSet(
       NullAwareIfNullSet node, DartType typeContext) {
     ExpressionInferenceResult receiverResult = inferNullAwareExpression(
@@ -5862,6 +5963,39 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.forwardExpression(
         expressionInferenceResult.nullAwareAction, node);
     return expressionInferenceResult;
+  }
+
+  ExpressionInferenceResult visitAugmentSuperGet(
+      AugmentSuperGet node, DartType typeContext) {
+    Member member = node.target;
+    if (member.isInstanceMember) {
+      ObjectAccessTarget target = new ObjectAccessTarget.interfaceMember(member,
+          isPotentiallyNullable: false);
+      Expression receiver = new ThisExpression()..fileOffset = node.fileOffset;
+      DartType receiverType = thisType!;
+
+      PropertyGetInferenceResult propertyGetInferenceResult =
+          _computePropertyGet(
+              node.fileOffset, receiver, receiverType, member.name, typeContext,
+              isThisReceiver: true, readTarget: target);
+      ExpressionInferenceResult readResult =
+          propertyGetInferenceResult.expressionInferenceResult;
+      return new ExpressionInferenceResult(
+          readResult.inferredType, readResult.expression);
+    } else {
+      // TODO(johnniwinther): Handle augmentation of field with inferred types.
+      TypeInferenceEngine.resolveInferenceNode(member, classHierarchy);
+      DartType type = member.getterType;
+
+      if (member is Procedure && member.kind == ProcedureKind.Method) {
+        Expression tearOff = new StaticTearOff(node.target as Procedure)
+          ..fileOffset = node.fileOffset;
+        return instantiateTearOff(type, typeContext, tearOff);
+      } else {
+        return new ExpressionInferenceResult(
+            type, new StaticGet(member)..fileOffset = node.fileOffset);
+      }
+    }
   }
 
   @override

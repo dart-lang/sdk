@@ -5892,11 +5892,8 @@ class BodyBuilder extends StackListenerImpl
     if (member is SourceMemberBuilder) {
       SourceMemberBuilder sourceMemberBuilder = member as SourceMemberBuilder;
       if (sourceMemberBuilder.isAugmentation) {
-        // TODO(johnniwinther): Implement augment super handling.
-        int fileOffset = augmentToken.charOffset;
-        push(forest.createAsExpression(fileOffset,
-            forest.createNullLiteral(fileOffset), const DynamicType(),
-            forNonNullableByDefault: libraryBuilder.isNonNullableByDefault));
+        push(new AugmentSuperAccessGenerator(
+            this, augmentToken, sourceMemberBuilder));
         return;
       }
     }

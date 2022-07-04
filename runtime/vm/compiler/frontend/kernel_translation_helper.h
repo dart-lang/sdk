@@ -590,6 +590,7 @@ class ProcedureHelper {
     kRedirectingFactory = 1 << 4,
     kExtensionMember = 1 << 5,
     kSyntheticProcedure = 1 << 7,
+    kInternalImplementation = 1 << 8,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -609,6 +610,9 @@ class ProcedureHelper {
   bool IsExternal() const { return (flags_ & kExternal) != 0; }
   bool IsConst() const { return (flags_ & kConst) != 0; }
   bool IsSynthetic() const { return (flags_ & kSyntheticProcedure) != 0; }
+  bool IsInternalImplementation() const {
+    return (flags_ & kInternalImplementation) != 0;
+  }
   bool IsForwardingStub() const {
     return stub_kind_ == kAbstractForwardingStubKind ||
            stub_kind_ == kConcreteForwardingStubKind;
