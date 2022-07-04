@@ -46,7 +46,7 @@ class LibraryContext {
   final SummaryDataStore store = SummaryDataStore();
 
   late final AnalysisContextImpl analysisContext;
-  late LinkedElementFactory elementFactory;
+  late final LinkedElementFactory elementFactory;
 
   Set<LibraryCycle> loadedBundles = Set.identity();
 
@@ -120,6 +120,7 @@ class LibraryContext {
     required LibraryFileStateKind targetLibrary,
     required OperationPerformanceImpl performance,
   }) async {
+    addToLogRing('[load][targetLibrary: ${targetLibrary.file}]');
     var librariesTotal = 0;
     var librariesLoaded = 0;
     var librariesLinked = 0;
