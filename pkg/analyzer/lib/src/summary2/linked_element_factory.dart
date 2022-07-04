@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
@@ -12,6 +14,15 @@ import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:meta/meta.dart';
+
+final _logRing = Queue<String>();
+
+void addToLogRing(String entry) {
+  _logRing.add(entry);
+  if (_logRing.length > 10) {
+    _logRing.removeFirst();
+  }
+}
 
 class LinkedElementFactory {
   static final _dartCoreUri = Uri.parse('dart:core');
@@ -104,9 +115,10 @@ class LinkedElementFactory {
       final rootChildren = rootReference.children.map((e) => e.name).toList();
       throw ArgumentError(
         'Missing library: $uri\n'
-        'Libraries: $uriListWithLibraryElements'
-        'Root children: $rootChildren'
-        'Readers: ${_libraryReaders.keys.toList()}',
+        'Libraries: $uriListWithLibraryElements\n'
+        'Root children: $rootChildren\n'
+        'Readers: ${_libraryReaders.keys.toList()}\n'
+        'Log: ${_logRing.join('\n')}\n',
       );
     }
 
@@ -217,6 +229,7 @@ class LinkedElementFactory {
   /// Remove libraries with the specified URIs from the reference tree, and
   /// any session level caches.
   void removeLibraries(Set<Uri> uriSet) {
+    addToLogRing('[removeLibraries][uriSet: $uriSet][${StackTrace.current}]');
     for (final uri in uriSet) {
       _libraryReaders.remove(uri);
       final libraryReference = rootReference.removeChild('$uri');
