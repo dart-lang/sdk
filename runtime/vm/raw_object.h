@@ -1174,6 +1174,7 @@ class UntaggedFunction : public UntaggedObject {
   /* a forwarder which performs type checks for arguments of a dynamic call */ \
   /* (i.e., those checks omitted by the caller for interface calls). */        \
   V(DynamicInvocationForwarder)                                                \
+  /* A `dart:ffi` call or callback trampoline. */                              \
   V(FfiTrampoline)
 
   enum Kind {

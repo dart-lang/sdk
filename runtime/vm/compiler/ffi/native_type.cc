@@ -58,6 +58,11 @@ const NativeCompoundType& NativeType::AsCompound() const {
   return static_cast<const NativeCompoundType&>(*this);
 }
 
+const NativeStructType& NativeType::AsStruct() const {
+  ASSERT(IsStruct());
+  return static_cast<const NativeStructType&>(*this);
+}
+
 bool NativePrimitiveType::IsInt() const {
   switch (representation_) {
     case kInt8:

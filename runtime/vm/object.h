@@ -12687,7 +12687,7 @@ inline uint16_t String::CharAt(StringPtr str, intptr_t index) {
 //
 // This helper class can then be used via
 //
-//     using CallTableView = ArrayOfTuplesVied<
+//     using CallTableView = ArrayOfTuplesView<
 //         Code::Kind, std::tuple<Smi, Function, Code>>;
 //
 //     auto& array = Array::Handle(code.static_calls_targets_table());
