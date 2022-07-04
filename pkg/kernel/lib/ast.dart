@@ -2003,6 +2003,13 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   bool get isNonNullableByDefault;
   void set isNonNullableByDefault(bool value);
 
+  /// If `true` this procedure is not part of the interface but only part of the
+  /// class members.
+  ///
+  /// This is `true` for instance for augmented procedures and synthesized
+  /// fields added for the late lowering.
+  bool get isInternalImplementation => false;
+
   /// The function signature and body of the procedure or constructor, or `null`
   /// if this is a field.
   FunctionNode? get function => null;
@@ -2247,11 +2254,12 @@ class Field extends Member {
   /// Whether the field is declared with the `late` keyword.
   bool get isLate => flags & FlagLate != 0;
 
-  // If `true` this field is not part of the interface but only part of the
-  // class members.
-  //
-  // This is `true` for instance for synthesized fields added for the late
-  // lowering.
+  /// If `true` this field is not part of the interface but only part of the
+  /// class members.
+  ///
+  /// This is `true` for instance for synthesized fields added for the late
+  /// lowering.
+  @override
   bool get isInternalImplementation => flags & FlagInternalImplementation != 0;
 
   void set isCovariantByDeclaration(bool value) {
@@ -3039,6 +3047,7 @@ class Procedure extends Member {
   static const int FlagExtensionMember = 1 << 5;
   static const int FlagNonNullableByDefault = 1 << 6;
   static const int FlagSynthetic = 1 << 7;
+  static const int FlagInternalImplementation = 1 << 8;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3092,6 +3101,19 @@ class Procedure extends Member {
 
   bool get isNoSuchMethodForwarder =>
       stubKind == ProcedureStubKind.NoSuchMethodForwarder;
+
+  /// If `true` this procedure is not part of the interface but only part of the
+  /// class members.
+  ///
+  /// This is `true` for instance for augmented procedures.
+  @override
+  bool get isInternalImplementation => flags & FlagInternalImplementation != 0;
+
+  void set isInternalImplementation(bool value) {
+    flags = value
+        ? (flags | FlagInternalImplementation)
+        : (flags & ~FlagInternalImplementation);
+  }
 
   @override
   bool get isExtensionMember => flags & FlagExtensionMember != 0;
@@ -4377,11 +4399,13 @@ class DynamicGet extends Expression {
   }
 }
 
-/// An property read of an instance getter or field with a statically known
+/// A property read of an instance getter or field with a statically known
 /// interface target.
 class InstanceGet extends Expression {
   final InstanceAccessKind kind;
   Expression receiver;
+
+  // TODO(johnniwinther): Can we pull this from the [interfaceTarget] instead?
   Name name;
 
   /// The static type of result of the property read.
@@ -4542,6 +4566,8 @@ class FunctionTearOff extends Expression {
 class InstanceTearOff extends Expression {
   final InstanceAccessKind kind;
   Expression receiver;
+
+  // TODO(johnniwinther): Can we pull this from the [interfaceTarget] instead?
   Name name;
 
   /// The static type of result of the tear-off.
@@ -4715,6 +4741,8 @@ class DynamicSet extends Expression {
 class InstanceSet extends Expression {
   final InstanceAccessKind kind;
   Expression receiver;
+
+  // TODO(johnniwinther): Can we pull this from the [interfaceTarget] instead?
   Name name;
   Expression value;
 
@@ -5624,6 +5652,7 @@ class InstanceInvocation extends InstanceInvocationExpression {
   @override
   Expression receiver;
 
+  // TODO(johnniwinther): Can we pull this from the [interfaceTarget] instead?
   @override
   Name name;
 

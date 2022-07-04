@@ -3877,14 +3877,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       {required bool isExpressionInvocation,
       required bool isImplicitCall,
       Name? implicitInvocationPropertyName,
-      List<VariableDeclaration>? hoistedExpressions}) {
+      List<VariableDeclaration>? hoistedExpressions,
+      ObjectAccessTarget? target}) {
     // ignore: unnecessary_null_comparison
     assert(isExpressionInvocation != null);
     // ignore: unnecessary_null_comparison
     assert(isImplicitCall != null);
 
-    ObjectAccessTarget target = findInterfaceMember(
-        receiverType, name, fileOffset,
+    target ??= findInterfaceMember(receiverType, name, fileOffset,
         instrumented: true,
         includeExtensionMethods: true,
         callSiteAccessKind: CallSiteAccessKind.methodInvocation);

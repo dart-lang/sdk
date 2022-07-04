@@ -3979,10 +3979,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void injectMemberFromPatch(String name, Builder member) {
     if (member.isSetter) {
-      assert(scope.lookupLocalMember(name, setter: true) == null);
+      assert(
+          scope.lookupLocalMember(name, setter: true) == null,
+          "Setter $name already bound to "
+          "${scope.lookupLocalMember(name, setter: true)}, "
+          "trying to add $member.");
       scope.addLocalMember(name, member as MemberBuilder, setter: true);
     } else {
-      assert(scope.lookupLocalMember(name, setter: false) == null);
+      assert(
+          scope.lookupLocalMember(name, setter: false) == null,
+          "Member $name already bound to "
+          "${scope.lookupLocalMember(name, setter: false)}, "
+          "trying to add $member.");
       scope.addLocalMember(name, member, setter: false);
     }
   }

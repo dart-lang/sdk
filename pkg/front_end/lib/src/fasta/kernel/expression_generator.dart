@@ -51,6 +51,7 @@ import '../names.dart'
         tripleShiftName;
 import '../problems.dart';
 import '../scope.dart';
+import '../source/source_member_builder.dart';
 import '../source/stack_listener_impl.dart' show offsetForToken;
 import 'constness.dart' show Constness;
 import 'expression_generator_helper.dart';
@@ -643,18 +644,8 @@ class ThisPropertyAccessGenerator extends Generator {
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     _reportNonNullableInNullAwareWarningIfNeeded();
-    _helper.forest.createBinary(
-        offset,
-        _forest.createPropertyGet(
-            fileOffset, _forest.createThisExpression(fileOffset), name),
-        binaryOperator,
-        value);
-    Expression binary = _helper.forest.createBinary(
-        offset,
-        _forest.createPropertyGet(
-            fileOffset, _forest.createThisExpression(fileOffset), name),
-        binaryOperator,
-        value);
+    Expression binary = _helper.forest
+        .createBinary(offset, _createRead(), binaryOperator, value);
     return _createWrite(fileOffset, binary, forEffect: voidContext);
   }
 
@@ -667,9 +658,8 @@ class ThisPropertyAccessGenerator extends Generator {
           offset: offset, voidContext: voidContext, isPostIncDec: true);
     }
     _reportNonNullableInNullAwareWarningIfNeeded();
-    VariableDeclarationImpl read = _helper.createVariableDeclarationForValue(
-        _forest.createPropertyGet(
-            fileOffset, _forest.createThisExpression(fileOffset), name));
+    VariableDeclarationImpl read =
+        _helper.createVariableDeclarationForValue(_createRead());
     Expression binary = _helper.forest.createBinary(offset,
         _helper.createVariableGet(read, fileOffset), binaryOperator, value);
     VariableDeclarationImpl write = _helper.createVariableDeclarationForValue(
@@ -4953,5 +4943,132 @@ class PropertySelector extends Selector {
   void printOn(StringSink sink) {
     sink.write(", name: ");
     sink.write(name.text);
+  }
+}
+
+class AugmentSuperAccessGenerator extends Generator {
+  final SourceMemberBuilder augmentation;
+
+  AugmentSuperAccessGenerator(
+      ExpressionGeneratorHelper helper, Token token, this.augmentation)
+      : super(helper, token);
+
+  @override
+  String get _debugName => "AugmentSuperGenerator";
+
+  @override
+  String get _plainNameForRead {
+    return unsupported("augment super.plainNameForRead", fileOffset, _uri);
+  }
+
+  Expression _createRead() {
+    Member? readTarget = augmentation.augmentSuperTarget?.readTarget;
+    if (readTarget != null) {
+      return new AugmentSuperGet(readTarget, fileOffset: fileOffset);
+    } else {
+      return _helper.buildProblem(
+          messageNoAugmentSuperReadTarget, fileOffset, noLength);
+    }
+  }
+
+  @override
+  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+    return _createWrite(fileOffset, value, forEffect: voidContext);
+  }
+
+  Expression _createWrite(int offset, Expression value,
+      {required bool forEffect}) {
+    Member? writeTarget = augmentation.augmentSuperTarget?.writeTarget;
+    if (writeTarget != null) {
+      return new AugmentSuperSet(writeTarget, value,
+          forEffect: forEffect, fileOffset: fileOffset);
+    } else {
+      return _helper.buildProblem(
+          messageNoAugmentSuperWriteTarget, offset, noLength);
+    }
+  }
+
+  @override
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
+    // TODO(johnniwinther): Is this ever valid? Augment getters have no access
+    // to the augmented setter, augmenting setters have no access to the
+    // augmented getters, and augmenting fields only have read access to the
+    // augmented field initializer expression.
+
+    Expression binary = _helper.forest
+        .createBinary(offset, _createRead(), binaryOperator, value);
+    return _createWrite(fileOffset, binary, forEffect: voidContext);
+  }
+
+  @override
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
+      {bool voidContext = false}) {
+    // TODO(johnniwinther): Is this ever valid? Augment getters have no access
+    // to the augmented setter, augmenting setters have no access to the
+    // augmented getters, and augmenting fields only have read access to the
+    // augmented field initializer expression.
+    return new IfNullSet(
+        _createRead(), _createWrite(offset, value, forEffect: voidContext),
+        forEffect: voidContext)
+      ..fileOffset = offset;
+  }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token,
+      {required bool isNullAware}) {
+    // TODO(johnniwinther): The semantics is unclear. Is this accessing the
+    // invoke target, which must be an `operator []` or the read target with a
+    // type that has an `operator []`.
+    throw new UnimplementedError();
+  }
+
+  @override
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
+    // TODO(johnniwinther): Is this ever valid? Augment getters have no access
+    // to the augmented setter, augmenting setters have no access to the
+    // augmented getters, and augmenting fields only have read access to the
+    // augmented field initializer expression.
+    Expression value = _forest.createIntLiteral(offset, 1);
+    if (voidContext) {
+      return buildCompoundAssignment(binaryOperator, value,
+          offset: offset, voidContext: voidContext, isPostIncDec: true);
+    }
+    VariableDeclarationImpl read =
+        _helper.createVariableDeclarationForValue(_createRead());
+    Expression binary = _helper.forest.createBinary(offset,
+        _helper.createVariableGet(read, fileOffset), binaryOperator, value);
+    VariableDeclarationImpl write = _helper.createVariableDeclarationForValue(
+        _createWrite(fileOffset, binary, forEffect: true));
+    return new PropertyPostIncDec.onReadOnly(read, write)..fileOffset = offset;
+  }
+
+  @override
+  Expression buildSimpleRead() {
+    return _createRead();
+  }
+
+  @override
+  Expression_Generator_Initializer doInvocation(
+      int offset, List<TypeBuilder>? typeArguments, ArgumentsImpl arguments,
+      {bool isTypeArgumentsInForest = false}) {
+    Member? invokeTarget = augmentation.augmentSuperTarget?.invokeTarget;
+    if (invokeTarget != null) {
+      return new AugmentSuperInvocation(invokeTarget, arguments,
+          fileOffset: fileOffset);
+    } else {
+      return _helper.buildProblem(
+          messageNoAugmentSuperInvokeTarget, offset, noLength);
+    }
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", augmentation: ");
+    sink.write(augmentation);
   }
 }

@@ -655,6 +655,12 @@ NeverValueError/example: Fail
 NeverValueWarning/analyzerCode: Fail
 NeverValueWarning/example: Fail
 NewAsSelector/analyzerCode: Fail
+NoAugmentSuperInvokeTarget/analyzerCode: Fail
+NoAugmentSuperInvokeTarget/example: Fail
+NoAugmentSuperReadTarget/analyzerCode: Fail
+NoAugmentSuperReadTarget/example: Fail
+NoAugmentSuperWriteTarget/analyzerCode: Fail
+NoAugmentSuperWriteTarget/example: Fail
 NoFormals/example: Fail
 NoSuchNamedParameter/example: Fail
 NoUnnamedConstructorInObject/analyzerCode: Fail

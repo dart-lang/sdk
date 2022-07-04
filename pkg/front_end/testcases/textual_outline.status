@@ -115,6 +115,7 @@ macros/augment_class: FormatterCrash
 macros/augment_concrete: FormatterCrash
 macros/augment_super: FormatterCrash
 macros/class_members: FormatterCrash
+macros/extend_augmented: FormatterCrash
 macros/inject_constructor: FormatterCrash
 macros/macro_class: FormatterCrash
 macros/multiple_imports: FormatterCrash

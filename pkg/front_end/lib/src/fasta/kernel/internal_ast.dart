@@ -394,6 +394,9 @@ class BreakStatementImpl extends BreakStatement {
 }
 
 enum InternalExpressionKind {
+  AugmentSuperInvocation,
+  AugmentSuperGet,
+  AugmentSuperSet,
   Binary,
   Cascade,
   CompoundExtensionIndexSet,
@@ -4778,6 +4781,163 @@ class PropertySet extends InternalExpression {
     printer.write('.');
     printer.writeName(name);
     printer.write(' = ');
+    printer.writeExpression(value);
+  }
+}
+
+/// An augment super invocation of the form `augment super()`.
+///
+/// This will be transformed into an [InstanceInvocation], [InstanceGet] plus
+/// [FunctionInvocation], or [StaticInvocation] after type inference.
+class AugmentSuperInvocation extends InternalExpression {
+  final Member target;
+
+  Arguments arguments;
+
+  AugmentSuperInvocation(this.target, this.arguments,
+      {required int fileOffset}) {
+    arguments.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    return visitor.visitAugmentSuperInvocation(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.AugmentSuperInvocation;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    arguments.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    arguments = v.transform(arguments);
+    arguments.parent = this;
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    arguments = v.transform(arguments);
+    arguments.parent = this;
+  }
+
+  @override
+  String toString() {
+    return "AugmentSuperInvocation(${toStringInternal()})";
+  }
+
+  @override
+  int get precedence => Precedence.PRIMARY;
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('augment super');
+    printer.writeArguments(arguments);
+  }
+}
+
+/// An augment super read of the form `augment super`.
+///
+/// This will be transformed into an [InstanceGet], [InstanceTearOff],
+/// [DynamicGet], [FunctionTearOff] or [StaticInvocation] (for implicit
+/// extension member access) after type inference.
+class AugmentSuperGet extends InternalExpression {
+  final Member target;
+
+  AugmentSuperGet(this.target, {required int fileOffset}) {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    return visitor.visitAugmentSuperGet(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.AugmentSuperGet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {}
+
+  @override
+  void transformChildren(Transformer v) {}
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {}
+
+  @override
+  String toString() {
+    return "AugmentSuperGet(${toStringInternal()})";
+  }
+
+  @override
+  int get precedence => Precedence.PRIMARY;
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('augment super');
+  }
+}
+
+/// An augment super write of the form `augment super = e`.
+///
+/// This will be transformed into an [InstanceSet], or [StaticSet] after type
+/// inference.
+class AugmentSuperSet extends InternalExpression {
+  final Member target;
+
+  Expression value;
+
+  /// If `true` the assignment is need for its effect and not for its value.
+  final bool forEffect;
+
+  AugmentSuperSet(this.target, this.value,
+      {required this.forEffect, required int fileOffset}) {
+    value.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    return visitor.visitAugmentSuperSet(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.AugmentSuperSet;
+
+  @override
+  void visitChildren(Visitor v) {
+    value.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    value = v.transform(value);
+    value.parent = this;
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    value = v.transform(value);
+    value.parent = this;
+  }
+
+  @override
+  String toString() {
+    return "AugmentSuperSet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('augment super = ');
     printer.writeExpression(value);
   }
 }

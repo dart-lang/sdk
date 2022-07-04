@@ -4,6 +4,7 @@
 
 augment void topLevelMethod() {
   augment super();
+  augment super;
 }
 
 augment void topLevelMethodError() {
@@ -11,14 +12,32 @@ augment void topLevelMethodError() {
   augment; // Error
 }
 
-
 augment List<int> get topLevelProperty {
-  return [... augment super, augment super[0]];
+  return [... augment super,
+    // TODO(johnniwinther): Support indexed access.
+    /*augment super[0]*/];
 }
 
 augment void set topLevelProperty(List<int> value) {
-  augment super[0] = value[1];
+  // TODO(johnniwinther): Support indexed access.
+  //augment super[0] = value[1];
   augment super = value;
+  augment super; // Error
+  augment super(); // Error
+}
+
+augment List<int>? get nullableTopLevelProperty {
+  return [
+    // TODO(johnniwinther): Support this syntax.
+    /*... ?augment super,*/
+    // TODO(johnniwinther): Support indexed access.
+    /*augment super?[0]*/];
+}
+
+augment void set nullableTopLevelProperty(List<int>? value) {
+  // TODO(johnniwinther): Support indexed access.
+  //augment super?[0] = value?[1];
+  augment super ??= value;
 }
 
 void injectedTopLevelMethod() {
@@ -31,6 +50,7 @@ void injectedTopLevelMethod() {
 augment class Class {
   augment void instanceMethod() {
     augment super();
+    augment super; // Error
   }
 
   augment void instanceMethodErrors() {
@@ -39,12 +59,24 @@ augment class Class {
   }
 
   augment int get instanceProperty {
-    augment super++;
-    --augment super;
+    augment super++; // Error
+    --augment super; // Error
+    augment super += 1; // Error
     return -augment super;
   }
 
   augment void set instanceProperty(int value) {
+    augment super = value;
+    augment super; // Error
+    augment super(); // Error
+  }
+
+  augment int? get nullableInstanceProperty {
+    augment super ??= 1; // Error
+    return augment super;
+  }
+
+  augment void set nullableInstanceProperty(int? value) {
     augment super = value;
   }
 
