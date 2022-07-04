@@ -31,6 +31,7 @@ namespace ffi {
 class NativePrimitiveType;
 class NativeArrayType;
 class NativeCompoundType;
+class NativeStructType;
 
 // NativeTypes are the types used in calling convention specifications:
 // integers, floats, and compounds.
@@ -74,6 +75,8 @@ class NativeType : public ZoneAllocated {
   const NativeArrayType& AsArray() const;
   virtual bool IsCompound() const { return false; }
   const NativeCompoundType& AsCompound() const;
+  virtual bool IsStruct() const { return false; }
+  const NativeStructType& AsStruct() const;
 
   virtual bool IsInt() const { return false; }
   virtual bool IsFloat() const { return false; }
@@ -347,6 +350,8 @@ class NativeStructType : public NativeCompoundType {
   const ZoneGrowableArray<intptr_t>& member_offsets() const {
     return member_offsets_;
   }
+
+  virtual bool IsStruct() const { return true; }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   virtual bool ContainsOnlyFloats(Range range) const;
