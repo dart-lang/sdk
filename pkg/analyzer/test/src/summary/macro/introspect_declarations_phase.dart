@@ -78,13 +78,19 @@ class _DeclarationPrinter {
     }
 
     await _withIndent(() async {
-      final superclass = e.superclass == null
-          ? null
-          : await typeDeclarationResolver.declarationOf(
-              e.superclass!.identifier) as IntrospectableClassDeclaration;
-      if (superclass != null) {
+      final superAnnotation = e.superclass;
+      if (superAnnotation != null) {
+        final superIdentifier = superAnnotation.identifier;
         _writelnWithIndent('superclass');
-        await _withIndent(() => writeClassDeclaration(superclass));
+        try {
+          final superDeclaration = await typeDeclarationResolver
+              .declarationOf(superIdentifier) as IntrospectableClassDeclaration;
+          await _withIndent(() => writeClassDeclaration(superDeclaration));
+        } on ArgumentError {
+          await _withIndent(() async {
+            _writelnWithIndent('notType ${superIdentifier.name}');
+          });
+        }
       }
 
       await _writeTypeParameters(e.typeParameters);

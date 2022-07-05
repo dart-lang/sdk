@@ -33,7 +33,7 @@ class LibraryMacroApplier {
       _IdentifierResolver(_linker.elementFactory, declarationBuilder);
 
   late final macro.TypeDeclarationResolver _typeDeclarationResolver =
-      _TypeDeclarationResolver();
+      _TypeDeclarationResolver(declarationBuilder);
 
   late final macro.TypeIntrospector _typeIntrospector =
       _TypeIntrospector(declarationBuilder);
@@ -570,11 +570,20 @@ class _StaticTypeImpl extends macro.StaticType {
 }
 
 class _TypeDeclarationResolver implements macro.TypeDeclarationResolver {
+  final DeclarationBuilder declarationBuilder;
+
+  _TypeDeclarationResolver(this.declarationBuilder);
+
   @override
   Future<macro.TypeDeclaration> declarationOf(
-      covariant macro.Identifier identifier) {
-    // TODO: implement declarationOf
-    throw UnimplementedError();
+    covariant IdentifierImpl identifier,
+  ) async {
+    final element = identifier.element;
+    if (element is ClassElementImpl) {
+      return declarationBuilder.fromElement.classElement(element);
+    } else {
+      throw ArgumentError('element: $element');
+    }
   }
 }
 
