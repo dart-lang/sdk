@@ -23,6 +23,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -104,6 +105,12 @@ import '$innerUri';
 
 @reflectiveTest
 class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    registerLintRules();
+  }
+
   test_getLibraryByUri_cannotResolveUri() async {
     final driver = driverFor(testFile.path);
     expect(
@@ -228,6 +235,76 @@ part of 'b.dart';
       await driver.getResolvedLibraryByUri(uri),
       isA<NotLibraryButPartResult>(),
     );
+  }
+
+  test_getResult_part_doesNotExist_lints() async {
+    newFile('$testPackageRootPath/analysis_options.yaml', r'''
+linter:
+  rules:
+    - omit_local_variable_types
+''');
+
+    await assertErrorsInCode(r'''
+library my.lib;
+part 'a.dart';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 21, 8),
+    ]);
+  }
+
+  test_getResult_part_empty_lints() async {
+    newFile('$testPackageRootPath/analysis_options.yaml', r'''
+linter:
+  rules:
+    - omit_local_variable_types
+''');
+
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertErrorsInCode(r'''
+library my.lib;
+part 'a.dart';
+''', [
+      error(CompileTimeErrorCode.PART_OF_NON_PART, 21, 8),
+    ]);
+  }
+
+  test_getResult_part_hasPartOfName_notThisLibrary_lints() async {
+    newFile('$testPackageRootPath/analysis_options.yaml', r'''
+linter:
+  rules:
+    - omit_local_variable_types
+''');
+
+    newFile('$testPackageLibPath/a.dart', r'''
+part of other.lib;
+''');
+
+    await assertErrorsInCode(r'''
+library my.lib;
+part 'a.dart';
+''', [
+      error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 21, 8),
+    ]);
+  }
+
+  test_getResult_part_hasPartOfUri_notThisLibrary_lints() async {
+    newFile('$testPackageRootPath/analysis_options.yaml', r'''
+linter:
+  rules:
+    - omit_local_variable_types
+''');
+
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'not_test.dart';
+''');
+
+    await assertErrorsInCode(r'''
+library my.lib;
+part 'a.dart';
+''', [
+      error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 21, 8),
+    ]);
   }
 }
 
