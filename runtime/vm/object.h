@@ -7432,6 +7432,10 @@ class LoadingUnit : public Object {
     return RoundedAllocationSize(sizeof(UntaggedLoadingUnit));
   }
 
+  static intptr_t LoadingUnitOf(Zone* zone, const Function& function);
+  static intptr_t LoadingUnitOf(Zone* zone, const Code& code);
+  static intptr_t LoadingUnitOf(const Code& code);
+
   LoadingUnitPtr parent() const;
   void set_parent(const LoadingUnit& value) const;
 

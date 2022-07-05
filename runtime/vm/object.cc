@@ -18602,6 +18602,71 @@ ObjectPtr LoadingUnit::CompleteLoad(const String& error_message,
   return DartEntry::InvokeFunction(func, args);
 }
 
+// The assignment to loading units here must match that in
+// AssignLoadingUnitsCodeVisitor, which runs after compilation is done.
+intptr_t LoadingUnit::LoadingUnitOf(Zone* zone, const Function& function) {
+  const Class& cls = Class::Handle(zone, function.Owner());
+  const Library& lib = Library::Handle(zone, cls.library());
+  const LoadingUnit& unit = LoadingUnit::Handle(zone, lib.loading_unit());
+  ASSERT(!unit.IsNull());
+  return unit.id();
+}
+
+intptr_t LoadingUnit::LoadingUnitOf(Zone* zone, const Code& code) {
+  // No WeakSerializationReference owners here because those are only
+  // introduced during AOT serialization.
+  if (code.IsStubCode() || code.IsTypeTestStubCode()) {
+    return LoadingUnit::kRootId;
+  } else if (code.IsAllocationStubCode()) {
+    const Class& cls = Class::Cast(Object::Handle(zone, code.owner()));
+    const Library& lib = Library::Handle(zone, cls.library());
+    const LoadingUnit& unit = LoadingUnit::Handle(zone, lib.loading_unit());
+    ASSERT(!unit.IsNull());
+    return unit.id();
+  } else if (code.IsFunctionCode()) {
+    return LoadingUnitOf(zone,
+                         Function::Cast(Object::Handle(zone, code.owner())));
+  } else {
+    UNREACHABLE();
+    return LoadingUnit::kIllegalId;
+  }
+}
+
+intptr_t LoadingUnit::LoadingUnitOf(const Code& code) {
+  if (code.IsStubCode() || code.IsTypeTestStubCode()) {
+    return LoadingUnit::kRootId;
+  } else {
+    Thread* thread = Thread::Current();
+    REUSABLE_FUNCTION_HANDLESCOPE(thread);
+    REUSABLE_CLASS_HANDLESCOPE(thread);
+    REUSABLE_LIBRARY_HANDLESCOPE(thread);
+    REUSABLE_LOADING_UNIT_HANDLESCOPE(thread);
+
+    Class& cls = thread->ClassHandle();
+    Library& lib = thread->LibraryHandle();
+    LoadingUnit& unit = thread->LoadingUnitHandle();
+    Function& func = thread->FunctionHandle();
+
+    if (code.IsAllocationStubCode()) {
+      cls ^= code.owner();
+      lib = cls.library();
+      unit = lib.loading_unit();
+      ASSERT(!unit.IsNull());
+      return unit.id();
+    } else if (code.IsFunctionCode()) {
+      func ^= code.function();
+      cls = func.Owner();
+      lib = cls.library();
+      unit = lib.loading_unit();
+      ASSERT(!unit.IsNull());
+      return unit.id();
+    } else {
+      UNREACHABLE();
+      return LoadingUnit::kIllegalId;
+    }
+  }
+}
+
 const char* Error::ToErrorCString() const {
   if (IsNull()) {
     return "Error: null";
