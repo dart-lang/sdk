@@ -36,11 +36,11 @@ class DeclarationBuilder {
   /// corresponding elements. So, we can access them uniformly via interfaces,
   /// mixins, etc.
   void transferToElements() {
+    // TODO(scheglov) Make sure that these are only declarations?
     for (final entry in fromNode._identifierMap.entries) {
       final element = entry.key.staticElement;
       if (element != null) {
         final declaration = entry.value;
-        declaration.element = element;
         fromElement._identifierMap[element] = declaration;
       }
     }
@@ -74,10 +74,11 @@ class DeclarationBuilderFromElement {
   }
 
   macro.IdentifierImpl identifier(Element element) {
-    return _identifierMap[element] ??= IdentifierImpl(
+    return _identifierMap[element] ??= IdentifierImplFromElement(
       id: macro.RemoteInstance.uniqueId,
       name: element.name!,
-    )..element = element;
+      element: element,
+    );
   }
 
   macro.TypeParameterDeclarationImpl typeParameter(
@@ -198,9 +199,10 @@ class DeclarationBuilderFromNode {
     } else {
       simpleIdentifier = (node as ast.PrefixedIdentifier).identifier;
     }
-    return _identifierMap[simpleIdentifier] ??= IdentifierImpl(
+    return _identifierMap[simpleIdentifier] ??= IdentifierImplFromNode(
       id: macro.RemoteInstance.uniqueId,
       name: simpleIdentifier.name,
+      node: simpleIdentifier,
     );
   }
 
@@ -300,10 +302,37 @@ class FieldDeclarationImpl extends macro.FieldDeclarationImpl {
   });
 }
 
-class IdentifierImpl extends macro.IdentifierImpl {
-  late final Element? element;
+abstract class IdentifierImpl extends macro.IdentifierImpl {
+  IdentifierImpl({
+    required super.id,
+    required super.name,
+  });
 
-  IdentifierImpl({required super.id, required super.name});
+  Element? get element;
+}
+
+class IdentifierImplFromElement extends IdentifierImpl {
+  @override
+  final Element element;
+
+  IdentifierImplFromElement({
+    required super.id,
+    required super.name,
+    required this.element,
+  });
+}
+
+class IdentifierImplFromNode extends IdentifierImpl {
+  final ast.SimpleIdentifier node;
+
+  IdentifierImplFromNode({
+    required super.id,
+    required super.name,
+    required this.node,
+  });
+
+  @override
+  Element? get element => node.staticElement;
 }
 
 class IntrospectableClassDeclarationImpl

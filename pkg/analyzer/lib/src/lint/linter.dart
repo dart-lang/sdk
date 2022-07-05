@@ -17,6 +17,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -510,6 +511,21 @@ class LinterContextUnit {
   final CompilationUnit unit;
 
   LinterContextUnit(this.content, this.unit);
+}
+
+/// TODO(scheglov) This class exists only because there are places in the
+/// analyzer and analysis server that instantiate [LinterContextUnit]. This
+/// should not happen, and should be fixed.
+class LinterContextUnit2 implements LinterContextUnit {
+  final FileState file;
+
+  @override
+  final CompilationUnit unit;
+
+  LinterContextUnit2(this.file, this.unit);
+
+  @override
+  String get content => file.content;
 }
 
 /// Thrown when an error occurs in linting.

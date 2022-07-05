@@ -1210,7 +1210,6 @@ library
 ''');
   }
 
-  @failingTest
   test_introspect_declarations_ClassDeclaration_imported_interfaces() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
@@ -1235,7 +1234,6 @@ class X
 ''');
   }
 
-  @failingTest
   test_introspect_declarations_ClassDeclaration_imported_isAbstract() async {
     newFile('$testPackageLibPath/a.dart', r'''
 abstract class A {}
@@ -1255,7 +1253,6 @@ class X
 ''');
   }
 
-  @failingTest
   test_introspect_declarations_ClassDeclaration_imported_mixins() async {
     newFile('$testPackageLibPath/a.dart', r'''
 mixin M1 {}
@@ -1280,7 +1277,6 @@ class X
 ''');
   }
 
-  @failingTest
   test_introspect_declarations_ClassDeclaration_imported_superclass() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
@@ -1303,7 +1299,6 @@ class X
 ''');
   }
 
-  @failingTest
   test_introspect_declarations_ClassDeclaration_imported_typeParameters() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A<T, U extends List<T>> {}
@@ -1327,7 +1322,6 @@ class X
 ''');
   }
 
-  @failingTest
   test_introspect_declarations_ClassDeclaration_superclassOf() async {
     await _assertIntrospectDeclarationsText(r'''
 class A {}
@@ -1343,19 +1337,15 @@ class X
 ''');
   }
 
-  @failingTest
   test_introspect_declarations_ClassDeclaration_superclassOf_implicit() async {
     await _assertIntrospectDeclarationsText(r'''
 @introspectMacro
 class X {}
 ''', r'''
 class X
-  superclass
-    class Object
 ''');
   }
 
-  @failingTest
   test_introspect_declarations_ClassDeclaration_superclassOf_unresolved() async {
     await _assertIntrospectDeclarationsText(r'''
 @introspectMacro
@@ -1363,11 +1353,10 @@ class X extends A {}
 ''', r'''
 class X
   superclass
-    class Object
+    notType A
 ''');
   }
 
-  @failingTest
   test_introspect_declarations_FieldDeclaration_isExternal() async {
     await _assertIntrospectDeclarationsText(r'''
 @introspectMacroX
@@ -1377,8 +1366,6 @@ class X {
 }
 ''', r'''
 class X
-  superclass
-    class Object
   fields
     external a
       type: int
@@ -1387,7 +1374,6 @@ class X
 ''');
   }
 
-  @failingTest
   test_introspect_declarations_FieldDeclaration_isFinal() async {
     await _assertIntrospectDeclarationsText(r'''
 @introspectMacroX
@@ -1397,8 +1383,6 @@ class X {
 }
 ''', r'''
 class X
-  superclass
-    class Object
   fields
     final a
       type: int
@@ -1407,7 +1391,6 @@ class X
 ''');
   }
 
-  @failingTest
   test_introspect_declarations_FieldDeclaration_isLate() async {
     await _assertIntrospectDeclarationsText(r'''
 @introspectMacroX
@@ -1417,8 +1400,6 @@ class X {
 }
 ''', r'''
 class X
-  superclass
-    class Object
   fields
     late final a
       type: int
@@ -1427,7 +1408,6 @@ class X
 ''');
   }
 
-  @failingTest
   test_introspect_declarations_FieldDeclaration_isStatic() async {
     await _assertIntrospectDeclarationsText(r'''
 @introspectMacroX
@@ -1437,8 +1417,6 @@ class X {
 }
 ''', r'''
 class X
-  superclass
-    class Object
   fields
     static a
       type: int
@@ -1447,7 +1425,6 @@ class X
 ''');
   }
 
-  @failingTest
   test_introspect_declarations_FieldDeclaration_type_explicit() async {
     await _assertIntrospectDeclarationsText(r'''
 @introspectMacroX
@@ -1457,8 +1434,6 @@ class X {
 }
 ''', r'''
 class X
-  superclass
-    class Object
   fields
     a
       type: int

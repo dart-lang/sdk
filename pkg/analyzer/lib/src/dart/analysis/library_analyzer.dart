@@ -48,6 +48,7 @@ import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:collection/collection.dart';
 
 class AnalysisForCompletionResult {
   final CompilationUnit parsedUnit;
@@ -271,11 +272,19 @@ class LibraryAnalyzer {
     }
 
     if (_analysisOptions.lint) {
-      var allUnits = _library.files
-          .map((file) => LinterContextUnit(file.content, units[file]!))
+      final allUnits = _library.files
+          .map((file) {
+            final unit = units[file];
+            if (unit != null) {
+              return LinterContextUnit2(file, unit);
+            } else {
+              return null;
+            }
+          })
+          .whereNotNull()
           .toList();
-      for (int i = 0; i < allUnits.length; i++) {
-        _computeLints(_library.files[i], allUnits[i], allUnits,
+      for (final linterUnit in allUnits) {
+        _computeLints(linterUnit.file, linterUnit, allUnits,
             analysisOptions: _analysisOptions);
       }
     }
