@@ -520,6 +520,7 @@ class LibraryAnalyzer {
     String content = file.content;
     var unit = file.parse(errorListener);
 
+    // TODO(scheglov) Store [IgnoreInfo] as unlinked data.
     _fileToLineInfo[file] = unit.lineInfo;
     _fileToIgnoreInfo[file] = IgnoreInfo.forDart(unit, content);
 
