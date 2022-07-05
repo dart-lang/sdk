@@ -261,12 +261,14 @@ class LibraryAnalyzer {
           usedImportedElements.add(visitor.usedElements);
         }
       }
+      UsedLocalElements usedElements =
+          UsedLocalElements.merge(usedLocalElements);
       units.forEach((file, unit) {
         _computeHints(
           file,
           unit,
           usedImportedElements: usedImportedElements,
-          usedLocalElements: usedLocalElements,
+          usedElements: usedElements,
         );
       });
     }
@@ -314,7 +316,7 @@ class LibraryAnalyzer {
     FileState file,
     CompilationUnit unit, {
     required List<UsedImportedElements> usedImportedElements,
-    required List<UsedLocalElements> usedLocalElements,
+    required UsedLocalElements usedElements,
   }) {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     ErrorReporter errorReporter = _getErrorReporter(file);
@@ -371,8 +373,6 @@ class LibraryAnalyzer {
 
     // Unused local elements.
     {
-      UsedLocalElements usedElements =
-          UsedLocalElements.merge(usedLocalElements);
       UnusedLocalElementsVerifier visitor = UnusedLocalElementsVerifier(
           errorListener, usedElements, _inheritance, _libraryElement);
       unit.accept(visitor);

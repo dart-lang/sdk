@@ -852,9 +852,6 @@ class ParameterMember extends VariableMember
   bool get hasDefaultValue => declaration.hasDefaultValue;
 
   @override
-  int get hashCode => declaration.hashCode;
-
-  @override
   bool get isCovariant => declaration.isCovariant;
 
   @override
