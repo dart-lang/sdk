@@ -29,7 +29,6 @@ import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
@@ -557,43 +556,6 @@ class FileState {
     }
   }
 
-  /// TODO(scheglov) Remove it when [IgnoreInfo] is stored here.
-  CompilationUnitImpl parse2(
-    AnalysisErrorListener errorListener,
-    String content,
-  ) {
-    CharSequenceReader reader = CharSequenceReader(content);
-    Scanner scanner = Scanner(source, reader, errorListener)
-      ..configureFeatures(
-        featureSetForOverriding: _contextFeatureSet,
-        featureSet: _contextFeatureSet.restrictToVersion(
-          packageLanguageVersion,
-        ),
-      );
-    Token token = scanner.tokenize(reportScannerErrors: false);
-    LineInfo lineInfo = LineInfo(scanner.lineStarts);
-
-    Parser parser = Parser(
-      source,
-      errorListener,
-      featureSet: scanner.featureSet,
-      lineInfo: lineInfo,
-    );
-    parser.enableOptionalNewAndConst = true;
-
-    var unit = parser.parseCompilationUnit(token);
-    unit.languageVersion = LibraryLanguageVersion(
-      package: packageLanguageVersion,
-      override: scanner.overrideVersion,
-    );
-
-    // StringToken uses a static instance of StringCanonicalizer, so we need
-    // to clear it explicitly once we are done using it for this file.
-    StringTokenImpl.canonicalizer.clear();
-
-    return unit;
-  }
-
   /// Read the file content and ensure that all of the file properties are
   /// consistent with the read content, including API signature.
   ///
@@ -790,7 +752,36 @@ class FileState {
   }
 
   CompilationUnitImpl _parse(AnalysisErrorListener errorListener) {
-    return parse2(errorListener, content);
+    CharSequenceReader reader = CharSequenceReader(content);
+    Scanner scanner = Scanner(source, reader, errorListener)
+      ..configureFeatures(
+        featureSetForOverriding: _contextFeatureSet,
+        featureSet: _contextFeatureSet.restrictToVersion(
+          packageLanguageVersion,
+        ),
+      );
+    Token token = scanner.tokenize(reportScannerErrors: false);
+    LineInfo lineInfo = LineInfo(scanner.lineStarts);
+
+    Parser parser = Parser(
+      source,
+      errorListener,
+      featureSet: scanner.featureSet,
+      lineInfo: lineInfo,
+    );
+    parser.enableOptionalNewAndConst = true;
+
+    var unit = parser.parseCompilationUnit(token);
+    unit.languageVersion = LibraryLanguageVersion(
+      package: packageLanguageVersion,
+      override: scanner.overrideVersion,
+    );
+
+    // StringToken uses a static instance of StringCanonicalizer, so we need
+    // to clear it explicitly once we are done using it for this file.
+    StringTokenImpl.canonicalizer.clear();
+
+    return unit;
   }
 
   /// TODO(scheglov) write tests

@@ -3272,7 +3272,7 @@
             "-nanalyzer-unittest-asserts-${mode}-${system}",
             "pkg/analyzer"
           ],
-          "shards": 2,
+          "shards": 4,
           "fileset": "analyzer_unit_tests"
         },
         {
@@ -3281,7 +3281,7 @@
             "-nanalyzer-unittest-asserts-${mode}-${system}",
             "pkg/analysis_server"
           ],
-          "shards": 2,
+          "shards": 4,
           "fileset": "analyzer_unit_tests"
         },
         {
@@ -3290,7 +3290,7 @@
             "-nanalyzer-unittest-asserts-${mode}-${system}",
             "pkg/nnbd_migration"
           ],
-          "shards": 2,
+          "shards": 1,
           "fileset": "analyzer_unit_tests"
         },
         {
