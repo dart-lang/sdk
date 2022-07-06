@@ -73,7 +73,6 @@ void main() {
         expect(options.showSdkWarnings, isFalse);
         expect(options.sourceFiles, equals(['foo.dart']));
         expect(options.warningsAreFatal, isFalse);
-        expect(options.lintsAreFatal, isFalse);
         expect(options.trainSnapshot, isFalse);
       });
 
@@ -260,11 +259,6 @@ void main() {
         ])!;
         expect(options, isNotNull);
         expect(options.sourceFiles, equals(['foo.dart']));
-      });
-
-      test('hintsAreFatal', () {
-        var options = parse(['--dart-sdk', '.', '--fatal-lints', 'foo.dart'])!;
-        expect(options.lintsAreFatal, isTrue);
       });
 
       test('bad SDK dir', () {
