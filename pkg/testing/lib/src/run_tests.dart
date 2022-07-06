@@ -33,7 +33,7 @@ class CommandLine {
   Set<String> get skip => commaSeparated("--skip=");
 
   Set<String> commaSeparated(String prefix) {
-    return new Set<String>.from(options.expand((String s) {
+    return Set<String>.from(options.expand((String s) {
       if (!s.startsWith(prefix)) return const [];
       s = s.substring(prefix.length);
       return s.split(",");
@@ -76,7 +76,7 @@ class CommandLine {
     String configurationPath;
     if (configurationPaths.length == 1) {
       configurationPath = configurationPaths.single;
-      File file = new File(configurationPath);
+      File file = File(configurationPath);
       if (await file.exists()) {
         // If [configurationPath] exists as a file, use the absolute URI. This
         // handles absolute paths on Windows.
@@ -84,8 +84,8 @@ class CommandLine {
       }
     } else {
       configurationPath = "testing.json";
-      if (!await new File(configurationPath).exists()) {
-        Directory test = new Directory("test");
+      if (!await File(configurationPath).exists()) {
+        Directory test = Directory("test");
         if (await test.exists()) {
           List<FileSystemEntity> candidates = await test
               .list(recursive: true, followLinks: false)
@@ -113,8 +113,7 @@ class CommandLine {
         .logMessage("Reading configuration file '$configurationPath'.");
     Uri? configuration =
         await Isolate.resolvePackageUri(Uri.base.resolve(configurationPath));
-    if (configuration == null ||
-        !await new File.fromUri(configuration).exists()) {
+    if (configuration == null || !await File.fromUri(configuration).exists()) {
       return fail("Couldn't locate: '$configurationPath'.");
     }
     return configuration;
@@ -124,14 +123,14 @@ class CommandLine {
     int index = arguments.indexOf("--");
     Set<String> options;
     if (index != -1) {
-      options = new Set<String>.from(arguments.getRange(0, index));
+      options = Set<String>.from(arguments.getRange(0, index));
       arguments = arguments.sublist(index + 1);
     } else {
       options = arguments.where((argument) => argument.startsWith("-")).toSet();
       arguments =
           arguments.where((argument) => !argument.startsWith("-")).toList();
     }
-    return new CommandLine(options, arguments);
+    return CommandLine(options, arguments);
   }
 }
 
@@ -153,11 +152,11 @@ main(List<String> arguments) => withErrorHandling(() async {
         print("Use --verbose to display more details.");
       }
       TestRoot root = await TestRoot.fromUri(configuration);
-      SuiteRunner runner = new SuiteRunner(
+      SuiteRunner runner = SuiteRunner(
           root.suites, environment, cl.selectors, cl.selectedSuites, cl.skip);
       String? program = await runner.generateDartProgram();
       bool hasAnalyzerSuites = await runner.analyze(root.packages);
-      Stopwatch sw = new Stopwatch()..start();
+      Stopwatch sw = Stopwatch()..start();
       if (program == null) {
         if (!hasAnalyzerSuites) {
           fail("No tests configured.");
@@ -174,7 +173,7 @@ Future<void> runTests(Map<String, Function> tests) =>
       for (String name in tests.keys) {
         const StdoutLogger()
             .logTestStart(completed, 0, tests.length, null, null);
-        StringBuffer sb = new StringBuffer();
+        StringBuffer sb = StringBuffer();
         try {
           await runGuarded(() {
             print("Running test $name");

@@ -63,7 +63,7 @@ class FileBasedTestDescription extends TestDescription {
     } else if (path.contains(pattern)) {
       hasMatch = true;
     }
-    return hasMatch ? new FileBasedTestDescription(root, entity) : null;
+    return hasMatch ? FileBasedTestDescription(root, entity) : null;
   }
 
   String formatError(String message) {

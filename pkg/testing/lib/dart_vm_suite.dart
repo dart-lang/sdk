@@ -8,11 +8,11 @@ import 'testing.dart';
 
 Future<ChainContext> createContext(
     Chain suite, Map<String, String> environment) async {
-  return new VmContext();
+  return VmContext();
 }
 
 class VmContext extends ChainContext {
-  final List<Step> steps = const <Step>[const DartVmStep()];
+  final List<Step> steps = const <Step>[DartVmStep()];
 }
 
 class DartVmStep extends Step<FileBasedTestDescription, int, VmContext> {
