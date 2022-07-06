@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: library_private_types_in_public_api
+
 /// Annotations that developers can use to express the intentions that otherwise
 /// can't be deduced by statically analyzing the source code.
 ///
