@@ -84,6 +84,7 @@ class Thread;
   V(GrowableObjectArray)                                                       \
   V(Instance)                                                                  \
   V(Library)                                                                   \
+  V(LoadingUnit)                                                               \
   V(Object)                                                                    \
   V(PcDescriptors)                                                             \
   V(Smi)                                                                       \
