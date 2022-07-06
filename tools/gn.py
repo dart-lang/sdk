@@ -245,9 +245,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
 
     # Use tcmalloc only when targeting Linux and when not using ASAN.
     gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux') and
-                                    (gn_args['target_cpu'] != 'arm') and
                                     (gn_args['target_cpu'] != 'riscv32') and
-                                    (gn_args['target_cpu'] != 'riscv64') and
                                     sanitizer == 'none')
 
     # Use mallinfo2 if specified on the command line

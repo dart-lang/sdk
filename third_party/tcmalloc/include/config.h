@@ -24,9 +24,6 @@
 /* Define to 1 if you have the <asm/ptrace.h> header file. */
 /* #undef HAVE_ASM_PTRACE_H */
 
-/* Define to 1 if compiler supports __builtin_stack_pointer */
-/* #undef HAVE_BUILTIN_STACK_POINTER */
-
 /* Define to 1 if you have the <conflict-signal.h> header file. */
 /* #undef HAVE_CONFLICT_SIGNAL_H */
 
@@ -63,10 +60,6 @@
 /* Define to 1 if you have the declaration of `sleep', and to 0 if you don't.
    */
 /* #undef HAVE_DECL_SLEEP */
-
-/* Define to 1 if you have the declaration of `uname', and to 0 if you don't.
-   */
-#define HAVE_DECL_UNAME 1
 
 /* Define to 1 if you have the declaration of `valloc', and to 0 if you don't.
    */
@@ -114,14 +107,8 @@
 /* Define to 1 if you have the <malloc.h> header file. */
 #define HAVE_MALLOC_H 1
 
-/* Define to 1 if you have the <memory.h> header file. */
-#define HAVE_MEMORY_H 1
-
 /* Define to 1 if you have a working `mmap' system call. */
 #define HAVE_MMAP 1
-
-/* define if the compiler implements namespaces */
-#define HAVE_NAMESPACES 1
 
 /* Define to 1 if you have the <poll.h> header file. */
 #define HAVE_POLL_H 1
@@ -147,6 +134,9 @@
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
+
+/* Define to 1 if you have the <stdio.h> header file. */
+#define HAVE_STDIO_H 1
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #define HAVE_STDLIB_H 1
@@ -202,9 +192,6 @@
 /* Define to 1 if you have the <unwind.h> header file. */
 #define HAVE_UNWIND_H 1
 
-/* Define to 1 if you have the <valgrind.h> header file. */
-/* #undef HAVE_VALGRIND_H */
-
 /* define if your compiler has __attribute__ */
 #define HAVE___ATTRIBUTE__ 1
 
@@ -213,9 +200,6 @@
 
 /* Define to 1 if compiler supports __environ */
 #define HAVE___ENVIRON 1
-
-/* Define to 1 if the system has the type `__int64'. */
-/* #undef HAVE___INT64 */
 
 /* Define to 1 if you have the `__sbrk' function. */
 #define HAVE___SBRK 1
@@ -239,7 +223,7 @@
 #define PACKAGE_NAME "gperftools"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "gperftools 2.8"
+#define PACKAGE_STRING "gperftools 2.10"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "gperftools"
@@ -248,7 +232,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.8"
+#define PACKAGE_VERSION "2.10"
 
 /* How to access the PC from a struct ucontext */
 /* #undef PC_FROM_UCONTEXT */
@@ -260,15 +244,6 @@
    "config.h" before anything else. */
 #define PERFTOOLS_DLL_DECL /**/
 
-/* printf format code for printing a size_t and ssize_t */
-#define PRIdS "ld"
-
-/* printf format code for printing a size_t and ssize_t */
-#define PRIuS "lu"
-
-/* printf format code for printing a size_t and ssize_t */
-#define PRIxS "lx"
-
 /* Mark the systems where we know it's bad if pthreads runs too
    early before main (before threads are initialized, presumably).  */
 #ifdef __FreeBSD__
@@ -279,11 +254,10 @@
    your system. */
 /* #undef PTHREAD_CREATE_JOINABLE */
 
-/* Define to 1 if you have the ANSI C header files. */
+/* Define to 1 if all of the C90 standard headers exist (not just the ones
+   required in a freestanding environment). This macro is provided for
+   backward compatibility; new code need not use it. */
 #define STDC_HEADERS 1
-
-/* the namespace where STL code like vector<> is defined */
-#define STL_NAMESPACE std
 
 /* Define 8 bytes of allocation alignment for tcmalloc */
 /* #undef TCMALLOC_ALIGN_8BYTES */
@@ -292,17 +266,11 @@
 /* #undef TCMALLOC_PAGE_SIZE_SHIFT */
 
 /* Version number of package */
-#define VERSION "2.8"
+#define VERSION "2.10"
 
 /* C99 says: define this to get the PRI... macros from stdint.h */
 #ifndef __STDC_FORMAT_MACROS
 # define __STDC_FORMAT_MACROS 1
-#endif
-
-/* Define to `__inline__' or `__inline' if that's what the C compiler
-   calls it, or to nothing if 'inline' is not supported under any name.  */
-#ifndef __cplusplus
-/* #undef inline */
 #endif
 
 

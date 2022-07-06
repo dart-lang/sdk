@@ -72,7 +72,7 @@ vars = {
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "bb994c6f067340c1135eb43eed84f4b33cfa7397",
 
-  "gperftools_revision": "180bfa10d7cb38e8b3784d60943d50e8fcef0dcb",
+  "gperftools_revision": "bf8b714bf5075d0a6f2f28504b43095e2b1e11c5",
 
   # Revisions of /third_party/* dependencies.
   # Note that putting an EOL comment after a dependency below will prevent the
@@ -135,7 +135,7 @@ vars = {
   "path_rev": "7a0ed40280345b1c11df4c700c71e590738f4257",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "fa84ddd0e39f45bf3f09dcc5d6b9fbdda7820fef",
-  "protobuf_rev": "66593ca5a4d163b2f9a469a2b6368e12a710e550",
+  "protobuf_rev": "585878516d90b973ba47e2ffa295814ccaa19d3d",
   "pub_rev": "9bf4289d6fd5d6872a8929d6312bbd7098f3ea9c", # manually rev'd
   "pub_semver_rev": "5c0b4bfd5ca57fe16f1319c581dc8c882e9b8cb2",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",

@@ -1128,6 +1128,18 @@ class SuggestionBuilder {
       var key = suggestion.key;
       listener?.builtSuggestion(suggestion);
       if (laterReplacesEarlier || !_suggestionMap.containsKey(key)) {
+        // When suggesting from not-yet-imported libraries, record items
+        // with a key that includes the URI so that multiple not-yet-imported
+        // libraries can be included, but only if there is no imported library
+        // contributing that key.
+        if (isNotImportedLibrary) {
+          key += '::$libraryUriStr';
+          // If `!laterReplacesEarlier`, also ensure we don't already have this
+          // new key.
+          if (!laterReplacesEarlier && _suggestionMap.containsKey(key)) {
+            return;
+          }
+        }
         _suggestionMap[key] = suggestion;
       }
     }
