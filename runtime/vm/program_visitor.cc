@@ -1214,7 +1214,11 @@ class CodeKeyValueTrait {
     if (pair->UncheckedEntryPointOffset() != key->UncheckedEntryPointOffset()) {
       return false;
     }
-    return Instructions::Equals(pair->instructions(), key->instructions());
+    if (!Instructions::Equals(pair->instructions(), key->instructions())) {
+      return false;
+    }
+    return LoadingUnit::LoadingUnitOf(*pair) ==
+           LoadingUnit::LoadingUnitOf(*key);
   }
 };
 #endif
