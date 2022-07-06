@@ -84,7 +84,7 @@ class AnalysisErrorFixes implements HasToJson {
   @override
   int get hashCode => Object.hash(
         error,
-        fixes,
+        Object.hashAll(fixes),
       );
 }
 
@@ -165,7 +165,7 @@ class AnalysisErrorsParams implements HasToJson {
   @override
   int get hashCode => Object.hash(
         file,
-        errors,
+        Object.hashAll(errors),
       );
 }
 
@@ -246,7 +246,7 @@ class AnalysisFoldingParams implements HasToJson {
   @override
   int get hashCode => Object.hash(
         file,
-        regions,
+        Object.hashAll(regions),
       );
 }
 
@@ -443,9 +443,9 @@ class AnalysisGetNavigationResult implements ResponseResult {
 
   @override
   int get hashCode => Object.hash(
-        files,
-        targets,
-        regions,
+        Object.hashAll(files),
+        Object.hashAll(targets),
+        Object.hashAll(regions),
       );
 }
 
@@ -514,7 +514,7 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
   }
 
   @override
-  int get hashCode => events.hashCode;
+  int get hashCode => Object.hashAll(events);
 }
 
 /// analysis.handleWatchEvents result
@@ -522,7 +522,7 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisHandleWatchEventsResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => <String, Object>{};
+  Map<String, Object> toJson() => {};
 
   @override
   Response toResponse(String id, int requestTime) {
@@ -530,12 +530,7 @@ class AnalysisHandleWatchEventsResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) {
-    if (other is AnalysisHandleWatchEventsResult) {
-      return true;
-    }
-    return false;
-  }
+  bool operator ==(other) => other is AnalysisHandleWatchEventsResult;
 
   @override
   int get hashCode => 779767607;
@@ -618,7 +613,7 @@ class AnalysisHighlightsParams implements HasToJson {
   @override
   int get hashCode => Object.hash(
         file,
-        regions,
+        Object.hashAll(regions),
       );
 }
 
@@ -732,9 +727,9 @@ class AnalysisNavigationParams implements HasToJson {
   @override
   int get hashCode => Object.hash(
         file,
-        regions,
-        targets,
-        files,
+        Object.hashAll(regions),
+        Object.hashAll(targets),
+        Object.hashAll(files),
       );
 }
 
@@ -816,7 +811,7 @@ class AnalysisOccurrencesParams implements HasToJson {
   @override
   int get hashCode => Object.hash(
         file,
-        occurrences,
+        Object.hashAll(occurrences),
       );
 }
 
@@ -895,7 +890,7 @@ class AnalysisOutlineParams implements HasToJson {
   @override
   int get hashCode => Object.hash(
         file,
-        outline,
+        Object.hashAll(outline),
       );
 }
 
@@ -1033,7 +1028,7 @@ class AnalysisSetContextRootsParams implements RequestParams {
   }
 
   @override
-  int get hashCode => roots.hashCode;
+  int get hashCode => Object.hashAll(roots);
 }
 
 /// analysis.setContextRoots result
@@ -1041,7 +1036,7 @@ class AnalysisSetContextRootsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetContextRootsResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => <String, Object>{};
+  Map<String, Object> toJson() => {};
 
   @override
   Response toResponse(String id, int requestTime) {
@@ -1049,12 +1044,7 @@ class AnalysisSetContextRootsResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) {
-    if (other is AnalysisSetContextRootsResult) {
-      return true;
-    }
-    return false;
-  }
+  bool operator ==(other) => other is AnalysisSetContextRootsResult;
 
   @override
   int get hashCode => 969645618;
@@ -1120,7 +1110,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   }
 
   @override
-  int get hashCode => files.hashCode;
+  int get hashCode => Object.hashAll(files);
 }
 
 /// analysis.setPriorityFiles result
@@ -1128,7 +1118,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetPriorityFilesResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => <String, Object>{};
+  Map<String, Object> toJson() => {};
 
   @override
   Response toResponse(String id, int requestTime) {
@@ -1136,12 +1126,7 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) {
-    if (other is AnalysisSetPriorityFilesResult) {
-      return true;
-    }
-    return false;
-  }
+  bool operator ==(other) => other is AnalysisSetPriorityFilesResult;
 
   @override
   int get hashCode => 330050055;
@@ -1217,7 +1202,8 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   }
 
   @override
-  int get hashCode => subscriptions.hashCode;
+  int get hashCode =>
+      Object.hashAll([...subscriptions.keys, ...subscriptions.values]);
 }
 
 /// analysis.setSubscriptions result
@@ -1225,7 +1211,7 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetSubscriptionsResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => <String, Object>{};
+  Map<String, Object> toJson() => {};
 
   @override
   Response toResponse(String id, int requestTime) {
@@ -1233,12 +1219,7 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) {
-    if (other is AnalysisSetSubscriptionsResult) {
-      return true;
-    }
-    return false;
-  }
+  bool operator ==(other) => other is AnalysisSetSubscriptionsResult;
 
   @override
   int get hashCode => 218088493;
@@ -1315,7 +1296,7 @@ class AnalysisUpdateContentParams implements RequestParams {
   }
 
   @override
-  int get hashCode => files.hashCode;
+  int get hashCode => Object.hashAll([...files.keys, ...files.values]);
 }
 
 /// analysis.updateContent result
@@ -1323,7 +1304,7 @@ class AnalysisUpdateContentParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateContentResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => <String, Object>{};
+  Map<String, Object> toJson() => {};
 
   @override
   Response toResponse(String id, int requestTime) {
@@ -1331,12 +1312,7 @@ class AnalysisUpdateContentResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) {
-    if (other is AnalysisUpdateContentResult) {
-      return true;
-    }
-    return false;
-  }
+  bool operator ==(other) => other is AnalysisUpdateContentResult;
 
   @override
   int get hashCode => 468798730;
@@ -1526,7 +1502,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   int get hashCode => Object.hash(
         replacementOffset,
         replacementLength,
-        results,
+        Object.hashAll(results),
       );
 }
 
@@ -1610,7 +1586,7 @@ class ContextRoot implements HasToJson {
   @override
   int get hashCode => Object.hash(
         root,
-        exclude,
+        Object.hashAll(exclude),
         optionsFile,
       );
 }
@@ -1621,12 +1597,7 @@ class ContextRoot implements HasToJson {
 class ConvertGetterToMethodFeedback extends RefactoringFeedback
     implements HasToJson {
   @override
-  bool operator ==(other) {
-    if (other is ConvertGetterToMethodFeedback) {
-      return true;
-    }
-    return false;
-  }
+  bool operator ==(other) => other is ConvertGetterToMethodFeedback;
 
   @override
   int get hashCode => 616032599;
@@ -1638,12 +1609,7 @@ class ConvertGetterToMethodFeedback extends RefactoringFeedback
 class ConvertGetterToMethodOptions extends RefactoringOptions
     implements HasToJson {
   @override
-  bool operator ==(other) {
-    if (other is ConvertGetterToMethodOptions) {
-      return true;
-    }
-    return false;
-  }
+  bool operator ==(other) => other is ConvertGetterToMethodOptions;
 
   @override
   int get hashCode => 488848400;
@@ -1655,12 +1621,7 @@ class ConvertGetterToMethodOptions extends RefactoringOptions
 class ConvertMethodToGetterFeedback extends RefactoringFeedback
     implements HasToJson {
   @override
-  bool operator ==(other) {
-    if (other is ConvertMethodToGetterFeedback) {
-      return true;
-    }
-    return false;
-  }
+  bool operator ==(other) => other is ConvertMethodToGetterFeedback;
 
   @override
   int get hashCode => 165291526;
@@ -1672,12 +1633,7 @@ class ConvertMethodToGetterFeedback extends RefactoringFeedback
 class ConvertMethodToGetterOptions extends RefactoringOptions
     implements HasToJson {
   @override
-  bool operator ==(other) {
-    if (other is ConvertMethodToGetterOptions) {
-      return true;
-    }
-    return false;
-  }
+  bool operator ==(other) => other is ConvertMethodToGetterOptions;
 
   @override
   int get hashCode => 27952290;
@@ -1838,7 +1794,7 @@ class EditGetAssistsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode => assists.hashCode;
+  int get hashCode => Object.hashAll(assists);
 }
 
 /// edit.getAvailableRefactorings params
@@ -2003,7 +1959,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode => kinds.hashCode;
+  int get hashCode => Object.hashAll(kinds);
 }
 
 /// edit.getFixes params
@@ -2147,7 +2103,7 @@ class EditGetFixesResult implements ResponseResult {
   }
 
   @override
-  int get hashCode => fixes.hashCode;
+  int get hashCode => Object.hashAll(fixes);
 }
 
 /// edit.getRefactoring params
@@ -2462,12 +2418,12 @@ class EditGetRefactoringResult implements ResponseResult {
 
   @override
   int get hashCode => Object.hash(
-        initialProblems,
-        optionsProblems,
-        finalProblems,
+        Object.hashAll(initialProblems),
+        Object.hashAll(optionsProblems),
+        Object.hashAll(finalProblems),
         feedback,
         change,
-        potentialEdits,
+        Object.hashAll(potentialEdits ?? []),
       );
 }
 
@@ -2591,11 +2547,11 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   @override
   int get hashCode => Object.hash(
-        coveringExpressionOffsets,
-        coveringExpressionLengths,
-        names,
-        offsets,
-        lengths,
+        Object.hashAll(coveringExpressionOffsets ?? []),
+        Object.hashAll(coveringExpressionLengths ?? []),
+        Object.hashAll(names),
+        Object.hashAll(offsets),
+        Object.hashAll(lengths),
       );
 }
 
@@ -2836,11 +2792,11 @@ class ExtractMethodFeedback extends RefactoringFeedback {
         offset,
         length,
         returnType,
-        names,
+        Object.hashAll(names),
         canCreateGetter,
-        parameters,
-        offsets,
-        lengths,
+        Object.hashAll(parameters),
+        Object.hashAll(offsets),
+        Object.hashAll(lengths),
       );
 }
 
@@ -2978,7 +2934,7 @@ class ExtractMethodOptions extends RefactoringOptions {
         returnType,
         createGetter,
         name,
-        parameters,
+        Object.hashAll(parameters),
         extractAll,
       );
 }
@@ -3056,12 +3012,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
 class InlineLocalVariableOptions extends RefactoringOptions
     implements HasToJson {
   @override
-  bool operator ==(other) {
-    if (other is InlineLocalVariableOptions) {
-      return true;
-    }
-    return false;
-  }
+  bool operator ==(other) => other is InlineLocalVariableOptions;
 
   @override
   int get hashCode => 540364977;
@@ -3375,8 +3326,8 @@ class KytheGetKytheEntriesResult implements ResponseResult {
 
   @override
   int get hashCode => Object.hash(
-        entries,
-        files,
+        Object.hashAll(entries),
+        Object.hashAll(files),
       );
 }
 
@@ -3385,12 +3336,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
 /// Clients may not extend, implement or mix-in this class.
 class MoveFileFeedback extends RefactoringFeedback implements HasToJson {
   @override
-  bool operator ==(other) {
-    if (other is MoveFileFeedback) {
-      return true;
-    }
-    return false;
-  }
+  bool operator ==(other) => other is MoveFileFeedback;
 
   @override
   int get hashCode => 438975893;
@@ -3554,7 +3500,7 @@ class PluginErrorParams implements HasToJson {
 /// Clients may not extend, implement or mix-in this class.
 class PluginShutdownParams implements RequestParams {
   @override
-  Map<String, Object> toJson() => <String, Object>{};
+  Map<String, Object> toJson() => {};
 
   @override
   Request toRequest(String id) {
@@ -3562,12 +3508,7 @@ class PluginShutdownParams implements RequestParams {
   }
 
   @override
-  bool operator ==(other) {
-    if (other is PluginShutdownParams) {
-      return true;
-    }
-    return false;
-  }
+  bool operator ==(other) => other is PluginShutdownParams;
 
   @override
   int get hashCode => 478064585;
@@ -3578,7 +3519,7 @@ class PluginShutdownParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class PluginShutdownResult implements ResponseResult {
   @override
-  Map<String, Object> toJson() => <String, Object>{};
+  Map<String, Object> toJson() => {};
 
   @override
   Response toResponse(String id, int requestTime) {
@@ -3586,12 +3527,7 @@ class PluginShutdownResult implements ResponseResult {
   }
 
   @override
-  bool operator ==(other) {
-    if (other is PluginShutdownResult) {
-      return true;
-    }
-    return false;
-  }
+  bool operator ==(other) => other is PluginShutdownResult;
 
   @override
   int get hashCode => 9389109;
@@ -3825,7 +3761,7 @@ class PluginVersionCheckResult implements ResponseResult {
         name,
         version,
         contactInfo,
-        interestingFiles,
+        Object.hashAll(interestingFiles),
       );
 }
 

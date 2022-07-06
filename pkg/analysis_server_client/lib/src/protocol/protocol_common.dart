@@ -259,7 +259,7 @@ class AnalysisError implements HasToJson {
         correction,
         code,
         url,
-        contextMessages,
+        Object.hashAll(contextMessages ?? []),
         hasFix,
       );
 }
@@ -476,7 +476,7 @@ class ChangeContentOverlay implements HasToJson {
   @override
   int get hashCode => Object.hash(
         873118866,
-        edits,
+        Object.hashAll(edits),
       );
 }
 
@@ -977,11 +977,11 @@ class CompletionSuggestion implements HasToJson {
         docComplete,
         declaringType,
         defaultArgumentListString,
-        defaultArgumentListTextRanges,
+        Object.hashAll(defaultArgumentListTextRanges ?? []),
         element,
         returnType,
-        parameterNames,
-        parameterTypes,
+        Object.hashAll(parameterNames ?? []),
+        Object.hashAll(parameterTypes ?? []),
         requiredParameterCount,
         hasNamedParameters,
         parameterName,
@@ -2593,7 +2593,7 @@ class KytheEntry implements HasToJson {
         kind,
         target,
         fact,
-        value,
+        Object.hashAll(value ?? []),
       );
 }
 
@@ -2811,9 +2811,9 @@ class LinkedEditGroup implements HasToJson {
 
   @override
   int get hashCode => Object.hash(
-        positions,
+        Object.hashAll(positions),
         length,
-        suggestions,
+        Object.hashAll(suggestions),
       );
 }
 
@@ -3168,7 +3168,7 @@ class NavigationRegion implements HasToJson {
   int get hashCode => Object.hash(
         offset,
         length,
-        targets,
+        Object.hashAll(targets),
       );
 }
 
@@ -3407,7 +3407,7 @@ class Occurrences implements HasToJson {
   @override
   int get hashCode => Object.hash(
         element,
-        offsets,
+        Object.hashAll(offsets),
         length,
       );
 }
@@ -3543,7 +3543,7 @@ class Outline implements HasToJson {
         length,
         codeOffset,
         codeLength,
-        children,
+        Object.hashAll(children ?? []),
       );
 }
 
@@ -4266,7 +4266,7 @@ class RemoveContentOverlay implements HasToJson {
   }
 
   @override
-  int get hashCode => 114870849.hashCode;
+  int get hashCode => 114870849;
 }
 
 /// SourceChange
@@ -4436,8 +4436,8 @@ class SourceChange implements HasToJson {
   @override
   int get hashCode => Object.hash(
         message,
-        edits,
-        linkedEditGroups,
+        Object.hashAll(edits),
+        Object.hashAll(linkedEditGroups),
         selection,
         selectionLength,
         id,
@@ -4659,6 +4659,6 @@ class SourceFileEdit implements HasToJson {
   int get hashCode => Object.hash(
         file,
         fileStamp,
-        edits,
+        Object.hashAll(edits),
       );
 }
