@@ -11,6 +11,7 @@ class LintingError {
   final String message;
   LintingError(this.lineNumber, this.message);
 
+  @override
   String toString() {
     return "Error at line $lineNumber: $message";
   }
@@ -55,14 +56,14 @@ Iterable<LintingError> lintCommentLinesInSection(StatusSection section) {
     for (var entry in section.entries) {
       seenStatusEntry = seenStatusEntry || entry is StatusEntry;
       if (seenStatusEntry && entry is CommentEntry) {
-        lintingErrors.add(new LintingError(
-            entry.lineNumber, "Comment is on a line by itself."));
+        lintingErrors.add(
+            LintingError(entry.lineNumber, "Comment is on a line by itself."));
       }
     }
     return lintingErrors;
   }
   return section.entries.whereType<CommentEntry>().map((entry) =>
-      new LintingError(entry.lineNumber, "Comment is on a line by itself."));
+      LintingError(entry.lineNumber, "Comment is on a line by itself."));
 }
 
 /// Checks for disjunctions in headers. Disjunctions should be separated out.
@@ -84,7 +85,7 @@ Iterable<LintingError> lintCommentLinesInSection(StatusSection section) {
 Iterable<LintingError> lintDisjunctionsInHeader(StatusSection section) {
   if (section.condition.toString().contains("||")) {
     return [
-      new LintingError(
+      LintingError(
           section.lineNumber,
           "Expression contains '||'. Please split the expression into multiple "
           "separate sections.")
@@ -104,7 +105,7 @@ Iterable<LintingError> lintAlphabeticalOrderingOfPaths(StatusSection section) {
   var witness = _findNotEqualWitness<String>(sortedList, entries);
   if (witness != null) {
     return [
-      new LintingError(
+      LintingError(
           section.lineNumber,
           "Test paths are not alphabetically ordered in section. "
           "${witness.first} should come before ${witness.second}.")
@@ -119,7 +120,7 @@ Iterable<LintingError> lintNormalizedSection(StatusSection section) {
   var normalized = section.condition.normalize().toString();
   if (nonNormalized != normalized) {
     return [
-      new LintingError(
+      LintingError(
           section.lineNumber,
           "Condition expression should be '$normalized' "
           "but was '$nonNormalized'.")
@@ -140,10 +141,10 @@ Iterable<LintingError> lintSectionEntryDuplicates(StatusSection section) {
       if (entry.path == otherEntry.path &&
           _findNotEqualWitness(entry.expectations, otherEntry.expectations) ==
               null) {
-        errors.add(new LintingError(
+        errors.add(LintingError(
             section.lineNumber,
             "The status entry "
-            "'${entry}' is duplicated on lines "
+            "'$entry' is duplicated on lines "
             "${entry.lineNumber} and ${otherEntry.lineNumber}."));
       }
     }
@@ -182,7 +183,7 @@ Iterable<LintingError> lintSectionHeaderOrdering(List<StatusSection> sections) {
   var witness = _findNotEqualWitness<StatusSection>(sorted, unsorted);
   if (witness != null) {
     return [
-      new LintingError(
+      LintingError(
           witness.second!.lineNumber,
           "Section expressions are not correctly ordered in file. "
           "'${witness.first!.condition}' on line ${witness.first!.lineNumber} "
@@ -203,7 +204,7 @@ Iterable<LintingError> lintSectionHeaderDuplicates(
     var section = sorted[i];
     var previousSection = sorted[i - 1];
     if (section.condition.compareTo(previousSection.condition) == 0) {
-      errors.add(new LintingError(
+      errors.add(LintingError(
           section.lineNumber,
           "The condition "
           "'${section.condition}' is duplicated on lines "
@@ -219,11 +220,11 @@ ListNotEqualWitness<T>? _findNotEqualWitness<T>(List<T> first, List<T> second) {
   }
   for (var i = 0; i < math.max(first.length, second.length); i++) {
     if (i >= second.length) {
-      return new ListNotEqualWitness(first[i], null);
+      return ListNotEqualWitness(first[i], null);
     } else if (i >= first.length) {
-      return new ListNotEqualWitness(null, second[i]);
+      return ListNotEqualWitness(null, second[i]);
     } else if (first[i] != second[i]) {
-      return new ListNotEqualWitness(first[i], second[i]);
+      return ListNotEqualWitness(first[i], second[i]);
     }
   }
   return null;

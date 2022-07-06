@@ -12,7 +12,7 @@ import 'package:status_file/status_file_normalizer.dart';
 import 'package:status_file/utils.dart';
 
 ArgParser buildParser() {
-  var parser = new ArgParser();
+  var parser = ArgParser();
   parser.addFlag("overwrite",
       abbr: 'w',
       negatable: false,
@@ -48,7 +48,7 @@ void main(List<String> arguments) {
     if (FileSystemEntity.isFileSync(path)) {
       normalizeFile(path, overwrite);
     } else if (FileSystemEntity.isDirectorySync(path)) {
-      new Directory(path).listSync(recursive: true).forEach((entry) {
+      Directory(path).listSync(recursive: true).forEach((entry) {
         if (!canLint(entry.path)) {
           return;
         }
@@ -60,10 +60,10 @@ void main(List<String> arguments) {
 
 bool normalizeFile(String path, bool writeFile) {
   try {
-    var statusFile = new StatusFile.read(path);
+    var statusFile = StatusFile.read(path);
     var normalizedStatusFile = normalizeStatusFile(statusFile);
     if (writeFile) {
-      new File(path).writeAsStringSync(normalizedStatusFile.toString());
+      File(path).writeAsStringSync(normalizedStatusFile.toString());
       print("Normalized $path");
     } else {
       print(normalizedStatusFile);

@@ -9,10 +9,10 @@ import 'dart:convert';
 
 StatusFile normalizeStatusFile(StatusFile statusFile) {
   StatusFile newStatusFile = _sortSectionsAndCombine(statusFile);
-  newStatusFile.sections.forEach((section) {
+  for (var section in newStatusFile.sections) {
     _sortEntriesInSection(section);
     _oneLineBetweenSections(section);
-  });
+  }
   // Remove empty line at the end of the file
   newStatusFile.sections.last.entries.removeLast();
   return newStatusFile;
@@ -44,32 +44,32 @@ void _sortEntriesInSection(StatusSection section) {
 void _oneLineBetweenSections(StatusSection section) {
   section.entries.removeWhere((entry) => entry is EmptyEntry);
   section.entries
-      .add(new EmptyEntry(section.lineNumber + section.entries.length + 1));
+      .add(EmptyEntry(section.lineNumber + section.entries.length + 1));
 }
 
 StatusFile _sortSectionsAndCombine(StatusFile statusFile) {
   // Create the new status file to be returned.
-  StatusFile oldStatusFile = new StatusFile.parse(
+  StatusFile oldStatusFile = StatusFile.parse(
       statusFile.path, LineSplitter.split(statusFile.toString()).toList());
   List<StatusSection> newSections = [];
   // Copy over all sections and normalize all the expressions.
-  oldStatusFile.sections.forEach((section) {
+  for (var section in oldStatusFile.sections) {
     if (section.condition != Expression.always) {
-      if (section.isEmpty()) return;
+      if (section.isEmpty()) continue;
 
-      newSections.add(new StatusSection(section.condition.normalize(),
+      newSections.add(StatusSection(section.condition.normalize(),
           section.lineNumber, section.sectionHeaderComments)
         ..entries.addAll(section.entries));
     } else {
       newSections.add(section);
     }
-  });
+  }
 
   // Sort the headers
   newSections.sort((a, b) => a.condition.compareTo(b.condition));
 
   // See if we can combine section headers by simple comparison.
-  var newStatusFile = new StatusFile(statusFile.path);
+  var newStatusFile = StatusFile(statusFile.path);
   newStatusFile.sections.add(newSections[0]);
   for (var i = 1; i < newSections.length; i++) {
     var previousSection = newSections[i - 1];
