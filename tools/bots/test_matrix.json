@@ -1291,6 +1291,7 @@
           "arguments": [
             "--no-clang",
             "--use-qemu",
+            "--use-mallinfo2",
             "dart_precompiled_runtime",
             "runtime"
           ]

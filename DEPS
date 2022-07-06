@@ -72,7 +72,7 @@ vars = {
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "bb994c6f067340c1135eb43eed84f4b33cfa7397",
 
-  "gperftools_revision": "180bfa10d7cb38e8b3784d60943d50e8fcef0dcb",
+  "gperftools_revision": "bf8b714bf5075d0a6f2f28504b43095e2b1e11c5",
 
   # Revisions of /third_party/* dependencies.
   # Note that putting an EOL comment after a dependency below will prevent the
