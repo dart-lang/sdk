@@ -40,3 +40,7 @@ void multiWithAMutation() {
   print(mutated);
   print(unmutated);
 }
+
+class Coverage {
+  int testedLines = 0; // OK
+}

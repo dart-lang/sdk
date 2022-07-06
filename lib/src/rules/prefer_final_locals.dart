@@ -75,14 +75,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isConst || node.isFinal) return;
 
     var function = node.thisOrAncestorOfType<FunctionBody>();
+    if (function == null) return;
 
     for (var variable in node.variables) {
       if (variable.equals == null || variable.initializer == null) {
         return;
       }
       var declaredElement = variable.declaredElement;
-      if (function != null &&
-          declaredElement != null &&
+      if (declaredElement != null &&
           function.isPotentiallyMutatedInScope(declaredElement)) {
         return;
       }
