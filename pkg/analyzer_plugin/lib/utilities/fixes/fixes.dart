@@ -114,7 +114,7 @@ class FixKind {
   int get hashCode => id.hashCode;
 
   @override
-  bool operator ==(o) => o is FixKind && o.id == id;
+  bool operator ==(other) => other is FixKind && other.id == id;
 
   @override
   String toString() => id;

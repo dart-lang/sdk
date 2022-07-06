@@ -447,6 +447,7 @@ class Server {
         return;
       }
       _recordStdio('RECV: $trimmedLine');
+      // ignore: prefer_typing_uninitialized_variables
       var message;
       try {
         message = json.decoder.convert(trimmedLine);

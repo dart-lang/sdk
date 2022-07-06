@@ -215,7 +215,7 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
         onDone();
       }
       close();
-      return null;
+      return;
     }
 
     var channelReady = Completer<void>();

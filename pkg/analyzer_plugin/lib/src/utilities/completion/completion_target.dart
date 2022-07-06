@@ -526,7 +526,7 @@ class CompletionTarget {
   static Token? _computeDroppedToken(
       AstNode containingNode, Object? entity, int offset) {
     // Find the last token of the member before the entity.
-    var previousMember;
+    SyntacticEntity? previousMember;
     for (var member in containingNode.childEntities) {
       if (entity == member) {
         break;
