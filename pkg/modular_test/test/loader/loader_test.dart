@@ -59,7 +59,7 @@ Future<void> _runTest(Uri uri, String dirName, _Options options) async {
 }
 
 String _dumpAsText(ModularTest test) {
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer();
   bool isFirst = true;
   for (var module in test.modules) {
     if (isFirst) {
@@ -103,7 +103,7 @@ class _Options {
   String? filter;
 
   static _Options parse(List<String> args) {
-    var parser = new ArgParser()
+    var parser = ArgParser()
       ..addFlag('update',
           abbr: 'u',
           defaultsTo: false,

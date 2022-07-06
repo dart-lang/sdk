@@ -16,7 +16,7 @@ main() async {
     uri = Directory.systemTemp.uri.resolve("io_modular_test_root$i/");
     i++;
   }
-  runPipelineTest(new IOPipelineTestStrategy(uri));
+  runPipelineTest(IOPipelineTestStrategy(uri));
 }
 
 /// The strategy implementation to exercise the pipeline test on a
@@ -30,14 +30,14 @@ class IOPipelineTestStrategy implements PipelineTestStrategy<IOModularStep> {
   @override
   Future<Pipeline<IOModularStep>> createPipeline(
       Map<Uri, String> sources, List<IOModularStep> steps,
-      {bool cacheSharedModules: false}) async {
+      {bool cacheSharedModules = false}) async {
     await Directory.fromUri(testRootUri).create();
     for (var uri in sources.keys) {
-      var file = new File.fromUri(uri);
+      var file = File.fromUri(uri);
       await file.create(recursive: true);
       file.writeAsStringSync(sources[uri]!);
     }
-    return new IOPipeline(steps,
+    return IOPipeline(steps,
         saveIntermediateResultsForTesting: true,
         cacheSharedModules: cacheSharedModules);
   }
@@ -46,7 +46,7 @@ class IOPipelineTestStrategy implements PipelineTestStrategy<IOModularStep> {
   IOModularStep createSourceOnlyStep(
           {required String Function(Map<Uri, String?>) action,
           required DataId resultId,
-          bool requestSources: true}) =>
+          bool requestSources = true}) =>
       SourceOnlyStep(action, resultId, requestSources);
 
   @override
@@ -54,7 +54,7 @@ class IOPipelineTestStrategy implements PipelineTestStrategy<IOModularStep> {
           {required String Function(String) action,
           required DataId inputId,
           required DataId resultId,
-          bool requestModuleData: true}) =>
+          bool requestModuleData = true}) =>
       ModuleDataStep(action, inputId, resultId, requestModuleData);
 
   @override
@@ -63,7 +63,7 @@ class IOPipelineTestStrategy implements PipelineTestStrategy<IOModularStep> {
           required DataId inputId,
           required DataId depId,
           required DataId resultId,
-          bool requestDependenciesData: true}) =>
+          bool requestDependenciesData = true}) =>
       LinkStep(action, inputId, depId, resultId, requestDependenciesData);
 
   @override
@@ -72,7 +72,7 @@ class IOPipelineTestStrategy implements PipelineTestStrategy<IOModularStep> {
           required DataId inputId,
           required DataId depId,
           required DataId resultId,
-          bool requestDependenciesData: true}) =>
+          bool requestDependenciesData = true}) =>
       MainOnlyStep(action, inputId, depId, resultId, requestDependenciesData);
 
   @override

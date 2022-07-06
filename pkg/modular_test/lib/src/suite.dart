@@ -66,11 +66,11 @@ class Module {
 
   Module(this.name, this.dependencies, this.rootUri, this.sources,
       {this.mainSource,
-      this.isPackage: false,
-      this.isMain: false,
+      this.isPackage = false,
+      this.isMain = false,
       this.packageBase,
-      this.isShared: false,
-      this.isSdk: false}) {
+      this.isShared = false,
+      this.isSdk = false}) {
     if (!_validModuleName.hasMatch(name)) {
       throw ArgumentError("invalid module name: $name");
     }
@@ -114,7 +114,7 @@ class Module {
   String toString() => '[module $name]';
 
   String debugString() {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     buffer.write('   ');
     buffer.write(name);
     buffer.write(': ');
@@ -129,7 +129,7 @@ class Module {
   }
 }
 
-final RegExp _validModuleName = new RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*$');
+final RegExp _validModuleName = RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*$');
 
 /// Helper to compute transitive dependencies from [module].
 Set<Module> computeTransitiveDependencies(Module module) {

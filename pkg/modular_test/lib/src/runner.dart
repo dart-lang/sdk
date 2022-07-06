@@ -20,13 +20,13 @@ Future<void> runSuite(Uri suiteFolder, String suiteName, Options options,
     IOPipeline pipeline) async {
   var dir = Directory.fromUri(suiteFolder);
   var entries = (await dir.list(recursive: false).toList())
-      .where((e) => e is Directory)
-      .map((e) => new _PipelineTest(e.uri, suiteFolder, options, pipeline))
+      .whereType<Directory>()
+      .map((e) => _PipelineTest(e.uri, suiteFolder, options, pipeline))
       .toList();
 
   await generic.runSuite(
       entries,
-      new generic.RunnerOptions(
+      generic.RunnerOptions(
           suiteName: suiteName,
           configurationName: options.configurationName,
           filter: options.filter,
@@ -67,7 +67,7 @@ class Options {
   bool useSdk = false;
 
   static Options parse(List<String> args) {
-    var parser = new ArgParser()
+    var parser = ArgParser()
       ..addFlag('verbose',
           abbr: 'v',
           defaultsTo: false,
