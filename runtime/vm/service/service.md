@@ -1,4 +1,4 @@
-# Dart VM Service Protocol 3.58
+# Dart VM Service Protocol 3.59
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
@@ -2596,6 +2596,9 @@ class @Function extends @Object {
   // Is this function implicitly defined (e.g., implicit getter/setter)?
   bool implicit;
 
+  // Is this function an abstract method?
+  bool abstract;
+
   // The location of this function in the source code.
   //
   // Note: this may not agree with the location of `owner` if this is a function
@@ -2627,6 +2630,9 @@ class Function extends Object {
 
   // Is this function implicitly defined (e.g., implicit getter/setter)?
   bool implicit;
+
+  // Is this function an abstract method?
+  bool abstract;
 
   // The location of this function in the source code.
   //
@@ -4372,5 +4378,6 @@ version | comments
 3.56 | Added optional `line` and `column` properties to `SourceLocation`. Added a new `SourceReportKind`, `BranchCoverage`, which reports branch level coverage information.
 3.57 | Added optional `libraryFilters` parameter to `getSourceReport` RPC.
 3.58 | Added optional `local` parameter to `lookupResolvedPackageUris` RPC.
+3.59 | Added `abstract` property to `@Function` and `Function`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
