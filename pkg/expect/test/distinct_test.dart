@@ -5,11 +5,11 @@
 import "package:expect/expect.dart";
 
 main() {
-  var o1 = new Object();
-  var o2 = new Object();
-  var o3 = new Object();
-  var c1 = new C(0);
-  var c2 = new C(0);
+  var o1 = Object();
+  var o2 = Object();
+  var o3 = Object();
+  var c1 = C(0);
+  var c2 = C(0);
 
   // Successful checks.
   Expect.notIdentical(o1, o2, "msg");
@@ -28,7 +28,7 @@ main() {
     c2,
     [1]
   ], "msg");
-  Expect.allDistinct(new List.generate(100, (_) => new Object()));
+  Expect.allDistinct(List.generate(100, (_) => Object()));
 
   fails((msg) {
     Expect.notIdentical(o1, o1, msg);
@@ -64,14 +64,14 @@ main() {
     Expect.allDistinct([o1, o2, o3, o3], msg);
   });
   fails((msg) {
-    var list = new List.generate(100, (_) => new Object());
+    var list = List.generate(100, (_) => Object());
     list.add(list[0]);
     Expect.allDistinct(list, msg);
   });
 }
 
 class C {
-  final x;
+  final Object x;
   const C(this.x);
   int get hashCode => x.hashCode;
   bool operator ==(Object other) => other is C && x == other.x;

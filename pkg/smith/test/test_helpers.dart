@@ -14,7 +14,7 @@ void expectParseError(String name, Map<String, dynamic> options, String error) {
   }
 }
 
-void expectFormatError(String error, test()) {
+void expectFormatError(String error, Function() test) {
   try {
     test();
   } on FormatException catch (e) {

@@ -25,17 +25,17 @@ import 'dart:async';
 
 import 'package:expect/expect.dart';
 
-typedef dynamic _Action();
-typedef void _ExpectationFunction(dynamic actual);
+typedef _Action = dynamic Function();
+typedef _ExpectationFunction = void Function(dynamic actual);
 
-final List<_Group> _groups = [new _Group()];
+final List<_Group> _groups = [_Group()];
 
-final Object isFalse = new _Expectation(Expect.isFalse);
-final Object isNotNull = new _Expectation(Expect.isNotNull);
-final Object isNull = new _Expectation(Expect.isNull);
-final Object isTrue = new _Expectation(Expect.isTrue);
+final Object isFalse = _Expectation(Expect.isFalse);
+final Object isNotNull = _Expectation(Expect.isNotNull);
+final Object isNull = _Expectation(Expect.isNull);
+final Object isTrue = _Expectation(Expect.isTrue);
 
-final Object returnsNormally = new _Expectation((actual) {
+final Object returnsNormally = _Expectation((actual) {
   try {
     (actual as _Action)();
   } catch (error) {
@@ -43,39 +43,39 @@ final Object returnsNormally = new _Expectation((actual) {
   }
 });
 
-final Object throws = new _Expectation((actual) {
+final Object throws = _Expectation((actual) {
   Expect.throws(actual as _Action);
 });
 
-final Object throwsArgumentError = new _Expectation((actual) {
+final Object throwsArgumentError = _Expectation((actual) {
   Expect.throws(actual as _Action, (error) => error is ArgumentError);
 });
 
-final Object throwsNoSuchMethodError = new _Expectation((actual) {
+final Object throwsNoSuchMethodError = _Expectation((actual) {
   Expect.throws(actual as _Action, (error) => error is NoSuchMethodError);
 });
 
-final Object throwsRangeError = new _Expectation((actual) {
+final Object throwsRangeError = _Expectation((actual) {
   Expect.throws(actual as _Action, (error) => error is RangeError);
 });
 
-final Object throwsStateError = new _Expectation((actual) {
+final Object throwsStateError = _Expectation((actual) {
   Expect.throws(actual as _Action, (error) => error is StateError);
 });
 
-final Object throwsUnsupportedError = new _Expectation((actual) {
+final Object throwsUnsupportedError = _Expectation((actual) {
   Expect.throws(actual as _Action, (error) => error is UnsupportedError);
 });
 
 /// The test runner should call this once after running a test file.
 void finishTests() {
   _groups.clear();
-  _groups.add(new _Group());
+  _groups.add(_Group());
 }
 
 void group(String description, body()) {
   // TODO(rnystrom): Do something useful with the description.
-  _groups.add(new _Group());
+  _groups.add(_Group());
 
   try {
     var result = body();
@@ -138,48 +138,48 @@ void fail(String message) {
   Expect.fail(message);
 }
 
-Object equals(dynamic value) => new _Expectation((actual) {
+Object equals(dynamic value) => _Expectation((actual) {
       Expect.deepEquals(value, actual);
     });
 
-Object notEquals(dynamic value) => new _Expectation((actual) {
+Object notEquals(dynamic value) => _Expectation((actual) {
       Expect.notEquals(value, actual);
     });
 
-Object unorderedEquals(dynamic value) => new _Expectation((actual) {
+Object unorderedEquals(dynamic value) => _Expectation((actual) {
       Expect.setEquals(value as Iterable, actual as Iterable);
     });
 
 Object predicate(bool fn(dynamic value), [String description = ""]) =>
-    new _Expectation((actual) {
+    _Expectation((actual) {
       Expect.isTrue(fn(actual), description);
     });
 
-Object inInclusiveRange(num min, num max) => new _Expectation((actual) {
+Object inInclusiveRange(num min, num max) => _Expectation((actual) {
       var actualNum = actual as num;
       if (actualNum < min || actualNum > max) {
         fail("Expected $actualNum to be in the inclusive range [$min, $max].");
       }
     });
 
-Object greaterThan(num value) => new _Expectation((actual) {
+Object greaterThan(num value) => _Expectation((actual) {
       var actualNum = actual as num;
       if (actualNum <= value) {
         fail("Expected $actualNum to be greater than $value.");
       }
     });
 
-Object same(dynamic value) => new _Expectation((actual) {
+Object same(dynamic value) => _Expectation((actual) {
       Expect.identical(value, actual);
     });
 
-Object closeTo(num value, num tolerance) => new _Expectation((actual) {
+Object closeTo(num value, num tolerance) => _Expectation((actual) {
       Expect.approxEquals(value, actual as num, tolerance);
     });
 
 /// Succeeds if the actual value is any of the given strings. Unlike matcher's
 /// [anyOf], this only works with strings and requires an explicit list.
-Object anyOf(List<String> expected) => new _Expectation((actual) {
+Object anyOf(List<String> expected) => _Expectation((actual) {
       for (var string in expected) {
         if (actual == string) return;
       }
