@@ -34,6 +34,29 @@
 
 - Deprecates `BidirectionalIterator`.
 
+### Dart VM
+
+Implementation of `async`/`async*`/`sync*` is revamped in Dart VM,
+both in JIT and AOT modes. This also affects Flutter except Flutter Web.
+
+Besides smaller code size and better performance of async methods,
+the new implementation carries a few subtle changes in behavior:
+
+- If `async` method returns before reaching the first `await`, it now returns a completed Future.
+  Previously `async` methods completed resulting Future in separate microtasks.
+
+- Stack traces no longer have duplicate entries for `async` methods.
+
+- New implementation now correctly throws an error if `null` occurs as
+  an argument of a logical expression (`&&` and `||`) which also contains
+  an `await`.
+
+- New implementation avoids unnecessary extending the liveness of local
+  variables in `async`/`async*`/`sync*` methods, which means that unused
+  objects stored in local variables in such methods might be garbage
+  collected earlier than they were before
+  (see issue [#36983](https://github.com/dart-lang/sdk/issues/36983) for details).
+
 ## 2.18.0
 
 ### Language
