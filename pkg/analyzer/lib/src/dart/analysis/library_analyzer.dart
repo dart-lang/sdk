@@ -545,11 +545,6 @@ class LibraryAnalyzer {
     }
 
     // Resolve URIs in directives to corresponding sources.
-    final featureSet = _libraryElement.featureSet;
-    units.forEach((file, unit) {
-      _validateFeatureSet(unit, featureSet);
-    });
-
     _resolveDirectives(units, libraryUnit);
 
     units.forEach((file, unit) {
@@ -912,15 +907,6 @@ class LibraryAnalyzer {
     if (!seenPartSources.add(partSource)) {
       libraryErrorReporter.reportErrorForNode(
           CompileTimeErrorCode.DUPLICATE_PART, partUri, [partSource.uri]);
-    }
-  }
-
-  /// Validate that the feature set associated with the compilation [unit] is
-  /// the same as the [expectedSet] of features supported by the library.
-  void _validateFeatureSet(CompilationUnit unit, FeatureSet expectedSet) {
-    FeatureSet actualSet = unit.featureSet;
-    if (actualSet != expectedSet) {
-      // TODO(brianwilkerson) Generate a diagnostic.
     }
   }
 
