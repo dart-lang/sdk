@@ -12,11 +12,13 @@ class TestEnvironment implements Environment {
 
   TestEnvironment(this._values);
 
+  @override
   void validate(String name, String value, List<String> errors) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   /// Looks up the value of the variable with [name].
+  @override
   String? lookUp(String name) => _values[name];
 
   operator []=(String key, String value) => _values[key] = value;
@@ -39,7 +41,7 @@ void testExpression() {
       expression.toString());
 
   // Test BooleanExpression.evaluate().
-  var environment = new TestEnvironment({"arch": "dartc", "mode": "debug"});
+  var environment = TestEnvironment({"arch": "dartc", "mode": "debug"});
 
   Expect.isTrue(expression.evaluate(environment));
   environment["mode"] = "release";
@@ -67,7 +69,7 @@ void testBoolean() {
 
   // Test BooleanExpression.evaluate().
   var environment =
-      new TestEnvironment({"arch": "ia32", "checked": "true", "mode": "debug"});
+      TestEnvironment({"arch": "ia32", "checked": "true", "mode": "debug"});
 
   Expect.isTrue(expression.evaluate(environment));
   environment["mode"] = "release";
@@ -88,8 +90,8 @@ void testNotBoolean() {
   Expect.equals(
       r"$arch == ia32 && !$checked || $mode == release", expression.toString());
 
-  var environment = new TestEnvironment(
-      {"arch": "ia32", "checked": "false", "mode": "debug"});
+  var environment =
+      TestEnvironment({"arch": "ia32", "checked": "false", "mode": "debug"});
 
   Expect.isTrue(expression.evaluate(environment));
   environment["mode"] = "release";
@@ -111,7 +113,7 @@ void testNotEqual() {
       r"$compiler == dart2js && $runtime != ie9", expression.toString());
 
   // Test BooleanExpression.evaluate().
-  var environment = new TestEnvironment({
+  var environment = TestEnvironment({
     "compiler": "none",
     "runtime": "ie9",
   });

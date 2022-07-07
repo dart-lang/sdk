@@ -12,16 +12,16 @@ final Uri repoRoot = Platform.script.resolve("../../../");
 void main() {
   // Parse every status file in the repository.
   for (var directory in ["tests", "runtime/tests"]) {
-    for (var entry in new Directory.fromUri(repoRoot.resolve(directory))
+    for (var entry in Directory.fromUri(repoRoot.resolve(directory))
         .listSync(recursive: true)) {
       if (!entry.path.endsWith(".status")) continue;
       try {
-        var statusFile = new StatusFile.read(entry.path);
+        var statusFile = StatusFile.read(entry.path);
         statusFile.toString();
       } catch (err, st) {
         print(err);
         print(st);
-        throw new Exception("Could not parse '${entry.path}'.\n$err");
+        throw Exception("Could not parse '${entry.path}'.\n$err");
       }
     }
   }

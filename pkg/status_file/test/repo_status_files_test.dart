@@ -14,11 +14,11 @@ final Uri repoRoot = Platform.script.resolve("../../../");
 void main() {
   // Parse every status file in the repository.
   for (var directory in ["tests", "runtime/tests"]) {
-    for (var entry in new Directory.fromUri(repoRoot.resolve(directory))
+    for (var entry in Directory.fromUri(repoRoot.resolve(directory))
         .listSync(recursive: true)) {
       if (!entry.path.endsWith(".status")) continue;
       try {
-        new StatusFile.read(entry.path);
+        StatusFile.read(entry.path);
       } catch (err, stack) {
         Expect.fail("Could not parse '${entry.path}'.\n$err\n$stack");
       }

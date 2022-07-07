@@ -116,10 +116,6 @@ class CommandLineOptions {
   /// Whether to treat info level items as fatal
   final bool infosAreFatal;
 
-  /// Whether to treat lints as fatal
-  // TODO(devoncarew): Deprecate and remove this flag.
-  final bool lintsAreFatal;
-
   /// Emit output in a verbose mode.
   final bool verbose;
 
@@ -154,7 +150,6 @@ class CommandLineOptions {
         sourceFiles = args.rest,
         infosAreFatal = cast(args['fatal-infos']) || cast(args['fatal-hints']),
         warningsAreFatal = cast(args['fatal-warnings']),
-        lintsAreFatal = cast(args['fatal-lints']),
         trainSnapshot = cast(args['train-snapshot']),
         verbose = cast(args['verbose']),
         color = cast(args['color']) {

@@ -29,14 +29,14 @@ abstract class PipelineTestStrategy<S extends ModularStep> {
   /// by other methods in this strategy to ensure they are compatible with to
   /// the pipeline created here.
   FutureOr<Pipeline<S>> createPipeline(Map<Uri, String> sources, List<S> steps,
-      {bool cacheSharedModules: false});
+      {bool cacheSharedModules = false});
 
   /// Create a step that applies [action] on all input files of the module, and
   /// emits a result with the given [id]
   S createSourceOnlyStep(
       {required String Function(Map<Uri, String?>) action,
       required DataId resultId,
-      bool requestSources: true});
+      bool requestSources = true});
 
   /// Create a step that applies [action] on the module [inputId] data, and
   /// emits a result with the given [resultId].
@@ -44,7 +44,7 @@ abstract class PipelineTestStrategy<S extends ModularStep> {
       {required String Function(String) action,
       required DataId inputId,
       required DataId resultId,
-      bool requestModuleData: true});
+      bool requestModuleData = true});
 
   /// Create a step that applies [action] on the module [inputId] data and the
   /// the [depId] data of dependencies and finally emits a result with the given
@@ -56,7 +56,7 @@ abstract class PipelineTestStrategy<S extends ModularStep> {
       required DataId inputId,
       required DataId depId,
       required DataId resultId,
-      bool requestDependenciesData: true});
+      bool requestDependenciesData = true});
 
   /// Create a step that applies [action] only on the main module [inputId] data
   /// and the [depId] data of transitive dependencies and finally emits a
@@ -69,7 +69,7 @@ abstract class PipelineTestStrategy<S extends ModularStep> {
       required DataId inputId,
       required DataId depId,
       required DataId resultId,
-      bool requestDependenciesData: true});
+      bool requestDependenciesData = true});
 
   /// Create a step that applies [action1] and [action2] on the module [inputId]
   /// data, and emits two results with the given [result1Id] and [result2Id].
@@ -315,8 +315,8 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
 
   test('no reuse of existing results if not caching', () async {
     int i = 1;
-    const counterId = const DataId("counter");
-    const linkId = const DataId("link");
+    const counterId = DataId("counter");
+    const linkId = DataId("link");
     // This step is not idempotent, we do this purposely to test whether caching
     // is taking place.
     var counterStep = testStrategy.createSourceOnlyStep(
@@ -347,8 +347,8 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
 
   test('caching reuses existing results for the same configuration', () async {
     int i = 1;
-    const counterId = const DataId("counter");
-    const linkId = const DataId("link");
+    const counterId = DataId("counter");
+    const linkId = DataId("link");
     var counterStep = testStrategy.createSourceOnlyStep(
         action: (_) => '${i++}', resultId: counterId);
     var linkStep = testStrategy.createLinkStep(
@@ -377,8 +377,8 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
 
   test('no reuse of existing results on different configurations', () async {
     int i = 1;
-    const counterId = const DataId("counter");
-    const linkId = const DataId("link");
+    const counterId = DataId("counter");
+    const linkId = DataId("link");
     // This step is not idempotent, we do this purposely to test whether caching
     // is taking place.
     var counterStep = testStrategy.createSourceOnlyStep(
@@ -420,7 +420,7 @@ DataId _uppercaseId = const DataId("uppercase");
 DataId _joinId = const DataId("join");
 
 String _concat(Map<Uri, String?> sources) {
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer();
   sources.forEach((uri, contents) {
     buffer.write("$uri: $contents\n");
   });
@@ -431,7 +431,7 @@ String _lowercase(String contents) => contents.toLowerCase();
 String _uppercase(String contents) => contents.toUpperCase();
 
 String _replaceAndJoin(String moduleData, List<String?> depContents) {
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer();
   depContents.forEach(buffer.writeln);
   buffer.write(moduleData.replaceAll(".dart:", ""));
   return '$buffer';

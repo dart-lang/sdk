@@ -23,13 +23,13 @@ abstract class Suite {
     String name = json["name"];
     switch (kind) {
       case "dart":
-        return new Dart.fromJsonMap(base, json, name);
+        return Dart.fromJsonMap(base, json, name);
 
       case "chain":
-        return new Chain.fromJsonMap(base, json, name, kind);
+        return Chain.fromJsonMap(base, json, name, kind);
 
       case "test_dart":
-        return new TestDart.fromJsonMap(base, json, name, kind);
+        return TestDart.fromJsonMap(base, json, name, kind);
 
       default:
         throw "Suite '$name' has unknown kind '$kind'.";
@@ -78,10 +78,10 @@ class Dart extends Suite {
   factory Dart.fromJsonMap(Uri base, Map json, String name) {
     Uri uri = base.resolve(json["path"]);
     List<RegExp> pattern =
-        new List<RegExp>.from(json["pattern"].map((String p) => new RegExp(p)));
+        List<RegExp>.from(json["pattern"].map((String p) => RegExp(p)));
     List<RegExp> exclude =
-        new List<RegExp>.from(json["exclude"].map((String p) => new RegExp(p)));
-    return new Dart(name, uri, pattern, exclude);
+        List<RegExp>.from(json["exclude"].map((String p) => RegExp(p)));
+    return Dart(name, uri, pattern, exclude);
   }
 
   String toString() => "Dart($name, $uri, $pattern, $exclude)";

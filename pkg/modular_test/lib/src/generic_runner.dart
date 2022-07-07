@@ -107,8 +107,8 @@ Future<void> runSuite<T>(List<Test> tests, RunnerOptions options) async {
       continue;
     }
 
-    var watch = new Stopwatch()..start();
-    var outcome = new _TestOutcome(test.name);
+    var watch = Stopwatch()..start();
+    var outcome = _TestOutcome(test.name);
     try {
       await test.run();
       if (options.verbose) stdout.write('pass\n');

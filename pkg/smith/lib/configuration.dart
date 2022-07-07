@@ -432,12 +432,14 @@ class Configuration {
     return true;
   }
 
+  @override
   bool operator ==(Object other) =>
       other is Configuration && name == other.name && optionsEqual(other);
 
   int _toBinary(List<bool> bits) =>
       bits.fold(0, (sum, bit) => (sum << 1) ^ (bit ? 1 : 0));
 
+  @override
   int get hashCode =>
       name.hashCode ^
       architecture.hashCode ^
@@ -468,6 +470,7 @@ class Configuration {
         useQemu
       ]);
 
+  @override
   String toString() {
     var buffer = StringBuffer();
     buffer.write(name);
@@ -576,6 +579,7 @@ class Architecture extends NamedEnum {
   static const x64 = Architecture._('x64');
   static const x64c = Architecture._('x64c');
   static const arm = Architecture._('arm');
+  // ignore: constant_identifier_names
   static const arm_x64 = Architecture._('arm_x64');
   static const arm64 = Architecture._('arm64');
   static const arm64c = Architecture._('arm64c');
@@ -988,5 +992,6 @@ abstract class NamedEnum {
 
   const NamedEnum(this.name);
 
+  @override
   String toString() => name;
 }

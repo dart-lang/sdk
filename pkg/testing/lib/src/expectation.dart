@@ -13,20 +13,16 @@ library testing.expectation;
 /// use the canonical expectation instead of a more specific one. Note this
 /// isn't implemented yet.
 class Expectation {
-  static const Expectation Pass =
-      const Expectation("Pass", ExpectationGroup.Pass);
+  static const Expectation Pass = Expectation("Pass", ExpectationGroup.Pass);
 
-  static const Expectation Crash =
-      const Expectation("Crash", ExpectationGroup.Crash);
+  static const Expectation Crash = Expectation("Crash", ExpectationGroup.Crash);
 
   static const Expectation Timeout =
-      const Expectation("Timeout", ExpectationGroup.Timeout);
+      Expectation("Timeout", ExpectationGroup.Timeout);
 
-  static const Expectation Fail =
-      const Expectation("Fail", ExpectationGroup.Fail);
+  static const Expectation Fail = Expectation("Fail", ExpectationGroup.Fail);
 
-  static const Expectation Skip =
-      const Expectation("Skip", ExpectationGroup.Skip);
+  static const Expectation Skip = Expectation("Skip", ExpectationGroup.Skip);
 
   final String name;
 
@@ -61,18 +57,17 @@ class Expectation {
 }
 
 class ExpectationSet {
-  static const ExpectationSet Default =
-      const ExpectationSet(const <String, Expectation>{
+  static const ExpectationSet Default = ExpectationSet(<String, Expectation>{
     "pass": Expectation.Pass,
     "crash": Expectation.Crash,
     "timeout": Expectation.Timeout,
     "fail": Expectation.Fail,
     "skip": Expectation.Skip,
     "missingcompiletimeerror":
-        const Expectation("MissingCompileTimeError", ExpectationGroup.Fail),
+        Expectation("MissingCompileTimeError", ExpectationGroup.Fail),
     "missingruntimeerror":
-        const Expectation("MissingRuntimeError", ExpectationGroup.Fail),
-    "runtimeerror": const Expectation("RuntimeError", ExpectationGroup.Fail),
+        Expectation("MissingRuntimeError", ExpectationGroup.Fail),
+    "runtimeerror": Expectation("RuntimeError", ExpectationGroup.Fail),
   });
 
   final Map<String, Expectation> internalMap;
@@ -86,7 +81,7 @@ class ExpectationSet {
 
   factory ExpectationSet.fromJsonList(List data) {
     Map<String, Expectation> internalMap =
-        new Map<String, Expectation>.from(Default.internalMap);
+        Map<String, Expectation>.from(Default.internalMap);
     for (Map map in data) {
       String? name;
       String? group;
@@ -112,14 +107,14 @@ class ExpectationSet {
       if (group == null) {
         throw "No group provided in '$map'";
       }
-      Expectation expectation = new Expectation(name!, groupFromString(group!));
+      Expectation expectation = Expectation(name!, groupFromString(group!));
       name = name!.toLowerCase();
       if (internalMap.containsKey(name)) {
         throw "Duplicated expectation name: '$name'.";
       }
       internalMap[name!] = expectation;
     }
-    return new ExpectationSet(internalMap);
+    return ExpectationSet(internalMap);
   }
 }
 

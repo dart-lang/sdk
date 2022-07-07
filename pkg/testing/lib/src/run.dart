@@ -54,7 +54,7 @@ Future<Null> runMe(List<String> arguments, CreateContext f,
     Uri? me,
     int shards = 1,
     int shard = 0,
-    Logger logger: const StdoutLogger()}) {
+    Logger logger = const StdoutLogger()}) {
   me ??= Platform.script;
   return withErrorHandling(() async {
     TestRoot testRoot = await computeTestRoot(configurationPath, me);
@@ -63,7 +63,7 @@ Future<Null> runMe(List<String> arguments, CreateContext f,
     for (Chain suite in testRoot.toolChains) {
       if (me == suite.source) {
         ChainContext context = await f(suite, cl.environment);
-        await context.run(suite, new Set<String>.from(cl.selectors),
+        await context.run(suite, Set<String>.from(cl.selectors),
             shards: shards, shard: shard, logger: logger);
       }
     }
@@ -104,8 +104,8 @@ Future<Null> run(List<String> arguments, List<String> suiteNames,
     List<Suite> suites = root.suites
         .where((Suite suite) => suiteNames.contains(suite.name))
         .toList();
-    SuiteRunner runner = new SuiteRunner(suites, <String, String>{},
-        const <String>[], new Set<String>(), new Set<String>());
+    SuiteRunner runner = SuiteRunner(suites, <String, String>{},
+        const <String>[], Set<String>(), Set<String>());
     String? program = await runner.generateDartProgram();
     await runner.analyze(root.packages);
     if (program != null) {
@@ -117,8 +117,8 @@ Future<Null> run(List<String> arguments, List<String> suiteNames,
 Future<Null> runProgram(String program, Uri packages) async {
   const StdoutLogger().logMessage("Running:");
   const StdoutLogger().logNumberedLines(program);
-  Uri dataUri = new Uri.dataFromString(program);
-  ReceivePort exitPort = new ReceivePort();
+  Uri dataUri = Uri.dataFromString(program);
+  ReceivePort exitPort = ReceivePort();
   Isolate isolate = await Isolate.spawnUri(dataUri, <String>[], null,
       paused: true,
       onExit: exitPort.sendPort,
@@ -137,7 +137,7 @@ Future<Null> runProgram(String program, Uri packages) async {
   subscription.cancel();
   return error == null
       ? null
-      : new Future<Null>.error(error![0], new StackTrace.fromString(error![1]));
+      : Future<Null>.error(error![0], StackTrace.fromString(error![1]));
 }
 
 class SuiteRunner {
@@ -164,9 +164,9 @@ class SuiteRunner {
 
   Future<String?> generateDartProgram() async {
     testUris.clear();
-    StringBuffer imports = new StringBuffer();
-    StringBuffer dart = new StringBuffer();
-    StringBuffer chain = new StringBuffer();
+    StringBuffer imports = StringBuffer();
+    StringBuffer dart = StringBuffer();
+    StringBuffer chain = StringBuffer();
     bool hasRunnableTests = false;
 
     await for (FileBasedTestDescription description in listDescriptions()) {

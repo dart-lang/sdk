@@ -36,8 +36,8 @@ class MemoryPipeline extends Pipeline<MemoryModularStep> {
   final List<Map<Module, Map<DataId, Object>>> _resultCache;
 
   MemoryPipeline(this._sources, List<MemoryModularStep> steps,
-      {bool cacheSharedModules: false})
-      : _registry = cacheSharedModules ? new ConfigurationRegistry() : null,
+      {bool cacheSharedModules = false})
+      : _registry = cacheSharedModules ? ConfigurationRegistry() : null,
         _resultCache = cacheSharedModules ? [] : const [],
         super(steps, cacheSharedModules);
 

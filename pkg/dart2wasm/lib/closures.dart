@@ -293,7 +293,9 @@ class ContextCollector extends RecursiveVisitor {
     bool outerMost = currentContext == null;
     Context? oldContext = currentContext;
     Context? parent = currentContext;
-    while (parent != null && parent.isEmpty) parent = parent.parent;
+    while (parent != null && parent.isEmpty) {
+      parent = parent.parent;
+    }
     currentContext = Context(node, parent);
     if (closures.isThisCaptured && outerMost) {
       currentContext!.containsThis = true;

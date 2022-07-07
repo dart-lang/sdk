@@ -23,17 +23,17 @@ class StdioProcess {
 
   StdioProcess(this.exitCode, this.output);
 
-  Result<int> toResult({int expected: 0}) {
+  Result<int> toResult({int expected = 0}) {
     if (exitCode == expected) {
-      return new Result<int>.pass(exitCode);
+      return Result<int>.pass(exitCode);
     } else {
-      return new Result<int>(
+      return Result<int>(
           exitCode, ExpectationSet.Default["RuntimeError"], output);
     }
   }
 
   static StreamTransformer<String, String> transformToStdio(Stdout stdio) {
-    return new StreamTransformer<String, String>.fromHandlers(
+    return StreamTransformer<String, String>.fromHandlers(
         handleData: (String data, EventSink<String> sink) {
       sink.add(data);
       stdio.write(data);
@@ -42,15 +42,15 @@ class StdioProcess {
 
   static Future<StdioProcess> run(String executable, List<String> arguments,
       {String? input,
-      Duration? timeout: const Duration(seconds: 60),
-      bool suppressOutput: true,
-      bool runInShell: false}) async {
+      Duration? timeout = const Duration(seconds: 60),
+      bool suppressOutput = true,
+      bool runInShell = false}) async {
     Process process =
         await Process.start(executable, arguments, runInShell: runInShell);
     Timer? timer;
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     if (timeout != null) {
-      timer = new Timer(timeout, () {
+      timer = Timer(timeout, () {
         sb.write("Process timed out: ");
         sb.write(executable);
         sb.write(" ");
@@ -58,7 +58,7 @@ class StdioProcess {
         sb.writeln();
         sb.writeln("Sending SIGTERM to process");
         process.kill();
-        timer = new Timer(const Duration(seconds: 10), () {
+        timer = Timer(const Duration(seconds: 10), () {
           sb.writeln("Sending SIGKILL to process");
           process.kill(ProcessSignal.sigkill);
         });
@@ -75,13 +75,15 @@ class StdioProcess {
       stdoutStream = stdoutStream.transform(transformToStdio(io.stdout));
       stderrStream = stderrStream.transform(transformToStdio(io.stderr));
     }
-    Future<List<String>> stdoutFuture = stdoutStream.toList() as Future<List<String>>;
-    Future<List<String>> stderrFuture = stderrStream.toList() as Future<List<String>>;
+    Future<List<String>> stdoutFuture =
+        stdoutStream.toList() as Future<List<String>>;
+    Future<List<String>> stderrFuture =
+        stderrStream.toList() as Future<List<String>>;
     int exitCode = await process.exitCode;
     timer?.cancel();
     sb.writeAll(await stdoutFuture);
     sb.writeAll(await stderrFuture);
     await closeFuture;
-    return new StdioProcess(exitCode, "$sb");
+    return StdioProcess(exitCode, "$sb");
   }
 }

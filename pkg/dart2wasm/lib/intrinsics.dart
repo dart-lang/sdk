@@ -508,7 +508,7 @@ class Intrinsifier {
         code(b);
         return outType;
       }
-    } else if (node.arguments.positional.length == 0) {
+    } else if (node.arguments.positional.isEmpty) {
       // Unary operator
       Expression operand = node.receiver;
       w.ValueType opType = translator.translateType(receiverType);
@@ -1010,9 +1010,9 @@ class Intrinsifier {
       ClassInfo intInfo = translator.classInfo[translator.boxedIntClass]!;
       ClassInfo doubleInfo = translator.classInfo[translator.boxedDoubleClass]!;
       w.Local cid = function.addLocal(w.NumType.i32);
-      w.Label ref_eq = b.block();
+      w.Label refEq = b.block();
       b.local_get(first);
-      b.br_on_null(ref_eq);
+      b.br_on_null(refEq);
       b.struct_get(translator.topInfo.struct, FieldIndex.classId);
       b.local_tee(cid);
 

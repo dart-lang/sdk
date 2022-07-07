@@ -21,4 +21,5 @@ dev_dependencies:
   analyzer: any
   analysis_server: any
   analyzer_utilities: any
+  lints: any
   test: any

@@ -29,7 +29,7 @@ abstract class Expression implements Comparable<Expression> {
   /// Expressions evaluate as expected, with values of variables found in an
   /// environment passed to the evaluator.
   static Expression parse(String expression) =>
-      new _ExpressionParser(expression).parse();
+      _ExpressionParser(expression).parse();
 
   const Expression();
 
@@ -68,6 +68,7 @@ abstract class Expression implements Comparable<Expression> {
   /// This is useful for things like sorting lists of expressions or
   /// normalizing a list of subexpressions. The rough logic is that higher
   /// precedence and alphabetically lower expressions come first.
+  @override
   int compareTo(Expression other) {
     var comparison = _typeComparison.compareTo(other._typeComparison);
     if (comparison != 0) return comparison;
@@ -104,7 +105,7 @@ class Variable {
   String lookup(Environment environment) {
     var value = environment.lookUp(name);
     if (value == null) {
-      throw new Exception("Could not find '$name' in environment "
+      throw Exception("Could not find '$name' in environment "
           "while evaluating status file expression.");
     }
 
@@ -153,25 +154,29 @@ class ComparisonExpression extends Expression {
 
   ComparisonExpression(this.left, this.right, this.negate);
 
+  @override
   void validate(Environment environment, List<String> errors) {
     environment.validate(left.name, right, errors);
   }
 
+  @override
   bool evaluate(Environment environment) {
     return negate != (left.lookup(environment) == right);
   }
 
+  @override
   Expression normalize() {
     // Replace Boolean comparisons with a straight variable expression.
     if (right == "true") {
-      return new VariableExpression(left, negate: negate);
+      return VariableExpression(left, negate: negate);
     } else if (right == "false") {
-      return new VariableExpression(left, negate: !negate);
+      return VariableExpression(left, negate: !negate);
     } else {
       return this;
     }
   }
 
+  @override
   int _compareToMyType(ComparisonExpression other) {
     if (left.name != other.left.name) {
       return left.name.compareTo(other.left.name);
@@ -186,8 +191,10 @@ class ComparisonExpression extends Expression {
 
   // Comparisons come before variables so that "$compiler == ..." and
   // "$runtime == ..." appear on the left in status expressions.
+  @override
   int get _typeComparison => 1;
 
+  @override
   String toString() => "\$${left.name} ${negate ? '!=' : '=='} $right";
 }
 
@@ -214,17 +221,21 @@ class VariableExpression extends Expression {
 
   VariableExpression(this.variable, {this.negate = false});
 
+  @override
   void validate(Environment environment, List<String> errors) {
     // It must be a Boolean, so it should allow either Boolean value.
     environment.validate(variable.name, "true", errors);
   }
 
+  @override
   bool evaluate(Environment environment) =>
       negate != (variable.lookup(environment) == "true");
 
   /// Variable expressions are fine as they are.
+  @override
   Expression normalize() => this;
 
+  @override
   int _compareToMyType(VariableExpression other) {
     if (variable.name != other.variable.name) {
       return variable.name.compareTo(other.variable.name);
@@ -233,8 +244,10 @@ class VariableExpression extends Expression {
     return _compareBool(negate, other.negate);
   }
 
+  @override
   int get _typeComparison => 2;
 
+  @override
   String toString() => "${negate ? "!" : ""}\$${variable.name}";
 }
 
@@ -253,12 +266,14 @@ class LogicExpression extends Expression {
   bool get isAnd => op == _Token.and;
   bool get isOr => op == _Token.or;
 
+  @override
   void validate(Environment environment, List<String> errors) {
     for (var operand in operands) {
       operand.validate(environment, errors);
     }
   }
 
+  @override
   bool evaluate(Environment environment) {
     if (op == _Token.and) {
       return operands.every((operand) => operand.evaluate(environment));
@@ -267,6 +282,7 @@ class LogicExpression extends Expression {
     }
   }
 
+  @override
   LogicExpression normalize() {
     // Normalize the order of the clauses. Since there is no short-circuiting,
     // a || b means the same as b || a. Picking a standard order lets us
@@ -274,12 +290,12 @@ class LogicExpression extends Expression {
     // order.
 
     // Recurse into the operands, sort them, and remove duplicates.
-    var normalized = new LogicExpression(
+    var normalized = LogicExpression(
             op, operands.map((operand) => operand.normalize()).toList())
         .operands;
     normalized = flatten(normalized);
-    var ordered = new SplayTreeSet<Expression>.from(normalized).toList();
-    return new LogicExpression(op, ordered);
+    var ordered = SplayTreeSet<Expression>.from(normalized).toList();
+    return LogicExpression(op, ordered);
   }
 
   List<Expression> flatten(List<Expression> operands) {
@@ -294,6 +310,7 @@ class LogicExpression extends Expression {
     return newOperands;
   }
 
+  @override
   int _compareToMyType(LogicExpression other) {
     // Put "&&" before "||".
     if (op != other.op) return op == _Token.and ? -1 : 1;
@@ -311,8 +328,10 @@ class LogicExpression extends Expression {
     return 0;
   }
 
+  @override
   int get _typeComparison => 3;
 
+  @override
   String toString() {
     String parenthesize(Expression operand) {
       var result = operand.toString();
@@ -331,14 +350,14 @@ class LogicExpression extends Expression {
 class _ExpressionParser {
   final _Scanner _scanner;
 
-  _ExpressionParser(String expression) : _scanner = new _Scanner(expression);
+  _ExpressionParser(String expression) : _scanner = _Scanner(expression);
 
   Expression parse() {
     var expression = _parseOr();
 
     // Should consume entire string.
     if (_scanner.hasMore) {
-      throw new FormatException("Unexpected input after expression");
+      throw FormatException("Unexpected input after expression");
     }
 
     return expression;
@@ -352,7 +371,7 @@ class _ExpressionParser {
 
     if (operands.length == 1) return operands.single;
 
-    return new LogicExpression(_Token.or, operands);
+    return LogicExpression(_Token.or, operands);
   }
 
   Expression _parseAnd() {
@@ -363,7 +382,7 @@ class _ExpressionParser {
 
     if (operands.length == 1) return operands.single;
 
-    return new LogicExpression(_Token.and, operands);
+    return LogicExpression(_Token.and, operands);
   }
 
   Expression _parsePrimary() {
@@ -372,7 +391,7 @@ class _ExpressionParser {
     if (_scanner.match(_Token.leftParen)) {
       var value = _parseOr();
       if (!_scanner.match(_Token.rightParen)) {
-        throw new FormatException("Missing right parenthesis in expression");
+        throw FormatException("Missing right parenthesis in expression");
       }
 
       return value;
@@ -386,16 +405,16 @@ class _ExpressionParser {
     // The only atomic booleans are of the form $variable == value or
     // of the form $variable.
     if (!_scanner.match(_Token.dollar)) {
-      throw new FormatException(
+      throw FormatException(
           "Expected \$ in expression, got ${_scanner.current}");
     }
 
     if (!_scanner.isIdentifier) {
-      throw new FormatException(
+      throw FormatException(
           "Expected identifier in expression, got ${_scanner.current}");
     }
 
-    var left = new Variable(_scanner.current!);
+    var left = Variable(_scanner.current!);
     _scanner.advance();
 
     if (!negate &&
@@ -404,14 +423,14 @@ class _ExpressionParser {
       var isNotEquals = _scanner.advance() == _Token.notEqual;
 
       if (!_scanner.isIdentifier) {
-        throw new FormatException(
+        throw FormatException(
             "Expected value in expression, got ${_scanner.current}");
       }
 
       var right = _scanner.advance()!;
-      return new ComparisonExpression(left, right, isNotEquals);
+      return ComparisonExpression(left, right, isNotEquals);
     } else {
-      return new VariableExpression(left, negate: negate);
+      return VariableExpression(left, negate: negate);
     }
   }
 }
@@ -419,14 +438,14 @@ class _ExpressionParser {
 /// An iterator that allows peeking at the current token.
 class _Scanner {
   /// Tokens are "(", ")", "$", "&&", "||", "!", ==", "!=", and (maximal) \w+.
-  static final _testPattern = new RegExp(r"^(?:[()$\w\s]|&&|\|\||==|!=?)+$");
-  static final _tokenPattern = new RegExp(r"[()$]|&&|\|\||==|!=?|\w+");
+  static final _testPattern = RegExp(r"^(?:[()$\w\s]|&&|\|\||==|!=?)+$");
+  static final _tokenPattern = RegExp(r"[()$]|&&|\|\||==|!=?|\w+");
 
   /// Pattern that recognizes identifier tokens.
   ///
   /// Only checks the first character, since no non-identifier token can start
   /// with a word character.
-  static final _identifierPattern = new RegExp(r"^\w");
+  static final _identifierPattern = RegExp(r"^\w");
 
   /// The token strings being iterated.
   final Iterator<String> tokenIterator;
@@ -439,7 +458,7 @@ class _Scanner {
 
   static List<String> tokenize(String expression) {
     if (!_testPattern.hasMatch(expression)) {
-      throw new FormatException("Syntax error in '$expression'");
+      throw FormatException("Syntax error in '$expression'");
     }
 
     return _tokenPattern

@@ -159,7 +159,7 @@ Future<StatusFile> removeNonEssentialEntries(
             String conditionPrefix = section.condition != Expression.always
                 ? "${section.condition}"
                 : "";
-            String issueText = await getIssueText(comment, resolveIssueState);
+            String issueText = getIssueText(comment, resolveIssueState);
             String statusLine = "$conditionPrefix\t$testName\t$expectations"
                 "\t$comment\t$issueText";
             comments.add(statusLine);
@@ -217,7 +217,7 @@ void printHelp(ArgParser parser) {
 }
 
 String formatComments(List<String> comments) {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   for (String statusLine in comments) {
     sb.writeln(statusLine);
   }

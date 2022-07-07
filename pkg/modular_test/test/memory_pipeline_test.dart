@@ -10,7 +10,7 @@ import 'package:modular_test/src/memory_pipeline.dart';
 import 'pipeline_common.dart';
 
 main() {
-  runPipelineTest(new MemoryPipelineTestStrategy());
+  runPipelineTest(MemoryPipelineTestStrategy());
 }
 
 /// The strategy implementation to exercise the pipeline test on a
@@ -23,8 +23,8 @@ class MemoryPipelineTestStrategy
   @override
   FutureOr<Pipeline<MemoryModularStep>> createPipeline(
       Map<Uri, String> sources, List<MemoryModularStep> steps,
-      {bool cacheSharedModules: false}) {
-    return new MemoryPipeline(sources, steps,
+      {bool cacheSharedModules = false}) {
+    return MemoryPipeline(sources, steps,
         cacheSharedModules: cacheSharedModules);
   }
 
@@ -32,7 +32,7 @@ class MemoryPipelineTestStrategy
   MemoryModularStep createSourceOnlyStep(
           {required String Function(Map<Uri, String?>) action,
           required DataId resultId,
-          bool requestSources: true}) =>
+          bool requestSources = true}) =>
       SourceOnlyStep(action, resultId, requestSources);
 
   @override
@@ -40,7 +40,7 @@ class MemoryPipelineTestStrategy
           {required String Function(String) action,
           required DataId inputId,
           required DataId resultId,
-          bool requestModuleData: true}) =>
+          bool requestModuleData = true}) =>
       ModuleDataStep(action, inputId, resultId, requestModuleData);
 
   @override
@@ -49,7 +49,7 @@ class MemoryPipelineTestStrategy
           required DataId inputId,
           required DataId depId,
           required DataId resultId,
-          bool requestDependenciesData: true}) =>
+          bool requestDependenciesData = true}) =>
       LinkStep(action, inputId, depId, resultId, requestDependenciesData);
 
   @override
@@ -58,7 +58,7 @@ class MemoryPipelineTestStrategy
           required DataId inputId,
           required DataId depId,
           required DataId resultId,
-          bool requestDependenciesData: true}) =>
+          bool requestDependenciesData = true}) =>
       MainOnlyStep(action, inputId, depId, resultId, requestDependenciesData);
 
   @override

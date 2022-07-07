@@ -112,7 +112,7 @@ Future<ModularTest> loadTest(Uri uri) async {
   var sortedModules = modules.values.toList()
     ..sort((a, b) => a.name.compareTo(b.name));
   var sortedFlags = spec.flags.toList()..sort();
-  return new ModularTest(sortedModules, mainModule, sortedFlags);
+  return ModularTest(sortedModules, mainModule, sortedFlags);
 }
 
 /// Returns all source files recursively found in a folder as relative URIs.
@@ -202,7 +202,7 @@ Future<Module> _createSdkModule(Uri root) async {
       }
     }
   }
-  sources..sort((a, b) => a.path.compareTo(b.path));
+  sources.sort((a, b) => a.path.compareTo(b.path));
   return Module('sdk', [], root, sources, isSdk: true, isShared: true);
 }
 
@@ -267,7 +267,7 @@ _moduleConflict(String name, Module existing, Uri root) {
 }
 
 Never _invalidTest(String message) {
-  throw new InvalidTestError(message);
+  throw InvalidTestError(message);
 }
 
 class InvalidTestError extends Error {

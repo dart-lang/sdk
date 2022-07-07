@@ -13,19 +13,19 @@ import 'src/expression.dart';
 /// Matches the header that begins a new section, like:
 ///
 ///     [ $compiler == dart2js && $minified ]
-final _sectionPattern = new RegExp(r"^\[(.+?)\]");
+final _sectionPattern = RegExp(r"^\[(.+?)\]");
 
 /// Matches an entry that defines the status for a path in the current section,
 /// like:
 ///
 ///     some/path/to/some_test: Pass || Fail
-final _entryPattern = new RegExp(r"^([^:#]+):(.*)");
+final _entryPattern = RegExp(r"^([^:#]+):(.*)");
 
 /// Matches an issue number in a comment, like:
 ///
 ///     blah_test: Fail # Issue 1234
 ///                       ^^^^
-final _issuePattern = new RegExp(r"[Ii]ssue (\d+)");
+final _issuePattern = RegExp(r"[Ii]ssue (\d+)");
 
 /// A parsed status file, which describes how a collection of tests are
 /// expected to behave under various configurations and conditions.
@@ -55,14 +55,14 @@ class StatusFile {
   ///
   /// Throws a [SyntaxError] if the file could not be parsed.
   StatusFile.read(this.path) {
-    var lines = new File(path).readAsLinesSync();
+    var lines = File(path).readAsLinesSync();
     _comments.length = lines.length + 1;
 
     for (var line in lines) {
       _lineCount++;
 
       fail(String message, [List<String>? errors]) {
-        throw new SyntaxError(_shortPath, _lineCount, line, message, errors);
+        throw SyntaxError(_shortPath, _lineCount, line, message, errors);
       }
 
       // Strip off the comment and whitespace.
@@ -84,7 +84,7 @@ class StatusFile {
       if (match != null) {
         try {
           var condition = Expression.parse(match[1]!.trim());
-          sections.add(new StatusSection(condition, _lineCount));
+          sections.add(StatusSection(condition, _lineCount));
         } on FormatException {
           fail("Status expression syntax error");
         }
@@ -111,11 +111,11 @@ class StatusFile {
         // If we haven't found a section header yet, create an implicit section
         // that matches everything.
         if (sections.isEmpty) {
-          sections.add(new StatusSection(Expression.always, -1));
+          sections.add(StatusSection(Expression.always, -1));
         }
 
         sections.last.entries
-            .add(new StatusEntry(path, _lineCount, expectations, issue));
+            .add(StatusEntry(path, _lineCount, expectations, issue));
         continue;
       }
 
@@ -138,7 +138,7 @@ class StatusFile {
 
       if (errors.isNotEmpty) {
         var s = errors.length > 1 ? "s" : "";
-        throw new SyntaxError(_shortPath, section.lineNumber,
+        throw SyntaxError(_shortPath, section.lineNumber,
             "[ ${section.condition} ]", 'Validation error$s', errors);
       }
     }
@@ -158,8 +158,9 @@ class StatusFile {
     return int.parse(match[1]!);
   }
 
+  @override
   String toString() {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     for (var section in sections) {
       buffer.writeln("[ ${section.condition} ]");
 
@@ -180,7 +181,7 @@ class StatusFile {
   /// Unlike [toString()], this preserves comments and gives a "canonical"
   /// rendering of the status file that can be saved back to disc.
   String serialize() {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
 
     var lastLine = 0;
     var needBlankLine = false;
@@ -283,8 +284,9 @@ class SyntaxError implements Exception {
 
   SyntaxError(this.file, this.lineNumber, this.line, this.message, this.errors);
 
+  @override
   String toString() {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     buffer.writeln('$message in "$file" line $lineNumber:');
     buffer.writeln(line);
 

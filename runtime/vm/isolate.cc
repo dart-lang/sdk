@@ -615,7 +615,7 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
     thread->isolate_group_ = this;
     thread->field_table_values_ = nullptr;
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (object_store() != nullptr) {
+    if (object_store() != nullptr && is_mutator) {
 #define INIT_ENTRY_POINT(name)                                                 \
   thread->name##_entry_point_ = Function::EntryPointOf(object_store()->name());
       CACHED_FUNCTION_ENTRY_POINTS_LIST(INIT_ENTRY_POINT)
