@@ -399,7 +399,7 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
   static DartType elementTypeFrom(Class containerClass, DartType type) {
     if (type is InterfaceType) {
       if (type.classNode == containerClass) {
-        if (type.typeArguments.length == 0) {
+        if (type.typeArguments.isEmpty) {
           return const DynamicType();
         } else if (type.typeArguments.length == 1) {
           return type.typeArguments[0];

@@ -38,7 +38,7 @@ abstract class NativeTypeCfe {
       if (arrayDimensions == null) {
         throw "Must have array dimensions for ArrayType.";
       }
-      if (arrayDimensions.length == 0) {
+      if (arrayDimensions.isEmpty) {
         throw "Must have a size for this array dimension.";
       }
       final elementType = transformer.arraySingleElementType(dartType);

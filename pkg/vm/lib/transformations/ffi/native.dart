@@ -346,7 +346,7 @@ class FfiNativeTransformer extends FfiTransformer {
   // annotation matches.
   bool _verifySignatures(Procedure node, FunctionType dartFunctionType,
       FunctionType ffiFunctionType, int annotationOffset) {
-    if (ffiFunctionType.namedParameters.length > 0) {
+    if (ffiFunctionType.namedParameters.isNotEmpty) {
       diagnosticReporter.report(
           templateCantHaveNamedParameters.withArguments('FfiNative'),
           annotationOffset,

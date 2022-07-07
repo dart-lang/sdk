@@ -1865,7 +1865,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
       node.members.length = writeIndex;
 
       // We only retain the extension if at least one member is retained.
-      assert(node.members.length > 0);
+      assert(node.members.isNotEmpty);
       return node;
     }
     return removalSentinel!;

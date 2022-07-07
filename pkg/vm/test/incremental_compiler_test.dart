@@ -250,9 +250,13 @@ main() {
               hits.add(pos);
             }
           }
-          for (int pos in coverage["misses"]) positions.add(pos);
+          for (int pos in coverage["misses"]) {
+            positions.add(pos);
+          }
           if (range["possibleBreakpoints"] != null) {
-            for (int pos in range["possibleBreakpoints"]) positions.add(pos);
+            for (int pos in range["possibleBreakpoints"]) {
+              positions.add(pos);
+            }
           }
           Map script = scriptIndexToScript[range["scriptIndex"]]!;
           Set<int> knownPositions = new Set<int>();
