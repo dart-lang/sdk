@@ -81,7 +81,7 @@ vars = {
   "args_rev": "73e8d3b55cbedc9765f8e266f3422d8914f8e62a",
   "async_rev": "f3ed5f690e2ec9dbe1bfc5184705575b4f6480e5",
   "bazel_worker_rev": "9710de6c9c70b1b583183db9d9721ba64e5a16fe",
-  "benchmark_harness_rev": "f4ed0fcac4c284580263f0c548664dd548c9cca3",
+  "benchmark_harness_rev": "4183c76739ed7a27c260ca9ebaab6e0f210d1a37",
   "boolean_selector_rev": "1d3565e2651d16566bb556955b96ea75018cbd0c",
   "boringssl_gen_rev": "ced85ef0a00bbca77ce5a91261a5f2ae61b1e62f",
   "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
