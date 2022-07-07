@@ -48,6 +48,8 @@ import 'exchange_operands_test.dart' as exchange_operands;
 import 'flutter_convert_to_children_test.dart' as flutter_convert_to_children;
 import 'flutter_convert_to_stateful_widget_test.dart'
     as flutter_convert_to_stateful_widget;
+import 'flutter_convert_to_stateless_widget_test.dart'
+    as flutter_convert_to_stateless_widget;
 import 'flutter_move_down_test.dart' as flutter_move_down;
 import 'flutter_move_up_test.dart' as flutter_move_up;
 import 'flutter_remove_widget_test.dart' as flutter_remove_widget;
@@ -130,6 +132,7 @@ void main() {
     exchange_operands.main();
     flutter_convert_to_children.main();
     flutter_convert_to_stateful_widget.main();
+    flutter_convert_to_stateless_widget.main();
     flutter_move_down.main();
     flutter_move_up.main();
     flutter_remove_widget.main();

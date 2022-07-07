@@ -146,7 +146,7 @@ class DartUnitFoldingComputer {
       isFirstToken = false;
       // Only exit the loop when hitting EOF *after* processing the token as
       // the EOF token may have preceding comments.
-      if (token.type == TokenType.EOF) {
+      if (token.isEof) {
         break;
       }
       token = token.next;

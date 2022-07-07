@@ -119,7 +119,7 @@ extension RangeFactoryExtensions on RangeFactory {
   /// the [token] if there is no such comment.
   Token _leadingComment(LineInfo lineInfo, Token token) {
     var previous = token.previous;
-    if (previous == null || previous.type == TokenType.EOF) {
+    if (previous == null || previous.isEof) {
       return token.precedingComments ?? token;
     }
     var previousLine = lineInfo.getLocation(previous.offset).lineNumber;

@@ -1481,7 +1481,7 @@ class NodeLocator extends UnifyingAstVisitor<void> {
       // Fasta scanner reports unterminated string literal errors
       // and generates a synthetic string token with non-zero length.
       // Because of this, check for length > 0 rather than !isSynthetic.
-      if (endToken.type == TokenType.EOF || endToken.length > 0) {
+      if (endToken.isEof || endToken.length > 0) {
         break;
       }
       endToken = endToken.previous!;
@@ -1570,7 +1570,7 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
       // Fasta scanner reports unterminated string literal errors
       // and generates a synthetic string token with non-zero length.
       // Because of this, check for length > 0 rather than !isSynthetic.
-      if (endToken.type == TokenType.EOF || endToken.length > 0) {
+      if (endToken.isEof || endToken.length > 0) {
         break;
       }
       endToken = endToken.previous!;

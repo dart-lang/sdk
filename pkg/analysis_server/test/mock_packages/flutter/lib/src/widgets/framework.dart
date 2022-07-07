@@ -32,6 +32,8 @@ abstract class State<T extends StatefulWidget> {
 
   void dispose() {}
 
+  void initState() {}
+
   void setState(VoidCallback fn) {}
 }
 

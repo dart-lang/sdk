@@ -84,7 +84,7 @@ class DartUnitHighlightsComputer {
         }
         commentToken = commentToken.next;
       }
-      if (token.type == TokenType.EOF) {
+      if (token.isEof) {
         // Only exit the loop *after* processing the EOF token as it may
         // have preceding comments.
         break;

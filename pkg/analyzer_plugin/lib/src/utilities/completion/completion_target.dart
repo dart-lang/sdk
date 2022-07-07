@@ -578,7 +578,7 @@ class CompletionTarget {
     // Usually if the offset is greater than the token it can't be in the comment
     // but for EOF this is not the case - the offset at EOF could still be inside
     // the comment if EOF is on the same line as the comment.
-    if (token.type != TokenType.EOF && offset >= token.offset) {
+    if (!token.isEof && offset >= token.offset) {
       return null;
     }
     final startToken = token;
