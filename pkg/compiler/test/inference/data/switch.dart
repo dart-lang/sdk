@@ -90,7 +90,7 @@ switchWithDefaultWithoutBreak() {
 // Switch statement with continue.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _switchWithContinue:Union(null, [exact=JSBool], [exact=JSString], [exact=JSUInt31])*/
+/*member: _switchWithContinue:Union([exact=JSBool], [exact=JSString])*/
 _switchWithContinue(/*[exact=JSUInt31]*/ o) {
   dynamic local;
   switch (o) {
@@ -99,8 +99,7 @@ _switchWithContinue(/*[exact=JSUInt31]*/ o) {
       continue label;
     label:
     case 1:
-      local = local
-          . /*Union(null, [exact=JSBool], [exact=JSString], [exact=JSUInt31])*/ isEven;
+      local = local. /*Union(null, [exact=JSString], [exact=JSUInt31])*/ isEven;
       break;
     case 2:
     default:

@@ -572,13 +572,18 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     _setupBreaksAndContinues(jumpTarget);
 
     List<JumpTarget> continueTargets = <JumpTarget>[];
+    bool hasDefaultCase = false;
     for (ir.SwitchCase switchCase in node.cases) {
       JumpTarget continueTarget =
           _localsMap.getJumpTargetForSwitchCase(switchCase);
       if (continueTarget != null) {
         continueTargets.add(continueTarget);
       }
+      if (switchCase.isDefault) {
+        hasDefaultCase = true;
+      }
     }
+    LocalState stateBefore = _state;
     if (continueTargets.isNotEmpty) {
       continueTargets.forEach(_setupBreaksAndContinues);
 
@@ -586,41 +591,45 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       // visit all cases and update [locals] until we have reached a
       // fixed point.
       bool changed;
-      _state.startLoop(_inferrer, node);
+      stateBefore.startLoop(_inferrer, node);
       do {
         changed = false;
+        // We first visit every case and collect the updated continue states.
+        // We must do a full pass as the jumps may be to earlier cases.
+        _visitCasesForSwitch(node, stateBefore);
+
+        // We then pass back over the cases and update the state of any continue
+        // targets with the states we collected in the last pass.
         for (ir.SwitchCase switchCase in node.cases) {
-          LocalState stateBeforeCase = _state;
-          _state = LocalState.childPath(stateBeforeCase);
-          visit(switchCase);
-          LocalState stateAfterCase = _state;
-          changed =
-              stateBeforeCase.mergeAll(_inferrer, [stateAfterCase]) || changed;
-          _state = stateBeforeCase;
+          final continueTarget =
+              _localsMap.getJumpTargetForSwitchCase(switchCase);
+          if (continueTarget != null) {
+            changed |= stateBefore.mergeAll(
+                _inferrer, _getLoopBackEdges(continueTarget));
+          }
         }
       } while (changed);
-      _state.endLoop(_inferrer, node);
+      stateBefore.endLoop(_inferrer, node);
 
       continueTargets.forEach(_clearBreaksAndContinues);
     } else {
-      LocalState stateBeforeCase = _state;
-      List<LocalState> statesToMerge = <LocalState>[];
-      bool hasDefaultCase = false;
-
-      for (ir.SwitchCase switchCase in node.cases) {
-        if (switchCase.isDefault) {
-          hasDefaultCase = true;
-        }
-        _state = LocalState.childPath(stateBeforeCase);
-        visit(switchCase);
-        statesToMerge.add(_state);
-      }
-      stateBeforeCase.mergeAfterBreaks(_inferrer, statesToMerge,
-          keepOwnLocals: !hasDefaultCase);
-      _state = stateBeforeCase;
+      // Gather the termination states of each case by visiting all the breaks.
+      _visitCasesForSwitch(node, stateBefore);
     }
+
+    // Combine all the termination states accumulated from all the visited
+    // breaks that target this switch.
+    _state = stateBefore.mergeAfterBreaks(_inferrer, _getBreaks(jumpTarget),
+        keepOwnLocals: !hasDefaultCase);
     _clearBreaksAndContinues(jumpTarget);
     return null;
+  }
+
+  _visitCasesForSwitch(ir.SwitchStatement node, LocalState stateBefore) {
+    for (ir.SwitchCase switchCase in node.cases) {
+      _state = LocalState.childPath(stateBefore);
+      visit(switchCase);
+    }
   }
 
   @override
