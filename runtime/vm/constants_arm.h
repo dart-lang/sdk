@@ -606,6 +606,7 @@ const RegList kAllFpuRegistersList = (1 << kNumberOfFpuRegisters) - 1;
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs =
     (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3);
+const RegList kAbiVolatileCpuRegs = kAbiArgumentCpuRegs | (1 << IP) | (1 << LR);
 #if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
 const RegList kAbiPreservedCpuRegs =
     (1 << R4) | (1 << R5) | (1 << R6) | (1 << R8) | (1 << R10) | (1 << R11);

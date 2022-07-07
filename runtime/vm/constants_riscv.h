@@ -449,8 +449,9 @@ const RegList kAllFpuRegistersList = 0xFFFFFFFF;
 
 constexpr RegList kAbiArgumentCpuRegs =
     R(A0) | R(A1) | R(A2) | R(A3) | R(A4) | R(A5) | R(A6) | R(A7);
-constexpr RegList kAbiVolatileCpuRegs =
-    kAbiArgumentCpuRegs | R(T0) | R(T1) | R(T2) | R(T3) | R(T4) | R(T5) | R(T6);
+constexpr RegList kAbiVolatileCpuRegs = kAbiArgumentCpuRegs | R(T0) | R(T1) |
+                                        R(T2) | R(T3) | R(T4) | R(T5) | R(T6) |
+                                        R(RA);
 constexpr RegList kAbiPreservedCpuRegs = R(S1) | R(S2) | R(S3) | R(S4) | R(S5) |
                                          R(S6) | R(S7) | R(S8) | R(S9) |
                                          R(S10) | R(S11);
