@@ -4336,28 +4336,17 @@ void Assembler::LoadObjectHelper(Register dst,
       return;
     }
     if (target::IsSmi(object)) {
-      intx_t raw_smi = target::ToRawSmi(object);
-      if (IsITypeImm(raw_smi)) {
-        li(dst, raw_smi);
-        return;
-      }
-      if (IsUTypeImm(raw_smi)) {
-        lui(dst, raw_smi);
-        return;
-      }
+      LoadImmediate(dst, target::ToRawSmi(object));
+      return;
     }
   }
-  if (CanLoadFromObjectPool(object)) {
-    const intptr_t index =
-        is_unique ? object_pool_builder().AddObject(
-                        object, ObjectPoolBuilderEntry::kPatchable)
-                  : object_pool_builder().FindObject(
-                        object, ObjectPoolBuilderEntry::kNotPatchable);
-    LoadWordFromPoolIndex(dst, index);
-    return;
-  }
-  ASSERT(target::IsSmi(object));
-  LoadImmediate(dst, target::ToRawSmi(object));
+  RELEASE_ASSERT(CanLoadFromObjectPool(object));
+  const intptr_t index =
+      is_unique ? object_pool_builder().AddObject(
+                      object, ObjectPoolBuilderEntry::kPatchable)
+                : object_pool_builder().FindObject(
+                      object, ObjectPoolBuilderEntry::kNotPatchable);
+  LoadWordFromPoolIndex(dst, index);
 }
 
 void Assembler::AddImmediateBranchOverflow(Register rd,

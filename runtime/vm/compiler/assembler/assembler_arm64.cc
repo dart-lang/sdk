@@ -482,13 +482,6 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
     return false;
   }
 
-  // TODO(zra, kmillikin): Also load other large immediates from the object
-  // pool
-  if (target::IsSmi(object)) {
-    // If the raw smi does not fit into a 32-bit signed int, then we'll keep
-    // the raw value in the object pool.
-    return !Utils::IsInt(32, target::ToRawSmi(object));
-  }
   ASSERT(IsNotTemporaryScopedHandle(object));
   ASSERT(IsInOldSpace(object));
   return true;
@@ -535,18 +528,18 @@ void Assembler::LoadObjectHelper(Register dst,
       ldr(dst, Address(THR, offset));
       return;
     }
+    if (target::IsSmi(object)) {
+      LoadImmediate(dst, target::ToRawSmi(object));
+      return;
+    }
   }
-  if (CanLoadFromObjectPool(object)) {
-    const intptr_t index =
-        is_unique ? object_pool_builder().AddObject(
-                        object, ObjectPoolBuilderEntry::kPatchable)
-                  : object_pool_builder().FindObject(
-                        object, ObjectPoolBuilderEntry::kNotPatchable);
-    LoadWordFromPoolIndex(dst, index);
-    return;
-  }
-  ASSERT(target::IsSmi(object));
-  LoadImmediate(dst, target::ToRawSmi(object));
+  RELEASE_ASSERT(CanLoadFromObjectPool(object));
+  const intptr_t index =
+      is_unique ? object_pool_builder().AddObject(
+                      object, ObjectPoolBuilderEntry::kPatchable)
+                : object_pool_builder().FindObject(
+                      object, ObjectPoolBuilderEntry::kNotPatchable);
+  LoadWordFromPoolIndex(dst, index);
 }
 
 void Assembler::LoadObject(Register dst, const Object& object) {

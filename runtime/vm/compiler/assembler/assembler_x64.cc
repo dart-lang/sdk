@@ -1267,11 +1267,6 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
     return false;
   }
 
-  if (target::IsSmi(object)) {
-    // If the raw smi does not fit into a 32-bit signed int, then we'll keep
-    // the raw value in the object pool.
-    return !Utils::IsInt(32, target::ToRawSmi(object));
-  }
   ASSERT(IsNotTemporaryScopedHandle(object));
   ASSERT(IsInOldSpace(object));
   return true;
@@ -1311,18 +1306,18 @@ void Assembler::LoadObjectHelper(Register dst,
       movq(dst, Address(THR, offset));
       return;
     }
+    if (target::IsSmi(object)) {
+      LoadImmediate(dst, Immediate(target::ToRawSmi(object)));
+      return;
+    }
   }
-  if (CanLoadFromObjectPool(object)) {
-    const intptr_t index =
-        is_unique ? object_pool_builder().AddObject(
-                        object, ObjectPoolBuilderEntry::kPatchable)
-                  : object_pool_builder().FindObject(
-                        object, ObjectPoolBuilderEntry::kNotPatchable);
-    LoadWordFromPoolIndex(dst, index);
-    return;
-  }
-  ASSERT(target::IsSmi(object));
-  LoadImmediate(dst, Immediate(target::ToRawSmi(object)));
+  RELEASE_ASSERT(CanLoadFromObjectPool(object));
+  const intptr_t index =
+      is_unique ? object_pool_builder().AddObject(
+                      object, ObjectPoolBuilderEntry::kPatchable)
+                : object_pool_builder().FindObject(
+                      object, ObjectPoolBuilderEntry::kNotPatchable);
+  LoadWordFromPoolIndex(dst, index);
 }
 
 void Assembler::LoadObject(Register dst, const Object& object) {
@@ -1340,12 +1335,11 @@ void Assembler::StoreObject(const Address& dst, const Object& object) {
   if (target::CanLoadFromThread(object, &offset_from_thread)) {
     movq(TMP, Address(THR, offset_from_thread));
     movq(dst, TMP);
-  } else if (CanLoadFromObjectPool(object)) {
+  } else if (target::IsSmi(object)) {
+    MoveImmediate(dst, Immediate(target::ToRawSmi(object)));
+  } else {
     LoadObject(TMP, object);
     movq(dst, TMP);
-  } else {
-    ASSERT(target::IsSmi(object));
-    MoveImmediate(dst, Immediate(target::ToRawSmi(object)));
   }
 }
 
@@ -1355,12 +1349,11 @@ void Assembler::PushObject(const Object& object) {
   intptr_t offset_from_thread;
   if (target::CanLoadFromThread(object, &offset_from_thread)) {
     pushq(Address(THR, offset_from_thread));
-  } else if (CanLoadFromObjectPool(object)) {
+  } else if (target::IsSmi(object)) {
+    PushImmediate(Immediate(target::ToRawSmi(object)));
+  } else {
     LoadObject(TMP, object);
     pushq(TMP);
-  } else {
-    ASSERT(target::IsSmi(object));
-    PushImmediate(Immediate(target::ToRawSmi(object)));
   }
 }
 
@@ -1370,14 +1363,14 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   intptr_t offset_from_thread;
   if (target::CanLoadFromThread(object, &offset_from_thread)) {
     OBJ(cmp)(reg, Address(THR, offset_from_thread));
-  } else if (CanLoadFromObjectPool(object)) {
+  } else if (target::IsSmi(object)) {
+    CompareImmediate(reg, Immediate(target::ToRawSmi(object)), kObjectBytes);
+  } else {
+    RELEASE_ASSERT(CanLoadFromObjectPool(object));
     const intptr_t idx = object_pool_builder().FindObject(
         object, ObjectPoolBuilderEntry::kNotPatchable);
     const int32_t offset = target::ObjectPool::element_offset(idx);
     OBJ(cmp)(reg, Address(PP, offset - kHeapObjectTag));
-  } else {
-    ASSERT(target::IsSmi(object));
-    CompareImmediate(reg, Immediate(target::ToRawSmi(object)), kObjectBytes);
   }
 }
 

@@ -37,10 +37,12 @@ const intptr_t kSmiMin32 = -(static_cast<intptr_t>(1) << kSmiBits32);
 static constexpr int kCompressedWordSize = kInt32Size;
 static constexpr int kCompressedWordSizeLog2 = kInt32SizeLog2;
 typedef uint32_t compressed_uword;
+typedef int32_t compressed_word;
 #else
 static constexpr int kCompressedWordSize = kWordSize;
 static constexpr int kCompressedWordSizeLog2 = kWordSizeLog2;
 typedef uintptr_t compressed_uword;
+typedef intptr_t compressed_word;
 #endif
 const int kMaxAddrSpaceMB = (kWordSize <= 4) ? 4096 : kMaxInt;
 
