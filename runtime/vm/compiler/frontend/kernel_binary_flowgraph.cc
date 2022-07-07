@@ -1169,7 +1169,9 @@ Fragment StreamingFlowGraphBuilder::BuildStatementAt(intptr_t kernel_offset) {
   return BuildStatement();  // read statement.
 }
 
-Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
+Fragment StreamingFlowGraphBuilder::BuildExpression(
+    TokenPosition* position,
+    bool allow_late_uninitialized) {
   ++num_ast_nodes_;
   uint8_t payload = 0;
   Tag tag = ReadTag(&payload);  // read tag.
@@ -1177,9 +1179,9 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
     case kInvalidExpression:
       return BuildInvalidExpression(position);
     case kVariableGet:
-      return BuildVariableGet(position);
+      return BuildVariableGet(position, allow_late_uninitialized);
     case kSpecializedVariableGet:
-      return BuildVariableGet(payload, position);
+      return BuildVariableGet(payload, position, allow_late_uninitialized);
     case kVariableSet:
       return BuildVariableSet(position);
     case kSpecializedVariableSet:
@@ -5818,26 +5820,12 @@ Fragment StreamingFlowGraphBuilder::BuildReachabilityFence() {
   ASSERT(positional_count == 1);
 
   // The CFE transform only generates a subset of argument expressions:
-  // either variable get or `this`.
-  uint8_t payload = 0;
-  Tag tag = ReadTag(&payload);
+  // either variable get or `this`. However, subsequent transforms can
+  // generate different expressions, including: constant expressions.
+  // So, build an arbitrary expression here instead.
   TokenPosition* position = nullptr;
   const bool allow_late_uninitialized = true;
-  Fragment code;
-  switch (tag) {
-    case kVariableGet:
-      code = BuildVariableGet(position, allow_late_uninitialized);
-      break;
-    case kSpecializedVariableGet:
-      code = BuildVariableGet(payload, position, allow_late_uninitialized);
-      break;
-    case kThisExpression:
-      code = BuildThisExpression(position);
-      break;
-    default:
-      // The transformation should not be generating anything else.
-      FATAL1("Unexpected tag %i", tag);
-  }
+  Fragment code = BuildExpression(position, allow_late_uninitialized);
 
   const intptr_t named_args_len = ReadListLength();
   ASSERT(named_args_len == 0);
