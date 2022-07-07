@@ -70,7 +70,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildInitializers(const Class& parent_class);
   FlowGraph* BuildGraphOfFunction(bool constructor);
 
-  Fragment BuildExpression(TokenPosition* position = nullptr);
+  Fragment BuildExpression(TokenPosition* position = nullptr,
+                           bool allow_late_uninitialized = false);
   Fragment BuildStatement(TokenPosition* position = nullptr);
   Fragment BuildStatementWithBranchCoverage(TokenPosition* position = nullptr);
 
