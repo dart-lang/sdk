@@ -759,7 +759,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitExportDirective(ExportDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
-    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.exportKeyword, HighlightRegionType.BUILT_IN);
     _addRegions_configurations(node.configurations);
     super.visitExportDirective(node);
   }
@@ -916,7 +916,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitImportDirective(ImportDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
-    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.importKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.deferredKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.asKeyword, HighlightRegionType.BUILT_IN);
@@ -978,7 +978,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitLibraryDirective(LibraryDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
-    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+        node.libraryKeyword, HighlightRegionType.BUILT_IN);
     super.visitLibraryDirective(node);
   }
 
@@ -1053,7 +1054,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitPartDirective(PartDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
-    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.partKeyword, HighlightRegionType.BUILT_IN);
     super.visitPartDirective(node);
   }
 

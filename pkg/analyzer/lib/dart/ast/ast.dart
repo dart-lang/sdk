@@ -1525,6 +1525,7 @@ abstract class Directive implements AnnotatedNode {
 
   /// Return the token representing the keyword that introduces this directive
   /// ('import', 'export', 'library' or 'part').
+  @Deprecated('Use specific xyzToken instead')
   Token get keyword;
 }
 
@@ -1704,6 +1705,9 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
 abstract class ExportDirective implements NamespaceDirective {
   @override
   ExportElement? get element;
+
+  /// The token representing the 'export' keyword.
+  Token get exportKeyword;
 }
 
 /// A node that represents an expression.
@@ -2875,6 +2879,9 @@ abstract class ImportDirective implements NamespaceDirective {
 
   @override
   ImportElement? get element;
+
+  /// The token representing the 'import' keyword.
+  Token get importKeyword;
 
   /// Return the prefix to be used with the imported names, or `null` if the
   /// imported names are not prefixed.

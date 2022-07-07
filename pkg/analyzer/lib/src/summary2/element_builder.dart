@@ -381,7 +381,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitExportDirective(covariant ExportDirectiveImpl node) {
-    var element = ExportElementImpl(node.keyword.offset);
+    var element = ExportElementImpl(node.exportKeyword.offset);
     element.combinators = _buildCombinators(node.combinators);
 
     try {
@@ -759,7 +759,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     var uriStr = node.uri.stringValue;
 
-    var element = ImportElementImpl(node.keyword.offset);
+    var element = ImportElementImpl(node.importKeyword.offset);
     element.combinators = _buildCombinators(node.combinators);
 
     try {

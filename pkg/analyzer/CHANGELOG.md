@@ -1,3 +1,6 @@
+## 4.3.0-dev
+* Deprecated `Directive.keyword`, use corresponding `xyzToken` in specific directives.
+
 ## 4.2.0
 * Update SDK constraints to `>=2.17.0 <3.0.0`.
 * Deprecated `ImportDirective.COMPARATOR`, use appropriate custom logic, if necessary.

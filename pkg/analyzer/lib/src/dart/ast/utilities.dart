@@ -167,7 +167,7 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualNodes(
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.keyword, other.keyword) &&
+        isEqualTokens(node.importKeyword, other.importKeyword) &&
         isEqualNodes(node.uri, other.uri) &&
         isEqualTokens(node.semicolon, other.semicolon);
   }
@@ -468,7 +468,7 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualNodes(
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.keyword, other.keyword) &&
+        isEqualTokens(node.exportKeyword, other.exportKeyword) &&
         isEqualNodes(node.uri, other.uri) &&
         _isEqualNodeLists(node.combinators, other.combinators) &&
         isEqualTokens(node.semicolon, other.semicolon);
@@ -760,7 +760,7 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualNodes(
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.keyword, other.keyword) &&
+        isEqualTokens(node.importKeyword, other.importKeyword) &&
         isEqualNodes(node.uri, other.uri) &&
         _isEqualNodeLists(node.configurations, other.configurations) &&
         isEqualTokens(node.deferredKeyword, other.deferredKeyword) &&

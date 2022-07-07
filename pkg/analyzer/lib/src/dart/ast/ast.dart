@@ -910,8 +910,9 @@ class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
   Token get endToken => semicolon;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => keyword;
+  Token get firstTokenAfterCommentAndMetadata => importKeyword;
 
+  @Deprecated('Use specific xyzToken instead')
   @override
   Token get keyword => importKeyword;
 
@@ -922,7 +923,7 @@ class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
 
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('keyword', keyword)
+    ..addToken('importKeyword', importKeyword)
     ..addToken('augmentKeyword', augmentKeyword)
     ..addNode('uri', uri)
     ..addToken('semicolon', semicolon);
@@ -3250,7 +3251,8 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
 /// A node that represents a directive.
 ///
 ///    directive ::=
-///        [ExportDirective]
+///        [AugmentationImportDirective]
+///      | [ExportDirective]
 ///      | [ImportDirective]
 ///      | [LibraryDirective]
 ///      | [PartDirective]
@@ -3763,6 +3765,9 @@ class EphemeralIdentifier extends SimpleIdentifierImpl {
 ///        [Annotation] 'export' [StringLiteral] [Combinator]* ';'
 class ExportDirectiveImpl extends NamespaceDirectiveImpl
     implements ExportDirective {
+  @override
+  Token exportKeyword;
+
   /// Initialize a newly created export directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the directive does not have the
   /// corresponding attribute. The list of [combinators] can be `null` if there
@@ -3770,7 +3775,7 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
   ExportDirectiveImpl(
       super.comment,
       super.metadata,
-      super.keyword,
+      this.exportKeyword,
       super.libraryUri,
       super.configurations,
       super.combinators,
@@ -3780,13 +3785,20 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
   ExportElement? get element => super.element as ExportElement?;
 
   @override
+  Token get firstTokenAfterCommentAndMetadata => exportKeyword;
+
+  @Deprecated('Use specific xyzToken instead')
+  @override
+  Token get keyword => exportKeyword;
+
+  @override
   LibraryElement? get uriElement {
     return element?.exportedLibrary;
   }
 
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('keyword', keyword)
+    ..addToken('exportKeyword', exportKeyword)
     ..addNode('uri', uri)
     ..addNodeList('combinators', combinators)
     ..addToken('semicolon', semicolon);
@@ -6369,6 +6381,9 @@ class ImplicitCallReferenceImpl extends ExpressionImpl
 //         [Combinator]* ';'
 class ImportDirectiveImpl extends NamespaceDirectiveImpl
     implements ImportDirective {
+  @override
+  Token importKeyword;
+
   /// The token representing the 'deferred' keyword, or `null` if the imported
   /// is not deferred.
   @override
@@ -6392,7 +6407,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   ImportDirectiveImpl(
       CommentImpl? comment,
       List<Annotation>? metadata,
-      Token keyword,
+      this.importKeyword,
       StringLiteralImpl libraryUri,
       List<Configuration>? configurations,
       this.deferredKeyword,
@@ -6400,13 +6415,20 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
       this._prefix,
       List<Combinator>? combinators,
       Token semicolon)
-      : super(comment, metadata, keyword, libraryUri, configurations,
-            combinators, semicolon) {
+      : super(comment, metadata, libraryUri, configurations, combinators,
+            semicolon) {
     _becomeParentOf(_prefix);
   }
 
   @override
   ImportElement? get element => super.element as ImportElement?;
+
+  @override
+  Token get firstTokenAfterCommentAndMetadata => importKeyword;
+
+  @Deprecated('Use specific xyzToken instead')
+  @override
+  Token get keyword => importKeyword;
 
   @override
   SimpleIdentifierImpl? get prefix => _prefix;
@@ -6422,7 +6444,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('keyword', keyword)
+    ..addToken('importKeyword', importKeyword)
     ..addNode('uri', uri)
     ..addToken('deferredKeyword', deferredKeyword)
     ..addToken('asKeyword', asKeyword)
@@ -7265,6 +7287,7 @@ class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
   @override
   Token get firstTokenAfterCommentAndMetadata => libraryKeyword;
 
+  @Deprecated('Use specific xyzToken instead')
   @override
   Token get keyword => libraryKeyword;
 
@@ -7318,6 +7341,7 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   @override
   Token get firstTokenAfterCommentAndMetadata => libraryKeyword;
 
+  @Deprecated('Use specific xyzToken instead')
   @override
   Token get keyword => libraryKeyword;
 
@@ -8168,10 +8192,6 @@ class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 ///      | [ImportDirective]
 abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
     implements NamespaceDirective {
-  /// The token representing the 'import' or 'export' keyword.
-  @override
-  Token keyword;
-
   /// The configurations used to control which library will actually be loaded
   /// at run-time.
   final NodeListImpl<Configuration> _configurations = NodeListImpl._();
@@ -8194,14 +8214,12 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   /// corresponding attribute. The list of [combinators] can be `null` if there
   /// are no combinators.
   NamespaceDirectiveImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      this.keyword,
-      StringLiteralImpl libraryUri,
+      super.comment,
+      super.metadata,
+      super.libraryUri,
       List<Configuration>? configurations,
       List<Combinator>? combinators,
-      this.semicolon)
-      : super(comment, metadata, libraryUri) {
+      this.semicolon) {
     _configurations._initialize(this, configurations);
     _combinators._initialize(this, combinators);
   }
@@ -8214,9 +8232,6 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
 
   @override
   Token get endToken => semicolon;
-
-  @override
-  Token get firstTokenAfterCommentAndMetadata => keyword;
 
   @override
   LibraryElement? get uriElement;
@@ -8757,6 +8772,7 @@ class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
   @override
   Token get firstTokenAfterCommentAndMetadata => partKeyword;
 
+  @Deprecated('Use specific xyzToken instead')
   @override
   Token get keyword => partKeyword;
 
@@ -8819,6 +8835,7 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   @override
   Token get firstTokenAfterCommentAndMetadata => partKeyword;
 
+  @Deprecated('Use specific xyzToken instead')
   @override
   Token get keyword => partKeyword;
 

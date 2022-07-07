@@ -13,7 +13,7 @@ class DartUnitFoldingComputer {
   final LineInfo _lineInfo;
   final CompilationUnit _unit;
 
-  Directive? _firstDirective, _lastDirective;
+  _Directive? _firstDirective, _lastDirective;
   final List<FoldingRegion> _foldingRegions = [];
 
   DartUnitFoldingComputer(this._lineInfo, this._unit);
@@ -59,10 +59,13 @@ class DartUnitFoldingComputer {
     if (firstDirective != null &&
         lastDirective != null &&
         firstDirective != lastDirective) {
-      _foldingRegions.add(FoldingRegion(
+      _foldingRegions.add(
+        FoldingRegion(
           FoldingKind.DIRECTIVES,
           firstDirective.keyword.end,
-          lastDirective.end - firstDirective.keyword.end));
+          lastDirective.directive.end - firstDirective.keyword.end,
+        ),
+      );
     }
 
     _addCommentRegions();
@@ -176,7 +179,7 @@ class DartUnitFoldingComputer {
     return secondLoc.lineNumber - firstLoc.lineNumber > 1;
   }
 
-  void _recordDirective(Directive node) {
+  void _recordDirective(_Directive node) {
     _firstDirective ??= node;
     _lastDirective = node;
   }
@@ -242,7 +245,7 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    _computer._recordDirective(node);
+    _computer._recordDirective(_Directive(node, node.exportKeyword));
     super.visitExportDirective(node);
   }
 
@@ -295,7 +298,7 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    _computer._recordDirective(node);
+    _computer._recordDirective(_Directive(node, node.importKeyword));
     super.visitImportDirective(node);
   }
 
@@ -308,7 +311,7 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    _computer._recordDirective(node);
+    _computer._recordDirective(_Directive(node, node.libraryKeyword));
     super.visitLibraryDirective(node);
   }
 
@@ -343,13 +346,13 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
-    _computer._recordDirective(node);
+    _computer._recordDirective(_Directive(node, node.partKeyword));
     super.visitPartDirective(node);
   }
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    _computer._recordDirective(node);
+    _computer._recordDirective(_Directive(node, node.partKeyword));
     super.visitPartOfDirective(node);
   }
 
@@ -368,6 +371,13 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
     }
     super.visitWhileStatement(node);
   }
+}
+
+class _Directive {
+  final Directive directive;
+  final Token keyword;
+
+  _Directive(this.directive, this.keyword);
 }
 
 extension _CommentTokenExtensions on Token {

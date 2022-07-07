@@ -374,7 +374,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    safelyRecordKeywordCompletion(node.keyword);
+    safelyRecordKeywordCompletion(node.exportKeyword);
     super.visitExportDirective(node);
   }
 
@@ -494,7 +494,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    safelyRecordKeywordCompletion(node.keyword);
+    safelyRecordKeywordCompletion(node.importKeyword);
     safelyRecordKeywordCompletion(node.asKeyword);
     safelyRecordKeywordCompletion(node.deferredKeyword);
     super.visitImportDirective(node);

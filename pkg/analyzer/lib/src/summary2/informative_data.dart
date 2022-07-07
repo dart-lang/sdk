@@ -1055,18 +1055,18 @@ class _InformativeDataWriter {
     _writeDocumentationCommentNode(firstDirective?.documentationComment);
 
     sink.writeList2<ImportDirective>(unit.directives, (directive) {
-      sink.writeUInt30(directive.keyword.offset);
+      sink.writeUInt30(directive.importKeyword.offset);
       sink.writeUInt30(1 + (directive.prefix?.offset ?? -1));
       _writeCombinators(directive.combinators);
     });
 
     sink.writeList2<ExportDirective>(unit.directives, (directive) {
-      sink.writeUInt30(directive.keyword.offset);
+      sink.writeUInt30(directive.exportKeyword.offset);
       _writeCombinators(directive.combinators);
     });
 
     sink.writeList2<PartDirective>(unit.directives, (directive) {
-      sink.writeUInt30(directive.keyword.offset);
+      sink.writeUInt30(directive.partKeyword.offset);
     });
 
     sink.writeList2<ClassDeclaration>(unit.declarations, (node) {
