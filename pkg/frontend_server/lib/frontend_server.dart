@@ -634,7 +634,7 @@ class FrontendCompiler implements CompilerInterface {
     return errors.isEmpty;
   }
 
-  void _outputDependenciesDelta(Iterable<Uri> compiledSources) async {
+  Future<void> _outputDependenciesDelta(Iterable<Uri> compiledSources) async {
     if (!_printIncrementalDependencies) {
       return;
     }
@@ -948,7 +948,7 @@ class FrontendCompiler implements CompilerInterface {
     final procedure = await expressionCompiler.compileExpressionToJs(
         libraryUri, line, column, jsFrameValues, expression);
 
-    final result = errors.length > 0 ? errors[0] : procedure;
+    final result = errors.isNotEmpty ? errors[0] : procedure;
 
     // TODO(annagrin): kernelBinaryFilename is too specific
     // rename to _outputFileName?
@@ -1271,8 +1271,9 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
         if (string == boundaryKey) {
           compiler.recompileDelta(entryPoint: recompileEntryPoint);
           state = _State.READY_FOR_INSTRUCTION;
-        } else
+        } else {
           compiler.invalidate(Uri.base.resolve(string));
+        }
         break;
       case _State.COMPILE_EXPRESSION_EXPRESSION:
         compileExpressionRequest.expression = string;

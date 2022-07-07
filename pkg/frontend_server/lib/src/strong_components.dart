@@ -82,7 +82,7 @@ class StrongComponents {
     final List<List<Library>> results =
         computeStrongComponents(_LibraryGraph(entrypoint, loadedLibraries));
     for (List<Library> component in results) {
-      assert(component.length > 0);
+      assert(component.isNotEmpty);
       final Uri moduleUri = component
           .firstWhere((lib) => lib.importUri == mainUri,
               orElse: () => component.first)

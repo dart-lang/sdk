@@ -182,8 +182,8 @@ void runSuite(SuiteConfiguration configuration) async {
   }
 }
 
-void writeLinesToFile(Uri uri, List<String> lines) async {
-  await File.fromUri(uri).writeAsString(lines.map((line) => "$line\n").join());
+void writeLinesToFile(Uri uri, List<String> lines) {
+  File.fromUri(uri).writeAsStringSync(lines.map((line) => "$line\n").join());
 }
 
 main([List<String> arguments = const <String>[]]) async {
@@ -254,8 +254,8 @@ main([List<String> arguments = const <String>[]]) async {
   // Write results.json and logs.json.
   Uri resultJsonUri = options.outputDirectory.resolve("results.json");
   Uri logsJsonUri = options.outputDirectory.resolve("logs.json");
-  await writeLinesToFile(resultJsonUri, results);
-  await writeLinesToFile(logsJsonUri, logs);
+  writeLinesToFile(resultJsonUri, results);
+  writeLinesToFile(logsJsonUri, logs);
   print("Log files written to ${resultJsonUri.toFilePath()} and"
       " ${logsJsonUri.toFilePath()}");
 
