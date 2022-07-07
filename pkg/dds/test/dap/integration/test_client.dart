@@ -546,9 +546,10 @@ extension DapTestClientExtension on DapTestClient {
   Future<StoppedEventBody> pauseOnException(
     File file, {
     String? exceptionPauseMode, // All, Unhandled, None
+    String? expectText,
     Future<Response> Function()? launch,
   }) async {
-    final stop = expectStop('exception', file: file);
+    final stopFuture = expectStop('exception', file: file);
 
     await Future.wait([
       initialize(),
@@ -560,6 +561,10 @@ extension DapTestClientExtension on DapTestClient {
       launch?.call() ?? this.launch(file.path),
     ], eagerError: true);
 
+    final stop = await stopFuture;
+    if (expectText != null) {
+      expect(stop.text, expectText);
+    }
     return stop;
   }
 
