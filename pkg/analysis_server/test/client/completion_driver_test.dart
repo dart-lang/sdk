@@ -163,7 +163,11 @@ name: test
         if (file != null && s.element?.location?.file != convertPath(file)) {
           return false;
         }
-        if (libraryUri != null && s.libraryUri != libraryUri) {
+        // Library URIs are not available in protocol v1 so skip the check to
+        // allow the the same test to verify for v2.
+        if (!isProtocolVersion1 &&
+            libraryUri != null &&
+            s.libraryUri != libraryUri) {
           return false;
         }
         return true;
@@ -621,6 +625,7 @@ void f() {
     assertSuggestion(
       completion: 'A',
       element: ElementKind.CLASS,
+      libraryUri: 'package:test/b.dart',
     );
   }
 
@@ -641,10 +646,12 @@ void f() {
 ''');
 
     // Should be only one suggestion, which comes from local declaration.
-    assertSuggestion(
+    var suggestion = suggestionWith(
       completion: 'A',
       element: ElementKind.CLASS,
     );
+    expect(suggestion, isNotNull);
+    expect(suggestion.libraryUri, isNull);
   }
 
   Future<void> test_project_lib_setters_class() async {
