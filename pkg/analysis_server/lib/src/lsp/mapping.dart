@@ -269,7 +269,6 @@ lsp.SymbolKind declarationKindToSymbolKind(
 lsp.CompletionItem declarationToCompletionItem(
   LspClientCapabilities capabilities,
   String file,
-  int offset,
   server.IncludedSuggestionSet includedSuggestionSet,
   Library library,
   Map<String, int> tagBoosts,
@@ -382,13 +381,9 @@ lsp.CompletionItem declarationToCompletionItem(
           ),
     // data, used for completionItem/resolve.
     data: lsp.DartSuggestionSetCompletionItemResolutionInfo(
-        file: file,
-        offset: offset,
-        libId: includedSuggestionSet.id,
-        displayUri: includedSuggestionSet.displayUri ?? library.uri.toString(),
-        rOffset: replacementOffset,
-        iLength: insertLength,
-        rLength: replacementLength),
+      file: file,
+      libId: includedSuggestionSet.id,
+    ),
   );
 }
 

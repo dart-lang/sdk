@@ -298,12 +298,7 @@ List<LspEntity> getCustomClasses() {
         // These fields have short-ish names because they're on the payload
         // for all suggestion-set backed completions.
         field('file', type: 'string'),
-        field('offset', type: 'int'),
         field('libId', type: 'int'),
-        field('displayUri', type: 'string'),
-        field('rOffset', type: 'int'), // replacementOffset
-        field('iLength', type: 'int'), // insertLength
-        field('rLength', type: 'int'), // replacementLength
       ],
       baseType: 'CompletionItemResolutionInfo',
     ),

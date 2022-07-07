@@ -55,8 +55,6 @@ class CompletionResolveHandler
     CancellationToken token, {
     required String file,
     required Uri libraryUri,
-    required Range insertionRange,
-    required Range replacementRange,
   }) async {
     const timeout = Duration(milliseconds: 1000);
     var timer = Stopwatch()..start();
@@ -85,15 +83,9 @@ class CompletionResolveHandler
           return cancelled();
         }
 
-        var newInsertText = item.textEdit
-                ?.map((edit) => edit.newText, (edit) => edit.newText) ??
-            item.label;
         final builder = ChangeBuilder(session: session);
         await builder.addDartFileEdit(file, (builder) {
-          final result = builder.importLibraryElement(libraryUri);
-          if (result.prefix != null) {
-            newInsertText = '${result.prefix}.$newInsertText';
-          }
+          builder.importLibraryElement(libraryUri);
         });
 
         if (token.isCancellationRequested) {
@@ -125,8 +117,6 @@ class CompletionResolveHandler
             analyzer.getDartDocPlainText(element.documentationComment);
         final documentation =
             dartDoc != null ? asMarkupContentOrString(formats, dartDoc) : null;
-        final supportsInsertReplace =
-            clientCapabilities.insertReplaceCompletionRanges;
 
         // If the only URI we have is a file:// URI, display it as relative to
         // the file we're importing into, rather than the full URI.
@@ -144,7 +134,7 @@ class CompletionResolveHandler
           label: item.label,
           kind: item.kind,
           tags: item.tags,
-          detail: thisFilesChanges.isNotEmpty
+          detail: changes.edits.isNotEmpty
               ? "Auto import from '$autoImportDisplayUri'\n\n${item.detail ?? ''}"
                   .trim()
               : item.detail,
@@ -155,20 +145,7 @@ class CompletionResolveHandler
           filterText: item.filterText,
           insertTextFormat: item.insertTextFormat,
           insertTextMode: item.insertTextMode,
-          textEdit: supportsInsertReplace && insertionRange != replacementRange
-              ? Either2<InsertReplaceEdit, TextEdit>.t1(
-                  InsertReplaceEdit(
-                    insert: insertionRange,
-                    replace: replacementRange,
-                    newText: newInsertText,
-                  ),
-                )
-              : Either2<InsertReplaceEdit, TextEdit>.t2(
-                  TextEdit(
-                    range: replacementRange,
-                    newText: newInsertText,
-                  ),
-                ),
+          textEdit: item.textEdit,
           additionalTextEdits: thisFilesChanges
               .expand((change) =>
                   change.edits.map((edit) => toTextEdit(lineInfo, edit)))
@@ -221,9 +198,6 @@ class CompletionResolveHandler
       );
     }
 
-    final insertionRange = toRange(lineInfo, data.rOffset, data.iLength);
-    final replacementRange = toRange(lineInfo, data.rOffset, data.rLength);
-
     return resolveDartCompletion(
       item,
       clientCapabilities,
@@ -231,8 +205,6 @@ class CompletionResolveHandler
       token,
       file: file,
       libraryUri: library.uri,
-      insertionRange: insertionRange,
-      replacementRange: replacementRange,
     );
   }
 

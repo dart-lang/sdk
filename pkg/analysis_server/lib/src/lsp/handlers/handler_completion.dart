@@ -504,7 +504,6 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
                 .map((item) => declarationToCompletionItem(
                       capabilities,
                       unit.path,
-                      offset,
                       includedSet,
                       library,
                       tagBoosts,
