@@ -417,11 +417,6 @@ class Driver implements CommandLineStarter {
   bool _shouldBeFatal(ErrorSeverity severity, CommandLineOptions options) {
     if (severity == ErrorSeverity.ERROR) {
       return true;
-    } else if (severity == ErrorSeverity.WARNING &&
-        (options.warningsAreFatal || options.infosAreFatal)) {
-      return true;
-    } else if (severity == ErrorSeverity.INFO && options.infosAreFatal) {
-      return true;
     } else {
       return false;
     }
@@ -449,11 +444,6 @@ class Driver implements CommandLineStarter {
         _equalMaps(newOptions.declaredVariables, previous.declaredVariables) &&
         newOptions.log == previous.log &&
         newOptions.disableHints == previous.disableHints &&
-        newOptions.showPackageWarnings == previous.showPackageWarnings &&
-        newOptions.showPackageWarningsPrefix ==
-            previous.showPackageWarningsPrefix &&
-        newOptions.showSdkWarnings == previous.showSdkWarnings &&
-        newOptions.lints == previous.lints &&
         newOptions.defaultLanguageVersion == previous.defaultLanguageVersion &&
         newOptions.disableCacheFlushing == previous.disableCacheFlushing &&
         _equalLists(

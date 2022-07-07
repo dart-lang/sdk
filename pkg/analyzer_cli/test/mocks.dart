@@ -62,8 +62,6 @@ class MockAnalysisErrorInfo implements AnalysisErrorInfo {
 class MockCommandLineOptions implements CommandLineOptions {
   bool enableTypeChecks = false;
   @override
-  bool infosAreFatal = false;
-  @override
   bool jsonFormat = false;
   @override
   bool machineFormat = false;

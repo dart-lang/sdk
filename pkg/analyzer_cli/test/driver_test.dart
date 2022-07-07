@@ -166,11 +166,6 @@ class ExitCodesTest extends BaseTest {
     expect(exitCode, 3);
   }
 
-  Future<void> test_fatalHints() async {
-    await drive('data/file_with_hint.dart', args: ['--fatal-hints']);
-    expect(exitCode, 1);
-  }
-
   Future<void> test_missingDartFile() async {
     await drive('data/NO_DART_FILE_HERE.dart');
     expect(exitCode, 3);
@@ -246,41 +241,6 @@ linter:
     expect(containsLintRuleEntry(options), false);
   }
 
-  Future<void> test_defaultLints_generatedLints() async {
-    await _runLinter_defaultLints();
-    expect(bulletToDash(outSink),
-        contains('lint - Name types using UpperCamelCase'));
-  }
-
-  Future<void> test_defaultLints_getsDefaultLints() async {
-    await _runLinter_defaultLints();
-
-    /// Lints should be enabled.
-    expect(analysisOptions.lint, isTrue);
-
-    /// Default list should include camel_case_types.
-    var lintNames = analysisOptions.lintRules.map((r) => r.name);
-    expect(lintNames, contains('camel_case_types'));
-  }
-
-  Future<void> test_lintsInOptions_generatedLints() async {
-    await _runLinter_lintsInOptions();
-    expect(bulletToDash(outSink),
-        contains('lint - Name types using UpperCamelCase'));
-  }
-
-  Future<void> test_lintsInOptions_getAnalysisOptions() async {
-    await _runLinter_lintsInOptions();
-
-    /// Lints should be enabled.
-    expect(analysisOptions.lint, isTrue);
-
-    /// The analysis options file specifies 'camel_case_types' and 'sort_pub_dependencies'.
-    var lintNames = analysisOptions.lintRules.map((r) => r.name);
-    expect(lintNames,
-        orderedEquals(['camel_case_types', 'sort_pub_dependencies']));
-  }
-
   Future<void> test_noLints_lintsDisabled() async {
     await _runLinter_noLintsFlag();
     expect(analysisOptions.lint, isFalse);
@@ -304,16 +264,6 @@ linter:
 
   YamlMap _parseOptions(String src) =>
       AnalysisOptionsProvider().getOptionsFromString(src);
-
-  Future<void> _runLinter_defaultLints() async {
-    await drive('data/linter_project/test_file.dart',
-        options: 'data/linter_project/$analysisOptionsYaml', args: ['--lints']);
-  }
-
-  Future<void> _runLinter_lintsInOptions() async {
-    await drive('data/linter_project/test_file.dart',
-        options: 'data/linter_project/$analysisOptionsYaml', args: ['--lints']);
-  }
 
   Future<void> _runLinter_noLintsFlag() async {
     await drive('data/no_lints_project/test_file.dart',
@@ -468,24 +418,6 @@ class OptionsTest extends BaseTest {
     expect(outSink.toString(), contains('1 error and 1 warning found.'));
   }
 
-  Future<void> test_includeDirective() async {
-    var testDir = path.join(
-        testDirectory, 'data', 'options_include_directive_tests_project');
-    await drive(
-      path.join(testDir, 'lib', 'test_file.dart'),
-      args: [
-        '--fatal-warnings',
-        '--packages',
-        path.join(testDir, '_packages'),
-      ],
-      options: path.join(testDir, 'analysis_options.yaml'),
-    );
-    expect(exitCode, 3);
-    expect(outSink.toString(), contains('Unnecessary cast.'));
-    expect(outSink.toString(), contains('isn\'t defined'));
-    expect(outSink.toString(), contains('Avoid empty else statements'));
-  }
-
   Future<void> test_multiple_inputs_two_directories() async {
     await driveMany([
       'data/multiple_inputs_two_directories/bin',
@@ -505,23 +437,6 @@ class OptionsTest extends BaseTest {
   Future<void> test_todo() async {
     await drive('data/file_with_todo.dart');
     expect(outSink.toString().contains('[info]'), isFalse);
-  }
-
-  Future<void> test_withFlags_overrideFatalWarning() async {
-    await drive('data/options_tests_project/test_file.dart',
-        args: ['--fatal-warnings'],
-        options: 'data/options_tests_project/$analysisOptionsYaml');
-
-    // missing_return: error
-    var undefined_function = AnalysisError(
-        TestSource(), 0, 1, CompileTimeErrorCode.UNDEFINED_FUNCTION, [
-      ['x']
-    ]);
-    expect(processorFor(undefined_function).severity, ErrorSeverity.WARNING);
-    // Should not be made fatal by `--fatal-warnings`.
-    expect(bulletToDash(outSink),
-        contains("warning - The function 'baz' isn't defined"));
-    expect(outSink.toString(), contains('1 error and 1 warning found.'));
   }
 
   Future<void> _driveBasic() async {

@@ -23,7 +23,6 @@ const _enableExperimentOption = 'enable-experiment';
 const _enableInitializingFormalAccessFlag = 'initializing-formal-access';
 const _ignoreUnrecognizedFlagsFlag = 'ignore-unrecognized-flags';
 const _implicitCastsFlag = 'implicit-casts';
-const _lintsFlag = 'lints';
 const _noImplicitDynamicFlag = 'no-implicit-dynamic';
 const _packagesOption = 'packages';
 const _sdkPathOption = 'dart-sdk';
@@ -98,23 +97,8 @@ class CommandLineOptions {
   /// Batch mode (for unit testing)
   final bool batchMode;
 
-  /// Whether to show package: warnings
-  final bool showPackageWarnings;
-
-  /// If not null, show package: warnings only for matching packages.
-  final String? showPackageWarningsPrefix;
-
-  /// Whether to show SDK warnings
-  final bool showSdkWarnings;
-
   /// The source files to analyze
   final List<String> sourceFiles;
-
-  /// Whether to treat warnings as fatal
-  final bool warningsAreFatal;
-
-  /// Whether to treat info level items as fatal
-  final bool infosAreFatal;
 
   /// Emit output in a verbose mode.
   final bool verbose;
@@ -141,15 +125,7 @@ class CommandLineOptions {
         machineFormat = args['format'] == 'machine',
         perfReport = castNullable(args['x-perf-report']),
         batchMode = cast(args['batch']),
-        showPackageWarnings = cast(args['show-package-warnings']) ||
-            cast(args['package-warnings']) ||
-            args['x-package-warnings-prefix'] != null,
-        showPackageWarningsPrefix =
-            castNullable(args['x-package-warnings-prefix']),
-        showSdkWarnings = cast(args['sdk-warnings']),
         sourceFiles = args.rest,
-        infosAreFatal = cast(args['fatal-infos']) || cast(args['fatal-hints']),
-        warningsAreFatal = cast(args['fatal-warnings']),
         trainSnapshot = cast(args['train-snapshot']),
         verbose = cast(args['verbose']),
         color = cast(args['color']) {
@@ -201,8 +177,6 @@ class CommandLineOptions {
 
   bool? get implicitCasts => _argResults[_implicitCastsFlag] as bool?;
 
-  bool? get lints => _argResults[_lintsFlag] as bool?;
-
   bool? get noImplicitDynamic => _argResults[_noImplicitDynamicFlag] as bool?;
 
   /// Update the [analysisOptions] with flags that the user specified
@@ -231,11 +205,6 @@ class CommandLineOptions {
     var implicitCasts = this.implicitCasts;
     if (implicitCasts != null) {
       analysisOptions.implicitCasts = implicitCasts;
-    }
-
-    var lints = this.lints;
-    if (lints != null) {
-      analysisOptions.lint = lints;
     }
 
     var noImplicitDynamic = this.noImplicitDynamic;
@@ -404,10 +373,6 @@ class CommandLineOptions {
         defaultsTo: false,
         negatable: false,
         hide: hide || ddc);
-    if (!ddc) {
-      parser.addFlag(_lintsFlag,
-          help: 'Show lint results.', defaultsTo: null, negatable: true);
-    }
   }
 
   static String _getVersion() {
@@ -453,12 +418,6 @@ class CommandLineOptions {
           help: 'Do not show hint results.',
           defaultsTo: false,
           negatable: false)
-      ..addFlag('fatal-infos',
-          help: 'Treat infos as fatal.', defaultsTo: false, negatable: false)
-      ..addFlag('fatal-warnings',
-          help: 'Treat non-type warnings as fatal.',
-          defaultsTo: false,
-          negatable: false)
       ..addFlag('help',
           abbr: 'h',
           help:
@@ -500,23 +459,9 @@ class CommandLineOptions {
       ..addOption('x-perf-report',
           help: 'Writes a performance report to the given file (experimental).',
           hide: hide)
-      ..addOption('x-package-warnings-prefix',
-          help:
-              'Show warnings from package: imports that match the given prefix (deprecated).',
-          hide: hide)
       ..addFlag('enable-conditional-directives',
           help:
               'deprecated -- Enable support for conditional directives (DEP 40).',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag('show-package-warnings',
-          help: 'Show warnings from package: imports (deprecated).',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag('sdk-warnings',
-          help: 'Show warnings from SDK imports (deprecated).',
           defaultsTo: false,
           negatable: false,
           hide: hide)
@@ -525,28 +470,8 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      ..addFlag('enable_type_checks',
-          help: 'Check types in constant evaluation (deprecated).',
-          defaultsTo: false,
-          negatable: false,
-          hide: true)
       ..addFlag('use-analysis-driver-memory-byte-store',
           help: 'Use memory byte store, not the file system cache.',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag('fatal-hints',
-          help: 'Treat hints as fatal (deprecated: use --fatal-infos).',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag('fatal-lints',
-          help: 'Treat lints as fatal.',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag('package-warnings',
-          help: 'Show warnings from package: imports (deprecated).',
           defaultsTo: false,
           negatable: false,
           hide: hide)
