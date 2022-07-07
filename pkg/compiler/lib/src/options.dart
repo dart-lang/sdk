@@ -103,6 +103,7 @@ class FeatureOptions {
 
   /// [FeatureOption]s which default to enabled.
   late final List<FeatureOption> shipping = [
+    deferredSerialization,
     useContentSecurityPolicy,
   ];
 
@@ -113,7 +114,6 @@ class FeatureOptions {
     simpleAsyncToFuture,
     cfeConstants,
     internValues,
-    deferredSerialization,
   ];
 
   /// Forces canary feature on. This must run after [Option].parse.
