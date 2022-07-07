@@ -282,7 +282,9 @@ class DispatchTable {
       selector.offset = offset;
       for (int classId in selector.classIds) {
         int entry = offset + classId;
-        while (table.length <= entry) table.add(null);
+        while (table.length <= entry) {
+          table.add(null);
+        }
         assert(table[entry] == null);
         table[entry] = selector.targets[classId];
       }

@@ -357,7 +357,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   void _implicitReturn() {
-    if (function.type.outputs.length > 0) {
+    if (function.type.outputs.isNotEmpty) {
       w.ValueType returnType = function.type.outputs[0];
       if (returnType is w.RefType && returnType.nullable) {
         // Dart body may have an implicit return null.
@@ -706,7 +706,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   bool _hasLogicalOperator(Expression condition) {
-    while (condition is Not) condition = condition.operand;
+    while (condition is Not) {
+      condition = condition.operand;
+    }
     return condition is LogicalExpression;
   }
 
