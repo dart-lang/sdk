@@ -4532,6 +4532,7 @@ abstract class UriBasedDirective implements Directive {
 
   /// Return the content of the [uri], or `null` if the AST structure has not
   /// been resolved, or if the [uri] has a string interpolation.
+  /// TODO(scheglov) Deprecate and remove it.
   String? get uriContent;
 
   /// Return the element associated with the [uri] of this directive, or `null`
@@ -4540,9 +4541,11 @@ abstract class UriBasedDirective implements Directive {
   ///
   /// Examples of the latter case include a directive that contains an invalid
   /// URL or a URL that does not exist.
+  /// TODO(scheglov) Deprecate and remove it.
   Element? get uriElement;
 
   /// Return the source to which the [uri] was resolved.
+  /// TODO(scheglov) Deprecate and remove it.
   Source? get uriSource;
 }
 

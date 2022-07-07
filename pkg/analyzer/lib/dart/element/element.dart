@@ -932,23 +932,25 @@ class ElementKind implements Comparable<ElementKind> {
   static const ElementKind PARAMETER =
       ElementKind('PARAMETER', 21, "parameter");
 
-  static const ElementKind PREFIX = ElementKind('PREFIX', 22, "import prefix");
+  static const ElementKind PART = ElementKind('PART', 22, "part");
 
-  static const ElementKind SETTER = ElementKind('SETTER', 23, "setter");
+  static const ElementKind PREFIX = ElementKind('PREFIX', 23, "import prefix");
+
+  static const ElementKind SETTER = ElementKind('SETTER', 24, "setter");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      ElementKind('TOP_LEVEL_VARIABLE', 24, "top level variable");
+      ElementKind('TOP_LEVEL_VARIABLE', 25, "top level variable");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      ElementKind('FUNCTION_TYPE_ALIAS', 25, "function type alias");
+      ElementKind('FUNCTION_TYPE_ALIAS', 26, "function type alias");
 
   static const ElementKind TYPE_PARAMETER =
-      ElementKind('TYPE_PARAMETER', 26, "type parameter");
+      ElementKind('TYPE_PARAMETER', 27, "type parameter");
 
   static const ElementKind TYPE_ALIAS =
-      ElementKind('TYPE_ALIAS', 27, "type alias");
+      ElementKind('TYPE_ALIAS', 28, "type alias");
 
-  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 28, "<universe>");
+  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 29, "<universe>");
 
   static const List<ElementKind> values = [
     CLASS,
@@ -970,6 +972,7 @@ class ElementKind implements Comparable<ElementKind> {
     NAME,
     NEVER,
     PARAMETER,
+    PART,
     PREFIX,
     SETTER,
     TOP_LEVEL_VARIABLE,
@@ -1070,6 +1073,8 @@ abstract class ElementVisitor<R> {
   R? visitMultiplyDefinedElement(MultiplyDefinedElement element);
 
   R? visitParameterElement(ParameterElement element);
+
+  R? visitPartElement(PartElement element);
 
   R? visitPrefixElement(PrefixElement element);
 
@@ -1390,6 +1395,9 @@ abstract class LibraryElement
   /// compilation unit that contains the `part` directives.
   List<CompilationUnitElement> get parts;
 
+  /// Returns the list of `part` directives of this library.
+  List<PartElement> get parts2;
+
   /// The public [Namespace] of this library.
   Namespace get publicNamespace;
 
@@ -1654,6 +1662,30 @@ abstract class ParameterElement
     StringBuffer buffer, {
     bool withNullability = false,
   });
+}
+
+/// A 'part' directive within a library.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class PartElement implements _ExistingElement {}
+
+/// [PartElementWithSource] that represents a valid part of this library.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class PartElementWithPart implements PartElementWithSource {
+  /// The part [CompilationUnitElement] referenced by [uriSource].
+  CompilationUnitElement get includedUnit;
+}
+
+/// [PartElement] with a relative URI that resolves to a [Source].
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class PartElementWithSource implements PartElement {
+  /// The string value of the URI.
+  String get relativeUriString;
+
+  /// The source to which [relativeUriString] resolves.
+  Source get uriSource;
 }
 
 /// A prefix used to import one or more libraries into another library.

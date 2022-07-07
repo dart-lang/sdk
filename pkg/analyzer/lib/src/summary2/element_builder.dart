@@ -920,13 +920,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
-    var index = _partDirectiveIndex++;
-    // TODO(scheglov) With invalid URIs we will associate metadata incorrectly
-    if (index < _libraryElement.parts.length) {
-      var partElement = _libraryElement.parts[index];
-      partElement as CompilationUnitElementImpl;
-      partElement.metadata = _buildAnnotations(node.metadata);
-    }
+    final index = _partDirectiveIndex++;
+    final partElement = _libraryElement.parts2[index];
+    partElement as PartElementImpl;
+    partElement.metadata = _buildAnnotations(node.metadata);
   }
 
   @override

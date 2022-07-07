@@ -125,8 +125,6 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
 
 class CompilationUnitElementLinkedData
     extends ElementLinkedData<CompilationUnitElementImpl> {
-  ApplyConstantOffsets? applyConstantOffsets;
-
   CompilationUnitElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -135,12 +133,7 @@ class CompilationUnitElementLinkedData
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(
-      unitElement: unitElement,
-    );
-    applyConstantOffsets?.perform();
-  }
+  void _read(element, reader) {}
 }
 
 class ConstructorElementLinkedData
@@ -393,6 +386,13 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
       export.exportedLibrary = reader.readElement() as LibraryElementImpl?;
     }
 
+    for (final part in element.parts2) {
+      part as PartElementImpl;
+      part.metadata = reader._readAnnotationList(
+        unitElement: unitElement,
+      );
+    }
+
     element.entryPoint = reader.readElement() as FunctionElement?;
 
     applyConstantOffsets?.perform();
@@ -451,29 +451,30 @@ class LibraryReader {
     LibraryElementFlags.read(_reader, libraryElement);
 
     var unitContainerRef = _reference.getChild('@unit');
-    var unitCount = _reader.readUInt30();
-    var units = <CompilationUnitElementImpl>[];
-    for (var i = 0; i < unitCount; i++) {
-      var unitElement = _readUnitElement(
-        sourceFactory: sourceFactory,
+
+    libraryElement.definingCompilationUnit = _readUnitElement(
+      sourceFactory: sourceFactory,
+      unitContainerRef: unitContainerRef,
+      libraryElement: libraryElement,
+      librarySource: librarySource,
+      unitSource: librarySource,
+    );
+
+    libraryElement.parts2 = _reader.readTypedList(() {
+      return _readPartElement(
         unitContainerRef: unitContainerRef,
         libraryElement: libraryElement,
-        librarySource: librarySource,
       );
-      units.add(unitElement);
-    }
+    });
 
     libraryElement.exportedReferences = _reader.readTypedList(
       _readExportedReference,
     );
 
-    libraryElement.definingCompilationUnit = units[0];
-    libraryElement.parts = units.skip(1).toList();
-
     libraryElement.linkedData = LibraryElementLinkedData(
       reference: _reference,
       libraryReader: this,
-      unitElement: units[0],
+      unitElement: libraryElement.definingCompilationUnit,
       offset: resolutionOffset,
     );
 
@@ -977,6 +978,47 @@ class LibraryReader {
     });
   }
 
+  PartElement _readPartElement({
+    required Reference unitContainerRef,
+    required LibraryElementImpl libraryElement,
+  }) {
+    final analysisContext = _elementFactory.analysisContext;
+    final sourceFactory = analysisContext.sourceFactory;
+
+    final kindIndex = _reader.readByte();
+    final kind = PartElementKind.values[kindIndex];
+    switch (kind) {
+      case PartElementKind.withPart:
+        final relativeUriString = _reader.readStringReference();
+        final uriStr = _reader.readStringReference();
+        final uri = Uri.parse(uriStr);
+        final uriSource = sourceFactory.forUri2(uri)!;
+        final unitElement = _readUnitElement(
+          sourceFactory: sourceFactory,
+          unitContainerRef: unitContainerRef,
+          libraryElement: libraryElement,
+          librarySource: libraryElement.source,
+          unitSource: uriSource,
+        );
+        return PartElementWithPartImpl(
+          relativeUriString: relativeUriString,
+          uriSource: uriSource,
+          includedUnit: unitElement,
+        );
+      case PartElementKind.withSource:
+        final relativeUriString = _reader.readStringReference();
+        final uriStr = _reader.readStringReference();
+        final uri = Uri.parse(uriStr);
+        final uriSource = sourceFactory.forUri2(uri)!;
+        return PartElementWithSourceImpl(
+          relativeUriString: relativeUriString,
+          uriSource: uriSource,
+        );
+      case PartElementKind.withNothing:
+        return PartElementImpl();
+    }
+  }
+
   PropertyAccessorElementImpl _readPropertyAccessorElement(
     CompilationUnitElementImpl unitElement,
     ElementImpl classElement,
@@ -1196,11 +1238,9 @@ class LibraryReader {
     required Reference unitContainerRef,
     required LibraryElementImpl libraryElement,
     required Source librarySource,
+    required Source unitSource,
   }) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var unitUriStr = _reader.readStringReference();
-    var unitUri = Uri.parse(unitUriStr);
-    var unitSource = sourceFactory.forUri2(unitUri)!;
 
     var unitElement = CompilationUnitElementImpl(
       source: unitSource,
@@ -1208,7 +1248,7 @@ class LibraryReader {
       lineInfo: LineInfo([0]),
     );
 
-    var unitReference = unitContainerRef.getChild(unitUriStr);
+    var unitReference = unitContainerRef.getChild('${unitSource.uri}');
     unitElement.setLinkedData(
       unitReference,
       CompilationUnitElementLinkedData(

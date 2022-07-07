@@ -164,13 +164,7 @@ class _ElementWriter {
         _writeUnitElement(e.definingCompilationUnit);
       });
 
-      _writeElements('parts', e.parts, (CompilationUnitElement e) {
-        _writelnWithIndent(e.uri!);
-        _withIndent(() {
-          _writeMetadata(e);
-          _writeUnitElement(e);
-        });
-      });
+      _writeElements('parts', e.parts2, _writePartElement);
 
       if (withExportScope) {
         _writelnWithIndent('exportedReferences');
@@ -715,6 +709,28 @@ class _ElementWriter {
 
   void _writeParameterElements(List<ParameterElement> elements) {
     _writeElements('parameters', elements, _writeParameterElement);
+  }
+
+  void _writePartElement(PartElement e) {
+    if (e is PartElementWithPart) {
+      _writelnWithIndent('${e.includedUnit.source.uri}');
+      _withIndent(() {
+        _writeMetadata(e);
+        _writeUnitElement(e.includedUnit);
+      });
+    } else if (e is PartElementWithSource) {
+      _writelnWithIndent("source '${e.uriSource.uri}'");
+      _withIndent(() {
+        _writeMetadata(e);
+      });
+    } else if (e is PartElementImpl) {
+      _writelnWithIndent('noSource');
+      _withIndent(() {
+        _writeMetadata(e);
+      });
+    } else {
+      throw UnimplementedError('(${e.runtimeType}) $e');
+    }
   }
 
   void _writePropertyAccessorElement(PropertyAccessorElement e) {

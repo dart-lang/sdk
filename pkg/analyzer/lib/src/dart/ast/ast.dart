@@ -8761,7 +8761,13 @@ class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
   Token get keyword => partKeyword;
 
   @override
-  CompilationUnitElement? get uriElement => element as CompilationUnitElement?;
+  CompilationUnitElement? get uriElement {
+    final partElement = element as PartElement?;
+    if (partElement is PartElementWithPart) {
+      return partElement.includedUnit;
+    }
+    return null;
+  }
 
   @override
   ChildEntities get _childEntities => super._childEntities

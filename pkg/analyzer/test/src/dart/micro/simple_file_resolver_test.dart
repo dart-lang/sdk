@@ -460,9 +460,12 @@ part 'b.dart';
 var b = B(0);
 ''');
 
+    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
+part of 'a.dart';
+''');
+
     result = await resolveFile(a.path);
     assertErrorsInResolvedUnit(result, [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
       error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 24, 1),
     ]);
 
@@ -477,7 +480,7 @@ var b = B(1);
 
     // Update b.dart, but do not notify the resolver.
     // If we try to read it now, it will throw.
-    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
+    newFile(b.path, r'''
 part of 'a.dart';
 
 class B {

@@ -225,6 +225,7 @@ void f(String s) {
 
   Future<void> test_explicitTarget_method_inPart() async {
     newFile(convertPath('$testPackageLibPath/part.dart'), '''
+part of 'test.dart';
 extension E on String {
   void m() {}
 }

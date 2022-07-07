@@ -475,6 +475,7 @@ class A {
 
   Future<void> test_limitedResolution_hasPart() async {
     newFile('/workspace/dart/test/lib/a.dart', r'''
+part of 'test.dart';
 class A {}
 ''');
 

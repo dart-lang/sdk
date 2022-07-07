@@ -805,8 +805,14 @@ class LibraryAnalyzer {
   }) {
     StringLiteral partUri = directive.uri;
 
-    final partState = _library.parts[partIndexes.directive++];
+    final index = partIndexes.directive++;
+
+    final partState = _library.parts[index];
     directive.uriSource = partState.includedSource;
+
+    final partElement = _libraryElement.parts2[index];
+    directive.element = partElement;
+
     if (partState is! PartDirectiveWithUri) {
       libraryErrorReporter.reportErrorForNode(
         CompileTimeErrorCode.URI_WITH_INTERPOLATION,
@@ -815,23 +821,12 @@ class LibraryAnalyzer {
       return;
     }
 
-    // TODO(scheglov) This should not be necessary if we build `PartElement`
-    // for every `part` directive.
-    if (partIndexes.element >= _libraryElement.parts.length) {
+    if (partState is! PartDirectiveWithFile) {
       final errorCode = partState.uri.isValid
           ? CompileTimeErrorCode.URI_DOES_NOT_EXIST
           : CompileTimeErrorCode.INVALID_URI;
       libraryErrorReporter.reportErrorForNode(
         errorCode,
-        directive.uri,
-        [partState.uri.relativeUriStr],
-      );
-      return;
-    }
-
-    if (partState is! PartDirectiveWithFile) {
-      libraryErrorReporter.reportErrorForNode(
-        CompileTimeErrorCode.URI_DOES_NOT_EXIST,
         directive.uri,
         [partState.uri.relativeUriStr],
       );
@@ -887,10 +882,11 @@ class LibraryAnalyzer {
       return;
     }
 
+    // TODO(scheglov) Unsafe.
     var partUnit = units[includedFile]!;
-    var partElement = _libraryElement.parts[partIndexes.element++];
-    partUnit.element = partElement;
-    directive.element = partElement;
+    if (partElement is PartElementWithPart) {
+      partUnit.element = partElement.includedUnit;
+    }
 
     final partSource = includedKind.file.source;
     directive.uriSource = partSource;
