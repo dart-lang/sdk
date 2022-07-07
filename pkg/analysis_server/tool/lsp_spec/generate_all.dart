@@ -303,6 +303,23 @@ List<LspEntity> getCustomClasses() {
       baseType: 'CompletionItemResolutionInfo',
     ),
     interface(
+      'DartNotImportedCompletionResolutionInfo',
+      [
+        field(
+          'file',
+          type: 'string',
+          comment: 'The file where the completion is being inserted.\n\n'
+              'This is used to compute where to add the import.',
+        ),
+        field(
+          'libraryUri',
+          type: 'string',
+          comment: 'The URI to be imported if this completion is selected.',
+        ),
+      ],
+      baseType: 'CompletionItemResolutionInfo',
+    ),
+    interface(
       'PubPackageCompletionItemResolutionInfo',
       [
         field('packageName', type: 'string'),

@@ -143,6 +143,10 @@ class CompletionItemResolutionInfo implements ToJsonable {
   );
 
   static CompletionItemResolutionInfo fromJson(Map<String, Object?> json) {
+    if (DartNotImportedCompletionResolutionInfo.canParse(
+        json, nullLspJsonReporter)) {
+      return DartNotImportedCompletionResolutionInfo.fromJson(json);
+    }
     if (DartSuggestionSetCompletionItemResolutionInfo.canParse(
         json, nullLspJsonReporter)) {
       return DartSuggestionSetCompletionItemResolutionInfo.fromJson(json);
@@ -224,6 +228,78 @@ class DartDiagnosticServer implements ToJsonable {
 
   @override
   int get hashCode => port.hashCode;
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class DartNotImportedCompletionResolutionInfo
+    implements CompletionItemResolutionInfo, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    DartNotImportedCompletionResolutionInfo.canParse,
+    DartNotImportedCompletionResolutionInfo.fromJson,
+  );
+
+  DartNotImportedCompletionResolutionInfo({
+    required this.file,
+    required this.libraryUri,
+  });
+  static DartNotImportedCompletionResolutionInfo fromJson(
+      Map<String, Object?> json) {
+    final fileJson = json['file'];
+    final file = fileJson as String;
+    final libraryUriJson = json['libraryUri'];
+    final libraryUri = libraryUriJson as String;
+    return DartNotImportedCompletionResolutionInfo(
+      file: file,
+      libraryUri: libraryUri,
+    );
+  }
+
+  /// The file where the completion is being inserted.
+  ///
+  /// This is used to compute where to add the import.
+  final String file;
+
+  /// The URI to be imported if this completion is selected.
+  final String libraryUri;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['file'] = file;
+    result['libraryUri'] = libraryUri;
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseString(obj, reporter, 'file',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'libraryUri',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError(
+          'must be of type DartNotImportedCompletionResolutionInfo');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is DartNotImportedCompletionResolutionInfo &&
+        other.runtimeType == DartNotImportedCompletionResolutionInfo &&
+        file == other.file &&
+        libraryUri == other.libraryUri;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        file,
+        libraryUri,
+      );
 
   @override
   String toString() => jsonEncoder.convert(toJson());

@@ -1118,6 +1118,7 @@ lsp.CompletionItem toCompletionItem(
   server.CompletionSuggestion suggestion, {
   required Range replacementRange,
   required Range insertionRange,
+  bool includeDocs = true,
   required bool includeCommitCharacters,
   required bool completeFunctionCalls,
   CompletionItemResolutionInfo? resolutionData,
@@ -1216,7 +1217,7 @@ lsp.CompletionItem toCompletionItem(
         includeCommitCharacters ? dartCompletionCommitCharacters : null,
     data: resolutionData,
     detail: detail,
-    documentation: cleanedDoc != null
+    documentation: cleanedDoc != null && includeDocs
         ? asMarkupContentOrString(formats, cleanedDoc)
         : null,
     deprecated: supportsCompletionDeprecatedFlag && suggestion.isDeprecated

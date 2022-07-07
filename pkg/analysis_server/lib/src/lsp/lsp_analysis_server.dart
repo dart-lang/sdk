@@ -887,21 +887,30 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
 class LspInitializationOptions {
   final bool onlyAnalyzeProjectsWithOpenFiles;
+  final bool previewNotImportedCompletions;
   final bool suggestFromUnimportedLibraries;
   final bool closingLabels;
   final bool outline;
   final bool flutterOutline;
+  final int? notImportedCompletionBudgetMilliseconds;
 
   LspInitializationOptions(dynamic options)
       : onlyAnalyzeProjectsWithOpenFiles = options != null &&
             options['onlyAnalyzeProjectsWithOpenFiles'] == true,
+        // Undocumented preview flag to allow easy testing of not imported
+        // completion contributor.
+        previewNotImportedCompletions =
+            options != null && options['previewNotImportedCompletions'] == true,
         // suggestFromUnimportedLibraries defaults to true, so must be
         // explicitly passed as false to disable.
         suggestFromUnimportedLibraries = options == null ||
             options['suggestFromUnimportedLibraries'] != false,
         closingLabels = options != null && options['closingLabels'] == true,
         outline = options != null && options['outline'] == true,
-        flutterOutline = options != null && options['flutterOutline'] == true;
+        flutterOutline = options != null && options['flutterOutline'] == true,
+        notImportedCompletionBudgetMilliseconds = options != null
+            ? options['notImportedCompletionBudgetMilliseconds'] as int?
+            : null;
 }
 
 class LspServerContextManagerCallbacks extends ContextManagerCallbacks {

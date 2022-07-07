@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
+import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -10,8 +11,6 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/util/comment.dart' as analyzer;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class CompletionResolveHandler
@@ -41,6 +40,8 @@ class CompletionResolveHandler
 
     if (resolutionInfo is DartSuggestionSetCompletionItemResolutionInfo) {
       return resolveDartSuggestionSetCompletion(params, resolutionInfo, token);
+    } else if (resolutionInfo is DartNotImportedCompletionResolutionInfo) {
+      return resolveDartNotImportedCompletion(params, resolutionInfo, token);
     } else if (resolutionInfo is PubPackageCompletionItemResolutionInfo) {
       return resolvePubPackageCompletion(params, resolutionInfo, token);
     } else {
@@ -51,7 +52,6 @@ class CompletionResolveHandler
   Future<ErrorOr<CompletionItem>> resolveDartCompletion(
     CompletionItem item,
     LspClientCapabilities clientCapabilities,
-    LineInfo lineInfo,
     CancellationToken token, {
     required String file,
     required Uri libraryUri,
@@ -67,6 +67,11 @@ class CompletionResolveHandler
         // was removed from the analysis set so assume the request is no longer
         // valid.
         if (session == null || token.isCancellationRequested) {
+          return cancelled();
+        }
+
+        final result = await session.getResolvedUnit(file);
+        if (result is! ResolvedUnitResult) {
           return cancelled();
         }
 
@@ -113,10 +118,14 @@ class CompletionResolveHandler
         }
 
         final formats = clientCapabilities.completionDocumentationFormats;
-        final dartDoc =
-            analyzer.getDartDocPlainText(element.documentationComment);
-        final documentation =
-            dartDoc != null ? asMarkupContentOrString(formats, dartDoc) : null;
+        final dartDocInfo = server.getDartdocDirectiveInfoForSession(session);
+        final dartDocData =
+            DartUnitHoverComputer.computeDocumentation(dartDocInfo, element);
+        final dartDoc = dartDocData?.full;
+        // `dartDoc` can be both null or empty.
+        final documentation = dartDoc != null && dartDoc.isNotEmpty
+            ? asMarkupContentOrString(formats, dartDoc)
+            : null;
 
         // If the only URI we have is a file:// URI, display it as relative to
         // the file we're importing into, rather than the full URI.
@@ -148,7 +157,7 @@ class CompletionResolveHandler
           textEdit: item.textEdit,
           additionalTextEdits: thisFilesChanges
               .expand((change) =>
-                  change.edits.map((edit) => toTextEdit(lineInfo, edit)))
+                  change.edits.map((edit) => toTextEdit(result.lineInfo, edit)))
               .toList(),
           commitCharacters: item.commitCharacters,
           command: command ?? item.command,
@@ -168,6 +177,27 @@ class CompletionResolveHandler
     );
   }
 
+  Future<ErrorOr<CompletionItem>> resolveDartNotImportedCompletion(
+    CompletionItem item,
+    DartNotImportedCompletionResolutionInfo data,
+    CancellationToken token,
+  ) async {
+    final clientCapabilities = server.clientCapabilities;
+    if (clientCapabilities == null) {
+      // This should not happen unless a client misbehaves.
+      return error(ErrorCodes.ServerNotInitialized,
+          'Requests not before server is initilized');
+    }
+
+    return resolveDartCompletion(
+      item,
+      clientCapabilities,
+      token,
+      file: data.file,
+      libraryUri: Uri.parse(data.libraryUri),
+    );
+  }
+
   Future<ErrorOr<CompletionItem>> resolveDartSuggestionSetCompletion(
     CompletionItem item,
     DartSuggestionSetCompletionItemResolutionInfo data,
@@ -177,16 +207,6 @@ class CompletionResolveHandler
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
-    }
-
-    final file = data.file;
-    final lineInfo = server.getLineInfo(file);
-    if (lineInfo == null) {
-      return error(
-        ErrorCodes.InternalError,
-        'Line info not available for $file',
-        null,
-      );
     }
 
     var library = server.declarationsTracker?.getLibrary(data.libId);
@@ -201,9 +221,8 @@ class CompletionResolveHandler
     return resolveDartCompletion(
       item,
       clientCapabilities,
-      lineInfo,
       token,
-      file: file,
+      file: data.file,
       libraryUri: library.uri,
     );
   }
