@@ -1815,6 +1815,33 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
   }
 
+  /// Helper to convert to InstanceRef to a complete untruncated String,
+  /// handling [vm.InstanceKind.kNull] which is the type for the unused fields
+  /// of a log event.
+  Future<String?> getFullString(ThreadInfo thread, vm.InstanceRef? ref) async {
+    if (ref == null || ref.kind == vm.InstanceKind.kNull) {
+      return null;
+    }
+    return _converter
+        .convertVmInstanceRefToDisplayString(
+      thread,
+      ref,
+      // Always allow calling toString() here as the user expects the full
+      // string they logged regardless of the evaluateToStringInDebugViews
+      // setting.
+      allowCallingToString: true,
+      allowTruncatedValue: false,
+      includeQuotesAroundString: false,
+    )
+        .catchError((e) {
+      // Fetching strings from the server may throw if they have been
+      // collected since (for example if a Hot Restart occurs while
+      // we're running this). Log the error and just return null so
+      // nothing is shown.
+      logger?.call('$e');
+    });
+  }
+
   /// Handles a dart:developer log() event, sending output to the client.
   @protected
   @mustCallSuper
@@ -1825,40 +1852,13 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       return;
     }
 
-    /// Helper to convert to InstanceRef to a String, taking into account
-    /// [vm.InstanceKind.kNull] which is the type for the unused fields of a
-    /// log event.
-    Future<String?> asString(vm.InstanceRef? ref) async {
-      if (ref == null || ref.kind == vm.InstanceKind.kNull) {
-        return null;
-      }
-      return _converter
-          .convertVmInstanceRefToDisplayString(
-        thread,
-        ref,
-        // Always allow calling toString() here as the user expects the full
-        // string they logged regardless of the evaluateToStringInDebugViews
-        // setting.
-        allowCallingToString: true,
-        allowTruncatedValue: false,
-        includeQuotesAroundString: false,
-      )
-          .catchError((e) {
-        // Fetching strings from the server may throw if they have been
-        // collected since (for example if a Hot Restart occurs while
-        // we're running this). Log the error and just return null so
-        // nothing is shown.
-        logger?.call('$e');
-      });
-    }
-
-    var loggerName = await asString(record.loggerName);
+    var loggerName = await getFullString(thread, record.loggerName);
     if (loggerName?.isEmpty ?? true) {
       loggerName = 'log';
     }
-    final message = await asString(record.message);
-    final error = await asString(record.error);
-    final stack = await asString(record.stackTrace);
+    final message = await getFullString(thread, record.message);
+    final error = await getFullString(thread, record.error);
+    final stack = await getFullString(thread, record.stackTrace);
 
     final prefix = '[$loggerName] ';
 

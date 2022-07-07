@@ -501,14 +501,20 @@ class IsolateManager {
       // If we stopped at an exception, capture the exception instance so we
       // can add a variables scope for it so it can be examined.
       final exception = event.exception;
+      String? text;
       if (exception != null) {
         _adapter.storeEvaluateName(exception, threadExceptionExpression);
         thread.exceptionReference = thread.storeData(exception);
+        text = await _adapter.getFullString(thread, exception);
       }
 
       // Notify the client.
       _adapter.sendEvent(
-        StoppedEventBody(reason: reason, threadId: thread.threadId),
+        StoppedEventBody(
+          reason: reason,
+          threadId: thread.threadId,
+          text: text,
+        ),
       );
     }
   }
