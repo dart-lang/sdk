@@ -1611,8 +1611,7 @@ Map<String, dynamic> toJson() {
     // toString()
     Iterable<TypeField> toStringFields =
         getAllFields().where((f) => !f.optional);
-    const maxFieldsShownInToString = 8;
-    if (toStringFields.length <= maxFieldsShownInToString) {
+    if (toStringFields.length <= 7) {
       String properties = toStringFields
           .map(
               (TypeField f) => "${f.generatableName}: \${${f.generatableName}}")

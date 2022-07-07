@@ -5890,7 +5890,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         "\"_kind\":\"RegularFunction\",\"static\":false,\"const\":false,"
-        "\"implicit\":false,\"abstract\":false,"
+        "\"implicit\":false,"
         "\"_intrinsic\":false,\"_native\":false,"
         "\"location\":{\"type\":\"SourceLocation\","
         "\"script\":{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
