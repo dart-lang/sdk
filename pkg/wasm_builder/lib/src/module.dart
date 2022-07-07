@@ -24,7 +24,7 @@ class Module with SerializerMixin {
   final List<DataSegment> dataSegments = [];
   final List<Global> globals = [];
   final List<Export> exports = [];
-  BaseFunction? startFunction = null;
+  BaseFunction? startFunction;
 
   bool anyFunctionsDefined = false;
   bool anyTablesDefined = false;
@@ -277,7 +277,7 @@ class Module with SerializerMixin {
   }
 
   /// Serialize the module to its binary representation.
-  Uint8List encode({bool emitNameSection: true}) {
+  Uint8List encode({bool emitNameSection = true}) {
     // Wasm module preamble: magic number, version 1.
     writeBytes(const [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]);
     TypeSection(this).serialize(this);
@@ -918,7 +918,7 @@ class ElementSection extends Section {
     // each stretch as an element.
     List<_Element> elements = [];
     for (DefinedTable table in module.definedTables) {
-      _Element? current = null;
+      _Element? current;
       for (int i = 0; i < table.elements.length; i++) {
         BaseFunction? function = table.elements[i];
         if (function != null) {
