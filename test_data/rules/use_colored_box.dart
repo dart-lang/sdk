@@ -22,7 +22,7 @@ Widget containerWithKey() {
 }
 
 Widget containerWithColor() {
-  return Container( // LINT
+  return Container( // OK
     color: Color(0xffffffff),
   );
 }
@@ -41,7 +41,7 @@ Widget containerWithKeyAndChild() {
 }
 
 Widget containerWithKeyAndColor() {
-  return Container( // LINT
+  return Container( // OK
     key: Key('abc'),
     color: Color(0xffffffff),
   );

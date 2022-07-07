@@ -19,7 +19,7 @@ Widget containerWithKey() {
 }
 
 Widget containerWithDecoration() {
-  return Container( // LINT
+  return Container( // OK
     decoration: BoxDecoration(),
   );
 }
@@ -38,7 +38,7 @@ Widget containerWithKeyAndChild() {
 }
 
 Widget containerWithKeyAndDecoration() {
-  return Container( // LINT
+  return Container( // OK
     key: Key('abc'),
     decoration: BoxDecoration(),
   );

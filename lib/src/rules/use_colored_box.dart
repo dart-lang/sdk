@@ -73,7 +73,7 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    if (data.hasColor) {
+    if (data.hasChild && data.hasColor) {
       rule.reportLint(node.constructorName);
     }
   }
@@ -83,6 +83,7 @@ class _ArgumentData {
   var positionalArgumentsFound = false;
   var additionalArgumentsFound = false;
   var hasColor = false;
+  var hasChild = false;
 
   _ArgumentData(ArgumentList node) {
     for (var argument in node.arguments) {
@@ -96,7 +97,7 @@ class _ArgumentData {
               NullabilitySuffix.question) {
         hasColor = true;
       } else if (label.name == 'child') {
-        // Ignore child
+        hasChild = true;
       } else if (label.name == 'key') {
         // Ignore key
       } else {

@@ -82,7 +82,7 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    if (data.hasDecoration) {
+    if (data.hasChild && data.hasDecoration) {
       rule.reportLint(node.constructorName);
     }
   }
@@ -92,6 +92,7 @@ class _ArgumentData {
   var positionalArgumentsFound = false;
   var additionalArgumentsFound = false;
   var hasDecoration = false;
+  var hasChild = false;
 
   _ArgumentData(ArgumentList node) {
     for (var argument in node.arguments) {
@@ -103,7 +104,7 @@ class _ArgumentData {
       if (label.name == 'decoration') {
         hasDecoration = true;
       } else if (label.name == 'child') {
-        // Ignore child
+        hasChild = true;
       } else if (label.name == 'key') {
         // Ignore key
       } else {
