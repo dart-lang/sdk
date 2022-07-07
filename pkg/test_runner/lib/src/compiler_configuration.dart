@@ -80,9 +80,6 @@ abstract class CompilerConfiguration {
       case Compiler.dart2analyzer:
         return AnalyzerCompilerConfiguration(configuration);
 
-      case Compiler.compareAnalyzerCfe:
-        return CompareAnalyzerCfeCompilerConfiguration(configuration);
-
       case Compiler.dart2js:
         return Dart2jsCompilerConfiguration(configuration);
 
@@ -1246,41 +1243,6 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
       if (_configuration.useAnalyzerCfe) '--use-cfe',
       if (_configuration.useAnalyzerFastaParser) '--use-fasta-parser',
     ];
-  }
-}
-
-/// Configuration for compareAnalyzerCfe.
-class CompareAnalyzerCfeCompilerConfiguration extends CompilerConfiguration {
-  CompareAnalyzerCfeCompilerConfiguration(TestConfiguration configuration)
-      : super._subclass(configuration);
-
-  int get timeoutMultiplier => 4;
-
-  String computeCompilerPath() {
-    if (_useSdk) {
-      throw "--use-sdk cannot be used with compiler compare_analyzer_cfe";
-    }
-    return 'pkg/analyzer_fe_comparison/bin/'
-        'compare_sdk_tests$shellScriptExtension';
-  }
-
-  CommandArtifact computeCompilationArtifact(String tempDir,
-      List<String> arguments, Map<String, String> environmentOverrides) {
-    // Since this is not a real compilation, no artifacts are produced.
-    return CommandArtifact([
-      CompareAnalyzerCfeCommand(
-          computeCompilerPath(), arguments.toList(), environmentOverrides)
-    ], arguments.singleWhere((argument) => argument.endsWith('.dart')),
-        'application/vnd.dart');
-  }
-
-  List<String> computeRuntimeArguments(
-      RuntimeConfiguration runtimeConfiguration,
-      TestFile testFile,
-      List<String> vmOptions,
-      List<String> originalArguments,
-      CommandArtifact? artifact) {
-    return [];
   }
 }
 
