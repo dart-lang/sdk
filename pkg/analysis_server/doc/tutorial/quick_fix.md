@@ -24,10 +24,11 @@ keyword `final` to the field declaration.
 A single-site fix is one in which a single fix can be applied to a single
 location at which the associated diagnostic is reported.
 
-When the client asks for quick fixes, the analysis server computes the relevant
-diagnostics based on the cursor location. Then, for each diagnostic, it computes
-one or more fixes. It then returns the list of computed fixes to the client. The
-client typically allows the user to choose a single fix to be applied.
+When the client asks for quick fixes at a given location, the analysis server
+computes the relevant diagnostics based on that location. Then, for each
+diagnostic, it computes one or more fixes. It then returns the list of computed
+fixes to the client. The client typically allows the user to choose a single fix
+to be applied.
 
 ### Design considerations
 
@@ -37,7 +38,7 @@ That places a performance requirement on quick fixes, one that requires that the
 code to compute a quick fix can't perform any potentially lengthy computations
 such as searching all of the user's code or accessing the network. That, in
 turn, generally means that fixes can only support localized changes. They can
-add or remove text in the file in which the diagnostic was reported, but
+add or remove text in the library in which the diagnostic was reported, but
 generally can't do more than that. 
 
 ### Describing the fix
@@ -80,10 +81,11 @@ static const ADD_FINAL = FixKind(
 To implement the fix you'll create a subclass of `CorrectionProducer`. Most of
 the existing correction producers are in the directory
 `analysis_server/lib/src/services/correction/dart`, so we'll start by creating
-a file named `add_final.dart` in that directory that contains the following:
+a file named `add_final.dart` in that directory that contains the following
+(with the year updated appropriately):
 
 ```dart
-// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -99,9 +101,6 @@ class AddFinal extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddFinal newInstance() => AddFinal();
 }
 ```
 
@@ -111,16 +110,14 @@ The `compute` method is where the fix will be built. We'll come back to it in
 The `fixKind` getter is how you associate the fix kind we created earlier with
 the fix produced by the `compute` method.
 
-The static `newInstance` method will be used later in "Registering the fix".
-
 There's another getter you might need to override. The message associated with
 the fix kind is actually a template that can be filled in at runtime. The
 placeholders in the message are denoted by integers inside curly braces (such as
-`{0}`). The integers are indexes into a list of replacement values, and the
-getter `fixArguments` returns the list of replacement values. The message we
-used above doesn't have any placeholders, but if we'd written the message as
-`"Add '{0}' modifier"`, then we could return the replacement values by
-implementing:
+`{0}`). The integers are indexes into a list of replacement values (hence, zero
+based), and the getter `fixArguments` returns the list of replacement values.
+The message we used above doesn't have any placeholders, but if we'd written the
+message as `"Add '{0}' modifier"`, then we could return the replacement values
+by implementing something like:
 
 ```dart
 @override
@@ -129,19 +126,20 @@ List<Object> get fixArguments => ['final'];
 
 If you don't implement this getter, then the inherited getter will return an
 empty list. The number of elements in the list must match the largest index used
-in the message.
+in the message. If it doesn't, then an exception will be thrown at runtime.
 
 ### Testing the fix
 
 Before we look at implementing the `compute` method, we should probably write
 some tests. Even if you don't normally use a test-driven approach to coding, we
-recommend it in this case because writing the tests can help you think of corner
-cases that the implementation will need to handle. The corresponding tests are
-in the directory `analysis_server/test/src/services/correction/fix`, so we'll
+recommend it when writing fixes because writing the tests can help you think of
+corner cases that the implementation will need to handle. The corresponding
+tests are in the directory `analysis_server/test/src/services/correction/fix`,
+so we'll
 create a file named `add_final_test.dart` that contains the following:
 
 ```dart
-// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -168,8 +166,10 @@ class AddFinalTest extends FixProcessorLintTest {
 }
 ```
 
-These two getters tell the test framework to enable the lint being fixed and to
-expect a fix of the expected kind.
+The two getters in the test class tell the test framework to enable the lint
+being fixed and to expect a fix of the expected kind. Unless there's already a
+fix associated with the lint you'll likely need to add a new constant in
+`LintNames`.
 
 The test can then be written in a method that looks something like this:
 
@@ -193,9 +193,9 @@ class C {
 ```
 
 The test framework will create a file containing the first piece of code, run
-the lint over the code, use our correction producer to build a fix, apply the
-fix to the file, and textually compare the results with the second piece of
-code.
+the lint over the code, use the correction producer you wrote to build a fix,
+apply the fix to the file, and textually compare the results with the second
+piece of code.
 
 ### Registering the fix
 
@@ -217,8 +217,8 @@ producers it can use to produce fixes. There are three tables:
 
 Actually, the tables contain lists of functions used to create the producers. We
 do that so that producers can't accidentally carry state over from one use to
-the next. These functions are usually a tear-off of the static method you
-defined in "Implementing the fix, part 1".
+the next. These functions are usually a tear-off of one of the correction
+producer's constructors.
 
 The last step is to add your correction producer to the appropriate map. If
 you're adding a fix for a lint, then you'd add an entry like
@@ -259,7 +259,7 @@ diagnostic to the fix, so sometimes it just can't be avoided.
 For this example we're going to assume that the lint highlights the name of the
 field that could have been final. Finding the AST node is easy because it's done
 for you by the fix processor before `compute` is invoked. All you have to do is
-use the getter `node` to find the node at the offset of the lint's highlight
+use the getter `node` to find the node at the beginning of the lint's highlight
 region. We're expecting it to be the name of a field, so that's how we'll name
 the variable:
 
