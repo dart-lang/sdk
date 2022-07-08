@@ -181,6 +181,208 @@ static method useAddAll() → void {
       #t48.{core::Set::addAll}{Invariant}(#t60){(core::Iterable<core::num*>*) →* void};
   } =>#t48;
   self::expect(core::List::generate<core::num*>(24, (core::int* i) → core::int* => i).{core::Iterable::toSet}(){() →* core::Set<core::num*>*}, set4);
+  core::Set<core::int*>* set5 = block {
+    final core::Set<core::int*>* #t61 = col::LinkedHashSet::•<core::int*>();
+    for (final has-declared-initializer dynamic #t62 in dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+      final core::int* #t63 = #t62 as{TypeError} core::int*;
+      #t61.{core::Set::add}{Invariant}(#t63){(core::int*) →* core::bool*};
+    }
+    for (final has-declared-initializer dynamic #t64 in dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+      final core::int* #t65 = #t64 as{TypeError} core::int*;
+      #t61.{core::Set::add}{Invariant}(#t65){(core::int*) →* core::bool*};
+    }
+    for (final has-declared-initializer dynamic #t66 in iterableIntSet) {
+      final core::int* #t67 = #t66 as{TypeError} core::int*;
+      #t61.{core::Set::add}{Invariant}(#t67){(core::int*) →* core::bool*};
+    }
+    for (final has-declared-initializer dynamic #t68 in iterableNumSet1) {
+      final core::int* #t69 = #t68 as{TypeError} core::int*;
+      #t61.{core::Set::add}{Invariant}(#t69){(core::int*) →* core::bool*};
+    }
+    for (final has-declared-initializer dynamic #t70 in iterableNumSet2) {
+      final core::int* #t71 = #t70 as{TypeError} core::int*;
+      #t61.{core::Set::add}{Invariant}(#t71){(core::int*) →* core::bool*};
+    }
+    for (final has-declared-initializer dynamic #t72 in intSet) {
+      final core::int* #t73 = #t72 as{TypeError} core::int*;
+      #t61.{core::Set::add}{Invariant}(#t73){(core::int*) →* core::bool*};
+    }
+    for (final has-declared-initializer dynamic #t74 in numSet1) {
+      final core::int* #t75 = #t74 as{TypeError} core::int*;
+      #t61.{core::Set::add}{Invariant}(#t75){(core::int*) →* core::bool*};
+    }
+    for (final has-declared-initializer dynamic #t76 in numSet2) {
+      final core::int* #t77 = #t76 as{TypeError} core::int*;
+      #t61.{core::Set::add}{Invariant}(#t77){(core::int*) →* core::bool*};
+    }
+  } =>#t61;
+  self::expect(core::List::generate<core::int*>(24, (core::int* i) → core::int* => i).{core::Iterable::toSet}(){() →* core::Set<core::int*>*}, set5);
+  core::Set<dynamic>* set6 = block {
+    final core::Set<dynamic>* #t78 = col::LinkedHashSet::•<dynamic>();
+    for (final has-declared-initializer dynamic #t79 in dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+      final dynamic #t80 = #t79 as{TypeError} dynamic;
+      #t78.{core::Set::add}{Invariant}(#t80){(dynamic) →* core::bool*};
+    }
+    for (final has-declared-initializer dynamic #t81 in dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+      final dynamic #t82 = #t81 as{TypeError} dynamic;
+      #t78.{core::Set::add}{Invariant}(#t82){(dynamic) →* core::bool*};
+    }
+    for (final has-declared-initializer dynamic #t83 in iterableIntSet) {
+      final dynamic #t84 = #t83 as{TypeError} dynamic;
+      #t78.{core::Set::add}{Invariant}(#t84){(dynamic) →* core::bool*};
+    }
+    for (final has-declared-initializer dynamic #t85 in iterableNumSet1) {
+      final dynamic #t86 = #t85 as{TypeError} dynamic;
+      #t78.{core::Set::add}{Invariant}(#t86){(dynamic) →* core::bool*};
+    }
+    for (final has-declared-initializer dynamic #t87 in iterableNumSet2) {
+      final dynamic #t88 = #t87 as{TypeError} dynamic;
+      #t78.{core::Set::add}{Invariant}(#t88){(dynamic) →* core::bool*};
+    }
+    for (final has-declared-initializer dynamic #t89 in intSet) {
+      final dynamic #t90 = #t89 as{TypeError} dynamic;
+      #t78.{core::Set::add}{Invariant}(#t90){(dynamic) →* core::bool*};
+    }
+    for (final has-declared-initializer dynamic #t91 in numSet1) {
+      final dynamic #t92 = #t91 as{TypeError} dynamic;
+      #t78.{core::Set::add}{Invariant}(#t92){(dynamic) →* core::bool*};
+    }
+    for (final has-declared-initializer dynamic #t93 in numSet2) {
+      final dynamic #t94 = #t93 as{TypeError} dynamic;
+      #t78.{core::Set::add}{Invariant}(#t94){(dynamic) →* core::bool*};
+    }
+  } =>#t78;
+  self::expect(core::List::generate<dynamic>(24, (core::int* i) → core::int* => i).{core::Iterable::toSet}(){() →* core::Set<dynamic>*}, set6);
+  core::Set<core::int*>* set7 = block {
+    final core::Set<core::int*>* #t95 = col::LinkedHashSet::•<core::int*>();
+    final core::Iterable<dynamic>* #t96 = dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!(#t96 == null))
+      for (final has-declared-initializer dynamic #t97 in #t96) {
+        final core::int* #t98 = #t97 as{TypeError} core::int*;
+        #t95.{core::Set::add}{Invariant}(#t98){(core::int*) →* core::bool*};
+      }
+    final core::Iterable<dynamic>* #t99 = dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!(#t99 == null))
+      for (final has-declared-initializer dynamic #t100 in #t99) {
+        final core::int* #t101 = #t100 as{TypeError} core::int*;
+        #t95.{core::Set::add}{Invariant}(#t101){(core::int*) →* core::bool*};
+      }
+    final core::Iterable<dynamic>* #t102 = iterableIntSet;
+    if(!(#t102 == null))
+      for (final has-declared-initializer dynamic #t103 in #t102) {
+        final core::int* #t104 = #t103 as{TypeError} core::int*;
+        #t95.{core::Set::add}{Invariant}(#t104){(core::int*) →* core::bool*};
+      }
+    final core::Iterable<dynamic>* #t105 = iterableNumSet1;
+    if(!(#t105 == null))
+      for (final has-declared-initializer dynamic #t106 in #t105) {
+        final core::int* #t107 = #t106 as{TypeError} core::int*;
+        #t95.{core::Set::add}{Invariant}(#t107){(core::int*) →* core::bool*};
+      }
+    final core::Iterable<dynamic>* #t108 = iterableNumSet2;
+    if(!(#t108 == null))
+      for (final has-declared-initializer dynamic #t109 in #t108) {
+        final core::int* #t110 = #t109 as{TypeError} core::int*;
+        #t95.{core::Set::add}{Invariant}(#t110){(core::int*) →* core::bool*};
+      }
+    final core::Iterable<dynamic>* #t111 = intSet;
+    if(!(#t111 == null))
+      for (final has-declared-initializer dynamic #t112 in #t111) {
+        final core::int* #t113 = #t112 as{TypeError} core::int*;
+        #t95.{core::Set::add}{Invariant}(#t113){(core::int*) →* core::bool*};
+      }
+    final core::Iterable<dynamic>* #t114 = numSet1;
+    if(!(#t114 == null))
+      for (final has-declared-initializer dynamic #t115 in #t114) {
+        final core::int* #t116 = #t115 as{TypeError} core::int*;
+        #t95.{core::Set::add}{Invariant}(#t116){(core::int*) →* core::bool*};
+      }
+    final core::Iterable<dynamic>* #t117 = numSet2;
+    if(!(#t117 == null))
+      for (final has-declared-initializer dynamic #t118 in #t117) {
+        final core::int* #t119 = #t118 as{TypeError} core::int*;
+        #t95.{core::Set::add}{Invariant}(#t119){(core::int*) →* core::bool*};
+      }
+  } =>#t95;
+  self::expect(core::List::generate<core::int*>(24, (core::int* i) → core::int* => i).{core::Iterable::toSet}(){() →* core::Set<core::int*>*}, set7);
+  core::Set<dynamic>* set8 = block {
+    final core::Set<dynamic>* #t120 = col::LinkedHashSet::•<dynamic>();
+    final core::Iterable<dynamic>* #t121 = dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!(#t121 == null))
+      for (final has-declared-initializer dynamic #t122 in #t121) {
+        final dynamic #t123 = #t122 as{TypeError} dynamic;
+        #t120.{core::Set::add}{Invariant}(#t123){(dynamic) →* core::bool*};
+      }
+    final core::Iterable<dynamic>* #t124 = dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!(#t124 == null))
+      for (final has-declared-initializer dynamic #t125 in #t124) {
+        final dynamic #t126 = #t125 as{TypeError} dynamic;
+        #t120.{core::Set::add}{Invariant}(#t126){(dynamic) →* core::bool*};
+      }
+    final core::Iterable<dynamic>* #t127 = iterableIntSet;
+    if(!(#t127 == null))
+      for (final has-declared-initializer dynamic #t128 in #t127) {
+        final dynamic #t129 = #t128 as{TypeError} dynamic;
+        #t120.{core::Set::add}{Invariant}(#t129){(dynamic) →* core::bool*};
+      }
+    final core::Iterable<dynamic>* #t130 = iterableNumSet1;
+    if(!(#t130 == null))
+      for (final has-declared-initializer dynamic #t131 in #t130) {
+        final dynamic #t132 = #t131 as{TypeError} dynamic;
+        #t120.{core::Set::add}{Invariant}(#t132){(dynamic) →* core::bool*};
+      }
+    final core::Iterable<dynamic>* #t133 = iterableNumSet2;
+    if(!(#t133 == null))
+      for (final has-declared-initializer dynamic #t134 in #t133) {
+        final dynamic #t135 = #t134 as{TypeError} dynamic;
+        #t120.{core::Set::add}{Invariant}(#t135){(dynamic) →* core::bool*};
+      }
+    final core::Iterable<dynamic>* #t136 = intSet;
+    if(!(#t136 == null))
+      for (final has-declared-initializer dynamic #t137 in #t136) {
+        final dynamic #t138 = #t137 as{TypeError} dynamic;
+        #t120.{core::Set::add}{Invariant}(#t138){(dynamic) →* core::bool*};
+      }
+    final core::Iterable<dynamic>* #t139 = numSet1;
+    if(!(#t139 == null))
+      for (final has-declared-initializer dynamic #t140 in #t139) {
+        final dynamic #t141 = #t140 as{TypeError} dynamic;
+        #t120.{core::Set::add}{Invariant}(#t141){(dynamic) →* core::bool*};
+      }
+    final core::Iterable<dynamic>* #t142 = numSet2;
+    if(!(#t142 == null))
+      for (final has-declared-initializer dynamic #t143 in #t142) {
+        final dynamic #t144 = #t143 as{TypeError} dynamic;
+        #t120.{core::Set::add}{Invariant}(#t144){(dynamic) →* core::bool*};
+      }
+  } =>#t120;
+  self::expect(core::List::generate<dynamic>(24, (core::int* i) → core::int* => i).{core::Iterable::toSet}(){() →* core::Set<dynamic>*}, set8);
+  {
+    core::Set<core::int*>* intSet1 = block {
+      final core::Set<core::int*>* #t145 = col::LinkedHashSet::•<core::int*>();
+      #t145.{core::Set::add}{Invariant}(0){(core::int*) →* core::bool*};
+      #t145.{core::Set::add}{Invariant}(1){(core::int*) →* core::bool*};
+      #t145.{core::Set::add}{Invariant}(2){(core::int*) →* core::bool*};
+    } =>#t145;
+    core::Set<core::int*>* intSet2 = block {
+      final core::Set<core::int*>* #t146 = col::LinkedHashSet::•<core::int*>();
+      #t146.{core::Set::add}{Invariant}(3){(core::int*) →* core::bool*};
+      #t146.{core::Set::add}{Invariant}(4){(core::int*) →* core::bool*};
+      #t146.{core::Set::add}{Invariant}(5){(core::int*) →* core::bool*};
+    } =>#t146;
+    core::Set<core::int*>* set = block {
+      final core::Set<core::int*>* #t147 = col::LinkedHashSet::•<core::int*>();
+      for (final has-declared-initializer dynamic #t148 in intSet1) {
+        final core::int* #t149 = #t148 as{TypeError} core::int*;
+        #t147.{core::Set::add}{Invariant}(#t149){(core::int*) →* core::bool*};
+      }
+      for (final has-declared-initializer dynamic #t150 in intSet2) {
+        final core::int* #t151 = #t150 as{TypeError} core::int*;
+        #t147.{core::Set::add}{Invariant}(#t151){(core::int*) →* core::bool*};
+      }
+    } =>#t147;
+    self::expect(core::List::generate<core::int*>(6, (core::int* i) → core::int* => i).{core::Iterable::toSet}(){() →* core::Set<core::int*>*}, set);
+  }
 }
 static method main() → dynamic {
   self::useAddAll();
@@ -193,5 +395,8 @@ static method expect(core::Set<dynamic>* set1, core::Set<dynamic>* set2) → voi
     if(!set2.{core::Set::contains}(element){(core::Object*) →* core::bool*}) {
       throw "Element ${element} not found. Expected ${set1}, actual ${set2}.";
     }
+  }
+  if(!(set1.{core::Object::runtimeType}{core::Type*}.{core::Type::toString}(){() →* core::String*} =={core::String::==}{(core::Object*) →* core::bool*} set2.{core::Object::runtimeType}{core::Type*}.{core::Type::toString}(){() →* core::String*})) {
+    throw "Runtime time difference: ${set1.{core::Object::runtimeType}{core::Type*}.{core::Type::toString}(){() →* core::String*}} vs ${set2.{core::Object::runtimeType}{core::Type*}.{core::Type::toString}(){() →* core::String*}}";
   }
 }

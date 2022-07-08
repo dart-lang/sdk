@@ -65,6 +65,65 @@ void useAddAll() {
   ];
 
   expect(new List<num>.generate(24, (int i) => i), list4);
+
+  List<int> list5 = [
+    ...dynamicList1,
+    ...dynamicList2,
+    ...iterableIntList,
+    ...iterableNumList1,
+    ...iterableNumList2,
+    ...intList,
+    ...numList1,
+    ...numList2
+  ];
+
+  expect(new List<int>.generate(24, (int i) => i), list5);
+
+  var list6 = [
+    ...dynamicList1,
+    ...dynamicList2,
+    ...iterableIntList,
+    ...iterableNumList1,
+    ...iterableNumList2,
+    ...intList,
+    ...numList1,
+    ...numList2
+  ];
+
+  expect(new List<dynamic>.generate(24, (int i) => i), list6);
+
+  List<int> list7 = [
+    ...?dynamicList1,
+    ...?dynamicList2,
+    ...?iterableIntList,
+    ...?iterableNumList1,
+    ...?iterableNumList2,
+    ...?intList,
+    ...?numList1,
+    ...?numList2
+  ];
+
+  expect(new List<int>.generate(24, (int i) => i), list7);
+
+  var list8 = [
+    ...?dynamicList1,
+    ...?dynamicList2,
+    ...?iterableIntList,
+    ...?iterableNumList1,
+    ...?iterableNumList2,
+    ...?intList,
+    ...?numList1,
+    ...?numList2
+  ];
+
+  expect(new List<dynamic>.generate(24, (int i) => i), list8);
+
+  {
+    List<int> intList1 = [0, 1, 2];
+    List<int> intList2 = [3, 4, 5];
+    var list = [...intList1, ...intList2];
+    expect(new List<int>.generate(6, (int i) => i), list);
+  }
 }
 
 main() {
@@ -80,5 +139,9 @@ void expect(List list1, List list2) {
       throw 'Unexpected element at index $i. '
           'Expected ${list1[i]}, actual ${list2[i]}.';
     }
+  }
+  if (list1.runtimeType.toString() != list2.runtimeType.toString()) {
+    throw "Runtime time difference: "
+        "${list1.runtimeType.toString()} vs ${list2.runtimeType.toString()}";
   }
 }
