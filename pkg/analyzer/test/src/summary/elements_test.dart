@@ -29856,7 +29856,7 @@ part 'b.dart';
 
     // The difference with the test above is that we ask the part first.
     // There was a bug that we were not loading library directives.
-    expect(library.parts[0].metadata, isEmpty);
+    expect(library.parts2[0].metadata, isEmpty);
   }
 
   test_metadata_prefixed_variable() async {

@@ -67,9 +67,8 @@ class AnalyzerImpl {
       return;
     }
     // Add compilation units.
-    addCompilationUnitSource(library.definingCompilationUnit, units);
-    for (var child in library.parts) {
-      addCompilationUnitSource(child, units);
+    for (final unitElement in library.units) {
+      addCompilationUnitSource(unitElement, units);
     }
     // Add referenced libraries.
     for (var child in library.importedLibraries) {

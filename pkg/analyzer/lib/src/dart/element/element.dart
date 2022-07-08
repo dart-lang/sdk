@@ -3929,6 +3929,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   String get name => super.name!;
 
+  @Deprecated('Use parts2 instead')
   @override
   List<CompilationUnitElement> get parts {
     return _parts2
@@ -3991,10 +3992,10 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   List<CompilationUnitElement> get units {
-    List<CompilationUnitElement> units = <CompilationUnitElement>[];
-    units.add(_definingCompilationUnit);
-    units.addAll(parts);
-    return units;
+    return [
+      _definingCompilationUnit,
+      ...parts2.whereType<PartElementWithPart>().map((e) => e.includedUnit),
+    ];
   }
 
   @override
@@ -4011,12 +4012,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   ClassElement? getEnum(String name) {
-    var element = _definingCompilationUnit.getEnum(name);
-    if (element != null) {
-      return element;
-    }
-    for (CompilationUnitElement part in parts) {
-      element = part.getEnum(name);
+    for (final unitElement in units) {
+      final element = unitElement.getEnum(name);
       if (element != null) {
         return element;
       }
@@ -4031,8 +4028,14 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   @override
-  ClassElement? getType(String className) {
-    return getTypeFromParts(className, _definingCompilationUnit, parts);
+  ClassElement? getType(String name) {
+    for (final unitElement in units) {
+      final element = unitElement.getType(name);
+      if (element != null) {
+        return element;
+      }
+    }
+    return null;
   }
 
   /// Indicates whether it is unnecessary to report an undefined identifier
@@ -4110,7 +4113,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChildren(parts, visitor);
+    safelyVisitChildren(parts2, visitor);
   }
 
   static List<PrefixElement> buildPrefixesFromImports(

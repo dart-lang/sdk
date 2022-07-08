@@ -1393,6 +1393,7 @@ abstract class LibraryElement
   /// Return a list containing all of the compilation units that are included in
   /// this library using a `part` directive. This does not include the defining
   /// compilation unit that contains the `part` directives.
+  @Deprecated('Use parts2 instead')
   List<CompilationUnitElement> get parts;
 
   /// Returns the list of `part` directives of this library.

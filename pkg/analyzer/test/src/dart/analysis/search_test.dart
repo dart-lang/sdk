@@ -1292,8 +1292,10 @@ part 'unitA.dart';
 part 'unitB.dart';
 ''');
     LibraryElement element = result.libraryElement;
-    CompilationUnitElement unitElementA = element.parts[0];
-    CompilationUnitElement unitElementB = element.parts[1];
+    CompilationUnitElement unitElementA =
+        (element.parts2[0] as PartElementWithPart).includedUnit;
+    CompilationUnitElement unitElementB =
+        (element.parts2[1] as PartElementWithPart).includedUnit;
     var expected = [
       ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
           codeA.indexOf('lib; // A'), 'lib'.length),
@@ -1328,8 +1330,10 @@ part 'unitA.dart';
 part 'unitB.dart';
 ''');
     LibraryElement element = result.libraryElement;
-    CompilationUnitElement unitElementA = element.parts[0];
-    CompilationUnitElement unitElementB = element.parts[1];
+    CompilationUnitElement unitElementA =
+        (element.parts2[0] as PartElementWithPart).includedUnit;
+    CompilationUnitElement unitElementB =
+        (element.parts2[1] as PartElementWithPart).includedUnit;
     var expected = [
       ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
           codeA.indexOf('lib; // A'), 'lib'.length),
