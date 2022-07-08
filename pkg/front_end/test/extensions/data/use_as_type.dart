@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /*library: scope=[
   A2,
   B2,
@@ -17,7 +15,7 @@ class A1 {}
  builder-name=A2,
  builder-onType=A1,
  extension-name=A2,
- extension-onType=A1
+ extension-onType=A1!
 */
 extension A2 on A1 {}
 
@@ -28,7 +26,7 @@ class B1<T> {}
  builder-onType=B1<T>,
  builder-type-params=[T],
  extension-name=B2,
- extension-onType=B1<T>,
+ extension-onType=B1<T%>!,
  extension-type-params=[T]
 */
 extension B2<T> on B1<T> {}
@@ -47,6 +45,6 @@ A2 method1() => null;
 // TODO(johnniwinther): We should report an error on the number of type
 // arguments here.
 /*error: errors=[This requires the experimental 'extension-types' language feature to be enabled.]*/
-B2<A1> method2() => null;
+B2<A1> method2() => throw '';
 
-B1</*error: errors=[This requires the experimental 'extension-types' language feature to be enabled.]*/A2> method3() => null;
+B1</*error: errors=[This requires the experimental 'extension-types' language feature to be enabled.]*/A2> method3() => throw '';

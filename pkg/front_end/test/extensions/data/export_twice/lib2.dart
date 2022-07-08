@@ -7,6 +7,4 @@
   core.dart.EnumByName,
   core.dart.EnumName]*/
 
-// @dart = 2.9
-
 export 'lib1.dart' show E;
