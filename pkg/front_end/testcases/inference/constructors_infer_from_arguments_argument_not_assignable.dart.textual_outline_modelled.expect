@@ -1,7 +1,6 @@
-// @dart = 2.9
 library test;
 
-NotA myF() => null;
+NotA myF() => throw '';
 
 class A {}
 
@@ -11,5 +10,5 @@ class C<T extends A> {
 
 class NotA {}
 
-main() {}
+test() {}
 typedef T F<T>();

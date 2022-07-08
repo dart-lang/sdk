@@ -1,8 +1,8 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-typedef F = () →* void;
-static final field core::Map<core::String*, () →* void>* x;
+typedef F = () → void;
+static final field core::Map<core::String, () → void> x;
 static method main() → dynamic
   ;

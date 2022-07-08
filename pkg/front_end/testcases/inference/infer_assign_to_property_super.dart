@@ -1,7 +1,9 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 // @dart=2.9
+
 /*@testedFeatures=inference*/
 library test;
 
@@ -26,36 +28,34 @@ class Test extends Base {
   void test() {
     super.member = /*@ typeArgs=B* */ f();
 
-    super. /*@target=Base.member*/ member
-         ??= /*@ typeArgs=B* */ f();
+    super. /*@target=Base.member*/ member ??= /*@ typeArgs=B* */ f();
 
-    super. /*@target=Base.member*/ member
-        /*@target=B.+*/ += /*@ typeArgs=C* */ f();
+    super
+        . /*@target=Base.member*/ member /*@target=B.+*/ += /*@ typeArgs=C* */ f();
 
-    super. /*@target=Base.member*/ member
-        /*@target=B.**/ *= /*@ typeArgs=B* */ f();
+    super
+        . /*@target=Base.member*/ member /*@target=B.**/ *= /*@ typeArgs=B* */ f();
 
-    super. /*@target=Base.member*/ member
-        /*@target=B.&*/ &= /*@ typeArgs=A* */ f();
+    super
+        . /*@target=Base.member*/ member /*@target=B.&*/ &= /*@ typeArgs=A* */ f();
 
     /*@target=B.-*/ --super. /*@target=Base.member*/ member;
 
-    super. /*@target=Base.member*/ member
-        /*@target=B.-*/ --;
+    super. /*@target=Base.member*/ member /*@target=B.-*/ --;
 
     var /*@ type=B* */ v1 = super.member = /*@ typeArgs=B* */ f();
 
-    var /*@ type=B* */ v2 = super. /*@target=Base.member*/ member
-         ??= /*@ typeArgs=B* */ f();
+    var /*@ type=B* */ v2 =
+        super. /*@target=Base.member*/ member ??= /*@ typeArgs=B* */ f();
 
-    var /*@ type=A* */ v3 = super. /*@target=Base.member*/ member
-        /*@target=B.+*/ += /*@ typeArgs=C* */ f();
+    var /*@ type=A* */ v3 = super
+        . /*@target=Base.member*/ member /*@target=B.+*/ += /*@ typeArgs=C* */ f();
 
-    var /*@ type=B* */ v4 = super. /*@target=Base.member*/ member
-        /*@target=B.**/ *= /*@ typeArgs=B* */ f();
+    var /*@ type=B* */ v4 = super
+        . /*@target=Base.member*/ member /*@target=B.**/ *= /*@ typeArgs=B* */ f();
 
-    var /*@ type=C* */ v5 = super. /*@target=Base.member*/ member
-        /*@target=B.&*/ &= /*@ typeArgs=A* */ f();
+    var /*@ type=C* */ v5 = super
+        . /*@target=Base.member*/ member /*@target=B.&*/ &= /*@ typeArgs=A* */ f();
 
     var /*@ type=B* */ v6 =
         /*@target=B.-*/ --super. /*@target=Base.member*/ member;

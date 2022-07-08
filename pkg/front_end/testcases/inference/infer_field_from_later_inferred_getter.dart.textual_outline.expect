@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 class A implements B {
@@ -10,7 +9,7 @@ abstract class B implements C {
 }
 
 abstract class C {
-  int get x;
+  int? get x;
 }
 
 main() {}

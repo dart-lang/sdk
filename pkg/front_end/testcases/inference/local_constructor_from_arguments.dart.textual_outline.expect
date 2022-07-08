@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 class C<T> {
@@ -6,4 +5,4 @@ class C<T> {
   C(this.t);
 }
 
-main() {}
+test(dynamic y) {}

@@ -1,6 +1,6 @@
-// @dart = 2.9
 class A<X> {
   X field;
+  A(this.field);
 }
 
 abstract class B<Y> implements A<Y> {

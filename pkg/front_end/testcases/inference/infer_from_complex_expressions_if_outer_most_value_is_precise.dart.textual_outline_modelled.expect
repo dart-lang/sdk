@@ -1,9 +1,8 @@
-// @dart = 2.9
 library test;
 
 class A {
-  B operator +(other) => null;
-  int x;
+  B operator +(other) => throw '';
+  int x = 0;
 }
 
 class B extends A {

@@ -1,7 +1,6 @@
-// @dart = 2.9
 class A {
   dynamic field1;
-  int field2;
+  int? field2;
 }
 
 class B extends A implements I {
@@ -13,7 +12,7 @@ class B extends A implements I {
 
 class I {
   dynamic field2;
-  int field1;
+  int? field1;
 }
 
 main() {}

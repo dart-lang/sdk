@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 class A {}
@@ -11,5 +10,5 @@ class C<T extends A> {
 
 class NotA {}
 
-NotA myF() => null;
-main() {}
+NotA myF() => throw '';
+test() {}

@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -24,35 +24,34 @@ library;
 //   void set y(A value);
 //            ^
 //
+// pkg/front_end/testcases/inference_new/infer_field_override_accessors.dart:6:9: Error: The type 'A' of the getter 'A.x' is not a subtype of the type 'B' of the setter 'A.x'.
+//  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_field_override_accessors.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/inference_new/infer_field_override_accessors.dart'.
+//   A get x;
+//         ^
+// pkg/front_end/testcases/inference_new/infer_field_override_accessors.dart:7:12: Context: This is the declaration of the setter 'A.x'.
+//   void set x(B value);
+//            ^
+//
 import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  synthetic constructor •() → self::A*
+  synthetic constructor •() → self::A
     ;
-  abstract get x() → self::A*;
-  abstract set x(self::B* value) → void;
-  abstract get y() → self::B*;
-  abstract set y(self::A* value) → void;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract get x() → self::A;
+  abstract set x(self::B value) → void;
+  abstract get y() → self::B;
+  abstract set y(self::A value) → void;
 }
 abstract class B extends self::A {
-  synthetic constructor •() → self::B*
+  synthetic constructor •() → self::B
     ;
 }
 class C extends self::B {
   field invalid-type x;
   field invalid-type y;
-  synthetic constructor •() → self::C*
+  synthetic constructor •() → self::C
     ;
 }
 static method main() → dynamic

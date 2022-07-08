@@ -1,21 +1,21 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 /*@testedFeatures=inference*/
 library test;
 
 class C<T> {
-  T t;
+  T? t;
   C();
 
   factory C.named(T t) {
-    var /*@ type=C<C::named::T*>* */ x = new C<T>();
+    var /*@type=C<C::named::T%>*/ x = new C<T>();
     x. /*@target=C.t*/ t = t;
     return x;
   }
 }
 
 main() {
-  var /*@ type=C<int*>* */ x = new /*@ typeArgs=int* */ C.named(42);
+  var /*@type=C<int>*/ x = new /*@typeArgs=int*/ C.named(42);
 }

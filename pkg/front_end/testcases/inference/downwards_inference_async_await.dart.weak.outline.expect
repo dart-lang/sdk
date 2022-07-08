@@ -1,8 +1,8 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
 import "dart:async" as asy;
 
 import "dart:async";
 
-static method main() → asy::Future<dynamic>* async 
+static method main() → asy::Future<dynamic> async 
   ;

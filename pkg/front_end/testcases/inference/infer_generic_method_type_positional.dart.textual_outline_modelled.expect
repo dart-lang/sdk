@@ -1,8 +1,7 @@
-// @dart = 2.9
 library test;
 
 class C {
-  T m<T>(int a, [T b]) => null;
+  T m<T>(int a, [T? b]) => throw '';
 }
 
-main() {}
+test() {}

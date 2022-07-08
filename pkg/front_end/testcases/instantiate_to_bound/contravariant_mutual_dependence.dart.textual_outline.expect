@@ -1,9 +1,8 @@
-// @dart = 2.9
 class D<X extends void Function(X, Y), Y extends void Function(X, Y)> {}
 
-D d;
+D d = throw '';
 
 class E<X extends void Function(X)> {}
 
-E e;
+E e = throw '';
 main() {}

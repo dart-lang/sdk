@@ -1,12 +1,11 @@
-// @dart = 2.9
 library test;
 
 abstract class A {
-  num get x;
+  int get x;
 }
 
 abstract class B extends A {
-  void set x(int value);
+  void set x(num value);
 }
 
 class C extends B {

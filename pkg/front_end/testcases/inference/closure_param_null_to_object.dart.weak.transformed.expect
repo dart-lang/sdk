@@ -1,8 +1,8 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 static method test() → void {
-  (Null) →* core::int* f = (core::Object* x) → core::int* => 1;
+  (Null) → core::int f = (core::Object? x) → core::int => 1;
 }
 static method main() → dynamic {}

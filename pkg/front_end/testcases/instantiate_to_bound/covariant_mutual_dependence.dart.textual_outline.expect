@@ -1,17 +1,16 @@
-// @dart = 2.9
 class B<X, Y> {}
 
 class C<X, Y> {}
 
 class D<X extends B<X, Y>, Y extends C<X, Y>> {}
 
-D d;
+D d = throw '';
 
 class E<X extends B<X, Y>, Y extends X Function()> {}
 
-E e;
+E e = throw '';
 
 class F<X extends X Function()> {}
 
-F f;
+F f = throw '';
 main() {}

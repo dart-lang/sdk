@@ -1,11 +1,11 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 /*@testedFeatures=inference*/
 library test;
 
-var x1 = /*@ typeArgs=int*, String* */ {1: 'x', 2: 'y'};
+var x1 = /*@typeArgs=int, String*/ {1: 'x', 2: 'y'};
 test1() {
   x1 /*@target=Map.[]=*/ [3] = 'z';
   x1 /*@target=Map.[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
@@ -14,15 +14,14 @@ test1() {
   Map<num, String> y = x1;
 }
 
-var x2 = /*@ typeArgs=num*, Pattern* */ {1: 'x', 2: 'y', 3.0: new RegExp('.')};
-test2() {
+var x2 = /*@typeArgs=num, Pattern*/ {1: 'x', 2: 'y', 3.0: new RegExp('.')};
+test2(Pattern p) {
   x2 /*@target=Map.[]=*/ [3] = 'z';
   x2 /*@target=Map.[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
   x2 /*@target=Map.[]=*/ [4.0] = 'u';
   x2 /*@target=Map.[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
-  Pattern p = null;
   x2 /*@target=Map.[]=*/ [2] = p;
-  Map<int, String> y = /*info:ASSIGNMENT_CAST*/ x2;
+  Map<int, String> y = /*error:INVALID_ASSIGNMENT*/ x2;
 }
 
 main() {}

@@ -1,0 +1,36 @@
+library test /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/abstract_class_instantiation2.dart:15:31: Error: The class 'C' is abstract and can't be instantiated.
+//   var /*@type=Never*/ x = new C();
+//                               ^
+//
+// pkg/front_end/testcases/inference/abstract_class_instantiation2.dart:16:31: Error: The class 'D' is abstract and can't be instantiated.
+//   var /*@type=Never*/ y = new D(1);
+//                               ^
+//
+// pkg/front_end/testcases/inference/abstract_class_instantiation2.dart:17:24: Error: The class 'D' is abstract and can't be instantiated.
+//   D<List<int>> z = new D(/*@typeArgs=dynamic*/ []);
+//                        ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+abstract class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+abstract class D<T extends core::Object? = dynamic> extends core::Object {
+  constructor •(self::D::T% t) → self::D<self::D::T%>
+    : super core::Object::•()
+    ;
+}
+static method test() → void {
+  Never x = throw new core::AbstractClassInstantiationError::•("C");
+  Never y = let final Never #t1 = let final core::Object? #t2 = 1 in throw new core::AbstractClassInstantiationError::•("D") in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  self::D<core::List<core::int>> z = let final Never #t3 = let final core::Object? #t4 = <dynamic>[] in throw new core::AbstractClassInstantiationError::•("D") in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+}
+static method main() → dynamic {}

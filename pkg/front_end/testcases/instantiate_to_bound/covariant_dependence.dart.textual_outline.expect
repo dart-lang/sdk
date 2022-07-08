@@ -1,19 +1,18 @@
-// @dart = 2.9
 class A<X> {}
 
 class C<X, Y extends A<X>> {}
 
-C c;
+C c = throw '';
 
 class D<X extends num, Y extends A<X>> {}
 
-D d;
+D d = throw '';
 
 class E<X, Y extends X Function()> {}
 
-E e;
+E e = throw '';
 
 class F<X extends num, Y extends X Function()> {}
 
-F f;
+F f = throw '';
 main() {}

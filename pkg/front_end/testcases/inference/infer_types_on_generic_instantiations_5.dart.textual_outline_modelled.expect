@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 abstract class A<E> implements I<E> {
@@ -17,7 +16,7 @@ abstract class M {
 class B<E> extends A<E> implements M {
   const B();
   int get y => 0;
-  m(a, f(v, E e)) {}
+  m(a, f(v, E e)) => throw '';
 }
 
 foo() {}

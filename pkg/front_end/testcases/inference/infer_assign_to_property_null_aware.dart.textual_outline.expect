@@ -4,7 +4,7 @@ library test;
 class A {}
 
 class B extends A {
-  A operator +(C v) => null;
+  B operator +(C v) => null;
   B operator -(int i) => null;
   B operator *(B v) => null;
   C operator &(A v) => null;
@@ -16,6 +16,7 @@ T f<T>() => null;
 
 class Test {
   B member;
+  Test(this.member);
   static void test(Test t) {}
 }
 

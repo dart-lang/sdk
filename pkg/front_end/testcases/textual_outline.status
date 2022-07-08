@@ -108,8 +108,6 @@ general/null_safety_invalid_experiment: FormatterCrash
 general/type_parameters_on_void: FormatterCrash
 general/type_variable_in_static_context: FormatterCrash
 general/var_as_type_name: FormatterCrash
-inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: FormatterCrash
-inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: FormatterCrash
 late_lowering/later: FormatterCrash
 macros/augment_class: FormatterCrash
 macros/augment_concrete: FormatterCrash

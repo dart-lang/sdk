@@ -1,6 +1,6 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
 
-static field () →* Null v;
+static field () → Null v;
 static method main() → dynamic
   ;

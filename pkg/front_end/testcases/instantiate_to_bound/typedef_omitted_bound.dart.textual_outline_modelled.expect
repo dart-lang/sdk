@@ -1,8 +1,7 @@
-// @dart = 2.9
-A a;
+A a = throw '';
 
 class C {
-  A foo() => null;
+  A foo() => throw '';
 }
 
 main() {}

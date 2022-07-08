@@ -1,6 +1,5 @@
-// @dart = 2.9
-C c;
-D d;
+C c = throw '';
+D d = throw '';
 
 class A<X> {}
 

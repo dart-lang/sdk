@@ -1,6 +1,6 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
 
 static method main() → dynamic {
-  () →* Null f = () → Null {};
+  () → Null f = () → Null {};
 }

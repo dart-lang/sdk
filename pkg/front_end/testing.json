@@ -323,6 +323,7 @@
         "testcases/inference/for_in_loop_promotion\\.dart$",
         "testcases/inference/future_union_upwards_generic_methods\\.dart$",
         "testcases/inference/generic_methods_infer_generic_instantiation\\.dart$",
+        "testcases/inference/generic_methods_infer_generic_instantiation2\\.dart$",
         "testcases/inference/overloaded_int_operators\\.dart$",
         "testcases/instantiate_to_bound/non_simple_many\\.dart$",
         "testcases/instantiate_to_bound/non_simple_suppress_consequence\\.dart$",

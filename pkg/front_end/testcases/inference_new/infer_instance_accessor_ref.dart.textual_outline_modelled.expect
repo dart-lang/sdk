@@ -1,13 +1,12 @@
-// @dart = 2.9
 library test;
 
 class A {
-  B b;
+  B b = throw '';
 }
 
 class B {
-  C get c => null;
-  void set c(C value) {}
+  C? get c => null;
+  void set c(C? value) {}
 }
 
 class C {}

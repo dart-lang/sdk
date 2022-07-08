@@ -1,9 +1,8 @@
-// @dart = 2.9
 library test;
 
 import 'dart:async';
 
-T f<T>() => null;
+T f<T>() => throw '';
 
 class B<T> {
   void operator []=(Map<int, T> x, List<T> y) {}
