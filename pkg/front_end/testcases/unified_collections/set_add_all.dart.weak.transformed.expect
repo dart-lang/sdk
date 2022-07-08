@@ -291,10 +291,11 @@ static method useAddAll() → void {
         }
       }
     }
+    #t61.{core::Set::addAll}{Invariant}(iterableIntSet){(core::Iterable<core::int*>*) →* void};
     {
-      core::Iterator<core::int*>* :sync-for-iterator = iterableIntSet.{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      core::Iterator<core::num*>* :sync-for-iterator = iterableNumSet1.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t66 = :sync-for-iterator.{core::Iterator::current}{core::int*};
+        final dynamic #t66 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
           final core::int* #t67 = #t66 as{TypeError} core::int*;
           #t61.{core::Set::add}{Invariant}(#t67){(core::int*) →* core::bool*};
@@ -302,7 +303,7 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<core::num*>* :sync-for-iterator = iterableNumSet1.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      core::Iterator<core::num*>* :sync-for-iterator = iterableNumSet2.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t68 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
@@ -311,8 +312,9 @@ static method useAddAll() → void {
         }
       }
     }
+    #t61.{core::Set::addAll}{Invariant}(intSet){(core::Iterable<core::int*>*) →* void};
     {
-      core::Iterator<core::num*>* :sync-for-iterator = iterableNumSet2.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      core::Iterator<core::num*>* :sync-for-iterator = numSet1.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t70 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
@@ -322,341 +324,149 @@ static method useAddAll() → void {
       }
     }
     {
-      core::Iterator<core::int*>* :sync-for-iterator = intSet.{core::Iterable::iterator}{core::Iterator<core::int*>*};
+      core::Iterator<core::num*>* :sync-for-iterator = numSet2.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t72 = :sync-for-iterator.{core::Iterator::current}{core::int*};
+        final dynamic #t72 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
           final core::int* #t73 = #t72 as{TypeError} core::int*;
           #t61.{core::Set::add}{Invariant}(#t73){(core::int*) →* core::bool*};
         }
       }
     }
-    {
-      core::Iterator<core::num*>* :sync-for-iterator = numSet1.{core::Iterable::iterator}{core::Iterator<core::num*>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t74 = :sync-for-iterator.{core::Iterator::current}{core::num*};
-        {
-          final core::int* #t75 = #t74 as{TypeError} core::int*;
-          #t61.{core::Set::add}{Invariant}(#t75){(core::int*) →* core::bool*};
-        }
-      }
-    }
-    {
-      core::Iterator<core::num*>* :sync-for-iterator = numSet2.{core::Iterable::iterator}{core::Iterator<core::num*>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t76 = :sync-for-iterator.{core::Iterator::current}{core::num*};
-        {
-          final core::int* #t77 = #t76 as{TypeError} core::int*;
-          #t61.{core::Set::add}{Invariant}(#t77){(core::int*) →* core::bool*};
-        }
-      }
-    }
   } =>#t61;
   self::expect(core::_GrowableList::generate<core::int*>(24, (core::int* i) → core::int* => i).{core::Iterable::toSet}(){() →* core::Set<core::int*>*}, set5);
   core::Set<dynamic>* set6 = block {
-    final core::Set<dynamic>* #t78 = new col::_CompactLinkedHashSet::•<dynamic>();
-    {
-      core::Iterator<dynamic>* :sync-for-iterator = (dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t79 = :sync-for-iterator.{core::Iterator::current}{dynamic};
-        {
-          final dynamic #t80 = #t79 as{TypeError} dynamic;
-          #t78.{core::Set::add}{Invariant}(#t80){(dynamic) →* core::bool*};
-        }
-      }
-    }
-    {
-      core::Iterator<dynamic>* :sync-for-iterator = (dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t81 = :sync-for-iterator.{core::Iterator::current}{dynamic};
-        {
-          final dynamic #t82 = #t81 as{TypeError} dynamic;
-          #t78.{core::Set::add}{Invariant}(#t82){(dynamic) →* core::bool*};
-        }
-      }
-    }
-    {
-      core::Iterator<core::int*>* :sync-for-iterator = iterableIntSet.{core::Iterable::iterator}{core::Iterator<core::int*>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t83 = :sync-for-iterator.{core::Iterator::current}{core::int*};
-        {
-          final dynamic #t84 = #t83 as{TypeError} dynamic;
-          #t78.{core::Set::add}{Invariant}(#t84){(dynamic) →* core::bool*};
-        }
-      }
-    }
-    {
-      core::Iterator<core::num*>* :sync-for-iterator = iterableNumSet1.{core::Iterable::iterator}{core::Iterator<core::num*>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t85 = :sync-for-iterator.{core::Iterator::current}{core::num*};
-        {
-          final dynamic #t86 = #t85 as{TypeError} dynamic;
-          #t78.{core::Set::add}{Invariant}(#t86){(dynamic) →* core::bool*};
-        }
-      }
-    }
-    {
-      core::Iterator<core::num*>* :sync-for-iterator = iterableNumSet2.{core::Iterable::iterator}{core::Iterator<core::num*>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t87 = :sync-for-iterator.{core::Iterator::current}{core::num*};
-        {
-          final dynamic #t88 = #t87 as{TypeError} dynamic;
-          #t78.{core::Set::add}{Invariant}(#t88){(dynamic) →* core::bool*};
-        }
-      }
-    }
-    {
-      core::Iterator<core::int*>* :sync-for-iterator = intSet.{core::Iterable::iterator}{core::Iterator<core::int*>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t89 = :sync-for-iterator.{core::Iterator::current}{core::int*};
-        {
-          final dynamic #t90 = #t89 as{TypeError} dynamic;
-          #t78.{core::Set::add}{Invariant}(#t90){(dynamic) →* core::bool*};
-        }
-      }
-    }
-    {
-      core::Iterator<core::num*>* :sync-for-iterator = numSet1.{core::Iterable::iterator}{core::Iterator<core::num*>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t91 = :sync-for-iterator.{core::Iterator::current}{core::num*};
-        {
-          final dynamic #t92 = #t91 as{TypeError} dynamic;
-          #t78.{core::Set::add}{Invariant}(#t92){(dynamic) →* core::bool*};
-        }
-      }
-    }
-    {
-      core::Iterator<core::num*>* :sync-for-iterator = numSet2.{core::Iterable::iterator}{core::Iterator<core::num*>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t93 = :sync-for-iterator.{core::Iterator::current}{core::num*};
-        {
-          final dynamic #t94 = #t93 as{TypeError} dynamic;
-          #t78.{core::Set::add}{Invariant}(#t94){(dynamic) →* core::bool*};
-        }
-      }
-    }
-  } =>#t78;
+    final core::Set<dynamic>* #t74 = col::LinkedHashSet::of<dynamic>(dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*);
+    #t74.{core::Set::addAll}{Invariant}(dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*){(core::Iterable<dynamic>*) →* void};
+    #t74.{core::Set::addAll}{Invariant}(iterableIntSet){(core::Iterable<dynamic>*) →* void};
+    #t74.{core::Set::addAll}{Invariant}(iterableNumSet1){(core::Iterable<dynamic>*) →* void};
+    #t74.{core::Set::addAll}{Invariant}(iterableNumSet2){(core::Iterable<dynamic>*) →* void};
+    #t74.{core::Set::addAll}{Invariant}(intSet){(core::Iterable<dynamic>*) →* void};
+    #t74.{core::Set::addAll}{Invariant}(numSet1){(core::Iterable<dynamic>*) →* void};
+    #t74.{core::Set::addAll}{Invariant}(numSet2){(core::Iterable<dynamic>*) →* void};
+  } =>#t74;
   self::expect(core::_GrowableList::generate<dynamic>(24, (core::int* i) → core::int* => i).{core::Iterable::toSet}(){() →* core::Set<dynamic>*}, set6);
   core::Set<core::int*>* set7 = block {
-    final core::Set<core::int*>* #t95 = new col::_CompactLinkedHashSet::•<core::int*>();
-    final core::Iterable<dynamic>* #t96 = dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
-    if(!(#t96 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t96.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+    final core::Set<core::int*>* #t75 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Iterable<dynamic>* #t76 = dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!(#t76 == null)) {
+      core::Iterator<dynamic>* :sync-for-iterator = #t76.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t97 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        final dynamic #t77 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t98 = #t97 as{TypeError} core::int*;
-          #t95.{core::Set::add}{Invariant}(#t98){(core::int*) →* core::bool*};
+          final core::int* #t78 = #t77 as{TypeError} core::int*;
+          #t75.{core::Set::add}{Invariant}(#t78){(core::int*) →* core::bool*};
         }
       }
     }
-    final core::Iterable<dynamic>* #t99 = dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
-    if(!(#t99 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t99.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+    final core::Iterable<dynamic>* #t79 = dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!(#t79 == null)) {
+      core::Iterator<dynamic>* :sync-for-iterator = #t79.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t100 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        final dynamic #t80 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t101 = #t100 as{TypeError} core::int*;
-          #t95.{core::Set::add}{Invariant}(#t101){(core::int*) →* core::bool*};
+          final core::int* #t81 = #t80 as{TypeError} core::int*;
+          #t75.{core::Set::add}{Invariant}(#t81){(core::int*) →* core::bool*};
         }
       }
     }
-    final core::Iterable<dynamic>* #t102 = iterableIntSet;
-    if(!(#t102 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t102.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+    final core::Iterable<core::int*>* #t82 = iterableIntSet;
+    if(!(#t82 == null))
+      #t75.{core::Set::addAll}{Invariant}(#t82){(core::Iterable<core::int*>*) →* void};
+    final core::Iterable<dynamic>* #t83 = iterableNumSet1;
+    if(!(#t83 == null)) {
+      core::Iterator<dynamic>* :sync-for-iterator = #t83.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t103 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        final dynamic #t84 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t104 = #t103 as{TypeError} core::int*;
-          #t95.{core::Set::add}{Invariant}(#t104){(core::int*) →* core::bool*};
+          final core::int* #t85 = #t84 as{TypeError} core::int*;
+          #t75.{core::Set::add}{Invariant}(#t85){(core::int*) →* core::bool*};
         }
       }
     }
-    final core::Iterable<dynamic>* #t105 = iterableNumSet1;
-    if(!(#t105 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t105.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+    final core::Iterable<dynamic>* #t86 = iterableNumSet2;
+    if(!(#t86 == null)) {
+      core::Iterator<dynamic>* :sync-for-iterator = #t86.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t106 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        final dynamic #t87 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t107 = #t106 as{TypeError} core::int*;
-          #t95.{core::Set::add}{Invariant}(#t107){(core::int*) →* core::bool*};
+          final core::int* #t88 = #t87 as{TypeError} core::int*;
+          #t75.{core::Set::add}{Invariant}(#t88){(core::int*) →* core::bool*};
         }
       }
     }
-    final core::Iterable<dynamic>* #t108 = iterableNumSet2;
-    if(!(#t108 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t108.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+    final core::Iterable<core::int*>* #t89 = intSet;
+    if(!(#t89 == null))
+      #t75.{core::Set::addAll}{Invariant}(#t89){(core::Iterable<core::int*>*) →* void};
+    final core::Iterable<dynamic>* #t90 = numSet1;
+    if(!(#t90 == null)) {
+      core::Iterator<dynamic>* :sync-for-iterator = #t90.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t109 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        final dynamic #t91 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t110 = #t109 as{TypeError} core::int*;
-          #t95.{core::Set::add}{Invariant}(#t110){(core::int*) →* core::bool*};
+          final core::int* #t92 = #t91 as{TypeError} core::int*;
+          #t75.{core::Set::add}{Invariant}(#t92){(core::int*) →* core::bool*};
         }
       }
     }
-    final core::Iterable<dynamic>* #t111 = intSet;
-    if(!(#t111 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t111.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+    final core::Iterable<dynamic>* #t93 = numSet2;
+    if(!(#t93 == null)) {
+      core::Iterator<dynamic>* :sync-for-iterator = #t93.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t112 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        final dynamic #t94 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t113 = #t112 as{TypeError} core::int*;
-          #t95.{core::Set::add}{Invariant}(#t113){(core::int*) →* core::bool*};
+          final core::int* #t95 = #t94 as{TypeError} core::int*;
+          #t75.{core::Set::add}{Invariant}(#t95){(core::int*) →* core::bool*};
         }
       }
     }
-    final core::Iterable<dynamic>* #t114 = numSet1;
-    if(!(#t114 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t114.{core::Iterable::iterator}{core::Iterator<dynamic>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t115 = :sync-for-iterator.{core::Iterator::current}{dynamic};
-        {
-          final core::int* #t116 = #t115 as{TypeError} core::int*;
-          #t95.{core::Set::add}{Invariant}(#t116){(core::int*) →* core::bool*};
-        }
-      }
-    }
-    final core::Iterable<dynamic>* #t117 = numSet2;
-    if(!(#t117 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t117.{core::Iterable::iterator}{core::Iterator<dynamic>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t118 = :sync-for-iterator.{core::Iterator::current}{dynamic};
-        {
-          final core::int* #t119 = #t118 as{TypeError} core::int*;
-          #t95.{core::Set::add}{Invariant}(#t119){(core::int*) →* core::bool*};
-        }
-      }
-    }
-  } =>#t95;
+  } =>#t75;
   self::expect(core::_GrowableList::generate<core::int*>(24, (core::int* i) → core::int* => i).{core::Iterable::toSet}(){() →* core::Set<core::int*>*}, set7);
   core::Set<dynamic>* set8 = block {
-    final core::Set<dynamic>* #t120 = new col::_CompactLinkedHashSet::•<dynamic>();
-    final core::Iterable<dynamic>* #t121 = dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
-    if(!(#t121 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t121.{core::Iterable::iterator}{core::Iterator<dynamic>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t122 = :sync-for-iterator.{core::Iterator::current}{dynamic};
-        {
-          final dynamic #t123 = #t122 as{TypeError} dynamic;
-          #t120.{core::Set::add}{Invariant}(#t123){(dynamic) →* core::bool*};
-        }
-      }
-    }
-    final core::Iterable<dynamic>* #t124 = dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
-    if(!(#t124 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t124.{core::Iterable::iterator}{core::Iterator<dynamic>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t125 = :sync-for-iterator.{core::Iterator::current}{dynamic};
-        {
-          final dynamic #t126 = #t125 as{TypeError} dynamic;
-          #t120.{core::Set::add}{Invariant}(#t126){(dynamic) →* core::bool*};
-        }
-      }
-    }
-    final core::Iterable<dynamic>* #t127 = iterableIntSet;
-    if(!(#t127 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t127.{core::Iterable::iterator}{core::Iterator<dynamic>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t128 = :sync-for-iterator.{core::Iterator::current}{dynamic};
-        {
-          final dynamic #t129 = #t128 as{TypeError} dynamic;
-          #t120.{core::Set::add}{Invariant}(#t129){(dynamic) →* core::bool*};
-        }
-      }
-    }
-    final core::Iterable<dynamic>* #t130 = iterableNumSet1;
-    if(!(#t130 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t130.{core::Iterable::iterator}{core::Iterator<dynamic>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t131 = :sync-for-iterator.{core::Iterator::current}{dynamic};
-        {
-          final dynamic #t132 = #t131 as{TypeError} dynamic;
-          #t120.{core::Set::add}{Invariant}(#t132){(dynamic) →* core::bool*};
-        }
-      }
-    }
-    final core::Iterable<dynamic>* #t133 = iterableNumSet2;
-    if(!(#t133 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t133.{core::Iterable::iterator}{core::Iterator<dynamic>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t134 = :sync-for-iterator.{core::Iterator::current}{dynamic};
-        {
-          final dynamic #t135 = #t134 as{TypeError} dynamic;
-          #t120.{core::Set::add}{Invariant}(#t135){(dynamic) →* core::bool*};
-        }
-      }
-    }
-    final core::Iterable<dynamic>* #t136 = intSet;
-    if(!(#t136 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t136.{core::Iterable::iterator}{core::Iterator<dynamic>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t137 = :sync-for-iterator.{core::Iterator::current}{dynamic};
-        {
-          final dynamic #t138 = #t137 as{TypeError} dynamic;
-          #t120.{core::Set::add}{Invariant}(#t138){(dynamic) →* core::bool*};
-        }
-      }
-    }
-    final core::Iterable<dynamic>* #t139 = numSet1;
-    if(!(#t139 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t139.{core::Iterable::iterator}{core::Iterator<dynamic>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t140 = :sync-for-iterator.{core::Iterator::current}{dynamic};
-        {
-          final dynamic #t141 = #t140 as{TypeError} dynamic;
-          #t120.{core::Set::add}{Invariant}(#t141){(dynamic) →* core::bool*};
-        }
-      }
-    }
-    final core::Iterable<dynamic>* #t142 = numSet2;
-    if(!(#t142 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t142.{core::Iterable::iterator}{core::Iterator<dynamic>*};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t143 = :sync-for-iterator.{core::Iterator::current}{dynamic};
-        {
-          final dynamic #t144 = #t143 as{TypeError} dynamic;
-          #t120.{core::Set::add}{Invariant}(#t144){(dynamic) →* core::bool*};
-        }
-      }
-    }
-  } =>#t120;
+    final core::Set<dynamic>* #t96 = new col::_CompactLinkedHashSet::•<dynamic>();
+    final core::Iterable<dynamic>* #t97 = dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!(#t97 == null))
+      #t96.{core::Set::addAll}{Invariant}(#t97){(core::Iterable<dynamic>*) →* void};
+    final core::Iterable<dynamic>* #t98 = dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!(#t98 == null))
+      #t96.{core::Set::addAll}{Invariant}(#t98){(core::Iterable<dynamic>*) →* void};
+    final core::Iterable<dynamic>* #t99 = iterableIntSet;
+    if(!(#t99 == null))
+      #t96.{core::Set::addAll}{Invariant}(#t99){(core::Iterable<dynamic>*) →* void};
+    final core::Iterable<dynamic>* #t100 = iterableNumSet1;
+    if(!(#t100 == null))
+      #t96.{core::Set::addAll}{Invariant}(#t100){(core::Iterable<dynamic>*) →* void};
+    final core::Iterable<dynamic>* #t101 = iterableNumSet2;
+    if(!(#t101 == null))
+      #t96.{core::Set::addAll}{Invariant}(#t101){(core::Iterable<dynamic>*) →* void};
+    final core::Iterable<dynamic>* #t102 = intSet;
+    if(!(#t102 == null))
+      #t96.{core::Set::addAll}{Invariant}(#t102){(core::Iterable<dynamic>*) →* void};
+    final core::Iterable<dynamic>* #t103 = numSet1;
+    if(!(#t103 == null))
+      #t96.{core::Set::addAll}{Invariant}(#t103){(core::Iterable<dynamic>*) →* void};
+    final core::Iterable<dynamic>* #t104 = numSet2;
+    if(!(#t104 == null))
+      #t96.{core::Set::addAll}{Invariant}(#t104){(core::Iterable<dynamic>*) →* void};
+  } =>#t96;
   self::expect(core::_GrowableList::generate<dynamic>(24, (core::int* i) → core::int* => i).{core::Iterable::toSet}(){() →* core::Set<dynamic>*}, set8);
   {
     core::Set<core::int*>* intSet1 = block {
-      final core::Set<core::int*>* #t145 = new col::_CompactLinkedHashSet::•<core::int*>();
-      #t145.{core::Set::add}{Invariant}(0){(core::int*) →* core::bool*};
-      #t145.{core::Set::add}{Invariant}(1){(core::int*) →* core::bool*};
-      #t145.{core::Set::add}{Invariant}(2){(core::int*) →* core::bool*};
-    } =>#t145;
+      final core::Set<core::int*>* #t105 = new col::_CompactLinkedHashSet::•<core::int*>();
+      #t105.{core::Set::add}{Invariant}(0){(core::int*) →* core::bool*};
+      #t105.{core::Set::add}{Invariant}(1){(core::int*) →* core::bool*};
+      #t105.{core::Set::add}{Invariant}(2){(core::int*) →* core::bool*};
+    } =>#t105;
     core::Set<core::int*>* intSet2 = block {
-      final core::Set<core::int*>* #t146 = new col::_CompactLinkedHashSet::•<core::int*>();
-      #t146.{core::Set::add}{Invariant}(3){(core::int*) →* core::bool*};
-      #t146.{core::Set::add}{Invariant}(4){(core::int*) →* core::bool*};
-      #t146.{core::Set::add}{Invariant}(5){(core::int*) →* core::bool*};
-    } =>#t146;
+      final core::Set<core::int*>* #t106 = new col::_CompactLinkedHashSet::•<core::int*>();
+      #t106.{core::Set::add}{Invariant}(3){(core::int*) →* core::bool*};
+      #t106.{core::Set::add}{Invariant}(4){(core::int*) →* core::bool*};
+      #t106.{core::Set::add}{Invariant}(5){(core::int*) →* core::bool*};
+    } =>#t106;
     core::Set<core::int*>* set = block {
-      final core::Set<core::int*>* #t147 = new col::_CompactLinkedHashSet::•<core::int*>();
-      {
-        core::Iterator<core::int*>* :sync-for-iterator = intSet1.{core::Iterable::iterator}{core::Iterator<core::int*>*};
-        for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-          final dynamic #t148 = :sync-for-iterator.{core::Iterator::current}{core::int*};
-          {
-            final core::int* #t149 = #t148 as{TypeError} core::int*;
-            #t147.{core::Set::add}{Invariant}(#t149){(core::int*) →* core::bool*};
-          }
-        }
-      }
-      {
-        core::Iterator<core::int*>* :sync-for-iterator = intSet2.{core::Iterable::iterator}{core::Iterator<core::int*>*};
-        for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-          final dynamic #t150 = :sync-for-iterator.{core::Iterator::current}{core::int*};
-          {
-            final core::int* #t151 = #t150 as{TypeError} core::int*;
-            #t147.{core::Set::add}{Invariant}(#t151){(core::int*) →* core::bool*};
-          }
-        }
-      }
-    } =>#t147;
+      final core::Set<core::int*>* #t107 = col::LinkedHashSet::of<core::int*>(intSet1);
+      #t107.{core::Set::addAll}{Invariant}(intSet2){(core::Iterable<core::int*>*) →* void};
+    } =>#t107;
     self::expect(core::_GrowableList::generate<core::int*>(6, (core::int* i) → core::int* => i).{core::Iterable::toSet}(){() →* core::Set<core::int*>*}, set);
   }
 }
