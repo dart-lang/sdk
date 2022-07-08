@@ -18,11 +18,9 @@ worlds:
           ]
         }
       main.dart: |
-        // @dart=2.9
         part 'lib.dart';
         main() {}
       lib.dart: |
-        // @dart=2.9
         methodFromLib() {}
     expectedLibraryCount: 2
 

@@ -11,13 +11,11 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
-        // @dart=2.9
         import "lib1.dart";
         main() {
           libMethod();
         }
       lib1.dart: |
-        // @dart=2.9
         import "lib2.dart";
         class Foo {
           factory Foo() = Bar;
@@ -27,7 +25,6 @@ worlds:
           Bar bar = new Bar();
         }
       lib2.dart: |
-        // @dart=2.9
         import "lib1.dart";
         class Bar implements Foo {
           Bar();
@@ -41,7 +38,6 @@ worlds:
       - lib1.dart
     sources:
       lib1.dart: |
-        // @dart=2.9
         import "lib2.dart";
         class Foo {
           factory Foo() = Bar;

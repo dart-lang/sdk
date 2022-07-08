@@ -3,7 +3,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
 
   import "org-dartlang-test:///libExporter.dart";
 
-  static field dart.core::int* libField = 42;
+  static field dart.core::int libField = 42;
   static method requireStuffFromLibExporter() → void {
     dart.core::print(lib2::fromLibExporter);
   }
@@ -15,14 +15,14 @@ additionalExports = (lib::libField,
 
   export "org-dartlang-test:///lib.dart";
 
-  static field dart.core::String* fromLibExporter = "hello";
+  static field dart.core::String fromLibExporter = "hello";
 }
 library from "org-dartlang-test:///main.dart" as main {
 
   import "org-dartlang-test:///libExporter.dart";
 
   static method foo() → void {
-    dart.core::int* value = lib::libField;
-    lib::libField = value.{dart.core::num::+}(1){(dart.core::num*) →* dart.core::int*};
+    dart.core::int value = lib::libField;
+    lib::libField = value.{dart.core::num::+}(1){(dart.core::num) → dart.core::int};
   }
 }

@@ -13,18 +13,16 @@ worlds:
     skipClassHierarchyTest: true
     sources:
       main.dart: |
-        // @dart=2.9
         import 'package:flutter/framework.dart';
         import 'after_layout.dart';
         class _HotReloadIssueState extends State<HotReloadIssue>
             with AfterLayoutMixin<HotReloadIssue> {
-          Widget build(BuildContext context) {}
+          Widget build(BuildContext context) => throw '';
           void afterFirstLayout(BuildContext context) {}
         }
         class HotReloadIssue extends StatefulWidget {}
 
       after_layout.dart: |
-        // @dart=2.9
         import 'package:flutter/framework.dart';
         mixin AfterLayoutMixin<T extends StatefulWidget> on State<T> {}
 

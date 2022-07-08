@@ -2208,7 +2208,8 @@ void doSimulateTransformer(Component c) {
         getterReference: lib.reference.canonicalName
             ?.getChildFromFieldGetterWithName(fieldName)
             .reference,
-        fileUri: lib.fileUri);
+        fileUri: lib.fileUri)
+      ..isNonNullableByDefault = lib.isNonNullableByDefault;
     lib.addField(field);
     for (Class c in lib.classes) {
       if (c.fields
@@ -2224,7 +2225,8 @@ void doSimulateTransformer(Component c) {
           getterReference: c.reference.canonicalName
               ?.getChildFromFieldGetterWithName(fieldName)
               .reference,
-          fileUri: c.fileUri);
+          fileUri: c.fileUri)
+        ..isNonNullableByDefault = lib.isNonNullableByDefault;
       c.addField(field);
     }
   }

@@ -12,7 +12,6 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import 'lib.dart';
         class C extends C3 implements C4 {
           void noSuchMethod(Invocation invocation) {

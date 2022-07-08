@@ -20,7 +20,7 @@ library from "package:foo/foo.dart" as foo {
 
   import "package:example/b.dart";
 
-  static field dart.core::bool* foo1 = true;
+  static field dart.core::bool foo1 = true;
   static method foo() → dynamic {
     dart.core::print("Hello from foo");
     b::b();

@@ -9,7 +9,6 @@ type: newworld
 modules:
   foo:
     foo/foo.dart: |
-      // @dart=2.9
       var foo = true;
     foo/.dart_tool/package_config.json: |
       {
@@ -23,7 +22,6 @@ modules:
       }
   foo2:
     foo2/foo.dart: |
-      // @dart=2.9
       var foo2 = true;
     foo2/.dart_tool/package_config.json: |
       {
@@ -41,7 +39,6 @@ worlds:
     simulateTransformer: true
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:foo/foo.dart";
         main() {
           print(foo);
@@ -74,7 +71,6 @@ worlds:
     simulateTransformer: true
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:foo/foo.dart";
         main() {
           print(foo2);

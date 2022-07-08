@@ -11,7 +11,6 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
-        // @dart=2.9
         class A1 {}
 
         extension A2 on A1 {
@@ -21,7 +20,7 @@ worlds:
           String get getter1 => "42!";
           void set setter1(String s) {}
           static A1 method2() {
-            return null;
+            throw '';
           }
           static String get getter2 => "42!";
           static void set setter2(String s) {}
@@ -37,7 +36,6 @@ worlds:
       - main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         class A1 {}
 
         extension A2 on A1 {
@@ -47,7 +45,7 @@ worlds:
           String get getter1 => "42!";
           void set setter1(String s) {}
           static A1 method2() {
-            return null;
+            throw '';
           }
           static String get getter2 => "42!";
           static void set setter2(String s) {}

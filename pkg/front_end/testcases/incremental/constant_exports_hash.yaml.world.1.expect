@@ -15,7 +15,7 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:3:1: Error: 'x' is exported from both 'org-dartlang-test:///lib1.dart' and 'org-dartlang-test:///lib2.dart'.
+// org-dartlang-test:///main.dart:2:1: Error: 'x' is exported from both 'org-dartlang-test:///lib1.dart' and 'org-dartlang-test:///lib2.dart'.
 // export "lib2.dart" show x;
 // ^
 //
@@ -23,7 +23,7 @@ library from "org-dartlang-test:///main.dart" as main {
   export "org-dartlang-test:///lib1.dart" show x;
   export "org-dartlang-test:///lib2.dart" show x;
 
-  static const field dynamic _exports# = #C1;
+  static const field dynamic _exports# = #C1 /*isLegacy*/;
   static method main() → dynamic {
     dart.core::print("exports");
   }

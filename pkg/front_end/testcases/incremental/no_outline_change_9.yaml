@@ -11,7 +11,6 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
-        // @dart=2.9
         import "lib.dart";
 
         main() {
@@ -19,14 +18,12 @@ worlds:
           libPartMethod();
         }
       lib.dart: |
-        // @dart=2.9
         part "libpart.dart";
 
         libMethod() {
           print("libMethod");
         }
       libpart.dart: |
-        // @dart=2.9
         part of "lib.dart";
 
         libPartMethod() {
@@ -41,7 +38,6 @@ worlds:
       - lib.dart
     sources:
       lib.dart: |
-        // @dart=2.9
         part "libpart.dart";
 
         libMethod() {

@@ -12,7 +12,6 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
-        // @dart=2.9
         class Foo {
           Foo();
           factory Foo.bar() = Baz;

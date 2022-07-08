@@ -2,21 +2,11 @@ main = <No Member>;
 library from "org-dartlang-test:///main.dart" as main {
 
   class A1 extends dart.core::Object {
-    synthetic constructor •() → main::A1*
+    synthetic constructor •() → main::A1
       : super dart.core::Object::•()
       ;
-    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
-    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
-    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
-    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
-  extension _extension#0 on main::A1* {
+  extension _extension#0 on main::A1 {
     method method1 = main::_extension#0|method1;
     tearoff method1 = main::_extension#0|get#method1;
     get getter1 = main::_extension#0|get#getter1;
@@ -25,18 +15,18 @@ library from "org-dartlang-test:///main.dart" as main {
     set setter1 = main::_extension#0|set#setter1;
     static set setter2 = set main::_extension#0|setter2;
   }
-  static method _extension#0|method1(lowered final main::A1* #this) → main::A1* {
+  static method _extension#0|method1(lowered final main::A1 #this) → main::A1 {
     return #this;
   }
-  static method _extension#0|get#method1(lowered final main::A1* #this) → () →* main::A1*
-    return () → main::A1* => main::_extension#0|method1(#this);
-  static method _extension#0|get#getter1(lowered final main::A1* #this) → dart.core::String*
+  static method _extension#0|get#method1(lowered final main::A1 #this) → () → main::A1
+    return () → main::A1 => main::_extension#0|method1(#this);
+  static method _extension#0|get#getter1(lowered final main::A1 #this) → dart.core::String
     return "42!";
-  static method _extension#0|set#setter1(lowered final main::A1* #this, dart.core::String* s) → void {}
-  static method _extension#0|method2() → main::A1* {
-    return null;
+  static method _extension#0|set#setter1(lowered final main::A1 #this, dart.core::String s) → void {}
+  static method _extension#0|method2() → main::A1 {
+    throw "";
   }
-  static get _extension#0|getter2() → dart.core::String*
+  static get _extension#0|getter2() → dart.core::String
     return "42!";
-  static set _extension#0|setter2(dart.core::String* s) → void {}
+  static set _extension#0|setter2(dart.core::String s) → void {}
 }

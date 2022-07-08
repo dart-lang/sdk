@@ -11,10 +11,8 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import "b.dart";
       b.dart: |
-        // @dart=2.9
         import "nonexisting.dart";
     expectedLibraryCount: 2
     expectedSyntheticLibraryCount: 1
@@ -24,10 +22,8 @@ worlds:
       - main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import "b.dart";
       b.dart: |
-        // @dart=2.9
         import "nonexisting.dart";
     expectedLibraryCount: 2
     expectedSyntheticLibraryCount: 1

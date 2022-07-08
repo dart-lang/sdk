@@ -12,7 +12,6 @@ target: DDC
 modules:
   moduleC:
     moduleC/lib.dart: |
-      // @dart=2.9
       const constC = true;
     moduleC/.dart_tool/package_config.json: |
       {
@@ -26,7 +25,6 @@ modules:
       }
   moduleB:
     moduleB/lib.dart: |
-      // @dart=2.9
       import "package:moduleC/lib.dart";
       const constB = false || constC;
     moduleB/.dart_tool/package_config.json: |

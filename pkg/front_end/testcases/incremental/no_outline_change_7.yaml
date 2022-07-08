@@ -10,7 +10,6 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
-        // @dart=2.9
         import 'libA.dart';
 
         const String useMeAsAnnotation = "hello";
@@ -44,7 +43,6 @@ worlds:
         @useMeAsAnnotation
         enum CompilationStrategy { @useMeAsAnnotation direct, @useMeAsAnnotation toKernel, @useMeAsAnnotation toData, @useMeAsAnnotation fromData }
       libA.dart: |
-        // @dart=2.9
         import 'main.dart';
         @useMeAsAnnotation
         whatever(Foo foo) {
@@ -59,7 +57,6 @@ worlds:
       - main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import 'libA.dart';
 
         const String useMeAsAnnotation = "hello";
