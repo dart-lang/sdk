@@ -5,7 +5,7 @@
 // import 'dart:_foreign_helper' show JS; // error
 //        ^
 //
-library test;
+library test /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //

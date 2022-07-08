@@ -1,8 +1,7 @@
-// @dart = 2.9
 library test;
 
 class C<T> {
-  T t;
+  T? t;
   C();
   factory C.named(T t) {}
 }

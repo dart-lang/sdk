@@ -1,7 +1,7 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
 
-static field () →* Null v = () → Null => null;
+static field () → Null v = () → Null => null;
 static method main() → dynamic {
   self::v;
 }

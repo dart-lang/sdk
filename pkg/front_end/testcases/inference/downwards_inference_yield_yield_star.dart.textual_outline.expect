@@ -1,10 +1,9 @@
-// @dart = 2.9
 library test;
 
 import 'dart:async';
 
 abstract class MyStream<T> extends Stream<T> {
-  factory MyStream() => null;
+  factory MyStream() => throw '';
 }
 
 Stream<List<int>> foo() async* {}

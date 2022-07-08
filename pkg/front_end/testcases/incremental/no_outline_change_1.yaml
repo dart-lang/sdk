@@ -10,13 +10,11 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       actualMain.dart: |
-        // @dart=2.9
         import 'main.dart' as m;
         main() {
           m.main();
         }
       main.dart: |
-        // @dart=2.9
         import 'libA.dart';
 
         main() {
@@ -24,7 +22,6 @@ worlds:
         }
         mainHello() {}
       libA.dart: |
-        // @dart=2.9
         import 'main.dart';
         import 'libB.dart';
         class Foo {}
@@ -33,7 +30,6 @@ worlds:
           mainHello();
         }
       libB.dart: |
-        // @dart=2.9
         import 'libA.dart';
         class Bar {
           Foo foo;
@@ -48,7 +44,6 @@ worlds:
       - main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import 'libA.dart';
 
         main() {

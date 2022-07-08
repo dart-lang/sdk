@@ -10,7 +10,6 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
-        // @dart=2.9
         import 'lib.dart';
         class A {
           int a() {
@@ -21,7 +20,6 @@ worlds:
           }
         }
       lib.dart: |
-        // @dart=2.9
         class B {
           int a() {
             return 42;
@@ -48,7 +46,6 @@ worlds:
       - main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import 'lib.dart';
         class A {
           int b() {
@@ -69,7 +66,6 @@ worlds:
       - lib.dart
     sources:
       lib.dart: |
-        // @dart=2.9
         class C {
           int b() {
             return 1;

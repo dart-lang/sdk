@@ -1,3 +1,2 @@
-// @dart = 2.9
 final b1 = 2;
 main() {}

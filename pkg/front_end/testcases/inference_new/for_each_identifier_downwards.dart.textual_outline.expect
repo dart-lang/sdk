@@ -1,15 +1,14 @@
-// @dart = 2.9
 library test;
 
-T f<T>() => null;
+T f<T>() => throw '';
 
 class A {}
 
-A aTopLevel;
+A aTopLevel = throw '';
 void set aTopLevelSetter(A value) {}
 
 class C {
-  A aField;
+  A aField = throw '';
   void set aSetter(A value) {}
   void test() {}
 }

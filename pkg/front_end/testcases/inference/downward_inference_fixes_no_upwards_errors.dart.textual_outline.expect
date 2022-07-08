@@ -1,7 +1,6 @@
-// @dart = 2.9
 library test;
 
 import 'dart:math';
 
-f() {}
+f(num x, dynamic y) {}
 main() {}

@@ -9,7 +9,6 @@ target: None
 modules:
   module:
     module/a.dart: |
-      // @dart=2.9
       class A { }
       class B { }
       class C { }
@@ -29,7 +28,6 @@ worlds:
     fromComponent: true
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:module/a.dart";
         class ABC = AB with C;
       .dart_tool/package_config.json: |

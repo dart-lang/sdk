@@ -13,7 +13,6 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:package1/p1.dart";
         import "package:package2/p2.dart";
         main() {
@@ -21,7 +20,6 @@ worlds:
           p2();
         }
       package1/p1.dart: |
-        // @dart=2.9
         p1() {
           print("Package 1");
           p1_v1_Only();
@@ -30,7 +28,6 @@ worlds:
           print("Package 1 v1 only!");
         }
       package1v2/p1.dart: |
-        // @dart=2.9
         p1() {
           print("Package 1 v2");
           p1_v2_Only();
@@ -39,7 +36,6 @@ worlds:
           print("Package 1 v2 only!");
         }
       package2/p2.dart: |
-        // @dart=2.9
         import "package:package1/p1.dart";
         p2() {
           p1();
@@ -65,7 +61,6 @@ worlds:
     expectInitializeFromDill: false # .packages changed
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:package1/p1.dart";
         import "package:package2/p2.dart";
         main() {
@@ -73,7 +68,6 @@ worlds:
           p2();
         }
       package1/p1.dart: |
-        // @dart=2.9
         p1() {
           print("Package 1");
           p1_v1_Only();
@@ -82,7 +76,6 @@ worlds:
           print("Package 1 v1 only!");
         }
       package1v2/p1.dart: |
-        // @dart=2.9
         p1() {
           print("Package 1 v2");
           p1_v2_Only();
@@ -91,7 +84,6 @@ worlds:
           print("Package 1 v2 only!");
         }
       package2/p2.dart: |
-        // @dart=2.9
         import "package:package1/p1.dart";
         p2() {
           p1();

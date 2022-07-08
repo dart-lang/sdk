@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 typedef int F();
@@ -11,6 +10,6 @@ abstract class B extends A {
   void set x(value());
 }
 
-T f<T>() => null;
+T f<T>() => throw '';
 g(B b) {}
 main() {}

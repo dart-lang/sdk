@@ -2,22 +2,12 @@ main = <No Member>;
 library from "org-dartlang-test:///main.dart" as main {
 
   abstract class A extends dart.core::Object {
-    synthetic constructor •() → main::A*
+    synthetic constructor •() → main::A
       : super dart.core::Object::•()
       ;
     method a() → dynamic {
       dart.core::print("Class A method a!");
     }
-    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
-    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
-    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
-    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
   abstract class B extends main::A /*isMixinDeclaration*/  {
     method b() → dynamic {
@@ -25,19 +15,9 @@ library from "org-dartlang-test:///main.dart" as main {
     }
   }
   abstract class _C&A&B extends dart.core::Object implements main::A, main::B /*isAnonymousMixin*/  {
-    synthetic constructor •() → main::_C&A&B*
+    synthetic constructor •() → main::_C&A&B
       : super dart.core::Object::•()
       ;
-    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
-    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
-    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
-    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
   abstract class C extends main::_C&A&B /*isMixinDeclaration*/  {
     method c() → dynamic {
@@ -45,7 +25,7 @@ library from "org-dartlang-test:///main.dart" as main {
     }
   }
   abstract class _D&A&B extends main::A implements main::B /*isAnonymousMixin,isEliminatedMixin*/  {
-    synthetic constructor •() → main::_D&A&B*
+    synthetic constructor •() → main::_D&A&B
       : super main::A::•()
       ;
     method b() → dynamic {
@@ -53,7 +33,7 @@ library from "org-dartlang-test:///main.dart" as main {
     }
   }
   abstract class _D&A&B&C extends main::_D&A&B implements main::C /*isAnonymousMixin,isEliminatedMixin*/  {
-    synthetic constructor •() → main::_D&A&B&C*
+    synthetic constructor •() → main::_D&A&B&C
       : super main::_D&A&B::•()
       ;
     method c() → dynamic {
@@ -61,7 +41,7 @@ library from "org-dartlang-test:///main.dart" as main {
     }
   }
   class D extends main::_D&A&B&C {
-    synthetic constructor •() → main::D*
+    synthetic constructor •() → main::D
       : super main::_D&A&B&C::•()
       ;
     method d() → dynamic {

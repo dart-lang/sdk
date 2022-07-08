@@ -1,4 +1,4 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
@@ -6,10 +6,10 @@ import "dart:core" as core;
 import "dart:async";
 
 static method main() → dynamic async /* futureValueType= dynamic */ {
-  () →* asy::Future<Null>* f = () → asy::Future<Null>* async /* futureValueType= Null */ {
+  () → asy::Future<Null> f = () → asy::Future<Null> async /* futureValueType= Null */ {
     return null;
   };
-  asy::Future<dynamic>* y = f(){() →* asy::Future<Null>*};
-  asy::Future<core::String*>* z = f(){() →* asy::Future<Null>*};
-  core::String* s = await f(){() →* asy::Future<Null>*};
+  asy::Future<dynamic> y = f(){() → asy::Future<Null>};
+  asy::Future<core::String?> z = f(){() → asy::Future<Null>};
+  core::String? s = await f(){() → asy::Future<Null>};
 }

@@ -1,7 +1,6 @@
-// @dart = 2.9
 library test;
 
-C f() => null;
+C f() => throw '';
 
 class C {
   bool g() => true;

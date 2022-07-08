@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 import 'infer_statics_transitively_a.dart';

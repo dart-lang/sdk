@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 class F0<T> {
@@ -6,7 +5,7 @@ class F0<T> {
 }
 
 class F1<T> {
-  F1({List<T> a}) {}
+  F1({required List<T> a}) {}
 }
 
 class F2<T> {
@@ -18,7 +17,7 @@ class F3<T> {
 }
 
 class F4<T> {
-  F4({Iterable<Iterable<T>> a}) {}
+  F4({required Iterable<Iterable<T>> a}) {}
 }
 
 void test() {}

@@ -1,10 +1,9 @@
-// @dart = 2.9
 library test;
 
 const v = C.f;
 
 class C {
-  static int f(String s) => null;
+  static int f(String s) => throw '';
 }
 
 main() {}

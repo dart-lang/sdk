@@ -13,7 +13,6 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
-        // @dart=2.9
         class A1 {
           A1.foo1(){}
           A1.foo1(){}
@@ -32,7 +31,6 @@ worlds:
       - main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         class A1 {
           A1.foo1(){}
           A1.foo1(){}

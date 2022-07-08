@@ -1,4 +1,3 @@
-// @dart = 2.9
 class I<X> {}
 
 mixin M0<X, Y extends Comparable<Y>> on I<X> {}

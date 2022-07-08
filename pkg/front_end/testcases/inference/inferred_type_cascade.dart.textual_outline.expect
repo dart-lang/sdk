@@ -1,9 +1,8 @@
-// @dart = 2.9
 library test;
 
 class A {
-  int a;
-  List<int> b;
+  int a = 0;
+  List<int> b = [];
   void m() {}
 }
 

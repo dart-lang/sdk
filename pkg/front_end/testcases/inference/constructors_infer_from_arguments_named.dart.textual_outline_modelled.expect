@@ -1,9 +1,7 @@
-// @dart = 2.9
 library test;
 
 class C<T> {
   C.named(List<T> t);
-  T t;
 }
 
 main() {}

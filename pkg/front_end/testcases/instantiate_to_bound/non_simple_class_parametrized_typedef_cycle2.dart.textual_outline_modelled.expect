@@ -1,0 +1,4 @@
+class Hest<TypeX extends Fisk> {}
+
+main() {}
+typedef Fisk = void Function<TypeY extends Hest>();

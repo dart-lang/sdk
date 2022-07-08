@@ -10,7 +10,6 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import "dart:core";
         import "package:package2/lib2.dart";
         import "package:package2/lib3.dart";
@@ -19,17 +18,14 @@ worlds:
           lib3();
         }
       package1/lib1.dart: |
-        // @dart=2.9
         lib1() {
           return 42;
         }
       package2/lib2.dart: |
-        // @dart=2.9
         lib2() {
           return 42;
         }
       package2/lib3.dart: |
-        // @dart=2.9
         import "package:package1/lib1.dart";
         lib3() {
           return lib1();
@@ -57,7 +53,6 @@ worlds:
       - main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:package1/lib1.dart";
         main() {
           lib1();
@@ -75,7 +70,6 @@ worlds:
       - main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:package2/lib2.dart";
         main() {
           lib2();
@@ -91,13 +85,11 @@ worlds:
       - package:package1/lib1.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:package2/lib2.dart";
         main() {
           lib2();
         }
       package1/lib1.dart: |
-        // @dart=2.9
         lib1_1() {
           return 42;
         }

@@ -1,8 +1,7 @@
-// @dart = 2.9
 library test;
 
 class A {
-  int f;
+  int f = 0;
 }
 
 A a = new A();

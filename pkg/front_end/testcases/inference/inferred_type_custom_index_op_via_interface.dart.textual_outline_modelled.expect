@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 abstract class C implements I {}
@@ -7,5 +6,5 @@ class I {
   bool operator [](int index) => true;
 }
 
-f() {}
+f(C c) {}
 main() {}

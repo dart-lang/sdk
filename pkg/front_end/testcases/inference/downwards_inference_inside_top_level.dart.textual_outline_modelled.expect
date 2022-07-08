@@ -1,8 +1,7 @@
-// @dart = 2.9
 library test;
 
 class A {
-  B<int> b;
+  late B<int> b;
 }
 
 class B<T> {

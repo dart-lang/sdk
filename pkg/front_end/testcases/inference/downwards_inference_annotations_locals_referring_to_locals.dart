@@ -1,7 +1,7 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 /*@testedFeatures=inference*/
 library test;
 
@@ -10,15 +10,15 @@ class Foo {
 }
 
 void test() {
-  const /*@ type=int* */ x = 0;
+  const /*@type=int*/ x = 0;
 
-  @Foo(/*@ typeArgs=int* */ const [x])
+  @Foo(/*@typeArgs=int*/ const [x])
   var /*@ type=dynamic */ y;
 
-  @Foo(/*@ typeArgs=int* */ const [x])
+  @Foo(/*@typeArgs=int*/ const [x])
   void bar() {}
 
-  void baz(@Foo(/*@ typeArgs=int* */ const [x]) dynamic formal) {}
+  void baz(@Foo(/*@typeArgs=int*/ const [x]) dynamic formal) {}
 }
 
 main() {}

@@ -4,8 +4,8 @@ library from "org-dartlang-test:///file1.dart" as fil {
   import "org-dartlang-test:///file2.dart";
 
   class Class2 extends fil2::Class3 {
-    field fil2::Class3* foo = null;
-    synthetic constructor •() → fil::Class2*
+    field fil2::Class3? foo = null;
+    synthetic constructor •() → fil::Class2
       : super fil2::Class3::•()
       ;
   }
@@ -13,20 +13,10 @@ library from "org-dartlang-test:///file1.dart" as fil {
 library from "org-dartlang-test:///file2.dart" as fil2 {
 
   abstract class Class3 extends dart.core::Object {
-    field fil2::Class3* foo = null;
-    synthetic constructor •() → fil2::Class3*
+    field fil2::Class3? foo = null;
+    synthetic constructor •() → fil2::Class3
       : super dart.core::Object::•()
       ;
-    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
-    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
-    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
-    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
 }
 library from "org-dartlang-test:///main.dart" as main {
@@ -34,7 +24,7 @@ library from "org-dartlang-test:///main.dart" as main {
   import "org-dartlang-test:///file1.dart";
 
   class Class1 extends fil::Class2 {
-    synthetic constructor •() → main::Class1*
+    synthetic constructor •() → main::Class1
       : super fil::Class2::•()
       ;
   }

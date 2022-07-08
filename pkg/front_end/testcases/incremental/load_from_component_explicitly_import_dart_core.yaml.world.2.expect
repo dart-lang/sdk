@@ -3,7 +3,7 @@ library from "org-dartlang-test:///b.dart" as b {
 
   import "dart:core";
 
-  static method useString(dart.core::String* s) → void {
+  static method useString(dart.core::String s) → void {
     dart.core::print("Hello from useString: ${s}");
   }
 }

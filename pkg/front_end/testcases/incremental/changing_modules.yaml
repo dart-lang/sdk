@@ -9,7 +9,6 @@ type: newworld
 modules:
   example_0.1.0:
     example_0.1.0/a.dart: |
-      // @dart=2.9
       a() {
         la1();
       }
@@ -17,7 +16,6 @@ modules:
         print("Hello from v0.1.0");
       }
     example_0.1.0/b.dart: |
-      // @dart=2.9
       import "a.dart";
       b() {
         a();
@@ -34,7 +32,6 @@ modules:
       }
   example_0.1.1:
     example_0.1.1/b.dart: |
-      // @dart=2.9
       b() {
         print("Hello from v0.1.1");
       }
@@ -51,7 +48,6 @@ modules:
       }
   foo_1:
     foo_1/foo.dart: |
-      // @dart=2.9
       import "package:example/b.dart";
       foo() {
         print("Hello from foo");
@@ -74,7 +70,6 @@ modules:
       }
   foo_2:
     foo_2/foo.dart: |
-      // @dart=2.9
       import "package:example/b.dart";
       import "bar.dart";
       import "baz.dart";
@@ -86,12 +81,10 @@ modules:
       }
       bool foo2 = true;
     foo_2/bar.dart: |
-      // @dart=2.9
       bar() {
         print("hello from bar");
       }
     foo_2/baz.dart: |
-      // @dart=2.9
       baz() {
         print("hello from baz");
       }
@@ -114,7 +107,6 @@ worlds:
     fromComponent: true
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:example/b.dart";
         main() {
           print("hello");
@@ -149,7 +141,6 @@ worlds:
     expectInitializeFromDill: false
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:foo/foo.dart";
         main() {
           print("hello");
@@ -191,7 +182,6 @@ worlds:
     expectInitializeFromDill: false
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:foo/foo.dart";
         main() {
           print("hello");

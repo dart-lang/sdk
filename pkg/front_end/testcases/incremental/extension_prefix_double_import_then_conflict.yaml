@@ -14,7 +14,6 @@ worlds:
     errors: true
     sources:
       main.dart: |
-        // @dart=2.9
         import "lib1.dart";
         import "lib2.dart" as p;
         main() {
@@ -22,12 +21,10 @@ worlds:
           o.onObject;
         }
       lib1.dart: |
-        // @dart=2.9
         extension OnObject on Object {
           String get onObject => "object #1";
         }
       lib2.dart: |
-        // @dart=2.9
         extension AlsoOnObject on Object {
           String get onObject => "object #2";
         }
@@ -40,7 +37,6 @@ worlds:
       - main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import "lib1.dart";
         import "lib1.dart" as p;
         main() {
@@ -57,7 +53,6 @@ worlds:
       - main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import "lib1.dart";
         import "lib2.dart" as p;
         main() {

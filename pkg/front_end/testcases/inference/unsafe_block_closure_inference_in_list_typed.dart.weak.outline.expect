@@ -1,7 +1,7 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-typedef F = () →* core::int*;
+typedef F = () → core::int;
 static method main() → dynamic
   ;

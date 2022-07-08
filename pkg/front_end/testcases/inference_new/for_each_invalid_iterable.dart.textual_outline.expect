@@ -1,5 +1,4 @@
-// @dart = 2.9
 library test;
 
-test() async {}
+test(String s, int y) async {}
 main() {}

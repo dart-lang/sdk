@@ -10,7 +10,6 @@ type: newworld
 modules:
   moduleB:
     moduleB/b.dart: |
-      // @dart=2.9
       import 'package:moduleC/c.dart';
 
       var bVar = 42;
@@ -40,7 +39,6 @@ modules:
       }
   moduleC:
     moduleC/c.dart: |
-      // @dart=2.9
       import 'package:moduleD/d.dart';
 
       String baz = "42";
@@ -65,7 +63,6 @@ modules:
       }
   moduleD:
     moduleD/d.dart: |
-      // @dart=2.9
       String baz3 = "baz3";
     moduleD/.dart_tool/package_config.json: |
       {
@@ -82,7 +79,6 @@ worlds:
     fromComponent: true
     sources:
       a.dart: |
-        // @dart=2.9
         import "package:moduleB/b.dart";
 
         var foo = bVar;

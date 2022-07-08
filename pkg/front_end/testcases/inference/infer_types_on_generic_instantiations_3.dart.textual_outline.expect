@@ -1,9 +1,8 @@
-// @dart = 2.9
 library test;
 
 class A<T> {
-  final T x = null;
-  final T w = null;
+  final T x = throw '';
+  final T w = throw '';
 }
 
 class B implements A<int> {

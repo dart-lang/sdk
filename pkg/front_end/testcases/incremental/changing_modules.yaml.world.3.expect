@@ -1,7 +1,7 @@
 main = main::main;
 library from "package:example/b.dart" as b {
 
-  static field dart.core::bool* example011 = true;
+  static field dart.core::bool example011 = true;
   static method b() → dynamic {
     dart.core::print("Hello from v0.1.1");
   }
@@ -24,7 +24,7 @@ library from "package:foo/foo.dart" as foo {
   import "package:foo/bar.dart";
   import "package:foo/baz.dart";
 
-  static field dart.core::bool* foo2 = true;
+  static field dart.core::bool foo2 = true;
   static method foo() → dynamic {
     dart.core::print("Hello from foo 2");
     bar::bar();

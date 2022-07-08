@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 List<T> f<T>(T g()) => <T>[g()];

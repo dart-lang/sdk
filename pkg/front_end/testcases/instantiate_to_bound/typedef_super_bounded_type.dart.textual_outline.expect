@@ -1,5 +1,4 @@
-// @dart = 2.9
 typedef A<T>(T p);
 typedef B<S extends A<S>>(S p);
-B b;
+B b = throw '';
 main() {}
