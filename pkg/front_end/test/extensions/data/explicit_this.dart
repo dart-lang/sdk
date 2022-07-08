@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /*library: scope=[
   A2,
   async.dart.FutureExtensions,
@@ -11,7 +9,7 @@
   core.dart.EnumName]*/
 
 class A1 {
-  Object field;
+  Object? field;
   void method1() {}
 }
 
@@ -26,7 +24,7 @@ class A1 {
   tearoff method3=A2|get#method3,
   tearoff method4=A2|get#method4],
  extension-name=A2,
- extension-onType=A1
+ extension-onType=A1!
 */
 extension A2 on A1 {
   /*member: A2|method2:
@@ -50,7 +48,7 @@ extension A2 on A1 {
    member-name=A2|method3,
    member-params=[#this]
   */
-  Object method3() => this.field;
+  Object? method3() => this.field;
 
   /*member: A2|get#method3:
    builder-name=method3,
@@ -65,7 +63,7 @@ extension A2 on A1 {
    member-name=A2|method4,
    member-params=[#this,o]
   */
-  void method4(Object o) {
+  void method4(Object? o) {
     this.field = o;
   }
 
