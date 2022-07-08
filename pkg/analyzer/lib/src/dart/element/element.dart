@@ -16,7 +16,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -48,6 +47,7 @@ import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart';
 
 /// A concrete implementation of a [ClassElement].
@@ -3730,9 +3730,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   /// an entry point.
   FunctionElement? _entryPoint;
 
-  /// A list containing all of the compilation units that are included in this
-  /// library using a `part` directive.
-  List<CompilationUnitElement> _parts = const <CompilationUnitElement>[];
+  /// The list of `part` directives of this library.
+  List<PartElement> _parts2 = const <PartElement>[];
 
   /// The element representing the synthetic function `loadLibrary` that is
   /// defined for this library, or `null` if the element has not yet been
@@ -3930,18 +3929,27 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   String get name => super.name!;
 
+  @Deprecated('Use parts2 instead')
   @override
-  List<CompilationUnitElement> get parts => _parts;
+  List<CompilationUnitElement> get parts {
+    return _parts2
+        .whereType<PartElementWithPart>()
+        .map((partElement) => partElement.includedUnit)
+        .toList();
+  }
 
-  /// Set the compilation units that are included in this library using a `part`
-  /// directive to the given list of [parts].
-  set parts(List<CompilationUnitElement> parts) {
-    for (CompilationUnitElement compilationUnit in parts) {
-      assert((compilationUnit as CompilationUnitElementImpl).librarySource ==
-          source);
-      (compilationUnit as CompilationUnitElementImpl).enclosingElement = this;
+  @override
+  List<PartElement> get parts2 => _parts2;
+
+  set parts2(List<PartElement> parts) {
+    for (final part in parts) {
+      part as PartElementImpl;
+      part.enclosingElement = this;
+      if (part is PartElementWithPartImpl) {
+        part.includedUnit.enclosingElement = this;
+      }
     }
-    _parts = parts;
+    _parts2 = parts;
   }
 
   @override
@@ -3984,10 +3992,10 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   List<CompilationUnitElement> get units {
-    List<CompilationUnitElement> units = <CompilationUnitElement>[];
-    units.add(_definingCompilationUnit);
-    units.addAll(_parts);
-    return units;
+    return [
+      _definingCompilationUnit,
+      ...parts2.whereType<PartElementWithPart>().map((e) => e.includedUnit),
+    ];
   }
 
   @override
@@ -4004,12 +4012,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   ClassElement? getEnum(String name) {
-    var element = _definingCompilationUnit.getEnum(name);
-    if (element != null) {
-      return element;
-    }
-    for (CompilationUnitElement part in _parts) {
-      element = part.getEnum(name);
+    for (final unitElement in units) {
+      final element = unitElement.getEnum(name);
       if (element != null) {
         return element;
       }
@@ -4024,8 +4028,14 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   @override
-  ClassElement? getType(String className) {
-    return getTypeFromParts(className, _definingCompilationUnit, _parts);
+  ClassElement? getType(String name) {
+    for (final unitElement in units) {
+      final element = unitElement.getType(name);
+      if (element != null) {
+        return element;
+      }
+    }
+    return null;
   }
 
   /// Indicates whether it is unnecessary to report an undefined identifier
@@ -4060,8 +4070,10 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     }
 
     if (prefix == null && name.startsWith(r'_$')) {
-      for (var partElement in parts) {
-        if (partElement.isSynthetic && isGeneratedSource(partElement.source)) {
+      for (var partElement in parts2) {
+        if (partElement is PartElementWithSource &&
+            partElement is! PartElementWithPart &&
+            file_paths.isGenerated(partElement.relativeUriString)) {
           return true;
         }
       }
@@ -4101,7 +4113,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChildren(_parts, visitor);
+    safelyVisitChildren(parts2, visitor);
   }
 
   static List<PrefixElement> buildPrefixesFromImports(
@@ -5087,6 +5099,61 @@ mixin ParameterElementMixin implements ParameterElement {
       buffer.write(defaultValueCode);
     }
   }
+}
+
+class PartElementImpl extends _ExistingElementImpl implements PartElement {
+  PartElementImpl() : super(null, -1);
+
+  @override
+  CompilationUnitElementImpl get enclosingUnit {
+    var enclosingLibrary = enclosingElement as LibraryElementImpl;
+    return enclosingLibrary._definingCompilationUnit;
+  }
+
+  @override
+  String get identifier => 'part';
+
+  @override
+  ElementKind get kind => ElementKind.PART;
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitPartElement(this);
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writePartElement(this);
+  }
+}
+
+class PartElementWithPartImpl extends PartElementWithSourceImpl
+    implements PartElementWithPart {
+  @override
+  final CompilationUnitElementImpl includedUnit;
+
+  PartElementWithPartImpl({
+    required super.relativeUriString,
+    required super.uriSource,
+    required this.includedUnit,
+  });
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    includedUnit.accept(visitor);
+  }
+}
+
+class PartElementWithSourceImpl extends PartElementImpl
+    implements PartElementWithSource {
+  @override
+  final String relativeUriString;
+
+  @override
+  final Source uriSource;
+
+  PartElementWithSourceImpl({
+    required this.relativeUriString,
+    required this.uriSource,
+  });
 }
 
 /// A concrete implementation of a [PrefixElement].

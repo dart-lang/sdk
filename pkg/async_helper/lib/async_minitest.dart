@@ -286,6 +286,7 @@ abstract class _Matcher {
   void call(dynamic o);
 }
 
+// ignore: camel_case_types
 class isInstanceOf<T> implements _Matcher {
   void call(dynamic o) {
     Expect.type<T>(o);

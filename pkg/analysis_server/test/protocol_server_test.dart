@@ -249,6 +249,7 @@ class EnumTest {
       engine.ElementKind.LIBRARY_AUGMENTATION: ElementKind.UNKNOWN,
       engine.ElementKind.NAME: ElementKind.UNKNOWN,
       engine.ElementKind.NEVER: ElementKind.UNKNOWN,
+      engine.ElementKind.PART: ElementKind.COMPILATION_UNIT,
       engine.ElementKind.UNIVERSE: ElementKind.UNKNOWN
     });
   }

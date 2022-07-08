@@ -44,6 +44,7 @@ import 'package:analysis_server/src/services/correction/dart/encapsulate_field.d
 import 'package:analysis_server/src/services/correction/dart/exchange_operands.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_convert_to_children.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_convert_to_stateful_widget.dart';
+import 'package:analysis_server/src/services/correction/dart/flutter_convert_to_stateless_widget.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_move_down.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_move_up.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_remove_widget.dart';
@@ -125,6 +126,7 @@ class AssistProcessor extends BaseProcessor {
     ExchangeOperands.new,
     FlutterConvertToChildren.new,
     FlutterConvertToStatefulWidget.new,
+    FlutterConvertToStatelessWidget.new,
     FlutterMoveDown.new,
     FlutterMoveUp.new,
     FlutterRemoveWidget.new,

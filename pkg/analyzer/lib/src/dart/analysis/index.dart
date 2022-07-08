@@ -793,9 +793,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitPartDirective(PartDirective node) {
-    var element = node.element as CompilationUnitElement?;
-    if (element?.source != null) {
-      recordUriReference(element, node.uri);
+    final partElement = node.element;
+    if (partElement is PartElementWithPart) {
+      recordUriReference(partElement.includedUnit, node.uri);
     }
     super.visitPartDirective(node);
   }

@@ -309,7 +309,7 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
 
 /// Iterates over a token stream returning all tokens including comments.
 Iterable<Token> _iterateAllTokens(Token token) sync* {
-  while (token.type != TokenType.EOF) {
+  while (!token.isEof) {
     Token? commentToken = token.precedingComments;
     while (commentToken != null) {
       yield commentToken;

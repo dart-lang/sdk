@@ -125,7 +125,6 @@ class LibraryContext {
     var librariesLoaded = 0;
     var librariesLinked = 0;
     var librariesLinkedTimer = Stopwatch();
-    var inputsTimer = Stopwatch();
     var bytesGet = 0;
     var bytesPut = 0;
 
@@ -176,54 +175,12 @@ class LibraryContext {
           cycle.libraries.map((e) => e.file.path).toSet(),
         );
 
-        inputsTimer.start();
-        var inputLibraries = <LinkInputLibrary>[];
-        for (var library in cycle.libraries) {
-          var librarySource = library.file.source;
-
-          var inputUnits = <LinkInputUnit>[];
-          var partIndex = -1;
-          for (var file in library.files) {
-            var isSynthetic = !file.exists;
-            var unit = file.parse();
-
-            performance.getDataInt('parseCount').increment();
-            performance.getDataInt('parseLength').add(unit.length);
-
-            String? partUriStr;
-            if (partIndex >= 0) {
-              partUriStr = library.file.unlinked2.parts[partIndex].uri;
-            }
-            partIndex++;
-
-            inputUnits.add(
-              LinkInputUnit(
-                // TODO(scheglov) bad, group part data
-                partDirectiveIndex: partIndex - 1,
-                partUriStr: partUriStr,
-                source: file.source,
-                sourceContent: file.content,
-                isSynthetic: isSynthetic,
-                unit: unit,
-              ),
-            );
-          }
-
-          inputLibraries.add(
-            LinkInputLibrary(
-              source: librarySource,
-              units: inputUnits,
-            ),
-          );
-        }
-        inputsTimer.stop();
-
         LinkResult linkResult;
         try {
-          linkResult = await link2(
+          linkResult = await link(
             elementFactory: elementFactory,
             performance: OperationPerformanceImpl('link'),
-            inputLibraries: inputLibraries,
+            inputLibraries: cycle.libraries,
             macroExecutor: macroExecutor,
           );
           librariesLinked += cycle.libraries.length;
@@ -290,7 +247,6 @@ class LibraryContext {
       logger.writeln(
         '[librariesTotal: $librariesTotal]'
         '[librariesLoaded: $librariesLoaded]'
-        '[inputsTimer: ${inputsTimer.elapsedMilliseconds} ms]'
         '[librariesLinked: $librariesLinked]'
         '[librariesLinkedTimer: ${librariesLinkedTimer.elapsedMilliseconds} ms]'
         '[bytesGet: $bytesGet][bytesPut: $bytesPut]',

@@ -1292,23 +1292,6 @@ class LibraryElementImplTest {
     }
   }
 
-  void test_getUnits() {
-    AnalysisContext context = TestAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "test");
-    CompilationUnitElement unitLib = library.definingCompilationUnit;
-    CompilationUnitElementImpl unitA = ElementFactory.compilationUnit(
-      source: TestSource("unit_a.dart"),
-      librarySource: unitLib.source,
-    );
-    CompilationUnitElementImpl unitB = ElementFactory.compilationUnit(
-      source: TestSource("unit_b.dart"),
-      librarySource: unitLib.source,
-    );
-    library.parts = <CompilationUnitElement>[unitA, unitB];
-    expect(library.units,
-        unorderedEquals(<CompilationUnitElement>[unitLib, unitA, unitB]));
-  }
-
   void test_setImports() {
     AnalysisContext context = TestAnalysisContext();
     LibraryElementImpl library = LibraryElementImpl(

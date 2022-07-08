@@ -585,7 +585,7 @@ class FfiTransformer extends Transformer {
     if (fun.positionalParameters.length != fun.requiredParameterCount) {
       return null;
     }
-    if (fun.typeParameters.length != 0) return null;
+    if (fun.typeParameters.isNotEmpty) return null;
 
     final DartType? returnType = convertNativeTypeToDartType(fun.returnType,
         allowCompounds: true, allowHandle: true);

@@ -1,4 +1,6 @@
 // @dart = 2.9
+// ignore_for_file: empty_catches
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -7,6 +9,7 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/macros/compiler/request_channel.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
+import 'package:frontend_server/frontend_server.dart';
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
@@ -15,8 +18,6 @@ import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:vm/incremental_compiler.dart';
-
-import '../lib/frontend_server.dart';
 
 void main() async {
   group('basic', () {
@@ -499,10 +500,9 @@ void main() async {
       file.writeAsStringSync("main() {\n}\n");
       var dillFile = File('${tempDir.path}/app.dill');
 
-      var package_config =
-          File('${tempDir.path}/.dart_tool/package_config.json')
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      var packageConfig = File('${tempDir.path}/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
   {
     "configVersion": 2,
     "packages": [
@@ -521,7 +521,7 @@ void main() async {
         '--incremental',
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}',
-        '--packages=${package_config.path}',
+        '--packages=${packageConfig.path}',
       ];
 
       final StreamController<List<int>> streamController =
@@ -2024,10 +2024,9 @@ void main(List<String> arguments, SendPort sendPort) {
     test('compile to JavaScript', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {\n}\n");
-      var package_config =
-          File('${tempDir.path}/.dart_tool/package_config.json')
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      var packageConfig = File('${tempDir.path}/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
   {
     "configVersion": 2,
     "packages": [
@@ -2048,7 +2047,7 @@ void main(List<String> arguments, SendPort sendPort) {
         '--incremental',
         '--platform=${ddcPlatformKernel.path}',
         '--output-dill=${dillFile.path}',
-        '--packages=${package_config.path}',
+        '--packages=${packageConfig.path}',
         '--target=dartdevc',
         file.path,
       ];
@@ -2190,10 +2189,9 @@ void main(List<String> arguments, SendPort sendPort) {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {\n\n}\n");
 
-      var package_config =
-          File('${tempDir.path}/.dart_tool/package_config.json')
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      var packageConfig = File('${tempDir.path}/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
   {
     "configVersion": 2,
     "packages": [
@@ -2226,7 +2224,7 @@ void main(List<String> arguments, SendPort sendPort) {
         '--platform=${ddcPlatformKernel.path}',
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
-        '--packages=${package_config.path}',
+        '--packages=${packageConfig.path}',
       ];
 
       final StreamController<List<int>> streamController =
@@ -2269,10 +2267,9 @@ void main(List<String> arguments, SendPort sendPort) {
     test('compile to JavaScript with metadata', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {\n\n}\n");
-      var package_config =
-          File('${tempDir.path}/.dart_tool/package_config.json')
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      var packageConfig = File('${tempDir.path}/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
   {
     "configVersion": 2,
     "packages": [
@@ -2307,7 +2304,7 @@ void main(List<String> arguments, SendPort sendPort) {
         '--platform=${ddcPlatformKernel.path}',
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
-        '--packages=${package_config.path}',
+        '--packages=${packageConfig.path}',
         '--experimental-emit-debug-metadata',
         '--emit-debug-symbols',
       ];
@@ -2361,10 +2358,9 @@ void main(List<String> arguments, SendPort sendPort) {
       var dillFile = File('${tempDir.path}/app.dill');
       var sourceFile = File('${dillFile.path}.sources');
 
-      var package_config =
-          File('${tempDir.path}/.dart_tool/package_config.json')
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      var packageConfig = File('${tempDir.path}/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
     {
       "configVersion": 2,
       "packages": [
@@ -2386,7 +2382,7 @@ void main(List<String> arguments, SendPort sendPort) {
         '--platform=${ddcPlatformKernelWeak.path}',
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
-        '--packages=${package_config.path}'
+        '--packages=${packageConfig.path}'
       ];
 
       final StreamController<List<int>> streamController =
@@ -2444,10 +2440,9 @@ void main(List<String> arguments, SendPort sendPort) {
       file = File('${tempDir.path}/bar.dart')..createSync();
       file.writeAsStringSync("void Function(int) fn = (int i) => null;\n");
 
-      var package_config =
-          File('${tempDir.path}/.dart_tool/package_config.json')
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      var packageConfig = File('${tempDir.path}/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
     {
       "configVersion": 2,
       "packages": [
@@ -2471,7 +2466,7 @@ void main(List<String> arguments, SendPort sendPort) {
         '--platform=${ddcPlatformKernel.path}',
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
-        '--packages=${package_config.path}',
+        '--packages=${packageConfig.path}',
       ];
 
       final StreamController<List<int>> streamController =
@@ -2524,10 +2519,9 @@ void main(List<String> arguments, SendPort sendPort) {
     test('compile expression to Javascript', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {\n}\n");
-      var package_config =
-          File('${tempDir.path}/.dart_tool/package_config.json')
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      var packageConfig = File('${tempDir.path}/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
   {
     "configVersion": 2,
     "packages": [
@@ -2556,7 +2550,7 @@ void main(List<String> arguments, SendPort sendPort) {
         '--platform=${ddcPlatformKernel.path}',
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
-        '--packages=${package_config.path}',
+        '--packages=${packageConfig.path}',
       ];
 
       final StreamController<List<int>> streamController =
@@ -2645,10 +2639,9 @@ void main(List<String> arguments, SendPort sendPort) {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync(
           "main() {print(const bool.fromEnvironment('dart.library.html'));}\n");
-      var package_config =
-          File('${tempDir.path}/.dart_tool/package_config.json')
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      var packageConfig = File('${tempDir.path}/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
   {
     "configVersion": 2,
     "packages": [
@@ -2677,7 +2670,7 @@ void main(List<String> arguments, SendPort sendPort) {
         '--platform=${ddcPlatformKernel.path}',
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
-        '--packages=${package_config.path}',
+        '--packages=${packageConfig.path}',
       ];
 
       final StreamController<List<int>> streamController =
@@ -2753,10 +2746,9 @@ void main(List<String> arguments, SendPort sendPort) {
     test('mixed compile expression commands with web target', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {\n\n}\n");
-      var package_config =
-          File('${tempDir.path}/.dart_tool/package_config.json')
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      var packageConfig = File('${tempDir.path}/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
   {
     "configVersion": 2,
     "packages": [
@@ -2784,7 +2776,7 @@ void main(List<String> arguments, SendPort sendPort) {
         '--platform=${ddcPlatformKernel.path}',
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
-        '--packages=${package_config.path}',
+        '--packages=${packageConfig.path}',
       ];
 
       final StreamController<List<int>> streamController =
@@ -3124,7 +3116,7 @@ void main(List<String> arguments, SendPort sendPort) {
 main() {}
 method(int i) => i?.isEven;
 """);
-        var package_config =
+        var packageConfig =
             File('${tempDir.path}/.dart_tool/package_config.json')
               ..createSync(recursive: true)
               ..writeAsStringSync('''
@@ -3148,7 +3140,7 @@ method(int i) => i?.isEven;
           '--incremental',
           '--platform=${ddcPlatformKernel.path}',
           '--output-dill=${dillFile.path}',
-          '--packages=${package_config.path}',
+          '--packages=${packageConfig.path}',
           '--target=dartdevc',
           if (hideWarnings) '--verbosity=error',
           file.path,

@@ -228,6 +228,11 @@ class DartAssistKind {
     30,
     'Convert to StatefulWidget',
   );
+  static const FLUTTER_CONVERT_TO_STATELESS_WIDGET = AssistKind(
+    'dart.assist.flutter.convert.toStatelessWidget',
+    30,
+    'Convert to StatelessWidget',
+  );
 
   // Flutter wrap specific assists
   static const FLUTTER_WRAP_GENERIC = AssistKind(

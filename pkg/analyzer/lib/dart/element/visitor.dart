@@ -167,6 +167,9 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
       visitLocalElement(element);
 
   @override
+  R? visitPartElement(PartElement element) => visitElement(element);
+
+  @override
   R? visitPrefixElement(PrefixElement element) => visitElement(element);
 
   @override
@@ -318,6 +321,12 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
+  R? visitPartElement(PartElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitPrefixElement(PrefixElement element) {
     element.visitChildren(this);
     return null;
@@ -422,6 +431,9 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R? visitParameterElement(ParameterElement element) => null;
 
   @override
+  R? visitPartElement(PartElement element) => null;
+
+  @override
   R? visitPrefixElement(PrefixElement element) => null;
 
   @override
@@ -511,6 +523,9 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R? visitParameterElement(ParameterElement element) => _throw(element);
+
+  @override
+  R? visitPartElement(PartElement element) => _throw(element);
 
   @override
   R? visitPrefixElement(PrefixElement element) => _throw(element);

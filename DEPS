@@ -81,7 +81,7 @@ vars = {
   "args_rev": "73e8d3b55cbedc9765f8e266f3422d8914f8e62a",
   "async_rev": "f3ed5f690e2ec9dbe1bfc5184705575b4f6480e5",
   "bazel_worker_rev": "9710de6c9c70b1b583183db9d9721ba64e5a16fe",
-  "benchmark_harness_rev": "f4ed0fcac4c284580263f0c548664dd548c9cca3",
+  "benchmark_harness_rev": "4183c76739ed7a27c260ca9ebaab6e0f210d1a37",
   "boolean_selector_rev": "1d3565e2651d16566bb556955b96ea75018cbd0c",
   "boringssl_gen_rev": "ced85ef0a00bbca77ce5a91261a5f2ae61b1e62f",
   "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
@@ -108,7 +108,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "d7b73536a8079331c888b7da539b80e6825270ea", # manually rev'd
 
-  "dartdoc_rev": "61dea6b8307392ee6dfe8fd952716b07f5243b1d",
+  "dartdoc_rev": "bf7cf5112bf2742a8fe05a5ec61377dc07f27cf7",
   "devtools_rev": "95d292626da26505b02417735f77e8922783b477",
   "ffi_rev": "18b2b549d55009ff594600b04705ff6161681e07",
   "file_rev": "0132eeedea2933513bf230513a766a8baeab0c4f",
@@ -135,7 +135,7 @@ vars = {
   "path_rev": "7a0ed40280345b1c11df4c700c71e590738f4257",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "fa84ddd0e39f45bf3f09dcc5d6b9fbdda7820fef",
-  "protobuf_rev": "585878516d90b973ba47e2ffa295814ccaa19d3d",
+  "protobuf_rev": "7b20134b5609a4d25a57c7396e91b93ba60888d5",
   "pub_rev": "9bf4289d6fd5d6872a8929d6312bbd7098f3ea9c", # manually rev'd
   "pub_semver_rev": "5c0b4bfd5ca57fe16f1319c581dc8c882e9b8cb2",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",

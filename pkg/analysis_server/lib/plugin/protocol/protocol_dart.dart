@@ -91,6 +91,9 @@ ElementKind convertElementKind(engine.ElementKind kind) {
   if (kind == engine.ElementKind.PARAMETER) {
     return ElementKind.PARAMETER;
   }
+  if (kind == engine.ElementKind.PART) {
+    return ElementKind.COMPILATION_UNIT;
+  }
   if (kind == engine.ElementKind.PREFIX) {
     return ElementKind.PREFIX;
   }

@@ -1428,8 +1428,7 @@ void Simulator::SupervisorCall(Instr* instr) {
           SimulatorRuntimeCall target =
               reinterpret_cast<SimulatorRuntimeCall>(external);
           target(arguments);
-          set_register(R0, icount_);  // Zap result register from void function.
-          set_register(R1, icount_);
+          ClobberVolatileRegisters();
         } else if (redirection->call_kind() == kLeafRuntimeCall) {
           ASSERT((0 <= redirection->argument_count()) &&
                  (redirection->argument_count() <= 5));
@@ -1441,8 +1440,8 @@ void Simulator::SupervisorCall(Instr* instr) {
           SimulatorLeafRuntimeCall target =
               reinterpret_cast<SimulatorLeafRuntimeCall>(external);
           r0 = InvokeLeafRuntime(target, r0, r1, r2, r3, r4);
+          ClobberVolatileRegisters();
           set_register(R0, r0);       // Set returned result from function.
-          set_register(R1, icount_);  // Zap unused result register.
         } else if (redirection->call_kind() == kLeafFloatRuntimeCall) {
           ASSERT((0 <= redirection->argument_count()) &&
                  (redirection->argument_count() <= 2));
@@ -1454,6 +1453,7 @@ void Simulator::SupervisorCall(Instr* instr) {
             double d0 = get_dregister(D0);
             double d1 = get_dregister(D1);
             d0 = InvokeFloatLeafRuntime(target, d0, d1);
+            ClobberVolatileRegisters();
             set_dregister(D0, d0);
           } else {
             // If we're not doing "hardfp", we must be doing "soft" or "softfp",
@@ -1467,6 +1467,7 @@ void Simulator::SupervisorCall(Instr* instr) {
             double d0 = bit_cast<double, int64_t>(a0);
             double d1 = bit_cast<double, int64_t>(a1);
             d0 = InvokeFloatLeafRuntime(target, d0, d1);
+            ClobberVolatileRegisters();
             a0 = bit_cast<int64_t, double>(d0);
             r0 = Utils::Low32Bits(a0);
             r1 = Utils::High32Bits(a0);
@@ -1482,28 +1483,8 @@ void Simulator::SupervisorCall(Instr* instr) {
           Dart_NativeFunction target_func =
               reinterpret_cast<Dart_NativeFunction>(get_register(R1));
           wrapper(arguments, target_func);
-          set_register(R0, icount_);  // Zap result register from void function.
-          set_register(R1, icount_);
+          ClobberVolatileRegisters();
         }
-
-        // Zap caller-saved registers, since the actual runtime call could have
-        // used them.
-        set_register(R2, icount_);
-        set_register(R3, icount_);
-        set_register(IP, icount_);
-        set_register(LR, icount_);
-          double zap_dvalue = static_cast<double>(icount_);
-          // Do not zap D0, as it may contain a float result.
-          for (int i = D1; i <= D7; i++) {
-            set_dregister(static_cast<DRegister>(i), zap_dvalue);
-          }
-// The above loop also zaps overlapping registers S2-S15.
-// Registers D8-D15 (overlapping with S16-S31) are preserved.
-#if defined(VFPv3_D32)
-          for (int i = D16; i <= D31; i++) {
-            set_dregister(static_cast<DRegister>(i), zap_dvalue);
-          }
-#endif
 
         // Return.
         set_pc(saved_lr);
@@ -1523,6 +1504,29 @@ void Simulator::SupervisorCall(Instr* instr) {
       break;
     }
   }
+}
+
+void Simulator::ClobberVolatileRegisters() {
+  // Clear atomic reservation.
+  exclusive_access_addr_ = exclusive_access_value_ = 0;
+
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+    if ((kAbiVolatileCpuRegs & (1 << i)) != 0) {
+      registers_[i] = icount_;
+    }
+  }
+
+  double zap_dvalue = static_cast<double>(icount_);
+  for (int i = D0; i <= D7; i++) {
+    set_dregister(static_cast<DRegister>(i), zap_dvalue);
+  }
+  // The above loop also zaps overlapping registers S2-S15.
+  // Registers D8-D15 (overlapping with S16-S31) are preserved.
+#if defined(VFPv3_D32)
+  for (int i = D16; i <= D31; i++) {
+    set_dregister(static_cast<DRegister>(i), zap_dvalue);
+  }
+#endif
 }
 
 // Handle execution based on instruction types.

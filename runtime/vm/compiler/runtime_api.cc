@@ -924,7 +924,7 @@ bool IsSmi(const dart::Object& a) {
 
 word ToRawSmi(const dart::Object& a) {
   RELEASE_ASSERT(IsSmi(a));
-  return static_cast<word>(static_cast<intptr_t>(a.ptr()));
+  return static_cast<compressed_word>(static_cast<intptr_t>(a.ptr()));
 }
 
 word ToRawSmi(intptr_t value) {

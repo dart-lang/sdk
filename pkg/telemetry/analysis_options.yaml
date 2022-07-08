@@ -3,6 +3,7 @@ include: package:lints/recommended.yaml
 analyzer:
   language:
     strict-casts: true
+
 linter:
   rules:
     - unawaited_futures

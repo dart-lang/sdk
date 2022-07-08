@@ -4069,7 +4069,7 @@ library
           synthetic get b @-1
             returnType: double
   parts
-    a.dart
+    package:test/a.dart
       topLevelVariables
         static final a @19
           type: int
@@ -7896,7 +7896,7 @@ library
   nameOffset: 8
   definingUnit
   parts
-    a.dart
+    package:test/a.dart
       topLevelVariables
         static final f @19
           type: double Function(int)
@@ -20690,7 +20690,7 @@ library
   nameOffset: 8
   definingUnit
   parts
-    a.dart
+    package:test/a.dart
       functions
         main @16
           returnType: dynamic
@@ -25379,7 +25379,9 @@ library
     <unresolved>
   definingUnit
   parts
-    :[invaliduri]
+    noSource
+    source 'package:test/a3.dart'
+    noSource
 ''');
   }
 
@@ -25439,6 +25441,136 @@ library
   name: foo.bar
   nameOffset: 8
   definingUnit
+''');
+  }
+
+  test_library_parts() async {
+    addSource('$testPackageLibPath/a.dart', 'part of my.lib;');
+    addSource('$testPackageLibPath/b.dart', 'part of my.lib;');
+    var library =
+        await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
+    checkElementText(library, r'''
+library
+  name: my.lib
+  nameOffset: 8
+  definingUnit
+  parts
+    package:test/a.dart
+    package:test/b.dart
+''');
+  }
+
+  test_library_parts_noRelativeUriStr() async {
+    final library = await buildLibrary(r'''
+part '${'foo'}.dart';
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+  parts
+    noSource
+''');
+  }
+
+  test_library_parts_withPart_partOfName() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of my.lib;
+class B {}
+''');
+    final library = await buildLibrary(r'''
+library my.lib;
+part 'a.dart';
+class A {}
+''');
+    checkElementText(library, r'''
+library
+  name: my.lib
+  nameOffset: 8
+  definingUnit
+    classes
+      class A @37
+        constructors
+          synthetic @-1
+  parts
+    package:test/a.dart
+      classes
+        class B @22
+          constructors
+            synthetic @-1
+''');
+  }
+
+  test_library_parts_withPart_partOfUri() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+class B {}
+''');
+    final library = await buildLibrary(r'''
+part 'a.dart';
+class A {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @21
+        constructors
+          synthetic @-1
+  parts
+    package:test/a.dart
+      classes
+        class B @27
+          constructors
+            synthetic @-1
+''');
+  }
+
+  test_library_parts_withRelativeUri_notPart_emptyUriSelf() async {
+    final library = await buildLibrary(r'''
+part '';
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+  parts
+    source 'package:test/test.dart'
+''');
+  }
+
+  test_library_parts_withRelativeUri_notPart_library() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    final library = await buildLibrary(r'''
+part 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+  parts
+    source 'package:test/a.dart'
+''');
+  }
+
+  test_library_parts_withRelativeUri_notPart_notExists() async {
+    final library = await buildLibrary(r'''
+part 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+  parts
+    source 'package:test/a.dart'
+''');
+  }
+
+  test_library_parts_withRelativeUriString() async {
+    final library = await buildLibrary(r'''
+part ':';
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+  parts
+    noSource
 ''');
   }
 
@@ -29455,7 +29587,7 @@ library
       synthetic static get foo @-1
         returnType: int
   parts
-    a.dart
+    package:test/a.dart
       metadata
         Annotation
           atSign: @ @17
@@ -29464,7 +29596,7 @@ library
             staticElement: self::@getter::foo
             staticType: null
           element: self::@getter::foo
-    b.dart
+    package:test/b.dart
       metadata
         Annotation
           atSign: @ @38
@@ -29698,7 +29830,7 @@ library
       synthetic static get a @-1
         returnType: dynamic
   parts
-    foo.dart
+    package:test/foo.dart
       metadata
         Annotation
           atSign: @ @11
@@ -29724,7 +29856,7 @@ part 'b.dart';
 
     // The difference with the test above is that we ask the part first.
     // There was a bug that we were not loading library directives.
-    expect(library.parts[0].metadata, isEmpty);
+    expect(library.parts2[0].metadata, isEmpty);
   }
 
   test_metadata_prefixed_variable() async {
@@ -32861,78 +32993,6 @@ library
 ''');
   }
 
-  /// TODO(scheglov) The part should disappear after finishing [PartElement].
-  test_part_emptyUri() async {
-    var library = await buildLibrary(r'''
-part '';
-class B extends A {}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      class B @15
-        constructors
-          synthetic @-1
-  parts
-
-      classes
-        class B @15
-          constructors
-            synthetic @-1
-''');
-  }
-
-  test_part_uri() async {
-    var library = await buildLibrary('''
-part 'foo.dart';
-''');
-    expect(library.parts[0].uri, 'foo.dart');
-  }
-
-  test_parts() async {
-    addSource('$testPackageLibPath/a.dart', 'part of my.lib;');
-    addSource('$testPackageLibPath/b.dart', 'part of my.lib;');
-    var library =
-        await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
-    checkElementText(library, r'''
-library
-  name: my.lib
-  nameOffset: 8
-  definingUnit
-  parts
-    a.dart
-    b.dart
-''');
-  }
-
-  test_parts_invalidUri() async {
-    addSource('$testPackageLibPath/foo/bar.dart', 'part of my.lib;');
-    var library = await buildLibrary('library my.lib; part "foo/";');
-    checkElementText(library, r'''
-library
-  name: my.lib
-  nameOffset: 8
-  definingUnit
-  parts
-    foo/
-''');
-  }
-
-  test_parts_invalidUri_nullStringValue() async {
-    addSource('$testPackageLibPath/foo/bar.dart', 'part of my.lib;');
-    var library = await buildLibrary(r'''
-library my.lib;
-part "${foo}/bar.dart";
-''');
-    checkElementText(library, r'''
-library
-  name: my.lib
-  nameOffset: 8
-  definingUnit
-''');
-  }
-
   test_propagated_type_refers_to_closure() async {
     var library = await buildLibrary('''
 void f() {
@@ -34259,7 +34319,7 @@ library
               alias: self::@typeAlias::F
         returnType: void
   parts
-    a.dart
+    package:test/a.dart
       classes
         class C @17
           constructors
@@ -34369,7 +34429,7 @@ library
         aliasedElement: GenericFunctionTypeElement
           returnType: dynamic
   parts
-    a.dart
+    package:test/a.dart
       topLevelVariables
         static c @13
           type: C
@@ -34417,7 +34477,7 @@ library
   nameOffset: 8
   definingUnit
   parts
-    a.dart
+    package:test/a.dart
       classes
         class C @17
           constructors
@@ -34466,7 +34526,7 @@ library
           aliasedType: dynamic Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: dynamic
-    b.dart
+    package:test/b.dart
       topLevelVariables
         static c @13
           type: C
@@ -34512,7 +34572,7 @@ library
   nameOffset: 8
   definingUnit
   parts
-    a.dart
+    package:test/a.dart
       classes
         class C @17
           constructors
@@ -37886,16 +37946,6 @@ library
 ''');
   }
 
-  test_unresolved_part() async {
-    var library = await buildLibrary("part 'foo.dart';", allowErrors: true);
-    checkElementText(library, r'''
-library
-  definingUnit
-  parts
-    foo.dart
-''');
-  }
-
   test_unused_type_parameter() async {
     var library = await buildLibrary('''
 class C<T> {
@@ -38055,7 +38105,7 @@ library
       static get x @39
         returnType: int
   parts
-    a.dart
+    package:test/a.dart
       topLevelVariables
         synthetic static x @-1
           type: int
@@ -38093,7 +38143,7 @@ library
             type: int
         returnType: void
   parts
-    a.dart
+    package:test/a.dart
       topLevelVariables
         synthetic static x @-1
           type: int
@@ -38115,14 +38165,14 @@ library
   nameOffset: 8
   definingUnit
   parts
-    a.dart
+    package:test/a.dart
       topLevelVariables
         synthetic static x @-1
           type: int
       accessors
         static get x @24
           returnType: int
-    b.dart
+    package:test/b.dart
       topLevelVariables
         synthetic static x @-1
           type: int
@@ -38392,7 +38442,7 @@ library
       synthetic static get b @-1
         returnType: double
   parts
-    a.dart
+    package:test/a.dart
       topLevelVariables
         static final a @19
           type: int
@@ -38447,7 +38497,7 @@ library
   nameOffset: 8
   definingUnit
   parts
-    a.dart
+    package:test/a.dart
       topLevelVariables
         synthetic static x @-1
           type: int
@@ -38457,7 +38507,7 @@ library
             requiredPositional _ @31
               type: int
           returnType: void
-    b.dart
+    package:test/b.dart
       topLevelVariables
         synthetic static x @-1
           type: int

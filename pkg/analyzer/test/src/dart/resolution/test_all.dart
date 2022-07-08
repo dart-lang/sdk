@@ -54,6 +54,7 @@ import 'node_text_expectations.dart';
 import 'non_nullable_bazel_workspace_test.dart' as non_nullable_bazel_workspace;
 import 'non_nullable_test.dart' as non_nullable;
 import 'optional_const_test.dart' as optional_const;
+import 'part_test.dart' as part_;
 import 'postfix_expression_test.dart' as postfix_expression;
 import 'prefix_element_test.dart' as prefix_element;
 import 'prefix_expression_test.dart' as prefix_expression;
@@ -118,6 +119,7 @@ main() {
     non_nullable_bazel_workspace.main();
     non_nullable.main();
     optional_const.main();
+    part_.main();
     postfix_expression.main();
     prefix_element.main();
     prefix_expression.main();

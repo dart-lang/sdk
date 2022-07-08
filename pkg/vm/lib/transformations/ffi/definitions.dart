@@ -260,15 +260,15 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       final nativeTypeCfe = NativeTypeCfe(
               this, node.getThisType(coreTypes, Nullability.nonNullable))
           as AbiSpecificNativeTypeCfe;
-      if (nativeTypeCfe.abiSpecificTypes.length == 0) {
+      if (nativeTypeCfe.abiSpecificTypes.isEmpty) {
         // Annotation missing, multiple annotations, or invalid mapping.
         diagnosticReporter.report(messageFfiAbiSpecificIntegerMappingInvalid,
             node.fileOffset, node.name.length, node.location!.file);
       }
-      if (node.typeParameters.length != 0 ||
-          node.procedures.where((Procedure e) => !e.isSynthetic).length != 0 ||
-          node.fields.length != 0 ||
-          node.redirectingFactories.length != 0 ||
+      if (node.typeParameters.isNotEmpty ||
+          node.procedures.where((Procedure e) => !e.isSynthetic).isNotEmpty ||
+          node.fields.isNotEmpty ||
+          node.redirectingFactories.isNotEmpty ||
           node.constructors.length != 1 ||
           !node.constructors.single.isConst) {
         // We want exactly one constructor, no other members and no type arguments.
@@ -306,7 +306,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
   /// Returns packing if any.
   int? _checkCompoundClass(Class node) {
-    if (node.typeParameters.length > 0) {
+    if (node.typeParameters.isNotEmpty) {
       diagnosticReporter.report(
           templateFfiStructGeneric.withArguments(
               node.superclass!.name, node.name),
@@ -430,7 +430,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       } else if (isPointerType(type) ||
           isCompoundSubtype(type) ||
           isArrayType(type)) {
-        if (nativeTypeAnnos.length != 0) {
+        if (nativeTypeAnnos.isNotEmpty) {
           diagnosticReporter.report(
               templateFfiFieldNoAnnotation.withArguments(f.name.text),
               f.fileOffset,
@@ -632,7 +632,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
     final packingAnnotations = _getPackedAnnotations(node);
     final packing =
-        (!packingAnnotations.isEmpty) ? packingAnnotations.first : null;
+        (packingAnnotations.isNotEmpty) ? packingAnnotations.first : null;
 
     final compoundType = () {
       if (types.whereType<InvalidNativeTypeCfe>().isNotEmpty) {

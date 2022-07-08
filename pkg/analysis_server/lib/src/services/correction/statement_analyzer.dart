@@ -28,7 +28,7 @@ List<Token> _getTokens(String text, FeatureSet featureSet) {
         featureSet: featureSet,
       );
     var token = scanner.tokenize();
-    while (token.type != TokenType.EOF) {
+    while (!token.isEof) {
       tokens.add(token);
       token = token.next!;
     }

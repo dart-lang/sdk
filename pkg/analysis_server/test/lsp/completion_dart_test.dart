@@ -21,6 +21,7 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionTest);
+    defineReflectiveTests(CompletionWithPreviewNotImportedCompletionsTest);
     defineReflectiveTests(DartSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionWithoutNullSafetyTest);
@@ -30,6 +31,15 @@ void main() {
 @reflectiveTest
 class CompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
+  CompletionTest({bool previewNotImportedCompletions = false}) {
+    defaultInitializationOptions = {
+      'previewNotImportedCompletions': previewNotImportedCompletions,
+      // Default to a high budget for tests because everything is cold and
+      // may take longer to return.
+      'notImportedCompletionBudgetMilliseconds': 50000
+    };
+  }
+
   Future<void> checkCompleteFunctionCallInsertText(
       String content, String completion,
       {required String? editText, InsertTextFormat? insertTextFormat}) async {
@@ -1852,16 +1862,28 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_enumValues() async {
+    // Enum values only show up in contexts with their types, so we need two
+    // extra files - one with the Enum definition, and one with a function that
+    // accepts the Enum type that is imported into the test files.
     newFile(
-      join(projectFolderPath, 'source_file.dart'),
+      join(projectFolderPath, 'lib', 'enum.dart'),
       '''
-      enum MyExportedEnum { One, Two }
+        enum MyExportedEnum { One, Two }
+      ''',
+    );
+    newFile(
+      join(projectFolderPath, 'lib', 'function_x.dart'),
+      '''
+        import 'package:test/enum.dart';
+        void x(MyExportedEnum e) {}
       ''',
     );
 
     final content = '''
+import 'package:test/function_x.dart';
+
 void f() {
-  var a = MyExported^
+  x(MyExported^
 }
     ''';
 
@@ -1892,7 +1914,9 @@ void f() {
 
     // Ensure the detail field was update to show this will auto-import.
     expect(
-        resolved.detail, startsWith("Auto import from '../source_file.dart'"));
+      resolved.detail,
+      startsWith("Auto import from 'package:test/enum.dart'"),
+    );
 
     // Ensure the edit was added on.
     expect(resolved.textEdit, isNotNull);
@@ -1907,17 +1931,18 @@ void f() {
 
     // Ensure both edits were made - the completion, and the inserted import.
     expect(newContent, equals('''
-import '../source_file.dart';
+import 'package:test/enum.dart';
+import 'package:test/function_x.dart';
 
 void f() {
-  var a = MyExportedEnum.One
+  x(MyExportedEnum.One
 }
     '''));
   }
 
   Future<void> test_unimportedSymbols_enumValuesAlreadyImported() async {
     newFile(
-      join(projectFolderPath, 'lib', 'source_file.dart'),
+      join(projectFolderPath, 'lib', 'enum.dart'),
       '''
       enum MyExportedEnum { One, Two }
       ''',
@@ -1925,13 +1950,15 @@ void f() {
     newFile(
       join(projectFolderPath, 'lib', 'reexport1.dart'),
       '''
-      export 'source_file.dart';
+      import 'enum.dart';
+      export 'enum.dart';
+      void x(MyExportedEnum e) {}
       ''',
     );
     newFile(
       join(projectFolderPath, 'lib', 'reexport2.dart'),
       '''
-      export 'source_file.dart';
+      export 'enum.dart';
       ''',
     );
 
@@ -1939,7 +1966,7 @@ void f() {
 import 'reexport1.dart';
 
 void f() {
-  var a = MyExported^
+  x(MyExported^
 }
     ''';
 
@@ -2265,6 +2292,57 @@ import '../other_file.dart';
 part 'main.dart';'''));
   }
 
+  Future<void>
+      test_unimportedSymbols_isIncompleteNotSetIfBudgetNotExhausted() async {
+    final content = '''
+void f() {
+  InOtherF^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        initializationOptions: {
+          ...?defaultInitializationOptions,
+          // Set budget high to ensure it completes.
+          'notImportedCompletionBudgetMilliseconds': 100000,
+        },
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res =
+        await getCompletionList(mainFileUri, positionFromMarker(content));
+
+    // Ensure we flagged that we returned everything.
+    expect(res.isIncomplete, isFalse);
+  }
+
+  Future<void> test_unimportedSymbols_isIncompleteSetIfBudgetExhausted() async {
+    final content = '''
+void f() {
+  InOtherF^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        initializationOptions: {
+          ...?defaultInitializationOptions,
+          // Set budget low to ensure we don't complete.
+          'notImportedCompletionBudgetMilliseconds': 0,
+        },
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res =
+        await getCompletionList(mainFileUri, positionFromMarker(content));
+
+    // Ensure we flagged that we did not return everything.
+    expect(res.isIncomplete, isFalse);
+  }
+
   /// This test reproduces a bug where the pathKey hash used in
   /// available_declarations.dart would not change with the contents of the file
   /// (as it always used 0 as the modification stamp) which would prevent
@@ -2449,6 +2527,7 @@ void f() {
     // Support applyEdit, but explicitly disable the suggestions.
     await initialize(
       initializationOptions: {
+        ...?defaultInitializationOptions,
         'suggestFromUnimportedLibraries': false,
       },
       workspaceCapabilities:
@@ -2574,6 +2653,12 @@ linter:
 $lintsYaml
 ''');
   }
+}
+
+@reflectiveTest
+class CompletionWithPreviewNotImportedCompletionsTest extends CompletionTest {
+  CompletionWithPreviewNotImportedCompletionsTest()
+      : super(previewNotImportedCompletions: true);
 }
 
 @reflectiveTest

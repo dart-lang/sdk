@@ -20,6 +20,7 @@ dependencies:
 dev_dependencies:
   expect: any
   json_rpc_2: any
+  lints: any
   path: any
   test: any
   web_socket_channel: any

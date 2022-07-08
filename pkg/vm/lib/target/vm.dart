@@ -248,7 +248,7 @@ class VmTarget extends Target {
                       arg.value)
                     ..fileOffset = arg.fileOffset;
                 })), keyType: coreTypes.symbolLegacyRawType)
-                  ..isConst = (arguments.named.length == 0)
+                  ..isConst = (arguments.named.isEmpty)
                   ..fileOffset = arguments.fileOffset
               ], types: [
                 coreTypes.symbolLegacyRawType,
@@ -392,7 +392,7 @@ class VmTarget extends Target {
     // handling, the current approach seems sufficient.
 
     // The 0-element list must be exactly 'const[]'.
-    if (elements.length == 0) {
+    if (elements.isEmpty) {
       return new ListLiteral([], typeArgument: typeArgument)..isConst = true;
     }
 

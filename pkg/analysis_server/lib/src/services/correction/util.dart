@@ -176,7 +176,7 @@ List<SimpleIdentifier> findPrefixElementReferences(
 List<SourceRange> getCommentRanges(CompilationUnit unit) {
   var ranges = <SourceRange>[];
   var token = unit.beginToken;
-  while (token.type != TokenType.EOF) {
+  while (!token.isEof) {
     var commentToken = token.precedingComments;
     while (commentToken != null) {
       ranges.add(range.token(commentToken));
@@ -1450,7 +1450,7 @@ class TokenUtils {
           featureSet: featureSet,
         );
       var token = scanner.tokenize();
-      while (token.type != TokenType.EOF) {
+      while (!token.isEof) {
         tokens.add(token);
         token = token.next!;
       }

@@ -230,7 +230,7 @@ class RefType extends ValueType {
   @override
   String toString() {
     if (nullable == heapType.nullableByDefault) return "${heapType}ref";
-    return "ref${nullable ? " null " : " "}${heapType}";
+    return "ref${nullable ? " null " : " "}$heapType";
   }
 
   @override
@@ -553,10 +553,10 @@ class FieldType extends _WithMutability<StorageType> {
   FieldType(super.type, {super.mutable = true});
 
   /// The `i8` storage type as a field type.
-  FieldType.i8({bool mutable: true}) : this(PackedType.i8, mutable: mutable);
+  FieldType.i8({bool mutable = true}) : this(PackedType.i8, mutable: mutable);
 
   /// The `i16` storage type as a field type.
-  FieldType.i16({bool mutable: true}) : this(PackedType.i16, mutable: mutable);
+  FieldType.i16({bool mutable = true}) : this(PackedType.i16, mutable: mutable);
 
   bool isSubtypeOf(FieldType other) {
     if (mutable != other.mutable) return false;

@@ -13,7 +13,7 @@ import 'package:front_end/src/api_prototype/language_version.dart'
 import 'package:front_end/src/api_unstable/vm.dart'
     show CompilerOptions, NnbdMode, StandardFileSystem;
 
-import '../lib/frontend_server.dart';
+import 'package:frontend_server/frontend_server.dart';
 
 main(List<String> args) async {
   String flutterDir;
@@ -70,7 +70,7 @@ Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
         f.uri
             .toString()
             .endsWith("/flutter_patched_sdk/platform_strong.dill")));
-    if (platformFiles.length < 1) {
+    if (platformFiles.isEmpty) {
       throw "Expected to find a flutter platform file but didn't.";
     }
     flutterPlatformDirectoryTmp = platformFiles.first.parent;

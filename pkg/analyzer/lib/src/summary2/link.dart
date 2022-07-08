@@ -10,9 +10,9 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/detach_nodes.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
@@ -27,26 +27,10 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/summary2/variance_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
-/// Note that AST units and tokens of [inputLibraries] will be damaged.
-@Deprecated('Use link2() instead')
-Future<LinkResult> link(
-  LinkedElementFactory elementFactory,
-  List<LinkInputLibrary> inputLibraries, {
-  macro.MultiMacroExecutor? macroExecutor,
-  OperationPerformanceImpl? performance,
-}) async {
-  return await link2(
-    elementFactory: elementFactory,
-    inputLibraries: inputLibraries,
-    performance: OperationPerformanceImpl('<root>'),
-  );
-}
-
-/// Note that AST units and tokens of [inputLibraries] will be damaged.
-Future<LinkResult> link2({
+Future<LinkResult> link({
   required LinkedElementFactory elementFactory,
   required OperationPerformanceImpl performance,
-  required List<LinkInputLibrary> inputLibraries,
+  required List<LibraryFileStateKind> inputLibraries,
   macro.MultiMacroExecutor? macroExecutor,
 }) async {
   final linker = Linker(elementFactory, macroExecutor);
@@ -101,7 +85,7 @@ class Linker {
 
   Future<void> link({
     required OperationPerformanceImpl performance,
-    required List<LinkInputLibrary> inputLibraries,
+    required List<LibraryFileStateKind> inputLibraries,
   }) async {
     for (var inputLibrary in inputLibraries) {
       LibraryBuilder.build(this, inputLibrary);
@@ -309,42 +293,6 @@ class Linker {
     var writeWriterResult = bundleWriter.finish();
     resolutionBytes = writeWriterResult.resolutionBytes;
   }
-}
-
-class LinkInputLibrary {
-  final Source source;
-  final List<LinkInputUnit> units;
-
-  LinkInputLibrary({
-    required this.source,
-    required this.units,
-  });
-
-  Uri get uri => source.uri;
-
-  String get uriStr => '$uri';
-}
-
-class LinkInputUnit {
-  final int? partDirectiveIndex;
-  final String? partUriStr;
-  final Source source;
-  final String? sourceContent;
-  final bool isSynthetic;
-  final ast.CompilationUnit unit;
-
-  LinkInputUnit({
-    required this.partDirectiveIndex,
-    this.partUriStr,
-    required this.source,
-    this.sourceContent,
-    required this.isSynthetic,
-    required this.unit,
-  });
-
-  Uri get uri => source.uri;
-
-  String get uriStr => '$uri';
 }
 
 class LinkMacroGeneratedUnit {

@@ -511,7 +511,7 @@ void invalidateSources(IncrementalCompilerWrapper compiler, List sourceFiles) {
 Future _processExpressionCompilationRequest(request) async {
   final SendPort port = request[1];
   final int isolateGroupId = request[2];
-  final dynamic dart_platform_kernel = request[3];
+  final dynamic dartPlatformKernel = request[3];
   final String expression = request[4];
   final List<String> definitions = request[5].cast<String>();
   final List<String> definitionTypes = request[6].cast<String>();
@@ -576,8 +576,8 @@ Future _processExpressionCompilationRequest(request) async {
       }
       if (!foundDartCore) {
         List<int> platformKernel;
-        if (dart_platform_kernel is List<int>) {
-          platformKernel = dart_platform_kernel;
+        if (dartPlatformKernel is List<int>) {
+          platformKernel = dartPlatformKernel;
         } else {
           final Uri platformUri = computePlatformBinariesLocation()
               .resolve('vm_platform_strong.dill');
@@ -983,7 +983,7 @@ FileSystem _buildFileSystem(List sourceFiles, List<int>? platformKernel,
     String? multirootFilepaths, String? multirootScheme) {
   FileSystem fileSystem = new HttpAwareFileSystem(StandardFileSystem.instance);
 
-  if (!sourceFiles.isEmpty || platformKernel != null) {
+  if (sourceFiles.isNotEmpty || platformKernel != null) {
     MemoryFileSystem memoryFileSystem =
         new MemoryFileSystem(Uri.parse('file:///'));
     for (int i = 0; i < sourceFiles.length ~/ 2; i++) {
@@ -1143,17 +1143,17 @@ class _CompilationOk extends CompilationResult {
 }
 
 class _CompilationNullSafety extends CompilationResult {
-  final bool _null_safety;
+  final bool _nullSafety;
 
-  _CompilationNullSafety(this._null_safety) : super._() {}
+  _CompilationNullSafety(this._nullSafety) : super._() {}
 
   @override
   Status get status => Status.ok;
 
   @override
-  get payload => _null_safety;
+  get payload => _nullSafety;
 
-  String toString() => "_CompilationNullSafety($_null_safety)";
+  String toString() => "_CompilationNullSafety($_nullSafety)";
 }
 
 abstract class _CompilationFail extends CompilationResult {
@@ -1198,9 +1198,13 @@ class _CompilationCrash extends _CompilationFail {
 }
 
 Future<T> runWithPrintToStderr<T>(Future<T> f()) {
-  return runZoned(() => new Future<T>(f),
-      zoneSpecification: new ZoneSpecification(
-          print: (_1, _2, _3, String line) => stderr.writeln(line)));
+  return runZoned(
+    () => new Future<T>(f),
+    zoneSpecification: new ZoneSpecification(
+      // ignore: non_constant_identifier_names
+      print: (_1, _2, _3, String line) => stderr.writeln(line),
+    ),
+  );
 }
 
 int _debugDumpCounter = 0;

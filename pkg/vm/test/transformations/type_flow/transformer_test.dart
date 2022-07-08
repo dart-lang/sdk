@@ -68,7 +68,7 @@ runTestCase(
 }
 
 String? argsTestName(List<String> args) {
-  if (args.length > 0) {
+  if (args.isNotEmpty) {
     return args.last;
   }
   return null;

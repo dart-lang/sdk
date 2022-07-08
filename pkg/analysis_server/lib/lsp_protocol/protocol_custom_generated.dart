@@ -143,6 +143,10 @@ class CompletionItemResolutionInfo implements ToJsonable {
   );
 
   static CompletionItemResolutionInfo fromJson(Map<String, Object?> json) {
+    if (DartNotImportedCompletionResolutionInfo.canParse(
+        json, nullLspJsonReporter)) {
+      return DartNotImportedCompletionResolutionInfo.fromJson(json);
+    }
     if (DartSuggestionSetCompletionItemResolutionInfo.canParse(
         json, nullLspJsonReporter)) {
       return DartSuggestionSetCompletionItemResolutionInfo.fromJson(json);
@@ -229,6 +233,78 @@ class DartDiagnosticServer implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class DartNotImportedCompletionResolutionInfo
+    implements CompletionItemResolutionInfo, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    DartNotImportedCompletionResolutionInfo.canParse,
+    DartNotImportedCompletionResolutionInfo.fromJson,
+  );
+
+  DartNotImportedCompletionResolutionInfo({
+    required this.file,
+    required this.libraryUri,
+  });
+  static DartNotImportedCompletionResolutionInfo fromJson(
+      Map<String, Object?> json) {
+    final fileJson = json['file'];
+    final file = fileJson as String;
+    final libraryUriJson = json['libraryUri'];
+    final libraryUri = libraryUriJson as String;
+    return DartNotImportedCompletionResolutionInfo(
+      file: file,
+      libraryUri: libraryUri,
+    );
+  }
+
+  /// The file where the completion is being inserted.
+  ///
+  /// This is used to compute where to add the import.
+  final String file;
+
+  /// The URI to be imported if this completion is selected.
+  final String libraryUri;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['file'] = file;
+    result['libraryUri'] = libraryUri;
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseString(obj, reporter, 'file',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'libraryUri',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError(
+          'must be of type DartNotImportedCompletionResolutionInfo');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is DartNotImportedCompletionResolutionInfo &&
+        other.runtimeType == DartNotImportedCompletionResolutionInfo &&
+        file == other.file &&
+        libraryUri == other.libraryUri;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        file,
+        libraryUri,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 class DartSuggestionSetCompletionItemResolutionInfo
     implements CompletionItemResolutionInfo, ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -237,89 +313,39 @@ class DartSuggestionSetCompletionItemResolutionInfo
   );
 
   DartSuggestionSetCompletionItemResolutionInfo({
-    required this.displayUri,
     required this.file,
-    required this.iLength,
     required this.libId,
-    required this.offset,
-    required this.rLength,
-    required this.rOffset,
   });
   static DartSuggestionSetCompletionItemResolutionInfo fromJson(
       Map<String, Object?> json) {
-    final displayUriJson = json['displayUri'];
-    final displayUri = displayUriJson as String;
     final fileJson = json['file'];
     final file = fileJson as String;
-    final iLengthJson = json['iLength'];
-    final iLength = iLengthJson as int;
     final libIdJson = json['libId'];
     final libId = libIdJson as int;
-    final offsetJson = json['offset'];
-    final offset = offsetJson as int;
-    final rLengthJson = json['rLength'];
-    final rLength = rLengthJson as int;
-    final rOffsetJson = json['rOffset'];
-    final rOffset = rOffsetJson as int;
     return DartSuggestionSetCompletionItemResolutionInfo(
-      displayUri: displayUri,
       file: file,
-      iLength: iLength,
       libId: libId,
-      offset: offset,
-      rLength: rLength,
-      rOffset: rOffset,
     );
   }
 
-  final String displayUri;
   final String file;
-  final int iLength;
   final int libId;
-  final int offset;
-  final int rLength;
-  final int rOffset;
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['displayUri'] = displayUri;
     result['file'] = file;
-    result['iLength'] = iLength;
     result['libId'] = libId;
-    result['offset'] = offset;
-    result['rLength'] = rLength;
-    result['rOffset'] = rOffset;
     return result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'displayUri',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
       if (!_canParseString(obj, reporter, 'file',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      if (!_canParseInt(obj, reporter, 'iLength',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      if (!_canParseInt(obj, reporter, 'libId',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      if (!_canParseInt(obj, reporter, 'offset',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      if (!_canParseInt(obj, reporter, 'rLength',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      return _canParseInt(obj, reporter, 'rOffset',
+      return _canParseInt(obj, reporter, 'libId',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError(
@@ -332,24 +358,14 @@ class DartSuggestionSetCompletionItemResolutionInfo
   bool operator ==(Object other) {
     return other is DartSuggestionSetCompletionItemResolutionInfo &&
         other.runtimeType == DartSuggestionSetCompletionItemResolutionInfo &&
-        displayUri == other.displayUri &&
         file == other.file &&
-        iLength == other.iLength &&
-        libId == other.libId &&
-        offset == other.offset &&
-        rLength == other.rLength &&
-        rOffset == other.rOffset;
+        libId == other.libId;
   }
 
   @override
   int get hashCode => Object.hash(
-        displayUri,
         file,
-        iLength,
         libId,
-        offset,
-        rLength,
-        rOffset,
       );
 
   @override

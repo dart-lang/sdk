@@ -668,6 +668,10 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   /// Whether to include 'clientRequestTime' fields in outgoing messages.
   bool includeClientRequestTime = false;
 
+  /// Default initialization options to be used if [initialize] is not provided
+  /// options explicitly.
+  Map<String, Object?>? defaultInitializationOptions;
+
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
     return notificationsFromServer.where(_isErrorNotification);
@@ -1489,7 +1493,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         InitializeParams(
           rootPath: rootPath,
           rootUri: rootUri?.toString(),
-          initializationOptions: initializationOptions,
+          initializationOptions:
+              initializationOptions ?? defaultInitializationOptions,
           capabilities: clientCapabilities,
           workspaceFolders: workspaceFolders?.map(toWorkspaceFolder).toList(),
         ));

@@ -240,6 +240,8 @@ class Simulator {
   // Executes ARM64 instructions until the PC reaches kEndSimulatingPC.
   void Execute();
 
+  void ClobberVolatileRegisters();
+
   // Returns true if tracing of executed instructions is enabled.
   bool IsTracingExecution() const;
 

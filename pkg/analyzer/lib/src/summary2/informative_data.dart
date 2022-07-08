@@ -474,18 +474,11 @@ class InformativeDataApplier {
       },
     );
 
-    forCorrespondingPairs<CompilationUnitElement, _InfoPart>(
-      element.parts,
+    forCorrespondingPairs<PartElement, _InfoPart>(
+      element.parts2,
       info.parts,
       (element, info) {
-        element as CompilationUnitElementImpl;
-        var linkedData = element.linkedData as CompilationUnitElementLinkedData;
-        linkedData.applyConstantOffsets = ApplyConstantOffsets(
-          info.constantOffsets,
-          (applier) {
-            applier.applyToMetadata(element);
-          },
-        );
+        element as PartElementImpl;
       },
     );
 
@@ -496,6 +489,7 @@ class InformativeDataApplier {
         applier.applyToMetadata(element);
         applier.applyToDirectives(element.imports);
         applier.applyToDirectives(element.exports);
+        applier.applyToPartDirectives(element.parts2);
       },
     );
   }
@@ -1031,16 +1025,16 @@ class _InfoMethodDeclaration {
 }
 
 class _InfoPart {
-  final Uint32List constantOffsets;
+  final int nameOffset;
 
   factory _InfoPart(SummaryDataReader reader) {
     return _InfoPart._(
-      constantOffsets: reader.readUInt30List(),
+      nameOffset: reader.readUInt30(),
     );
   }
 
   _InfoPart._({
-    required this.constantOffsets,
+    required this.nameOffset,
   });
 }
 
@@ -1061,20 +1055,18 @@ class _InformativeDataWriter {
     _writeDocumentationCommentNode(firstDirective?.documentationComment);
 
     sink.writeList2<ImportDirective>(unit.directives, (directive) {
-      sink.writeUInt30(directive.keyword.offset);
+      sink.writeUInt30(directive.importKeyword.offset);
       sink.writeUInt30(1 + (directive.prefix?.offset ?? -1));
       _writeCombinators(directive.combinators);
     });
 
     sink.writeList2<ExportDirective>(unit.directives, (directive) {
-      sink.writeUInt30(directive.keyword.offset);
+      sink.writeUInt30(directive.exportKeyword.offset);
       _writeCombinators(directive.combinators);
     });
 
-    sink.writeList2<PartDirective>(unit.directives, (node) {
-      _writeOffsets(
-        metadata: node.metadata,
-      );
+    sink.writeList2<PartDirective>(unit.directives, (directive) {
+      sink.writeUInt30(directive.partKeyword.offset);
     });
 
     sink.writeList2<ClassDeclaration>(unit.declarations, (node) {
@@ -1398,6 +1390,7 @@ class _InformativeDataWriter {
       metadata: firstDirective?.metadata,
       importDirectives: unit.directives.whereType<ImportDirective>(),
       exportDirectives: unit.directives.whereType<ExportDirective>(),
+      partDirectives: unit.directives.whereType<PartDirective>(),
     );
   }
 
@@ -1427,6 +1420,7 @@ class _InformativeDataWriter {
     NodeList<Annotation>? metadata,
     Iterable<ImportDirective>? importDirectives,
     Iterable<ExportDirective>? exportDirectives,
+    Iterable<PartDirective>? partDirectives,
     TypeParameterList? typeParameters,
     FormalParameterList? formalParameters,
     Expression? constantInitializer,
@@ -1472,6 +1466,7 @@ class _InformativeDataWriter {
     metadata?.accept(collector);
     addDirectives(importDirectives);
     addDirectives(exportDirectives);
+    addDirectives(partDirectives);
     addTypeParameters(typeParameters);
     addFormalParameters(formalParameters);
     constantInitializer?.accept(collector);
@@ -1591,6 +1586,7 @@ class _InfoUnit {
       libraryName: _InfoLibraryName(reader),
       libraryConstantOffsets: reader.readUInt30List(),
       docComment: reader.readStringUtf8(),
+      // TODO(scheglov)
       imports: reader.readTypedList(
         () => _InfoImport(reader),
       ),
@@ -1699,6 +1695,12 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     for (var annotation in element.metadata) {
       var node = (annotation as ElementAnnotationImpl).annotationAst;
       node.accept(this);
+    }
+  }
+
+  void applyToPartDirectives(List<PartElement> elements) {
+    for (var element in elements) {
+      applyToMetadata(element);
     }
   }
 

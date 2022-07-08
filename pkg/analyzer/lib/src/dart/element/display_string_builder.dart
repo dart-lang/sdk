@@ -162,6 +162,17 @@ class ElementDisplayStringBuilder {
     _writeNullability(type.nullabilitySuffix);
   }
 
+  void writePartElement(PartElementImpl element) {
+    _write('part ');
+    if (element is PartElementWithPartImpl) {
+      _write('unit ${element.includedUnit.source.uri}');
+    } else if (element is PartElementWithSourceImpl) {
+      _write('uriSource ${element.uriSource}');
+    } else {
+      _write('<unknown>');
+    }
+  }
+
   void writePrefixElement(PrefixElementImpl element) {
     _write('as ');
     _write(element.displayName);

@@ -1318,21 +1318,21 @@ part "test_unit.dart";
     assertHasFileTarget(unitFile, 0, 0);
   }
 
+  Future<void> test_string_part_hasSource_notPart() async {
+    addTestFile('''
+library lib;
+part "test_unit.dart";
+''');
+    await prepareNavigation();
+    assertHasRegionString('"test_unit.dart"');
+  }
+
   Future<void> test_string_part_invalidUri() async {
     addTestFile('''
 part ":[invalid]";
 ''');
     await prepareNavigation();
     assertNoRegionString('":[invalid]"');
-  }
-
-  Future<void> test_string_part_unresolvedUri() async {
-    addTestFile('''
-library lib;
-part "test_unit.dart";
-''');
-    await prepareNavigation();
-    assertNoRegionString('"test_unit.dart"');
   }
 
   Future<void> test_superConstructorInvocation() async {

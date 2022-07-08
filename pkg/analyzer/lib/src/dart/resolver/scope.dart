@@ -180,9 +180,8 @@ class NamespaceBuilder {
   /// [library].
   Namespace createPublicNamespaceForLibrary(LibraryElement library) {
     Map<String, Element> definedNames = HashMap<String, Element>();
-    _addPublicNames(definedNames, library.definingCompilationUnit);
-    for (CompilationUnitElement compilationUnit in library.parts) {
-      _addPublicNames(definedNames, compilationUnit);
+    for (final unitElement in library.units) {
+      _addPublicNames(definedNames, unitElement);
     }
 
     // For libraries that import `dart:core` with a prefix, we have to add

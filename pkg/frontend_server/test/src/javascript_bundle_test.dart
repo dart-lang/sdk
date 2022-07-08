@@ -145,7 +145,7 @@ void main() {
 
   test('converts package: uris into /packages/ uris', () async {
     var importUri = Uri.parse('package:a/a.dart');
-    var fileUri = await packageConfig.resolve(importUri);
+    var fileUri = packageConfig.resolve(importUri);
     final library = Library(
       importUri,
       fileUri: fileUri,

@@ -692,57 +692,6 @@ import 'a.dart';
     expect(allResults.pathList, [b]);
   }
 
-  test_analyze_resolveDirectives() async {
-    var lib = convertPath('/test/lib.dart');
-    var part1 = convertPath('/test/part1.dart');
-    var part2 = convertPath('/test/part2.dart');
-    newFile(lib, '''
-library lib;
-part 'part1.dart';
-part 'part2.dart';
-''');
-    newFile(part1, '''
-part of lib;
-''');
-    newFile(part2, '''
-part of 'lib.dart';
-''');
-
-    ResolvedUnitResult libResult = await driver.getResultValid(lib);
-    ResolvedUnitResult partResult1 = await driver.getResultValid(part1);
-    ResolvedUnitResult partResult2 = await driver.getResultValid(part2);
-
-    CompilationUnit libUnit = libResult.unit;
-    CompilationUnit partUnit1 = partResult1.unit;
-    CompilationUnit partUnit2 = partResult2.unit;
-
-    CompilationUnitElement unitElement = libUnit.declaredElement!;
-    CompilationUnitElement partElement1 = partUnit1.declaredElement!;
-    CompilationUnitElement partElement2 = partUnit2.declaredElement!;
-
-    LibraryElement libraryElement = unitElement.library;
-    {
-      expect(libraryElement.entryPoint, isNull);
-      expect(libraryElement.source, unitElement.source);
-      expect(libraryElement.definingCompilationUnit, unitElement);
-      expect(libraryElement.parts, hasLength(2));
-    }
-
-    expect((libUnit.directives[0] as LibraryDirective).element, libraryElement);
-    expect((libUnit.directives[1] as PartDirective).element, partElement1);
-    expect((libUnit.directives[2] as PartDirective).element, partElement2);
-
-    {
-      var partOf = partUnit1.directives.single as PartOfDirective;
-      expect(partOf.element, libraryElement);
-    }
-
-    {
-      var partOf = partUnit2.directives.single as PartOfDirective;
-      expect(partOf.element, libraryElement);
-    }
-  }
-
   test_analyze_resolveDirectives_error_missingLibraryDirective() async {
     var lib = convertPath('/test/lib.dart');
     var part = convertPath('/test/part.dart');

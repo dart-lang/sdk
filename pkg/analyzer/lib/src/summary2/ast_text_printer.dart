@@ -333,7 +333,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitExportDirective(ExportDirective node) {
     _directive(node);
-    _token(node.keyword);
+    _token(node.exportKeyword);
     node.uri.accept(this);
     node.configurations.accept(this);
     _nodeList(node.combinators);
@@ -597,7 +597,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitImportDirective(ImportDirective node) {
     _directive(node);
-    _token(node.keyword);
+    _token(node.importKeyword);
     node.uri.accept(this);
     node.configurations.accept(this);
     _token(node.deferredKeyword);

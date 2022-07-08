@@ -28,7 +28,6 @@ void main() {
 
       options = MockCommandLineOptions();
       options.enableTypeChecks = false;
-      options.infosAreFatal = false;
       options.jsonFormat = false;
       options.machineFormat = false;
       options.verbose = false;

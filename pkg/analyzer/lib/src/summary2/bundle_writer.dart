@@ -104,12 +104,14 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(libraryElement.metadata);
     _writeList(libraryElement.imports, _writeImportElement);
     _writeList(libraryElement.exports, _writeExportElement);
+    for (final partElement in libraryElement.parts2) {
+      _resolutionSink._writeAnnotationList(partElement.metadata);
+    }
     _resolutionSink.writeElement(libraryElement.entryPoint);
     LibraryElementFlags.write(_sink, libraryElement);
-    _sink.writeUInt30(libraryElement.units.length);
-    for (var unitElement in libraryElement.units) {
-      _writeUnitElement(unitElement);
-    }
+    _writeUnitElement(libraryElement.definingCompilationUnit);
+    _writeList(libraryElement.parts2, _writePartElement);
+
     _writeExportedReferences(libraryElement.exportedReferences);
 
     _libraries.add(
@@ -391,6 +393,21 @@ class BundleWriter {
     });
   }
 
+  void _writePartElement(PartElement element) {
+    if (element is PartElementWithPart) {
+      _sink.writeByte(PartElementKind.withPart.index);
+      _sink._writeStringReference(element.relativeUriString);
+      _sink._writeStringReference('${element.uriSource.uri}');
+      _writeUnitElement(element.includedUnit);
+    } else if (element is PartElementWithSource) {
+      _sink.writeByte(PartElementKind.withSource.index);
+      _sink._writeStringReference(element.relativeUriString);
+      _sink._writeStringReference('${element.uriSource.uri}');
+    } else {
+      _sink.writeByte(PartElementKind.withNothing.index);
+    }
+  }
+
   void _writePropertyAccessorElement(PropertyAccessorElement element) {
     element as PropertyAccessorElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
@@ -455,10 +472,8 @@ class BundleWriter {
     unitElement as CompilationUnitElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
 
-    _sink._writeStringReference('${unitElement.source.uri}');
     _sink._writeOptionalStringReference(unitElement.uri);
     _sink.writeBool(unitElement.isSynthetic);
-    _resolutionSink._writeAnnotationList(unitElement.metadata);
     _writeList(unitElement.classes, _writeClassElement);
     _writeList(unitElement.enums, _writeEnumElement);
     _writeList(unitElement.extensions, _writeExtensionElement);

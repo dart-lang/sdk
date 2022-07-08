@@ -9,8 +9,8 @@ import 'package:test/test.dart';
 
 main() {
   var root = Uri.parse('org-dartlang-test:///');
-  var fileSystem = new SingleRootFileSystem(
-      'single-root', root.resolve('A/B'), new MemoryFileSystem(root));
+  var fileSystem = SingleRootFileSystem(
+      'single-root', root.resolve('A/B'), MemoryFileSystem(root));
 
   SingleRootFileSystemEntity entityOf(String uri) =>
       fileSystem.entityForUri(Uri.parse(uri)) as SingleRootFileSystemEntity;
