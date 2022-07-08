@@ -431,7 +431,12 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R? visitParameterElement(ParameterElement element) => null;
 
   @override
-  R? visitPartElement(PartElement element) => null;
+  R? visitPartElement(PartElement element) {
+    if (element is PartElementWithPart) {
+      visitCompilationUnitElement(element.includedUnit);
+    }
+    return null;
+  }
 
   @override
   R? visitPrefixElement(PrefixElement element) => null;
