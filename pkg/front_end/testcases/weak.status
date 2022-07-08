@@ -11,7 +11,8 @@ no_such_method_forwarders/abstract_override_abstract_different_type: SemiFuzzFai
 no_such_method_forwarders/abstract_override_with_different_signature: SemiFuzzFailure
 
 dart2js/mixin_super/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49339
-dartdevc/static_interop_erasure/main: SemiFuzzCrash # https://github.com/dart-lang/sdk/issues/49301
+dart2js/late_fields_with_annotation: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49415
+macros/augment_concrete: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49414
 
 dart2js/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/constants/with_unevaluated_agnostic/various_2: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441

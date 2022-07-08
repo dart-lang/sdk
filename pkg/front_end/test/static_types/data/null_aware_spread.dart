@@ -53,11 +53,8 @@ nullAwareMapSpread(Map<int, String> map) {
         /*cfe:nnbd.String!*/
         'foo',
     ...?
-    /*cfe.Map<int,String>|Iterable<MapEntry<int,String>!>!|int|String*/
-    /*cfe:nnbd.Map<int!,String!>!|Iterable<MapEntry<int!,String!>!>!|int!|String!*/
-    /*cfe.current: MapEntry<int,String>!*/
-    /*cfe:nnbd.current: MapEntry<int!,String!>!*/
-    /*update: void*/
-    map
+    /*cfe.Map<int,String>*/
+    /*cfe:nnbd.Map<int!,String!>!*/
+    /*invoke: void*/ map
   };
 }

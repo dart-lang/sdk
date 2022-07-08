@@ -2884,8 +2884,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         InterfaceType setType = coreTypes.thisInterfaceType(
             coreTypes.setClass, libraryBuilder.nonNullable);
         for (int i = 0; i < node.entries.length; ++i) {
-          setElements.add(convertToElement(node.entries[i],
-              isTopLevel ? null : helper, assignedVariables.reassignInfo));
+          setElements.add(convertToElement(
+            node.entries[i],
+            isTopLevel ? null : helper,
+            assignedVariables.reassignInfo,
+            actualType: actualTypesForSet![i],
+          ));
           formalTypesForSet.add(setType.typeArguments[0]);
         }
 

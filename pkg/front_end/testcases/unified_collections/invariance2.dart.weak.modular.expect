@@ -48,14 +48,12 @@ static method main() → dynamic {
   core::Map<core::int?, core::String?> map = block {
     final core::Map<core::int?, core::String?> #t10 = <core::int?, core::String?>{};
     #t10.{core::Map::[]=}{Invariant}(0, "foo"){(core::int?, core::String?) → void};
-    for (final has-declared-initializer core::MapEntry<core::int?, core::String?> #t11 in map1.{core::Map::entries}{core::Iterable<core::MapEntry<core::int?, core::String?>>})
-      #t10.{core::Map::[]=}{Invariant}(#t11.{core::MapEntry::key}{core::int?}, #t11.{core::MapEntry::value}{core::String?}){(core::int?, core::String?) → void};
-    for (final has-declared-initializer core::MapEntry<core::int?, core::String?> #t12 in map2.{core::Map::entries}{core::Iterable<core::MapEntry<core::int?, core::String?>>})
-      #t10.{core::Map::[]=}{Invariant}(#t12.{core::MapEntry::key}{core::int?}, #t12.{core::MapEntry::value}{core::String?}){(core::int?, core::String?) → void};
-    for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t13 in (map3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::int?, core::String?>>}) {
-      final core::int? #t14 = #t13.{core::MapEntry::key}{dynamic} as{TypeError,ForNonNullableByDefault} core::int?;
-      final core::String? #t15 = #t13.{core::MapEntry::value}{dynamic} as{TypeError,ForNonNullableByDefault} core::String?;
-      #t10.{core::Map::[]=}{Invariant}(#t14, #t15){(core::int?, core::String?) → void};
+    #t10.{core::Map::addAll}{Invariant}(map1){(core::Map<core::int?, core::String?>) → void};
+    #t10.{core::Map::addAll}{Invariant}(map2){(core::Map<core::int?, core::String?>) → void};
+    for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t11 in (map3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::int?, core::String?>>}) {
+      final core::int? #t12 = #t11.{core::MapEntry::key}{dynamic} as{TypeError,ForNonNullableByDefault} core::int?;
+      final core::String? #t13 = #t11.{core::MapEntry::value}{dynamic} as{TypeError,ForNonNullableByDefault} core::String?;
+      #t10.{core::Map::[]=}{Invariant}(#t12, #t13){(core::int?, core::String?) → void};
     }
     if(true)
       #t10.{core::Map::[]=}{Invariant}(2, "baz"){(core::int?, core::String?) → void};

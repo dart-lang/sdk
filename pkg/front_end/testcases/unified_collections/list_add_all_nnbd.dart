@@ -28,6 +28,33 @@ void useAddAll() {
   ];
 
   expect(new List<num>.generate(15, (int i) => i), list2);
+
+  List<int> list3 = [
+    ...dynamicList1,
+    ...dynamicList2,
+    ...dynamicList3,
+    ...iterableIntList,
+    ...intList,
+  ];
+
+  expect(new List<int>.generate(15, (int i) => i), list3);
+
+  var list4 = [
+    ...dynamicList1,
+    ...dynamicList2,
+    ...dynamicList3,
+    ...iterableIntList,
+    ...intList,
+  ];
+
+  expect(new List<dynamic>.generate(15, (int i) => i), list4);
+
+  {
+    List<int> intList1 = [0, 1, 2];
+    List<int> intList2 = [3, 4, 5];
+    var list = [...intList1, ...intList2];
+    expect(new List<int>.generate(6, (int i) => i), list);
+  }
 }
 
 void useAddAllNullable() {
@@ -56,6 +83,26 @@ void useAddAllNullable() {
   ];
 
   expect(new List<num>.generate(15, (int i) => i), list2);
+
+  List<int> list3 = [
+    ...?dynamicList1,
+    ...?dynamicList2,
+    ...?dynamicList3,
+    ...?iterableIntList,
+    ...?intList,
+  ];
+
+  expect(new List<int>.generate(15, (int i) => i), list3);
+
+  var list4 = [
+    ...?dynamicList1,
+    ...?dynamicList2,
+    ...?dynamicList3,
+    ...?iterableIntList,
+    ...?intList,
+  ];
+
+  expect(new List<dynamic>.generate(15, (int i) => i), list4);
 }
 
 main() {
@@ -72,5 +119,9 @@ void expect(List list1, List list2) {
       throw 'Unexpected element at index $i. '
           'Expected ${list1[i]}, actual ${list2[i]}.';
     }
+  }
+  if (list1.runtimeType.toString() != list2.runtimeType.toString()) {
+    throw "Runtime time difference: "
+        "${list1.runtimeType.toString()} vs ${list2.runtimeType.toString()}";
   }
 }
