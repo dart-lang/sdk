@@ -25379,9 +25379,9 @@ library
     <unresolved>
   definingUnit
   parts
-    noSource
+    relativeUriString ':[invaliduri]'
     source 'package:test/a3.dart'
-    noSource
+    relativeUriString ':[invaliduri]'
 ''');
   }
 
@@ -25468,7 +25468,7 @@ part '${'foo'}.dart';
 library
   definingUnit
   parts
-    noSource
+    noRelativeUriString
 ''');
   }
 
@@ -25525,6 +25525,19 @@ library
 ''');
   }
 
+  test_library_parts_withRelativeUri_noSource() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    final library = await buildLibrary(r'''
+part 'foo:bar';
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+  parts
+    relativeUri 'foo:bar'
+''');
+  }
+
   test_library_parts_withRelativeUri_notPart_emptyUriSelf() async {
     final library = await buildLibrary(r'''
 part '';
@@ -25570,7 +25583,7 @@ part ':';
 library
   definingUnit
   parts
-    noSource
+    relativeUriString ':'
 ''');
   }
 

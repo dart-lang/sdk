@@ -1293,9 +1293,9 @@ part 'unitB.dart';
 ''');
     LibraryElement element = result.libraryElement;
     CompilationUnitElement unitElementA =
-        (element.parts2[0] as PartElementWithPart).includedUnit;
+        (element.parts2[0].uri as DirectiveUriWithUnit).unit;
     CompilationUnitElement unitElementB =
-        (element.parts2[1] as PartElementWithPart).includedUnit;
+        (element.parts2[1].uri as DirectiveUriWithUnit).unit;
     var expected = [
       ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
           codeA.indexOf('lib; // A'), 'lib'.length),
@@ -1331,9 +1331,9 @@ part 'unitB.dart';
 ''');
     LibraryElement element = result.libraryElement;
     CompilationUnitElement unitElementA =
-        (element.parts2[0] as PartElementWithPart).includedUnit;
+        (element.parts2[0].uri as DirectiveUriWithUnit).unit;
     CompilationUnitElement unitElementB =
-        (element.parts2[1] as PartElementWithPart).includedUnit;
+        (element.parts2[1].uri as DirectiveUriWithUnit).unit;
     var expected = [
       ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
           codeA.indexOf('lib; // A'), 'lib'.length),

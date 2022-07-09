@@ -7,7 +7,8 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart' hide DirectiveUri;
+import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -322,10 +323,12 @@ class LibraryBuilder {
     _bindReference(unitReference, unitElement);
 
     element.parts2.add(
-      PartElementWithPartImpl(
-        relativeUriString: '_macro_types.dart',
-        uriSource: unitSource,
-        includedUnit: unitElement,
+      PartElementImpl(
+        uri: DirectiveUriWithUnitImpl(
+          relativeUriString: '_macro_types.dart',
+          relativeUri: unitUri,
+          unit: unitElement,
+        ),
       ),
     );
 
@@ -476,6 +479,9 @@ class LibraryBuilder {
 
     final parts = <PartElementImpl>[];
     for (final partState in inputLibrary.parts) {
+      final uriState = partState.uri;
+
+      final DirectiveUri directiveUri;
       if (partState is PartDirectiveWithFile) {
         final includedPart = partState.includedPart;
         if (includedPart != null) {
@@ -489,13 +495,6 @@ class LibraryBuilder {
           unitElement.isSynthetic = !partFile.exists;
           unitElement.uri = partFile.uriStr;
           unitElement.setCodeRange(0, partUnitNode.length);
-          parts.add(
-            PartElementWithPartImpl(
-              relativeUriString: partState.uri.relativeUriStr,
-              uriSource: partFile.source,
-              includedUnit: unitElement,
-            ),
-          );
 
           final unitReference = unitContainerRef.getChild(partFile.uriStr);
           _bindReference(unitReference, unitElement);
@@ -508,19 +507,43 @@ class LibraryBuilder {
               element: unitElement,
             ),
           );
+
+          directiveUri = DirectiveUriWithUnitImpl(
+            relativeUriString: partState.uri.relativeUriStr,
+            relativeUri: partState.uri.relativeUri,
+            unit: unitElement,
+          );
         } else {
-          parts.add(
-            PartElementWithSourceImpl(
-              relativeUriString: partState.uri.relativeUriStr,
-              uriSource: partState.includedFile.source,
-            ),
+          directiveUri = DirectiveUriWithSourceImpl(
+            relativeUriString: partState.uri.relativeUriStr,
+            relativeUri: partState.uri.relativeUri,
+            source: partState.includedFile.source,
           );
         }
-      } else {
-        parts.add(
-          PartElementImpl(),
+      } else if (uriState is file_state.DirectiveUriWithSource) {
+        directiveUri = DirectiveUriWithSourceImpl(
+          relativeUriString: uriState.relativeUriStr,
+          relativeUri: uriState.relativeUri,
+          source: uriState.source,
         );
+      } else if (uriState is file_state.DirectiveUriWithUri) {
+        directiveUri = DirectiveUriWithRelativeUriImpl(
+          relativeUriString: uriState.relativeUriStr,
+          relativeUri: uriState.relativeUri,
+        );
+      } else if (uriState is file_state.DirectiveUriWithString) {
+        directiveUri = DirectiveUriWithRelativeUriStringImpl(
+          relativeUriString: uriState.relativeUriStr,
+        );
+      } else {
+        directiveUri = DirectiveUriImpl();
       }
+
+      parts.add(
+        PartElementImpl(
+          uri: directiveUri,
+        ),
+      );
     }
 
     libraryElement.parts2 = parts;

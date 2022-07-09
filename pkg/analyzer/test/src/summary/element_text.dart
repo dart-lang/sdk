@@ -425,6 +425,20 @@ class _ElementWriter {
     }
   }
 
+  void _writeDirectiveUri(DirectiveUri uri) {
+    if (uri is DirectiveUriWithUnit) {
+      _writelnWithIndent('${uri.unit.source.uri}');
+    } else if (uri is DirectiveUriWithSource) {
+      _writelnWithIndent("source '${uri.source.uri}'");
+    } else if (uri is DirectiveUriWithRelativeUri) {
+      _writelnWithIndent("relativeUri '${uri.relativeUri}'");
+    } else if (uri is DirectiveUriWithRelativeUriString) {
+      _writelnWithIndent("relativeUriString '${uri.relativeUriString}'");
+    } else {
+      _writelnWithIndent('noRelativeUriString');
+    }
+  }
+
   void _writeDisplayName(Element e) {
     if (withDisplayName) {
       _writelnWithIndent('displayName: ${e.displayName}');
@@ -712,25 +726,15 @@ class _ElementWriter {
   }
 
   void _writePartElement(PartElement e) {
-    if (e is PartElementWithPart) {
-      _writelnWithIndent('${e.includedUnit.source.uri}');
-      _withIndent(() {
-        _writeMetadata(e);
-        _writeUnitElement(e.includedUnit);
-      });
-    } else if (e is PartElementWithSource) {
-      _writelnWithIndent("source '${e.uriSource.uri}'");
-      _withIndent(() {
-        _writeMetadata(e);
-      });
-    } else if (e is PartElementImpl) {
-      _writelnWithIndent('noSource');
-      _withIndent(() {
-        _writeMetadata(e);
-      });
-    } else {
-      throw UnimplementedError('(${e.runtimeType}) $e');
-    }
+    final uri = e.uri;
+    _writeDirectiveUri(uri);
+
+    _withIndent(() {
+      _writeMetadata(e);
+      if (uri is DirectiveUriWithUnit) {
+        _writeUnitElement(uri.unit);
+      }
+    });
   }
 
   void _writePropertyAccessorElement(PropertyAccessorElement e) {

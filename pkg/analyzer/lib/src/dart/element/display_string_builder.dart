@@ -164,10 +164,12 @@ class ElementDisplayStringBuilder {
 
   void writePartElement(PartElementImpl element) {
     _write('part ');
-    if (element is PartElementWithPartImpl) {
-      _write('unit ${element.includedUnit.source.uri}');
-    } else if (element is PartElementWithSourceImpl) {
-      _write('uriSource ${element.uriSource}');
+
+    final uri = element.uri;
+    if (uri is DirectiveUriWithUnitImpl) {
+      _write('unit ${uri.unit.source.uri}');
+    } else if (uri is DirectiveUriWithSourceImpl) {
+      _write('source ${uri.source}');
     } else {
       _write('<unknown>');
     }

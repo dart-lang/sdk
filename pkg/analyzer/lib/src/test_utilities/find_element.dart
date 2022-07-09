@@ -218,9 +218,10 @@ class FindElement extends _FindElementBase {
   CompilationUnitElement part(String targetUri) {
     CompilationUnitElement? result;
 
-    for (final part in libraryElement.parts2) {
-      if (part is PartElementWithPart) {
-        final unitElement = part.includedUnit;
+    for (final partElement in libraryElement.parts2) {
+      final uri = partElement.uri;
+      if (uri is DirectiveUriWithUnit) {
+        final unitElement = uri.unit;
         if ('${unitElement.source.uri}' == targetUri) {
           if (result != null) {
             throw StateError('Not unique: $targetUri');

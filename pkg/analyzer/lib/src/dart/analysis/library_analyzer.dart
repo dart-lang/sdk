@@ -10,6 +10,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -772,10 +773,10 @@ class LibraryAnalyzer {
   void _resolveNamespaceDirective({
     required NamespaceDirectiveImpl directive,
     required StringLiteralImpl primaryUriNode,
-    required DirectiveUri primaryUriState,
-    required DirectiveUri selectedUriState,
+    required file_state.DirectiveUri primaryUriState,
+    required file_state.DirectiveUri selectedUriState,
     required List<Configuration> configurationNodes,
-    required List<DirectiveUri> configurationUris,
+    required List<file_state.DirectiveUri> configurationUris,
   }) {
     for (var i = 0; i < configurationNodes.length; i++) {
       final configurationNode = configurationNodes[i];
@@ -882,10 +883,10 @@ class LibraryAnalyzer {
       return;
     }
 
-    // TODO(scheglov) Unsafe.
     var partUnit = units[includedFile]!;
-    if (partElement is PartElementWithPart) {
-      partUnit.element = partElement.includedUnit;
+    final partElementUri = partElement.uri;
+    if (partElementUri is DirectiveUriWithUnit) {
+      partUnit.element = partElementUri.unit;
     }
 
     final partSource = includedKind.file.source;

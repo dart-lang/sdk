@@ -1352,6 +1352,34 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _indent = indent;
   }
 
+  void _writeDirectiveUri(DirectiveUri uri) {
+    if (uri is DirectiveUriWithUnit) {
+      _writeln('DirectiveUriWithUnit');
+      _withIndent(() {
+        final uriStr = _stringOfSource(uri.unit.source);
+        _writelnWithIndent('uri: $uriStr');
+      });
+    } else if (uri is DirectiveUriWithSource) {
+      _writeln('DirectiveUriWithSource');
+      _withIndent(() {
+        final uriStr = _stringOfSource(uri.source);
+        _writelnWithIndent('source: $uriStr');
+      });
+    } else if (uri is DirectiveUriWithRelativeUri) {
+      _writeln('DirectiveUriWithRelativeUri');
+      _withIndent(() {
+        _writelnWithIndent('relativeUri: ${uri.relativeUri}');
+      });
+    } else if (uri is DirectiveUriWithRelativeUriString) {
+      _writeln('DirectiveUriWithRelativeUriString');
+      _withIndent(() {
+        _writelnWithIndent('relativeUriString: ${uri.relativeUriString}');
+      });
+    } else {
+      _writeln('DirectiveUri');
+    }
+  }
+
   void _writeElement(String name, Element? element) {
     if (_withResolution) {
       _sink.write(_indent);
@@ -1504,21 +1532,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   void _writePartElement(PartElement element) {
-    if (element is PartElementWithPart) {
-      _writeln('PartElementWithPart');
-      _withIndent(() {
-        final uriStr = _stringOfSource(element.includedUnit.source);
-        _writelnWithIndent('part: $uriStr');
-      });
-    } else if (element is PartElementWithSource) {
-      _writeln('PartElementWithSource');
-      _withIndent(() {
-        final uriStr = _stringOfSource(element.uriSource);
-        _writelnWithIndent('source: $uriStr');
-      });
-    } else {
-      _writeln('PartElement');
-    }
+    _writeDirectiveUri(element.uri);
   }
 
   void _writePartUnitElement(String name, Element? element) {

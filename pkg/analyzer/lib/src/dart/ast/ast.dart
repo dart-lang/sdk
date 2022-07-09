@@ -8779,8 +8779,9 @@ class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
   @override
   CompilationUnitElement? get uriElement {
     final partElement = element as PartElement?;
-    if (partElement is PartElementWithPart) {
-      return partElement.includedUnit;
+    final partElementUri = partElement?.uri;
+    if (partElementUri is DirectiveUriWithUnit) {
+      return partElementUri.unit;
     }
     return null;
   }

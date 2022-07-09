@@ -504,6 +504,47 @@ abstract class ConstructorElement
   InterfaceType get returnType;
 }
 
+/// Meaning of a URI referenced in a directive.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class DirectiveUri {}
+
+/// [DirectiveUriWithSource] that references a [LibraryElement].
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class DirectiveUriWithLibrary extends DirectiveUriWithSource {
+  LibraryElement get library;
+}
+
+/// [DirectiveUriWithRelativeUriString] that can be parsed into a relative URI.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class DirectiveUriWithRelativeUri
+    extends DirectiveUriWithRelativeUriString {
+  Uri get relativeUri;
+}
+
+/// [DirectiveUri] for which we can get its relative URI string.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class DirectiveUriWithRelativeUriString extends DirectiveUri {
+  String get relativeUriString;
+}
+
+/// [DirectiveUriWithRelativeUri] that resolves to a [Source].
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class DirectiveUriWithSource extends DirectiveUriWithRelativeUri {
+  Source get source;
+}
+
+/// [DirectiveUriWithSource] that references a [CompilationUnitElement].
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
+  CompilationUnitElement get unit;
+}
+
 /// The base class for all of the elements in the element model. Generally
 /// speaking, the element model is a semantic model of the program that
 /// represents things that are declared with a name and hence can be referenced
@@ -1668,25 +1709,9 @@ abstract class ParameterElement
 /// A 'part' directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class PartElement implements _ExistingElement {}
-
-/// [PartElementWithSource] that represents a valid part of this library.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class PartElementWithPart implements PartElementWithSource {
-  /// The part [CompilationUnitElement] referenced by [uriSource].
-  CompilationUnitElement get includedUnit;
-}
-
-/// [PartElement] with a relative URI that resolves to a [Source].
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class PartElementWithSource implements PartElement {
-  /// The string value of the URI.
-  String get relativeUriString;
-
-  /// The source to which [relativeUriString] resolves.
-  Source get uriSource;
+abstract class PartElement implements _ExistingElement {
+  /// The interpretation of the URI specified in the directive.
+  DirectiveUri get uri;
 }
 
 /// A prefix used to import one or more libraries into another library.
