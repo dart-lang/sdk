@@ -229,9 +229,11 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void handleAsExpression(ir.AsExpression node, ir.DartType operandType) {
-    if (typeEnvironment.isSubtypeOf(
-        operandType, node.type, ir.SubtypeCheckMode.ignoringNullabilities)) {
+  void handleAsExpression(ir.AsExpression node, ir.DartType operandType,
+      {bool? isCalculatedTypeSubtype}) {
+    if (isCalculatedTypeSubtype ??
+        typeEnvironment.isSubtypeOf(operandType, node.type,
+            ir.SubtypeCheckMode.ignoringNullabilities)) {
       // Skip unneeded casts.
       return;
     }

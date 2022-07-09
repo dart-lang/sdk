@@ -1274,12 +1274,24 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     }
   }
 
-  void handleAsExpression(ir.AsExpression node, ir.DartType operandType) {}
+  void handleAsExpression(ir.AsExpression node, ir.DartType operandType,
+      {bool? isCalculatedTypeSubtype}) {}
 
   @override
   ir.DartType visitAsExpression(ir.AsExpression node) {
-    ir.DartType operandType = visitNode(node.operand);
-    handleAsExpression(node, operandType);
+    final operand = node.operand;
+    ir.DartType operandType = visitNode(operand);
+    // Check if the calculated operandType is a subtype of the type specified
+    // in the `as` expression.
+    final isCalculatedTypeSubtype = typeEnvironment.isSubtypeOf(
+        operandType, node.type, ir.SubtypeCheckMode.ignoringNullabilities);
+    if (!isCalculatedTypeSubtype &&
+        operand is ir.VariableGet &&
+        !_invalidatedVariables.contains(operand.variable)) {
+      typeMap = typeMap.promote(operand.variable, node.type, isTrue: true);
+    }
+    handleAsExpression(node, operandType,
+        isCalculatedTypeSubtype: isCalculatedTypeSubtype);
     return super.visitAsExpression(node);
   }
 
