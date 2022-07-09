@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class GetServerPortTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_connect() async {
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     var result = await sendDiagnosticGetServerPort();
     expect(result.port, isNotNull);

@@ -24,7 +24,7 @@ import 'dart:async';
 var c = Completer();
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);

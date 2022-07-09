@@ -16,7 +16,7 @@ void main() {
 @reflectiveTest
 class IsEnabledTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_isEnabled() async {
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     var result = await sendAnalyticsIsEnabled();
     // Very lightweight validation of the returned data.

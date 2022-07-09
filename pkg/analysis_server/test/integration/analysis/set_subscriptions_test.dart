@@ -24,7 +24,7 @@ class Foo {
 ''');
 
     // Calling this will subscribe to ServerService.STATUS.
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);

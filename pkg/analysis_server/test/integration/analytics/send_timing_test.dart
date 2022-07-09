@@ -15,7 +15,7 @@ void main() {
 @reflectiveTest
 class SendTimingTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_send_timing() async {
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     // Disable analytics.
     var result1 = await sendAnalyticsIsEnabled();

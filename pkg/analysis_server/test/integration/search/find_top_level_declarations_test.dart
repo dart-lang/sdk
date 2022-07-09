@@ -29,7 +29,7 @@ class Foo {
 
     var pathname = sourcePath('foo.dart');
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     var declarationsResult = await sendSearchFindTopLevelDeclarations(r'qu.*');

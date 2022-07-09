@@ -30,7 +30,7 @@ class Bar {
 }
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     var result =

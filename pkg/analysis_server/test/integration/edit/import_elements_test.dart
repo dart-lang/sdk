@@ -79,7 +79,7 @@ class AnalysisGetImportElementsIntegrationTest
 
   Future<void> test_importElements_definingUnit() async {
     writeFile(pathname, 'void f() {}');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
     var provider = PhysicalResourceProvider.INSTANCE;
     var sdkPath = getSdkPath();
@@ -95,7 +95,7 @@ class AnalysisGetImportElementsIntegrationTest
 
   Future<void> test_importElements_noEdits() async {
     writeFile(pathname, '');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     await checkNoEdits(<ImportedElements>[]);
@@ -112,7 +112,7 @@ part of 'lib.dart';
 
 class C {}
 ''');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
     var provider = PhysicalResourceProvider.INSTANCE;
     var sdkPath = getSdkPath();

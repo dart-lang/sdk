@@ -27,7 +27,7 @@ void foo() { }
 ''';
     text = text.replaceAll('.tryon', '');
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     await analysisFinished;
 

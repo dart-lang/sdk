@@ -22,7 +22,7 @@ void f() {
   var x // parse error: missing ';'
 }''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
     var result = await sendAnalysisGetErrors(pathname);
     expect(result.errors, equals(currentAnalysisErrors[pathname]));

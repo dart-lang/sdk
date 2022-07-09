@@ -16,7 +16,7 @@ void main() {
 @reflectiveTest
 class EnableTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_call_enable() async {
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     // Toggle the value twice; do light verification of the changes, as the
     // analysis server - when running on our CI bots - deliberately does not

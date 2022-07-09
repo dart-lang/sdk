@@ -24,7 +24,7 @@ class Foo {
 ''');
 
     // Calling this will call analysis.setAnalysisRoots.
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);

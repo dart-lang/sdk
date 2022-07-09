@@ -28,7 +28,7 @@ void bar() {
 }
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);

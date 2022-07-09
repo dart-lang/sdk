@@ -123,7 +123,7 @@ class BazelChangesTest extends AbstractAnalysisServerIntegrationTest {
 import 'generated.dart';
 void f() { my_fun(); }
 ''');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     await processedNotification.future;
     expect(errors, isNotEmpty);

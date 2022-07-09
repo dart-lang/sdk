@@ -16,7 +16,7 @@ void main() {
 
 @reflectiveTest
 class BulkFixesTest extends AbstractAnalysisServerIntegrationTest {
-  void setupTarget() {
+  Future<void> setupTarget() async {
     writeFile(sourcePath('test.dart'), '''
 class A {
   void f() {}
@@ -25,7 +25,7 @@ class B extends A {
   void f() { }
 }
 ''');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
   }
 
   Future<void> test_bulk_fix_override() async {
@@ -42,7 +42,7 @@ class B extends A {
   void f() { }
 }
 ''');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     var result = await sendEditBulkFixes([sourceDirectory.path]);

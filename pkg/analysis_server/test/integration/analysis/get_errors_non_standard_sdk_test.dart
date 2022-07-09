@@ -126,7 +126,7 @@ import 'dart:core';
 import 'dart:fake';
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
     var errors = existingErrorsForFile(pathname);
     expect(errors, hasLength(1));
