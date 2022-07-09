@@ -8,7 +8,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
-import '../js_backend/native_data_interfaces.dart' show NativeBasicData;
+import '../js_backend/native_data.dart' show NativeBasicData;
 import '../js_model/locals.dart';
 import '../universe/selector.dart' show Selector;
 

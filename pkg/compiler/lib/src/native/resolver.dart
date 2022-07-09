@@ -7,7 +7,7 @@ import '../common/elements.dart' show KElementEnvironment;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../js_backend/native_data_interfaces.dart';
+import '../js_backend/native_data.dart';
 
 /// Determines all native classes in a set of libraries.
 class NativeClassFinder {
