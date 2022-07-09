@@ -384,18 +384,21 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitPartDirective(PartDirective node) {
     final element = node.element;
-    if (element is PartElementWithPart) {
-      computer._addRegionForNode(node.uri, element.includedUnit);
-    } else if (element is PartElementWithSource) {
-      final uriNode = node.uri;
-      final source = element.uriSource;
-      computer.collector.addRegion(
-        uriNode.offset,
-        uriNode.length,
-        protocol.ElementKind.FILE,
-        protocol.Location(source.fullName, 0, 0, 0, 0,
-            endLine: 0, endColumn: 0),
-      );
+    if (element is PartElement) {
+      final uri = element.uri;
+      if (uri is DirectiveUriWithUnit) {
+        computer._addRegionForNode(node.uri, uri.unit);
+      } else if (uri is DirectiveUriWithSource) {
+        final uriNode = node.uri;
+        final source = uri.source;
+        computer.collector.addRegion(
+          uriNode.offset,
+          uriNode.length,
+          protocol.ElementKind.FILE,
+          protocol.Location(source.fullName, 0, 0, 0, 0,
+              endLine: 0, endColumn: 0),
+        );
+      }
     }
 
     super.visitPartDirective(node);

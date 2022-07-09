@@ -95,7 +95,7 @@ class AnalysisGetImportedElementsIntegrationTest
 void f() {}
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     await checkNoElements('f() {}');
@@ -112,7 +112,7 @@ void f() {
 }
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     if (disableManageImportsOnPaste) {

@@ -18,7 +18,7 @@ class DeleteContextTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_delete() async {
     var pathname = sourcePath('lib/main.dart');
     writeFile(pathname, '// dummy');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     var contextId = (await sendExecutionCreateContext(sourceDirectory.path)).id;

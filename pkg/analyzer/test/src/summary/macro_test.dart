@@ -1806,8 +1806,8 @@ class A {}
     }
 
     if (expected != null) {
-      final partElement = library.parts2.single as PartElementWithPart;
-      final x = partElement.includedUnit.topLevelVariables.single;
+      final partUri = library.parts2.single.uri as DirectiveUriWithUnit;
+      final x = partUri.unit.topLevelVariables.single;
       expect(x.name, 'x');
       x as ConstTopLevelVariableElementImpl;
       final actual = (x.constantInitializer as SimpleStringLiteral).value;
@@ -1869,8 +1869,8 @@ $declarationCode
       library.definingCompilationUnit.getType('A'),
     );
 
-    final partElement = library.parts2.single as PartElementWithPart;
-    final x = partElement.includedUnit.topLevelVariables.single;
+    final partUri = library.parts2.single.uri as DirectiveUriWithUnit;
+    final x = partUri.unit.topLevelVariables.single;
     expect(x.name, 'x');
     x as ConstTopLevelVariableElementImpl;
     var x_literal = x.constantInitializer as SimpleStringLiteral;

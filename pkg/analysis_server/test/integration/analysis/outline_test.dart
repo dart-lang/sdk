@@ -41,7 +41,7 @@ class Class2 {
 }
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     sendAnalysisSetSubscriptions({
       AnalysisService.OUTLINE: [pathname]
     });

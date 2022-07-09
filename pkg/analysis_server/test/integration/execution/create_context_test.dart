@@ -16,7 +16,7 @@ void main() {
 @reflectiveTest
 class CreateContextTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_create() async {
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     var contextId = (await sendExecutionCreateContext(sourceDirectory.path)).id;
     expect(contextId, isNotNull);
   }

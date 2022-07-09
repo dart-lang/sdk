@@ -432,7 +432,6 @@ class LibraryReader {
   LibraryElementImpl readElement({required Source librarySource}) {
     var analysisContext = _elementFactory.analysisContext;
     var analysisSession = _elementFactory.analysisSession;
-    var sourceFactory = analysisContext.sourceFactory;
 
     _reader.offset = _offset;
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
@@ -453,7 +452,6 @@ class LibraryReader {
     var unitContainerRef = _reference.getChild('@unit');
 
     libraryElement.definingCompilationUnit = _readUnitElement(
-      sourceFactory: sourceFactory,
       unitContainerRef: unitContainerRef,
       libraryElement: libraryElement,
       librarySource: librarySource,
@@ -580,6 +578,73 @@ class LibraryReader {
       element.parameters = _readParameters(element, reference);
       return element;
     });
+  }
+
+  DirectiveUri _readDirectiveUri({
+    required Reference unitContainerRef,
+    required LibraryElementImpl libraryElement,
+  }) {
+    DirectiveUriWithRelativeUriStringImpl readWithRelativeUriString() {
+      final relativeUriString = _reader.readStringReference();
+      return DirectiveUriWithRelativeUriStringImpl(
+        relativeUriString: relativeUriString,
+      );
+    }
+
+    DirectiveUriWithRelativeUriImpl readWithRelativeUri() {
+      final parent = readWithRelativeUriString();
+      final relativeUri = Uri.parse(_reader.readStringReference());
+      return DirectiveUriWithRelativeUriImpl(
+        relativeUriString: parent.relativeUriString,
+        relativeUri: relativeUri,
+      );
+    }
+
+    DirectiveUriWithSourceImpl readWithSource() {
+      final parent = readWithRelativeUri();
+
+      final analysisContext = _elementFactory.analysisContext;
+      final sourceFactory = analysisContext.sourceFactory;
+
+      final sourceUriStr = _reader.readStringReference();
+      final sourceUri = Uri.parse(sourceUriStr);
+      final source = sourceFactory.forUri2(sourceUri)!;
+
+      return DirectiveUriWithSourceImpl(
+        relativeUriString: parent.relativeUriString,
+        relativeUri: parent.relativeUri,
+        source: source,
+      );
+    }
+
+    final kindIndex = _reader.readByte();
+    final kind = DirectiveUriKind.values[kindIndex];
+    switch (kind) {
+      case DirectiveUriKind.withUnit:
+        final parent = readWithSource();
+        final unitElement = _readUnitElement(
+          unitContainerRef: unitContainerRef,
+          libraryElement: libraryElement,
+          librarySource: libraryElement.source,
+          unitSource: parent.source,
+        );
+        return DirectiveUriWithUnitImpl(
+          relativeUriString: parent.relativeUriString,
+          relativeUri: parent.relativeUri,
+          unit: unitElement,
+        );
+      case DirectiveUriKind.withLibrary:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case DirectiveUriKind.withSource:
+        return readWithSource();
+      case DirectiveUriKind.withRelativeUri:
+        return readWithRelativeUri();
+      case DirectiveUriKind.withRelativeUriString:
+        return readWithRelativeUriString();
+      case DirectiveUriKind.withNothing:
+        return DirectiveUriImpl();
+    }
   }
 
   EnumElementImpl _readEnumElement(
@@ -982,41 +1047,14 @@ class LibraryReader {
     required Reference unitContainerRef,
     required LibraryElementImpl libraryElement,
   }) {
-    final analysisContext = _elementFactory.analysisContext;
-    final sourceFactory = analysisContext.sourceFactory;
+    final uri = _readDirectiveUri(
+      unitContainerRef: unitContainerRef,
+      libraryElement: libraryElement,
+    );
 
-    final kindIndex = _reader.readByte();
-    final kind = PartElementKind.values[kindIndex];
-    switch (kind) {
-      case PartElementKind.withPart:
-        final relativeUriString = _reader.readStringReference();
-        final uriStr = _reader.readStringReference();
-        final uri = Uri.parse(uriStr);
-        final uriSource = sourceFactory.forUri2(uri)!;
-        final unitElement = _readUnitElement(
-          sourceFactory: sourceFactory,
-          unitContainerRef: unitContainerRef,
-          libraryElement: libraryElement,
-          librarySource: libraryElement.source,
-          unitSource: uriSource,
-        );
-        return PartElementWithPartImpl(
-          relativeUriString: relativeUriString,
-          uriSource: uriSource,
-          includedUnit: unitElement,
-        );
-      case PartElementKind.withSource:
-        final relativeUriString = _reader.readStringReference();
-        final uriStr = _reader.readStringReference();
-        final uri = Uri.parse(uriStr);
-        final uriSource = sourceFactory.forUri2(uri)!;
-        return PartElementWithSourceImpl(
-          relativeUriString: relativeUriString,
-          uriSource: uriSource,
-        );
-      case PartElementKind.withNothing:
-        return PartElementImpl();
-    }
+    return PartElementImpl(
+      uri: uri,
+    );
   }
 
   PropertyAccessorElementImpl _readPropertyAccessorElement(
@@ -1234,7 +1272,6 @@ class LibraryReader {
   }
 
   CompilationUnitElementImpl _readUnitElement({
-    required SourceFactory sourceFactory,
     required Reference unitContainerRef,
     required LibraryElementImpl libraryElement,
     required Source librarySource,

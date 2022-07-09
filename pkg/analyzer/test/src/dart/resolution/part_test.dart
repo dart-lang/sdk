@@ -39,7 +39,7 @@ PartDirective
     staticType: String
     stringValue: null
   semicolon: ;
-  element: PartElement
+  element: DirectiveUri
   uriContent: null
   uriElement: notUnitElement
   uriSource: <null>
@@ -62,8 +62,8 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: PartElementWithPart
-    part: package:test/a.dart
+  element: DirectiveUriWithUnit
+    uri: package:test/a.dart
   uriContent: null
   uriElement: unitElement package:test/a.dart
   uriSource: package:test/a.dart
@@ -85,8 +85,8 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: PartElementWithPart
-    part: package:test/a.dart
+  element: DirectiveUriWithUnit
+    uri: package:test/a.dart
   uriContent: null
   uriElement: unitElement package:test/a.dart
   uriSource: package:test/a.dart
@@ -110,7 +110,7 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: PartElementWithSource
+  element: DirectiveUriWithSource
     source: package:test/a.dart
   uriContent: null
   uriElement: notUnitElement
@@ -133,7 +133,7 @@ PartDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: PartElementWithSource
+  element: DirectiveUriWithSource
     source: package:test/a.dart
   uriContent: null
   uriElement: notUnitElement

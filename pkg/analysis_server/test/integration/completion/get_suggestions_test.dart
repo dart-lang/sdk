@@ -90,7 +90,7 @@ void f() {
   test.^
 }
 ''');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
     // Create an overlay but do not write the file to "disk"
     //   writeFile(pathname, text);
@@ -110,7 +110,7 @@ void f() {
     // Do not write the file to "disk"
     //   writeFile(pathname, text);
     // Don't wait for any results except the completion notifications
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
     // Missing file and no overlay
     //sendAnalysisUpdateContent({path: new AddContentOverlay(content)});

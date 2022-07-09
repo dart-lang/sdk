@@ -7,9 +7,12 @@ class AliasedElementTag {
   static const int genericFunctionElement = 1;
 }
 
-enum PartElementKind {
-  withPart,
+enum DirectiveUriKind {
+  withLibrary,
+  withUnit,
   withSource,
+  withRelativeUri,
+  withRelativeUriString,
   withNothing,
 }
 

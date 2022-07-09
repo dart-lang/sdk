@@ -54,7 +54,7 @@ void f() {
 part of foo;
 ''';
     writeFile(pathname2, text2);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     sendAnalysisSetSubscriptions({
       AnalysisService.NAVIGATION: [pathname1]
     });

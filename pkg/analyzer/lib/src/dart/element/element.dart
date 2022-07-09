@@ -1662,6 +1662,72 @@ class DefaultSuperFormalParameterElementImpl
   }
 }
 
+class DirectiveUriImpl implements DirectiveUri {}
+
+class DirectiveUriWithLibraryImpl extends DirectiveUriWithRelativeUriImpl
+    implements DirectiveUriWithLibrary {
+  @override
+  final LibraryElementImpl library;
+
+  DirectiveUriWithLibraryImpl({
+    required super.relativeUriString,
+    required super.relativeUri,
+    required this.library,
+  });
+
+  @override
+  Source get source => library.source;
+}
+
+class DirectiveUriWithRelativeUriImpl
+    extends DirectiveUriWithRelativeUriStringImpl
+    implements DirectiveUriWithRelativeUri {
+  @override
+  final Uri relativeUri;
+
+  DirectiveUriWithRelativeUriImpl({
+    required super.relativeUriString,
+    required this.relativeUri,
+  });
+}
+
+class DirectiveUriWithRelativeUriStringImpl
+    implements DirectiveUriWithRelativeUriString {
+  @override
+  final String relativeUriString;
+
+  DirectiveUriWithRelativeUriStringImpl({
+    required this.relativeUriString,
+  });
+}
+
+class DirectiveUriWithSourceImpl extends DirectiveUriWithRelativeUriImpl
+    implements DirectiveUriWithSource {
+  @override
+  final Source source;
+
+  DirectiveUriWithSourceImpl({
+    required super.relativeUriString,
+    required super.relativeUri,
+    required this.source,
+  });
+}
+
+class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
+    implements DirectiveUriWithUnit {
+  @override
+  final CompilationUnitElementImpl unit;
+
+  DirectiveUriWithUnitImpl({
+    required super.relativeUriString,
+    required super.relativeUri,
+    required this.unit,
+  });
+
+  @override
+  Source get source => unit.source;
+}
+
 /// The synthetic element representing the declaration of the type `dynamic`.
 class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
   /// Return the unique instance of this class.
@@ -3932,10 +3998,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @Deprecated('Use parts2 instead')
   @override
   List<CompilationUnitElement> get parts {
-    return _parts2
-        .whereType<PartElementWithPart>()
-        .map((partElement) => partElement.includedUnit)
-        .toList();
+    return _partUnits;
   }
 
   @override
@@ -3945,8 +4008,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     for (final part in parts) {
       part as PartElementImpl;
       part.enclosingElement = this;
-      if (part is PartElementWithPartImpl) {
-        part.includedUnit.enclosingElement = this;
+      final uri = part.uri;
+      if (uri is DirectiveUriWithUnitImpl) {
+        uri.unit.enclosingElement = this;
       }
     }
     _parts2 = parts;
@@ -3994,8 +4058,16 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   List<CompilationUnitElement> get units {
     return [
       _definingCompilationUnit,
-      ...parts2.whereType<PartElementWithPart>().map((e) => e.includedUnit),
+      ..._partUnits,
     ];
+  }
+
+  List<CompilationUnitElement> get _partUnits {
+    return parts2
+        .map((e) => e.uri)
+        .whereType<DirectiveUriWithUnit>()
+        .map((e) => e.unit)
+        .toList();
   }
 
   @override
@@ -4071,9 +4143,10 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
     if (prefix == null && name.startsWith(r'_$')) {
       for (var partElement in parts2) {
-        if (partElement is PartElementWithSource &&
-            partElement is! PartElementWithPart &&
-            file_paths.isGenerated(partElement.relativeUriString)) {
+        final uri = partElement.uri;
+        if (uri is DirectiveUriWithSource &&
+            uri is! DirectiveUriWithUnit &&
+            file_paths.isGenerated(uri.relativeUriString)) {
           return true;
         }
       }
@@ -4114,6 +4187,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(parts2, visitor);
+    for (final partUnit in _partUnits) {
+      partUnit.accept(visitor);
+    }
   }
 
   static List<PrefixElement> buildPrefixesFromImports(
@@ -5102,7 +5178,12 @@ mixin ParameterElementMixin implements ParameterElement {
 }
 
 class PartElementImpl extends _ExistingElementImpl implements PartElement {
-  PartElementImpl() : super(null, -1);
+  @override
+  final DirectiveUri uri;
+
+  PartElementImpl({
+    required this.uri,
+  }) : super(null, -1);
 
   @override
   CompilationUnitElementImpl get enclosingUnit {
@@ -5123,37 +5204,6 @@ class PartElementImpl extends _ExistingElementImpl implements PartElement {
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writePartElement(this);
   }
-}
-
-class PartElementWithPartImpl extends PartElementWithSourceImpl
-    implements PartElementWithPart {
-  @override
-  final CompilationUnitElementImpl includedUnit;
-
-  PartElementWithPartImpl({
-    required super.relativeUriString,
-    required super.uriSource,
-    required this.includedUnit,
-  });
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    includedUnit.accept(visitor);
-  }
-}
-
-class PartElementWithSourceImpl extends PartElementImpl
-    implements PartElementWithSource {
-  @override
-  final String relativeUriString;
-
-  @override
-  final Source uriSource;
-
-  PartElementWithSourceImpl({
-    required this.relativeUriString,
-    required this.uriSource,
-  });
 }
 
 /// A concrete implementation of a [PrefixElement].

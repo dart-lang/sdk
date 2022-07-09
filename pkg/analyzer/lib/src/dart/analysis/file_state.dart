@@ -136,7 +136,7 @@ class DirectiveUri {
 }
 
 /// [DirectiveUriWithUri] with URI that resolves to a [FileState].
-class DirectiveUriWithFile extends DirectiveUriWithUri {
+class DirectiveUriWithFile extends DirectiveUriWithSource {
   final FileState file;
 
   DirectiveUriWithFile({
@@ -146,14 +146,14 @@ class DirectiveUriWithFile extends DirectiveUriWithUri {
   });
 
   @override
-  Source? get source => file.source;
+  Source get source => file.source;
 
   @override
   String toString() => '$file';
 }
 
-/// [DirectiveUriWithUri] with URI that resolves to a [InSummarySource].
-class DirectiveUriWithInSummarySource extends DirectiveUriWithUri {
+/// [DirectiveUriWithSource] with a [InSummarySource].
+class DirectiveUriWithInSummarySource extends DirectiveUriWithSource {
   @override
   final InSummarySource source;
 
@@ -162,6 +162,20 @@ class DirectiveUriWithInSummarySource extends DirectiveUriWithUri {
     required super.relativeUri,
     required this.source,
   });
+
+  @override
+  String toString() => '$source';
+}
+
+/// [DirectiveUriWithUri] that can be resolved into a [Source].
+abstract class DirectiveUriWithSource extends DirectiveUriWithUri {
+  DirectiveUriWithSource({
+    required super.relativeUriStr,
+    required super.relativeUri,
+  });
+
+  @override
+  Source get source;
 
   @override
   String toString() => '$source';

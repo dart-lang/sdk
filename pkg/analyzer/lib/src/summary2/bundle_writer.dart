@@ -174,6 +174,42 @@ class BundleWriter {
     });
   }
 
+  void _writeDirectiveUri(DirectiveUri element) {
+    void writeWithUriString(DirectiveUriWithRelativeUriString element) {
+      _sink._writeStringReference(element.relativeUriString);
+    }
+
+    void writeWithRelativeUri(DirectiveUriWithRelativeUri element) {
+      writeWithUriString(element);
+      _sink._writeStringReference('${element.relativeUri}');
+    }
+
+    void writeWithSource(DirectiveUriWithSource element) {
+      writeWithRelativeUri(element);
+      _sink._writeStringReference('${element.source.uri}');
+    }
+
+    if (element is DirectiveUriWithLibrary) {
+      // TODO(scheglov) implement
+      throw UnimplementedError();
+    } else if (element is DirectiveUriWithUnit) {
+      _sink.writeByte(DirectiveUriKind.withUnit.index);
+      writeWithSource(element);
+      _writeUnitElement(element.unit);
+    } else if (element is DirectiveUriWithSource) {
+      _sink.writeByte(DirectiveUriKind.withSource.index);
+      writeWithSource(element);
+    } else if (element is DirectiveUriWithRelativeUri) {
+      _sink.writeByte(DirectiveUriKind.withRelativeUri.index);
+      writeWithRelativeUri(element);
+    } else if (element is DirectiveUriWithRelativeUriString) {
+      _sink.writeByte(DirectiveUriKind.withRelativeUriString.index);
+      writeWithUriString(element);
+    } else {
+      _sink.writeByte(DirectiveUriKind.withNothing.index);
+    }
+  }
+
   void _writeEnumElement(ClassElement element) {
     element as EnumElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
@@ -394,18 +430,7 @@ class BundleWriter {
   }
 
   void _writePartElement(PartElement element) {
-    if (element is PartElementWithPart) {
-      _sink.writeByte(PartElementKind.withPart.index);
-      _sink._writeStringReference(element.relativeUriString);
-      _sink._writeStringReference('${element.uriSource.uri}');
-      _writeUnitElement(element.includedUnit);
-    } else if (element is PartElementWithSource) {
-      _sink.writeByte(PartElementKind.withSource.index);
-      _sink._writeStringReference(element.relativeUriString);
-      _sink._writeStringReference('${element.uriSource.uri}');
-    } else {
-      _sink.writeByte(PartElementKind.withNothing.index);
-    }
+    _writeDirectiveUri(element.uri);
   }
 
   void _writePropertyAccessorElement(PropertyAccessorElement element) {

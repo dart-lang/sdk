@@ -22,7 +22,7 @@ int foo;
 int bar;
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     var result = await sendEditSortMembers(pathname);
@@ -38,7 +38,7 @@ int bar;
 int foo;
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     var result = await sendEditSortMembers(pathname);
@@ -53,7 +53,7 @@ int foo
 int bar;
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     try {
