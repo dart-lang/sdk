@@ -98,7 +98,7 @@ Information about the class is fully deserialized only when runtime later needs 
 At this point enough information is loaded from Kernel binary for runtime to successfully resolve and invoke methods. For example, it could resolve and invoke `main` function from a library.
 
 !!! sourcecode "Source to read"
-    @{package:kernel/ast.dart} defines classes describing the Kernel AST. @{package:front_end} handles parsing Dart source and building Kernel AST from it. @{dart::kernel::KernelLoader::LoadEntireProgram} is an entry point for deserialization of Kernel AST into corresponding VM objects. @{pkg/vm/bin/kernel_service.dart} implements the Kernel Service isolate, @{runtime/vm/kernel_isolate.cc} glues Dart implementation to the rest of the VM. @{package:vm} hosts most of the Kernel based VM specific functionality, e.g various Kernel-to-Kernel transformations. However some VM specific transformations still live in @{package:kernel} for historical reasons. A good example of a complicated transformation is @{package:kernel/transformations/continuation.dart}, which desugars `async`,`async*` and `sync*` functions.
+    @{package:kernel/ast.dart} defines classes describing the Kernel AST. @{package:front_end} handles parsing Dart source and building Kernel AST from it. @{dart::kernel::KernelLoader::LoadEntireProgram} is an entry point for deserialization of Kernel AST into corresponding VM objects. @{pkg/vm/bin/kernel_service.dart} implements the Kernel Service isolate, @{runtime/vm/kernel_isolate.cc} glues Dart implementation to the rest of the VM. @{package:vm} hosts most of the Kernel based VM specific functionality, e.g various Kernel-to-Kernel transformations.
 
 
 !!! tryit "Trying it"

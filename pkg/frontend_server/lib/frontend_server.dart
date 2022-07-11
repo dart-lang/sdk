@@ -58,8 +58,7 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help: 'Whether dart:mirrors is supported. By default dart:mirrors is '
           'supported when --aot and --minimal-kernel are not used.',
       defaultsTo: null)
-  ..addFlag('compact-async',
-      help: 'Enable new compact async/await implementation.', defaultsTo: true)
+  ..addFlag('compact-async', help: 'Obsolete, ignored.', hide: true)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
@@ -543,7 +542,6 @@ class FrontendCompiler implements CompilerInterface {
       nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
       supportMirrors: options['support-mirrors'] ??
           !(options['aot'] || options['minimal-kernel']),
-      compactAsync: options['compact-async'],
     );
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');
