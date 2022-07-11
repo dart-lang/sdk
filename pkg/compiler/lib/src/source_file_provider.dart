@@ -559,13 +559,18 @@ class BazelInputProvider extends SourceFileProvider {
     }
     api.Input<List<int>> result =
         await readBytesFromUri(resolvedUri, inputKind);
-    switch (inputKind) {
-      case api.InputKind.UTF8:
-        utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri];
-        break;
-      case api.InputKind.binary:
-        binarySourceFiles[uri] = binarySourceFiles[resolvedUri];
-        break;
+    if (uri != resolvedUri) {
+      if (!resolvedUri.isAbsolute) {
+        resolvedUri = cwd.resolveUri(resolvedUri);
+      }
+      switch (inputKind) {
+        case api.InputKind.UTF8:
+          utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri];
+          break;
+        case api.InputKind.binary:
+          binarySourceFiles[uri] = binarySourceFiles[resolvedUri];
+          break;
+      }
     }
     return result;
   }
