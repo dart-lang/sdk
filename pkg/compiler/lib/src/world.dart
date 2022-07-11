@@ -43,17 +43,21 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
 
   BackendUsage get backendUsage;
 
+  @override
   NativeData get nativeData;
 
   InterceptorData get interceptorData;
 
   JElementEnvironment get elementEnvironment;
 
+  @override
   DartTypes get dartTypes;
 
+  @override
   JCommonElements get commonElements;
 
   /// Returns the [AbstractValueDomain] used in the global type inference.
+  @override
   AbstractValueDomain get abstractValueDomain;
 
   RuntimeTypesNeed get rtiNeed;
@@ -68,8 +72,10 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
   /// `extractTypeArguments` function.
   Set<ClassEntity> get extractTypeArgumentsInterfacesNewRti;
 
+  @override
   ClassHierarchy get classHierarchy;
 
+  @override
   AnnotationsData get annotationsData;
 
   ClosureData get closureDataLookup;

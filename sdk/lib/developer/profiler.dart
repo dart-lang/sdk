@@ -109,6 +109,9 @@ class Counter extends Metric {
 }
 
 class Metrics {
+  /// The current set of registered [Metric]s.
+  static UnmodifiableMapView<String, Metric> get current =>
+      UnmodifiableMapView<String, Metric>(_metrics);
   static final Map<String, Metric> _metrics = new Map<String, Metric>();
 
   /// Register [Metric]s to make them visible to Observatory.

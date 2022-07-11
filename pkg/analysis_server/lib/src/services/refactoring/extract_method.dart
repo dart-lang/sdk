@@ -1089,6 +1089,12 @@ class _HasAwaitVisitor extends GeneralizingAstVisitor<void> {
     }
     super.visitForStatement(node);
   }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    // Don't look inside function expressions as the presence of `await` inside
+    // a function expression does not mean the overall function is async.
+  }
 }
 
 class _HasReturnStatementVisitor extends RecursiveAstVisitor<void> {
