@@ -20,8 +20,8 @@ namespace kernel {
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
-static const uint32_t kMinSupportedKernelFormatVersion = 82;
-static const uint32_t kMaxSupportedKernelFormatVersion = 82;
+static const uint32_t kMinSupportedKernelFormatVersion = 83;
+static const uint32_t kMaxSupportedKernelFormatVersion = 83;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -218,7 +218,6 @@ enum InstanceInvocationFlags {
 // Keep in sync with package:kernel/lib/ast.dart
 enum YieldStatementFlags {
   kYieldStatementFlagYieldStar = 1 << 0,
-  kYieldStatementFlagNative = 1 << 1,
 };
 
 // Keep in sync with package:kernel/lib/ast.dart

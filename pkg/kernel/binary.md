@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 82;
+  UInt32 formatVersion = 83;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -510,8 +510,7 @@ enum AsyncMarker {
   Sync,
   SyncStar,
   Async,
-  AsyncStar,
-  SyncYielding
+  AsyncStar
 }
 */
 
@@ -1398,7 +1397,7 @@ type TryFinally extends Statement {
 type YieldStatement extends Statement {
   Byte tag = 77;
   FileOffset fileOffset;
-  Byte flags (isYieldStar, isNative);
+  Byte flags (isYieldStar);
   Expression expression;
 }
 

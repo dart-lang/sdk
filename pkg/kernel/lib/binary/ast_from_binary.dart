@@ -2895,8 +2895,7 @@ class BinaryBuilder {
     int offset = readOffset();
     int flags = readByte();
     return new YieldStatement(readExpression(),
-        isYieldStar: flags & YieldStatement.FlagYieldStar != 0,
-        isNative: flags & YieldStatement.FlagNative != 0)
+        isYieldStar: flags & YieldStatement.FlagYieldStar != 0)
       ..fileOffset = offset;
   }
 

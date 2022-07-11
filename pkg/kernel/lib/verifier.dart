@@ -528,7 +528,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     switch (currentAsyncMarker) {
       case AsyncMarker.Sync:
       case AsyncMarker.Async:
-      case AsyncMarker.SyncYielding:
         // ok
         break;
       case AsyncMarker.SyncStar:
@@ -556,7 +555,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         break;
       case AsyncMarker.SyncStar:
       case AsyncMarker.AsyncStar:
-      case AsyncMarker.SyncYielding:
         // ok
         break;
     }

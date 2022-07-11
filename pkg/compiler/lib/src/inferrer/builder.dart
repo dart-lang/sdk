@@ -434,10 +434,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       case ir.AsyncMarker.AsyncStar:
         recordReturnType(_types.asyncStarStreamType);
         break;
-      case ir.AsyncMarker.SyncYielding:
-        failedAt(
-            _analyzedMember, "Unexpected async marker: ${node.asyncMarker}");
-        break;
     }
     assert(_breaksFor.isEmpty);
     assert(_continuesFor.isEmpty);

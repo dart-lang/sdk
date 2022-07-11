@@ -192,10 +192,6 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
         }
         registerAsyncStar(elementType);
         break;
-
-      case ir.AsyncMarker.SyncYielding:
-        failedAt(CURRENT_ELEMENT_SPANNABLE,
-            "Unexpected async marker: ${asyncMarker}");
     }
   }
 

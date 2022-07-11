@@ -363,17 +363,6 @@ class _VariablesInfoCollector extends RecursiveVisitor {
     final function = node.function;
     function.accept(this);
 
-    if (function.asyncMarker == AsyncMarker.SyncYielding) {
-      // Mark parameters of synthetic async_op closures as captured
-      // to make sure their updates at yield points are taken into account.
-      for (var v in function.positionalParameters) {
-        _captureVariable(v);
-      }
-      for (var v in function.namedParameters) {
-        _captureVariable(v);
-      }
-    }
-
     activeStatements = savedActiveStatements;
     numVariablesAtActiveStatements = savedNumVariablesAtActiveStatements;
     numVariablesAtFunctionEntry = savedNumVariablesAtFunctionEntry;

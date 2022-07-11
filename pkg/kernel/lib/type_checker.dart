@@ -363,26 +363,6 @@ class TypeCheckingVisitor
       case AsyncMarker.AsyncStar:
         return null;
 
-      case AsyncMarker.SyncYielding:
-        // The SyncStar transform wraps the original function body twice,
-        // where the inner most function returns bool.
-        TreeNode? parent = function.parent;
-        while (parent is! FunctionNode) {
-          parent = parent!.parent;
-        }
-        FunctionNode enclosingFunction = parent;
-        if (enclosingFunction.dartAsyncMarker == AsyncMarker.Sync) {
-          parent = enclosingFunction.parent;
-          while (parent is! FunctionNode) {
-            parent = parent!.parent;
-          }
-          enclosingFunction = parent;
-          if (enclosingFunction.dartAsyncMarker == AsyncMarker.SyncStar) {
-            return coreTypes.boolLegacyRawType;
-          }
-        }
-        return null;
-
       default:
         throw 'Unexpected async marker: ${function.asyncMarker}';
     }
@@ -404,9 +384,6 @@ class TypeCheckingVisitor
           return returnType.typeArguments.single;
         }
         return const DynamicType();
-
-      case AsyncMarker.SyncYielding:
-        return function.returnType;
 
       default:
         throw 'Unexpected async marker: ${function.asyncMarker}';

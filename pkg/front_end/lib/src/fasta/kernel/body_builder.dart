@@ -76,8 +76,7 @@ import '../messages.dart' as messages show getLocationFromUri;
 import '../modifier.dart'
     show Modifier, constMask, covariantMask, finalMask, lateMask, requiredMask;
 import '../names.dart' show emptyName, minusName, plusName;
-import '../problems.dart'
-    show internalProblem, unexpected, unhandled, unsupported;
+import '../problems.dart' show internalProblem, unhandled, unsupported;
 import '../scope.dart';
 import '../source/diet_parser.dart';
 import '../source/source_class_builder.dart';
@@ -1415,9 +1414,6 @@ class BodyBuilder extends StackListenerImpl
 
       case AsyncMarker.Sync:
         break; // skip
-      case AsyncMarker.SyncYielding:
-        unexpected("async, async*, sync, or sync*", "$asyncModifier",
-            member.charOffset, uri);
     }
 
     if (problem != null) {
