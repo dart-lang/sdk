@@ -94,7 +94,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag enhancedEnums = const ExperimentalFlag(
       name: 'enhanced-enums',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(2, 17),
       experimentEnabledVersion: const Version(2, 17),
       experimentReleasedVersion: const Version(2, 17));
@@ -150,7 +150,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag namedArgumentsAnywhere = const ExperimentalFlag(
       name: 'named-arguments-anywhere',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(2, 17),
       experimentEnabledVersion: const Version(2, 17),
       experimentReleasedVersion: const Version(2, 17));
@@ -190,7 +190,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag superParameters = const ExperimentalFlag(
       name: 'super-parameters',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(2, 17),
       experimentEnabledVersion: const Version(2, 17),
       experimentReleasedVersion: const Version(2, 17));

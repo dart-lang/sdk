@@ -406,7 +406,7 @@ class IsExpired {
   static const bool control_flow_collections = true;
 
   /// Expiration status of the experiment "enhanced-enums"
-  static const bool enhanced_enums = false;
+  static const bool enhanced_enums = true;
 
   /// Expiration status of the experiment "extension-methods"
   static const bool extension_methods = true;
@@ -427,7 +427,7 @@ class IsExpired {
   static const bool macros = false;
 
   /// Expiration status of the experiment "named-arguments-anywhere"
-  static const bool named_arguments_anywhere = false;
+  static const bool named_arguments_anywhere = true;
 
   /// Expiration status of the experiment "non-nullable"
   static const bool non_nullable = true;
@@ -442,7 +442,7 @@ class IsExpired {
   static const bool spread_collections = true;
 
   /// Expiration status of the experiment "super-parameters"
-  static const bool super_parameters = false;
+  static const bool super_parameters = true;
 
   /// Expiration status of the experiment "test-experiment"
   static const bool test_experiment = false;

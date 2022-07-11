@@ -233,6 +233,7 @@ features:
       void main() {
         T.t.test();
       }
+    expired: true
 
   named-arguments-anywhere:
     help: "Named Arguments Anywhere"
@@ -246,6 +247,7 @@ features:
       void main() {
         test(enabled : true, 'feature enabled');
       }
+    expired: true
 
   super-parameters:
     help: "Super-Initializer Parameters"
@@ -261,6 +263,7 @@ features:
       void main(){
         print(C('feature enabled').foo);
       }
+    expired: true
 
   inference-update-1:
     help: "Horizontal type inference for function expressions passed to generic invocations."
