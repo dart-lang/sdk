@@ -252,6 +252,38 @@ void ObjectStore::InitKnownObjects() {
   Function& function = Function::Handle(zone);
   Field& field = Field::Handle(zone);
 
+  function_name = async_lib.PrivateName(Symbols::AsyncStarMoveNextHelper());
+  ASSERT(!function_name.IsNull());
+  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
+                                     function_name, 0, 1, Object::null_array());
+  ASSERT(!function.IsNull());
+  set_async_star_move_next_helper(function);
+
+  function_name = async_lib.PrivateName(Symbols::_CompleteOnAsyncReturn());
+  ASSERT(!function_name.IsNull());
+  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
+                                     function_name, 0, 3, Object::null_array());
+  ASSERT(!function.IsNull());
+  set_complete_on_async_return(function);
+  DisableDebuggingAndInlining(function);
+
+  function_name =
+      async_lib.PrivateName(Symbols::_CompleteWithNoFutureOnAsyncReturn());
+  ASSERT(!function_name.IsNull());
+  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
+                                     function_name, 0, 3, Object::null_array());
+  ASSERT(!function.IsNull());
+  set_complete_with_no_future_on_async_return(function);
+  DisableDebuggingAndInlining(function);
+
+  function_name = async_lib.PrivateName(Symbols::_CompleteOnAsyncError());
+  ASSERT(!function_name.IsNull());
+  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
+                                     function_name, 0, 4, Object::null_array());
+  ASSERT(!function.IsNull());
+  set_complete_on_async_error(function);
+  DisableDebuggingAndInlining(function);
+
   cls =
       async_lib.LookupClassAllowPrivate(Symbols::_AsyncStarStreamController());
   ASSERT(!cls.IsNull());

@@ -70,12 +70,18 @@ class CallerClosureFinder {
 
   bool HasCatchError(const Object& future_listener);
 
+  static bool IsRunningAsync(const Closure& receiver_closure);
+
   // Tests if given [function] with given value of :suspend_state variable
   // was suspended at least once and running asynchronously.
   static bool WasPreviouslySuspended(const Function& function,
                                      const Object& suspend_state_var);
 
  private:
+  ClosurePtr FindCallerInternal(const Closure& receiver_closure);
+  ClosurePtr GetCallerInFutureListenerInternal(const Object& future_listener);
+  ClosurePtr UnwrapAsyncThen(const Closure& closure);
+
   Closure& closure_;
   Context& receiver_context_;
   Function& receiver_function_;
@@ -116,6 +122,10 @@ class CallerClosureFinder {
 
 class StackTraceUtils : public AllStatic {
  public:
+  // Find the async_op closure from the stack frame.
+  static ClosurePtr FindClosureInFrame(ObjectPtr* last_object_in_caller,
+                                       const Function& function);
+
   static ClosurePtr ClosureFromFrameFunction(
       Zone* zone,
       CallerClosureFinder* caller_closure_finder,

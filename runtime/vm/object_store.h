@@ -165,8 +165,12 @@ class ObjectPointerVisitor;
   RW(Function, simple_instance_of_function)                                    \
   RW(Function, simple_instance_of_true_function)                               \
   RW(Function, simple_instance_of_false_function)                              \
+  RW(Function, async_star_move_next_helper)                                    \
   RW(Function, async_star_stream_controller_add)                               \
   RW(Function, async_star_stream_controller_add_stream)                        \
+  RW(Function, complete_on_async_return)                                       \
+  RW(Function, complete_with_no_future_on_async_return)                        \
+  RW(Function, complete_on_async_error)                                        \
   RW(Function, suspend_state_init_async)                                       \
   RW(Function, suspend_state_await)                                            \
   RW(Function, suspend_state_return_async)                                     \

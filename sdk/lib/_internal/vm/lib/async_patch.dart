@@ -18,6 +18,78 @@ import "dart:_internal" show VMLibraryHooks, patch, unsafeCast;
 @pragma("vm:external-name", "DartAsync_fatal")
 external _fatal(msg);
 
+// We need to pass the value as first argument and leave the second and third
+// arguments empty (used for error handling).
+@pragma("vm:recognized", "other")
+dynamic Function(dynamic) _asyncThenWrapperHelper(
+    dynamic Function(dynamic, dynamic) continuation) {
+  @pragma("vm:invisible")
+  dynamic thenWrapper(dynamic arg) => continuation(arg, /*stack_trace=*/ null);
+
+  // Any function that is used as an asynchronous callback must be registered
+  // in the current Zone. Normally, this is done by the future when a
+  // callback is registered (for example with `.then` or `.catchError`). In our
+  // case we want to reuse the same callback multiple times and therefore avoid
+  // the multiple registrations. For our internal futures (`_Future`) we can
+  // use the shortcut-version of `.then`, and skip the registration. However,
+  // that means that the continuation must be registered by us.
+  //
+  // Furthermore, we know that the root-zone doesn't actually do anything and
+  // we can therefore skip the registration call for it.
+  //
+  // Note, that the continuation accepts up to three arguments. If the current
+  // zone is the root zone, we don't wrap the continuation, and a bad
+  // `Future` implementation could potentially invoke the callback with the
+  // wrong number of arguments.
+  final currentZone = Zone._current;
+  if (identical(currentZone, _rootZone) ||
+      identical(currentZone._registerUnaryCallback,
+          _rootZone._registerUnaryCallback)) {
+    return thenWrapper;
+  }
+  return currentZone.registerUnaryCallback<dynamic, dynamic>(thenWrapper);
+}
+
+// We need to pass the exception and stack trace objects as second and third
+// parameter to the continuation.
+dynamic Function(Object, StackTrace) _asyncErrorWrapperHelper(
+    dynamic Function(dynamic, StackTrace) errorCallback) {
+  final currentZone = Zone._current;
+  if (identical(currentZone, _rootZone) ||
+      identical(currentZone._registerBinaryCallback,
+          _rootZone._registerBinaryCallback)) {
+    return errorCallback;
+  }
+  return currentZone
+      .registerBinaryCallback<dynamic, Object, StackTrace>(errorCallback);
+}
+
+/// Registers the [thenCallback] and [errorCallback] on the given [object].
+///
+/// If [object] is not a future, then it is wrapped into one.
+///
+/// Returns the result of registering with `.then`.
+Future _awaitHelper(var object, dynamic Function(dynamic) thenCallback,
+    dynamic Function(Object, StackTrace) errorCallback) {
+  _Future future;
+  if (object is _Future) {
+    future = object;
+  } else if (object is! Future) {
+    future = new _Future().._setValue(object);
+  } else {
+    return object.then(thenCallback, onError: errorCallback);
+  }
+  // `object` is a `_Future`.
+  //
+  // Since the callbacks have been registered in the current zone (see
+  // [_asyncThenWrapperHelper] and [_asyncErrorWrapperHelper]), we can avoid
+  // another registration and directly invoke the no-zone-registration `.then`.
+  //
+  // We can only do this for our internal futures (the default implementation of
+  // all futures that are constructed by the `dart:async` library).
+  return future._thenAwait<dynamic>(thenCallback, errorCallback);
+}
+
 @pragma("vm:entry-point", "call")
 void _asyncStarMoveNextHelper(var stream) {
   if (stream is! _StreamImpl) {
@@ -210,6 +282,41 @@ class _StreamImpl<T> {
   /// The closure implementing the async-generator body that is creating events
   /// for this stream.
   Function? _generator;
+}
+
+@pragma("vm:entry-point", "call")
+void _completeOnAsyncReturn(_Future _future, Object? value, bool is_sync) {
+  // The first awaited expression is invoked sync. so complete is async. to
+  // allow then and error handlers to be attached.
+  // async_jump_var=0 is prior to first await, =1 is first await.
+  if (!is_sync || value is Future) {
+    _future._asyncCompleteUnchecked(value);
+  } else {
+    _future._completeWithValue(value);
+  }
+}
+
+@pragma("vm:entry-point", "call")
+void _completeWithNoFutureOnAsyncReturn(
+    _Future _future, Object? value, bool is_sync) {
+  // The first awaited expression is invoked sync. so complete is async. to
+  // allow then and error handlers to be attached.
+  // async_jump_var=0 is prior to first await, =1 is first await.
+  if (!is_sync) {
+    _future._asyncCompleteUncheckedNoFuture(value);
+  } else {
+    _future._completeWithValue(value);
+  }
+}
+
+@pragma("vm:entry-point", "call")
+void _completeOnAsyncError(
+    _Future _future, Object e, StackTrace st, bool is_sync) {
+  if (!is_sync) {
+    _future._asyncCompleteError(e, st);
+  } else {
+    _future._completeError(e, st);
+  }
 }
 
 @pragma("vm:external-name", "AsyncStarMoveNext_debuggerStepCheck")
@@ -451,11 +558,7 @@ class _SuspendState {
     }
     if (functionData is _Future) {
       // async function.
-      if (!isSync) {
-        functionData._asyncCompleteError(exception, stackTrace);
-      } else {
-        functionData._completeError(exception, stackTrace);
-      }
+      _completeOnAsyncError(functionData, exception, stackTrace, isSync);
     } else if (functionData is _AsyncStarStreamController) {
       // async* function.
       functionData.addError(exception, stackTrace);

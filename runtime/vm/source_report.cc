@@ -553,29 +553,34 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   }
   ASSERT(!code.IsNull());
 
-  JSONObject range(jsarr);
-  range.AddProperty("scriptIndex", script_index);
-  range.AddProperty("startPos", begin_pos);
-  range.AddProperty("endPos", end_pos);
-  range.AddProperty("compiled", true);
+  // We skip compiled sync generators. Once a sync generator has been compiled,
+  // there is another function with the same range which actually contains the
+  // user code.
+  if (!func.IsSyncGenerator() || func.IsSuspendableFunction()) {
+    JSONObject range(jsarr);
+    range.AddProperty("scriptIndex", script_index);
+    range.AddProperty("startPos", begin_pos);
+    range.AddProperty("endPos", end_pos);
+    range.AddProperty("compiled", true);
 
-  if (IsReportRequested(kCallSites)) {
-    PrintCallSitesData(&range, func, code);
-  }
-  if (IsReportRequested(kCoverage)) {
-    PrintCoverageData(&range, func, code, /* report_branch_coverage */ false);
-  }
-  if (IsReportRequested(kBranchCoverage)) {
-    PrintCoverageData(&range, func, code, /* report_branch_coverage */ true);
-  }
-  if (IsReportRequested(kPossibleBreakpoints)) {
-    PrintPossibleBreakpointsData(&range, func, code);
-  }
-  if (IsReportRequested(kProfile)) {
-    ProfileFunction* profile_function = profile_.FindFunction(func);
-    if ((profile_function != NULL) &&
-        (profile_function->NumSourcePositions() > 0)) {
-      PrintProfileData(&range, profile_function);
+    if (IsReportRequested(kCallSites)) {
+      PrintCallSitesData(&range, func, code);
+    }
+    if (IsReportRequested(kCoverage)) {
+      PrintCoverageData(&range, func, code, /* report_branch_coverage */ false);
+    }
+    if (IsReportRequested(kBranchCoverage)) {
+      PrintCoverageData(&range, func, code, /* report_branch_coverage */ true);
+    }
+    if (IsReportRequested(kPossibleBreakpoints)) {
+      PrintPossibleBreakpointsData(&range, func, code);
+    }
+    if (IsReportRequested(kProfile)) {
+      ProfileFunction* profile_function = profile_.FindFunction(func);
+      if ((profile_function != NULL) &&
+          (profile_function->NumSourcePositions() > 0)) {
+        PrintProfileData(&range, profile_function);
+      }
     }
   }
 }

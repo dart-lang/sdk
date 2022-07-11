@@ -98,6 +98,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment ShortcutForUserDefinedEquals(const Function& dart_function,
                                         LocalVariable* first_parameter);
   Fragment TypeArgumentsHandling(const Function& dart_function);
+  Fragment CompleteBodyWithYieldContinuations(Fragment body);
 
   static UncheckedEntryPointStyle ChooseEntryPointStyle(
       const Function& dart_function,
@@ -130,6 +131,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   TryFinallyBlock* try_finally_block();
   SwitchBlock* switch_block();
   BreakableBlock* breakable_block();
+  GrowableArray<YieldContinuation>& yield_continuations();
   Value* stack();
   void set_stack(Value* top);
   void Push(Definition* definition);

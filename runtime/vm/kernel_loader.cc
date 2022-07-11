@@ -2038,23 +2038,50 @@ void KernelLoader::LoadProcedure(const Library& library,
   function_node_helper.ReadUntilIncluding(FunctionNodeHelper::kDartAsyncMarker);
   if (function_node_helper.async_marker_ == FunctionNodeHelper::kAsync) {
     function.set_modifier(UntaggedFunction::kAsync);
+    function.set_is_debuggable(true);
     function.set_is_inlinable(false);
-    ASSERT(function.IsAsyncFunction());
+    function.set_is_visible(true);
+    ASSERT(function.IsCompactAsyncFunction());
   } else if (function_node_helper.async_marker_ ==
              FunctionNodeHelper::kAsyncStar) {
     function.set_modifier(UntaggedFunction::kAsyncGen);
+    function.set_is_debuggable(true);
     function.set_is_inlinable(false);
-    ASSERT(function.IsAsyncGenerator());
+    function.set_is_visible(true);
+    ASSERT(function.IsCompactAsyncStarFunction());
   } else if (function_node_helper.async_marker_ ==
              FunctionNodeHelper::kSyncStar) {
     function.set_modifier(UntaggedFunction::kSyncGen);
+    function.set_is_debuggable(true);
     function.set_is_inlinable(false);
-    ASSERT(function.IsSyncGenerator());
+    function.set_is_visible(true);
+    ASSERT(function.IsCompactSyncStarFunction());
   } else {
     ASSERT(function_node_helper.async_marker_ == FunctionNodeHelper::kSync);
-    ASSERT(!function.IsAsyncFunction());
-    ASSERT(!function.IsAsyncGenerator());
-    ASSERT(!function.IsSyncGenerator());
+    function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
+                               FunctionNodeHelper::kSync);
+    switch (function_node_helper.dart_async_marker_) {
+      case FunctionNodeHelper::kSyncStar:
+        function.set_modifier(UntaggedFunction::kSyncGen);
+        function.set_is_visible(false);
+        break;
+      case FunctionNodeHelper::kAsync:
+        function.set_modifier(UntaggedFunction::kAsync);
+        function.set_is_inlinable(false);
+        function.set_is_visible(false);
+        break;
+      case FunctionNodeHelper::kAsyncStar:
+        function.set_modifier(UntaggedFunction::kAsyncGen);
+        function.set_is_inlinable(false);
+        function.set_is_visible(false);
+        break;
+      default:
+        // no special modifier
+        break;
+    }
+    ASSERT(!function.IsCompactAsyncFunction());
+    ASSERT(!function.IsCompactAsyncStarFunction());
+    ASSERT(!function.IsCompactSyncStarFunction());
   }
 
   if (!native_name.IsNull()) {

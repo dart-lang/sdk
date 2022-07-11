@@ -280,6 +280,7 @@ namespace dart {
   V(::, _asExternalTypedDataDouble, FfiAsExternalTypedDataDouble, 0x40cdd9e1)  \
   V(::, _getNativeField, GetNativeField, 0xa0139b85)                           \
   V(::, reachabilityFence, ReachabilityFence, 0x730f2b7f)                      \
+  V(::, _asyncThenWrapperHelper, AsyncThenWrapperHelper, 0x0c17f838)           \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0xf296c901)                          \
   V(_Future, timeout, FutureTimeout, 0xa7cb3294)                               \
   V(Future, wait, FutureWait, 0xb0b596bd)                                      \

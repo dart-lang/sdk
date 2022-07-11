@@ -206,7 +206,17 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 
       ParameterTypeCheckMode type_check_mode =
           kTypeCheckForNonDynamicallyInvokedMethod;
-      if (function.is_static()) {
+      if (function.IsSyncGenClosure()) {
+        // Don't type check the parameter of sync-yielding since these calls are
+        // all synthetic and types should always match.
+        ASSERT_EQUAL(
+            function.NumParameters() - function.NumImplicitParameters(), 3);
+        ASSERT(
+            Class::Handle(
+                AbstractType::Handle(function.ParameterTypeAt(1)).type_class())
+                .ScrubbedName() == Symbols::_SyncIterator().ptr());
+        type_check_mode = kTypeCheckForStaticFunction;
+      } else if (function.is_static()) {
         // In static functions we don't check anything.
         type_check_mode = kTypeCheckForStaticFunction;
       } else if (function.IsImplicitClosureFunction()) {
@@ -1315,7 +1325,17 @@ void ScopeBuilder::VisitVariableDeclaration() {
     variable->set_late_init_offset(initializer_offset);
   }
 
-  scope_->AddVariable(variable);
+  // Lift the special async vars out of the function body scope, into the
+  // outer function declaration scope.
+  // This way we can allocate them in the outermost context at fixed indices,
+  // allowing support for async stack traces implementation to find awaiters.
+  if (name.Equals(Symbols::AwaitJumpVar()) ||
+      name.Equals(Symbols::AsyncFuture()) || name.Equals(Symbols::is_sync()) ||
+      name.Equals(Symbols::Controller())) {
+    scope_->parent()->AddVariable(variable);
+  } else {
+    scope_->AddVariable(variable);
+  }
   result_->locals.Insert(helper_.data_program_offset_ + kernel_offset_no_tag,
                          variable);
 }

@@ -26,7 +26,11 @@ class ObjectPointerVisitor;
   V(ArgumentError, "ArgumentError")                                            \
   V(AssertionError, "_AssertionError")                                         \
   V(AssignIndexToken, "[]=")                                                   \
+  V(AsyncFuture, ":async_future")                                              \
+  V(AsyncOperation, ":async_op")                                               \
   V(AsyncStarMoveNextHelper, "_asyncStarMoveNextHelper")                       \
+  V(AwaitContextVar, ":await_ctx_var")                                         \
+  V(AwaitJumpVar, ":await_jump_var")                                           \
   V(Bool, "bool")                                                              \
   V(BooleanExpression, "boolean expression")                                   \
   V(BoundsCheckForPartialInstantiation, "_boundsCheckForPartialInstantiation") \
@@ -48,6 +52,8 @@ class ObjectPointerVisitor;
   V(CompressedStackMaps, "CompressedStackMaps")                                \
   V(Context, "Context")                                                        \
   V(ContextScope, "ContextScope")                                              \
+  V(Controller, ":controller")                                                 \
+  V(ControllerStream, ":controller_stream")                                    \
   V(Current, "current")                                                        \
   V(CurrentContextVar, ":current_context_var")                                 \
   V(CyclicInitializationError, "CyclicInitializationError")                    \
@@ -285,7 +291,10 @@ class ObjectPointerVisitor;
   V(_ClosureCall, "_Closure.call")                                             \
   V(_CombinatorMirror, "_CombinatorMirror")                                    \
   V(_CompileTimeError, "_CompileTimeError")                                    \
+  V(_CompleteOnAsyncReturn, "_completeOnAsyncReturn")                          \
+  V(_CompleteWithNoFutureOnAsyncReturn, "_completeWithNoFutureOnAsyncReturn")  \
   V(_ControllerSubscription, "_ControllerSubscription")                        \
+  V(_CompleteOnAsyncError, "_completeOnAsyncError")                            \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
   V(_Double, "_Double")                                                        \
@@ -374,6 +383,7 @@ class ObjectPointerVisitor;
   V(_StreamIterator, "_StreamIterator")                                        \
   V(_String, "String")                                                         \
   V(_SuspendState, "_SuspendState")                                            \
+  V(_SyncIterator, "_SyncIterator")                                            \
   V(_SyncStarIterator, "_SyncStarIterator")                                    \
   V(_SyncStreamController, "_SyncStreamController")                            \
   V(_TransferableTypedDataImpl, "_TransferableTypedDataImpl")                  \
@@ -466,6 +476,7 @@ class ObjectPointerVisitor;
   V(dynamic_assert_assignable_stc_check,                                       \
     ":dynamic_assert_assignable_stc_check")                                    \
   V(index_temp, ":index_temp")                                                 \
+  V(is_sync, ":is_sync")                                                       \
   V(isPaused, "isPaused")                                                      \
   V(match_end_index, ":match_end_index")                                       \
   V(match_start_index, ":match_start_index")                                   \

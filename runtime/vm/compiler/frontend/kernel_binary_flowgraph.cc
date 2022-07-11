@@ -482,6 +482,11 @@ Fragment StreamingFlowGraphBuilder::TypeArgumentsHandling(
   if (dart_function.IsClosureFunction() &&
       dart_function.NumParentTypeArguments() > 0) {
     LocalVariable* closure = parsed_function()->ParameterVariable(0);
+
+    // Function with yield points can not be generic itself but the outer
+    // function can be.
+    ASSERT(yield_continuations().is_empty() || !dart_function.IsGeneric());
+
     LocalVariable* fn_type_args = parsed_function()->function_type_arguments();
     ASSERT(fn_type_args != nullptr && closure != nullptr);
 
@@ -511,6 +516,111 @@ Fragment StreamingFlowGraphBuilder::TypeArgumentsHandling(
   }
 
   return prologue;
+}
+
+Fragment StreamingFlowGraphBuilder::CompleteBodyWithYieldContinuations(
+    Fragment body) {
+  // The code we are building will be executed right after we enter
+  // the function and before any nested contexts are allocated.
+  // Reset current context_depth_ to match this.
+  const intptr_t current_context_depth = B->context_depth_;
+  B->context_depth_ = scopes()->yield_jump_variable->owner()->context_level();
+
+  // Prepend an entry corresponding to normal entry to the function.
+  yield_continuations().InsertAt(
+      0,
+      YieldContinuation(new (Z) DropTempsInstr(0, nullptr), kInvalidTryIndex));
+  yield_continuations()[0].entry->LinkTo(body.entry);
+
+  // Load :await_jump_var into a temporary.
+  Fragment dispatch;
+  dispatch += LoadLocal(scopes()->yield_jump_variable);
+  dispatch += StoreLocal(TokenPosition::kNoSource, scopes()->switch_variable);
+  dispatch += Drop();
+
+  const intptr_t continuation_count = yield_continuations().length();
+
+  IndirectGotoInstr* indirect_goto;
+  if (FLAG_async_igoto_threshold >= 0 &&
+      continuation_count >= FLAG_async_igoto_threshold) {
+    dispatch += LoadLocal(scopes()->switch_variable);
+    dispatch += IndirectGoto(continuation_count);
+    indirect_goto = dispatch.current->AsIndirectGoto();
+
+    for (intptr_t i = 0; i < continuation_count; i++) {
+      if (i >= 1) {
+        Fragment resumption;
+        // Every continuation after the first is not a normal entry but a
+        // resumption.
+        // Restore :current_context_var from :await_ctx_var.
+        // Note: after this point context_depth_ does not match current context
+        // depth so we should not access any local variables anymore.
+        resumption += LoadLocal(scopes()->yield_context_variable);
+        resumption += StoreLocal(TokenPosition::kNoSource,
+                                 parsed_function()->current_context_var());
+        resumption += Drop();
+
+        Instruction* next = yield_continuations()[i].entry->next();
+        yield_continuations()[i].entry->LinkTo(resumption.entry);
+        resumption <<= next;
+      }
+
+      IndirectEntryInstr* indirect_entry = B->BuildIndirectEntry(
+          /*indirect_id=*/i, yield_continuations()[i].try_index);
+      indirect_entry->LinkTo(yield_continuations()[i].entry->next());
+
+      TargetEntryInstr* target = B->BuildTargetEntry();
+      Fragment(target) + Goto(indirect_entry);
+
+      indirect_goto->AddSuccessor(target);
+    }
+  } else {
+    BlockEntryInstr* block = nullptr;
+    for (intptr_t i = 0; i < continuation_count; i++) {
+      if (i == 1) {
+        // This is not a normal entry but a resumption.  Restore
+        // :current_context_var from :await_ctx_var.
+        // Note: after this point context_depth_ does not match current context
+        // depth so we should not access any local variables anymore.
+        dispatch += LoadLocal(scopes()->yield_context_variable);
+        dispatch += StoreLocal(TokenPosition::kNoSource,
+                               parsed_function()->current_context_var());
+        dispatch += Drop();
+      }
+      if (i == (continuation_count - 1)) {
+        // We reached the last possibility, no need to build more ifs.
+        // Continue to the last continuation.
+        // Note: continuations start with nop DropTemps instruction
+        // which acts like an anchor, so we need to skip it.
+        block->set_try_index(yield_continuations()[i].try_index);
+        dispatch <<= yield_continuations()[i].entry->next();
+        break;
+      }
+
+      // Build comparison:
+      //
+      //   if (:await_jump_var == i) {
+      //     -> yield_continuations()[i]
+      //   } else ...
+      //
+      TargetEntryInstr* then;
+      TargetEntryInstr* otherwise;
+      dispatch += LoadLocal(scopes()->switch_variable);
+      dispatch += IntConstant(i);
+      dispatch += B->BranchIfStrictEqual(&then, &otherwise);
+
+      // True branch is linked to appropriate continuation point.
+      // Note: continuations start with nop DropTemps instruction
+      // which acts like an anchor, so we need to skip it.
+      then->LinkTo(yield_continuations()[i].entry->next());
+      then->set_try_index(yield_continuations()[i].try_index);
+      // False branch will contain the next comparison.
+      dispatch = Fragment(dispatch.entry, otherwise);
+      block = otherwise;
+    }
+  }
+  B->context_depth_ = current_context_depth;
+  return dispatch;
 }
 
 Fragment StreamingFlowGraphBuilder::CheckStackOverflowInPrologue(
@@ -559,7 +669,7 @@ Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
 Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
     const Function& dart_function) {
   Fragment body;
-  if (dart_function.IsAsyncFunction()) {
+  if (dart_function.IsCompactAsyncFunction()) {
     const auto& result_type =
         AbstractType::Handle(Z, dart_function.result_type());
     auto& type_args = TypeArguments::ZoneHandle(Z);
@@ -574,7 +684,7 @@ Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
     body += B->Call1ArgStub(TokenPosition::kNoSource,
                             Call1ArgStubInstr::StubId::kInitAsync);
     body += Drop();
-  } else if (dart_function.IsAsyncGenerator()) {
+  } else if (dart_function.IsCompactAsyncStarFunction()) {
     const auto& result_type =
         AbstractType::Handle(Z, dart_function.result_type());
     auto& type_args = TypeArguments::ZoneHandle(Z);
@@ -592,7 +702,7 @@ Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
     body += B->Suspend(TokenPosition::kNoSource,
                        SuspendInstr::StubId::kYieldAsyncStar);
     body += Drop();
-  } else if (dart_function.IsSyncGenerator()) {
+  } else if (dart_function.IsCompactSyncStarFunction()) {
     const auto& result_type =
         AbstractType::Handle(Z, dart_function.result_type());
     auto& type_args = TypeArguments::ZoneHandle(Z);
@@ -847,46 +957,63 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
       every_time_prologue, type_args_handling);
 
   Fragment function(instruction_cursor);
-  FunctionEntryInstr* extra_entry = nullptr;
-  switch (extra_entry_point_style) {
-    case UncheckedEntryPointStyle::kNone: {
-      function += every_time_prologue + first_time_prologue +
-                  type_args_handling + implicit_type_checks +
-                  explicit_type_checks + body;
-      break;
-    }
-    case UncheckedEntryPointStyle::kSeparate: {
-      ASSERT(instruction_cursor == normal_entry);
-      ASSERT(first_time_prologue.is_empty());
-      ASSERT(type_args_handling.is_empty());
+  if (yield_continuations().is_empty()) {
+    FunctionEntryInstr* extra_entry = nullptr;
+    switch (extra_entry_point_style) {
+      case UncheckedEntryPointStyle::kNone: {
+        function += every_time_prologue + first_time_prologue +
+                    type_args_handling + implicit_type_checks +
+                    explicit_type_checks + body;
+        break;
+      }
+      case UncheckedEntryPointStyle::kSeparate: {
+        ASSERT(instruction_cursor == normal_entry);
+        ASSERT(first_time_prologue.is_empty());
+        ASSERT(type_args_handling.is_empty());
 
-      const Fragment prologue_copy = BuildEveryTimePrologue(
-          dart_function, token_position, type_parameters_offset);
+        const Fragment prologue_copy = BuildEveryTimePrologue(
+            dart_function, token_position, type_parameters_offset);
 
-      extra_entry = B->BuildSeparateUncheckedEntryPoint(
-          normal_entry,
-          /*normal_prologue=*/every_time_prologue + implicit_type_checks,
-          /*extra_prologue=*/prologue_copy,
-          /*shared_prologue=*/explicit_type_checks,
-          /*body=*/body);
-      break;
+        extra_entry = B->BuildSeparateUncheckedEntryPoint(
+            normal_entry,
+            /*normal_prologue=*/every_time_prologue + implicit_type_checks,
+            /*extra_prologue=*/prologue_copy,
+            /*shared_prologue=*/explicit_type_checks,
+            /*body=*/body);
+        break;
+      }
+      case UncheckedEntryPointStyle::kSharedWithVariable: {
+        Fragment prologue(normal_entry, instruction_cursor);
+        prologue += every_time_prologue;
+        prologue += first_time_prologue;
+        prologue += type_args_handling;
+        prologue += explicit_type_checks;
+        extra_entry = B->BuildSharedUncheckedEntryPoint(
+            /*shared_prologue_linked_in=*/prologue,
+            /*skippable_checks=*/implicit_type_checks,
+            /*redefinitions_if_skipped=*/implicit_redefinitions,
+            /*body=*/body);
+        break;
+      }
     }
-    case UncheckedEntryPointStyle::kSharedWithVariable: {
-      Fragment prologue(normal_entry, instruction_cursor);
-      prologue += every_time_prologue;
-      prologue += first_time_prologue;
-      prologue += type_args_handling;
-      prologue += explicit_type_checks;
-      extra_entry = B->BuildSharedUncheckedEntryPoint(
-          /*shared_prologue_linked_in=*/prologue,
-          /*skippable_checks=*/implicit_type_checks,
-          /*redefinitions_if_skipped=*/implicit_redefinitions,
-          /*body=*/body);
-      break;
+    if (extra_entry != nullptr) {
+      B->RecordUncheckedEntryPoint(graph_entry, extra_entry);
     }
-  }
-  if (extra_entry != nullptr) {
-    B->RecordUncheckedEntryPoint(graph_entry, extra_entry);
+  } else {
+    // If the function's body contains any yield points, build switch statement
+    // that selects a continuation point based on the value of :await_jump_var.
+    ASSERT(explicit_type_checks.is_empty());
+
+    // If the function is generic, type_args_handling might require access to
+    // (possibly captured) 'this' for preparing default type arguments, in which
+    // case we can't run it before the 'first_time_prologue'.
+    ASSERT(!dart_function.IsGeneric());
+
+    // TODO(#34162): We can probably ignore the implicit checks
+    // here as well since the arguments are passed from generated code.
+    function += every_time_prologue + type_args_handling +
+                CompleteBodyWithYieldContinuations(first_time_prologue +
+                                                   implicit_type_checks + body);
   }
 
   // When compiling for OSR, use a depth first search to find the OSR
@@ -1388,6 +1515,11 @@ SwitchBlock* StreamingFlowGraphBuilder::switch_block() {
 
 BreakableBlock* StreamingFlowGraphBuilder::breakable_block() {
   return flow_graph_builder_->breakable_block_;
+}
+
+GrowableArray<YieldContinuation>&
+StreamingFlowGraphBuilder::yield_continuations() {
+  return flow_graph_builder_->yield_continuations_;
 }
 
 Value* StreamingFlowGraphBuilder::stack() {
@@ -4258,8 +4390,8 @@ Fragment StreamingFlowGraphBuilder::BuildLibraryPrefixAction(
 
 Fragment StreamingFlowGraphBuilder::BuildAwaitExpression(
     TokenPosition* position) {
-  ASSERT(parsed_function()->function().IsAsyncFunction() ||
-         parsed_function()->function().IsAsyncGenerator());
+  ASSERT(parsed_function()->function().IsCompactAsyncFunction() ||
+         parsed_function()->function().IsCompactAsyncStarFunction());
   Fragment instructions;
 
   const TokenPosition pos = ReadPosition();  // read file offset.
@@ -5191,7 +5323,7 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement(
     instructions += DebugStepCheck(pos);
   }
 
-  if (parsed_function()->function().IsAsyncGenerator()) {
+  if (parsed_function()->function().IsCompactAsyncStarFunction()) {
     // In the async* functions, generate the following code for yield <expr>:
     //
     // _AsyncStarStreamController controller = :suspend_state._functionData;
@@ -5245,7 +5377,7 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement(
       instructions += Drop();
     }
 
-  } else if (parsed_function()->function().IsSyncGenerator()) {
+  } else if (parsed_function()->function().IsCompactSyncStarFunction()) {
     // In the sync* functions, generate the following code for yield <expr>:
     //
     // _SyncStarIterator iterator = :suspend_state._functionData;
@@ -5436,24 +5568,62 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 
         if (function_node_helper.async_marker_ == FunctionNodeHelper::kAsync) {
           function.set_modifier(UntaggedFunction::kAsync);
+          function.set_is_debuggable(true);
           function.set_is_inlinable(false);
-          ASSERT(function.IsAsyncFunction());
+          function.set_is_visible(true);
+          ASSERT(function.IsCompactAsyncFunction());
         } else if (function_node_helper.async_marker_ ==
                    FunctionNodeHelper::kAsyncStar) {
           function.set_modifier(UntaggedFunction::kAsyncGen);
+          function.set_is_debuggable(true);
           function.set_is_inlinable(false);
-          ASSERT(function.IsAsyncGenerator());
+          function.set_is_visible(true);
+          ASSERT(function.IsCompactAsyncStarFunction());
         } else if (function_node_helper.async_marker_ ==
                    FunctionNodeHelper::kSyncStar) {
           function.set_modifier(UntaggedFunction::kSyncGen);
+          function.set_is_debuggable(true);
           function.set_is_inlinable(false);
-          ASSERT(function.IsSyncGenerator());
+          function.set_is_visible(true);
+          ASSERT(function.IsCompactSyncStarFunction());
         } else {
           ASSERT(function_node_helper.async_marker_ ==
                  FunctionNodeHelper::kSync);
-          ASSERT(!function.IsAsyncFunction());
-          ASSERT(!function.IsAsyncGenerator());
-          ASSERT(!function.IsSyncGenerator());
+          function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
+                                     FunctionNodeHelper::kSync);
+          switch (function_node_helper.dart_async_marker_) {
+            case FunctionNodeHelper::kSyncStar:
+              function.set_modifier(UntaggedFunction::kSyncGen);
+              break;
+            case FunctionNodeHelper::kAsync:
+              function.set_modifier(UntaggedFunction::kAsync);
+              break;
+            case FunctionNodeHelper::kAsyncStar:
+              function.set_modifier(UntaggedFunction::kAsyncGen);
+              break;
+            default:
+              // no special modifier
+              break;
+          }
+          function.set_is_generated_body(false);
+          // sync* functions contain two nested synthetic functions,
+          // the first of which (sync_op_gen) is a regular sync function so we
+          // need to manually label it generated:
+          if (function.parent_function() != Function::null()) {
+            const auto& parent = Function::Handle(function.parent_function());
+            if (parent.IsSyncGenerator() &&
+                !parent.IsCompactSyncStarFunction()) {
+              function.set_is_generated_body(true);
+            }
+          }
+          // Note: Is..() methods use the modifiers set above, so order
+          // matters.
+          if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+            function.set_is_inlinable(false);
+          }
+          ASSERT(!function.IsCompactAsyncFunction());
+          ASSERT(!function.IsCompactAsyncStarFunction());
+          ASSERT(!function.IsCompactSyncStarFunction());
         }
 
         // If the start token position is synthetic, the end token position

@@ -629,6 +629,8 @@ void Precompiler::DoCompileAll() {
         IG->object_store()->set_simple_instance_of_true_function(null_function);
         IG->object_store()->set_simple_instance_of_false_function(
             null_function);
+        IG->object_store()->set_async_star_move_next_helper(null_function);
+        IG->object_store()->set_complete_on_async_return(null_function);
         IG->object_store()->set_async_star_stream_controller(null_class);
         DropMetadata();
         DropLibraryEntries();
@@ -1129,6 +1131,14 @@ void Precompiler::AddTypesOf(const Function& function) {
   // Should match parent checks in CallerClosureFinder::FindCaller.
   if (parent_function.recognized_kind() == MethodRecognizer::kFutureTimeout ||
       parent_function.recognized_kind() == MethodRecognizer::kFutureWait) {
+    AddRetainReason(parent_function, RetainReasons::kIsSyncAsyncFunction);
+    AddTypesOf(parent_function);
+    return;
+  }
+
+  // Preserve parents for generated bodies in async/async*/sync* functions,
+  // since predicates like Function::IsAsyncClosure(), etc. need that info.
+  if (function.is_generated_body()) {
     AddRetainReason(parent_function, RetainReasons::kIsSyncAsyncFunction);
     AddTypesOf(parent_function);
     return;
@@ -2973,6 +2983,10 @@ void Precompiler::DiscardCodeObjects() {
           ++codes_with_native_function_;
           return;
         }
+        if (function_.IsAsyncClosure() || function_.IsAsyncGenClosure()) {
+          ++codes_with_async_closure_function_;
+          return;
+        }
 
         // Retain Code objects corresponding to dynamically
         // called functions.
@@ -3026,6 +3040,8 @@ void Precompiler::DiscardCodeObjects() {
                 codes_with_pc_descriptors_);
       THR_Print("    %8" Pd " Codes with native functions\n",
                 codes_with_native_function_);
+      THR_Print("    %8" Pd " Codes with async closure functions\n",
+                codes_with_async_closure_function_);
       THR_Print("    %8" Pd " Codes with dynamically called functions\n",
                 codes_with_dynamically_called_function_);
       THR_Print("    %8" Pd " Codes with deferred functions\n",
@@ -3057,6 +3073,7 @@ void Precompiler::DiscardCodeObjects() {
     intptr_t codes_with_exception_handlers_ = 0;
     intptr_t codes_with_pc_descriptors_ = 0;
     intptr_t codes_with_native_function_ = 0;
+    intptr_t codes_with_async_closure_function_ = 0;
     intptr_t codes_with_dynamically_called_function_ = 0;
     intptr_t codes_with_deferred_function_ = 0;
     intptr_t codes_with_ffi_trampoline_function_ = 0;
