@@ -3284,8 +3284,8 @@ class BodyBuilder extends StackListenerImpl
   @override
   void endIfStatement(Token ifToken, Token? elseToken) {
     Statement? elsePart = popStatementIfNotNull(elseToken);
-    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesInfo =
-        pop() as AssignedVariablesNodeInfo<VariableDeclaration>;
+    AssignedVariablesNodeInfo assignedVariablesInfo =
+        pop() as AssignedVariablesNodeInfo;
     Statement thenPart = popStatement();
     Expression condition = pop() as Expression;
     Statement node = forest.createIfStatement(
@@ -3308,7 +3308,7 @@ class BodyBuilder extends StackListenerImpl
   void endVariableInitializer(Token assignmentOperator) {
     debugEvent("VariableInitializer");
     assert(assignmentOperator.stringValue == "=");
-    AssignedVariablesNodeInfo<VariableDeclaration>? assignedVariablesInfo;
+    AssignedVariablesNodeInfo? assignedVariablesInfo;
     bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
     Expression initializer = popForValue();
     if (isLate) {
@@ -3535,8 +3535,8 @@ class BodyBuilder extends StackListenerImpl
   /// ends. Since these need to be associated with the try statement created in
   /// in [endTryStatement] we store them the stack until the try statement is
   /// created.
-  Link<AssignedVariablesNodeInfo<VariableDeclaration>> tryStatementInfoStack =
-      const Link<AssignedVariablesNodeInfo<VariableDeclaration>>();
+  Link<AssignedVariablesNodeInfo> tryStatementInfoStack =
+      const Link<AssignedVariablesNodeInfo>();
 
   @override
   void beginBlock(Token token, BlockKind blockKind) {
@@ -3728,7 +3728,7 @@ class BodyBuilder extends StackListenerImpl
     // [handleForInitializerEmptyStatement],
     // [handleForInitializerExpressionStatement], and
     // [handleForInitializerLocalVariableDeclaration].
-    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesNodeInfo =
+    AssignedVariablesNodeInfo assignedVariablesNodeInfo =
         typeInferrer.assignedVariables.popNode();
 
     Object? variableOrExpression = pop();
@@ -3795,7 +3795,7 @@ class BodyBuilder extends StackListenerImpl
     // [handleForInitializerEmptyStatement],
     // [handleForInitializerExpressionStatement], and
     // [handleForInitializerLocalVariableDeclaration].
-    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesNodeInfo =
+    AssignedVariablesNodeInfo assignedVariablesNodeInfo =
         typeInferrer.assignedVariables.deferNode();
 
     Object? variableOrExpression = pop();
@@ -4383,8 +4383,8 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("ConditionalExpression");
     Expression elseExpression = popForValue();
     Expression thenExpression = pop() as Expression;
-    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesInfo =
-        pop() as AssignedVariablesNodeInfo<VariableDeclaration>;
+    AssignedVariablesNodeInfo assignedVariablesInfo =
+        pop() as AssignedVariablesNodeInfo;
     Expression condition = pop() as Expression;
     Expression node = forest.createConditionalExpression(
         offsetForToken(question), condition, thenExpression, elseExpression);
@@ -5757,8 +5757,8 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("endIfElseControlFlow");
     Object? elseEntry = pop(); // else entry
     Object? thenEntry = pop(); // then entry
-    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesInfo =
-        pop() as AssignedVariablesNodeInfo<VariableDeclaration>;
+    AssignedVariablesNodeInfo assignedVariablesInfo =
+        pop() as AssignedVariablesNodeInfo;
     Object? condition = pop(); // parenthesized expression
     Token ifToken = pop() as Token;
 
@@ -6232,7 +6232,7 @@ class BodyBuilder extends StackListenerImpl
     }
 
     // This is matched by the call to [beginNode] in [handleForInLoopParts].
-    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesNodeInfo =
+    AssignedVariablesNodeInfo assignedVariablesNodeInfo =
         typeInferrer.assignedVariables.popNode();
 
     Expression iterable = popForValue();
@@ -6348,7 +6348,7 @@ class BodyBuilder extends StackListenerImpl
     Token? awaitToken = pop(NullValue.AwaitToken) as Token?;
 
     // This is matched by the call to [beginNode] in [handleForInLoopParts].
-    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesNodeInfo =
+    AssignedVariablesNodeInfo assignedVariablesNodeInfo =
         typeInferrer.assignedVariables.deferNode();
 
     Expression expression = popForValue();

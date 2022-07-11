@@ -1496,6 +1496,7 @@ uri's
 url
 urls
 usages
+user's
 usr
 usual
 usually
