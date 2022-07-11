@@ -286,7 +286,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeImportedName(List<Uri> uris, String name) {
     assert(uris.isNotEmpty);
-    var imports = <ImportElement>[];
+    var imports = <ImportElement2>[];
     for (var uri in uris) {
       imports.addAll(dartFileEditBuilder._getImportsForUri(uri));
     }
@@ -301,7 +301,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     } else {
       var prefix = import.prefix;
       if (prefix != null) {
-        write(prefix.displayName);
+        write(prefix.element.displayName);
         write('.');
       }
     }
@@ -1005,8 +1005,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   /// Given a list of [imports] that do, or can, make the [name] visible in
   /// scope, return the one that will lead to the cleanest code.
-  ImportElement? _getBestImportForName(
-      List<ImportElement> imports, String name) {
+  ImportElement2? _getBestImportForName(
+      List<ImportElement2> imports, String name) {
     if (imports.isEmpty) {
       return null;
     } else if (imports.length == 1) {
@@ -1160,7 +1160,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (import != null) {
       var prefix = import.prefix;
       if (prefix != null) {
-        write(prefix.displayName);
+        write(prefix.element.displayName);
         write('.');
       }
     } else {
@@ -1464,10 +1464,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       return ImportLibraryElementResultImpl(null);
     }
 
-    for (var import in resolvedUnit.libraryElement.imports) {
+    for (var import in resolvedUnit.libraryElement.imports2) {
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null && importedLibrary.source.uri == uri) {
-        return ImportLibraryElementResultImpl(import.prefix?.name);
+        return ImportLibraryElementResultImpl(import.prefix?.element.name);
       }
     }
 
@@ -1489,7 +1489,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     if (resolvedUnit.libraryElement.source.uri == uri) return false;
 
     // Existing import.
-    for (var import in resolvedUnit.libraryElement.imports) {
+    for (var import in resolvedUnit.libraryElement.imports2) {
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null && importedLibrary.source.uri == uri) {
         return true;
@@ -1752,8 +1752,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// Return the import element used to import the given [element] into the
   /// target library, or `null` if the element was not imported, such as when
   /// the element is declared in the same library.
-  ImportElement? _getImportElement(Element element) {
-    for (var import in resolvedUnit.libraryElement.imports) {
+  ImportElement2? _getImportElement(Element element) {
+    for (var import in resolvedUnit.libraryElement.imports2) {
       var definedNames = import.namespace.definedNames;
       if (definedNames.containsValue(element)) {
         return import;
@@ -1762,8 +1762,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return null;
   }
 
-  Iterable<ImportElement> _getImportsForUri(Uri uri) sync* {
-    for (var import in resolvedUnit.libraryElement.imports) {
+  Iterable<ImportElement2> _getImportsForUri(Uri uri) sync* {
+    for (var import in resolvedUnit.libraryElement.imports2) {
       var importUri = import.importedLibrary?.source.uri;
       if (importUri == uri) {
         yield import;

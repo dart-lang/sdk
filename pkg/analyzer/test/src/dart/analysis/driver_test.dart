@@ -2107,7 +2107,7 @@ import 'dart:math';
     ResolvedUnitResult result = await driver.getResultValid(testFile);
     expect(result.path, testFile);
     // Has only imports for valid URIs.
-    List<ImportElement> imports = result.libraryElement.imports;
+    final imports = result.libraryElement.imports2;
     expect(imports.map((import) {
       return import.importedLibrary?.source.uri.toString();
     }), ['dart:async', null, 'dart:math', 'dart:core']);
@@ -3568,9 +3568,9 @@ var v = 0
         '$unit');
   }
 
-  ImportElement _getImportElement(CompilationUnit unit, int directiveIndex) {
+  ImportElement2 _getImportElement(CompilationUnit unit, int directiveIndex) {
     var import = unit.directives[directiveIndex] as ImportDirective;
-    return import.element!;
+    return import.element2!;
   }
 
   Source _getImportSource(CompilationUnit unit, int directiveIndex) {

@@ -60,11 +60,11 @@ class FixAggregator extends UnifyingAstVisitor<void> {
 
   FixAggregator._(this.planner, this._changes, this._warnOnWeakCode,
       CompilationUnitElement compilationUnitElement) {
-    for (var importElement in compilationUnitElement.library.imports) {
+    for (var importElement in compilationUnitElement.library.imports2) {
       // TODO(paulberry): the `??=` should ensure that if there are two imports,
       // one prefixed and one not, we prefer the prefix.  Test this.
       _importPrefixes[importElement.importedLibrary] ??=
-          importElement.prefix?.name;
+          importElement.prefix?.element.name;
     }
   }
 

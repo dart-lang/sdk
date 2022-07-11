@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -362,25 +361,6 @@ void f() {
 }
 ''');
     await assertNoFix();
-  }
-
-  Future<void> test_inPart_imported() async {
-    addSource('$testPackageLibPath/a.dart', '''
-part of lib;
-class A {}
-''');
-
-    await resolveTestCode('''
-import 'package:test/a.dart';
-
-void f(A a) {
-  int v = a.test;
-  print(v);
-}
-''');
-    await assertNoFix(errorFilter: (e) {
-      return e.errorCode == CompileTimeErrorCode.UNDEFINED_GETTER;
-    });
   }
 
   Future<void> test_inPart_self() async {

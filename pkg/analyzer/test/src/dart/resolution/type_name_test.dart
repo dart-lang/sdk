@@ -666,7 +666,7 @@ mycore.dynamic a;
       findNode.namedType('mycore.dynamic a;'),
       dynamicElement,
       'dynamic',
-      expectedPrefix: findElement.import('dart:core').prefix,
+      expectedPrefix: findElement.import('dart:core').prefix?.element,
     );
   }
 

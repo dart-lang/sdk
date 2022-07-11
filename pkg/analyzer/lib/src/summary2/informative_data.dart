@@ -448,16 +448,16 @@ class InformativeDataApplier {
       element.documentationComment = info.docComment;
     }
 
-    forCorrespondingPairs<ImportElement, _InfoImport>(
+    forCorrespondingPairs<ImportElement2, _InfoImport>(
       element.imports_unresolved,
       info.imports,
       (element, info) {
-        element as ImportElementImpl;
+        element as ImportElement2Impl;
         element.nameOffset = info.nameOffset;
 
-        var prefix = element.prefix;
-        if (prefix is PrefixElementImpl) {
-          prefix.nameOffset = info.prefixOffset;
+        final prefixElement = element.prefix?.element;
+        if (prefixElement is PrefixElementImpl) {
+          prefixElement.nameOffset = info.prefixOffset;
         }
 
         _applyToCombinators(element.combinators, info.combinators);
@@ -487,7 +487,7 @@ class InformativeDataApplier {
       info.libraryConstantOffsets,
       (applier) {
         applier.applyToMetadata(element);
-        applier.applyToDirectives(element.imports);
+        applier.applyToImports(element.imports2);
         applier.applyToDirectives(element.exports);
         applier.applyToPartDirectives(element.parts2);
       },
@@ -1688,6 +1688,12 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
       applyToMetadata(parameter);
       applyToFormalParameters(parameter.parameters);
       applyToConstantInitializer(parameter);
+    }
+  }
+
+  void applyToImports(List<ImportElement2> elements) {
+    for (var element in elements) {
+      applyToMetadata(element);
     }
   }
 

@@ -15,6 +15,7 @@ import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -6420,8 +6421,18 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
     _becomeParentOf(_prefix);
   }
 
+  @Deprecated('Use element2 instead')
   @override
-  ImportElement? get element => super.element as ImportElement?;
+  ImportElement? get element {
+    final element2 = this.element2;
+    if (element2 != null) {
+      return ImportElementImpl(element2);
+    }
+    return null;
+  }
+
+  @override
+  ImportElement2? get element2 => super.element as ImportElement2?;
 
   @override
   Token get firstTokenAfterCommentAndMetadata => importKeyword;
@@ -6439,7 +6450,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   @override
   LibraryElement? get uriElement {
-    return element?.importedLibrary;
+    return element2?.importedLibrary;
   }
 
   @override
@@ -8995,11 +9006,11 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   bool get isDeferred {
     Element? element = _prefix.staticElement;
     if (element is PrefixElement) {
-      List<ImportElement> imports = element.imports;
+      final imports = element.imports2;
       if (imports.length != 1) {
         return false;
       }
-      return imports[0].isDeferred;
+      return imports[0].prefix is DeferredImportElementPrefix;
     }
     return false;
   }

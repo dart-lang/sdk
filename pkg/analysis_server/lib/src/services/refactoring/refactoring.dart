@@ -413,7 +413,7 @@ abstract class RenameRefactoring implements Refactoring {
     if (element is ConstructorElement) {
       return RenameConstructorRefactoringImpl(workspace, session, element);
     }
-    if (element is ImportElement) {
+    if (element is ImportElement2) {
       return RenameImportRefactoringImpl(workspace, session, element);
     }
     if (element is LabelElement) {
@@ -452,7 +452,7 @@ abstract class RenameRefactoring implements Refactoring {
     }
 
     // Use the prefix offset/length when renaming an import directive.
-    if (node is ImportDirective && element is ImportElement) {
+    if (node is ImportDirective && element is ImportElement2) {
       var prefix = node.prefix;
       if (prefix != null) {
         offset = prefix.offset;

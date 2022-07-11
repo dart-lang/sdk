@@ -22788,7 +22788,7 @@ library
         staticType: null
       element: <null>
   imports
-    <unresolved>
+    relativeUri 'ht:'
       metadata
         Annotation
           atSign: @ @0
@@ -22832,8 +22832,16 @@ library
     addSource('$testPackageLibPath/a.dart', 'library a; class C {}');
     var library = await buildLibrary('import "a.dart" as a; a.C c;');
 
-    expect(library.imports[0].prefix!.nameOffset, 19);
-    expect(library.imports[0].prefix!.nameLength, 1);
+    // TODO(scheglov) Remove when removing `imports`.
+    {
+      // ignore: deprecated_member_use_from_same_package
+      final prefixElement = library.imports[0].prefix!;
+      expect(prefixElement.nameOffset, 19);
+      expect(prefixElement.nameLength, 1);
+    }
+
+    final prefixElement = library.imports2[0].prefix!.element;
+    expect(prefixElement.nameOffset, 19);
 
     checkElementText(library, r'''
 library
@@ -22860,9 +22868,9 @@ import 'test.dart' as p;
 class C {}
 class D extends p.C {} // Prevent "unused import" warning
 ''');
-    expect(library.imports, hasLength(2));
-    expect(library.imports[0].importedLibrary!.location, library.location);
-    expect(library.imports[1].importedLibrary!.isDartCore, true);
+    expect(library.imports2, hasLength(2));
+    expect(library.imports2[0].importedLibrary!.location, library.location);
+    expect(library.imports2[1].importedLibrary!.isDartCore, true);
     checkElementText(library, r'''
 library
   imports
@@ -22920,7 +22928,7 @@ library
     var library = await buildLibrary('''
 import "dart:math" show e, pi;
 ''');
-    var import = library.imports[0];
+    var import = library.imports2[0];
     var combinator = import.combinators[0] as ShowElementCombinator;
     expect(combinator.offset, 19);
     expect(combinator.end, 29);
@@ -22930,7 +22938,9 @@ import "dart:math" show e, pi;
     var library = await buildLibrary('''
 import 'foo.dart';
 ''');
-    expect(library.imports[0].uri, 'foo.dart');
+
+    final uri = library.imports2[0].uri as DirectiveUriWithLibrary;
+    expect(uri.relativeUriString, 'foo.dart');
   }
 
   test_imports() async {
@@ -25366,11 +25376,11 @@ part ':[invaliduri]';
     checkElementText(library, r'''
 library
   imports
-    <unresolved>
-    <unresolved>
+    relativeUriString ':[invaliduri]'
+    relativeUriString ':[invaliduri]:foo.dart'
     package:test/a1.dart
-    <unresolved>
-    <unresolved>
+    relativeUriString ':[invaliduri]'
+    relativeUriString ':[invaliduri]:foo.dart'
   exports
     <unresolved>
     <unresolved>
@@ -25420,6 +25430,121 @@ library
   name: test
   nameOffset: 30
   documentationComment: /**\n * aaa\n * bbb\n */
+  definingUnit
+''');
+  }
+
+  test_library_imports_noRelativeUriStr() async {
+    final library = await buildLibrary(r'''
+import '${'foo'}.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    noRelativeUriString
+  definingUnit
+''');
+  }
+
+  test_library_imports_prefix_importedLibraries() async {
+    final library = await buildLibrary(r'''
+import 'dart:async' as p1;
+import 'dart:collection' as p2;
+import 'dart:math' as p1;
+''');
+    final p1 = library.prefixes.singleWhere((prefix) => prefix.name == 'p1');
+    final import_async = library.imports2[0];
+    final import_math = library.imports2[2];
+    expect(p1.imports2, unorderedEquals([import_async, import_math]));
+  }
+
+  test_library_imports_syntheticDartCore() async {
+    final library = await buildLibrary('');
+    checkElementText(
+        library,
+        r'''
+library
+  imports
+    dart:core synthetic
+  definingUnit
+''',
+        withSyntheticDartCoreImport: true);
+  }
+
+  test_library_imports_withRelativeUri_emptyUriSelf() async {
+    final library = await buildLibrary(r'''
+import '';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    package:test/test.dart
+  definingUnit
+''');
+  }
+
+  test_library_imports_withRelativeUri_noSource() async {
+    final library = await buildLibrary(r'''
+import 'foo:bar';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    relativeUri 'foo:bar'
+  definingUnit
+''');
+  }
+
+  test_library_imports_withRelativeUri_notExists() async {
+    final library = await buildLibrary(r'''
+import 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+''');
+  }
+
+  test_library_imports_withRelativeUri_notLibrary_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+''');
+    final library = await buildLibrary(r'''
+import 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_imports_withRelativeUri_notLibrary_part() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of other.lib;
+''');
+    final library = await buildLibrary(r'''
+import 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_imports_withRelativeUriString() async {
+    final library = await buildLibrary(r'''
+import ':';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    relativeUriString ':'
   definingUnit
 ''');
   }
@@ -25526,7 +25651,6 @@ library
   }
 
   test_library_parts_withRelativeUri_noSource() async {
-    newFile('$testPackageLibPath/a.dart', '');
     final library = await buildLibrary(r'''
 part 'foo:bar';
 ''');
@@ -25585,6 +25709,16 @@ library
   parts
     relativeUriString ':'
 ''');
+  }
+
+  test_library_prefixes() async {
+    final library = await buildLibrary(r'''
+import 'dart:async' as p1;
+import 'dart:collection' as p2;
+import 'dart:math' as p1;
+''');
+    final prefixNames = library.prefixes.map((e) => e.name).toList();
+    expect(prefixNames, unorderedEquals(['p1', 'p2']));
   }
 
   test_localFunctions() async {
@@ -37947,7 +38081,7 @@ library
 
   test_unresolved_import() async {
     var library = await buildLibrary("import 'foo.dart';", allowErrors: true);
-    var importedLibrary = library.imports[0].importedLibrary!;
+    var importedLibrary = library.imports2[0].importedLibrary!;
     expect(importedLibrary.loadLibraryFunction, isNotNull);
     expect(importedLibrary.publicNamespace, isNotNull);
     expect(importedLibrary.exportNamespace, isNotNull);

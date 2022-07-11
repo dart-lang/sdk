@@ -16,16 +16,16 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/// A [Refactoring] for renaming [ImportElement]s.
+/// A [Refactoring] for renaming [ImportElement2]s.
 class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   final AnalysisSession session;
 
   RenameImportRefactoringImpl(
-      RefactoringWorkspace workspace, this.session, ImportElement element)
+      RefactoringWorkspace workspace, this.session, ImportElement2 element)
       : super(workspace, element);
 
   @override
-  ImportElement get element => super.element as ImportElement;
+  ImportElement2 get element => super.element as ImportElement2;
 
   @override
   String get refactoringName {
@@ -49,32 +49,28 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   Future<void> fillChange() async {
     // update declaration
     {
-      var prefix = element.prefix;
+      final node = await _findNode();
+      if (node == null) {
+        return;
+      }
+
+      final prefixNode = node.prefix;
       SourceEdit? edit;
       if (newName.isEmpty) {
         // We should not get `prefix == null` because we check in
         // `checkNewName` that the new name is different.
-        if (prefix == null) {
-          return;
-        }
-        var node = await _findNode();
-        if (node != null) {
+        if (prefixNode != null) {
           var uriEnd = node.uri.end;
-          var prefixEnd = prefix.nameOffset + prefix.nameLength;
+          var prefixEnd = prefixNode.end;
           edit = newSourceEdit_range(
               range.startOffsetEndOffset(uriEnd, prefixEnd), '');
         }
       } else {
-        if (prefix == null) {
-          var node = await _findNode();
-          if (node != null) {
-            var uriEnd = node.uri.end;
-            edit = newSourceEdit_range(SourceRange(uriEnd, 0), ' as $newName');
-          }
+        if (prefixNode == null) {
+          var uriEnd = node.uri.end;
+          edit = newSourceEdit_range(SourceRange(uriEnd, 0), ' as $newName');
         } else {
-          var offset = prefix.nameOffset;
-          var length = prefix.nameLength;
-          edit = newSourceEdit_range(SourceRange(offset, length), newName);
+          edit = newSourceEdit_range(range.node(prefixNode), newName);
         }
       }
       if (edit != null) {
@@ -111,7 +107,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
       return null;
     }
     var unit = unitResult.unit;
-    var index = library.imports.indexOf(element);
+    var index = library.imports2.indexOf(element);
     return unit.directives.whereType<ImportDirective>().elementAt(index);
   }
 

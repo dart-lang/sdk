@@ -1131,7 +1131,7 @@ main() {
 Random bar() => null;
 ''');
 
-    ImportElement element = findElement.import('dart:math');
+    final element = findElement.import('dart:math');
     var main = findElement.function('main');
     var bar = findElement.function('bar');
     var kind = SearchResultKind.REFERENCE;
@@ -1163,7 +1163,7 @@ main() {
   N4 = 0;
 }
 ''');
-    ImportElement element = findElement.import('package:test/a.dart');
+    final element = findElement.import('package:test/a.dart');
     var main = findElement.function('main');
     var kind = SearchResultKind.REFERENCE;
     var expected = [
@@ -1213,14 +1213,14 @@ main() {
     var kind = SearchResultKind.REFERENCE;
     var length = 'p.'.length;
     {
-      ImportElement element = findElement.import('dart:async');
+      final element = findElement.import('dart:async');
       var expected = [
         _expectId(main, kind, 'p.Future;', length: length),
       ];
       await _verifyReferences(element, expected);
     }
     {
-      ImportElement element = findElement.import('dart:math');
+      final element = findElement.import('dart:math');
       var expected = [
         _expectId(main, kind, 'p.Random', length: length),
       ];
@@ -1247,7 +1247,7 @@ main() {
   a.N4 = 0;
 }
 ''');
-    ImportElement element = findElement.import('package:test/a.dart');
+    final element = findElement.import('package:test/a.dart');
     var main = findElement.function('main');
     var kind = SearchResultKind.REFERENCE;
     var length = 'a.'.length;
@@ -2125,7 +2125,7 @@ main() {
   V(); // nq
 }
 ''');
-    ImportElement importElement = findNode.import('show V').element!;
+    final importElement = findNode.import('show V').element2!;
     CompilationUnitElement impUnit =
         importElement.importedLibrary!.definingCompilationUnit;
     TopLevelVariableElement variable = impUnit.topLevelVariables[0];

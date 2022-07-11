@@ -126,8 +126,12 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element) =>
       visitElement(element);
 
+  @Deprecated('Override visitImportElement2() instead')
   @override
   R? visitImportElement(ImportElement element) => visitElement(element);
+
+  @override
+  R? visitImportElement2(ImportElement2 element) => visitElement(element);
 
   @override
   R? visitLabelElement(LabelElement element) => visitElement(element);
@@ -272,8 +276,15 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
     return null;
   }
 
+  @Deprecated('Override visitImportElement2() instead')
   @override
   R? visitImportElement(ImportElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitImportElement2(ImportElement2 element) {
     element.visitChildren(this);
     return null;
   }
@@ -405,8 +416,12 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element) =>
       null;
 
+  @Deprecated('Override visitImportElement2() instead')
   @override
   R? visitImportElement(ImportElement element) => null;
+
+  @override
+  R? visitImportElement2(ImportElement2 element) => null;
 
   @override
   R? visitLabelElement(LabelElement element) => null;
@@ -498,8 +513,12 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
   R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element) =>
       _throw(element);
 
+  @Deprecated('Override visitImportElement2() instead')
   @override
   R? visitImportElement(ImportElement element) => _throw(element);
+
+  @override
+  R? visitImportElement2(ImportElement2 element) => _throw(element);
 
   @override
   R? visitLabelElement(LabelElement element) => _throw(element);

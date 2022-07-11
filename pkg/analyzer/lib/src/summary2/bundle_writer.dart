@@ -102,7 +102,7 @@ class BundleWriter {
     _writeFeatureSet(libraryElement.featureSet);
     _writeLanguageVersion(libraryElement.languageVersion);
     _resolutionSink._writeAnnotationList(libraryElement.metadata);
-    _writeList(libraryElement.imports, _writeImportElement);
+    _writeList(libraryElement.imports2, _writeImportElement);
     _writeList(libraryElement.exports, _writeExportElement);
     for (final partElement in libraryElement.parts2) {
       _resolutionSink._writeAnnotationList(partElement.metadata);
@@ -190,8 +190,8 @@ class BundleWriter {
     }
 
     if (element is DirectiveUriWithLibrary) {
-      // TODO(scheglov) implement
-      throw UnimplementedError();
+      _sink.writeByte(DirectiveUriKind.withLibrary.index);
+      writeWithSource(element);
     } else if (element is DirectiveUriWithUnit) {
       _sink.writeByte(DirectiveUriKind.withUnit.index);
       writeWithSource(element);
@@ -317,14 +317,25 @@ class BundleWriter {
     });
   }
 
-  void _writeImportElement(ImportElement element) {
-    element as ImportElementImpl;
-    ImportElementFlags.write(_sink, element);
-    _sink._writeOptionalStringReference(element.uri);
-    _sink._writeOptionalStringReference(element.prefix?.name);
-    _sink.writeList(element.combinators, _writeNamespaceCombinator);
+  void _writeImportElement(ImportElement2 element) {
+    element as ImportElement2Impl;
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeElement(element.importedLibrary);
+    _writeDirectiveUri(element.uri);
+    _writeImportElementPrefix(element.prefix);
+    _sink.writeList(element.combinators, _writeNamespaceCombinator);
+    ImportElementFlags.write(_sink, element);
+  }
+
+  void _writeImportElementPrefix(ImportElementPrefix? prefix) {
+    if (prefix is DeferredImportElementPrefix) {
+      _sink.writeByte(ImportElementPrefixKind.isDeferred.index);
+      _sink._writeStringReference(prefix.element.name);
+    } else if (prefix is ImportElementPrefix) {
+      _sink.writeByte(ImportElementPrefixKind.isNotDeferred.index);
+      _sink._writeStringReference(prefix.element.name);
+    } else {
+      _sink.writeByte(ImportElementPrefixKind.isNull.index);
+    }
   }
 
   void _writeLanguageVersion(LibraryLanguageVersion version) {

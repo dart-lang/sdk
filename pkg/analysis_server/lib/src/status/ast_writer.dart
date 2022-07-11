@@ -87,7 +87,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     } else if (node is GenericFunctionType) {
       properties['type'] = node.type;
     } else if (node is ImportDirective) {
-      properties['element'] = node.element;
+      properties['element'] = node.element2;
       properties['selectedSource'] = node.selectedSource;
       properties['uriSource'] = node.uriSource;
     } else if (node is IndexExpression) {

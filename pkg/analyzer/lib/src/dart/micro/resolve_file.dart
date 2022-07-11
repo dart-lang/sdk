@@ -288,7 +288,7 @@ class FileResolver {
       if (element is LocalVariableElement ||
           (element is ParameterElement && !element.isNamed)) {
         await collectReferences2(element.source!.fullName, performance!);
-      } else if (element is ImportElement) {
+      } else if (element is ImportElement2) {
         return await _searchReferences_Import(element);
       } else {
         var result = performance!.run('getFilesContaining', (performance) {
@@ -842,7 +842,7 @@ class FileResolver {
   }
 
   Future<List<CiderSearchMatch>> _searchReferences_Import(
-      ImportElement element) async {
+      ImportElement2 element) async {
     var results = <CiderSearchMatch>[];
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {

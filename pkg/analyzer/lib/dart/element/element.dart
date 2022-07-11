@@ -504,6 +504,11 @@ abstract class ConstructorElement
   InterfaceType get returnType;
 }
 
+/// [ImportElementPrefix] that is used together with `deferred`.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class DeferredImportElementPrefix implements ImportElementPrefix {}
+
 /// Meaning of a URI referenced in a directive.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1099,7 +1104,10 @@ abstract class ElementVisitor<R> {
 
   R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element);
 
+  @Deprecated('Override visitImportElement2() instead')
   R? visitImportElement(ImportElement element);
+
+  R? visitImportElement2(ImportElement2 element);
 
   R? visitLabelElement(LabelElement element);
 
@@ -1342,6 +1350,7 @@ abstract class HideElementCombinator implements NamespaceCombinator {
 /// A single import directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use ImportElement2 instead')
 abstract class ImportElement implements UriReferencedElement {
   /// Return a list containing the combinators that were specified as part of
   /// the import directive in the order in which they were specified.
@@ -1360,6 +1369,40 @@ abstract class ImportElement implements UriReferencedElement {
   /// Return the prefix that was specified as part of the import directive, or
   /// `null` if there was no prefix specified.
   PrefixElement? get prefix;
+}
+
+/// A single import directive within a library.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ImportElement2 implements _ExistingElement {
+  /// Return a list containing the combinators that were specified as part of
+  /// the import directive in the order in which they were specified.
+  List<NamespaceCombinator> get combinators;
+
+  /// Returns the [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
+  LibraryElement? get importedLibrary;
+
+  /// The offset of the `import` keyword.
+  int get importKeywordOffset;
+
+  /// The [Namespace] that this directive contributes to the containing library.
+  Namespace get namespace;
+
+  /// Return the prefix that was specified as part of the import directive, or
+  /// `null` if there was no prefix specified.
+  ImportElementPrefix? get prefix;
+
+  /// The interpretation of the URI specified in the directive.
+  DirectiveUri get uri;
+}
+
+/// Usage of a [PrefixElement] in an `import` directive.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ImportElementPrefix {
+  /// Return the prefix that was specified as part of the import directive, or
+  /// `null` if there was no prefix specified.
+  PrefixElement get element;
 }
 
 /// A label associated with a statement.
@@ -1516,7 +1559,11 @@ abstract class LibraryOrAugmentationElement implements Element {
   FeatureSet get featureSet;
 
   /// Return a list containing all of the imports defined in this library.
+  @Deprecated('Use imports2 instead')
   List<ImportElement> get imports;
+
+  /// Return a list containing all of the imports defined in this library.
+  List<ImportElement2> get imports2;
 
   bool get isNonNullableByDefault;
 
@@ -1726,7 +1773,11 @@ abstract class PrefixElement implements _ExistingElement {
   LibraryOrAugmentationElement get enclosingElement2;
 
   /// Return the imports that share this prefix.
+  @Deprecated('Use imports2 instead')
   List<ImportElement> get imports;
+
+  /// Return the imports that share this prefix.
+  List<ImportElement2> get imports2;
 
   @override
   String get name;

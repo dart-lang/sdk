@@ -53,7 +53,7 @@ class CanRenameResponse {
     } else if (element is ConstructorElement) {
       status = validateConstructorName(name);
       _analyzePossibleConflicts(element, status, name);
-    } else if (element is ImportElement) {
+    } else if (element is ImportElement2) {
       status = validateImportPrefixName(name);
     }
 
@@ -156,7 +156,7 @@ class CheckNameResponse {
           replaceMatches.addMatch(result.path, result.matches.toList());
         }
       }
-    } else if (element is ImportElement) {
+    } else if (element is ImportElement2) {
       var replaceInfo = <ReplaceInfo>[];
       for (var match in matches) {
         for (var ref in match.references) {
@@ -214,29 +214,28 @@ class CheckNameResponse {
             lineInfo.getLocation(element.setter!.nameOffset),
             element.setter!.nameLength));
       }
-    } else if (element is ImportElement) {
-      var prefix = element.prefix;
+    } else if (element is ImportElement2) {
       var unit =
           (await canRename._fileResolver.resolve2(path: sourcePath)).unit;
-      var index = element.library.imports.indexOf(element);
+      var index = element.library.imports2.indexOf(element);
       var node = unit.directives.whereType<ImportDirective>().elementAt(index);
+      final prefixNode = node.prefix;
       if (newName.isEmpty) {
         // We should not get `prefix == null` because we check in
         // `checkNewName` that the new name is different.
-        if (prefix == null) {
-          return infos;
+        if (prefixNode != null) {
+          var prefixEnd = prefixNode.end;
+          infos.add(ReplaceInfo(newName, lineInfo.getLocation(node.uri.end),
+              prefixEnd - node.uri.end));
         }
-        var prefixEnd = prefix.nameOffset + prefix.nameLength;
-        infos.add(ReplaceInfo(newName, lineInfo.getLocation(node.uri.end),
-            prefixEnd - node.uri.end));
       } else {
-        if (prefix == null) {
+        if (prefixNode == null) {
           var uriEnd = node.uri.end;
           infos.add(
               ReplaceInfo(' as $newName', lineInfo.getLocation(uriEnd), 0));
         } else {
-          var offset = prefix.nameOffset;
-          var length = prefix.nameLength;
+          var offset = prefixNode.offset;
+          var length = prefixNode.length;
           infos.add(ReplaceInfo(newName, lineInfo.getLocation(offset), length));
         }
       }
@@ -387,7 +386,7 @@ class CiderRenameComputer {
     if (element is ConstructorElement) {
       return true;
     }
-    if (element is ImportElement) {
+    if (element is ImportElement2) {
       return true;
     }
     if (element is LabelElement || element is LocalElement) {

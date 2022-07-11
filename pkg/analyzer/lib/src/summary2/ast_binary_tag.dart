@@ -16,6 +16,12 @@ enum DirectiveUriKind {
   withNothing,
 }
 
+enum ImportElementPrefixKind {
+  isDeferred,
+  isNotDeferred,
+  isNull,
+}
+
 class Tag {
   static const int Nothing = 0;
   static const int Something = 1;
@@ -103,6 +109,7 @@ class Tag {
   static const int MemberLegacyWithoutTypeArguments = 1;
   static const int MemberLegacyWithTypeArguments = 2;
   static const int MemberWithTypeArguments = 3;
+  static const int ImportPrefixElement = 4;
 
   static const int ParameterKindRequiredPositional = 1;
   static const int ParameterKindOptionalPositional = 2;

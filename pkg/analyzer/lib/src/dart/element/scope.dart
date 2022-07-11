@@ -118,6 +118,16 @@ class LibraryScope extends EnclosedScope {
 
     _element.prefixes.forEach(_addGetter);
     _element.units.forEach(_addUnitElements);
+
+    // TODO(scheglov) I don't understand why it used to work, but broke now.
+    // Now: when I'm adding `ImportElement2`.
+    // We used to get it from `exportedReference`, but this is wrong.
+    // These elements are declared in dart:core itself.
+    final reference = _element.reference!;
+    if (reference.name == 'dart:core') {
+      _addGetter(DynamicElementImpl.instance);
+      _addGetter(NeverElementImpl.instance);
+    }
   }
 
   void _addExtension(ExtensionElement element) {
@@ -155,9 +165,11 @@ class PrefixScope implements Scope {
 
   PrefixScope(this._library, PrefixElement? prefix) {
     final elementFactory = _library.session.elementFactory;
-    for (final import in _library.imports) {
-      if (import.prefix == prefix) {
-        final importedLibrary = import.importedLibrary;
+    for (final import in _library.imports2) {
+      final importedUri = import.uri;
+      if (importedUri is DirectiveUriWithLibrary &&
+          import.prefix?.element == prefix) {
+        final importedLibrary = importedUri.library;
         if (importedLibrary is LibraryElementImpl) {
           final combinators = import.combinators.build();
           for (final exportedReference in importedLibrary.exportedReferences) {
@@ -172,7 +184,7 @@ class PrefixScope implements Scope {
               _add(importedElement);
             }
           }
-          if (import.isDeferred) {
+          if (import.prefix is DeferredImportElementPrefix) {
             _deferredLibrary ??= importedLibrary;
           }
         }

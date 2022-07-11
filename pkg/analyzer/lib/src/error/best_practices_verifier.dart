@@ -584,8 +584,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitImportDirective(ImportDirective node) {
     _deprecatedVerifier.importDirective(node);
-    var importElement = node.element;
-    if (importElement != null && importElement.isDeferred) {
+    var importElement = node.element2;
+    if (importElement != null &&
+        importElement.prefix is DeferredImportElementPrefix) {
       _checkForLoadLibraryFunction(node, importElement);
     }
     _invalidAccessVerifier.verifyImport(node);
@@ -1039,7 +1040,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var importElement = node.element;
+    var importElement = node.element2;
     if (importElement == null) {
       return;
     }
@@ -1234,14 +1235,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The import has already been determined to be deferred when this is called.
   ///
   /// @param node the import directive to evaluate
-  /// @param importElement the [ImportElement] retrieved from the node
+  /// @param importElement the [ImportElement2] retrieved from the node
   /// @return `true` if and only if an error code is generated on the passed
   ///         node
   /// See [CompileTimeErrorCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION].
   bool _checkForLoadLibraryFunction(
-      ImportDirective node, ImportElement importElement) {
+      ImportDirective node, ImportElement2 importElement) {
     var importedLibrary = importElement.importedLibrary;
-    var prefix = importElement.prefix;
+    var prefix = importElement.prefix?.element;
     if (importedLibrary == null || prefix == null) {
       return false;
     }

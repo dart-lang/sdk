@@ -360,7 +360,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var importElement = node.element;
+    var importElement = node.element2;
     if (importElement != null) {
       Element? libraryElement = importElement.importedLibrary;
       _addUriDirectiveRegion(node, libraryElement);

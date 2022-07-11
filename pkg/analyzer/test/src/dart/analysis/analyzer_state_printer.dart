@@ -235,7 +235,7 @@ class AnalyzerStatePrinter {
             sink.write(' ${file.uri}');
           }
 
-          if (import.isSyntheticDartCoreImport) {
+          if (import.isSyntheticDartCore) {
             sink.write(' synthetic');
           }
           sink.writeln();
@@ -250,7 +250,7 @@ class AnalyzerStatePrinter {
             sink.write(' notLibrary');
           }
 
-          if (import.isSyntheticDartCoreImport) {
+          if (import.isSyntheticDartCore) {
             sink.write(' synthetic');
           }
           sink.writeln();
@@ -258,7 +258,7 @@ class AnalyzerStatePrinter {
           final uriStr = _stringOfUriStr(import.selectedUri.relativeUriStr);
           sink.write(_indent);
           sink.write('uri: $uriStr');
-          if (import.isSyntheticDartCoreImport) {
+          if (import.isSyntheticDartCore) {
             sink.write(' synthetic');
           }
           sink.writeln();
