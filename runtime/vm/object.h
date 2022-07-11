@@ -3576,104 +3576,26 @@ class Function : public Object {
            UntaggedFunction::kFfiTrampoline;
   }
 
-  // Recognise async functions like:
-  //   user_func async {
-  //     // ...
-  //   }
-  bool IsAsyncFunction() const {
-    return modifier() == UntaggedFunction::kAsync;
-  }
-
-  // TODO(dartbug.com/48378): replace this predicate with IsAsyncFunction()
-  // after old async functions are removed.
-  bool IsCompactAsyncFunction() const {
-    return IsAsyncFunction() && is_debuggable();
-  }
-
-  // TODO(dartbug.com/48378): replace this predicate with IsAsyncGenerator()
-  // after old async* functions are removed.
-  bool IsCompactAsyncStarFunction() const {
-    return IsAsyncGenerator() && is_debuggable();
-  }
-
-  // TODO(dartbug.com/48378): replace this predicate with IsSyncGenerator()
-  // after old sync* functions are removed.
-  bool IsCompactSyncStarFunction() const {
-    return IsSyncGenerator() && is_debuggable();
-  }
-
   // Returns true for functions which execution can be suspended
   // using Suspend/Resume stubs. Such functions have an artificial
   // :suspend_state local variable at the fixed location of the frame.
   bool IsSuspendableFunction() const {
-    return IsCompactAsyncFunction() || IsCompactAsyncStarFunction() ||
-           IsCompactSyncStarFunction();
+    return modifier() != UntaggedFunction::kNoModifier;
   }
 
-  // Recognise synthetic sync-yielding functions like the inner-most:
-  //   user_func /* was async */ {
-  //      :async_op(..) yielding {
-  //        // ...
-  //      }
-  //   }
-  bool IsAsyncClosure() const {
-    return is_generated_body() &&
-           Function::Handle(parent_function()).IsAsyncFunction();
+  // Returns true if this function is marked with 'async' modifier.
+  bool IsAsyncFunction() const {
+    return modifier() == UntaggedFunction::kAsync;
   }
 
-  // Recognise sync* functions like:
-  //   user_func sync* {
-  //     // ...
-  //   }
+  // Returns true if this function is marked with 'sync*' modifier.
   bool IsSyncGenerator() const {
     return modifier() == UntaggedFunction::kSyncGen;
   }
 
-  // Recognise synthetic :sync_op_gen()s like:
-  //   user_func /* was sync* */ {
-  //     :sync_op_gen() {
-  //        // ...
-  //      }
-  //   }
-  bool IsSyncGenClosureMaker() const {
-    return is_generated_body() &&
-           Function::Handle(parent_function()).IsSyncGenerator();
-  }
-
-  // Recognise async* functions like:
-  //   user_func async* {
-  //     // ...
-  //   }
+  // Returns true if this function is marked with 'async*' modifier.
   bool IsAsyncGenerator() const {
     return modifier() == UntaggedFunction::kAsyncGen;
-  }
-
-  // Recognise synthetic sync-yielding functions like the inner-most:
-  //   user_func /* originally async* */ {
-  //      :async_op(..) yielding {
-  //        // ...
-  //      }
-  //   }
-  bool IsAsyncGenClosure() const {
-    return is_generated_body() &&
-           Function::Handle(parent_function()).IsAsyncGenerator();
-  }
-
-  bool IsAsyncOrGenerator() const {
-    return modifier() != UntaggedFunction::kNoModifier;
-  }
-
-  // Recognise synthetic sync-yielding functions like the inner-most:
-  //   user_func /* was sync* */ {
-  //     :sync_op_gen() {
-  //        :sync_op(..) yielding {
-  //          // ...
-  //        }
-  //      }
-  //   }
-  bool IsSyncGenClosure() const {
-    return is_generated_body() &&
-           Function::Handle(parent_function()).IsSyncGenClosureMaker();
   }
 
   bool IsTypedDataViewFactory() const {
@@ -3855,7 +3777,6 @@ class Function : public Object {
   // native: Bridge to C/C++ code.
   // external: Just a declaration that expects to be defined in another patch
   //           file.
-  // generated_body: Has a generated body.
   // polymorphic_target: A polymorphic method.
   // has_pragma: Has a @pragma decoration.
   // no_such_method_forwarder: A stub method that just calls noSuchMethod.
@@ -3872,7 +3793,6 @@ class Function : public Object {
   V(Intrinsic, is_intrinsic)                                                   \
   V(Native, is_native)                                                         \
   V(External, is_external)                                                     \
-  V(GeneratedBody, is_generated_body)                                          \
   V(PolymorphicTarget, is_polymorphic_target)                                  \
   V(HasPragma, has_pragma)                                                     \
   V(IsSynthetic, is_synthetic)                                                 \

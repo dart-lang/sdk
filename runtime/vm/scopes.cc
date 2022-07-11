@@ -144,26 +144,14 @@ VariableIndex LocalScope::AllocateVariables(const Function& function,
   VariableIndex next_index =
       first_parameter_index;  // Current free frame index.
 
-  LocalVariable* await_jump_var = nullptr;
-  LocalVariable* async_future = nullptr;
-  LocalVariable* controller = nullptr;
   LocalVariable* chained_future = nullptr;
-  LocalVariable* is_sync = nullptr;
   LocalVariable* suspend_state_var = nullptr;
   for (intptr_t i = 0; i < num_variables(); i++) {
     LocalVariable* variable = VariableAt(i);
     if (variable->owner() == this) {
       if (variable->is_captured()) {
-        if (variable->name().Equals(Symbols::AwaitJumpVar())) {
-          await_jump_var = variable;
-        } else if (variable->name().Equals(Symbols::AsyncFuture())) {
-          async_future = variable;
-        } else if (variable->name().Equals(Symbols::Controller())) {
-          controller = variable;
-        } else if (variable->is_chained_future()) {
+        if (variable->is_chained_future()) {
           chained_future = variable;
-        } else if (variable->name().Equals(Symbols::is_sync())) {
-          is_sync = variable;
         }
       } else {
         if (variable->name().Equals(Symbols::SuspendStateVar())) {
@@ -171,23 +159,6 @@ VariableIndex LocalScope::AllocateVariables(const Function& function,
         }
       }
     }
-  }
-  // If we are in an async/async* function, force :await_jump_var and
-  // :async_future to be at fixed locations in the slot.
-  if (await_jump_var != nullptr) {
-    AllocateContextVariable(await_jump_var, &context_owner);
-    *found_captured_variables = true;
-    ASSERT(await_jump_var->index().value() == Context::kAwaitJumpVarIndex);
-  }
-  if (async_future != nullptr) {
-    AllocateContextVariable(async_future, &context_owner);
-    *found_captured_variables = true;
-    ASSERT(async_future->index().value() == Context::kAsyncFutureIndex);
-  }
-  if (controller != nullptr) {
-    AllocateContextVariable(controller, &context_owner);
-    *found_captured_variables = true;
-    ASSERT(controller->index().value() == Context::kControllerIndex);
   }
   if (chained_future != nullptr) {
     AllocateContextVariable(chained_future, &context_owner);
@@ -216,11 +187,6 @@ VariableIndex LocalScope::AllocateVariables(const Function& function,
     } else {
       UNREACHABLE();
     }
-  }
-  if (is_sync != nullptr) {
-    AllocateContextVariable(is_sync, &context_owner);
-    *found_captured_variables = true;
-    ASSERT(is_sync->index().value() == Context::kIsSyncIndex);
   }
 
   if (suspend_state_var != nullptr) {
@@ -257,9 +223,7 @@ VariableIndex LocalScope::AllocateVariables(const Function& function,
     if (variable->owner() == this) {
       if (variable->is_captured()) {
         // Skip the variables already pre-allocated above.
-        if (variable != await_jump_var && variable != async_future &&
-            variable != controller && variable != chained_future &&
-            variable != is_sync) {
+        if (variable != chained_future) {
           AllocateContextVariable(variable, &context_owner);
           *found_captured_variables = true;
         }
@@ -295,26 +259,6 @@ VariableIndex LocalScope::AllocateVariables(const Function& function,
 // The parser creates internal variables that start with ":"
 static bool IsFilteredIdentifier(const String& str) {
   ASSERT(str.Length() > 0);
-  if (str.ptr() == Symbols::AsyncOperation().ptr()) {
-    // Keep :async_op for asynchronous debugging.
-    return false;
-  }
-  if (str.ptr() == Symbols::AsyncFuture().ptr()) {
-    // Keep :async_future for asynchronous debugging.
-    return false;
-  }
-  if (str.ptr() == Symbols::ControllerStream().ptr()) {
-    // Keep :controller_stream for asynchronous debugging.
-    return false;
-  }
-  if (str.ptr() == Symbols::AwaitJumpVar().ptr()) {
-    // Keep :await_jump_var for asynchronous debugging.
-    return false;
-  }
-  if (str.ptr() == Symbols::is_sync().ptr()) {
-    // Keep :is_sync for asynchronous debugging.
-    return false;
-  }
   if (str.ptr() == Symbols::FunctionTypeArgumentsVar().ptr()) {
     // Keep :function_type_arguments for accessing type variables in debugging.
     return false;
