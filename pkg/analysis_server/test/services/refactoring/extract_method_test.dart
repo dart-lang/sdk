@@ -2561,6 +2561,37 @@ Future<int> res() async {
 ''');
   }
 
+  /// `await` in a nested function should not result in `await` at the call to
+  /// the new function.
+  Future<void> test_statements_hasAwait_functionExpression() async {
+    await indexTestUnit('''
+void g(Future<void> Function() func) {}
+void f() {
+// start
+  g(() async {
+    await null;
+  });
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void g(Future<void> Function() func) {}
+void f() {
+// start
+  res();
+// end
+}
+
+void res() {
+  g(() async {
+    await null;
+  });
+}
+''');
+  }
+
   Future<void> test_statements_hasAwait_voidReturnType() async {
     await indexTestUnit('''
 import 'dart:async';
