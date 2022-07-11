@@ -1,7 +1,19 @@
-# 1.26.0-dev
+# 1.26.0
 
+- new lint: `combinators_ordering`
+- fixed `use_colored_box` and `use_decorated_box` to not over-report
+  on containers without a child
 - fixed false positive for `unnecessary_parenthesis` on a map-or-set
   literal at the start of an expression statement
+- fixed false positive for `prefer_final_locals` reporting on fields
+- fixed `unnecessary_overrides` to allow overrides on `@Protected`
+  members
+- fixed `avoid_multiple_declarations_per_line` false positive in
+  `for` statements
+- fixed `prefer_final_locals` false positive on declaration lists
+  with at least one non-final variable
+- fixed `use_build_context_synchronously` to handle `await`s in
+  `if` conditions
 
 # 1.25.0
 
