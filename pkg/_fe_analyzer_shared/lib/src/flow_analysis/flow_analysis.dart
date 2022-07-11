@@ -2427,6 +2427,17 @@ class PromotionKeyStore<Variable extends Object> {
 
   final List<Variable?> _keyToVariable = [];
 
+  /// List of maps indicating the set of properties of each promotable entity
+  /// being tracked by flow analysis.  The list is indexed by the promotion key
+  /// of the target, and the map is indexed by the property name.
+  ///
+  /// Null list elements are considered equivalent to an empty map (this allows
+  /// us so save memory due to the fact that most entries will not be accessed).
+  final List<Map<String, int>?> _properties = [];
+
+  int getProperty(int targetKey, String propertyName) =>
+      (_properties[targetKey] ??= {})[propertyName] ??= _makeNewKey(null);
+
   @visibleForTesting
   int keyForVariable(Variable variable) =>
       _variableKeys[variable] ??= _makeNewKey(variable);
@@ -2437,6 +2448,7 @@ class PromotionKeyStore<Variable extends Object> {
   int _makeNewKey(Variable? variable) {
     int key = _keyToVariable.length;
     _keyToVariable.add(variable);
+    _properties.add(null);
     return key;
   }
 }
@@ -2621,6 +2633,11 @@ class Reachability {
 /// why promotion did not occur.
 @visibleForTesting
 abstract class Reference<Type extends Object> {
+  /// The reference's corresponding key, as assigned by [PromotionKeyStore].
+  final int promotionKey;
+
+  Reference(this.promotionKey);
+
   /// Gets the info for this reference, creating it if it doesn't exist.
   VariableModel<Type> getInfo(Map<int, VariableModel<Type>> variableInfo) =>
       _getInfo(variableInfo) ?? new VariableModel<Type>.fresh();
@@ -2634,15 +2651,20 @@ abstract class Reference<Type extends Object> {
 
   /// Creates a reference representing a get of a property called [propertyName]
   /// on the reference represented by `this`.
-  Reference<Type> propertyGet(String propertyName, Object? propertyMember) =>
-      new _PropertyGetReference<Type>(this, propertyName, propertyMember);
+  Reference<Type> propertyGet(PromotionKeyStore promotionKeyStore,
+          String propertyName, Object? propertyMember) =>
+      new _PropertyGetReference<Type>(propertyName, propertyMember,
+          promotionKeyStore.getProperty(promotionKey, propertyName));
 
   /// Stores info for this reference in [variableInfo].
   void storeInfo(Map<int, VariableModel<Type>> variableInfo,
-      VariableModel<Type> variableModel);
+      VariableModel<Type> variableModel) {
+    variableInfo[promotionKey] = variableModel;
+  }
 
   /// Gets the info for this reference, or `null` if it doesn't exist.
-  VariableModel<Type>? _getInfo(Map<int, VariableModel<Type>> variableInfo);
+  VariableModel<Type>? _getInfo(Map<int, VariableModel<Type>> variableInfo) =>
+      variableInfo[promotionKey];
 }
 
 /// Container object combining a [Reference] object with its static type.
@@ -2815,19 +2837,13 @@ class VariableModel<Type extends Object> {
   /// Non-promotion history of this variable.
   final NonPromotionHistory<Type>? nonPromotionHistory;
 
-  /// Promotion information for properties of this variable.  We don't actually
-  /// promote properties, but we track the promotions that would occur if we
-  /// did, so that we can report those as non-promotion reasons.
-  final Map<String, VariableModel<Type>> properties;
-
   VariableModel(
       {required this.promotedTypes,
       required this.tested,
       required this.assigned,
       required this.unassigned,
       required this.ssaNode,
-      this.nonPromotionHistory,
-      this.properties = const {}}) {
+      this.nonPromotionHistory}) {
     assert(!(assigned && unassigned),
         "Can't be both definitely assigned and unassigned");
     assert(promotedTypes == null || promotedTypes!.isNotEmpty);
@@ -2846,8 +2862,7 @@ class VariableModel<Type extends Object> {
         tested = const [],
         unassigned = !assigned,
         ssaNode = new SsaNode<Type>(null),
-        nonPromotionHistory = null,
-        properties = const {};
+        nonPromotionHistory = null;
 
   /// Indicates whether the variable has been write captured.
   bool get writeCaptured => ssaNode == null;
@@ -2865,18 +2880,6 @@ class VariableModel<Type extends Object> {
         unassigned: false,
         ssaNode: writeCaptured ? null : new SsaNode<Type>(null));
   }
-
-  /// Updates `this` with a new set of properties.
-  VariableModel<Type> setProperties(
-          Map<String, VariableModel<Type>> newProperties) =>
-      new VariableModel<Type>(
-          promotedTypes: promotedTypes,
-          tested: tested,
-          unassigned: unassigned,
-          assigned: assigned,
-          ssaNode: ssaNode,
-          nonPromotionHistory: nonPromotionHistory,
-          properties: newProperties);
 
   @override
   String toString() {
@@ -2898,9 +2901,6 @@ class VariableModel<Type extends Object> {
     }
     if (nonPromotionHistory != null) {
       parts.add('nonPromotionHistory: $nonPromotionHistory');
-    }
-    if (properties.isNotEmpty) {
-      parts.add('properties: $properties');
     }
     return 'VariableModel(${parts.join(', ')})';
   }
@@ -3358,17 +3358,14 @@ class VariableReference<Variable extends Object, Type extends Object>
   /// The variable being referred to.
   final Variable variable;
 
-  /// The variable's corresponding key, as assigned by [PromotionKeyStore].
-  final int variableKey;
-
-  VariableReference(this.variable, this.variableKey);
+  VariableReference(this.variable, super.promotionKey);
 
   @override
   Map<Type, NonPromotionReason> Function() getNonPromotionReasons(
       Map<int, VariableModel<Type>> variableInfo,
       Type staticType,
       covariant Operations<Variable, Type> operations) {
-    VariableModel<Type>? currentVariableInfo = variableInfo[variableKey];
+    VariableModel<Type>? currentVariableInfo = variableInfo[promotionKey];
     if (currentVariableInfo == null) {
       return () => {};
     }
@@ -3390,17 +3387,7 @@ class VariableReference<Variable extends Object, Type extends Object>
   }
 
   @override
-  void storeInfo(Map<int, VariableModel<Type>> variableInfo,
-      VariableModel<Type> variableModel) {
-    variableInfo[variableKey] = variableModel;
-  }
-
-  @override
-  String toString() => 'VariableReference($variable)';
-
-  @override
-  VariableModel<Type>? _getInfo(Map<int, VariableModel<Type>> variableInfo) =>
-      variableInfo[variableKey];
+  String toString() => 'VariableReference($variable, $promotionKey)';
 }
 
 class WhyNotPromotedInfo {}
@@ -4067,7 +4054,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       _storeExpressionReference(
           wholeExpression,
           new ReferenceWithType<Type>(
-              reference.propertyGet(propertyName, propertyMember), staticType));
+              reference.propertyGet(
+                  _promotionKeyStore, propertyName, propertyMember),
+              staticType));
     }
   }
 
@@ -4129,7 +4118,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         expression,
         new ReferenceWithType<Type>(
             new _ThisReference<Type>(_promotionKeyStore.thisPromotionKey)
-                .propertyGet(propertyName, propertyMember),
+                .propertyGet(_promotionKeyStore, propertyName, propertyMember),
             staticType));
   }
 
@@ -4995,11 +4984,6 @@ class _NullInfo<Type extends Object> implements ExpressionInfo<Type> {
 
 /// [Reference] object representing a property get applied to another reference.
 class _PropertyGetReference<Type extends Object> extends Reference<Type> {
-  /// The target of the property get.  For example a property get of the form
-  /// `a.b`, where `a` is a local variable, has a target which is a reference to
-  /// `a`.
-  final Reference<Type> target;
-
   /// The name of the property.
   final String propertyName;
 
@@ -5008,7 +4992,8 @@ class _PropertyGetReference<Type extends Object> extends Reference<Type> {
   /// [FlowAnalysis.thisOrSuperPropertyGet].
   final Object? propertyMember;
 
-  _PropertyGetReference(this.target, this.propertyName, this.propertyMember);
+  _PropertyGetReference(
+      this.propertyName, this.propertyMember, super.promotionKey);
 
   @override
   Map<Type, NonPromotionReason> Function() getNonPromotionReasons(
@@ -5030,24 +5015,8 @@ class _PropertyGetReference<Type extends Object> extends Reference<Type> {
   }
 
   @override
-  void storeInfo(Map<int, VariableModel<Type>> variableInfo,
-      VariableModel<Type> variableModel) {
-    VariableModel<Type> targetInfo = target.getInfo(variableInfo);
-    Map<String, VariableModel<Type>> newProperties =
-        new Map<String, VariableModel<Type>>.of(targetInfo.properties);
-    newProperties[propertyName] = variableModel;
-    target.storeInfo(variableInfo, targetInfo.setProperties(newProperties));
-  }
-
-  @override
   String toString() =>
-      '_PropertyGetReference($target, $propertyName, $propertyMember)';
-
-  @override
-  VariableModel<Type>? _getInfo(Map<int, VariableModel<Type>> variableInfo) {
-    VariableModel<Type> targetInfo = target.getInfo(variableInfo);
-    return targetInfo.properties[propertyName];
-  }
+      '_PropertyGetReference($propertyName, $propertyMember, $promotionKey)';
 }
 
 /// [_FlowContext] representing a language construct for which flow analysis
@@ -5085,10 +5054,7 @@ class _SimpleStatementContext<Type extends Object>
 
 /// [Reference] object representing an implicit or explicit reference to `this`.
 class _ThisReference<Type extends Object> extends Reference<Type> {
-  /// The promotion key assigned by [PromotionKeyStore] to represent `this`.
-  final int promotionKey;
-
-  _ThisReference(this.promotionKey);
+  _ThisReference(super.promotionKey);
 
   @override
   Map<Type, NonPromotionReason> Function() getNonPromotionReasons(
@@ -5107,16 +5073,6 @@ class _ThisReference<Type extends Object> extends Reference<Type> {
     }
     return () => {};
   }
-
-  @override
-  void storeInfo(Map<int, VariableModel<Type>> variableInfo,
-      VariableModel<Type> variableModel) {
-    variableInfo[promotionKey] = variableModel;
-  }
-
-  @override
-  VariableModel<Type>? _getInfo(Map<int, VariableModel<Type>> variableInfo) =>
-      variableInfo[promotionKey];
 }
 
 /// Specialization of [ExpressionInfo] for the case where the information we
