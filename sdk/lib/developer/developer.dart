@@ -15,8 +15,9 @@
 /// {@category Core}
 library dart.developer;
 
-import "dart:_internal" show checkNotNullable;
+import 'dart:_internal' show checkNotNullable;
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:isolate' show Isolate, RawReceivePort, SendPort;
 
