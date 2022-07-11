@@ -1,8 +1,6 @@
 // Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
-// SharedOptions=--enable-experiment=super-parameters
 
 // @dart=2.17
 
@@ -55,11 +53,11 @@ late final String rootLibId;
 
 createInstance(VmService service, String expr) async {
   return await service.evaluate(
-      isolateId,
-      rootLibId,
-      expr,
-      disableBreakpoints: true,
-    );
+    isolateId,
+    rootLibId,
+    expr,
+    disableBreakpoints: true,
+  );
 }
 
 evaluateGetter(VmService service, String instanceId, String getter) async {
@@ -96,7 +94,8 @@ final tests = <IsolateTest>[
     expect(result.json['name'], 'String');
   },
   (VmService service, _) async {
-    dynamic instance = await createInstance(service, 'C.constr2(1, "abc", n: 3.14)');
+    dynamic instance =
+        await createInstance(service, 'C.constr2(1, "abc", n: 3.14)');
     dynamic result = await evaluateGetter(service, instance.id, 'n');
     expect(result.valueAsString, '3.14');
     result = await evaluateGetter(service, instance.id, 't');
@@ -117,7 +116,8 @@ final tests = <IsolateTest>[
     expect(result.json['name'], 'dynamic');
   },
   (VmService service, _) async {
-    dynamic instance = await createInstance(service, 'C.constr3(1, "abc", n: 42, t: 3.14)');
+    dynamic instance =
+        await createInstance(service, 'C.constr3(1, "abc", n: 42, t: 3.14)');
     dynamic result = await evaluateGetter(service, instance.id, 'n');
     expect(result.valueAsString, '42');
     result = await evaluateGetter(service, instance.id, 't');
@@ -127,7 +127,8 @@ final tests = <IsolateTest>[
     result = await service.evaluate(isolateId, instance.id, 'T');
     expect(result.json['name'], 'double');
 
-    instance = await createInstance(service, 'C.constr3(1, "abc", n: 3.14, t: 42)');
+    instance =
+        await createInstance(service, 'C.constr3(1, "abc", n: 3.14, t: 42)');
     result = await evaluateGetter(service, instance.id, 'n');
     expect(result.valueAsString, '3.14');
     result = await evaluateGetter(service, instance.id, 't');
@@ -177,5 +178,4 @@ main([args = const <String>[]]) => runIsolateTests(
       tests,
       'super_constructor_invocation_test.dart',
       testeeConcurrent: testMain,
-      experiments: ['super-parameters'],
     );

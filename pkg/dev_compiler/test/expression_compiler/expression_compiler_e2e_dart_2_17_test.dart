@@ -92,8 +92,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
         ''';
 
     setUpAll(() async {
-      await driver.initSource(setup, source,
-          experiments: {'named-arguments-anywhere': true});
+      await driver.initSource(setup, source, experiments: const {});
     });
 
     tearDownAll(() async {
@@ -162,8 +161,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
         ''';
 
     setUpAll(() async {
-      await driver
-          .initSource(setup, source, experiments: {'super-parameters': true});
+      await driver.initSource(setup, source, experiments: const {});
     });
 
     tearDownAll(() async {
@@ -229,8 +227,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
         ''';
 
     setUpAll(() async {
-      await driver
-          .initSource(setup, source, experiments: {'enhanced-enums': true});
+      await driver.initSource(setup, source, experiments: const {});
     });
 
     tearDownAll(() async {

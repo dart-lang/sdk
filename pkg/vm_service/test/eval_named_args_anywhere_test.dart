@@ -68,5 +68,4 @@ main([args = const <String>[]]) => runIsolateTests(
       tests,
       'eval_named_args_anywhere_test.dart',
       testeeConcurrent: testFunction,
-      experiments: ['named-arguments-anywhere'],
     );

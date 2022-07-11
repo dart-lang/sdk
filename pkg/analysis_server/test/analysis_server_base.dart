@@ -13,7 +13,6 @@ import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -48,9 +47,11 @@ class AnalysisOptionsFileConfig {
     var buffer = StringBuffer();
 
     buffer.writeln('analyzer:');
-    buffer.writeln('  enable-experiment:');
-    for (var experiment in experiments) {
-      buffer.writeln('    - $experiment');
+    if (experiments.isNotEmpty) {
+      buffer.writeln('  enable-experiment:');
+      for (var experiment in experiments) {
+        buffer.writeln('    - $experiment');
+      }
     }
     buffer.writeln('  language:');
     buffer.writeln('    strict-casts: $strictCasts');
@@ -206,11 +207,10 @@ class ContextResolutionTest with ResourceProviderMixin {
 }
 
 class PubPackageAnalysisServerTest extends ContextResolutionTest {
-  List<String> get experiments => [
-        EnableString.enhanced_enums,
-        EnableString.named_arguments_anywhere,
-        EnableString.super_parameters,
-      ];
+  // If experiments are needed,
+  // add `import 'package:analyzer/src/dart/analysis/experiments.dart';`
+  // and list the necessary experiments here.
+  List<String> get experiments => [];
 
   /// The path that is not in [workspaceRootPath], contains external packages.
   String get packagesRootPath => '/packages';
