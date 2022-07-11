@@ -673,8 +673,8 @@ bool GraphIntrinsifier::Build_Float64x2Add(FlowGraph* flow_graph) {
   return BuildSimdOp(flow_graph, kFloat64x2Cid, Token::kADD);
 }
 
-static bool BuildFloat32x4Shuffle(FlowGraph* flow_graph,
-                                  MethodRecognizer::Kind kind) {
+static bool BuildFloat32x4Get(FlowGraph* flow_graph,
+                              MethodRecognizer::Kind kind) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles() ||
       !FlowGraphCompiler::SupportsUnboxedSimd128()) {
     return false;
@@ -702,24 +702,20 @@ static bool BuildFloat32x4Shuffle(FlowGraph* flow_graph,
   return true;
 }
 
-bool GraphIntrinsifier::Build_Float32x4ShuffleX(FlowGraph* flow_graph) {
-  return BuildFloat32x4Shuffle(flow_graph,
-                               MethodRecognizer::kFloat32x4ShuffleX);
+bool GraphIntrinsifier::Build_Float32x4GetX(FlowGraph* flow_graph) {
+  return BuildFloat32x4Get(flow_graph, MethodRecognizer::kFloat32x4GetX);
 }
 
-bool GraphIntrinsifier::Build_Float32x4ShuffleY(FlowGraph* flow_graph) {
-  return BuildFloat32x4Shuffle(flow_graph,
-                               MethodRecognizer::kFloat32x4ShuffleY);
+bool GraphIntrinsifier::Build_Float32x4GetY(FlowGraph* flow_graph) {
+  return BuildFloat32x4Get(flow_graph, MethodRecognizer::kFloat32x4GetY);
 }
 
-bool GraphIntrinsifier::Build_Float32x4ShuffleZ(FlowGraph* flow_graph) {
-  return BuildFloat32x4Shuffle(flow_graph,
-                               MethodRecognizer::kFloat32x4ShuffleZ);
+bool GraphIntrinsifier::Build_Float32x4GetZ(FlowGraph* flow_graph) {
+  return BuildFloat32x4Get(flow_graph, MethodRecognizer::kFloat32x4GetZ);
 }
 
-bool GraphIntrinsifier::Build_Float32x4ShuffleW(FlowGraph* flow_graph) {
-  return BuildFloat32x4Shuffle(flow_graph,
-                               MethodRecognizer::kFloat32x4ShuffleW);
+bool GraphIntrinsifier::Build_Float32x4GetW(FlowGraph* flow_graph) {
+  return BuildFloat32x4Get(flow_graph, MethodRecognizer::kFloat32x4GetW);
 }
 
 static bool BuildLoadField(FlowGraph* flow_graph, const Slot& field) {

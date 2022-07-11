@@ -5154,16 +5154,16 @@ DEFINE_EMIT(Simd32x4Shuffle,
   // instructions. For arbitrary shuffles, use vtbl.
 
   switch (instr->kind()) {
-    case SimdOpInstr::kFloat32x4ShuffleX:
+    case SimdOpInstr::kFloat32x4GetX:
       __ vcvtds(result.d(0), value.s(0));
       break;
-    case SimdOpInstr::kFloat32x4ShuffleY:
+    case SimdOpInstr::kFloat32x4GetY:
       __ vcvtds(result.d(0), value.s(1));
       break;
-    case SimdOpInstr::kFloat32x4ShuffleZ:
+    case SimdOpInstr::kFloat32x4GetZ:
       __ vcvtds(result.d(0), value.s(2));
       break;
-    case SimdOpInstr::kFloat32x4ShuffleW:
+    case SimdOpInstr::kFloat32x4GetW:
       __ vcvtds(result.d(0), value.s(3));
       break;
     case SimdOpInstr::kInt32x4Shuffle:
@@ -5597,10 +5597,10 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float64x2Mul)                                                           \
   CASE(Float64x2Div)                                                           \
   ____(Float64x2BinaryOp)                                                      \
-  CASE(Float32x4ShuffleX)                                                      \
-  CASE(Float32x4ShuffleY)                                                      \
-  CASE(Float32x4ShuffleZ)                                                      \
-  CASE(Float32x4ShuffleW)                                                      \
+  CASE(Float32x4GetX)                                                          \
+  CASE(Float32x4GetY)                                                          \
+  CASE(Float32x4GetZ)                                                          \
+  CASE(Float32x4GetW)                                                          \
   CASE(Int32x4Shuffle)                                                         \
   CASE(Float32x4Shuffle)                                                       \
   ____(Simd32x4Shuffle)                                                        \

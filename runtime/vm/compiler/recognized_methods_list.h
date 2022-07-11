@@ -386,10 +386,10 @@ namespace dart {
   V(_Float64x2List, []=, Float64x2ArraySetIndexed, 0x8af8aa58)                 \
   V(_TypedListBase, get:length, TypedListBaseLength, 0x5850f06b)               \
   V(_ByteDataView, get:length, ByteDataViewLength, 0x5850f06b)                 \
-  V(_Float32x4, get:x, Float32x4ShuffleX, 0x3a398530)                          \
-  V(_Float32x4, get:y, Float32x4ShuffleY, 0x27cae053)                          \
-  V(_Float32x4, get:z, Float32x4ShuffleZ, 0x5d964be9)                          \
-  V(_Float32x4, get:w, Float32x4ShuffleW, 0x3fd6906b)                          \
+  V(_Float32x4, get:x, Float32x4GetX, 0x3a398530)                              \
+  V(_Float32x4, get:y, Float32x4GetY, 0x27cae053)                              \
+  V(_Float32x4, get:z, Float32x4GetZ, 0x5d964be9)                              \
+  V(_Float32x4, get:w, Float32x4GetW, 0x3fd6906b)                              \
   V(_Float32x4, *, Float32x4Mul, 0xe5507c87)                                   \
   V(_Float32x4, /, Float32x4Div, 0xc09f2f62)                                   \
   V(_Float32x4, -, Float32x4Sub, 0xdd326c4a)                                   \
