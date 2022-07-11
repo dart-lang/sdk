@@ -36,7 +36,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest
       'previewNotImportedCompletions': previewNotImportedCompletions,
       // Default to a high budget for tests because everything is cold and
       // may take longer to return.
-      'notImportedCompletionBudgetMilliseconds': 50000
+      'completionBudgetMilliseconds': 50000
     };
   }
 
@@ -2305,7 +2305,7 @@ void f() {
         initializationOptions: {
           ...?defaultInitializationOptions,
           // Set budget high to ensure it completes.
-          'notImportedCompletionBudgetMilliseconds': 100000,
+          'completionBudgetMilliseconds': 100000,
         },
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
@@ -2330,7 +2330,7 @@ void f() {
         initializationOptions: {
           ...?defaultInitializationOptions,
           // Set budget low to ensure we don't complete.
-          'notImportedCompletionBudgetMilliseconds': 0,
+          'completionBudgetMilliseconds': 0,
         },
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));

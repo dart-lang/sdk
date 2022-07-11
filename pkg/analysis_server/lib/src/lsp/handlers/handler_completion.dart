@@ -51,7 +51,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
   CompletionHandler(super.server, LspInitializationOptions options)
       : suggestFromUnimportedLibraries = options.suggestFromUnimportedLibraries,
         previewNotImportedCompletions = options.previewNotImportedCompletions {
-    final budgetMs = options.notImportedCompletionBudgetMilliseconds;
+    final budgetMs = options.completionBudgetMilliseconds;
     completionBudget = CompletionBudget(budgetMs != null
         ? Duration(milliseconds: budgetMs)
         : CompletionBudget.defaultDuration);

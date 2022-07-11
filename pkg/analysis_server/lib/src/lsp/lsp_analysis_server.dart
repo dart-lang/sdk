@@ -892,7 +892,7 @@ class LspInitializationOptions {
   final bool closingLabels;
   final bool outline;
   final bool flutterOutline;
-  final int? notImportedCompletionBudgetMilliseconds;
+  final int? completionBudgetMilliseconds;
 
   LspInitializationOptions(dynamic options)
       : onlyAnalyzeProjectsWithOpenFiles = options != null &&
@@ -908,8 +908,8 @@ class LspInitializationOptions {
         closingLabels = options != null && options['closingLabels'] == true,
         outline = options != null && options['outline'] == true,
         flutterOutline = options != null && options['flutterOutline'] == true,
-        notImportedCompletionBudgetMilliseconds = options != null
-            ? options['notImportedCompletionBudgetMilliseconds'] as int?
+        completionBudgetMilliseconds = options != null
+            ? options['completionBudgetMilliseconds'] as int?
             : null;
 }
 
