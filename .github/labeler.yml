@@ -1,4 +1,4 @@
 set-core:
-  - any:
-      - 'src/**/camel_case_types.dart'
-      - 'src/**/camel_case_extensions.dart'
+- lib/**/camel_case_types.dart
+- lib/**/camel_case_extensions.dart
+
