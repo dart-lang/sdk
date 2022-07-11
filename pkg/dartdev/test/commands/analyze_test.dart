@@ -421,17 +421,6 @@ void defineAnalyze() {
     expect(result.stderr, isEmpty);
   });
 
-  test('--enable-experiment', () async {
-    p = project(mainSrc: 'final x = List.filled(growable: true, 7, "");');
-    var result = await p
-        .run(['analyze', '--enable-experiment=no-named-arguments-anywhere']);
-
-    expect(result.exitCode, 3);
-    expect(result.stdout,
-        contains('Positional arguments must occur before named arguments.'));
-    expect(result.stderr, isEmpty);
-  });
-
   test('--enable-experiment with a bad experiment', () async {
     p = project();
     var result = await p.run(['analyze', '--enable-experiment=bad']);
