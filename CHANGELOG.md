@@ -57,6 +57,27 @@ the new implementation carries a few subtle changes in behavior:
   collected earlier than they were before
   (see issue [#36983](https://github.com/dart-lang/sdk/issues/36983) for details).
 
+
+### Tools
+
+#### Dart command line
+
+#### Linter
+
+Updated the Linter to `1.26.0`, which includes changes that
+
+- add new lint: `combinators_ordering`.
+- fix `use_colored_box` and `use_decorated_box` to not over-report on containers without
+  a child.
+- fix `unnecessary_parenthesis` false positives on a map-or-set literal at the start of
+  an expression statement.
+- fix `prefer_final_locals` false positives reporting on fields.
+- fix `unnecessary_overrides` to allow overrides on `@Protected`members.
+- fix `avoid_multiple_declarations_per_line` false positives in `for` statements.
+- fix `prefer_final_locals` false positives on declaration lists with at least one
+  non-final variable.
+- fix`use_build_context_synchronously` to handle `await`s in `if` conditions.
+
 ## 2.18.0
 
 ### Language
