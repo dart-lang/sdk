@@ -56,6 +56,7 @@ linter:
     - cascade_invocations
     - cast_nullable_to_non_nullable
     - close_sinks
+    - combinators_ordering
     - comment_references
     - conditional_uri_does_not_exist
     - constant_identifier_names
