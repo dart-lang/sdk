@@ -485,14 +485,14 @@ class JsClosedWorld implements JClosedWorld {
 
   @override
   Iterable<MemberEntity> locateMembersInDomain(Selector selector,
-      AbstractValue receiver, AbstractValueDomain abstractValueDomain) {
+      AbstractValue /*?*/ receiver, AbstractValueDomain abstractValueDomain) {
     _ensureFunctionSet();
     return _allFunctions.filter(selector, receiver, abstractValueDomain);
   }
 
   @override
   Iterable<MemberEntity> locateMembers(
-      Selector selector, AbstractValue receiver) {
+      Selector selector, AbstractValue /*?*/ receiver) {
     return locateMembersInDomain(selector, receiver, abstractValueDomain);
   }
 

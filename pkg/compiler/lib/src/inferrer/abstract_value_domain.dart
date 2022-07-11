@@ -453,7 +453,7 @@ abstract class AbstractValueDomain {
       Object allocationNode,
       MemberEntity allocationElement,
       AbstractValue elementType,
-      int length);
+      int? length);
 
   /// Returns the element type of [value] if it represents a container value
   /// at runtime. Returns [dynamicType] otherwise.

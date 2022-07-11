@@ -39,7 +39,7 @@ import 'type_system.dart';
 /// changes.
 abstract class TypeInformation {
   Set<TypeInformation> users;
-  var /* List|ParameterInputs */ _inputs;
+  ParameterInputs _inputs;
 
   /// The type the inferrer has found for this [TypeInformation].
   /// Initially empty.
@@ -51,7 +51,7 @@ abstract class TypeInformation {
   /// The element this [TypeInformation] node belongs to.
   MemberEntity get contextMember => context?.member;
 
-  Iterable<TypeInformation> get inputs => _inputs;
+  ParameterInputs get inputs => _inputs;
 
   /// We abandon inference in certain cases (complex cyclic flow, native
   /// behaviours, etc.). In some case, we might resume inference in the
@@ -86,15 +86,15 @@ abstract class TypeInformation {
   bool get isConcrete => false;
 
   TypeInformation(this.type, this.context)
-      : _inputs = <TypeInformation>[],
+      : _inputs = _BasicParameterInputs([]),
         users = Setlet<TypeInformation>();
 
   TypeInformation.noInputs(this.type, this.context)
-      : _inputs = const <TypeInformation>[],
+      : _inputs = const _BasicParameterInputs([]),
         users = Setlet<TypeInformation>();
 
   TypeInformation.untracked(this.type)
-      : _inputs = const <TypeInformation>[],
+      : _inputs = const _BasicParameterInputs([]),
         users = const {},
         context = null;
 
@@ -118,7 +118,7 @@ abstract class TypeInformation {
   // The below is not a compile time constant to make it differentiable
   // from other empty lists of [TypeInformation].
   static final STOP_TRACKING_INPUTS_MARKER =
-      List<TypeInformation>.filled(0, null);
+      _BasicParameterInputs(List.empty());
 
   bool areInputsTracked() {
     return inputs != STOP_TRACKING_INPUTS_MARKER;
@@ -220,8 +220,8 @@ abstract class TypeInformation {
 
   /// Destroys information not needed after type inference.
   void cleanup() {
-    users = null;
-    _inputs = null;
+    users = const {};
+    _inputs = const _BasicParameterInputs([]);
   }
 
   String toStructuredText(String indent) {
@@ -265,16 +265,50 @@ class PlaceholderTypeInformation extends TypeInformation {
   toString() => "Placeholder [$hashCode]";
 }
 
+abstract class ParameterInputs implements Iterable<TypeInformation> {
+  factory ParameterInputs.instanceMember() => _InstanceMemberParameterInputs();
+  void add(TypeInformation input);
+  void remove(TypeInformation input);
+  void replace(TypeInformation old, TypeInformation replacement);
+}
+
+class _BasicParameterInputs extends IterableBase<TypeInformation>
+    implements ParameterInputs {
+  final List<TypeInformation> _baseList;
+
+  const _BasicParameterInputs(this._baseList);
+
+  @override
+  void replace(TypeInformation old, TypeInformation replacement) {
+    for (int i = 0; i < length; i++) {
+      if (_baseList[i] == old) {
+        _baseList[i] = replacement;
+      }
+    }
+  }
+
+  @override
+  void add(TypeInformation input) => _baseList.add(input);
+
+  @override
+  Iterator<TypeInformation> get iterator => _baseList.iterator;
+
+  @override
+  void remove(TypeInformation input) => _baseList.remove(input);
+}
+
 /// Parameters of instance functions behave differently than other
 /// elements because the inferrer may remove inputs. This happens
 /// when the receiver of a dynamic call site can be refined
 /// to a type where we know more about which instance method is being
 /// called.
-class ParameterInputs extends IterableBase<TypeInformation> {
+class _InstanceMemberParameterInputs extends IterableBase<TypeInformation>
+    implements ParameterInputs {
   final Map<TypeInformation, int> _inputs = Map<TypeInformation, int>();
 
+  @override
   void remove(TypeInformation info) {
-    int existing = _inputs[info];
+    final existing = _inputs[info];
     if (existing == null) return;
     if (existing == 1) {
       _inputs.remove(info);
@@ -283,8 +317,9 @@ class ParameterInputs extends IterableBase<TypeInformation> {
     }
   }
 
+  @override
   void add(TypeInformation info) {
-    int existing = _inputs[info];
+    final existing = _inputs[info];
     if (existing == null) {
       _inputs[info] = 1;
     } else {
@@ -292,10 +327,11 @@ class ParameterInputs extends IterableBase<TypeInformation> {
     }
   }
 
+  @override
   void replace(TypeInformation old, TypeInformation replacement) {
-    int existing = _inputs[old];
+    var existing = _inputs[old];
     if (existing != null) {
-      int other = _inputs[replacement];
+      final other = _inputs[replacement];
       if (other != null) existing += other;
       _inputs[replacement] = existing;
       _inputs.remove(old);
@@ -383,13 +419,11 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   /// This map contains the callers of [element]. It stores all unique call
   /// sites to enable counting the global number of call sites of [element].
   ///
-  /// A call site is either an AST [ast.Node], an [Element] (see uses of
-  /// [synthesizeForwardingCall] in [SimpleTypeInferrerVisitor]) or an IR
-  /// [ir.Node].
+  /// A call site is an [ir.Node].
   ///
   /// The global information is summarized in [cleanup], after which [_callers]
   /// is set to `null`.
-  Map<MemberEntity, Setlet<Object>> _callers;
+  Map<MemberEntity, Setlet<ir.Node /*?*/ >> _callers;
 
   MemberTypeInformation._internal(
       AbstractValueDomain abstractValueDomain, this._member)
@@ -400,12 +434,12 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   @override
   String get debugName => '$member';
 
-  void addCall(MemberEntity caller, Object node) {
-    _callers ??= <MemberEntity, Setlet<Object>>{};
+  void addCall(MemberEntity caller, ir.Node /*?*/ node) {
+    _callers ??= <MemberEntity, Setlet<ir.Node /*?*/ >>{};
     _callers.putIfAbsent(caller, () => Setlet()).add(node);
   }
 
-  void removeCall(MemberEntity caller, Object node) {
+  void removeCall(MemberEntity caller, ir.Node /*?*/ node) {
     if (_callers == null) return;
     Setlet calls = _callers[caller];
     if (calls == null) return;
@@ -919,7 +953,7 @@ enum CallType {
   forIn,
 }
 
-bool validCallType(CallType callType, Object call, Selector selector) {
+bool validCallType(CallType callType, ir.Node /*?*/ call, Selector selector) {
   switch (callType) {
     case CallType.access:
       return call is ir.Node;
@@ -941,7 +975,7 @@ bool validCallType(CallType callType, Object call, Selector selector) {
 /// and [selector] and [receiver] fields for dynamic calls.
 abstract class CallSiteTypeInformation extends TypeInformation
     with ApplyableTypeInformation {
-  final Object _call;
+  final ir.Node /*?*/ _call;
   final MemberEntity caller;
   final Selector selector;
   final ArgumentsTypes arguments;
@@ -977,7 +1011,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   StaticCallSiteTypeInformation(
       AbstractValueDomain abstractValueDomain,
       MemberTypeInformation context,
-      Object call,
+      ir.Node /*?*/ call,
       MemberEntity enclosing,
       this.calledElement,
       Selector selector,
@@ -1073,7 +1107,7 @@ class IndirectDynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   IndirectDynamicCallSiteTypeInformation(
       AbstractValueDomain abstractValueDomain,
       MemberTypeInformation context,
-      Object call,
+      ir.Node /*?*/ call,
       this.dynamicCall,
       MemberEntity enclosing,
       Selector selector,
@@ -1157,7 +1191,8 @@ class IndirectDynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 }
 
-class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
+class DynamicCallSiteTypeInformation<T extends ir.Node>
+    extends CallSiteTypeInformation {
   final CallType _callType;
   final TypeInformation receiver;
   final AbstractValue mask;
@@ -1407,9 +1442,11 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
     } else {
       result = inferrer.types
           .joinTypeMasks(_concreteTargets.map((MemberEntity element) {
-        if (inferrer.returnsListElementType(selector, typeMask)) {
+        if (typeMask != null &&
+            inferrer.returnsListElementType(selector, typeMask)) {
           return abstractValueDomain.getContainerElementType(receiver.type);
-        } else if (inferrer.returnsMapValueType(selector, typeMask)) {
+        } else if (typeMask != null &&
+            inferrer.returnsMapValueType(selector, typeMask)) {
           if (abstractValueDomain.isDictionary(typeMask)) {
             AbstractValue arg = arguments.positional[0].type;
             ConstantValue value = abstractValueDomain.getPrimitiveValue(arg);
@@ -1513,7 +1550,7 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
   ClosureCallSiteTypeInformation(
       AbstractValueDomain abstractValueDomain,
       MemberTypeInformation context,
-      Object call,
+      ir.Node /*?*/ call,
       MemberEntity enclosing,
       Selector selector,
       this.closure,

@@ -33,6 +33,7 @@ import 'abstract_value_domain.dart';
 import 'builder.dart';
 import 'closure_tracer.dart';
 import 'debug.dart' as debug;
+import 'engine_interfaces.dart' as interfaces;
 import 'locals_handler.dart';
 import 'list_tracer.dart';
 import 'map_tracer.dart';
@@ -46,7 +47,7 @@ import 'types.dart';
 /// An inferencing engine that computes a call graph of [TypeInformation] nodes
 /// by visiting the AST of the application, and then does the inferencing on the
 /// graph.
-class InferrerEngine {
+class InferrerEngine implements interfaces.InferrerEngine {
   /// A set of selector names that [List] implements, that we know return their
   /// element type.
   final Set<Selector> returnsListElementTypeSet = Set<Selector>.from(<Selector>[
@@ -61,13 +62,16 @@ class InferrerEngine {
   ]);
 
   /// The [JClosedWorld] on which inference reasoning is based.
+  @override
   final JsClosedWorld closedWorld;
 
   final TypeSystem types;
   final Map<ir.TreeNode, TypeInformation> concreteTypes = {};
   final GlobalLocalsMap globalLocalsMap;
+  @override
   final InferredDataBuilder inferredDataBuilder;
 
+  @override
   final FunctionEntity mainElement;
 
   final Map<Local, TypeInformation> _defaultTypeOfParameter = {};
@@ -101,12 +105,15 @@ class InferrerEngine {
 
   ElementEnvironment get _elementEnvironment => closedWorld.elementEnvironment;
 
+  @override
   AbstractValueDomain get abstractValueDomain =>
       closedWorld.abstractValueDomain;
+  @override
   CommonElements get commonElements => closedWorld.commonElements;
 
   // TODO(johnniwinther): This should be part of [ClosedWorld] or
   // [ClosureWorldRefiner].
+  @override
   NoSuchMethodData get noSuchMethodData => closedWorld.noSuchMethodData;
 
   InferrerEngine(
@@ -241,14 +248,17 @@ class InferrerEngine {
     }
   }
 
+  @override
   bool returnsListElementType(Selector selector, AbstractValue mask) {
-    return mask != null &&
-        abstractValueDomain.isContainer(mask) &&
+    assert(mask != null);
+    return abstractValueDomain.isContainer(mask) &&
         returnsListElementTypeSet.contains(selector);
   }
 
+  @override
   bool returnsMapValueType(Selector selector, AbstractValue mask) {
-    return mask != null && abstractValueDomain.isMap(mask) && selector.isIndex;
+    assert(mask != null);
+    return abstractValueDomain.isMap(mask) && selector.isIndex;
   }
 
   void analyzeListAndEnqueue(ListTypeInformation info) {
@@ -813,8 +823,7 @@ class InferrerEngine {
   /// mapping in `_defaultTypeOfParameter` already contains a type, it must be
   /// a [PlaceholderTypeInformation], which will be replaced. All its uses are
   /// updated.
-  void setDefaultTypeOfParameter(Local parameter, TypeInformation type,
-      {bool isInstanceMember}) {
+  void setDefaultTypeOfParameter(Local parameter, TypeInformation type) {
     assert(
         type != null, failedAt(parameter, "No default type for $parameter."));
     TypeInformation existing = _defaultTypeOfParameter[parameter];
@@ -822,17 +831,7 @@ class InferrerEngine {
     TypeInformation info = types.getInferredTypeOfParameter(parameter);
     if (existing != null && existing is PlaceholderTypeInformation) {
       // Replace references to [existing] to use [type] instead.
-      if (isInstanceMember) {
-        ParameterInputs inputs = info.inputs;
-        inputs.replace(existing, type);
-      } else {
-        List<TypeInformation> inputs = info.inputs;
-        for (int i = 0; i < inputs.length; i++) {
-          if (inputs[i] == existing) {
-            inputs[i] = type;
-          }
-        }
-      }
+      info.inputs.replace(existing, type);
       // Also forward all users.
       type.addUsersOf(existing);
     } else {
@@ -1290,8 +1289,13 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
       return ParameterTypeInformation.localFunction(
           abstractValueDomain, memberTypeInformation, parameter, type, member);
     } else if (member.isInstanceMember) {
-      return ParameterTypeInformation.instanceMember(abstractValueDomain,
-          memberTypeInformation, parameter, type, member, ParameterInputs());
+      return ParameterTypeInformation.instanceMember(
+          abstractValueDomain,
+          memberTypeInformation,
+          parameter,
+          type,
+          member,
+          ParameterInputs.instanceMember());
     } else {
       return ParameterTypeInformation.static(
           abstractValueDomain, memberTypeInformation, parameter, type, member);

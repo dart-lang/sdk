@@ -287,8 +287,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       } else {
         type = _types.nullType;
       }
-      _inferrer.setDefaultTypeOfParameter(local, type,
-          isInstanceMember: _analyzedMember.isInstanceMember);
+      _inferrer.setDefaultTypeOfParameter(local, type);
     }
   }
 
