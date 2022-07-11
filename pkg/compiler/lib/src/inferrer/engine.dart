@@ -65,6 +65,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
   @override
   final JsClosedWorld closedWorld;
 
+  @override
   final TypeSystem types;
   final Map<ir.TreeNode, TypeInformation> concreteTypes = {};
   final GlobalLocalsMap globalLocalsMap;
@@ -174,6 +175,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
 
   /// Returns the type for [nativeBehavior]. See documentation on
   /// [NativeBehavior].
+  @override
   TypeInformation typeOfNativeBehavior(NativeBehavior nativeBehavior) {
     if (nativeBehavior == null) return types.dynamicType;
     List<Object> typesReturned = nativeBehavior.typesReturned;
@@ -214,6 +216,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
     return returnType;
   }
 
+  @override
   void updateSelectorInMember(MemberEntity owner, CallType callType,
       ir.Node node, Selector selector, AbstractValue mask) {
     KernelGlobalTypeInferenceElementData data = dataOfMember(owner);
@@ -755,6 +758,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
   /// Update the inputs to parameters in the graph. [remove] tells whether
   /// inputs must be added or removed. If [init] is false, parameters are
   /// added to the work queue.
+  @override
   void updateParameterInputs(TypeInformation caller, MemberEntity callee,
       ArgumentsTypes arguments, Selector selector,
       {bool remove, bool addToQueue = true}) {
@@ -846,6 +850,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
   ///
   /// Invariant: After graph construction, no [PlaceholderTypeInformation] nodes
   /// should be present and a default type for each parameter should exist.
+  @override
   TypeInformation getDefaultTypeOfParameter(Local parameter) {
     return _defaultTypeOfParameter.putIfAbsent(parameter, () {
       return PlaceholderTypeInformation(
@@ -1093,6 +1098,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
   }
 
   /// Returns the type of [element] when being called with [selector].
+  @override
   TypeInformation typeOfMemberWithSelector(
       MemberEntity element, Selector selector) {
     if (element.name == Identifiers.noSuchMethod_ &&
@@ -1176,6 +1182,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
   ///
   /// One category of elements that do not apply is runtime helpers that the
   /// backend calls, but the optimizations don't see those calls.
+  @override
   bool canFieldBeUsedForGlobalOptimizations(FieldEntity element) {
     if (closedWorld.backendUsage.isFieldUsedByBackend(element)) {
       return false;
@@ -1191,12 +1198,14 @@ class InferrerEngine implements interfaces.InferrerEngine {
   ///
   /// One category of elements that do not apply is runtime helpers that the
   /// backend calls, but the optimizations don't see those calls.
+  @override
   bool canFunctionParametersBeUsedForGlobalOptimizations(
       FunctionEntity function) {
     return !closedWorld.backendUsage.isFunctionUsedByBackend(function);
   }
 
   /// Returns `true` if inference of parameter types is disabled for [member].
+  @override
   bool assumeDynamic(MemberEntity member) {
     return closedWorld.annotationsData.hasAssumeDynamic(member);
   }
