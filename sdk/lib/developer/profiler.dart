@@ -8,7 +8,12 @@ part of dart.developer;
 /// [DevTools CPU profiler](https://flutter.dev/docs/development/tools/devtools/cpu-profiler).
 abstract class UserTag {
   /// The maximum number of UserTag instances that can be created by a program.
-  static const MAX_USER_TAGS = 64;
+  static const maxUserTags = 64;
+
+  @deprecated
+  // TODO: We shouldn't be using SCREAMING_CAPS for constants, so this should
+  // be removed for Dart 3.0.
+  static const MAX_USER_TAGS = maxUserTags;
 
   external factory UserTag(String label);
 
@@ -112,7 +117,7 @@ class Metrics {
   /// The current set of registered [Metric]s.
   static UnmodifiableMapView<String, Metric> get current =>
       UnmodifiableMapView<String, Metric>(_metrics);
-  static final Map<String, Metric> _metrics = new Map<String, Metric>();
+  static final _metrics = <String, Metric>{};
 
   /// Register [Metric]s to make them visible to Observatory.
   static void register(Metric metric) {
