@@ -317,14 +317,6 @@ abstract class AnnotationsData {
   /// annotation.
   bool hasNoSideEffects(MemberEntity member);
 
-  /// Calls [f] for all functions with a `@pragma('dart2js:noInline')`
-  /// annotation.
-  void forEachNoInline(void f(FunctionEntity function));
-
-  /// Calls [f] for all functions with a `@pragma('dart2js:tryInline')`
-  /// annotation.
-  void forEachTryInline(void f(FunctionEntity function));
-
   /// Calls [f] for all functions with a `@pragma('dart2js:noThrows')`
   /// annotation.
   void forEachNoThrows(void f(FunctionEntity function));
@@ -449,26 +441,6 @@ class AnnotationsDataImpl implements AnnotationsData {
   @override
   bool hasNoSideEffects(MemberEntity member) =>
       _hasPragma(member, PragmaAnnotation.noSideEffects);
-
-  @override
-  void forEachNoInline(void f(FunctionEntity function)) {
-    pragmaAnnotations
-        .forEach((MemberEntity member, EnumSet<PragmaAnnotation> set) {
-      if (set.contains(PragmaAnnotation.noInline)) {
-        f(member as FunctionEntity);
-      }
-    });
-  }
-
-  @override
-  void forEachTryInline(void f(FunctionEntity function)) {
-    pragmaAnnotations
-        .forEach((MemberEntity member, EnumSet<PragmaAnnotation> set) {
-      if (set.contains(PragmaAnnotation.tryInline)) {
-        f(member as FunctionEntity);
-      }
-    });
-  }
 
   @override
   void forEachNoThrows(void f(FunctionEntity function)) {
