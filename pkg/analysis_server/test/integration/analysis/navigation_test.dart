@@ -55,7 +55,7 @@ part of foo;
 ''';
     writeFile(pathname2, text2);
     await standardAnalysisSetup();
-    sendAnalysisSetSubscriptions({
+    await sendAnalysisSetSubscriptions({
       AnalysisService.NAVIGATION: [pathname1]
     });
 
