@@ -5923,21 +5923,21 @@ extension on FlowModel<Type> {
         for (Var v in capturedVariables) _promotionKeyStore.keyForVariable(v)
       ]);
 
-  FlowModel<Type> _declare(Var variable, bool initialized) => this.declare(
-      variable, _promotionKeyStore.keyForVariable(variable), initialized);
+  FlowModel<Type> _declare(Var variable, bool initialized) =>
+      this.declare(_promotionKeyStore.keyForVariable(variable), initialized);
 
   VariableModel<Type> _infoFor(Var variable) =>
       infoFor(_promotionKeyStore.keyForVariable(variable));
 
   ExpressionInfo<Type> _tryMarkNonNullable(Harness h, Var variable) =>
-      tryMarkNonNullable(h, _varRefWithType(variable));
+      tryMarkNonNullable(h, _varRefWithType(variable), _promotionKeyStore);
 
   ExpressionInfo<Type> _tryPromoteForTypeCheck(
           Harness h, Var variable, String type) =>
-      tryPromoteForTypeCheck(h, _varRefWithType(variable), Type(type));
+      tryPromoteForTypeCheck(
+          h, _varRefWithType(variable), Type(type), _promotionKeyStore);
 
-  Reference<Type> _varRef(Var variable) => new VariableReference<Var, Type>(
-      variable, _promotionKeyStore.keyForVariable(variable));
+  int _varRef(Var variable) => _promotionKeyStore.keyForVariable(variable);
 
   ReferenceWithType<Type> _varRefWithType(Var variable) =>
       new ReferenceWithType<Type>(

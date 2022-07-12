@@ -891,20 +891,6 @@ lsp.DiagnosticSeverity pluginToDiagnosticSeverity(
 ///   0 -> 9999999 -   0 -> 9 999 999
 String relevanceToSortText(int relevance) => (9999999 - relevance).toString();
 
-lsp.Location? searchResultToLocation(
-    server.SearchResult result, server.LineInfo? lineInfo) {
-  final location = result.location;
-
-  if (lineInfo == null) {
-    return null;
-  }
-
-  return lsp.Location(
-    uri: Uri.file(result.location.file).toString(),
-    range: toRange(lineInfo, location.offset, location.length),
-  );
-}
-
 /// Creates a SnippetTextEdit for a set of edits using Linked Edit Groups.
 ///
 /// Edit groups offsets are based on the entire content being modified after all

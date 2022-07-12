@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol_dart.dart' as protocol;
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analyzer/dart/element/element.dart';
 
@@ -48,8 +49,8 @@ class SearchFindElementReferencesHandler extends LegacyHandler {
     if (element != null) {
       var computer = ElementReferencesComputer(searchEngine);
       var results = await computer.compute(element, params.includePotential);
-      sendSearchResults(
-          protocol.SearchResultsParams(searchId, results.toList(), true));
+      sendSearchResults(protocol.SearchResultsParams(
+          searchId, results.map(newSearchResult_fromMatch).toList(), true));
     }
   }
 }
