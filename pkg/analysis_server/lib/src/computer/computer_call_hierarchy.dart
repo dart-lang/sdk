@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -12,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 
 /// A [CallHierarchyItem] and a set of ranges that call to or from it.
 class CallHierarchyCalls {
@@ -45,30 +45,46 @@ class CallHierarchyItem {
   final String file;
 
   /// The range of the name at the declaration of this item.
-  final SourceRange range;
+  final SourceRange nameRange;
 
-  // TODO(dantup): This class will need to contain two ranges (codeRange +
-  //   selectionRange) for LSP.
+  /// The range of the code for the declaration of this item.
+  final SourceRange codeRange;
 
-  CallHierarchyItem.forElement(
-    Element element, {
-    required this.range,
-  })  : displayName = element is CompilationUnitElement
+  CallHierarchyItem.forElement(Element element)
+      : displayName = element is CompilationUnitElement
             ? element.source.shortName
             : element is PropertyAccessorElement
                 ? element.isGetter
                     ? 'get ${element.displayName}'
                     : 'set ${element.displayName}'
                 : element.displayName,
+        nameRange = _nameRangeForElement(element),
+        codeRange = _codeRangeForElement(element),
         file = element.source!.fullName,
         kind = CallHierarchyKind.forElement(element);
 
-  CallHierarchyItem.forProtocolElement(
-    protocol.Element element, {
-    required this.range,
-  })  : displayName = element.name,
-        file = element.location!.file,
-        kind = CallHierarchyKind.forProtocolElement(element);
+  /// Returns the [SourceRange] of the code for [element].
+  static SourceRange _codeRangeForElement(Element element) {
+    // For synthetic items (like implicit constructors), use the nonSynthetic
+    // element for the location.
+    final elementImpl = element.nonSynthetic as ElementImpl;
+
+    // Non-synthetic elements should always have code locations.
+    return SourceRange(elementImpl.codeOffset!, elementImpl.codeLength!);
+  }
+
+  /// Returns the [SourceRange] of the name for [element].
+  static SourceRange _nameRangeForElement(Element element) {
+    // For synthetic items (like implicit constructors), use the nonSynthetic
+    // element for the location.
+    element = element.nonSynthetic;
+
+    // Compilation units will return -1 for nameOffset which is not valid, so
+    //use 0:0.
+    return element.nameOffset == -1
+        ? SourceRange(0, 0)
+        : SourceRange(element.nameOffset, element.nameLength);
+  }
 }
 
 /// Kinds of [CallHierarchyItem] that can make calls to other
@@ -95,23 +111,8 @@ enum CallHierarchyKind {
     ElementKind.SETTER: property,
   };
 
-  static const _protocolElementMapping = {
-    protocol.ElementKind.CLASS: class_,
-    protocol.ElementKind.COMPILATION_UNIT: file,
-    protocol.ElementKind.CONSTRUCTOR: constructor,
-    protocol.ElementKind.EXTENSION: extension,
-    protocol.ElementKind.FUNCTION: function,
-    protocol.ElementKind.GETTER: property,
-    protocol.ElementKind.METHOD: method,
-    protocol.ElementKind.MIXIN: mixin,
-    protocol.ElementKind.SETTER: property,
-  };
-
   static CallHierarchyKind forElement(Element element) =>
       _elementMapping[element.kind] ?? unknown;
-
-  static CallHierarchyKind forProtocolElement(protocol.Element element) =>
-      _protocolElementMapping[element.kind] ?? unknown;
 }
 
 /// A computer for Call Hierarchies.
@@ -143,7 +144,7 @@ class DartCallHierarchyComputer {
     SearchEngine searchEngine,
   ) async {
     assert(target.file == _result.path);
-    final node = _findTargetNode(target.range.offset);
+    final node = _findTargetNode(target.nameRange.offset);
     var element = _getElementOfNode(node);
     if (element == null) {
       return [];
@@ -169,12 +170,12 @@ class DartCallHierarchyComputer {
 
     // Group results by their container, since we only want to return a single
     // entry for a body, with a set of ranges within.
-    final resultsByContainer = <protocol.Element, CallHierarchyCalls>{};
+    final resultsByContainer = <Element, CallHierarchyCalls>{};
     // We may need to fetch parsed results for the other files, reuse them
     // across calls.
     final parsedUnits = <String, SomeParsedUnitResult?>{};
     for (final reference in references) {
-      final container = _getContainer(reference.path);
+      final container = _getContainer(reference.element);
       if (container == null) {
         continue;
       }
@@ -182,14 +183,11 @@ class DartCallHierarchyComputer {
       // Create an item for a container the first time we see it.
       final containerCalls = resultsByContainer.putIfAbsent(
         container,
-        () => CallHierarchyCalls(CallHierarchyItem.forProtocolElement(
-          container,
-          range: _rangeForProtocolElement(container),
-        )),
+        () => CallHierarchyCalls(CallHierarchyItem.forElement(container)),
       );
 
       // Add this match to the containers results.
-      final range = _rangeForSearchResult(reference, parsedUnits);
+      final range = _rangeForSearchMatch(reference, parsedUnits);
       containerCalls.ranges.add(range);
     }
 
@@ -202,7 +200,7 @@ class DartCallHierarchyComputer {
     CallHierarchyItem target,
   ) async {
     assert(target.file == _result.path);
-    final node = _findTargetNode(target.range.offset);
+    final node = _findTargetNode(target.nameRange.offset);
     if (node == null) {
       return [];
     }
@@ -229,10 +227,7 @@ class DartCallHierarchyComputer {
       // Create an item for a target the first time we see it.
       final calls = resultsByTarget.putIfAbsent(
         target,
-        () => CallHierarchyCalls(CallHierarchyItem.forElement(
-          target,
-          range: _rangeForElement(target),
-        )),
+        () => CallHierarchyCalls(CallHierarchyItem.forElement(target)),
       );
 
       // Add this call to the targets results.
@@ -253,8 +248,7 @@ class DartCallHierarchyComputer {
 
     // We only return targets that are executable elements.
     return element is ExecutableElement
-        ? CallHierarchyItem.forElement(element,
-            range: _rangeForElement(element))
+        ? CallHierarchyItem.forElement(element)
         : null;
   }
 
@@ -289,23 +283,26 @@ class DartCallHierarchyComputer {
     return node;
   }
 
-  /// Returns the enclosing element (class, function body, compliation unit) for
-  /// the reference [element].
+  /// Returns the container for [element] that should be used in Call Hierarchy.
+  ///
+  /// Returns `null` if none of [elements] are valid containers.
   ///
   /// This is used to construct (and group calls by) a [CallHierarchyItem] that
   /// contains calls.
-  protocol.Element? _getContainer(List<protocol.Element> elements) {
-    return elements.firstWhere((parent) =>
-        parent.kind == protocol.ElementKind.CLASS ||
-        parent.kind == protocol.ElementKind.COMPILATION_UNIT ||
-        parent.kind == protocol.ElementKind.CONSTRUCTOR ||
-        parent.kind == protocol.ElementKind.ENUM ||
-        parent.kind == protocol.ElementKind.EXTENSION ||
-        parent.kind == protocol.ElementKind.FUNCTION ||
-        parent.kind == protocol.ElementKind.GETTER ||
-        parent.kind == protocol.ElementKind.METHOD ||
-        parent.kind == protocol.ElementKind.MIXIN ||
-        parent.kind == protocol.ElementKind.SETTER);
+  Element? _getContainer(Element element) {
+    const containerKinds = {
+      ElementKind.CLASS,
+      ElementKind.COMPILATION_UNIT,
+      ElementKind.CONSTRUCTOR,
+      ElementKind.ENUM,
+      ElementKind.EXTENSION,
+      ElementKind.FUNCTION,
+      ElementKind.GETTER,
+      ElementKind.METHOD,
+      ElementKind.SETTER,
+    };
+    return element.thisOrAncestorMatching(
+        (ancestor) => containerKinds.contains(ancestor.kind));
   }
 
   /// Return the [Element] of the given [node], or `null` if [node] is `null`,
@@ -338,17 +335,6 @@ class DartCallHierarchyComputer {
     return element;
   }
 
-  /// Returns the [SourceRange] to use for [element].
-  ///
-  /// The returned range covers only the name of the target and does not include
-  /// any parameter list.
-  SourceRange _rangeForElement(Element element) {
-    // For synthetic items (like implicit constructors), use the nonSynthetic
-    // element for the location.
-    element = element.nonSynthetic;
-    return SourceRange(element.nameOffset, element.nameLength);
-  }
-
   /// Returns the [SourceRange] to use for [node].
   ///
   /// The returned range covers only the name of the target and does not include
@@ -373,14 +359,6 @@ class DartCallHierarchyComputer {
     return SourceRange(node.offset, node.length);
   }
 
-  /// Returns the [SourceRange] to use for [element].
-  ///
-  /// The returned range covers only the name of the target and does not include
-  /// any parameter list.
-  SourceRange _rangeForProtocolElement(protocol.Element element) {
-    return SourceRange(element.location!.offset, element.location!.length);
-  }
-
   /// Returns the [SourceRange] for [match].
   ///
   /// Usually this is the range returned from the search index, but sometimes it
@@ -388,13 +366,13 @@ class DartCallHierarchyComputer {
   /// for this call. For example, an unnamed constructor may be given a range
   /// covering the type name (whereas the index has a zero-width range after the
   /// type name).
-  SourceRange _rangeForSearchResult(
-    protocol.SearchResult match,
+  SourceRange _rangeForSearchMatch(
+    SearchMatch match,
     Map<String, SomeParsedUnitResult?> parsedUnits,
   ) {
-    var offset = match.location.offset;
-    var length = match.location.length;
-    final file = match.location.file;
+    var offset = match.sourceRange.offset;
+    var length = match.sourceRange.length;
+    final file = match.file;
     final result = parsedUnits.putIfAbsent(
       file,
       () => _result.session.getParsedUnit(file),
