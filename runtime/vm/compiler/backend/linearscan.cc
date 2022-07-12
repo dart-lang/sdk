@@ -103,7 +103,7 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph,
       vreg_count_(flow_graph.max_virtual_register_number()),
       live_ranges_(flow_graph.max_virtual_register_number()),
       unallocated_cpu_(),
-      unallocated_xmm_(),
+      unallocated_fpu_(),
       cpu_regs_(),
       fpu_regs_(),
       blocked_cpu_registers_(),
@@ -2767,7 +2767,7 @@ void FlowGraphAllocator::CompleteRange(LiveRange* range, Location::Kind kind) {
       break;
 
     case Location::kFpuRegister:
-      AddToSortedListOfRanges(&unallocated_xmm_, range);
+      AddToSortedListOfRanges(&unallocated_fpu_, range);
       break;
 
     default:
@@ -3351,7 +3351,7 @@ void FlowGraphAllocator::AllocateRegisters() {
   untagged_spill_slots_.Clear();
 
   PrepareForAllocation(Location::kFpuRegister, kNumberOfFpuRegisters,
-                       unallocated_xmm_, fpu_regs_, blocked_fpu_registers_);
+                       unallocated_fpu_, fpu_regs_, blocked_fpu_registers_);
   AllocateUnallocatedRanges();
 
   GraphEntryInstr* entry = block_order_[0]->AsGraphEntry();

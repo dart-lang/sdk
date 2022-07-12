@@ -317,7 +317,7 @@ class FlowGraphAllocator : public ValueObject {
   GrowableArray<LiveRange*> live_ranges_;
 
   GrowableArray<LiveRange*> unallocated_cpu_;
-  GrowableArray<LiveRange*> unallocated_xmm_;
+  GrowableArray<LiveRange*> unallocated_fpu_;
 
   LiveRange* cpu_regs_[kNumberOfCpuRegisters];
   LiveRange* fpu_regs_[kNumberOfFpuRegisters];
