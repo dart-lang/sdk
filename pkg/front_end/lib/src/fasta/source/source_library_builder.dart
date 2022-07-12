@@ -79,7 +79,13 @@ import '../kernel/type_algorithms.dart'
         getNonSimplicityIssuesForDeclaration,
         getNonSimplicityIssuesForTypeVariables,
         pendingVariance;
-import '../kernel/utils.dart' show compareProcedures, toKernelCombinators;
+import '../kernel/utils.dart'
+    show
+        compareProcedures,
+        exportDynamicSentinel,
+        exportNeverSentinel,
+        toKernelCombinators,
+        unserializableExportName;
 import '../modifier.dart'
     show
         abstractMask,
@@ -211,12 +217,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   ///
   /// The key is the name of the exported member.
   ///
-  /// If the name is `dynamic` or `void`, this library reexports the
-  /// corresponding type from `dart:core`, and the value is null.
+  /// If the name is `dynamic` or `Never`, this library reexports the
+  /// corresponding type from `dart:core`, and the value is the sentinel values
+  /// [exportDynamicSentinel] or [exportNeverSentinel], respectively.
   ///
   /// Otherwise, this represents an error (an ambiguous export). In this case,
   /// the error message is the corresponding value in the map.
-  Map<String, String?>? unserializableExports;
+  Map<String, String>? unserializableExports;
 
   /// The language version of this library as defined by the language version
   /// of the package it belongs to, if present, or the current language version
@@ -1072,7 +1079,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     library.procedures.sort(compareProcedures);
 
     if (unserializableExports != null) {
-      Name fieldName = new Name("_exports#", library);
+      Name fieldName = new Name(unserializableExportName, library);
       Reference? fieldReference =
           referencesFromIndexed?.lookupFieldReference(fieldName);
       Reference? getterReference =
@@ -1375,52 +1382,52 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     exportScope.forEach((String name, Builder member) {
       if (member.parent != this) {
-        switch (name) {
-          case "dynamic":
-          case "void":
-          case "Never":
-            unserializableExports ??= <String, String?>{};
-            unserializableExports![name] = null;
-            break;
-
-          default:
-            if (member is InvalidTypeDeclarationBuilder) {
-              unserializableExports ??= <String, String>{};
-              unserializableExports![name] = member.message.problemMessage;
-            } else {
-              // Eventually (in #buildBuilder) members aren't added to the
-              // library if the have 'next' pointers, so don't add them as
-              // additionalExports either. Add the last one only (the one that
-              // will eventually be added to the library).
-              Builder memberLast = member;
-              while (memberLast.next != null) {
-                memberLast = memberLast.next!;
-              }
-              if (memberLast is ClassBuilder) {
-                library.additionalExports.add(memberLast.cls.reference);
-              } else if (memberLast is TypeAliasBuilder) {
-                library.additionalExports.add(memberLast.typedef.reference);
-              } else if (memberLast is ExtensionBuilder) {
-                library.additionalExports.add(memberLast.extension.reference);
-              } else if (memberLast is MemberBuilder) {
-                for (Member member in memberLast.exportedMembers) {
-                  if (member is Field) {
-                    // For fields add both getter and setter references
-                    // so replacing a field with a getter/setter pair still
-                    // exports correctly.
-                    library.additionalExports.add(member.getterReference);
-                    if (member.hasSetter) {
-                      library.additionalExports.add(member.setterReference!);
-                    }
-                  } else {
-                    library.additionalExports.add(member.reference);
-                  }
-                }
-              } else {
-                unhandled('member', 'exportScope', memberLast.charOffset,
-                    memberLast.fileUri);
-              }
+        if (member is DynamicTypeDeclarationBuilder) {
+          assert(name == 'dynamic',
+              "Unexpected export name for 'dynamic': '$name'");
+          (unserializableExports ??= {})[name] = exportDynamicSentinel;
+        } else if (member is NeverTypeDeclarationBuilder) {
+          assert(
+              name == 'Never', "Unexpected export name for 'Never': '$name'");
+          (unserializableExports ??= {})[name] = exportNeverSentinel;
+        } else {
+          if (member is InvalidTypeDeclarationBuilder) {
+            (unserializableExports ??= {})[name] =
+                member.message.problemMessage;
+          } else {
+            // Eventually (in #buildBuilder) members aren't added to the
+            // library if the have 'next' pointers, so don't add them as
+            // additionalExports either. Add the last one only (the one that
+            // will eventually be added to the library).
+            Builder memberLast = member;
+            while (memberLast.next != null) {
+              memberLast = memberLast.next!;
             }
+            if (memberLast is ClassBuilder) {
+              library.additionalExports.add(memberLast.cls.reference);
+            } else if (memberLast is TypeAliasBuilder) {
+              library.additionalExports.add(memberLast.typedef.reference);
+            } else if (memberLast is ExtensionBuilder) {
+              library.additionalExports.add(memberLast.extension.reference);
+            } else if (memberLast is MemberBuilder) {
+              for (Member member in memberLast.exportedMembers) {
+                if (member is Field) {
+                  // For fields add both getter and setter references
+                  // so replacing a field with a getter/setter pair still
+                  // exports correctly.
+                  library.additionalExports.add(member.getterReference);
+                  if (member.hasSetter) {
+                    library.additionalExports.add(member.setterReference!);
+                  }
+                } else {
+                  library.additionalExports.add(member.reference);
+                }
+              }
+            } else {
+              unhandled('member', 'exportScope', memberLast.charOffset,
+                  memberLast.fileUri);
+            }
+          }
         }
       }
     });

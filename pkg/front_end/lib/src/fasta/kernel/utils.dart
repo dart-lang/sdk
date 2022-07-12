@@ -28,6 +28,22 @@ import '../identifiers.dart';
 import '../source/source_library_builder.dart';
 import 'body_builder.dart';
 
+/// The name for the synthesized field used to store information of
+/// unserializable exports in a [Library].
+///
+/// For instance, if a [Library] tries to export two declarations with the same
+/// name, the unserializable exports will map this name to the corresponding
+/// error message.
+const String unserializableExportName = '_exports#';
+
+/// Sentinel value used in unserializable exports to signal an export of
+/// 'dynamic' from 'dart:core'.
+const String exportDynamicSentinel = '<dynamic>';
+
+/// Sentinel value used in unserializable exports to signal an export of
+/// 'Never' from 'dart:core'.
+const String exportNeverSentinel = '<Never>';
+
 void printNodeOn(Node? node, StringSink sink, {NameSystem? syntheticNames}) {
   if (node == null) {
     sink.write("null");

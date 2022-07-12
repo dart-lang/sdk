@@ -1194,7 +1194,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
     if (_useSdk) {
       prefix = '${_configuration.buildDirectory}/dart-sdk/bin';
     }
-    return '$prefix/dart$shellScriptExtension';
+    return '$prefix/dart$executableExtension';
   }
 
   String computeAnalyzerCliPath() {
