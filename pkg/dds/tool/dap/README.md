@@ -1,6 +1,6 @@
 # Debug Adapter Protocol
 
-Dart includes support for debugging using [the Debug Adapter Protocol](https://microsoft.github.io/debug-adapter-protocol/) as an alternative to using the [VM Service](https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md) directly, simplying the integration for new editors.
+Dart includes support for debugging using [the Debug Adapter Protocol](https://microsoft.github.io/debug-adapter-protocol/) as an alternative to using the [VM Service](https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md) directly, simplifying the integration for new editors.
 
 The debug adapters are started with the `dart debug_adapter` command and are intended to be consumed by DAP-compliant tools such as Dart-specific extensions for editors, or configured by users whose editors include generic configurable DAP clients.
 

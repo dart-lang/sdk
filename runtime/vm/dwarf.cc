@@ -892,7 +892,7 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
         auto uri_cstr = Deobfuscate(uri.ToCString());
         if (FLAG_resolve_dwarf_paths) {
           auto const converted_cstr = ConvertResolvedURI(uri_cstr);
-          // Strictly enforce this to catch inconvertable cases.
+          // Strictly enforce this to catch inconvertible cases.
           if (converted_cstr == nullptr) {
             FATAL("cannot convert resolved URI %s", uri_cstr);
           }

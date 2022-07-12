@@ -1211,7 +1211,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     _closeFunction();
   }
 
-  /// Builds a SSA graph for FunctionNodes, found in FunctionExpressions and
+  /// Builds an SSA graph for FunctionNodes, found in FunctionExpressions and
   /// Procedures.
   void _buildFunctionNode(
       FunctionEntity function, ir.FunctionNode functionNode) {
@@ -1253,7 +1253,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         isStatement: true));
   }
 
-  /// Builds a SSA graph for a sync*/async/async* generator.  We generate a
+  /// Builds an SSA graph for a sync*/async/async* generator.  We generate a
   /// entry function which tail-calls a body function. The entry contains
   /// per-invocation checks and the body, which is later transformed, contains
   /// the re-entrant 'state machine' code.
@@ -1324,7 +1324,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     _closeFunction();
   }
 
-  /// Builds a SSA graph for a sync*/async/async* generator body.
+  /// Builds an SSA graph for a sync*/async/async* generator body.
   void _buildGeneratorBody(
       JGeneratorBody function, ir.FunctionNode functionNode) {
     FunctionEntity entry = function.function;
@@ -1473,7 +1473,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     return _isNonNullableByDefault(node.parent);
   }
 
-  /// Builds a SSA graph for FunctionNodes of external methods. This produces a
+  /// Builds an SSA graph for FunctionNodes of external methods. This produces a
   /// graph for a method with Dart calling conventions that forwards to the
   /// actual external method.
   void _buildExternalFunctionNode(

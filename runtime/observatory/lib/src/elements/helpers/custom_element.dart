@@ -38,7 +38,7 @@ class CustomElement {
     while (!toBeAttached.isEmpty) {
       // Either this element will never be attached or it will be attached
       // after a turn of the outer event loop. Fire 'attached' in case it is
-      // the latter, since firing it out of order is preferrable to not firing
+      // the latter, since firing it out of order is preferable to not firing
       // it at all.
       CustomElement element = toBeAttached.removeLast();
       print("Warning: created but not in document: $element");

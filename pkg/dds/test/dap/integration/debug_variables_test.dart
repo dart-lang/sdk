@@ -318,7 +318,7 @@ void main(List<String> args) {
       expect(mapVariable.variablesReference, isPositive);
       final variables = await client.expectVariables(
         mapVariable.variablesReference,
-        // We don't expect an evaluteName because the key is not a simple type.
+        // We don't expect an evaluateName because the key is not a simple type.
         '''
             key: DateTime
             value: _Exception
@@ -381,7 +381,7 @@ void main() {
 
     test('does not use toString() result if "Instance of Foo"', () async {
       // When evaluateToStringInDebugViews=true, we should discard the result of
-      // caling toString() when it's just 'Instance of Foo' because we're already
+      // calling toString() when it's just 'Instance of Foo' because we're already
       // showing the type, and otherwise we show:
       //
       //     myVariable: Foo (Instance of Foo)

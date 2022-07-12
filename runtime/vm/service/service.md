@@ -1997,7 +1997,7 @@ class CpuSamples extends Response {
   int pid;
 
   // A list of functions seen in the relevant samples. These references can be
-  // looked up using the indicies provided in a `CpuSample` `stack` to determine
+  // looked up using the indices provided in a `CpuSample` `stack` to determine
   // which function was on the stack.
   ProfileFunction[] functions;
 
@@ -2039,7 +2039,7 @@ class CpuSamplesEvent {
   int pid;
 
   // A list of references to functions seen in the relevant samples. These references can
-  // be looked up using the indicies provided in a `CpuSample` `stack` to determine
+  // be looked up using the indices provided in a `CpuSample` `stack` to determine
   // which function was on the stack.
   (@Object|NativeFunction)[] functions;
 

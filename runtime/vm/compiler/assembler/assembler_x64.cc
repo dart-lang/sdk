@@ -525,7 +525,7 @@ void Assembler::roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode) {
   EmitUint8(0x3A);
   EmitUint8(0x0B);
   EmitRegisterOperand(dst & 7, src);
-  // Mask precision exeption.
+  // Mask precision exception.
   EmitUint8(static_cast<uint8_t>(mode) | 0x8);
 }
 

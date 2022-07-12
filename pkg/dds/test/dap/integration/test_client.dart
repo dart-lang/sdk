@@ -934,7 +934,7 @@ extension DapTestClientExtension on DapTestClient {
     return stack.stackFrames.first.id;
   }
 
-  /// Evalutes [expression] in frame [frameId] and expects a specific
+  /// Evaluates [expression] in frame [frameId] and expects a specific
   /// [expectedResult].
   Future<EvaluateResponseBody> expectEvalResult(
     int frameId,

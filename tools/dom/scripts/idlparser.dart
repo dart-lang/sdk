@@ -204,9 +204,9 @@ class IDLArgument extends IDLNode {
   IDLType type;
   bool isOptional;
   bool isIn;
-  bool hasElipsis;
+  bool hasEllipsis;
   IDLArgument(String this.id, IDLType this.type, IDLExtAttrs extAttrs,
-              bool this.isOptional, bool this.isIn, bool this.hasElipsis) {
+              bool this.isOptional, bool this.isIn, bool this.hasEllipsis) {
     setExtAttrs(extAttrs);
   }
 

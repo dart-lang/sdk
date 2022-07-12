@@ -9,7 +9,7 @@ Existing VM Service clients can issue both HTTP, websocket, and SSE requests to 
 
 # SSE Support
 
-For certain web clients it may be preferrable or required to communicate with DDS using server-sent events (SSE). DDS has a SSE handler listening for requests on `/$debugHandler`.
+For certain web clients it may be preferable or required to communicate with DDS using server-sent events (SSE). DDS has an SSE handler listening for requests on `/$debugHandler`.
 
 ## SSE and package:vm_service example
 

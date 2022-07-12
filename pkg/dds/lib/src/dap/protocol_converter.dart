@@ -69,7 +69,7 @@ class ProtocolConverter {
               thread,
               ref,
               // Quotes are handled below, so they can be wrapped around the
-              // elipsis.
+              // ellipsis.
               includeQuotesAroundString: false,
             )
           : null;
@@ -111,7 +111,7 @@ class ProtocolConverter {
     }
   }
 
-  /// Converts a [vm.Instace] to a list of [dap.Variable]s, one for each
+  /// Converts a [vm.Instance] to a list of [dap.Variable]s, one for each
   /// field/member/element/association.
   ///
   /// If [startItem] and/or [numItems] are supplied, only a slice of the
