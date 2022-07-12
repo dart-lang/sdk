@@ -861,6 +861,7 @@ class _CheckPromoted extends Statement {
 
 class _CheckReachable extends Statement {
   final bool expectedReachable;
+  final StackTrace _creationTrace = StackTrace.current;
 
   _CheckReachable(this.expectedReachable) : super._();
 
@@ -872,7 +873,7 @@ class _CheckReachable extends Statement {
 
   @override
   void _visit(Harness h) {
-    expect(h._flow.isReachable, expectedReachable);
+    expect(h._flow.isReachable, expectedReachable, reason: '$_creationTrace');
     h._irBuilder.atom('null');
   }
 }
