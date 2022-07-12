@@ -387,17 +387,20 @@ class ExpressionInfo<Type extends Object> {
   /// The state after the expression evaluates, if it evaluates to `false`.
   final FlowModel<Type> ifFalse;
 
-  ExpressionInfo(this.after, this.ifTrue, this.ifFalse);
+  ExpressionInfo(
+      {required this.after, required this.ifTrue, required this.ifFalse});
 
   /// Computes a new [ExpressionInfo] based on this one, but with the roles of
   /// [ifTrue] and [ifFalse] reversed.
   ExpressionInfo<Type> invert() =>
-      new ExpressionInfo<Type>(after, ifFalse, ifTrue);
+      new ExpressionInfo<Type>(after: after, ifTrue: ifFalse, ifFalse: ifTrue);
 
   ExpressionInfo<Type>? rebaseForward(
           TypeOperations<Type> typeOperations, FlowModel<Type> base) =>
-      new ExpressionInfo(base, ifTrue.rebaseForward(typeOperations, base),
-          ifFalse.rebaseForward(typeOperations, base));
+      new ExpressionInfo(
+          after: base,
+          ifTrue: ifTrue.rebaseForward(typeOperations, base),
+          ifFalse: ifFalse.rebaseForward(typeOperations, base));
 
   @override
   String toString() =>
@@ -2009,12 +2012,10 @@ class FlowModel<Type extends Object> {
     }
     assert(typeOperations.isSubtypeOf(newType, previousType));
 
-    FlowModel<Type> modelIfSuccessful = _finishTypeTest(
+    FlowModel<Type> ifTrue = _finishTypeTest(
         typeOperations, referenceWithType.reference, info, null, newType);
 
-    FlowModel<Type> modelIfFailed = this;
-
-    return new ExpressionInfo<Type>(this, modelIfSuccessful, modelIfFailed);
+    return new ExpressionInfo<Type>(after: this, ifTrue: ifTrue, ifFalse: this);
   }
 
   /// Returns an [ExpressionInfo] indicating the result of casting the given
@@ -2066,32 +2067,33 @@ class FlowModel<Type extends Object> {
     }
 
     Type previousType = referenceWithType.type;
-    FlowModel<Type> modelIfSuccessful = this;
+    FlowModel<Type> ifTrue = this;
     Type? typeIfSuccess = typeOperations.tryPromoteToType(type, previousType);
     if (typeIfSuccess != null &&
         !typeOperations.isSameType(typeIfSuccess, previousType)) {
       assert(typeOperations.isSubtypeOf(typeIfSuccess, previousType),
           "Expected $typeIfSuccess to be a subtype of $previousType.");
-      modelIfSuccessful = _finishTypeTest(typeOperations,
-          referenceWithType.reference, info, type, typeIfSuccess);
+      ifTrue = _finishTypeTest(typeOperations, referenceWithType.reference,
+          info, type, typeIfSuccess);
     }
 
     Type factoredType = typeOperations.factor(previousType, type);
-    Type? typeIfFailed;
+    Type? typeIfFalse;
     if (typeOperations.isNever(factoredType)) {
       // Promoting to `Never` would mark the code as unreachable.  But it might
       // be reachable due to mixed mode unsoundness.  So don't promote.
-      typeIfFailed = null;
+      typeIfFalse = null;
     } else if (typeOperations.isSameType(factoredType, previousType)) {
       // No change to the type, so don't promote.
-      typeIfFailed = null;
+      typeIfFalse = null;
     } else {
-      typeIfFailed = factoredType;
+      typeIfFalse = factoredType;
     }
-    FlowModel<Type> modelIfFailed = _finishTypeTest(
-        typeOperations, referenceWithType.reference, info, type, typeIfFailed);
+    FlowModel<Type> ifFalse = _finishTypeTest(
+        typeOperations, referenceWithType.reference, info, type, typeIfFalse);
 
-    return new ExpressionInfo<Type>(this, modelIfSuccessful, modelIfFailed);
+    return new ExpressionInfo<Type>(
+        after: this, ifTrue: ifTrue, ifFalse: ifFalse);
   }
 
   /// Returns a [FlowModel] indicating the result of removing a control flow
@@ -3567,8 +3569,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _storeExpressionInfo(
         expression,
         value
-            ? new ExpressionInfo(_current, _current, unreachable)
-            : new ExpressionInfo(_current, unreachable, _current));
+            ? new ExpressionInfo(
+                after: _current, ifTrue: _current, ifFalse: unreachable)
+            : new ExpressionInfo(
+                after: _current, ifTrue: unreachable, ifFalse: _current));
   }
 
   @override
@@ -3594,9 +3598,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _storeExpressionInfo(
         conditionalExpression,
         new ExpressionInfo(
-            _merge(thenInfo.after, elseInfo.after),
-            _merge(thenInfo.ifTrue, elseInfo.ifTrue),
-            _merge(thenInfo.ifFalse, elseInfo.ifFalse)));
+            after: _merge(thenInfo.after, elseInfo.after),
+            ifTrue: _merge(thenInfo.ifTrue, elseInfo.ifTrue),
+            ifFalse: _merge(thenInfo.ifFalse, elseInfo.ifFalse)));
   }
 
   @override
@@ -3698,7 +3702,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void for_bodyBegin(Statement? node, Expression? condition) {
     ExpressionInfo<Type> conditionInfo = condition == null
-        ? new ExpressionInfo(_current, _current, _current.setUnreachable())
+        ? new ExpressionInfo(
+            after: _current,
+            ifTrue: _current,
+            ifFalse: _current.setUnreachable())
         : _expressionEnd(condition);
     _WhileContext<Type> context =
         new _WhileContext<Type>(_current.reachable.parent!, conditionInfo);
@@ -3979,8 +3986,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     }
     _storeExpressionInfo(
         wholeExpression,
-        new ExpressionInfo(_merge(trueResult, falseResult),
-            trueResult.unsplit(), falseResult.unsplit()));
+        new ExpressionInfo(
+            after: _merge(trueResult, falseResult),
+            ifTrue: trueResult.unsplit(),
+            ifFalse: falseResult.unsplit()));
   }
 
   @override

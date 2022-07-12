@@ -178,18 +178,21 @@ Iterable<PCOffset> collectPCOffsets(Iterable<String> lines) sync* {
 class DwarfStackTraceDecoder extends StreamTransformerBase<String, String> {
   final Dwarf _dwarf;
   final bool _includeInternalFrames;
+  StackTraceHeader? _header;
 
   DwarfStackTraceDecoder(this._dwarf, {bool includeInternalFrames = false})
       : _includeInternalFrames = includeInternalFrames;
 
+  PCOffset? offsetOf(int address) => _header?.offsetOf(address);
+
   @override
   Stream<String> bind(Stream<String> stream) async* {
     var depth = 0;
-    StackTraceHeader? header;
+    _header = null;
     await for (final line in stream) {
       final parsedHeader = _parseInstructionsLine(line);
       if (parsedHeader != null) {
-        header = parsedHeader;
+        _header = parsedHeader;
         depth = 0;
         yield line;
         continue;
@@ -197,7 +200,7 @@ class DwarfStackTraceDecoder extends StreamTransformerBase<String, String> {
       // If at any point we can't get appropriate information for the current
       // line as a stack trace line, then just pass the line through unchanged.
       final lineMatch = _traceLineRE.firstMatch(line);
-      final offset = _retrievePCOffset(header, lineMatch);
+      final offset = _retrievePCOffset(_header, lineMatch);
       final callInfo = offset?.callInfoFrom(_dwarf,
           includeInternalFrames: _includeInternalFrames);
       if (callInfo == null) {
