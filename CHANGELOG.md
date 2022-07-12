@@ -34,6 +34,10 @@
 
 - Deprecates `BidirectionalIterator`.
 
+### `dart:developer`
+
+- Deprecates `UserTag.MAX_USER_TAGS` in favor of `UserTag.maxUserTags`.
+
 ### Dart VM
 
 Implementation of `async`/`async*`/`sync*` is revamped in Dart VM,
