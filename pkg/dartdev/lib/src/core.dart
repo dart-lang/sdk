@@ -15,7 +15,11 @@ import 'experiments.dart';
 import 'sdk.dart';
 import 'utils.dart';
 
-late Logger log;
+// Initialize a default logger. We'll replace this with a verbose logger if
+// necessary once we start parsing.
+final Ansi ansi = Ansi(Ansi.terminalSupportsAnsi);
+Logger log = Logger.standard(ansi: ansi);
+
 bool isDiagnostics = false;
 
 /// When set, this function is executed from the [DartdevCommand] constructor to

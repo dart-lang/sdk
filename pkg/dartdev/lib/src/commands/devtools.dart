@@ -9,6 +9,7 @@ import 'package:path/path.dart' as path;
 
 import '../core.dart';
 import '../sdk.dart';
+import '../utils.dart';
 
 class DevToolsCommand extends DartdevCommand {
   DevToolsCommand({
@@ -17,6 +18,7 @@ class DevToolsCommand extends DartdevCommand {
   })  : _argParser = DevToolsServer.buildArgParser(
           verbose: verbose,
           includeHelpOption: false,
+          usageLineLength: dartdevUsageLineLength,
         ),
         super(
           'devtools',
