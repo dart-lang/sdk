@@ -929,12 +929,26 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
     return _checkValues(a, b);
   }
 
+  /// Cache of Constants compares and the results.
+  /// This avoids potential exponential blowup when comparing ASTs
+  /// that contain Constants.
+  Map<Constant, Map<dynamic, bool>>? _constantCache;
+
   /// Returns `true` if [a] and [b] are equivalent.
   bool _checkNodes<T extends Node>(T? a, T? b) {
     if (identical(a, b)) return true;
     if (a == null || b == null) {
       return false;
     } else {
+      if (a is Constant) {
+        Map<Constant, Map<dynamic, bool>> cacheFrom = _constantCache ??= {};
+        Map<dynamic, bool> cacheTo = cacheFrom[a] ??= {};
+        bool? previousResult = cacheTo[b];
+        if (previousResult != null) return previousResult;
+        bool result = a.accept1(this, b);
+        cacheTo[b] = result;
+        return result;
+      }
       return a.accept1(this, b);
     }
   }

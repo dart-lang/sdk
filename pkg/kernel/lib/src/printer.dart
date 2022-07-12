@@ -58,16 +58,21 @@ class AstTextStrategy {
   /// If exceeded, '...' is printed instead.
   final int? maxExpressionsLength;
 
+  /// If non-null, a maximum of [maxConstantDepth] nested constants are
+  /// printed. If exceeded, '...' is printed instead.
+  final int? maxConstantDepth;
+
   const AstTextStrategy(
       {this.includeLibraryNamesInTypes: false,
       this.includeLibraryNamesInMembers: false,
       this.includeAuxiliaryProperties: false,
       this.useMultiline: true,
       this.indentation: '  ',
-      this.maxStatementDepth: null,
+      this.maxStatementDepth: 50,
       this.maxStatementsLength: null,
-      this.maxExpressionDepth: null,
-      this.maxExpressionsLength: null});
+      this.maxExpressionDepth: 50,
+      this.maxExpressionsLength: null,
+      this.maxConstantDepth: 10});
 }
 
 class AstPrinter {
@@ -75,6 +80,7 @@ class AstPrinter {
   final StringBuffer _sb = new StringBuffer();
   int _statementLevel = 0;
   int _expressionLevel = 0;
+  int _constantLevel = 0;
   int _indentationLevel = 0;
   late final Map<LabeledStatement, String> _labelNames = {};
   late final Map<VariableDeclaration, String> _variableNames = {};
@@ -226,7 +232,15 @@ class AstPrinter {
   }
 
   void writeConstant(Constant node) {
-    node.toTextInternal(this);
+    int oldConstantLevel = _constantLevel;
+    _constantLevel++;
+    if (_strategy.maxConstantDepth != null &&
+        _constantLevel > _strategy.maxConstantDepth!) {
+      _sb.write('...');
+    } else {
+      node.toTextInternal(this);
+    }
+    _constantLevel = oldConstantLevel;
   }
 
   void writeMapEntry(MapLiteralEntry node) {
