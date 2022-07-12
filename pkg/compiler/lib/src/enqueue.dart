@@ -141,5 +141,5 @@ abstract class Enqueuer {
 
 /// Interface for creating work items for enqueued member entities.
 abstract class WorkItemBuilder {
-  WorkItem createWorkItem(covariant MemberEntity entity);
+  WorkItem? createWorkItem(covariant MemberEntity entity);
 }
