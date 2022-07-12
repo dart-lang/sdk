@@ -87,6 +87,6 @@ class SdkNoDataFileTest extends DataDrivenFixProcessorTest {
     await resolveTestCode('''
 var x = '';
 ''');
-    assertNoExceptions();
+    await assertNoExceptions();
   }
 }

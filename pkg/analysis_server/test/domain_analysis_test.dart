@@ -1458,7 +1458,7 @@ void f(A a) {}
   /// Repeat a few times, eventually there will be no work to do.
   Future<void> _waitAnalysisComplete() async {
     for (var i = 0; i < 128; i++) {
-      pumpEventQueue();
+      await pumpEventQueue();
       await server.onAnalysisComplete;
     }
   }

@@ -805,7 +805,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     _refactoringManager = RefactoringManager(this, refactoringWorkspace);
   }
 
-  Future<void> _scheduleAnalysisImplementedNotification() async {
+  void _scheduleAnalysisImplementedNotification() {
     var files = analysisServices[AnalysisService.IMPLEMENTED];
     if (files != null) {
       scheduleImplementedNotification(this, files);

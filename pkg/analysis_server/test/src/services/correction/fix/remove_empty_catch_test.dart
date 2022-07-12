@@ -67,7 +67,7 @@ void foo() {
   } catch 2;
 }
 ''');
-    assertNoExceptions();
+    await assertNoExceptions();
   }
 
   Future<void> test_singleCatch_finally_newLine() async {
