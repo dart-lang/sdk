@@ -1,12 +1,10 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test that the full stacktrace in an error object matches the stacktrace
 // handed to the catch clause.
 
 // @dart = 2.9
-
-import 'dart:_internal' show VMInternalsForTesting;
 
 import "package:expect/expect.dart";
 
@@ -19,6 +17,5 @@ bar(c) => c * 4;
 foo(c) => bar(c);
 
 main() {
-  print(VMInternalsForTesting.randomAddressInsideAllocateObjectStub());
   var a = foo(new C());
 }

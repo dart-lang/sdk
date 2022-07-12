@@ -40,7 +40,8 @@ String get clangBuildToolsDir {
   return Directory(clangDir).existsSync() ? clangDir : null;
 }
 
-Future<void> assembleSnapshot(String assemblyPath, String snapshotPath) async {
+Future<void> assembleSnapshot(String assemblyPath, String snapshotPath,
+    {bool debug = false}) async {
   if (!Platform.isLinux && !Platform.isMacOS) {
     throw "Unsupported platform ${Platform.operatingSystem} for assembling";
   }
@@ -63,6 +64,11 @@ Future<void> assembleSnapshot(String assemblyPath, String snapshotPath) async {
 
   if (Platform.isMacOS) {
     shared = '-dynamiclib';
+    if (buildDir.endsWith('ARM64')) {
+      // ld: dynamic main executables must link with libSystem.dylib for
+      // architecture arm64
+      ldFlags.add('-lSystem');
+    }
     // Tell Mac linker to give up generating eh_frame from dwarf.
     ldFlags.add('-Wl,-no_compact_unwind');
   } else if (buildDir.endsWith('SIMARM')) {
@@ -73,6 +79,9 @@ Future<void> assembleSnapshot(String assemblyPath, String snapshotPath) async {
 
   if (buildDir.endsWith('X64') || buildDir.endsWith('SIMARM64')) {
     ccFlags.add('-m64');
+  }
+  if (debug) {
+    ccFlags.add('-g');
   }
 
   await run(cc, <String>[
@@ -158,9 +167,7 @@ Future<List<String>> runOutput(String executable, List<String> args) async {
   Expect.isTrue(result.stdout.isNotEmpty);
   Expect.isTrue(result.stderr.isEmpty);
 
-  return await Stream.value(result.stdout as String)
-      .transform(const LineSplitter())
-      .toList();
+  return LineSplitter.split(result.stdout).toList(growable: false);
 }
 
 Future<List<String>> runError(String executable, List<String> args) async {
@@ -172,9 +179,7 @@ Future<List<String>> runError(String executable, List<String> args) async {
   Expect.isTrue(result.stdout.isEmpty);
   Expect.isTrue(result.stderr.isNotEmpty);
 
-  return await Stream.value(result.stderr as String)
-      .transform(const LineSplitter())
-      .toList();
+  return LineSplitter.split(result.stderr).toList(growable: false);
 }
 
 const keepTempKey = 'KEEP_TEMPORARY_DIRECTORIES';

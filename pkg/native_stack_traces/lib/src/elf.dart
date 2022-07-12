@@ -6,6 +6,8 @@
 
 import 'dart:typed_data';
 
+import 'constants.dart' as constants;
+import 'dwarf_container.dart';
 import 'reader.dart';
 
 int _readElfBytes(Reader reader, int bytes, int alignment) {
@@ -90,10 +92,12 @@ class ElfHeader {
       this.sectionHeaderStringsIndex);
 
   static ElfHeader? fromReader(Reader reader) {
+    final start = reader.offset;
     final fileSize = reader.length;
 
     for (final sigByte in _ELFMAG.codeUnits) {
       if (reader.readByte() != sigByte) {
+        reader.seek(start, absolute: true);
         return null;
       }
     }
@@ -266,7 +270,11 @@ class ProgramHeaderEntry {
   static const _PT_NULL = 0;
   static const _PT_LOAD = 1;
   static const _PT_DYNAMIC = 2;
+  static const _PT_NOTE = 4;
   static const _PT_PHDR = 6;
+  static const _PT_GNU_EH_FRAME = 0x6474e550;
+  static const _PT_GNU_STACK = 0x6474e551;
+  static const _PT_GNU_RELRO = 0x6474e552;
 
   ProgramHeaderEntry._(this.type, this.flags, this.offset, this.vaddr,
       this.paddr, this.filesz, this.memsz, this.align, this.wordSize);
@@ -296,7 +304,11 @@ class ProgramHeaderEntry {
     _PT_NULL: 'PT_NULL',
     _PT_LOAD: 'PT_LOAD',
     _PT_DYNAMIC: 'PT_DYNAMIC',
+    _PT_NOTE: 'PT_NOTE',
     _PT_PHDR: 'PT_PHDR',
+    _PT_GNU_EH_FRAME: 'PT_GNU_EH_FRAME',
+    _PT_GNU_STACK: 'PT_GNU_STACK',
+    _PT_GNU_RELRO: 'PT_GNU_RELRO',
   };
 
   static String _typeToString(int type) =>
@@ -646,7 +658,7 @@ class Note extends Section {
 }
 
 /// A map from table offsets to strings, used to store names of ELF objects.
-class StringTable extends Section {
+class StringTable extends Section implements DwarfContainerStringTable {
   final Map<int, String> _entries;
 
   StringTable._(entry, this._entries) : super._(entry);
@@ -658,8 +670,22 @@ class StringTable extends Section {
     return StringTable._(entry, entries);
   }
 
-  String? operator [](int index) => _entries[index];
-  bool containsKey(int index) => _entries.containsKey(index);
+  @override
+  String? operator [](int index) {
+    // Fast case: Index is for the start of a null terminated string.
+    if (_entries.containsKey(index)) {
+      return _entries[index];
+    }
+    // We can index into null terminated string entries for suffixes of
+    // that string, so do a linear search to find the appropriate entry.
+    for (final kv in _entries.entries) {
+      final start = index - kv.key;
+      if (start >= 0 && start <= kv.value.length) {
+        return kv.value.substring(start);
+      }
+    }
+    return null;
+  }
 
   @override
   void writeToStringBuffer(StringBuffer buffer) {
@@ -680,6 +706,7 @@ class StringTable extends Section {
 enum SymbolBinding {
   STB_LOCAL,
   STB_GLOBAL,
+  STB_WEAK,
 }
 
 enum SymbolType {
@@ -696,15 +723,17 @@ enum SymbolVisibility {
 }
 
 /// A symbol in an ELF file, which names a portion of the virtual address space.
-class Symbol {
+class Symbol implements DwarfContainerSymbol {
   final int nameIndex;
   final int info;
   final int other;
   final int sectionIndex;
+  @override
   final int value;
   final int size;
   final int _wordSize;
-  late String name;
+  @override
+  late final String name;
 
   Symbol._(this.nameIndex, this.info, this.other, this.sectionIndex, this.value,
       this.size, this._wordSize);
@@ -731,14 +760,6 @@ class Symbol {
         nameIndex, info, other, sectionIndex, value, size, wordSize);
   }
 
-  void _cacheNameFromStringTable(StringTable table) {
-    final nameFromTable = table[nameIndex];
-    if (nameFromTable == null) {
-      throw FormatException('Index $nameIndex not found in string table');
-    }
-    name = nameFromTable;
-  }
-
   SymbolBinding get bind => SymbolBinding.values[info >> 4];
   SymbolType get type => SymbolType.values[info & 0x0f];
   SymbolVisibility get visibility => SymbolVisibility.values[other & 0x03];
@@ -754,6 +775,9 @@ class Symbol {
         break;
       case SymbolBinding.STB_LOCAL:
         buffer.write(' a local');
+        break;
+      case SymbolBinding.STB_WEAK:
+        buffer.write(' a weak');
         break;
     }
     switch (visibility) {
@@ -804,8 +828,13 @@ class SymbolTable extends Section {
   void _cacheNames(StringTable stringTable) {
     _nameCache.clear();
     for (final symbol in _entries) {
-      symbol._cacheNameFromStringTable(stringTable);
-      _nameCache[symbol.name] = symbol;
+      final index = symbol.nameIndex;
+      final name = stringTable[index];
+      if (name == null) {
+        throw FormatException('Index $index not found in string table');
+      }
+      symbol.name = name;
+      _nameCache[name] = symbol;
     }
   }
 
@@ -932,7 +961,7 @@ class DynamicTable extends Section {
 }
 
 /// Information parsed from an Executable and Linking Format (ELF) file.
-class Elf {
+class Elf implements DwarfContainer {
   final ElfHeader _header;
   final ProgramHeader _programHeader;
   final SectionHeader _sectionHeader;
@@ -984,16 +1013,24 @@ class Elf {
 
   /// Reverse lookup of the static symbol that contains the given virtual
   /// address. Returns null if no static symbol matching the address is found.
+  @override
   Symbol? staticSymbolAt(int address) {
+    Symbol? bestSym;
     for (final section in namedSections('.symtab')) {
       final table = section as SymbolTable;
       for (final symbol in table.values) {
         final start = symbol.value;
-        final end = start + symbol.size;
-        if (start <= address && address < end) return symbol;
+        if (start > address) continue;
+        // If given a non-zero extent of a symbol, make sure the address is
+        // within the extent.
+        if (symbol.size > 0 && (start + symbol.size <= address)) continue;
+        // Pick the symbol with a start closest to the given address.
+        if (bestSym == null || (bestSym.value < start)) {
+          bestSym = symbol;
+        }
       }
     }
-    return null;
+    return bestSym;
   }
 
   /// Creates an [Elf] from the data pointed to by [reader].
@@ -1077,6 +1114,55 @@ class Elf {
         header, programHeader, sectionHeader, sections, sectionsByName);
   }
 
+  @override
+  Reader abbreviationsTableReader(Reader containerReader) =>
+      namedSections('.debug_abbrev').single.refocusedCopy(containerReader);
+
+  @override
+  Reader lineNumberInfoReader(Reader containerReader) =>
+      namedSections('.debug_line').single.refocusedCopy(containerReader);
+
+  @override
+  Reader debugInfoReader(Reader containerReader) =>
+      namedSections('.debug_info').single.refocusedCopy(containerReader);
+
+  @override
+  int get vmStartAddress {
+    final vmStartSymbol = dynamicSymbolFor(constants.vmSymbolName);
+    if (vmStartSymbol == null) {
+      throw FormatException(
+          'Expected a dynamic symbol with name ${constants.vmSymbolName}');
+    }
+    return vmStartSymbol.value;
+  }
+
+  @override
+  int get isolateStartAddress {
+    final isolateStartSymbol = dynamicSymbolFor(constants.isolateSymbolName);
+    if (isolateStartSymbol == null) {
+      throw FormatException(
+          'Expected a dynamic symbol with name ${constants.isolateSymbolName}');
+    }
+    return isolateStartSymbol.value;
+  }
+
+  @override
+  String? get buildId {
+    final sections = namedSections(constants.buildIdSectionName);
+    if (sections.isEmpty) return null;
+    final note = sections.single as Note;
+    if (note.type != constants.buildIdNoteType) return null;
+    if (note.name != constants.buildIdNoteName) return null;
+    return note.description
+        .map((i) => i.toRadixString(16).padLeft(2, '0'))
+        .join();
+  }
+
+  // Currently we don't handle DWARF uses of string tables in ELF files.
+  @override
+  DwarfContainerStringTable? get stringTable => null;
+
+  @override
   void writeToStringBuffer(StringBuffer buffer) {
     buffer
       ..writeln('-----------------------------------------------------')

@@ -6,8 +6,9 @@ import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'constants.dart' as constants;
+import 'dwarf_container.dart';
 import 'elf.dart';
+import 'macho.dart';
 import 'reader.dart';
 
 int _initialLengthValue(Reader reader) {
@@ -102,12 +103,14 @@ enum _AttributeForm {
   reference4,
   sectionOffset,
   string,
+  strp,
 }
 
 const _attributeForms = <int, _AttributeForm>{
   0x01: _AttributeForm.address,
   0x08: _AttributeForm.string,
   0x0c: _AttributeForm.flag,
+  0x0e: _AttributeForm.strp,
   0x0f: _AttributeForm.constant,
   0x13: _AttributeForm.reference4,
   0x17: _AttributeForm.sectionOffset,
@@ -116,6 +119,7 @@ const _attributeForms = <int, _AttributeForm>{
 const _attributeFormStrings = <_AttributeForm, String>{
   _AttributeForm.address: 'DW_FORM_addr',
   _AttributeForm.string: 'DW_FORM_string',
+  _AttributeForm.strp: 'DW_FORM_strp',
   _AttributeForm.flag: 'DW_FORM_flag',
   _AttributeForm.constant: 'DW_FORM_udata',
   _AttributeForm.reference4: 'DW_FORM_ref4',
@@ -145,6 +149,9 @@ class _Attribute {
     switch (form) {
       case _AttributeForm.string:
         return reader.readNullTerminatedString();
+      case _AttributeForm.strp:
+        final offset = reader.readBytes(4);
+        return header.stringTable[offset]!;
       case _AttributeForm.flag:
         return reader.readByte() != 0;
       case _AttributeForm.address:
@@ -161,6 +168,7 @@ class _Attribute {
   String valueToString(Object value, [CompilationUnit? unit]) {
     switch (form) {
       case _AttributeForm.string:
+      case _AttributeForm.strp:
         return value as String;
       case _AttributeForm.flag:
         return value.toString();
@@ -431,14 +439,16 @@ class CompilationUnitHeader {
   final int addressSize;
   // ignore: library_private_types_in_public_api
   final _AbbreviationsTable abbreviations;
+  final DwarfContainerStringTable stringTable;
 
   CompilationUnitHeader._(this.size, this.version, this.abbreviationsOffset,
-      this.addressSize, this.abbreviations);
+      this.addressSize, this.abbreviations, this.stringTable);
 
   static CompilationUnitHeader? fromReader(
       Reader reader,
       // ignore: library_private_types_in_public_api
-      Map<int, _AbbreviationsTable> abbreviationsTables) {
+      Map<int, _AbbreviationsTable> abbreviationsTables,
+      DwarfContainerStringTable stringTable) {
     final size = _initialLengthValue(reader);
     // An empty unit is an ending marker.
     if (size == 0) return null;
@@ -453,8 +463,8 @@ class CompilationUnitHeader {
           '0x${paddedHex(abbreviationsOffset, 4)}');
     }
     final addressSize = reader.readByte();
-    return CompilationUnitHeader._(
-        size, version, abbreviationsOffset, addressSize, abbreviationsTable);
+    return CompilationUnitHeader._(size, version, abbreviationsOffset,
+        addressSize, abbreviationsTable, stringTable);
   }
 
   void writeToStringBuffer(StringBuffer buffer) {
@@ -489,9 +499,10 @@ class CompilationUnit {
   static CompilationUnit? fromReader(
       Reader reader,
       // ignore: library_private_types_in_public_api
-      Map<int, _AbbreviationsTable> abbreviationsTables) {
-    final header =
-        CompilationUnitHeader.fromReader(reader, abbreviationsTables);
+      Map<int, _AbbreviationsTable> abbreviationsTables,
+      DwarfContainerStringTable stringTable) {
+    final header = CompilationUnitHeader.fromReader(
+        reader, abbreviationsTables, stringTable);
     if (header == null) return null;
 
     final referenceTable = Map.fromEntries(reader.readRepeatedWithOffsets(
@@ -563,10 +574,11 @@ class DebugInfo {
   static DebugInfo fromReader(
       Reader reader,
       // ignore: library_private_types_in_public_api
-      Map<int, _AbbreviationsTable> abbreviationsTable) {
+      Map<int, _AbbreviationsTable> abbreviationsTable,
+      DwarfContainerStringTable stringTable) {
     final units = reader
-        .readRepeated(
-            (r) => CompilationUnit.fromReader(reader, abbreviationsTable))
+        .readRepeated((r) =>
+            CompilationUnit.fromReader(reader, abbreviationsTable, stringTable))
         .toList();
     return DebugInfo._(units);
   }
@@ -914,14 +926,18 @@ class LineNumberProgram {
 
     void applySpecialOpcode(int opcode) {
       final adjustedOpcode = opcode - header.opcodeBase;
-      state.address = adjustedOpcode ~/ header.lineRange;
-      state.line += header.lineBase + (adjustedOpcode % header.lineRange);
+      final addrDiff = (adjustedOpcode ~/ header.lineRange) *
+          header.minimumInstructionLength;
+      final lineDiff = header.lineBase + (adjustedOpcode % header.lineRange);
+      state.address += addrDiff;
+      state.line += lineDiff;
     }
 
     while (!reader.done) {
       final opcode = reader.readByte();
       if (opcode >= header.opcodeBase) {
         applySpecialOpcode(opcode);
+        yield state.clone();
         continue;
       }
       switch (opcode) {
@@ -975,7 +991,8 @@ class LineNumberProgram {
           state.basicBlock = true;
           break;
         case 8: // DW_LNS_const_add_pc
-          applySpecialOpcode(255);
+          state.address += ((255 - header.opcodeBase) ~/ header.lineRange) *
+              header.minimumInstructionLength;
           break;
         case 9: // DW_LNS_fixed_advance_pc
           state.address += reader.readBytes(2);
@@ -1200,12 +1217,19 @@ class PCOffset {
       other is PCOffset && offset == other.offset && section == other.section;
 
   @override
-  String toString() => 'PCOffset($section, $offset)';
+  String toString() => 'PCOffset($section, 0x${offset.toRadixString(16)})';
+}
+
+class UnimplementedStringTable extends DwarfContainerStringTable {
+  @override
+  String? operator [](int index) {
+    throw 'No string table found in DWARF information';
+  }
 }
 
 /// The DWARF debugging information for a Dart snapshot.
 class Dwarf {
-  final Elf _elf;
+  final DwarfContainer _container;
   final Map<int, _AbbreviationsTable> _abbreviationsTables;
   final DebugInfo _debugInfo;
   final LineNumberInfo _lineNumberInfo;
@@ -1218,17 +1242,38 @@ class Dwarf {
   /// DWARF information.
   final int isolateStartAddress;
 
-  Dwarf._(this._elf, this._abbreviationsTables, this._debugInfo,
+  Dwarf._(this._container, this._abbreviationsTables, this._debugInfo,
       this._lineNumberInfo, this.vmStartAddress, this.isolateStartAddress);
+
+  static Dwarf fromDwarfContainer(Reader reader, DwarfContainer container) {
+    final abbrevReader = container.abbreviationsTableReader(reader);
+    final abbreviationsTables = Map.fromEntries(
+        abbrevReader.readRepeatedWithOffsets(_AbbreviationsTable.fromReader));
+
+    final lineNumberInfo =
+        LineNumberInfo.fromReader(container.lineNumberInfoReader(reader));
+
+    final stringTable = container.stringTable ?? UnimplementedStringTable();
+    final debugInfo = DebugInfo.fromReader(
+        container.debugInfoReader(reader), abbreviationsTables, stringTable);
+
+    return Dwarf._(container, abbreviationsTables, debugInfo, lineNumberInfo,
+        container.vmStartAddress, container.isolateStartAddress);
+  }
 
   /// Attempts to load the DWARF debugging information from the reader.
   ///
   /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
   static Dwarf? fromReader(Reader reader) {
-    // Currently, the only DWARF-containing format we recognize is ELF.
     final elf = Elf.fromReader(reader);
-    if (elf == null) return null;
-    return Dwarf._loadSectionsFromElf(reader, elf);
+    if (elf != null) {
+      return Dwarf.fromDwarfContainer(reader, elf);
+    }
+    final macho = MachO.fromReader(reader);
+    if (macho != null) {
+      return Dwarf.fromDwarfContainer(reader, macho);
+    }
+    return null;
   }
 
   /// Attempts to load the DWARF debugging information from the given bytes.
@@ -1241,54 +1286,12 @@ class Dwarf {
   ///
   /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
   static Dwarf? fromFile(String path) =>
-      Dwarf.fromReader(Reader.fromFile(path));
-
-  static Dwarf _loadSectionsFromElf(Reader reader, Elf elf) {
-    final abbrevSection = elf.namedSections('.debug_abbrev').single;
-    final abbrevReader = abbrevSection.refocusedCopy(reader);
-    final abbreviationsTables = Map.fromEntries(
-        abbrevReader.readRepeatedWithOffsets(_AbbreviationsTable.fromReader));
-
-    final lineNumberSection = elf.namedSections('.debug_line').single;
-    final lineNumberInfo =
-        LineNumberInfo.fromReader(lineNumberSection.refocusedCopy(reader));
-
-    final infoSection = elf.namedSections('.debug_info').single;
-    final debugInfo = DebugInfo.fromReader(
-        infoSection.refocusedCopy(reader), abbreviationsTables);
-
-    final vmStartSymbol = elf.dynamicSymbolFor(constants.vmSymbolName);
-    if (vmStartSymbol == null) {
-      throw FormatException(
-          'Expected a dynamic symbol with name ${constants.vmSymbolName}');
-    }
-    final vmStartAddress = vmStartSymbol.value;
-
-    final isolateStartSymbol =
-        elf.dynamicSymbolFor(constants.isolateSymbolName);
-    if (isolateStartSymbol == null) {
-      throw FormatException(
-          'Expected a dynamic symbol with name ${constants.isolateSymbolName}');
-    }
-    final isolateStartAddress = isolateStartSymbol.value;
-
-    return Dwarf._(elf, abbreviationsTables, debugInfo, lineNumberInfo,
-        vmStartAddress, isolateStartAddress);
-  }
+      Dwarf.fromReader(Reader.fromFile(MachO.handleDSYM(path)));
 
   /// The build ID for the debugging information.
   ///
   /// Returns null if there is no build ID information recorded.
-  String? get buildId {
-    final sections = _elf.namedSections(constants.buildIdSectionName);
-    if (sections.isEmpty) return null;
-    final note = sections.single as Note;
-    if (note.type != constants.buildIdNoteType) return null;
-    if (note.name != constants.buildIdNoteName) return null;
-    return note.description
-        .map((i) => i.toRadixString(16).padLeft(2, '0'))
-        .join();
-  }
+  String? get buildId => _container.buildId;
 
   /// The call information for the given virtual address. There may be
   /// multiple [CallInfo] objects returned for a single virtual address when
@@ -1302,7 +1305,7 @@ class Dwarf {
       {bool includeInternalFrames = false}) {
     var calls = _debugInfo.callInfo(_lineNumberInfo, address);
     if (calls == null) {
-      final symbol = _elf.staticSymbolAt(address);
+      final symbol = _container.staticSymbolAt(address);
       if (symbol != null) {
         final offset = address - symbol.value;
         calls = <CallInfo>[StubCallInfo(name: symbol.name, offset: offset)];
@@ -1358,7 +1361,7 @@ class Dwarf {
 
   String dumpFileInfo() {
     final buffer = StringBuffer();
-    _elf.writeToStringBuffer(buffer);
+    _container.writeToStringBuffer(buffer);
     buffer.writeln();
     writeToStringBuffer(buffer);
     return buffer.toString();
