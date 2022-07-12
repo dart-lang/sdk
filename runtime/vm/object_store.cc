@@ -324,13 +324,9 @@ void ObjectStore::InitKnownObjects() {
   ASSERT(!function.IsNull());
   set_suspend_state_init_sync_star(function);
 
-  function = cls.LookupFunctionAllowPrivate(Symbols::_yieldSyncStar());
+  function = cls.LookupFunctionAllowPrivate(Symbols::_suspendSyncStarAtStart());
   ASSERT(!function.IsNull());
-  set_suspend_state_yield_sync_star(function);
-
-  function = cls.LookupFunctionAllowPrivate(Symbols::_returnSyncStar());
-  ASSERT(!function.IsNull());
-  set_suspend_state_return_sync_star(function);
+  set_suspend_state_suspend_sync_star_at_start(function);
 
   function = cls.LookupFunctionAllowPrivate(Symbols::_handleException());
   ASSERT(!function.IsNull());
@@ -339,10 +335,15 @@ void ObjectStore::InitKnownObjects() {
   cls = async_lib.LookupClassAllowPrivate(Symbols::_SyncStarIterator());
   ASSERT(!cls.IsNull());
   RELEASE_ASSERT(cls.EnsureIsFinalized(thread) == Error::null());
+  set_sync_star_iterator_class(cls);
 
   field = cls.LookupFieldAllowPrivate(Symbols::_current());
   ASSERT(!field.IsNull());
   set_sync_star_iterator_current(field);
+
+  field = cls.LookupFieldAllowPrivate(Symbols::_state());
+  ASSERT(!field.IsNull());
+  set_sync_star_iterator_state(field);
 
   field = cls.LookupFieldAllowPrivate(Symbols::_yieldStarIterable());
   ASSERT(!field.IsNull());

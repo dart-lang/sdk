@@ -475,24 +475,11 @@ class _SuspendState {
 
   @pragma("vm:entry-point", "call")
   @pragma("vm:invisible")
-  Object? _yieldSyncStar(Object? object) {
-    if (_trace) print('_yieldSyncStar($object)');
+  Object? _suspendSyncStarAtStart(Object? object) {
+    if (_trace) print('_suspendSyncStarAtStart($object)');
     final data = _functionData;
-    if (data is _SyncStarIterable) {
-      data._stateAtStart = this;
-      return data;
-    } else {
-      // Update state in the iterator in case SuspendState was reallocated.
-      unsafeCast<_SyncStarIterator>(data)._state = this;
-    }
-    return true;
-  }
-
-  @pragma("vm:entry-point", "call")
-  @pragma("vm:invisible")
-  static bool _returnSyncStar(Object suspendState, Object? returnValue) {
-    if (_trace) print('_returnSyncStar');
-    return false;
+    unsafeCast<_SyncStarIterable>(data)._stateAtStart = this;
+    return data;
   }
 
   @pragma("vm:recognized", "other")
@@ -603,8 +590,8 @@ class _SyncStarIterator<T> implements Iterator<T> {
 
       try {
         // Resume current sync* method in order to move to the next value.
-        final bool hasMore =
-            _state!._resume(null, pendingException, pendingStackTrace) as bool;
+        final bool hasMore = unsafeCast<bool>(unsafeCast<_SuspendState>(_state)
+            ._resume(null, pendingException, pendingStackTrace));
         pendingException = null;
         pendingStackTrace = null;
         if (!hasMore) {

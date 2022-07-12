@@ -446,6 +446,7 @@ class ObjectPointerVisitor;
   V(_stackTrace, "_stackTrace")                                                \
   V(_state, "_state")                                                          \
   V(_stateData, "_stateData")                                                  \
+  V(_suspendSyncStarAtStart, "_suspendSyncStarAtStart")                        \
   V(_toString, "_toString")                                                    \
   V(_varData, "_varData")                                                      \
   V(_wordCharacterMap, "_wordCharacterMap")                                    \

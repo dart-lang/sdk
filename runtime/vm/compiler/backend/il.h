@@ -9620,7 +9620,8 @@ class SuspendInstr : public TemplateDefinition<1, Throws> {
   enum class StubId {
     kAwait,
     kYieldAsyncStar,
-    kYieldSyncStar,
+    kSuspendSyncStarAtStart,
+    kSuspendSyncStarAtYield,
   };
 
   SuspendInstr(const InstructionSource& source,

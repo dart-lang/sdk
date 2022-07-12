@@ -737,6 +737,13 @@ DEFINE_RUNTIME_ENTRY(AllocateSuspendState, 2) {
     }
     result = SuspendState::New(frame_size, function_data,
                                SpaceForRuntimeAllocation());
+    if (function_data.GetClassId() ==
+        Class::Handle(zone, object_store->sync_star_iterator_class()).id()) {
+      // Refresh _SyncStarIterator._state with the new SuspendState object.
+      function_data.SetField(
+          Field::Handle(zone, object_store->sync_star_iterator_state()),
+          result);
+    }
   } else {
     result = SuspendState::New(frame_size, Instance::Cast(previous_state),
                                SpaceForRuntimeAllocation());

@@ -608,7 +608,7 @@ Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
     body += Drop();
     body += NullConstant();
     body += B->Suspend(TokenPosition::kNoSource,
-                       SuspendInstr::StubId::kYieldSyncStar);
+                       SuspendInstr::StubId::kSuspendSyncStarAtStart);
     body += Drop();
     // Clone context if there are any captured parameter variables, so
     // each invocation of .iterator would get its own copy of parameters.
@@ -686,7 +686,12 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionBody(
   }
 
   if (body.is_open()) {
-    body += NullConstant();
+    if (parsed_function()->function().IsSyncGenerator()) {
+      // Return false from sync* function to indicate the end of iteration.
+      body += Constant(Bool::False());
+    } else {
+      body += NullConstant();
+    }
     body += Return(dart_function.end_token_pos());
   }
 
@@ -4908,9 +4913,19 @@ Fragment StreamingFlowGraphBuilder::BuildReturnStatement(
 
   bool inside_try_finally = try_finally_block() != nullptr;
 
-  Fragment instructions = tag == kNothing
-                              ? NullConstant()
-                              : BuildExpression();  // read rest of expression.
+  Fragment instructions;
+  if (parsed_function()->function().IsSyncGenerator()) {
+    // Return false from sync* function to indicate the end of iteration.
+    instructions += Constant(Bool::False());
+    if (tag != kNothing) {
+      ASSERT(PeekTag() == kNullLiteral);
+      SkipExpression();
+    }
+  } else {
+    instructions +=
+        (tag == kNothing ? NullConstant()
+                         : BuildExpression());  // read rest of expression.
+  }
 
   if (instructions.is_open()) {
     if (inside_try_finally) {
@@ -5265,8 +5280,9 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement(
       field = IG->object_store()->sync_star_iterator_current();
     }
     instructions += B->StoreInstanceFieldGuarded(field);
-    instructions += NullConstant();
-    instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldSyncStar);
+    instructions += B->Constant(Bool::True());
+    instructions +=
+        B->Suspend(pos, SuspendInstr::StubId::kSuspendSyncStarAtYield);
     instructions += Drop();
   } else {
     UNREACHABLE();

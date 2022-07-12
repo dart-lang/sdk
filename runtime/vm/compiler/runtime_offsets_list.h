@@ -185,9 +185,8 @@
   FIELD(ObjectStore, suspend_state_return_async_offset)                        \
   FIELD(ObjectStore, suspend_state_return_async_not_future_offset)             \
   FIELD(ObjectStore, suspend_state_return_async_star_offset)                   \
-  FIELD(ObjectStore, suspend_state_return_sync_star_offset)                    \
+  FIELD(ObjectStore, suspend_state_suspend_sync_star_at_start_offset)          \
   FIELD(ObjectStore, suspend_state_yield_async_star_offset)                    \
-  FIELD(ObjectStore, suspend_state_yield_sync_star_offset)                     \
   FIELD(OneByteString, data_offset)                                            \
   FIELD(PointerBase, data_offset)                                              \
   FIELD(Pointer, type_arguments_offset)                                        \
@@ -281,7 +280,6 @@
   FIELD(Thread, return_async_not_future_stub_offset)                           \
   FIELD(Thread, return_async_star_stub_offset)                                 \
   FIELD(Thread, return_async_stub_offset)                                      \
-  FIELD(Thread, return_sync_star_stub_offset)                                  \
                                                                                \
   FIELD(Thread, object_null_offset)                                            \
   FIELD(Thread, predefined_symbols_address_offset)                             \
@@ -307,8 +305,7 @@
   FIELD(Thread, suspend_state_yield_async_star_entry_point_offset)             \
   FIELD(Thread, suspend_state_return_async_star_entry_point_offset)            \
   FIELD(Thread, suspend_state_init_sync_star_entry_point_offset)               \
-  FIELD(Thread, suspend_state_yield_sync_star_entry_point_offset)              \
-  FIELD(Thread, suspend_state_return_sync_star_entry_point_offset)             \
+  FIELD(Thread, suspend_state_suspend_sync_star_at_start_entry_point_offset)   \
   FIELD(Thread, suspend_state_handle_exception_entry_point_offset)             \
   FIELD(Thread, top_exit_frame_info_offset)                                    \
   FIELD(Thread, top_offset)                                                    \

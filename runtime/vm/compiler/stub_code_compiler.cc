@@ -1379,6 +1379,7 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
 
 void StubCodeCompiler::GenerateSuspendStub(
     Assembler* assembler,
+    bool call_suspend_function,
     intptr_t suspend_entry_point_offset_in_thread,
     intptr_t suspend_function_offset_in_object_store) {
   const Register kArgument = SuspendStubABI::kArgumentReg;
@@ -1516,17 +1517,28 @@ void StubCodeCompiler::GenerateSuspendStub(
   }
 #endif
 
-  // Push arguments for suspend Dart function.
-  __ PushRegistersInOrder({kSuspendState, kArgument});
+  if (call_suspend_function) {
+    // Push arguments for suspend Dart function early to preserve them
+    // across write barrier.
+    __ PushRegistersInOrder({kSuspendState, kArgument});
+  }
 
   // Write barrier.
   __ BranchIfBit(kSuspendState, target::ObjectAlignment::kNewObjectBitPosition,
                  ZERO, &old_gen_object);
 
   __ Bind(&call_dart);
-  __ Comment("Call suspend Dart function");
-  CallDartCoreLibraryFunction(assembler, suspend_entry_point_offset_in_thread,
-                              suspend_function_offset_in_object_store);
+  if (call_suspend_function) {
+    __ Comment("Call suspend Dart function");
+    CallDartCoreLibraryFunction(assembler, suspend_entry_point_offset_in_thread,
+                                suspend_function_offset_in_object_store);
+  } else {
+    // SuspendStub returns either the result of Dart callback,
+    // or SuspendStub argument (if Dart callback is not used).
+    // The latter is used by yield/yield* in sync* functions
+    // to indicate that iteration should be continued.
+    __ MoveRegister(CallingConventions::kReturnReg, kArgument);
+  }
 
   __ LeaveStubFrame();
 
@@ -1585,6 +1597,11 @@ void StubCodeCompiler::GenerateSuspendStub(
 
   __ Bind(&old_gen_object);
   __ Comment("Old gen SuspendState slow case");
+  if (!call_suspend_function) {
+    // Save kArgument which contains the return value
+    // if suspend function is not called.
+    __ PushRegister(kArgument);
+  }
   {
 #if defined(TARGET_ARCH_IA32)
     LeafRuntimeScope rt(assembler, /*frame_size=*/2 * target::kWordSize,
@@ -1599,11 +1616,15 @@ void StubCodeCompiler::GenerateSuspendStub(
 #endif
     rt.Call(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
   }
+  if (!call_suspend_function) {
+    __ PopRegister(kArgument);
+  }
   __ Jump(&call_dart);
 }
 
 void StubCodeCompiler::GenerateAwaitStub(Assembler* assembler) {
   GenerateSuspendStub(assembler,
+                      /*call_suspend_function=*/true,
                       target::Thread::suspend_state_await_entry_point_offset(),
                       target::ObjectStore::suspend_state_await_offset());
 }
@@ -1611,15 +1632,25 @@ void StubCodeCompiler::GenerateAwaitStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateYieldAsyncStarStub(Assembler* assembler) {
   GenerateSuspendStub(
       assembler,
+      /*call_suspend_function=*/true,
       target::Thread::suspend_state_yield_async_star_entry_point_offset(),
       target::ObjectStore::suspend_state_yield_async_star_offset());
 }
 
-void StubCodeCompiler::GenerateYieldSyncStarStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateSuspendSyncStarAtStartStub(
+    Assembler* assembler) {
   GenerateSuspendStub(
       assembler,
-      target::Thread::suspend_state_yield_sync_star_entry_point_offset(),
-      target::ObjectStore::suspend_state_yield_sync_star_offset());
+      /*call_suspend_function=*/true,
+      target::Thread::
+          suspend_state_suspend_sync_star_at_start_entry_point_offset(),
+      target::ObjectStore::suspend_state_suspend_sync_star_at_start_offset());
+}
+
+void StubCodeCompiler::GenerateSuspendSyncStarAtYieldStub(
+    Assembler* assembler) {
+  GenerateSuspendStub(assembler,
+                      /*call_suspend_function=*/false, -1, -1);
 }
 
 void StubCodeCompiler::GenerateInitSuspendableFunctionStub(
@@ -1899,14 +1930,6 @@ void StubCodeCompiler::GenerateReturnAsyncStarStub(Assembler* assembler) {
       target::Thread::suspend_state_return_async_star_entry_point_offset(),
       target::ObjectStore::suspend_state_return_async_star_offset(),
       target::Thread::return_async_star_stub_offset());
-}
-
-void StubCodeCompiler::GenerateReturnSyncStarStub(Assembler* assembler) {
-  GenerateReturnStub(
-      assembler,
-      target::Thread::suspend_state_return_sync_star_entry_point_offset(),
-      target::ObjectStore::suspend_state_return_sync_star_offset(),
-      target::Thread::return_sync_star_stub_offset());
 }
 
 void StubCodeCompiler::GenerateAsyncExceptionHandlerStub(Assembler* assembler) {

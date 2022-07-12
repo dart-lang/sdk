@@ -6851,10 +6851,6 @@ const Code& ReturnInstr::GetReturnStub(FlowGraphCompiler* compiler) const {
     return Code::ZoneHandle(
         compiler->zone(),
         compiler->isolate_group()->object_store()->return_async_star_stub());
-  } else if (function.IsSyncGenerator()) {
-    return Code::ZoneHandle(
-        compiler->zone(),
-        compiler->isolate_group()->object_store()->return_sync_star_stub());
   } else {
     UNREACHABLE();
   }
@@ -7357,8 +7353,11 @@ void SuspendInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case StubId::kYieldAsyncStar:
       stub = object_store->yield_async_star_stub();
       break;
-    case StubId::kYieldSyncStar:
-      stub = object_store->yield_sync_star_stub();
+    case StubId::kSuspendSyncStarAtStart:
+      stub = object_store->suspend_sync_star_at_start_stub();
+      break;
+    case StubId::kSuspendSyncStarAtYield:
+      stub = object_store->suspend_sync_star_at_yield_stub();
       break;
   }
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
