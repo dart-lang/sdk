@@ -6309,6 +6309,7 @@ Representation StoreIndexedInstr::RepresentationOfArrayElement(
     case kTypedDataUint64ArrayCid:
       return kUnboxedInt64;
     case kTypedDataFloat32ArrayCid:
+      return kUnboxedFloat;
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
     case kTypedDataInt32x4ArrayCid:

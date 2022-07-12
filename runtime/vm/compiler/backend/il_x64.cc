@@ -1732,7 +1732,8 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
              ? Location::Constant(index()->definition()->AsConstant())
              : (need_writable_index_register ? Location::WritableRegister()
                                              : Location::RequiresRegister()));
-  if ((representation() == kUnboxedDouble) ||
+  if ((representation() == kUnboxedFloat) ||
+      (representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
       (representation() == kUnboxedInt32x4) ||
       (representation() == kUnboxedFloat64x2)) {
@@ -1779,10 +1780,11 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                IsExternal(), class_id(), index_scale, array,
                                Smi::Cast(index.constant()).Value());
 
-  if (representation() == kUnboxedDouble ||
-      representation() == kUnboxedFloat32x4 ||
-      representation() == kUnboxedInt32x4 ||
-      representation() == kUnboxedFloat64x2) {
+  if ((representation() == kUnboxedFloat) ||
+      (representation() == kUnboxedDouble) ||
+      (representation() == kUnboxedFloat32x4) ||
+      (representation() == kUnboxedInt32x4) ||
+      (representation() == kUnboxedFloat64x2)) {
     XmmRegister result = locs()->out(0).fpu_reg();
     if (class_id() == kTypedDataFloat32ArrayCid) {
       // Load single precision float.
