@@ -6837,7 +6837,7 @@ void RawStoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 const Code& ReturnInstr::GetReturnStub(FlowGraphCompiler* compiler) const {
   const Function& function = compiler->parsed_function().function();
   ASSERT(function.IsSuspendableFunction());
-  if (function.IsCompactAsyncFunction()) {
+  if (function.IsAsyncFunction()) {
     if (!value()->Type()->CanBeFuture()) {
       return Code::ZoneHandle(compiler->zone(),
                               compiler->isolate_group()
@@ -6847,11 +6847,11 @@ const Code& ReturnInstr::GetReturnStub(FlowGraphCompiler* compiler) const {
     return Code::ZoneHandle(
         compiler->zone(),
         compiler->isolate_group()->object_store()->return_async_stub());
-  } else if (function.IsCompactAsyncStarFunction()) {
+  } else if (function.IsAsyncGenerator()) {
     return Code::ZoneHandle(
         compiler->zone(),
         compiler->isolate_group()->object_store()->return_async_star_stub());
-  } else if (function.IsCompactSyncStarFunction()) {
+  } else if (function.IsSyncGenerator()) {
     return Code::ZoneHandle(
         compiler->zone(),
         compiler->isolate_group()->object_store()->return_sync_star_stub());

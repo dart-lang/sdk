@@ -35,16 +35,6 @@ class SwitchBlock;
 class TryCatchBlock;
 class TryFinallyBlock;
 
-struct YieldContinuation {
-  Instruction* entry;
-  intptr_t try_index;
-
-  YieldContinuation(Instruction* entry, intptr_t try_index)
-      : entry(entry), try_index(try_index) {}
-
-  YieldContinuation() : entry(NULL), try_index(kInvalidTryIndex) {}
-};
-
 enum class TypeChecksToBuild {
   kCheckAllTypeParameterBounds,
   kCheckNonCovariantTypeParameterBounds,
@@ -603,8 +593,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   GraphEntryInstr* graph_entry_;
 
   ScopeBuildingResult* scopes_;
-
-  GrowableArray<YieldContinuation> yield_continuations_;
 
   LocalVariable* CurrentException() {
     return scopes_->exception_variables[catch_depth_ - 1];

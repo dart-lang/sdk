@@ -3984,6 +3984,7 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
   // TODO(dartbug.com/37737): Currently, we intentionally keep the recognized
   // kind when creating the dynamic invocation forwarder.
   forwarder.set_kind(UntaggedFunction::kDynamicInvocationForwarder);
+  forwarder.set_modifier(UntaggedFunction::kNoModifier);
   forwarder.set_is_debuggable(false);
 
   // TODO(vegorov) for error reporting reasons it is better to make this
@@ -8203,7 +8204,7 @@ bool Function::CanBeInlined() const {
     return false;
   }
 
-  return is_inlinable() && !is_generated_body();
+  return is_inlinable();
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -9120,7 +9121,6 @@ FunctionPtr Function::New(const FunctionType& signature,
   result.set_is_visible(true);      // Will be computed later.
   result.set_is_debuggable(true);   // Will be computed later.
   result.set_is_intrinsic(false);
-  result.set_is_generated_body(false);
   result.set_has_pragma(false);
   result.set_is_polymorphic_target(false);
   result.set_is_synthetic(false);
@@ -9905,22 +9905,7 @@ void Function::PrintName(const NameFormattingParams& params,
     return;
   }
   auto& fun = Function::Handle(ptr());
-  intptr_t fun_depth = 0;
-  // If |this| is a generated body closure, start with the closest
-  // non-generated parent function.
-  while (fun.is_generated_body()) {
-    fun = fun.parent_function();
-    fun_depth++;
-  }
   FunctionPrintNameHelper(fun, params, printer);
-  // If we skipped generated bodies then append a suffix to the end.
-  if (fun_depth > 0 && params.disambiguate_names) {
-    printer->AddString("{body");
-    if (fun_depth > 1) {
-      printer->Printf(" depth %" Pd "", fun_depth);
-    }
-    printer->AddString("}");
-  }
 }
 
 StringPtr Function::GetSource() const {

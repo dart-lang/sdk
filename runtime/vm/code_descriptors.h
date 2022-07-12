@@ -78,8 +78,8 @@ class ExceptionHandlerList : public ZoneAllocated {
 
   explicit ExceptionHandlerList(const Function& function)
       : list_(),
-        has_async_handler_(function.IsCompactAsyncFunction() ||
-                           function.IsCompactAsyncStarFunction()) {}
+        has_async_handler_(function.IsAsyncFunction() ||
+                           function.IsAsyncGenerator()) {}
 
   intptr_t Length() const { return list_.length(); }
 
