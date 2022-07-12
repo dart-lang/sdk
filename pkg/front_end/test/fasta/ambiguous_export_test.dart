@@ -15,6 +15,8 @@ import 'package:front_end/src/fasta/dill/dill_library_builder.dart'
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
+import 'package:front_end/src/fasta/kernel/utils.dart';
+
 import 'package:kernel/ast.dart'
     show Field, Library, Name, Component, StringLiteral;
 
@@ -22,7 +24,8 @@ Future<void> main() async {
   await asyncTest(() async {
     Uri uri = Uri.parse("org.dartlang.fasta:library");
     Library library = new Library(uri, fileUri: uri);
-    Field field = new Field.immutable(new Name("_exports#", library),
+    Field field = new Field.immutable(
+        new Name(unserializableExportName, library),
         initializer: new StringLiteral('{"main":"Problem with main"}'),
         fileUri: library.fileUri);
     library.addField(field);
