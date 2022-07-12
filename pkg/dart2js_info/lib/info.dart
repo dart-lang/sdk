@@ -141,6 +141,7 @@ class AllInfo {
 
 class ProgramInfo {
   final FunctionInfo entrypoint;
+  final String ramUsage;
   final int size;
   final String? dart2jsVersion;
   final DateTime compilationMoment;
@@ -167,6 +168,7 @@ class ProgramInfo {
 
   ProgramInfo(
       {required this.entrypoint,
+      required this.ramUsage,
       required this.size,
       required this.dart2jsVersion,
       required this.compilationMoment,

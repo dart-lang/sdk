@@ -20,6 +20,7 @@ import 'common.dart';
 import 'common/elements.dart' show JElementEnvironment;
 import 'common/names.dart';
 import 'common/tasks.dart' show CompilerTask;
+import 'common/ram_usage.dart';
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load/output_unit.dart' show OutputUnit, deferredPartFileName;
@@ -1234,30 +1235,32 @@ class DumpInfoTask extends CompilerTask
     return code.map((ast) => _nodeData[ast]).toList();
   }
 
-  DumpInfoStateData dumpInfo(JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) {
+  Future<DumpInfoStateData> dumpInfo(JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) async {
     DumpInfoStateData dumpInfoState;
-    measure(() {
+    await measure(() async {
       ElementInfoCollector elementInfoCollector = ElementInfoCollector(
           compiler, this, closedWorld, globalInferenceResults)
         ..run();
 
-      dumpInfoState = buildDumpInfoData(closedWorld, elementInfoCollector);
+      dumpInfoState =
+          await buildDumpInfoData(closedWorld, elementInfoCollector);
       if (useBinaryFormat) {
         dumpInfoBinary(dumpInfoState.info);
       } else {
         dumpInfoJson(dumpInfoState.info);
       }
+      return;
     });
     return dumpInfoState;
   }
 
-  DumpInfoStateData dumpInfoNew(
+  Future<DumpInfoStateData> dumpInfoNew(
       ir.Component component,
       JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) {
+      GlobalTypeInferenceResults globalInferenceResults) async {
     DumpInfoStateData dumpInfoState;
-    measure(() {
+    await measure(() async {
       KernelInfoCollector kernelInfoCollector =
           KernelInfoCollector(component, compiler, this, closedWorld)..run();
 
@@ -1265,7 +1268,8 @@ class DumpInfoTask extends CompilerTask
           globalInferenceResults)
         ..run();
 
-      dumpInfoState = buildDumpInfoDataNew(closedWorld, kernelInfoCollector);
+      dumpInfoState =
+          await buildDumpInfoDataNew(closedWorld, kernelInfoCollector);
       TreeShakingInfoVisitor().filter(dumpInfoState.info);
 
       if (useBinaryFormat) {
@@ -1308,8 +1312,8 @@ class DumpInfoTask extends CompilerTask
     });
   }
 
-  DumpInfoStateData buildDumpInfoData(
-      JClosedWorld closedWorld, ElementInfoCollector infoCollector) {
+  Future<DumpInfoStateData> buildDumpInfoData(
+      JClosedWorld closedWorld, ElementInfoCollector infoCollector) async {
     Stopwatch stopwatch = Stopwatch();
     stopwatch.start();
 
@@ -1371,6 +1375,7 @@ class DumpInfoTask extends CompilerTask
         entrypoint: infoCollector
             .state.entityToInfo[closedWorld.elementEnvironment.mainFunction],
         size: _programSize,
+        ramUsage: await currentHeapCapacityInMb(),
         dart2jsVersion:
             compiler.options.hasBuildId ? compiler.options.buildId : null,
         compilationMoment: DateTime.now(),
@@ -1387,8 +1392,8 @@ class DumpInfoTask extends CompilerTask
     return result;
   }
 
-  DumpInfoStateData buildDumpInfoDataNew(
-      JClosedWorld closedWorld, KernelInfoCollector infoCollector) {
+  Future<DumpInfoStateData> buildDumpInfoDataNew(
+      JClosedWorld closedWorld, KernelInfoCollector infoCollector) async {
     Stopwatch stopwatch = Stopwatch();
     stopwatch.start();
 
@@ -1453,6 +1458,7 @@ class DumpInfoTask extends CompilerTask
         entrypoint: infoCollector
             .state.entityToInfo[closedWorld.elementEnvironment.mainFunction],
         size: _programSize,
+        ramUsage: await currentHeapCapacityInMb(),
         dart2jsVersion:
             compiler.options.hasBuildId ? compiler.options.buildId : null,
         compilationMoment: DateTime.now(),

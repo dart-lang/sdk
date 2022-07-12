@@ -24,17 +24,18 @@ import '../helpers/text_helpers.dart';
 const List<String> dumpInfoExceptions = [
   '"compilationMoment":',
   '"compilationDuration":',
-  '"toJsonDuration":'
+  '"toJsonDuration":',
+  '"ramUsage":'
 ];
 
-void generateJavaScriptCode(
-    Compiler compiler, GlobalTypeInferenceResults globalTypeInferenceResults) {
+void generateJavaScriptCode(Compiler compiler,
+    GlobalTypeInferenceResults globalTypeInferenceResults) async {
   final codegenInputs = compiler.initializeCodegen(globalTypeInferenceResults);
   final codegenResults = OnDemandCodegenResults(globalTypeInferenceResults,
       codegenInputs, compiler.backendStrategy.functionCompiler);
   final programSize = compiler.runCodegenEnqueuer(codegenResults);
   if (compiler.options.dumpInfo) {
-    compiler.runDumpInfo(codegenResults, programSize);
+    await compiler.runDumpInfo(codegenResults, programSize);
   }
 }
 
@@ -44,7 +45,7 @@ void finishCompileAndCompare(
     Compiler compiler,
     SerializationStrategy strategy,
     {bool stoppedAfterClosedWorld = false,
-    bool stoppedAfterTypeInference = false}) {
+    bool stoppedAfterTypeInference = false}) async {
   if (stoppedAfterClosedWorld) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     var newClosedWorldAndIndices =
@@ -59,7 +60,7 @@ void finishCompileAndCompare(
     GlobalTypeInferenceResults newGlobalInferenceResults =
         cloneInferenceResults(
             indices, compiler, globalInferenceResults, strategy);
-    generateJavaScriptCode(compiler, newGlobalInferenceResults);
+    await generateJavaScriptCode(compiler, newGlobalInferenceResults);
   }
   var actualOutput = actualOutputCollector.clear();
   Expect.setEquals(
@@ -181,10 +182,10 @@ runTest(
       });
   Expect.isTrue(result3b.isSuccess);
 
-  finishCompileAndCompare(
+  await finishCompileAndCompare(
       expectedOutput, collector2, result2.compiler, strategy,
       stoppedAfterClosedWorld: true);
-  finishCompileAndCompare(
+  await finishCompileAndCompare(
       expectedOutput, collector3b, result3b.compiler, strategy,
       stoppedAfterTypeInference: true);
   await dir.delete(recursive: true);

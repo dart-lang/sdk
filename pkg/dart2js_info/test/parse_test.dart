@@ -20,11 +20,11 @@ main() {
       expect(program, isNotNull);
 
       expect(program!.entrypoint, isNotNull);
-      expect(program.size, 90362);
+      expect(program.size, 90269);
       expect(program.compilationMoment,
-          DateTime.parse("2022-05-26 21:08:43.608041"));
-      expect(program.compilationDuration, Duration(microseconds: 3177312));
-      expect(program.toJsonDuration, Duration(milliseconds: 3));
+          DateTime.parse("2022-07-08 12:57:36.142141"));
+      expect(program.compilationDuration, Duration(microseconds: 1321045));
+      expect(program.toJsonDuration, Duration(milliseconds: 1));
       expect(program.dumpInfoDuration, Duration(seconds: 0));
       expect(program.noSuchMethodEnabled, false);
       expect(program.minified, false);

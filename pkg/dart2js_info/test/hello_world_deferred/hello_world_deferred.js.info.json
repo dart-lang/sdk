@@ -54,7 +54,7 @@
         "id": "library/dart:_js_helper::",
         "kind": "library",
         "name": "_js_helper",
-        "size": 47353,
+        "size": 47260,
         "children": [
           "class/dart:_js_helper::BoundClosure",
           "class/dart:_js_helper::Closure",
@@ -274,7 +274,7 @@
         "id": "library/dart:async::",
         "kind": "library",
         "name": "dart.async",
-        "size": 41039,
+        "size": 41197,
         "children": [
           "class/dart:async::AsyncError",
           "class/dart:async::Completer",
@@ -397,7 +397,7 @@
         "children": [
           "function/hello_world_deferred.dart::main"
         ],
-        "canonicalUri": "file:///usr/local/google/home/natebiggs/dart-sdk/sdk/pkg/dart2js_info/test/hello_world_deferred/hello_world_deferred.dart"
+        "canonicalUri": "file:///Users/markzipan/Projects/dart-sdk/sdk/pkg/dart2js_info/test/hello_world_deferred/hello_world_deferred.dart"
       }
     },
     "class": {
@@ -5410,7 +5410,7 @@
         "id": "function/dart:_js_helper::Primitives._objectTypeNameNewRti",
         "kind": "function",
         "name": "_objectTypeNameNewRti",
-        "size": 995,
+        "size": 902,
         "outputUnit": "outputUnit/main",
         "parent": "class/dart:_js_helper::Primitives",
         "children": [],
@@ -5431,7 +5431,7 @@
         ],
         "sideEffects": "SideEffects(reads anything; writes anything)",
         "inlinedCount": 0,
-        "code": "Primitives__objectTypeNameNewRti(object) {\n      var interceptor, dispatchName, t1, $constructor, constructorName;\n      if (object instanceof A.Object)\n        return A._rtiToString(A.instanceType(object), null);\n      interceptor = J.getInterceptor$(object);\n      if (interceptor === B.Interceptor_methods || interceptor === B.JavaScriptObject_methods || type$.UnknownJavaScriptObject._is(object)) {\n        dispatchName = B.C_JS_CONST(object);\n        t1 = dispatchName !== \"Object\" && dispatchName !== \"\";\n        if (t1)\n          return dispatchName;\n        $constructor = object.constructor;\n        if (typeof $constructor == \"function\") {\n          constructorName = $constructor.name;\n          if (typeof constructorName == \"string\")\n            t1 = constructorName !== \"Object\" && constructorName !== \"\";\n          else\n            t1 = false;\n          if (t1)\n            return constructorName;\n        }\n      }\n      return A._rtiToString(A.instanceType(object), null);\n    }",
+        "code": "Primitives__objectTypeNameNewRti(object) {\n      var interceptor, dispatchName, $constructor, constructorName;\n      if (object instanceof A.Object)\n        return A._rtiToString(A.instanceType(object), null);\n      interceptor = J.getInterceptor$(object);\n      if (interceptor === B.Interceptor_methods || interceptor === B.JavaScriptObject_methods || type$.UnknownJavaScriptObject._is(object)) {\n        dispatchName = B.C_JS_CONST(object);\n        if (dispatchName !== \"Object\" && dispatchName !== \"\")\n          return dispatchName;\n        $constructor = object.constructor;\n        if (typeof $constructor == \"function\") {\n          constructorName = $constructor.name;\n          if (typeof constructorName == \"string\" && constructorName !== \"Object\" && constructorName !== \"\")\n            return constructorName;\n        }\n      }\n      return A._rtiToString(A.instanceType(object), null);\n    }",
         "type": "String Function(Object?)",
         "functionKind": 0
       },
@@ -19721,7 +19721,7 @@
         "id": "function/dart:async::scheduleMicrotask",
         "kind": "function",
         "name": "scheduleMicrotask",
-        "size": 367,
+        "size": 525,
         "outputUnit": "outputUnit/main",
         "parent": "library/dart:async::",
         "children": [],
@@ -19742,7 +19742,7 @@
         ],
         "sideEffects": "SideEffects(reads anything; writes anything)",
         "inlinedCount": 0,
-        "code": "scheduleMicrotask(callback) {\n      var _null = null,\n        currentZone = $.Zone__current;\n      if (B.C__RootZone === currentZone) {\n        A._rootScheduleMicrotask(_null, _null, B.C__RootZone, callback);\n        return;\n      }\n      A._rootScheduleMicrotask(_null, _null, currentZone, type$.void_Function._as(currentZone.bindCallbackGuarded$1(callback)));\n    }",
+        "code": "scheduleMicrotask(callback) {\n      var t1, _null = null,\n        currentZone = $.Zone__current;\n      if (B.C__RootZone === currentZone) {\n        A._rootScheduleMicrotask(_null, _null, B.C__RootZone, callback);\n        return;\n      }\n      t1 = false;\n      if (t1) {\n        A._rootScheduleMicrotask(_null, _null, currentZone, type$.void_Function._as(callback));\n        return;\n      }\n      A._rootScheduleMicrotask(_null, _null, currentZone, type$.void_Function._as(currentZone.bindCallbackGuarded$1(callback)));\n    }",
         "type": "void Function(void Function())",
         "functionKind": 0
       },
@@ -67168,7 +67168,7 @@
       "id": "outputUnit/main",
       "kind": "outputUnit",
       "name": "main",
-      "size": 188050,
+      "size": 188115,
       "filename": "hello_world_deferred.js",
       "imports": []
     }
@@ -67187,11 +67187,12 @@
   "dump_minor_version": 1,
   "program": {
     "entrypoint": "function/hello_world_deferred.dart::main",
-    "size": 188644,
+    "size": 188709,
+    "ramUsage": "218.516 MB",
     "dart2jsVersion": null,
-    "compilationMoment": "2022-05-26 21:07:11.259922",
-    "compilationDuration": 4395336,
-    "toJsonDuration": 9000,
+    "compilationMoment": "2022-07-08 12:58:35.955576",
+    "compilationDuration": 1806706,
+    "toJsonDuration": 3000,
     "dumpInfoDuration": 0,
     "noSuchMethodEnabled": false,
     "isRuntimeTypeUsed": false,

@@ -20,11 +20,11 @@ main() {
       final proto = AllInfoProtoCodec().encode(decoded);
 
       expect(proto.program.entrypointId, isNotNull);
-      expect(proto.program.size, 90362);
+      expect(proto.program.size, 90269);
       expect(proto.program.compilationMoment.toInt(),
-          DateTime.parse("2022-05-26 21:08:43.608041").microsecondsSinceEpoch);
+          DateTime.parse("2022-07-08 12:57:36.142141").microsecondsSinceEpoch);
       expect(proto.program.toProtoDuration.toInt(),
-          Duration(milliseconds: 3).inMicroseconds);
+          Duration(milliseconds: 1).inMicroseconds);
       expect(proto.program.dumpInfoDuration.toInt(),
           Duration(milliseconds: 0).inMicroseconds);
       expect(proto.program.noSuchMethodEnabled, isFalse);
