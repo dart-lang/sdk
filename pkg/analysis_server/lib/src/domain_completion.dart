@@ -31,7 +31,6 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:collection/collection.dart';
 
 /// Instances of the class [CompletionDomainHandler] implement a
 /// [RequestHandler] that handles requests in the completion domain.
@@ -208,8 +207,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         performanceList.add(completionPerformance);
 
         var analysisSession = resolvedUnit.analysisSession;
-        var enclosingNode =
-            resolvedUnit.resolvedNodes.lastOrNull ?? resolvedUnit.parsedUnit;
+        var enclosingNode = resolvedUnit.parsedUnit;
 
         var completionRequest = DartCompletionRequest(
           analysisSession: analysisSession,

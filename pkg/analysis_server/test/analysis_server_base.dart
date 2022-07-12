@@ -22,6 +22,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import 'mocks.dart';
+import 'src/utilities/mock_packages.dart';
 
 /// TODO(scheglov) this is duplicate
 class AnalysisOptionsFileConfig {
@@ -90,6 +91,9 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
         EnableString.named_arguments_anywhere,
         EnableString.super_parameters,
       ];
+
+  /// The path that is not in [workspaceRootPath], contains external packages.
+  String get packagesRootPath => '/packages';
 
   Folder get sdkRoot => newFolder('/sdk');
 
@@ -280,6 +284,8 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
   void writeTestPackageConfig({
     PackageConfigFileBuilder? config,
     String? languageVersion,
+    bool flutter = false,
+    bool meta = false,
   }) {
     if (config == null) {
       config = PackageConfigFileBuilder();
@@ -292,6 +298,22 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
       rootPath: testPackageRootPath,
       languageVersion: languageVersion,
     );
+
+    if (meta || flutter) {
+      var libFolder = MockPackages.instance.addMeta(resourceProvider);
+      config.add(name: 'meta', rootPath: libFolder.parent.path);
+    }
+
+    if (flutter) {
+      {
+        var libFolder = MockPackages.instance.addUI(resourceProvider);
+        config.add(name: 'ui', rootPath: libFolder.parent.path);
+      }
+      {
+        var libFolder = MockPackages.instance.addFlutter(resourceProvider);
+        config.add(name: 'flutter', rootPath: libFolder.parent.path);
+      }
+    }
 
     writePackageConfig(testPackageRoot, config);
   }

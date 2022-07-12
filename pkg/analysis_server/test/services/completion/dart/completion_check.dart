@@ -185,6 +185,14 @@ extension CompletionSuggestionExtension
     );
   }
 
+  @useResult
+  CheckTarget<bool?> get hasNamedParameters {
+    return nest(
+      value.suggestion.hasNamedParameters,
+      (selected) => 'has hasNamedParameters ${valueStr(selected)}',
+    );
+  }
+
   void get isClass {
     kind.isIdentifier;
     element.isNotNull.kind.isClass;
@@ -218,6 +226,10 @@ extension CompletionSuggestionExtension
   void get isGetter {
     kind.isIdentifier;
     element.isNotNull.kind.isGetter;
+  }
+
+  void get isImport {
+    kind.isImport;
   }
 
   void get isImportPrefix {
@@ -262,6 +274,20 @@ extension CompletionSuggestionExtension
     element.isNotNull.kind.isSetter;
   }
 
+  void get isStatic {
+    element.isNotNull.isStatic.isTrue;
+  }
+
+  void get isStaticField {
+    isStatic;
+    isField;
+  }
+
+  void get isStaticGetter {
+    isStatic;
+    isGetter;
+  }
+
   void get isTopLevelVariable {
     kind.isIdentifier;
     element.isNotNull.kind.isTopLevelVariable;
@@ -294,10 +320,26 @@ extension CompletionSuggestionExtension
   }
 
   @useResult
+  CheckTarget<List<String>?> get parameterNames {
+    return nest(
+      value.suggestion.parameterNames,
+      (selected) => 'has parameterNames ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
   CheckTarget<String?> get parameterType {
     return nest(
       value.suggestion.parameterType,
       (selected) => 'has parameterType ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
+  CheckTarget<List<String>?> get parameterTypes {
+    return nest(
+      value.suggestion.parameterTypes,
+      (selected) => 'has parameterTypes ${valueStr(selected)}',
     );
   }
 
@@ -316,6 +358,14 @@ extension CompletionSuggestionExtension
     return nest(
       value.replacementOffset,
       (selected) => 'has replacementOffset ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
+  CheckTarget<int?> get requiredParameterCount {
+    return nest(
+      value.suggestion.requiredParameterCount,
+      (selected) => 'has requiredParameterCount ${valueStr(selected)}',
     );
   }
 
@@ -373,6 +423,10 @@ extension CompletionSuggestionKindExtension
     isEqualTo(CompletionSuggestionKind.IDENTIFIER);
   }
 
+  void get isImport {
+    isEqualTo(CompletionSuggestionKind.IMPORT);
+  }
+
   void get isInvocation {
     isEqualTo(CompletionSuggestionKind.INVOCATION);
   }
@@ -393,6 +447,45 @@ extension CompletionSuggestionsExtension
     return nest(
       value.map((e) => e.suggestion.completion).toList(),
       (selected) => 'completions ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
+  CheckTarget<Iterable<CompletionSuggestionForTesting>> get fields {
+    var result = value
+        .where((suggestion) =>
+            suggestion.suggestion.kind == CompletionSuggestionKind.IDENTIFIER &&
+            suggestion.suggestion.element?.kind == ElementKind.FIELD)
+        .toList();
+    return nest(
+      result,
+      (selected) => 'fields ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
+  CheckTarget<Iterable<CompletionSuggestionForTesting>> get getters {
+    var result = value
+        .where((suggestion) =>
+            suggestion.suggestion.kind == CompletionSuggestionKind.IDENTIFIER &&
+            suggestion.suggestion.element?.kind == ElementKind.GETTER)
+        .toList();
+    return nest(
+      result,
+      (selected) => 'getters ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
+  CheckTarget<Iterable<CompletionSuggestionForTesting>> get methods {
+    var result = value
+        .where((suggestion) =>
+            suggestion.suggestion.kind == CompletionSuggestionKind.IDENTIFIER &&
+            suggestion.suggestion.element?.kind == ElementKind.METHOD)
+        .toList();
+    return nest(
+      result,
+      (selected) => 'setters ${valueStr(selected)}',
     );
   }
 
@@ -422,6 +515,19 @@ extension CompletionSuggestionsExtension
   }
 
   @useResult
+  CheckTarget<Iterable<CompletionSuggestionForTesting>> get setters {
+    var result = value
+        .where((suggestion) =>
+            suggestion.suggestion.kind == CompletionSuggestionKind.IDENTIFIER &&
+            suggestion.suggestion.element?.kind == ElementKind.SETTER)
+        .toList();
+    return nest(
+      result,
+      (selected) => 'setters ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
   CheckTarget<Iterable<CompletionSuggestionForTesting>> get withElementClass {
     return nest(
       value.where((e) {
@@ -445,6 +551,14 @@ extension CompletionSuggestionsExtension
 }
 
 extension ElementExtension on CheckTarget<Element> {
+  @useResult
+  CheckTarget<bool> get isStatic {
+    return nest(
+      value.isStatic,
+      (selected) => 'isStatic ${valueStr(selected)}',
+    );
+  }
+
   @useResult
   CheckTarget<ElementKind> get kind {
     return nest(
