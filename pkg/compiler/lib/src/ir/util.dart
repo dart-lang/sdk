@@ -58,7 +58,6 @@ AsyncMarker getAsyncMarker(ir.FunctionNode node) {
       return AsyncMarker.SYNC;
     case ir.AsyncMarker.SyncStar:
       return AsyncMarker.SYNC_STAR;
-    case ir.AsyncMarker.SyncYielding:
     default:
       throw UnsupportedError(
           "Async marker ${node.asyncMarker} is not supported.");

@@ -173,6 +173,17 @@ class [[A]] {
     await testContents(contents);
   }
 
+  Future<void> test_fieldFormalParam() async {
+    final contents = '''
+class A {
+  final String [[a]];
+  A(this.^a});
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_fromPlugins() async {
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
     final pluginAnalyzedFileUri = Uri.file(pluginAnalyzedFilePath);
@@ -397,6 +408,19 @@ part of 'ma^in.dart';
   Future<void> test_sameLine() async {
     final contents = '''
 int plusOne(int [[value]]) => 1 + val^ue;
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_superFormalParam() async {
+    final contents = '''
+class A {
+  A({required int [[a]]});
+}
+class B extends A {
+  B({required super.^a}) : assert(a > 0);
+}
 ''';
 
     await testContents(contents);

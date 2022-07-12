@@ -206,6 +206,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
     final programInfo = ProgramInfo(
         entrypoint: parseId(json['entrypoint']) as FunctionInfo,
         size: json['size'],
+        ramUsage: json['ramUsage'],
         compilationMoment: DateTime.parse(json['compilationMoment']),
         dart2jsVersion: json['dart2jsVersion'],
         noSuchMethodEnabled: json['noSuchMethodEnabled'],
@@ -455,6 +456,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     return {
       'entrypoint': idFor(info.entrypoint).serializedId,
       'size': info.size,
+      'ramUsage': info.ramUsage,
       'dart2jsVersion': info.dart2jsVersion,
       'compilationMoment': '${info.compilationMoment}',
       'compilationDuration': info.compilationDuration.inMicroseconds,

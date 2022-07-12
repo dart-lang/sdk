@@ -857,14 +857,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var importElement = node.element;
+    var importElement = node.element2;
     if (node.prefix != null) {
       _checkForBuiltInIdentifierAsName(node.prefix!,
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME);
     }
     if (importElement != null) {
       _checkForImportInternalLibrary(node, importElement);
-      if (importElement.isDeferred) {
+      if (importElement.prefix is DeferredImportElementPrefix) {
         _checkForDeferredImportOfExtensions(node, importElement);
       }
     }
@@ -2299,7 +2299,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Report a diagnostic if there are any extensions in the imported library
   /// that are not hidden.
   void _checkForDeferredImportOfExtensions(
-      ImportDirective directive, ImportElement importElement) {
+      ImportDirective directive, ImportElement2 importElement) {
     for (var element in importElement.namespace.definedNames.values) {
       if (element is ExtensionElement) {
         errorReporter.reportErrorForNode(
@@ -2872,12 +2872,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Check that if the visiting library is not system, then any given library
   /// should not be SDK internal library. The [importElement] is the
-  /// [ImportElement] retrieved from the node, if the element in the node was
+  /// [ImportElement2] retrieved from the node, if the element in the node was
   /// `null`, then this method is not called
   ///
   /// See [CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY].
   void _checkForImportInternalLibrary(
-      ImportDirective directive, ImportElement importElement) {
+      ImportDirective directive, ImportElement2 importElement) {
     if (_isInSystemLibrary) {
       return;
     }
@@ -5096,7 +5096,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (library == null) {
       return '';
     }
-    List<ImportElement> imports = _currentLibrary.imports;
+    final imports = _currentLibrary.imports2;
     int count = imports.length;
     for (int i = 0; i < count; i++) {
       if (identical(imports[i].importedLibrary, library)) {

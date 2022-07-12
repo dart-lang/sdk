@@ -25,7 +25,7 @@ class AnalyticsSendEventHandler extends LegacyHandler {
     }
 
     var params = AnalyticsSendEventParams.fromRequest(request);
-    analytics.sendEvent(_clientId, params.action);
+    unawaited(analytics.sendEvent(_clientId, params.action));
     sendResult(AnalyticsSendEventResult());
   }
 }

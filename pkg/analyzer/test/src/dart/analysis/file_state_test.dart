@@ -1562,7 +1562,7 @@ elementFactory
 
     final coreKind = core.t1!.kind as LibraryFileStateKind;
     for (final import in coreKind.imports) {
-      if (import.isSyntheticDartCoreImport) {
+      if (import.isSyntheticDartCore) {
         fail('dart:core should not import itself');
       }
     }

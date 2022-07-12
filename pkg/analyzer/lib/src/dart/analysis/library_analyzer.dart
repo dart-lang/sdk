@@ -582,7 +582,7 @@ class LibraryAnalyzer {
       } else if (directive is ImportDirectiveImpl) {
         _resolveImportDirective(
           directive: directive,
-          importElement: _libraryElement.imports[importIndex],
+          importElement: _libraryElement.imports2[importIndex],
           importState: _library.imports[importIndex],
           libraryErrorReporter: libraryErrorReporter,
         );
@@ -715,12 +715,12 @@ class LibraryAnalyzer {
 
   void _resolveImportDirective({
     required ImportDirectiveImpl directive,
-    required ImportElement importElement,
+    required ImportElement2 importElement,
     required ImportDirectiveState importState,
     required ErrorReporter libraryErrorReporter,
   }) {
     directive.element = importElement;
-    directive.prefix?.staticElement = importElement.prefix;
+    directive.prefix?.staticElement = importElement.prefix?.element;
     _resolveNamespaceDirective(
       directive: directive,
       primaryUriNode: directive.uri,

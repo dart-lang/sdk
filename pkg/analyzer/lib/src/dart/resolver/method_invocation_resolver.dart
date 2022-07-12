@@ -665,8 +665,9 @@ class MethodInvocationResolver with ScopeHelpers {
     // Note: prefix?.bar is reported as an error in ElementResolver.
 
     if (name == FunctionElement.LOAD_LIBRARY_NAME) {
-      var imports = prefix.imports;
-      if (imports.length == 1 && imports[0].isDeferred) {
+      var imports = prefix.imports2;
+      if (imports.length == 1 &&
+          imports[0].prefix is DeferredImportElementPrefix) {
         var importedLibrary = imports[0].importedLibrary;
         var element = importedLibrary?.loadLibraryFunction;
         element = _resolver.toLegacyElement(element);

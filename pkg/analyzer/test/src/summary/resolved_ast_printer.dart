@@ -667,7 +667,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ImportDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element);
+      _writeElement('element', node.element2);
       _writeSource('selectedSource', node.selectedSource);
       _writeRaw('selectedUriContent', node.selectedUriContent);
       _writeRaw('uriContent', node.uriContent);

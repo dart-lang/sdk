@@ -4218,7 +4218,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       {required bool isNot}) {
     // ignore: unnecessary_null_comparison
     assert(isNot != null);
-    EqualityInfo<VariableDeclaration, DartType>? equalityInfo =
+    EqualityInfo<DartType>? equalityInfo =
         flowAnalysis.equalityOperand_end(left, leftType);
     bool typeNeeded = !isTopLevel;
 

@@ -343,12 +343,12 @@ class PluginManager {
       _pluginMap[path] = plugin;
       try {
         var session = await plugin.start(byteStorePath, sdkPath);
-        session?.onDone.then((_) {
+        unawaited(session?.onDone.then((_) {
           if (_pluginMap[path] == plugin) {
             _pluginMap.remove(path);
             _notifyPluginsChanged();
           }
-        });
+        }));
       } catch (exception, stackTrace) {
         // Record the exception (for debugging purposes) and record the fact
         // that we should not try to communicate with the plugin.
@@ -534,9 +534,9 @@ class PluginManager {
         //
         _pluginMap[path] = plugin;
         var session = await plugin.start(byteStorePath, sdkPath);
-        session?.onDone.then((_) {
+        unawaited(session?.onDone.then((_) {
           _pluginMap.remove(path);
-        });
+        }));
         //
         // Re-initialize the plugin.
         //
@@ -993,7 +993,7 @@ class PluginSession {
     name = result.name;
     version = result.version;
     if (!isCompatible) {
-      sendRequest(PluginShutdownParams());
+      unawaited(sendRequest(PluginShutdownParams()));
       info.reportException(CaughtException(
           PluginException('Plugin is not compatible.'), StackTrace.current));
       return false;

@@ -16,13 +16,11 @@ class TargetFlags {
   final bool trackWidgetCreation;
   final bool enableNullSafety;
   final bool supportMirrors;
-  final bool compactAsync;
 
   const TargetFlags(
       {this.trackWidgetCreation = false,
       this.enableNullSafety = false,
-      this.supportMirrors = true,
-      this.compactAsync = true});
+      this.supportMirrors = true});
 
   @override
   bool operator ==(other) {
@@ -30,8 +28,7 @@ class TargetFlags {
     return other is TargetFlags &&
         trackWidgetCreation == other.trackWidgetCreation &&
         enableNullSafety == other.enableNullSafety &&
-        supportMirrors == other.supportMirrors &&
-        compactAsync == other.compactAsync;
+        supportMirrors == other.supportMirrors;
   }
 
   @override
@@ -40,7 +37,6 @@ class TargetFlags {
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ enableNullSafety.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ supportMirrors.hashCode));
-    hash = 0x3fffffff & (hash * 31 + (hash ^ compactAsync.hashCode));
     return hash;
   }
 }

@@ -27,15 +27,6 @@
     "Dynamic access of 'memberContext'.": 1,
     "Dynamic access of 'name'.": 1
   },
-  "pkg/compiler/lib/src/inferrer/locals_handler.dart": {
-    "Dynamic access of 'length'.": 2,
-    "Dynamic access of 'named'.": 2,
-    "Dynamic access of 'positional'.": 2,
-    "Dynamic invocation of '[]'.": 2
-  },
-  "pkg/compiler/lib/src/inferrer/type_graph_nodes.dart": {
-    "Dynamic access of 'type'.": 4
-  },
   "pkg/compiler/lib/src/inferrer/typemasks/type_mask.dart": {
     "Dynamic access of 'forwardTo'.": 1,
     "Dynamic access of 'isForwarding'.": 1

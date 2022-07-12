@@ -685,11 +685,12 @@ class Compiler implements CompilerDiagnosticsFacade {
 
     // Dump Info.
     if (options.dumpInfo) {
-      runDumpInfo(codegenResults, programSize);
+      await runDumpInfo(codegenResults, programSize);
     }
   }
 
-  void runDumpInfo(CodegenResults codegenResults, int programSize) {
+  Future<void> runDumpInfo(
+      CodegenResults codegenResults, int programSize) async {
     GlobalTypeInferenceResults globalTypeInferenceResults =
         codegenResults.globalTypeInferenceResults;
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
@@ -698,11 +699,13 @@ class Compiler implements CompilerDiagnosticsFacade {
     dumpInfoTask.reportSize(programSize);
     if (options.features.newDumpInfo.isEnabled) {
       assert(untrimmedComponentForDumpInfo != null);
-      dumpInfoState = dumpInfoTask.dumpInfoNew(untrimmedComponentForDumpInfo,
-          closedWorld, globalTypeInferenceResults);
+      dumpInfoState = await dumpInfoTask.dumpInfoNew(
+          untrimmedComponentForDumpInfo,
+          closedWorld,
+          globalTypeInferenceResults);
     } else {
       dumpInfoState =
-          dumpInfoTask.dumpInfo(closedWorld, globalTypeInferenceResults);
+          await dumpInfoTask.dumpInfo(closedWorld, globalTypeInferenceResults);
     }
     if (retainDataForTesting) {
       dumpInfoStateForTesting = dumpInfoState;

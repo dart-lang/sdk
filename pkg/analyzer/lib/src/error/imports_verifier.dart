@@ -390,7 +390,7 @@ class ImportsVerifier {
     for (int i = 0; i < length; i++) {
       ImportDirective unusedImport = _unusedImports[i];
       // Check that the imported URI exists and isn't dart:core
-      var importElement = unusedImport.element;
+      var importElement = unusedImport.element2;
       if (importElement != null) {
         var libraryElement = importElement.importedLibrary;
         if (libraryElement == null ||
@@ -776,7 +776,7 @@ extension on Map<ImportDirective, Namespace> {
   Namespace? computeNamespace(ImportDirective importDirective) {
     var namespace = this[importDirective];
     if (namespace == null) {
-      var importElement = importDirective.element;
+      var importElement = importDirective.element2;
       if (importElement != null) {
         namespace = importElement.namespace;
         this[importDirective] = namespace;

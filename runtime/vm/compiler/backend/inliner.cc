@@ -4058,10 +4058,10 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kFloat32x4Reciprocal:
     case MethodRecognizer::kFloat32x4ReciprocalSqrt:
     case MethodRecognizer::kFloat32x4Scale:
-    case MethodRecognizer::kFloat32x4ShuffleW:
-    case MethodRecognizer::kFloat32x4ShuffleX:
-    case MethodRecognizer::kFloat32x4ShuffleY:
-    case MethodRecognizer::kFloat32x4ShuffleZ:
+    case MethodRecognizer::kFloat32x4GetW:
+    case MethodRecognizer::kFloat32x4GetX:
+    case MethodRecognizer::kFloat32x4GetY:
+    case MethodRecognizer::kFloat32x4GetZ:
     case MethodRecognizer::kFloat32x4Splat:
     case MethodRecognizer::kFloat32x4Sqrt:
     case MethodRecognizer::kFloat32x4ToFloat64x2:

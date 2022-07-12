@@ -195,16 +195,6 @@ class ElementFactory {
     return getter;
   }
 
-  static ImportElementImpl importFor(
-      LibraryElement importedLibrary, PrefixElement? prefix,
-      [List<NamespaceCombinator> combinators = const <NamespaceCombinator>[]]) {
-    ImportElementImpl spec = ImportElementImpl(0);
-    spec.importedLibrary = importedLibrary;
-    spec.prefix = prefix;
-    spec.combinators = combinators;
-    return spec;
-  }
-
   static LibraryElementImpl library(
       AnalysisContext context, String libraryName) {
     String fileName = "/$libraryName.dart";

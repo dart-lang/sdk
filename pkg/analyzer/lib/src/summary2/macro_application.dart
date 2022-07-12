@@ -258,8 +258,8 @@ class LibraryMacroApplier {
       constructorName = annotation.constructorName?.name;
     } else if (nameNode is PrefixedIdentifier) {
       final importPrefixCandidate = nameNode.prefix.name;
-      final hasImportPrefix = libraryBuilder.element.imports
-          .any((import) => import.prefix?.name == importPrefixCandidate);
+      final hasImportPrefix = libraryBuilder.element.imports2.any(
+          (import) => import.prefix?.element.name == importPrefixCandidate);
       if (hasImportPrefix) {
         prefix = importPrefixCandidate;
         name = nameNode.identifier.name;
@@ -273,8 +273,8 @@ class LibraryMacroApplier {
       throw StateError('${nameNode.runtimeType} $nameNode');
     }
 
-    for (final import in libraryBuilder.element.imports) {
-      if (import.prefix?.name != prefix) {
+    for (final import in libraryBuilder.element.imports2) {
+      if (import.prefix?.element.name != prefix) {
         continue;
       }
 

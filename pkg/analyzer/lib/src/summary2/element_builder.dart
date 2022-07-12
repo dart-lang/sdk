@@ -26,9 +26,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   final CompilationUnitElementImpl _unitElement;
 
   final _exports = <ExportElement>[];
-  final _imports = <ImportElement>[];
   var _isFirstLibraryDirective = true;
-  var _hasCoreImport = false;
+  var _importDirectiveIndex = 0;
   var _partDirectiveIndex = 0;
 
   _EnclosingContext _enclosingContext;
@@ -65,17 +64,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     unit.directives.accept(this);
 
     _libraryElement.exports = _exports;
-
-    if (!_hasCoreImport) {
-      final dartCore = _linker.elementFactory.dartCoreElement;
-      _imports.add(
-        ImportElementImpl(-1)
-          ..importedLibrary = dartCore
-          ..isSynthetic = true
-          ..uri = 'dart:core',
-      );
-    }
-    _libraryElement.imports = _imports;
 
     if (_isFirstLibraryDirective) {
       _isFirstLibraryDirective = false;
@@ -757,39 +745,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitImportDirective(covariant ImportDirectiveImpl node) {
-    var uriStr = node.uri.stringValue;
-
-    var element = ImportElementImpl(node.importKeyword.offset);
-    element.combinators = _buildCombinators(node.combinators);
-
-    try {
-      element.importedLibrary = _selectLibrary(node);
-    } on ArgumentError {
-      // TODO(scheglov) Remove this when using `ImportDirectiveState`.
-    }
-
-    element.isDeferred = node.deferredKeyword != null;
-    element.metadata = _buildAnnotations(node.metadata);
-    element.uri = uriStr;
-
-    var prefixNode = node.prefix;
-    if (prefixNode != null) {
-      element.prefix = PrefixElementImpl(
-        prefixNode.name,
-        prefixNode.offset,
-        reference: _libraryBuilder.reference
-            .getChild('@prefix')
-            .getChild(prefixNode.name),
-      );
-    }
-
-    node.element = element;
-
-    _imports.add(element);
-
-    if (uriStr == 'dart:core') {
-      _hasCoreImport = true;
-    }
+    final index = _importDirectiveIndex++;
+    final importElement = _libraryElement.imports2[index];
+    importElement as ImportElement2Impl;
+    importElement.metadata = _buildAnnotations(node.metadata);
+    node.element = importElement;
   }
 
   @override

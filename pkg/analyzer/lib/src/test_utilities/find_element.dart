@@ -50,10 +50,10 @@ class FindElement extends _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  ImportElement import(String targetUri, {bool mustBeUnique = true}) {
-    ImportElement? importElement;
+  ImportElement2 import(String targetUri, {bool mustBeUnique = true}) {
+    ImportElement2? importElement;
 
-    for (var import in libraryElement.imports) {
+    for (var import in libraryElement.imports2) {
       var importedUri = import.importedLibrary?.source.uri.toString();
       if (importedUri == targetUri) {
         if (importElement == null) {
@@ -243,10 +243,10 @@ class FindElement extends _FindElementBase {
   }
 
   PrefixElement prefix(String name) {
-    for (var import_ in libraryElement.imports) {
-      var prefix = import_.prefix;
-      if (prefix?.name == name) {
-        return prefix!;
+    for (var import_ in libraryElement.imports2) {
+      var prefix = import_.prefix?.element;
+      if (prefix != null && prefix.name == name) {
+        return prefix;
       }
     }
     throw StateError('Not found: $name');
@@ -311,13 +311,13 @@ class FindElement extends _FindElementBase {
 
 /// Helper for searching imported elements.
 class ImportFindElement extends _FindElementBase {
-  final ImportElement import;
+  final ImportElement2 import;
 
   ImportFindElement(this.import);
 
   LibraryElement get importedLibrary => import.importedLibrary!;
 
-  PrefixElement? get prefix => import.prefix;
+  PrefixElement? get prefix => import.prefix?.element;
 
   @override
   CompilationUnitElement get unitElement {

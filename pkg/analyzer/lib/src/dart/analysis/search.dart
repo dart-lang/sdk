@@ -130,13 +130,13 @@ enum DeclarationKind {
 class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
   final List<SearchResult> results = <SearchResult>[];
 
-  final ImportElement importElement;
+  final ImportElement2 importElement;
   final CompilationUnitElement enclosingUnitElement;
 
   late final Set<Element> importedElements;
 
   ImportElementReferencesVisitor(
-      ImportElement element, this.enclosingUnitElement)
+      ImportElement2 element, this.enclosingUnitElement)
       : importElement = element {
     importedElements = element.namespace.definedNames.values.toSet();
   }
@@ -153,7 +153,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     if (importElement.prefix != null) {
-      if (node.staticElement == importElement.prefix) {
+      if (node.staticElement == importElement.prefix?.element) {
         var parent = node.parent;
         if (parent is PrefixedIdentifier && parent.prefix == node) {
           var element = parent.writeOrReadElement?.declaration;
@@ -262,7 +262,7 @@ class Search {
             element, (n) => n is Block, searchedFiles);
       }
       return _searchReferences_Function(element, searchedFiles);
-    } else if (element is ImportElement) {
+    } else if (element is ImportElement2) {
       return _searchReferences_Import(element, searchedFiles);
     } else if (kind == ElementKind.LABEL ||
         kind == ElementKind.LOCAL_VARIABLE) {
@@ -556,7 +556,7 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Import(
-      ImportElement element, SearchedFiles searchedFiles) async {
+      ImportElement2 element, SearchedFiles searchedFiles) async {
     String path = element.source.fullName;
     if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];

@@ -193,8 +193,7 @@ abstract class Expression extends Node {
   /// [ExpressionInfo] associated with it.  If the expression has no flow
   /// analysis information associated with it, `null` will be passed to
   /// [callback].
-  Expression getExpressionInfo(
-          void Function(ExpressionInfo<Var, Type>?) callback) =>
+  Expression getExpressionInfo(void Function(ExpressionInfo<Type>?) callback) =>
       new _GetExpressionInfo(this, callback);
 
   /// If `this` is an expression `x`, creates the expression `x ?? other`.
@@ -604,8 +603,7 @@ class SsaNodeHarness {
 
   /// Gets the SSA node associated with [variable] at the current point in
   /// control flow, or `null` if the variable has been write captured.
-  SsaNode<Var, Type>? operator [](Var variable) =>
-      _flow.ssaNodeForTesting(variable);
+  SsaNode<Type>? operator [](Var variable) => _flow.ssaNodeForTesting(variable);
 }
 
 /// Representation of a statement in the pseudo-Dart language used for flow
@@ -1171,7 +1169,7 @@ class _ForEach extends Statement {
 class _GetExpressionInfo extends Expression {
   final Expression target;
 
-  final void Function(ExpressionInfo<Var, Type>?) callback;
+  final void Function(ExpressionInfo<Type>?) callback;
 
   _GetExpressionInfo(this.target, this.callback);
 
@@ -1413,7 +1411,7 @@ class _MiniAstTypeAnalyzer {
       flow.logicalBinaryOp_begin();
     }
     var leftType = analyzeExpression(lhs);
-    EqualityInfo<Var, Type>? leftInfo;
+    EqualityInfo<Type>? leftInfo;
     if (isEquals) {
       leftInfo = flow.equalityOperand_end(lhs, leftType);
     } else if (isLogical) {

@@ -412,8 +412,8 @@ main() {}
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    ImportElement aImport = unit.declaredElement!.library.imports[0];
-    PrefixElement aPrefix = aImport.prefix!;
+    final aImport = unit.declaredElement!.library.imports2[0];
+    PrefixElement aPrefix = aImport.prefix!.element;
     LibraryElement aLibrary = aImport.importedLibrary!;
 
     CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
@@ -451,8 +451,8 @@ main() {}
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    ImportElement aImport = unit.declaredElement!.library.imports[0];
-    PrefixElement aPrefix = aImport.prefix!;
+    final aImport = unit.declaredElement!.library.imports2[0];
+    PrefixElement aPrefix = aImport.prefix!.element;
     LibraryElement aLibrary = aImport.importedLibrary!;
 
     CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
@@ -492,8 +492,8 @@ main() {}
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    ImportElement aImport = unit.declaredElement!.library.imports[0];
-    PrefixElement aPrefix = aImport.prefix!;
+    final aImport = unit.declaredElement!.library.imports2[0];
+    PrefixElement aPrefix = aImport.prefix!.element;
     LibraryElement aLibrary = aImport.importedLibrary!;
 
     CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
@@ -533,8 +533,8 @@ main() {}
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    ImportElement aImport = unit.declaredElement!.library.imports[0];
-    PrefixElement aPrefix = aImport.prefix!;
+    final aImport = unit.declaredElement!.library.imports2[0];
+    PrefixElement aPrefix = aImport.prefix!.element;
     LibraryElement aLibrary = aImport.importedLibrary!;
 
     CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
@@ -1443,7 +1443,7 @@ main() {
     assertInvokeType(invocation, 'Future<dynamic> Function()');
 
     var target = invocation.target as SimpleIdentifier;
-    assertElement(target, import.prefix);
+    assertElement(target, import.prefix?.element);
     assertType(target, null);
 
     var name = invocation.methodName;
@@ -1469,7 +1469,7 @@ main() {
     assertInvokeType(invocation, 'Future<dynamic> Function()');
 
     var target = invocation.target as SimpleIdentifier;
-    assertElement(target, import.prefix);
+    assertElement(target, import.prefix?.element);
     assertType(target, null);
 
     var name = invocation.methodName;
@@ -1500,7 +1500,7 @@ main() {
     assertType(prefixed, 'Future<dynamic> Function()');
 
     var prefix = prefixed.prefix;
-    assertElement(prefix, import.prefix);
+    assertElement(prefix, import.prefix?.element);
     assertType(prefix, null);
 
     var identifier = prefixed.identifier;
@@ -1528,7 +1528,7 @@ main() async {
       assertElement(prefixed, v.getter);
       assertType(prefixed, 'int');
 
-      assertElement(prefixed.prefix, import.prefix);
+      assertElement(prefixed.prefix, import.prefix?.element);
       assertType(prefixed.prefix, null);
 
       assertElement(prefixed.identifier, v.getter);
@@ -1540,7 +1540,7 @@ main() async {
       assertElementNull(prefixed);
       assertTypeNull(prefixed);
 
-      assertElement(prefixed.prefix, import.prefix);
+      assertElement(prefixed.prefix, import.prefix?.element);
       assertType(prefixed.prefix, null);
 
       assertUnresolvedSimpleIdentifier(prefixed.identifier);
@@ -2210,7 +2210,7 @@ main() {
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    ImportElement aImport = unit.declaredElement!.library.imports[0];
+    final aImport = unit.declaredElement!.library.imports2[0];
     LibraryElement aLibrary = aImport.importedLibrary!;
 
     ClassElement cElement = aLibrary.getType('C')!;
@@ -2241,7 +2241,7 @@ main() {
 
       SimpleIdentifier typePrefix = typeIdentifier.prefix;
       expect(typePrefix.name, 'p');
-      expect(typePrefix.staticElement, same(aImport.prefix));
+      expect(typePrefix.staticElement, same(aImport.prefix?.element));
       expect(typePrefix.staticType, isNull);
 
       expect(typeIdentifier.identifier.staticElement, same(cElement));
@@ -2271,7 +2271,7 @@ main() {
 
       SimpleIdentifier typePrefix = typeIdentifier.prefix;
       expect(typePrefix.name, 'p');
-      expect(typePrefix.staticElement, same(aImport.prefix));
+      expect(typePrefix.staticElement, same(aImport.prefix?.element));
       expect(typePrefix.staticType, isNull);
 
       expect(typeIdentifier.identifier.staticElement, same(cElement));
@@ -2303,7 +2303,7 @@ main() {
 
       SimpleIdentifier typePrefix = typeIdentifier.prefix;
       expect(typePrefix.name, 'p');
-      expect(typePrefix.staticElement, same(aImport.prefix));
+      expect(typePrefix.staticElement, same(aImport.prefix?.element));
       expect(typePrefix.staticType, isNull);
 
       expect(typeIdentifier.identifier.staticElement, same(cElement));
@@ -2898,7 +2898,7 @@ main() {
       findNode.namedType('a.Future'),
       futureElement,
       'Future<int>',
-      expectedPrefix: findElement.import('dart:async').prefix,
+      expectedPrefix: findElement.import('dart:async').prefix?.element,
     );
     assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
@@ -3231,7 +3231,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    ImportElement import = findNode.import('dart:math').element!;
+    final import = findNode.import('dart:math').element2!;
 
     var pRef = findNode.simple('p(a)');
     assertElement(pRef, import.prefix);
@@ -3440,14 +3440,14 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    ImportElement import = findNode.import('dart:math').element!;
+    final import = findNode.import('dart:math').element2!;
 
     var invocation = findNode.methodInvocation('p(a)');
     expect(invocation.staticType, isDynamicType);
     assertUnresolvedInvokeType(invocation.staticInvokeType!);
 
     var pRef = invocation.methodName;
-    assertElement(pRef, import.prefix);
+    assertElement(pRef, import.prefix?.element);
     assertTypeDynamic(pRef);
 
     var aRef = findNode.simple('a);');
@@ -3613,7 +3613,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    ImportElement import = findNode.import('a.dart').element!;
+    final import = findNode.import('a.dart').element2!;
     var tElement = import.importedLibrary!.publicNamespace.get('T');
 
     var prefixedName = findNode.prefixed('p.T');
@@ -3681,7 +3681,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    ImportElement import = findNode.import('a.dart').element!;
+    final import = findNode.import('a.dart').element2!;
     var tElement = import.importedLibrary!.publicNamespace.get('T');
 
     var prefixedName = findNode.prefixed('p.T');
@@ -5646,7 +5646,7 @@ const b = p.C.named(); // ref
       assertType(creation, 'C');
 
       assertNamedType(creation.constructorName.type, c, 'C',
-          expectedPrefix: import.prefix);
+          expectedPrefix: import.prefix?.element);
     }
 
     {
@@ -5656,7 +5656,7 @@ const b = p.C.named(); // ref
       assertType(creation, 'C');
 
       assertNamedType(creation.constructorName.type, c, 'C',
-          expectedPrefix: import.prefix);
+          expectedPrefix: import.prefix?.element);
       assertElement(creation.constructorName.name, namedConstructor);
     }
   }
@@ -5907,14 +5907,14 @@ import 'dart:async' as my;
 my.Future<int> a;
 ''');
     await resolveTestFile();
-    ImportElement myImport = result.libraryElement.imports[0];
+    final myImport = result.libraryElement.imports2[0];
 
     var intRef = findNode.namedType('int> a');
     assertNamedType(intRef, intElement, 'int');
 
     var futureRef = findNode.namedType('my.Future<int> a');
     assertNamedType(futureRef, futureElement, 'Future<int>',
-        expectedPrefix: myImport.prefix);
+        expectedPrefix: myImport.prefix?.element);
   }
 
   test_postfix_increment_of_non_generator() async {
@@ -6163,8 +6163,8 @@ main() {
 //    expect(result.errors, isEmpty);
 
     var unitElement = result.unit.declaredElement!;
-    ImportElement myImport = unitElement.library.imports[0];
-    PrefixElement myPrefix = myImport.prefix!;
+    final myImport = unitElement.library.imports2[0];
+    PrefixElement myPrefix = myImport.prefix!.element;
 
     var myLibrary = myImport.importedLibrary!;
     var myUnit = myLibrary.definingCompilationUnit;
@@ -7751,8 +7751,8 @@ c.A a2;
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    ImportElement bImport = unit.declaredElement!.library.imports[0];
-    ImportElement cImport = unit.declaredElement!.library.imports[1];
+    final bImport = unit.declaredElement!.library.imports2[0];
+    final cImport = unit.declaredElement!.library.imports2[1];
 
     LibraryElement bLibrary = bImport.importedLibrary!;
     LibraryElement aLibrary = bLibrary.exports[0].exportedLibrary!;
@@ -7766,7 +7766,10 @@ c.A a2;
       expect(typeIdentifier.staticElement, aClass);
 
       expect(typeIdentifier.prefix.name, 'b');
-      expect(typeIdentifier.prefix.staticElement, same(bImport.prefix));
+      expect(
+        typeIdentifier.prefix.staticElement,
+        same(bImport.prefix?.element),
+      );
 
       expect(typeIdentifier.identifier.staticElement, aClass);
     }
@@ -7779,7 +7782,10 @@ c.A a2;
       expect(typeIdentifier.staticElement, aClass);
 
       expect(typeIdentifier.prefix.name, 'c');
-      expect(typeIdentifier.prefix.staticElement, same(cImport.prefix));
+      expect(
+        typeIdentifier.prefix.staticElement,
+        same(cImport.prefix?.element),
+      );
 
       expect(typeIdentifier.identifier.staticElement, aClass);
     }
@@ -7913,7 +7919,7 @@ main() {
     expect(result.errors, isNotEmpty);
 
     var unitElement = result.unit.declaredElement!;
-    var foo = unitElement.library.imports[0].prefix;
+    var foo = unitElement.library.imports2[0].prefix?.element;
 
     List<Statement> statements = _getMainStatements(result);
     var statement = statements[0] as ExpressionStatement;
@@ -7997,8 +8003,8 @@ main() {
     expect(result.errors, isNotEmpty);
 
     var unitElement = result.unit.declaredElement!;
-    var mathImport = unitElement.library.imports[0];
-    var foo = mathImport.prefix;
+    var mathImport = unitElement.library.imports2[0];
+    var foo = mathImport.prefix?.element;
 
     List<Statement> statements = _getMainStatements(result);
     var statement = statements[0] as ExpressionStatement;
@@ -8043,8 +8049,8 @@ main() {
     expect(result.errors, isNotEmpty);
 
     var unitElement = result.unit.declaredElement!;
-    var mathImport = unitElement.library.imports[0];
-    var foo = mathImport.prefix;
+    var mathImport = unitElement.library.imports2[0];
+    var foo = mathImport.prefix?.element;
     var randomElement = mathImport.importedLibrary!.getType('Random')!;
 
     List<Statement> statements = _getMainStatements(result);

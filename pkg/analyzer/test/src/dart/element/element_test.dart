@@ -2,21 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/test_analysis_context.dart';
 import '../../../generated/test_support.dart';
 import '../../../generated/type_system_test.dart';
 import '../resolution/context_collection_resolution.dart';
@@ -33,7 +29,6 @@ main() {
     defineReflectiveTests(CompilationUnitElementImplTest);
     defineReflectiveTests(ElementLocationImplTest);
     defineReflectiveTests(ElementImplTest);
-    defineReflectiveTests(LibraryElementImplTest);
     defineReflectiveTests(TopLevelVariableElementImplTest);
     defineReflectiveTests(UniqueLocationTest);
   });
@@ -1246,75 +1241,6 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
 }
 
 @reflectiveTest
-class LibraryElementImplTest {
-  void test_getImportedLibraries() {
-    AnalysisContext context = TestAnalysisContext();
-    LibraryElementImpl library1 = ElementFactory.library(context, "l1");
-    LibraryElementImpl library2 = ElementFactory.library(context, "l2");
-    LibraryElementImpl library3 = ElementFactory.library(context, "l3");
-    LibraryElementImpl library4 = ElementFactory.library(context, "l4");
-    PrefixElement prefixA = PrefixElementImpl('a', -1);
-    PrefixElement prefixB = PrefixElementImpl('b', -1);
-    List<ImportElementImpl> imports = [
-      ElementFactory.importFor(library2, null),
-      ElementFactory.importFor(library2, prefixB),
-      ElementFactory.importFor(library3, null),
-      ElementFactory.importFor(library3, prefixA),
-      ElementFactory.importFor(library3, prefixB),
-      ElementFactory.importFor(library4, prefixA)
-    ];
-    library1.imports = imports;
-    List<LibraryElement> libraries = library1.importedLibraries;
-    expect(libraries,
-        unorderedEquals(<LibraryElement>[library2, library3, library4]));
-  }
-
-  void test_getPrefixes() {
-    AnalysisContext context = TestAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "l1");
-    PrefixElement prefixA = PrefixElementImpl('a', -1);
-    PrefixElement prefixB = PrefixElementImpl('b', -1);
-    List<ImportElementImpl> imports = [
-      ElementFactory.importFor(ElementFactory.library(context, "l2"), null),
-      ElementFactory.importFor(ElementFactory.library(context, "l3"), null),
-      ElementFactory.importFor(ElementFactory.library(context, "l4"), prefixA),
-      ElementFactory.importFor(ElementFactory.library(context, "l5"), prefixA),
-      ElementFactory.importFor(ElementFactory.library(context, "l6"), prefixB)
-    ];
-    library.imports = imports;
-    List<PrefixElement> prefixes = library.prefixes;
-    expect(prefixes, hasLength(2));
-    if (identical(prefixA, prefixes[0])) {
-      expect(prefixes[1], same(prefixB));
-    } else {
-      expect(prefixes[0], same(prefixB));
-      expect(prefixes[1], same(prefixA));
-    }
-  }
-
-  void test_setImports() {
-    AnalysisContext context = TestAnalysisContext();
-    LibraryElementImpl library = LibraryElementImpl(
-        context,
-        _AnalysisSessionMock(),
-        'l1',
-        -1,
-        0,
-        FeatureSet.latestLanguageVersion());
-    List<ImportElementImpl> expectedImports = [
-      ElementFactory.importFor(ElementFactory.library(context, "l2"), null),
-      ElementFactory.importFor(ElementFactory.library(context, "l3"), null)
-    ];
-    library.imports = expectedImports;
-    List<ImportElement> actualImports = library.imports;
-    expect(actualImports, hasLength(expectedImports.length));
-    for (int i = 0; i < actualImports.length; i++) {
-      expect(actualImports[i], same(expectedImports[i]));
-    }
-  }
-}
-
-@reflectiveTest
 class TopLevelVariableElementImplTest extends PubPackageResolutionTest {
   test_computeConstantValue() async {
     newFile('$testPackageLibPath/a.dart', r'''
@@ -1599,9 +1525,4 @@ class VoidTypeImplTest extends AbstractTypeSystemTest {
     // Returns this.
     expect(_voidType.resolveToBound(objectNone), same(_voidType));
   }
-}
-
-class _AnalysisSessionMock implements AnalysisSessionImpl {
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

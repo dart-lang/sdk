@@ -307,7 +307,6 @@ class FunctionNodeHelper {
     kSyncStar = 1,
     kAsync = 2,
     kAsyncStar = 3,
-    kSyncYielding = 4,
   };
 
   explicit FunctionNodeHelper(KernelReaderHelper* helper) {

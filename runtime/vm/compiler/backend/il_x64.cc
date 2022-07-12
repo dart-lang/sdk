@@ -4734,19 +4734,19 @@ DEFINE_EMIT(SimdUnaryOp, (SameAsFirstInput, XmmRegister value)) {
     break;
     SIMD_OP_SIMPLE_UNARY(EMIT)
 #undef EMIT
-    case SimdOpInstr::kFloat32x4ShuffleX:
+    case SimdOpInstr::kFloat32x4GetX:
       // Shuffle not necessary.
       __ cvtss2sd(value, value);
       break;
-    case SimdOpInstr::kFloat32x4ShuffleY:
+    case SimdOpInstr::kFloat32x4GetY:
       __ shufps(value, value, compiler::Immediate(0x55));
       __ cvtss2sd(value, value);
       break;
-    case SimdOpInstr::kFloat32x4ShuffleZ:
+    case SimdOpInstr::kFloat32x4GetZ:
       __ shufps(value, value, compiler::Immediate(0xAA));
       __ cvtss2sd(value, value);
       break;
-    case SimdOpInstr::kFloat32x4ShuffleW:
+    case SimdOpInstr::kFloat32x4GetW:
       __ shufps(value, value, compiler::Immediate(0xFF));
       __ cvtss2sd(value, value);
       break;
@@ -4965,10 +4965,10 @@ DEFINE_EMIT(Int32x4Select,
   CASE(Float32x4WithW)                                                         \
   ____(SimdBinaryOp)                                                           \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
-  CASE(Float32x4ShuffleX)                                                      \
-  CASE(Float32x4ShuffleY)                                                      \
-  CASE(Float32x4ShuffleZ)                                                      \
-  CASE(Float32x4ShuffleW)                                                      \
+  CASE(Float32x4GetX)                                                          \
+  CASE(Float32x4GetY)                                                          \
+  CASE(Float32x4GetZ)                                                          \
+  CASE(Float32x4GetW)                                                          \
   CASE(Float32x4Shuffle)                                                       \
   CASE(Int32x4Shuffle)                                                         \
   CASE(Float32x4Splat)                                                         \

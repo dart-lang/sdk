@@ -428,7 +428,7 @@ class Driver implements ServerStarter {
         }
         await instrumentationService.shutdown();
 
-        socketServer.analysisServer!.shutdown();
+        unawaited(socketServer.analysisServer!.shutdown());
 
         try {
           tempDriverDir.deleteSync(recursive: true);
@@ -454,7 +454,7 @@ class Driver implements ServerStarter {
             httpServer.close();
           }
           await instrumentationService.shutdown();
-          socketServer.analysisServer!.shutdown();
+          unawaited(socketServer.analysisServer!.shutdown());
           if (sendPort == null) exit(0);
         });
       },
@@ -502,7 +502,7 @@ class Driver implements ServerStarter {
         // Only shutdown the server and exit if the server is not already
         // handling the shutdown.
         if (!socketServer.analysisServer!.willExit) {
-          socketServer.analysisServer!.shutdown();
+          unawaited(socketServer.analysisServer!.shutdown());
           exit(0);
         }
       });

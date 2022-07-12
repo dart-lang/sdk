@@ -9,11 +9,8 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/type_environment.dart';
 
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
-import '../transformations/continuation.dart' as transformAsync
-    show transformLibraries, transformProcedure;
 import '../transformations/lowering.dart' as lowering
     show transformLibraries, transformProcedure;
 import '../transformations/mixin_full_resolution.dart' as transformMixins
@@ -183,15 +180,9 @@ class VmTarget extends Target {
       logger?.call("Transformed ffi annotations");
     }
 
-    // TODO(kmillikin): Make this run on a per-method basis.
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
-    transformAsync.transformLibraries(
-        new TypeEnvironment(coreTypes, hierarchy), libraries,
-        productMode: productMode, desugarAsync: !flags.compactAsync);
-    logger?.call("Transformed async methods");
-
-    lowering.transformLibraries(
-        libraries, coreTypes, hierarchy, flags.enableNullSafety);
+    lowering.transformLibraries(libraries, coreTypes, hierarchy,
+        nullSafety: flags.enableNullSafety, productMode: productMode);
     logger?.call("Lowering transformations performed");
 
     callSiteAnnotator.transformLibraries(
@@ -207,13 +198,8 @@ class VmTarget extends Target {
       Map<String, String>? environmentDefines,
       {void Function(String msg)? logger}) {
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
-    transformAsync.transformProcedure(
-        new TypeEnvironment(coreTypes, hierarchy), procedure,
-        productMode: productMode, desugarAsync: !flags.compactAsync);
-    logger?.call("Transformed async functions");
-
-    lowering.transformProcedure(
-        procedure, coreTypes, hierarchy, flags.enableNullSafety);
+    lowering.transformProcedure(procedure, coreTypes, hierarchy,
+        nullSafety: flags.enableNullSafety, productMode: productMode);
     logger?.call("Lowering transformations performed");
   }
 

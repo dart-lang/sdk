@@ -2877,8 +2877,13 @@ abstract class ImportDirective implements NamespaceDirective {
   /// imported URI is not deferred.
   Token? get deferredKeyword;
 
+  @Deprecated('Use element2 instead')
   @override
   ImportElement? get element;
+
+  /// Return the element associated with this directive, or `null` if the AST
+  /// structure has not been resolved.
+  ImportElement2? get element2;
 
   /// The token representing the 'import' keyword.
   Token get importKeyword;

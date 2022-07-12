@@ -2456,7 +2456,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               typeChecksNeeded);
     }
 
-    List<EqualityInfo<VariableDeclaration, DartType>?>? identicalInfo =
+    List<EqualityInfo<DartType>?>? identicalInfo =
         isIdentical && arguments.positional.length == 2 ? [] : null;
     int positionalIndex = 0;
     int namedIndex = 0;

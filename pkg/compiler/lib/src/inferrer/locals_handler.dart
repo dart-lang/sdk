@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library locals_handler;
 
 import 'dart:collection' show IterableMixin;
@@ -11,7 +9,7 @@ import 'package:kernel/ast.dart' as ir;
 import '../elements/entities.dart';
 import '../ir/util.dart';
 import '../util/util.dart';
-import 'engine.dart';
+import 'engine_interfaces.dart';
 import 'type_graph_nodes.dart';
 
 /// A variable scope holds types for variables. It has a link to a
@@ -25,15 +23,15 @@ class VariableScope {
   /// This is used for computing common parents efficiently.
   final int _level;
 
-  Map<Local, TypeInformation> variables;
+  Map<Local, TypeInformation>? variables;
 
   /// The parent of this scope. Null for the root scope.
-  final VariableScope parent;
+  final VariableScope? parent;
 
   /// The [ir.Node] that created this scope.
-  final ir.Node tryBlock;
+  final ir.Node? tryBlock;
 
-  final VariableScope copyOf;
+  final VariableScope? copyOf;
 
   VariableScope({this.parent})
       : this.variables = null,
@@ -52,13 +50,13 @@ class VariableScope {
   VariableScope.deepCopyOf(VariableScope other)
       : variables = other.variables == null
             ? null
-            : Map<Local, TypeInformation>.from(other.variables),
+            : Map<Local, TypeInformation>.from(other.variables!),
         tryBlock = other.tryBlock,
         copyOf = other.copyOf ?? other,
         _level = other._level,
         parent = other.parent == null
             ? null
-            : VariableScope.deepCopyOf(other.parent);
+            : VariableScope.deepCopyOf(other.parent!);
 
   /// `true` if this scope is for a try block.
   bool get isTry => tryBlock != null;
@@ -70,50 +68,47 @@ class VariableScope {
   VariableScope get identity => copyOf ?? this;
 
   /// Returns the common parent between this and [other] based on [identity].
-  VariableScope commonParent(VariableScope other) {
+  VariableScope? commonParent(VariableScope other) {
     if (identity == other.identity) {
       return identity;
     } else if (_level > other._level) {
-      return parent.commonParent(other);
+      return parent!.commonParent(other);
     } else if (_level < other._level) {
-      return commonParent(other.parent);
+      return commonParent(other.parent!);
     } else if (_level > 0) {
-      return parent.commonParent(other.parent);
+      return parent!.commonParent(other.parent!);
     } else {
       return null;
     }
   }
 
-  TypeInformation operator [](Local variable) {
-    TypeInformation result;
-    if (variables == null || (result = variables[variable]) == null) {
-      return parent == null ? null : parent[variable];
+  TypeInformation? operator [](Local variable) {
+    TypeInformation? result;
+    if (variables == null || (result = variables![variable]) == null) {
+      return parent == null ? null : parent![variable];
     }
     return result;
   }
 
   void operator []=(Local variable, TypeInformation mask) {
-    assert(mask != null);
-    if (variables == null) {
-      variables = Map<Local, TypeInformation>();
-    }
-    variables[variable] = mask;
+    assert((mask as dynamic) != null); // TODO(48820): Remove when sound.
+    (variables ??= <Local, TypeInformation>{})[variable] = mask;
   }
 
   /// Calls [f] for all variables in this and parent scopes until and including
   /// [scope]. [f] is called at most once for each variable.
   void forEachLocalUntilScope(
-      VariableScope scope, void f(Local variable, TypeInformation type)) {
+      VariableScope? scope, void f(Local variable, TypeInformation type)) {
     _forEachLocalUntilScope(scope, f, Setlet<Local>(), this);
   }
 
   void _forEachLocalUntilScope(
-      VariableScope scope,
+      VariableScope? scope,
       void f(Local variable, TypeInformation type),
       Setlet<Local> seenLocals,
       VariableScope origin) {
     if (variables != null) {
-      variables.forEach((variable, type) {
+      variables!.forEach((variable, type) {
         if (seenLocals.contains(variable)) return;
         seenLocals.add(variable);
         f(variable, type);
@@ -123,7 +118,7 @@ class VariableScope {
       return;
     }
     if (parent != null) {
-      parent._forEachLocalUntilScope(scope, f, seenLocals, origin);
+      parent!._forEachLocalUntilScope(scope, f, seenLocals, origin);
     } else {
       assert(
           scope == null,
@@ -139,7 +134,7 @@ class VariableScope {
 
   bool updates(Local variable) {
     if (variables == null) return false;
-    return variables.containsKey(variable);
+    return variables!.containsKey(variable);
   }
 
   String toStructuredText(String indent) {
@@ -155,18 +150,18 @@ class VariableScope {
       sb.write('\n${indent}  copyOf:VariableScope(${copyOf.hashCode})');
     }
     if (tryBlock != null) {
-      sb.write('\n${indent}  tryBlock: ${nodeToDebugString(tryBlock)}');
+      sb.write('\n${indent}  tryBlock: ${nodeToDebugString(tryBlock!)}');
     }
     if (variables != null) {
       sb.write('\n${indent}  variables:');
-      variables.forEach((Local local, TypeInformation type) {
+      variables!.forEach((Local local, TypeInformation type) {
         sb.write('\n${indent}    $local: ');
         sb.write(type.toStructuredText('${indent}      '));
       });
     }
     if (parent != null) {
       sb.write('\n${indent}  parent:');
-      parent._toStructuredText(sb, '${indent}     ');
+      parent!._toStructuredText(sb, '${indent}     ');
     }
     sb.write(']');
   }
@@ -180,7 +175,7 @@ class VariableScope {
 
 /// Tracks initializers via initializations and assignments.
 class FieldInitializationScope {
-  Map<FieldEntity, TypeInformation> fields;
+  Map<FieldEntity, TypeInformation>? fields;
   bool isThisExposed;
 
   /// `true` when control flow prevents accumulating definite assignments,
@@ -195,7 +190,7 @@ class FieldInitializationScope {
       : isThisExposed = other.isThisExposed,
         isIndefinite = other.isIndefinite;
 
-  factory FieldInitializationScope.from(FieldInitializationScope other) {
+  static FieldInitializationScope? from(FieldInitializationScope? other) {
     if (other == null) return null;
     return FieldInitializationScope.internalFrom(other);
   }
@@ -203,12 +198,11 @@ class FieldInitializationScope {
   void updateField(FieldEntity field, TypeInformation type) {
     if (isThisExposed) return;
     if (isIndefinite) return;
-    fields ??= Map<FieldEntity, TypeInformation>();
-    fields[field] = type;
+    (fields ??= <FieldEntity, TypeInformation>{})[field] = type;
   }
 
-  TypeInformation readField(FieldEntity field) {
-    return fields == null ? null : fields[field];
+  TypeInformation? readField(FieldEntity field) {
+    return fields == null ? null : fields![field];
   }
 
   void forEach(void f(FieldEntity element, TypeInformation type)) {
@@ -219,7 +213,7 @@ class FieldInitializationScope {
   /// flow through either [thenScope] or [elseScope].
   FieldInitializationScope mergeDiamondFlow(InferrerEngine inferrer,
       FieldInitializationScope thenScope, FieldInitializationScope elseScope) {
-    assert(elseScope != null);
+    assert((elseScope as dynamic) != null); // TODO(48820): Remove when sound.
 
     // Quick bailout check. If [isThisExposed] or [isIndefinite] is true, we
     // know the code following won't do anything.
@@ -230,7 +224,7 @@ class FieldInitializationScope {
         elseScope.fields == null ? this : elseScope;
 
     thenScope.forEach((FieldEntity field, TypeInformation type) {
-      TypeInformation otherType = otherScope.readField(field);
+      final otherType = otherScope.readField(field);
       if (otherType == null) return;
       updateField(field, inferrer.types.allocateDiamondPhi(type, otherType));
     });
@@ -246,10 +240,10 @@ class ArgumentsTypes extends IterableMixin<TypeInformation> {
   final List<TypeInformation> positional;
   final Map<String, TypeInformation> named;
 
-  ArgumentsTypes(this.positional, Map<String, TypeInformation> named)
+  ArgumentsTypes(this.positional, Map<String, TypeInformation>? named)
       : this.named = (named == null || named.isEmpty) ? const {} : named {
-    assert(this.positional.every((TypeInformation type) => type != null));
-    assert(this.named.values.every((TypeInformation type) => type != null));
+    assert(this.positional.every((TypeInformation? type) => type != null));
+    assert(this.named.values.every((TypeInformation? type) => type != null));
   }
 
   ArgumentsTypes.empty()
@@ -266,7 +260,8 @@ class ArgumentsTypes extends IterableMixin<TypeInformation> {
   String toString() => "{ positional = $positional, named = $named }";
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object? other) {
+    if (other is! ArgumentsTypes) return false;
     if (positional.length != other.positional.length) return false;
     if (named.length != other.named.length) return false;
     for (int i = 0; i < positional.length; i++) {
@@ -296,7 +291,7 @@ class ArgumentsTypes extends IterableMixin<TypeInformation> {
   }
 
   @override
-  bool contains(Object type) {
+  bool contains(Object? type) {
     return positional.contains(type) || named.containsValue(type);
   }
 }
@@ -341,26 +336,25 @@ class LocalsHandler {
   LocalsHandler.deepCopyOf(LocalsHandler other)
       : _locals = VariableScope.deepCopyOf(other._locals);
 
-  TypeInformation use(Local local) {
+  TypeInformation? use(Local local) {
     return _locals[local];
   }
 
   void update(InferrerEngine inferrer, Local local, TypeInformation type,
-      LocalsHandler tryBlock) {
+      LocalsHandler? tryBlock) {
     if (tryBlock != null) {
       // We don't know if an assignment in a try block
       // will be executed, so all assignments in that block are
       // potential types after we have left it. We update the parent
       // of the try block so that, at exit of the try block, we get
       // the right phi for it.
-      TypeInformation existing = tryBlock._locals.parent[local];
+      final existing = tryBlock._locals.parent![local];
       if (existing != null) {
-        TypeInformation phiType = inferrer.types.allocatePhi(
+        final phiType = inferrer.types.allocatePhi(
             tryBlock._locals.tryBlock, local, existing,
             isTry: tryBlock._locals.isTry);
-        TypeInformation inputType =
-            inferrer.types.addPhiInput(local, phiType, type);
-        tryBlock._locals.parent[local] = inputType;
+        final inputType = inferrer.types.addPhiInput(local, phiType, type);
+        tryBlock._locals.parent![local] = inputType;
       }
       // Update the current handler unconditionally with the new
       // type.
@@ -378,7 +372,7 @@ class LocalsHandler {
   /// from both are merged with a phi type.
   LocalsHandler mergeFlow(InferrerEngine inferrer, LocalsHandler other,
       {bool inPlace = false}) {
-    VariableScope common = _locals.commonParent(other._locals);
+    final common = _locals.commonParent(other._locals);
     assert(
         common != null,
         "No common parent for\n"
@@ -387,11 +381,11 @@ class LocalsHandler {
     assert(
         common == _locals || _locals.variables == null,
         "Non-empty common parent for\n"
-        "1:${common.toStructuredText('  ')}\n"
+        "1:${common?.toStructuredText('  ')}\n"
         "2:${_locals.toStructuredText('  ')}");
     other._locals.forEachLocalUntilScope(common,
         (Local local, TypeInformation type) {
-      TypeInformation myType = _locals[local];
+      final myType = _locals[local];
       if (myType == null) return; // Variable is only defined in [other].
       if (type == myType) return;
       _locals[local] =
@@ -404,13 +398,13 @@ class LocalsHandler {
   /// flow through either [thenBranch] or [elseBranch].
   LocalsHandler mergeDiamondFlow(InferrerEngine inferrer,
       LocalsHandler thenBranch, LocalsHandler elseBranch) {
-    assert(elseBranch != null);
+    assert((elseBranch as dynamic) != null); // TODO(48820): Remove when sound.
 
     void mergeLocal(Local local) {
-      TypeInformation myType = _locals[local];
+      final myType = _locals[local];
       if (myType == null) return;
-      TypeInformation elseType = elseBranch._locals[local];
-      TypeInformation thenType = thenBranch._locals[local];
+      final elseType = elseBranch._locals[local]!;
+      final thenType = thenBranch._locals[local]!;
       if (thenType == elseType) {
         _locals[local] = thenType;
       } else {
@@ -418,7 +412,7 @@ class LocalsHandler {
       }
     }
 
-    VariableScope common = _locals.commonParent(thenBranch._locals);
+    final common = _locals.commonParent(thenBranch._locals);
     assert(
         common != null,
         "No common parent for\n"
@@ -427,12 +421,12 @@ class LocalsHandler {
     assert(
         _locals.commonParent(elseBranch._locals) == common,
         "Diff common parent for\n"
-        "1:${common.toStructuredText('  ')}\n2:"
+        "1:${common?.toStructuredText('  ')}\n2:"
         "${_locals.commonParent(elseBranch._locals)?.toStructuredText('  ')}");
     assert(
         common == _locals || _locals.variables == null,
         "Non-empty common parent for\n"
-        "common:${common.toStructuredText('  ')}\n"
+        "common:${common?.toStructuredText('  ')}\n"
         "1:${_locals.toStructuredText('  ')}\n"
         "2:${thenBranch._locals.toStructuredText('  ')}");
     thenBranch._locals.forEachLocalUntilScope(common, (Local local, _) {
@@ -477,7 +471,7 @@ class LocalsHandler {
   LocalsHandler mergeAfterBreaks(
       InferrerEngine inferrer, Iterable<LocalsHandler> handlers,
       {bool keepOwnLocals = true}) {
-    ir.Node tryBlock = _locals.tryBlock;
+    final tryBlock = _locals.tryBlock;
     // Use a separate locals handler to perform the merge in, so that Phi
     // creation does not invalidate previous type knowledge while we might
     // still look it up.
@@ -487,7 +481,7 @@ class LocalsHandler {
     Set<Local> seenLocals = Setlet<Local>();
     // Merge all other handlers.
     for (LocalsHandler handler in handlers) {
-      VariableScope common = _locals.commonParent(handler._locals);
+      final common = _locals.commonParent(handler._locals);
       assert(
           common != null,
           "No common parent for\n"
@@ -496,11 +490,11 @@ class LocalsHandler {
       assert(
           common == _locals || _locals.variables == null,
           "Non-empty common parent for\n"
-          "common:${common.toStructuredText('  ')}\n"
+          "common:${common?.toStructuredText('  ')}\n"
           "1:${_locals.toStructuredText('  ')}\n"
           "2:${handler._locals.toStructuredText('  ')}");
       handler._locals.forEachLocalUntilScope(common, (local, otherType) {
-        TypeInformation myType = merged[local];
+        final myType = merged[local];
         if (myType == null) return;
         TypeInformation newType;
         if (!seenLocals.contains(local)) {
@@ -509,7 +503,8 @@ class LocalsHandler {
               isTry: merged.isTry);
           seenLocals.add(local);
         } else {
-          newType = inferrer.types.addPhiInput(local, myType, otherType);
+          newType = inferrer.types.addPhiInput(
+              local, myType as PhiElementTypeInformation, otherType);
         }
         if (newType != myType) {
           merged[local] = newType;
@@ -520,10 +515,10 @@ class LocalsHandler {
     // [merged] to update the Phi nodes with original values.
     if (keepOwnLocals) {
       for (Local variable in seenLocals) {
-        TypeInformation originalType = _locals[variable];
+        final originalType = _locals[variable];
         if (originalType != null) {
-          merged[variable] = inferrer.types
-              .addPhiInput(variable, merged[variable], originalType);
+          merged[variable] = inferrer.types.addPhiInput(variable,
+              merged[variable] as PhiElementTypeInformation, originalType);
         }
       }
     }
@@ -531,7 +526,8 @@ class LocalsHandler {
     // actual locals handler.
     merged.forEachLocalUntilScope(merged,
         (Local variable, TypeInformation type) {
-      _locals[variable] = inferrer.types.simplifyPhi(tryBlock, variable, type);
+      _locals[variable] = inferrer.types
+          .simplifyPhi(tryBlock, variable, type as PhiElementTypeInformation);
     });
     return this;
   }
@@ -541,7 +537,7 @@ class LocalsHandler {
   bool mergeAll(InferrerEngine inferrer, Iterable<LocalsHandler> handlers) {
     bool changed = false;
     handlers.forEach((LocalsHandler other) {
-      VariableScope common = _locals.commonParent(other._locals);
+      final common = _locals.commonParent(other._locals);
       assert(
           common != null,
           "No common parent for\n"
@@ -550,14 +546,14 @@ class LocalsHandler {
       assert(
           common == _locals || _locals.variables == null,
           "Non-empty common parent for\n"
-          "common:${common.toStructuredText('  ')}\n"
+          "common:${common?.toStructuredText('  ')}\n"
           "1:${_locals.toStructuredText('  ')}\n"
           "2:${other._locals.toStructuredText('  ')}");
       other._locals.forEachLocalUntilScope(common, (local, otherType) {
-        TypeInformation myType = _locals[local];
+        final myType = _locals[local];
         if (myType == null) return;
-        TypeInformation newType =
-            inferrer.types.addPhiInput(local, myType, otherType);
+        TypeInformation newType = inferrer.types
+            .addPhiInput(local, myType as PhiElementTypeInformation, otherType);
         if (newType != myType) {
           changed = true;
           _locals[local] = newType;
@@ -579,8 +575,8 @@ class LocalsHandler {
 
   void endLoop(InferrerEngine inferrer, ir.Node loop) {
     _locals.forEachLocal((Local variable, TypeInformation type) {
-      TypeInformation newType =
-          inferrer.types.simplifyPhi(loop, variable, type);
+      final newType = inferrer.types
+          .simplifyPhi(loop, variable, type as PhiElementTypeInformation);
       if (newType != type) {
         _locals[variable] = newType;
       }

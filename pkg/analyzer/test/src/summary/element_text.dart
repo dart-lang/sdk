@@ -52,6 +52,7 @@ void checkElementText(
   bool withDisplayName = false,
   bool withExportScope = false,
   bool withNonSynthetic = false,
+  bool withSyntheticDartCoreImport = false,
 }) {
   var writer = _ElementWriter(
     selfUriStr: '${library.source.uri}',
@@ -59,6 +60,7 @@ void checkElementText(
     withDisplayName: withDisplayName,
     withExportScope: withExportScope,
     withNonSynthetic: withNonSynthetic,
+    withSyntheticDartCoreImport: withSyntheticDartCoreImport,
   );
   writer.writeLibraryElement(library);
 
@@ -124,6 +126,7 @@ class _ElementWriter {
   final bool withDisplayName;
   final bool withExportScope;
   final bool withNonSynthetic;
+  final bool withSyntheticDartCoreImport;
   final StringBuffer buffer = StringBuffer();
 
   String indent = '';
@@ -134,6 +137,7 @@ class _ElementWriter {
     required this.withDisplayName,
     required this.withExportScope,
     required this.withNonSynthetic,
+    required this.withSyntheticDartCoreImport,
   });
 
   void writeLibraryElement(LibraryElement e) {
@@ -154,7 +158,9 @@ class _ElementWriter {
       _writeDocumentation(e);
       _writeMetadata(e);
 
-      var imports = e.imports.where((import) => !import.isSynthetic).toList();
+      var imports = e.imports2
+          .where((import) => withSyntheticDartCoreImport || !import.isSynthetic)
+          .toList();
       _writeElements('imports', imports, _writeImportElement);
 
       _writeElements('exports', e.exports, _writeExportElement);
@@ -426,16 +432,18 @@ class _ElementWriter {
   }
 
   void _writeDirectiveUri(DirectiveUri uri) {
-    if (uri is DirectiveUriWithUnit) {
-      _writelnWithIndent('${uri.unit.source.uri}');
+    if (uri is DirectiveUriWithLibraryImpl) {
+      buffer.write('${uri.library.source.uri}');
+    } else if (uri is DirectiveUriWithUnit) {
+      buffer.write('${uri.unit.source.uri}');
     } else if (uri is DirectiveUriWithSource) {
-      _writelnWithIndent("source '${uri.source.uri}'");
+      buffer.write("source '${uri.source.uri}'");
     } else if (uri is DirectiveUriWithRelativeUri) {
-      _writelnWithIndent("relativeUri '${uri.relativeUri}'");
+      buffer.write("relativeUri '${uri.relativeUri}'");
     } else if (uri is DirectiveUriWithRelativeUriString) {
-      _writelnWithIndent("relativeUriString '${uri.relativeUriString}'");
+      buffer.write("relativeUriString '${uri.relativeUriString}'");
     } else {
-      _writelnWithIndent('noRelativeUriString');
+      buffer.write('noRelativeUriString');
     }
   }
 
@@ -571,24 +579,25 @@ class _ElementWriter {
     }
   }
 
-  void _writeImportElement(ImportElement e) {
+  void _writeImportElement(ImportElement2 e) {
     _writeIndentedLine(() {
-      _writeUri(e.importedLibrary?.source);
-      _writeIf(e.isDeferred, ' deferred');
-
-      var prefix = e.prefix;
-      if (prefix != null) {
-        buffer.write(' as ');
-        _writeName(prefix);
-      }
+      _writeDirectiveUri(e.uri);
+      _writeIf(e.isSynthetic, ' synthetic');
+      _writeImportElementPrefix(e.prefix);
     });
 
     _withIndent(() {
       _writeMetadata(e);
       _writeNamespaceCombinators(e.combinators);
     });
+  }
 
-    _assertNonSyntheticElementSelf(e);
+  void _writeImportElementPrefix(ImportElementPrefix? prefix) {
+    if (prefix != null) {
+      _writeIf(prefix is DeferredImportElementPrefix, ' deferred');
+      buffer.write(' as ');
+      _writeName(prefix.element);
+    }
   }
 
   void _writeIndentedLine(void Function() f) {
@@ -727,7 +736,9 @@ class _ElementWriter {
 
   void _writePartElement(PartElement e) {
     final uri = e.uri;
-    _writeDirectiveUri(uri);
+    _writeIndentedLine(() {
+      _writeDirectiveUri(e.uri);
+    });
 
     _withIndent(() {
       _writeMetadata(e);

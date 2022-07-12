@@ -4414,19 +4414,19 @@ DEFINE_EMIT(SimdUnaryOp, (VRegister result, VRegister value)) {
     break;
     SIMD_OP_SIMPLE_UNARY(EMIT)
 #undef EMIT
-    case SimdOpInstr::kFloat32x4ShuffleX:
+    case SimdOpInstr::kFloat32x4GetX:
       __ vinss(result, 0, value, 0);
       __ fcvtds(result, result);
       break;
-    case SimdOpInstr::kFloat32x4ShuffleY:
+    case SimdOpInstr::kFloat32x4GetY:
       __ vinss(result, 0, value, 1);
       __ fcvtds(result, result);
       break;
-    case SimdOpInstr::kFloat32x4ShuffleZ:
+    case SimdOpInstr::kFloat32x4GetZ:
       __ vinss(result, 0, value, 2);
       __ fcvtds(result, result);
       break;
-    case SimdOpInstr::kFloat32x4ShuffleW:
+    case SimdOpInstr::kFloat32x4GetW:
       __ vinss(result, 0, value, 3);
       __ fcvtds(result, result);
       break;
@@ -4705,10 +4705,10 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float64x2Scale)                                                         \
   ____(SimdBinaryOp)                                                           \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
-  CASE(Float32x4ShuffleX)                                                      \
-  CASE(Float32x4ShuffleY)                                                      \
-  CASE(Float32x4ShuffleZ)                                                      \
-  CASE(Float32x4ShuffleW)                                                      \
+  CASE(Float32x4GetX)                                                          \
+  CASE(Float32x4GetY)                                                          \
+  CASE(Float32x4GetZ)                                                          \
+  CASE(Float32x4GetW)                                                          \
   CASE(Int32x4Shuffle)                                                         \
   CASE(Float32x4Shuffle)                                                       \
   CASE(Float32x4Splat)                                                         \

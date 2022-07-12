@@ -97,8 +97,8 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
         node, () => super.visitVariableDeclaration(node));
   }
 
-  Set<String> _convertVars(Iterable<PromotableElement> x) =>
-      x.map((e) => e.name).toSet();
+  Set<String> _convertVars(Iterable<int> x) =>
+      x.map((e) => _currentAssignedVariables!.variableForKey(e).name).toSet();
 
   void _handlePossibleTopLevelDeclaration(
       AstNode node, void Function() callback) {

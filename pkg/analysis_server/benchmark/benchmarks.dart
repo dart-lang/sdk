@@ -33,7 +33,7 @@ Future main(List<String> args) async {
   );
   runner.addCommand(ListCommand(benchmarks));
   runner.addCommand(RunCommand(benchmarks));
-  runner.run(args);
+  await runner.run(args);
 }
 
 String get analysisServerSrcPath {

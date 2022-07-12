@@ -74,8 +74,8 @@ class AssignedVariablesDataExtractor extends CfeDataExtractor<_Data> {
         _convertVars(_assignedVariables.capturedAnywhere));
   }
 
-  Set<String> _convertVars(Iterable<VariableDeclaration> x) =>
-      x.map((e) => e.name!).toSet();
+  Set<String> _convertVars(Iterable<int> x) =>
+      x.map((e) => _assignedVariables.variableForKey(e).name!).toSet();
 
   @override
   _Data? computeNodeValue(Id id, TreeNode node) {

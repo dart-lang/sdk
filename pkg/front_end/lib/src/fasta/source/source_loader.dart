@@ -2730,44 +2730,13 @@ class int extends num {}
 
 class num {}
 
-class _SyncIterable {}
-
-class _SyncIterator {
-  var _current;
-  var _yieldEachIterable;
-}
-
 class Function {}
 """;
 
 /// A minimal implementation of dart:async that is sufficient to create an
 /// instance of [CoreTypes] and compile program.
 const String defaultDartAsyncSource = """
-_asyncErrorWrapperHelper(continuation) {}
-
 void _asyncStarMoveNextHelper(var stream) {}
-
-_asyncThenWrapperHelper(continuation) {}
-
-_awaitHelper(object, thenCallback, errorCallback) {}
-
-_completeOnAsyncReturn(_future, value, async_jump_var) {}
-
-_completeWithNoFutureOnAsyncReturn(_future, value, async_jump_var) {}
-
-_completeOnAsyncError(_future, e, st, async_jump_var) {}
-
-class _AsyncStarStreamController {
-  add(event) {}
-
-  addError(error, stackTrace) {}
-
-  addStream(stream) {}
-
-  close() {}
-
-  get stream => null;
-}
 
 abstract class Completer {
   factory Completer.sync() => null;

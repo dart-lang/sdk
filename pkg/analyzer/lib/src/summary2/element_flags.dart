@@ -151,18 +151,15 @@ class FunctionElementFlags {
 }
 
 class ImportElementFlags {
-  static const int _isDeferred = 1 << 0;
-  static const int _isSynthetic = 1 << 1;
+  static const int _isSynthetic = 1 << 0;
 
-  static void read(SummaryDataReader reader, ImportElementImpl element) {
+  static void read(SummaryDataReader reader, ImportElement2Impl element) {
     var byte = reader.readByte();
-    element.isDeferred = (byte & _isDeferred) != 0;
     element.isSynthetic = (byte & _isSynthetic) != 0;
   }
 
-  static void write(BufferedSink sink, ImportElementImpl element) {
+  static void write(BufferedSink sink, ImportElement2Impl element) {
     var result = 0;
-    result |= element.isDeferred ? _isDeferred : 0;
     result |= element.isSynthetic ? _isSynthetic : 0;
     sink.writeByte(result);
   }

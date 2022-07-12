@@ -75,6 +75,6 @@ mixin M implements math.Random {}
 
     var typeRef = findNode.namedType('Random {}');
     assertNamedType(typeRef, randomElement, 'Random',
-        expectedPrefix: mathImport.prefix);
+        expectedPrefix: mathImport.prefix?.element);
   }
 }

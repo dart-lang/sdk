@@ -87,9 +87,7 @@ abstract class SearchEngine {
 /// Instances of the class [SearchMatch] represent a match found by
 /// [SearchEngine].
 abstract class SearchMatch {
-  /// Return the [Element] containing the match. Can return `null` if the unit
-  /// does not exist, or its element was invalidated, or the element cannot be
-  /// found, etc.
+  /// Return the [Element] containing the match.
   Element get element;
 
   /// The absolute path of the file containing the match.

@@ -339,7 +339,6 @@ linter:
     expect(error.location.file, testFile.path);
     expect(error.severity, AnalysisErrorSeverity.INFO);
     expect(error.type, AnalysisErrorType.LINT);
-    expect(error.message, lint.description);
   }
 
   Future<void> test_notInAnalysisRoot() async {

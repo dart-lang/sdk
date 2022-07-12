@@ -75,6 +75,7 @@ class BinaryPrinter implements InfoVisitor<void> {
   void visitProgram(ProgramInfo info) {
     visitFunction(info.entrypoint);
     sink.writeInt(info.size);
+    sink.writeString(info.ramUsage);
     sink.writeStringOrNull(info.dart2jsVersion);
     writeDate(info.compilationMoment);
     writeDuration(info.compilationDuration);
@@ -324,6 +325,7 @@ class BinaryReader {
   ProgramInfo readProgram() {
     final entrypoint = readFunction();
     final size = source.readInt();
+    final ramUsage = source.readString();
     final dart2jsVersion = source.readStringOrNull();
     final compilationMoment = readDate();
     final compilationDuration = readDuration();
@@ -338,6 +340,7 @@ class BinaryReader {
     return ProgramInfo(
         entrypoint: entrypoint,
         size: size,
+        ramUsage: ramUsage,
         dart2jsVersion: dart2jsVersion,
         compilationMoment: compilationMoment,
         compilationDuration: compilationDuration,

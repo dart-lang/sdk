@@ -326,8 +326,8 @@ Precedence getExpressionPrecedence(AstNode node) {
   return Precedence.none;
 }
 
-/// Returns the namespace of the given [ImportElement].
-Map<String, Element> getImportNamespace(ImportElement imp) {
+/// Returns the namespace of the given [ImportElement2].
+Map<String, Element> getImportNamespace(ImportElement2 imp) {
   return imp.namespace.definedNames;
 }
 
@@ -1215,8 +1215,8 @@ class CorrectionUtils {
 
   /// Return the import element used to import given [element] into the library.
   /// May be `null` if was not imported, i.e. declared in the same library.
-  ImportElement? _getImportElement(Element element) {
-    for (var imp in _library.imports) {
+  ImportElement2? _getImportElement(Element element) {
+    for (var imp in _library.imports2) {
       var definedNames = getImportNamespace(imp);
       if (definedNames.containsValue(element)) {
         return imp;
@@ -1270,7 +1270,7 @@ class CorrectionUtils {
       // ensure import
       var importElement = _getImportElement(element);
       if (importElement != null) {
-        var prefix = importElement.prefix;
+        var prefix = importElement.prefix?.element;
         if (prefix != null) {
           sb.write(prefix.displayName);
           sb.write('.');

@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Test that sync* correctly iterates through nested iterators of both
-// the internal sync* transform _SyncIterable and generic Iterable types.
+// the internal sync* iterable and generic Iterable types.
 
 import "package:expect/expect.dart";
 
 Iterable<int> outerSyncStar() sync* {
   yield 1;
-  // _SyncIterable<int>:
+  // internal sync* iterable:
   yield* innerSyncStar();
   yield 4;
   // Generic Iterable<int>:

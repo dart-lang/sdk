@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_manager.dart';
@@ -877,8 +879,7 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
     var request =
         EditGetAvailableRefactoringsParams(testFile.path, offset, length)
             .toRequest('0');
-    serverChannel.sendRequest(request);
-    var response = await serverChannel.waitForResponse(request);
+    var response = await serverChannel.sendRequest(request);
     var result = EditGetAvailableRefactoringsResult.fromResponse(response);
     kinds = result.kinds;
   }
@@ -2250,7 +2251,8 @@ void f() {
   print(otherName);
 }
 ''');
-    server.getAnalysisDriver(testFile.path)!.getResult(testFile.path);
+    unawaited(
+        server.getAnalysisDriver(testFile.path)!.getResult(testFile.path));
     // send the second request, with the same kind, file and offset
     await waitForTasksFinished();
     result = await getRefactoringResult(() {

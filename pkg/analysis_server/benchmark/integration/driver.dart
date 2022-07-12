@@ -112,7 +112,7 @@ class Driver extends IntegrationTestMixin {
       logger.log(Level.FINE, 'requesting server shutdown');
       // Give the server a short time to comply with the shutdown request; if it
       // doesn't exit, then forcibly terminate it.
-      sendServerShutdown();
+      unawaited(sendServerShutdown());
       await server.exitCode.timeout(timeout, onTimeout: () {
         return server.kill('server failed to exit');
       });

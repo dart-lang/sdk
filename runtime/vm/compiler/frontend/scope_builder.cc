@@ -570,50 +570,6 @@ void ScopeBuilder::VisitFunctionNode() {
     first_body_token_position_ = helper_.reader_.min_position();
   }
 
-  // Ensure that :await_jump_var, :await_ctx_var, :async_op, :is_sync and
-  // :async_future are captured.
-  if (function_node_helper.async_marker_ == FunctionNodeHelper::kSyncYielding) {
-    {
-      LocalVariable* temp = nullptr;
-      LookupCapturedVariableByName(
-          (depth_.function_ == 0) ? &result_->yield_jump_variable : &temp,
-          Symbols::AwaitJumpVar());
-    }
-    {
-      LocalVariable* temp = nullptr;
-      LookupCapturedVariableByName(
-          (depth_.function_ == 0) ? &result_->yield_context_variable : &temp,
-          Symbols::AwaitContextVar());
-    }
-    {
-      LocalVariable* temp =
-          scope_->LookupVariable(Symbols::AsyncOperation(), true);
-      if (temp != nullptr) {
-        scope_->CaptureVariable(temp);
-      }
-    }
-    {
-      LocalVariable* temp =
-          scope_->LookupVariable(Symbols::AsyncFuture(), true);
-      if (temp != nullptr) {
-        scope_->CaptureVariable(temp);
-      }
-    }
-    {
-      LocalVariable* temp = scope_->LookupVariable(Symbols::is_sync(), true);
-      if (temp != nullptr) {
-        scope_->CaptureVariable(temp);
-      }
-    }
-    {
-      LocalVariable* temp =
-          scope_->LookupVariable(Symbols::ControllerStream(), true);
-      if (temp != nullptr) {
-        scope_->CaptureVariable(temp);
-      }
-    }
-  }
-
   // Mark known chained futures such as _Future::timeout()'s _future.
   if (function.recognized_kind() == MethodRecognizer::kFutureTimeout &&
       depth_.function_ == 1) {
@@ -1289,20 +1245,8 @@ void ScopeBuilder::VisitStatement() {
     }
     case kYieldStatement: {
       helper_.ReadPosition();           // read position.
-      word flags = helper_.ReadByte();  // read flags.
+      helper_.ReadByte();               // read flags.
       VisitExpression();                // read expression.
-
-      if ((flags & kYieldStatementFlagNative) != 0) {
-        if (depth_.function_ == 0) {
-          AddSwitchVariable();
-          // Promote all currently visible local variables into the context.
-          // TODO(27590) CaptureLocalVariables promotes to many variables into
-          // the scope. Mark those variables as stack_local.
-          // TODO(27590) we don't need to promote those variables that are
-          // not used across yields.
-          scope_->CaptureLocalVariables(current_function_scope_);
-        }
-      }
       return;
     }
     case kVariableDeclaration:
@@ -1635,13 +1579,6 @@ void ScopeBuilder::AddVariableDeclarationParameter(
     variable->set_is_explicit_covariant_parameter();
   }
 
-  // The :sync_op and :async_op continuations are called multiple times. So we
-  // don't want the parameters from the first invocation to get stored in the
-  // context and reused on later invocations with different parameters.
-  if (current_function_async_marker_ == FunctionNodeHelper::kSyncYielding) {
-    variable->set_is_forced_stack();
-  }
-
   const bool needs_covariant_check_in_method =
       helper.IsCovariant() ||
       (helper.IsGenericCovariantImpl() &&
@@ -1729,23 +1666,6 @@ void ScopeBuilder::AddExceptionVariable(
     const char* prefix,
     intptr_t nesting_depth) {
   LocalVariable* v = NULL;
-
-  // If we are inside a function with yield points then Kernel transformer
-  // could have lifted some of the auxiliary exception variables into the
-  // context to preserve them across yield points because they might
-  // be needed for rethrow.
-  // Check if it did and capture such variables instead of introducing
-  // new local ones.
-  // Note: function that wrap kSyncYielding function does not contain
-  // its own try/catches.
-  if (current_function_async_marker_ == FunctionNodeHelper::kSyncYielding) {
-    ASSERT(current_function_scope_->parent() != NULL);
-    v = current_function_scope_->parent()->LocalLookupVariable(
-        GenerateName(prefix, nesting_depth - 1));
-    if (v != NULL) {
-      scope_->CaptureVariable(v);
-    }
-  }
 
   // No need to create variables for try/catch-statements inside
   // nested functions.

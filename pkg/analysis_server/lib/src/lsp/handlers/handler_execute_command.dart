@@ -52,11 +52,11 @@ class ExecuteCommandHandler
             ? ProgressReporter.serverCreated(server)
             : ProgressReporter.noop;
 
-    // To make parsing arguments easier in commands, instead of a
+    // To make passing arguments easier in commands, instead of a
     // `List<Object?>` we now use `Map<String, Object?>`.
     //
     // However, some handlers still support the list for compatibility so we
-    // must allow the to convert a `List` to a `Map`.
+    // must allow them to convert a `List` to a `Map`.
     final arguments = params.arguments ?? const [];
     Map<String, Object?> commandParams;
     if (arguments.length == 1 && arguments[0] is Map<String, Object?>) {

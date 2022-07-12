@@ -47,7 +47,7 @@
         "id": "library/dart:_js_helper::",
         "kind": "library",
         "name": "_js_helper",
-        "size": 12952,
+        "size": 12859,
         "children": [
           "class/dart:_js_helper::BoundClosure",
           "class/dart:_js_helper::Closure",
@@ -262,7 +262,7 @@
         "children": [
           "function/hello_world.dart::main"
         ],
-        "canonicalUri": "file:///usr/local/google/home/natebiggs/dart-sdk/sdk/pkg/dart2js_info/test/hello_world/hello_world.dart"
+        "canonicalUri": "file:///Users/markzipan/Projects/dart-sdk/sdk/pkg/dart2js_info/test/hello_world/hello_world.dart"
       }
     },
     "class": {
@@ -2303,7 +2303,7 @@
         "id": "function/dart:_js_helper::Primitives._objectTypeNameNewRti",
         "kind": "function",
         "name": "_objectTypeNameNewRti",
-        "size": 959,
+        "size": 866,
         "outputUnit": "outputUnit/main",
         "parent": "class/dart:_js_helper::Primitives",
         "children": [],
@@ -2324,7 +2324,7 @@
         ],
         "sideEffects": "SideEffects(reads anything; writes anything)",
         "inlinedCount": 0,
-        "code": "Primitives__objectTypeNameNewRti(object) {\n      var interceptor, dispatchName, t1, $constructor, constructorName;\n      if (object instanceof A.Object)\n        return A._rtiToString(A.instanceType(object), null);\n      interceptor = J.getInterceptor$(object);\n      if (interceptor === B.Interceptor_methods || interceptor === B.JavaScriptObject_methods || false) {\n        dispatchName = B.C_JS_CONST(object);\n        t1 = dispatchName !== \"Object\" && dispatchName !== \"\";\n        if (t1)\n          return dispatchName;\n        $constructor = object.constructor;\n        if (typeof $constructor == \"function\") {\n          constructorName = $constructor.name;\n          if (typeof constructorName == \"string\")\n            t1 = constructorName !== \"Object\" && constructorName !== \"\";\n          else\n            t1 = false;\n          if (t1)\n            return constructorName;\n        }\n      }\n      return A._rtiToString(A.instanceType(object), null);\n    }",
+        "code": "Primitives__objectTypeNameNewRti(object) {\n      var interceptor, dispatchName, $constructor, constructorName;\n      if (object instanceof A.Object)\n        return A._rtiToString(A.instanceType(object), null);\n      interceptor = J.getInterceptor$(object);\n      if (interceptor === B.Interceptor_methods || interceptor === B.JavaScriptObject_methods || false) {\n        dispatchName = B.C_JS_CONST(object);\n        if (dispatchName !== \"Object\" && dispatchName !== \"\")\n          return dispatchName;\n        $constructor = object.constructor;\n        if (typeof $constructor == \"function\") {\n          constructorName = $constructor.name;\n          if (typeof constructorName == \"string\" && constructorName !== \"Object\" && constructorName !== \"\")\n            return constructorName;\n        }\n      }\n      return A._rtiToString(A.instanceType(object), null);\n    }",
         "type": "String Function(Object?)",
         "functionKind": 0
       },
@@ -28711,7 +28711,7 @@
       "id": "outputUnit/main",
       "kind": "outputUnit",
       "name": "main",
-      "size": 90362,
+      "size": 90269,
       "filename": "hello_world.js",
       "imports": []
     }
@@ -28721,11 +28721,12 @@
   "dump_minor_version": 1,
   "program": {
     "entrypoint": "function/hello_world.dart::main",
-    "size": 90362,
+    "size": 90269,
+    "ramUsage": "194.188 MB",
     "dart2jsVersion": null,
-    "compilationMoment": "2022-05-26 21:08:43.608041",
-    "compilationDuration": 3177312,
-    "toJsonDuration": 3000,
+    "compilationMoment": "2022-07-08 12:57:36.142141",
+    "compilationDuration": 1321045,
+    "toJsonDuration": 1000,
     "dumpInfoDuration": 0,
     "noSuchMethodEnabled": false,
     "isRuntimeTypeUsed": false,

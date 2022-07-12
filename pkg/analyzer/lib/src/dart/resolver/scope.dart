@@ -158,18 +158,13 @@ class NamespaceBuilder {
 
   /// Create a namespace representing the import namespace of the given
   /// [element].
-  Namespace createImportNamespaceForDirective(ImportElement element) {
-    var importedLibrary = element.importedLibrary;
-    if (importedLibrary == null) {
-      //
-      // The imported library will be null if the URI does not reference a valid
-      // library.
-      //
-      return Namespace.EMPTY;
-    }
+  Namespace createImportNamespaceForDirective({
+    required LibraryElement importedLibrary,
+    required List<NamespaceCombinator> combinators,
+    required PrefixElement? prefix,
+  }) {
     Map<String, Element> exportedNames = _getExportMapping(importedLibrary);
-    exportedNames = _applyCombinators(exportedNames, element.combinators);
-    var prefix = element.prefix;
+    exportedNames = _applyCombinators(exportedNames, combinators);
     if (prefix != null) {
       return PrefixedNamespace(prefix.name, exportedNames);
     }

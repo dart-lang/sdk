@@ -370,12 +370,15 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
       unitElement: unitElement,
     );
 
-    for (var import in element.imports) {
-      import as ImportElementImpl;
+    for (var import in element.imports2) {
+      import as ImportElement2Impl;
       import.metadata = reader._readAnnotationList(
         unitElement: unitElement,
       );
-      import.importedLibrary = reader.readElement() as LibraryElementImpl?;
+      final uri = import.uri;
+      if (uri is DirectiveUriWithLibraryImpl) {
+        uri.library = reader.libraryOfUri(uri.source.uri);
+      }
     }
 
     for (var export in element.exports) {
@@ -445,14 +448,22 @@ class LibraryReader {
     libraryElement.reference = _reference;
 
     libraryElement.languageVersion = _readLanguageVersion();
-    libraryElement.imports = _reader.readTypedList(_readImportElement);
+    libraryElement.imports2 = _reader.readTypedList(() {
+      return _readImportElement(
+        libraryElement: libraryElement,
+      );
+    });
     libraryElement.exports = _reader.readTypedList(_readExportElement);
     LibraryElementFlags.read(_reader, libraryElement);
 
-    var unitContainerRef = _reference.getChild('@unit');
+    for (final import in libraryElement.imports2) {
+      final prefixElement = import.prefix?.element;
+      if (prefixElement is PrefixElementImpl) {
+        libraryElement.encloseElement(prefixElement);
+      }
+    }
 
     libraryElement.definingCompilationUnit = _readUnitElement(
-      unitContainerRef: unitContainerRef,
       libraryElement: libraryElement,
       librarySource: librarySource,
       unitSource: librarySource,
@@ -460,7 +471,6 @@ class LibraryReader {
 
     libraryElement.parts2 = _reader.readTypedList(() {
       return _readPartElement(
-        unitContainerRef: unitContainerRef,
         libraryElement: libraryElement,
       );
     });
@@ -581,7 +591,6 @@ class LibraryReader {
   }
 
   DirectiveUri _readDirectiveUri({
-    required Reference unitContainerRef,
     required LibraryElementImpl libraryElement,
   }) {
     DirectiveUriWithRelativeUriStringImpl readWithRelativeUriString() {
@@ -608,12 +617,15 @@ class LibraryReader {
 
       final sourceUriStr = _reader.readStringReference();
       final sourceUri = Uri.parse(sourceUriStr);
-      final source = sourceFactory.forUri2(sourceUri)!;
+      final source = sourceFactory.forUri2(sourceUri);
+
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/49431
+      final fixedSource = source ?? sourceFactory.forUri('dart:math')!;
 
       return DirectiveUriWithSourceImpl(
         relativeUriString: parent.relativeUriString,
         relativeUri: parent.relativeUri,
-        source: source,
+        source: fixedSource,
       );
     }
 
@@ -623,7 +635,6 @@ class LibraryReader {
       case DirectiveUriKind.withUnit:
         final parent = readWithSource();
         final unitElement = _readUnitElement(
-          unitContainerRef: unitContainerRef,
           libraryElement: libraryElement,
           librarySource: libraryElement.source,
           unitSource: parent.source,
@@ -634,8 +645,12 @@ class LibraryReader {
           unit: unitElement,
         );
       case DirectiveUriKind.withLibrary:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        final parent = readWithSource();
+        return DirectiveUriWithLibraryImpl.read(
+          relativeUriString: parent.relativeUriString,
+          relativeUri: parent.relativeUri,
+          source: parent.source,
+        );
       case DirectiveUriKind.withSource:
         return readWithSource();
       case DirectiveUriKind.withRelativeUri:
@@ -859,19 +874,51 @@ class LibraryReader {
     });
   }
 
-  ImportElementImpl _readImportElement() {
-    var element = ImportElementImpl(-1);
+  ImportElement2Impl _readImportElement({
+    required LibraryElementImpl libraryElement,
+  }) {
+    final uri = _readDirectiveUri(
+      libraryElement: libraryElement,
+    );
+    final prefix = _readImportElementPrefix();
+    final combinators = _reader.readTypedList(_readNamespaceCombinator);
+
+    final element = ImportElement2Impl(
+      importKeywordOffset: -1,
+      uri: uri,
+      prefix: prefix,
+    )..combinators = combinators;
     ImportElementFlags.read(_reader, element);
-    element.uri = _reader.readOptionalStringReference();
-    var prefixName = _reader.readOptionalStringReference();
-    if (prefixName != null) {
-      var reference = _reference.getChild('@prefix').getChild(prefixName);
-      var prefixElement =
-          PrefixElementImpl(prefixName, -1, reference: reference);
-      element.prefix = prefixElement;
-    }
-    element.combinators = _reader.readTypedList(_readNamespaceCombinator);
     return element;
+  }
+
+  ImportElementPrefixImpl? _readImportElementPrefix() {
+    PrefixElementImpl buildElement(String name) {
+      final reference = _reference.getChild('@prefix').getChild(name);
+      final existing = reference.element;
+      if (existing is PrefixElementImpl) {
+        return existing;
+      } else {
+        return PrefixElementImpl(name, -1, reference: reference);
+      }
+    }
+
+    final kindIndex = _reader.readByte();
+    final kind = ImportElementPrefixKind.values[kindIndex];
+    switch (kind) {
+      case ImportElementPrefixKind.isDeferred:
+        final name = _reader.readStringReference();
+        return DeferredImportElementPrefixImpl(
+          element: buildElement(name),
+        );
+      case ImportElementPrefixKind.isNotDeferred:
+        final name = _reader.readStringReference();
+        return ImportElementPrefixImpl(
+          element: buildElement(name),
+        );
+      case ImportElementPrefixKind.isNull:
+        return null;
+    }
   }
 
   LibraryLanguageVersion _readLanguageVersion() {
@@ -1044,11 +1091,9 @@ class LibraryReader {
   }
 
   PartElement _readPartElement({
-    required Reference unitContainerRef,
     required LibraryElementImpl libraryElement,
   }) {
     final uri = _readDirectiveUri(
-      unitContainerRef: unitContainerRef,
       libraryElement: libraryElement,
     );
 
@@ -1272,7 +1317,6 @@ class LibraryReader {
   }
 
   CompilationUnitElementImpl _readUnitElement({
-    required Reference unitContainerRef,
     required LibraryElementImpl libraryElement,
     required Source librarySource,
     required Source unitSource,
@@ -1285,7 +1329,8 @@ class LibraryReader {
       lineInfo: LineInfo([0]),
     );
 
-    var unitReference = unitContainerRef.getChild('${unitSource.uri}');
+    final unitContainerRef = _reference.getChild('@unit');
+    final unitReference = unitContainerRef.getChild('${unitSource.uri}');
     unitElement.setLinkedData(
       unitReference,
       CompilationUnitElementLinkedData(
@@ -1422,6 +1467,10 @@ class ResolutionReader {
     this._referenceReader,
     this._reader,
   );
+
+  LibraryElementImpl libraryOfUri(Uri uri) {
+    return _elementFactory.libraryOfUri2(uri);
+  }
 
   int readByte() {
     return _reader.readByte();

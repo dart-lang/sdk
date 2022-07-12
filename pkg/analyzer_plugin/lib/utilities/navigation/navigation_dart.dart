@@ -26,15 +26,37 @@ NavigationCollector computeDartNavigation(
     unit.accept(visitor);
   } else {
     var node = _getNodeForRange(unit, offset, length);
-    // Take the outer-most node that shares this offset/length so that we get
-    // things like ConstructorName instead of SimpleIdentifier.
-    // https://github.com/dart-lang/sdk/issues/46725
     if (node != null) {
-      node = _getOutermostNode(node);
+      node = _getNavigationTargetNode(node);
     }
     node?.accept(visitor);
   }
   return collector;
+}
+
+/// Gets the nearest node that should be used for navigation.
+///
+/// This is usually the outermost node with the same offset as node but in some
+/// cases may be a different ancestor where required to produce the correct
+/// result.
+AstNode _getNavigationTargetNode(AstNode node) {
+  AstNode? current = node;
+  while (current != null &&
+      current.parent != null &&
+      current.offset == current.parent!.offset) {
+    current = current.parent;
+  }
+  current ??= node;
+
+  // To navigate to formal params, we need to visit the parameter and not just
+  // the identifier but they don't start at the same offset as they have a
+  // prefix.
+  final parent = current.parent;
+  if (parent is FormalParameter) {
+    current = parent;
+  }
+
+  return current;
 }
 
 AstNode? _getNodeForRange(CompilationUnit unit, int offset, int length) {
@@ -45,21 +67,6 @@ AstNode? _getNodeForRange(CompilationUnit unit, int offset, int length) {
     }
   }
   return node;
-}
-
-/// Gets the outer-most node with the same offset as node.
-///
-/// This reduces the number of nodes the visitor needs to walk when collecting
-/// navigation for a specific location in the file.
-AstNode _getOutermostNode(AstNode node) {
-  AstNode? current = node;
-  while (current != null &&
-      current.parent != null &&
-      current != current.parent &&
-      current.offset == current.parent!.offset) {
-    current = current.parent;
-  }
-  return current ?? node;
 }
 
 /// A Dart specific wrapper around [NavigationCollector].
@@ -360,7 +367,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var importElement = node.element;
+    var importElement = node.element2;
     if (importElement != null) {
       Element? libraryElement = importElement.importedLibrary;
       _addUriDirectiveRegion(node, libraryElement);

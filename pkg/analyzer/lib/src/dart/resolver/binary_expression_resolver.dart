@@ -111,7 +111,7 @@ class BinaryExpressionResolver {
     left = node.leftOperand;
 
     var flow = _resolver.flowAnalysis.flow;
-    EqualityInfo<PromotableElement, DartType>? leftInfo;
+    EqualityInfo<DartType>? leftInfo;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
       leftInfo = flow?.equalityOperand_end(left, left.typeOrThrow);

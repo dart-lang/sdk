@@ -164,7 +164,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     // is, then we can check the extension elements without needing to perform
     // additional analysis.
     var foundImport = false;
-    for (var imp in libraryElement.imports) {
+    for (var imp in libraryElement.imports2) {
       // prepare element
       var importedLibrary = imp.importedLibrary;
       if (importedLibrary == null || importedLibrary != libraryToImport) {
@@ -244,7 +244,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     // may be there is an existing import,
     // but it is with prefix and we don't use this prefix
     var alreadyImportedWithPrefix = <LibraryElement>{};
-    for (var imp in libraryElement.imports) {
+    for (var imp in libraryElement.imports2) {
       // prepare element
       var libraryElement = imp.importedLibrary;
       if (libraryElement == null) {
@@ -261,7 +261,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         continue;
       }
       // may be apply prefix
-      var prefix = imp.prefix;
+      var prefix = imp.prefix?.element;
       if (prefix != null) {
         yield _ImportLibraryPrefix(libraryElement, prefix);
         continue;

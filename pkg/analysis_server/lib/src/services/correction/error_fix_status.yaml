@@ -1628,6 +1628,8 @@ LintCode.cast_nullable_to_non_nullable:
   status: needsEvaluation
 LintCode.close_sinks:
   status: needsEvaluation
+LintCode.combinators_ordering:
+  status: needsEvaluation
 LintCode.comment_references:
   status: needsEvaluation
 LintCode.conditional_uri_does_not_exist:

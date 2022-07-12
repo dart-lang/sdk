@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -192,7 +193,7 @@ abstract class Site {
       var path = request.uri.path;
 
       if (path == '/') {
-        respondRedirect(request, pages.first.path);
+        unawaited(respondRedirect(request, pages.first.path));
         return;
       }
 
@@ -201,7 +202,7 @@ abstract class Site {
           var response = request.response;
           response.headers.contentType = ContentType.html;
           response.write(await page.generate(request.uri.queryParameters));
-          response.close();
+          unawaited(response.close());
           return;
         }
       }
@@ -216,7 +217,7 @@ abstract class Site {
         response.statusCode = HttpStatus.internalServerError;
         response.headers.contentType = ContentType.text;
         response.write('$e\n\n$st');
-        response.close();
+        unawaited(response.close());
       }
     }
   }

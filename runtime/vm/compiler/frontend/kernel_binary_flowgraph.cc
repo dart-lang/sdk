@@ -5303,188 +5303,108 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement(
 
   const uint8_t flags = ReadByte();  // read flags.
 
-  if ((flags & kYieldStatementFlagNative) == 0) {
-    Fragment instructions;
-    const bool is_yield_star = (flags & kYieldStatementFlagYieldStar) != 0;
+  Fragment instructions;
+  const bool is_yield_star = (flags & kYieldStatementFlagYieldStar) != 0;
 
-    // Load :suspend_state variable using low-level FP-relative load
-    // in order to avoid confusing SSA construction (which cannot
-    // track its value as it is modified implicitly by stubs).
-    LocalVariable* suspend_state = parsed_function()->suspend_state_var();
-    ASSERT(suspend_state != nullptr);
-    instructions += IntConstant(0);
-    instructions += B->LoadFpRelativeSlot(
-        compiler::target::frame_layout.FrameSlotForVariable(suspend_state) *
-            compiler::target::kWordSize,
-        CompileType::Dynamic(), kTagged);
-    instructions += LoadNativeField(Slot::SuspendState_function_data());
+  // Load :suspend_state variable using low-level FP-relative load
+  // in order to avoid confusing SSA construction (which cannot
+  // track its value as it is modified implicitly by stubs).
+  LocalVariable* suspend_state = parsed_function()->suspend_state_var();
+  ASSERT(suspend_state != nullptr);
+  instructions += IntConstant(0);
+  instructions += B->LoadFpRelativeSlot(
+      compiler::target::frame_layout.FrameSlotForVariable(suspend_state) *
+          compiler::target::kWordSize,
+      CompileType::Dynamic(), kTagged);
+  instructions += LoadNativeField(Slot::SuspendState_function_data());
 
-    instructions += BuildExpression();  // read expression.
-    if (NeedsDebugStepCheck(parsed_function()->function(), pos)) {
-      instructions += DebugStepCheck(pos);
-    }
-
-    if (parsed_function()->function().IsCompactAsyncStarFunction()) {
-      // In the async* functions, generate the following code for yield <expr>:
-      //
-      // _AsyncStarStreamController controller = :suspend_state._functionData;
-      // if (controller.add(<expr>)) {
-      //   return;
-      // }
-      // suspend();
-      //
-      // Generate the following code for yield* <expr>:
-      //
-      // _AsyncStarStreamController controller = :suspend_state._functionData;
-      // controller.addStream(<expr>);
-      // if (suspend()) {
-      //   return;
-      // }
-      //
-
-      auto& add_method = Function::ZoneHandle(Z);
-      if (is_yield_star) {
-        add_method =
-            IG->object_store()->async_star_stream_controller_add_stream();
-      } else {
-        add_method = IG->object_store()->async_star_stream_controller_add();
-      }
-      instructions += StaticCall(TokenPosition::kNoSource, add_method, 2,
-                                 ICData::kNoRebind);
-
-      if (is_yield_star) {
-        // Discard result of _AsyncStarStreamController.addStream().
-        instructions += Drop();
-        // Suspend and test value passed to the resumed async* body.
-        instructions += NullConstant();
-        instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldAsyncStar);
-      } else {
-        // Test value returned by _AsyncStarStreamController.add().
-      }
-
-      TargetEntryInstr* exit;
-      TargetEntryInstr* continue_execution;
-      instructions += BranchIfTrue(&exit, &continue_execution, false);
-
-      Fragment do_exit(exit);
-      do_exit += TranslateFinallyFinalizers(nullptr, -1);
-      do_exit += NullConstant();
-      do_exit += Return(TokenPosition::kNoSource);
-
-      instructions = Fragment(instructions.entry, continue_execution);
-      if (!is_yield_star) {
-        instructions += NullConstant();
-        instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldAsyncStar);
-        instructions += Drop();
-      }
-
-    } else if (parsed_function()->function().IsCompactSyncStarFunction()) {
-      // In the sync* functions, generate the following code for yield <expr>:
-      //
-      // _SyncStarIterator iterator = :suspend_state._functionData;
-      // iterator._current = <expr>;
-      // suspend();
-      //
-      // Generate the following code for yield* <expr>:
-      //
-      // _SyncStarIterator iterator = :suspend_state._functionData;
-      // iterator._yieldStarIterable = <expr>;
-      // suspend();
-      //
-      auto& field = Field::ZoneHandle(Z);
-      if (is_yield_star) {
-        field = IG->object_store()->sync_star_iterator_yield_star_iterable();
-      } else {
-        field = IG->object_store()->sync_star_iterator_current();
-      }
-      instructions += B->StoreInstanceFieldGuarded(field);
-      instructions += NullConstant();
-      instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldSyncStar);
-      instructions += Drop();
-    } else {
-      UNREACHABLE();
-    }
-
-    return instructions;
-  }
-
-  ASSERT(flags == kYieldStatementFlagNative);  // Must have been desugared.
-
-  // Setup yield/continue point:
-  //
-  //   ...
-  //   :await_jump_var = index;
-  //   :await_ctx_var = :current_context_var
-  //   return <expr>
-  //
-  // Continuation<index>:
-  //   Drop(1)
-  //   ...
-  //
-  // BuildGraphOfFunction will create a dispatch that jumps to
-  // Continuation<:await_jump_var> upon entry to the function.
-  //
-  const intptr_t new_yield_pos = yield_continuations().length() + 1;
-  Fragment instructions = IntConstant(new_yield_pos);
-  instructions +=
-      StoreLocal(TokenPosition::kNoSource, scopes()->yield_jump_variable);
-  instructions += Drop();
-  instructions += LoadLocal(parsed_function()->current_context_var());
-  instructions +=
-      StoreLocal(TokenPosition::kNoSource, scopes()->yield_context_variable);
-  instructions += Drop();
   instructions += BuildExpression();  // read expression.
-  instructions += Return(pos, new_yield_pos);
-
-  // Note: DropTempsInstr serves as an anchor instruction. It will not
-  // be linked into the resulting graph.
-  DropTempsInstr* anchor = new (Z) DropTempsInstr(0, nullptr);
-  yield_continuations().Add(YieldContinuation(anchor, CurrentTryIndex()));
-
-  Fragment continuation(instructions.entry, anchor);
-  RELEASE_ASSERT(parsed_function()->function().IsAsyncClosure() ||
-                 parsed_function()->function().IsAsyncGenClosure() ||
-                 parsed_function()->function().IsSyncGenClosure());
-
-  // TODO(43900): Only emit this when needed.
-  {
-    // Our sync-yielding functions can be invoked with either a yield result or
-    // with an non-null exception & stacktrace.
-    //
-    // We detect the case we're in based on the nullability of stacktrace in
-    //
-    //   :sync_op(:iterator, [:exception, :stack_trace]) { }
-    //
-    // or:
-    //
-    //   :async_op(:result_or_exception, :stack_trace) { }
-    //
-    const auto& fun = parsed_function()->function();
-    LocalVariable* exception_var =
-        parsed_function()->ParameterVariable(fun.IsSyncGenClosure() ? 2 : 1);
-    LocalVariable* stack_trace_var =
-        parsed_function()->ParameterVariable(fun.IsSyncGenClosure() ? 3 : 2);
-    ASSERT(stack_trace_var->name().ptr() ==
-           Symbols::StackTraceParameter().ptr());
-
-    TargetEntryInstr* no_error;
-    TargetEntryInstr* error;
-
-    continuation += LoadLocal(stack_trace_var);
-    continuation += BranchIfNull(&no_error, &error);
-
-    Fragment rethrow(/*instruction=*/error);
-    rethrow += LoadLocal(exception_var);
-    rethrow += LoadLocal(stack_trace_var);
-
-    rethrow += RethrowException(pos, kInvalidTryIndex);
-    Drop();
-
-    // Set current to the end of the no_error branch.
-    continuation = Fragment(/*entry=*/continuation.entry, /*current=*/no_error);
+  if (NeedsDebugStepCheck(parsed_function()->function(), pos)) {
+    instructions += DebugStepCheck(pos);
   }
 
-  return continuation;
+  if (parsed_function()->function().IsCompactAsyncStarFunction()) {
+    // In the async* functions, generate the following code for yield <expr>:
+    //
+    // _AsyncStarStreamController controller = :suspend_state._functionData;
+    // if (controller.add(<expr>)) {
+    //   return;
+    // }
+    // suspend();
+    //
+    // Generate the following code for yield* <expr>:
+    //
+    // _AsyncStarStreamController controller = :suspend_state._functionData;
+    // controller.addStream(<expr>);
+    // if (suspend()) {
+    //   return;
+    // }
+    //
+
+    auto& add_method = Function::ZoneHandle(Z);
+    if (is_yield_star) {
+      add_method =
+          IG->object_store()->async_star_stream_controller_add_stream();
+    } else {
+      add_method = IG->object_store()->async_star_stream_controller_add();
+    }
+    instructions +=
+        StaticCall(TokenPosition::kNoSource, add_method, 2, ICData::kNoRebind);
+
+    if (is_yield_star) {
+      // Discard result of _AsyncStarStreamController.addStream().
+      instructions += Drop();
+      // Suspend and test value passed to the resumed async* body.
+      instructions += NullConstant();
+      instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldAsyncStar);
+    } else {
+      // Test value returned by _AsyncStarStreamController.add().
+    }
+
+    TargetEntryInstr* exit;
+    TargetEntryInstr* continue_execution;
+    instructions += BranchIfTrue(&exit, &continue_execution, false);
+
+    Fragment do_exit(exit);
+    do_exit += TranslateFinallyFinalizers(nullptr, -1);
+    do_exit += NullConstant();
+    do_exit += Return(TokenPosition::kNoSource);
+
+    instructions = Fragment(instructions.entry, continue_execution);
+    if (!is_yield_star) {
+      instructions += NullConstant();
+      instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldAsyncStar);
+      instructions += Drop();
+    }
+
+  } else if (parsed_function()->function().IsCompactSyncStarFunction()) {
+    // In the sync* functions, generate the following code for yield <expr>:
+    //
+    // _SyncStarIterator iterator = :suspend_state._functionData;
+    // iterator._current = <expr>;
+    // suspend();
+    //
+    // Generate the following code for yield* <expr>:
+    //
+    // _SyncStarIterator iterator = :suspend_state._functionData;
+    // iterator._yieldStarIterable = <expr>;
+    // suspend();
+    //
+    auto& field = Field::ZoneHandle(Z);
+    if (is_yield_star) {
+      field = IG->object_store()->sync_star_iterator_yield_star_iterable();
+    } else {
+      field = IG->object_store()->sync_star_iterator_current();
+    }
+    instructions += B->StoreInstanceFieldGuarded(field);
+    instructions += NullConstant();
+    instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldSyncStar);
+    instructions += Drop();
+  } else {
+    UNREACHABLE();
+  }
+
+  return instructions;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration(
@@ -5667,10 +5587,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           function.set_is_visible(true);
           ASSERT(function.IsCompactSyncStarFunction());
         } else {
-          ASSERT((function_node_helper.async_marker_ ==
-                  FunctionNodeHelper::kSync) ||
-                 (function_node_helper.async_marker_ ==
-                  FunctionNodeHelper::kSyncYielding));
+          ASSERT(function_node_helper.async_marker_ ==
+                 FunctionNodeHelper::kSync);
           function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
                                      FunctionNodeHelper::kSync);
           switch (function_node_helper.dart_async_marker_) {
@@ -5687,8 +5605,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
               // no special modifier
               break;
           }
-          function.set_is_generated_body(function_node_helper.async_marker_ ==
-                                         FunctionNodeHelper::kSyncYielding);
+          function.set_is_generated_body(false);
           // sync* functions contain two nested synthetic functions,
           // the first of which (sync_op_gen) is a regular sync function so we
           // need to manually label it generated:

@@ -212,7 +212,7 @@ class DirectiveUriWithUri extends DirectiveUriWithString {
 
 /// Information about a single `export` directive.
 class ExportDirectiveState<U extends DirectiveUri> extends DirectiveState {
-  final UnlinkedNamespaceDirective directive;
+  final UnlinkedExportDirective directive;
   final U selectedUri;
   final NamespaceDirectiveUris uris;
 
@@ -927,14 +927,14 @@ class FileState {
     UnlinkedPartOfNameDirective? partOfNameDirective;
     UnlinkedPartOfUriDirective? partOfUriDirective;
     var augmentations = <UnlinkedImportAugmentationDirective>[];
-    var exports = <UnlinkedNamespaceDirective>[];
-    var imports = <UnlinkedNamespaceDirective>[];
+    var exports = <UnlinkedExportDirective>[];
+    var imports = <UnlinkedImportDirective>[];
     var parts = <UnlinkedPartDirective>[];
     var macroClasses = <MacroClass>[];
     var hasDartCoreImport = false;
     for (var directive in unit.directives) {
       if (directive is ExportDirective) {
-        var builder = _serializeNamespaceDirective(directive);
+        var builder = _serializeExport(directive);
         exports.add(builder);
       } else if (directive is AugmentationImportDirectiveImpl) {
         augmentations.add(
@@ -943,7 +943,7 @@ class FileState {
           ),
         );
       } else if (directive is ImportDirectiveImpl) {
-        var builder = _serializeNamespaceDirective(directive);
+        var builder = _serializeImport(directive);
         imports.add(builder);
         if (builder.uri == 'dart:core') {
           hasDartCoreImport = true;
@@ -1016,9 +1016,12 @@ class FileState {
     }
     if (!isDartCore && !hasDartCoreImport) {
       imports.add(
-        UnlinkedNamespaceDirective(
+        UnlinkedImportDirective(
+          combinators: [],
           configurations: [],
-          isSyntheticDartCoreImport: true,
+          importKeywordOffset: -1,
+          isSyntheticDartCore: true,
+          prefix: null,
           uri: 'dart:core',
         ),
       );
@@ -1081,19 +1084,69 @@ class FileState {
     return true;
   }
 
-  static UnlinkedNamespaceDirective _serializeNamespaceDirective(
-      NamespaceDirective directive) {
-    return UnlinkedNamespaceDirective(
-      configurations: directive.configurations.map((configuration) {
-        var name = configuration.name.components.join('.');
-        var value = configuration.value?.stringValue ?? '';
-        return UnlinkedNamespaceDirectiveConfiguration(
-          name: name,
-          value: value,
-          uri: configuration.uri.stringValue,
+  static List<UnlinkedCombinator> _serializeCombinators(
+    List<Combinator> combinators,
+  ) {
+    return combinators.map((combinator) {
+      if (combinator is ShowCombinator) {
+        return UnlinkedCombinator(
+          keywordOffset: combinator.keyword.offset,
+          endOffset: combinator.end,
+          isShow: true,
+          names: combinator.shownNames.map((e) => e.name).toList(),
         );
-      }).toList(),
-      uri: directive.uri.stringValue,
+      } else {
+        combinator as HideCombinator;
+        return UnlinkedCombinator(
+          keywordOffset: combinator.keyword.offset,
+          endOffset: combinator.end,
+          isShow: false,
+          names: combinator.hiddenNames.map((e) => e.name).toList(),
+        );
+      }
+    }).toList();
+  }
+
+  static List<UnlinkedNamespaceDirectiveConfiguration> _serializeConfigurations(
+    List<Configuration> configurations,
+  ) {
+    return configurations.map((configuration) {
+      var name = configuration.name.components.join('.');
+      var value = configuration.value?.stringValue ?? '';
+      return UnlinkedNamespaceDirectiveConfiguration(
+        name: name,
+        value: value,
+        uri: configuration.uri.stringValue,
+      );
+    }).toList();
+  }
+
+  static UnlinkedExportDirective _serializeExport(ExportDirective node) {
+    return UnlinkedExportDirective(
+      combinators: _serializeCombinators(node.combinators),
+      configurations: _serializeConfigurations(node.configurations),
+      uri: node.uri.stringValue,
+    );
+  }
+
+  static UnlinkedImportDirective _serializeImport(ImportDirective node) {
+    UnlinkedImportDirectivePrefix? unlinkedPrefix;
+    final prefix = node.prefix;
+    if (prefix != null) {
+      unlinkedPrefix = UnlinkedImportDirectivePrefix(
+        deferredOffset: node.deferredKeyword?.offset,
+        asOffset: node.asKeyword!.offset,
+        name: prefix.name,
+        nameOffset: prefix.offset,
+      );
+    }
+
+    return UnlinkedImportDirective(
+      combinators: _serializeCombinators(node.combinators),
+      configurations: _serializeConfigurations(node.configurations),
+      importKeywordOffset: node.importKeyword.offset,
+      uri: node.uri.stringValue,
+      prefix: unlinkedPrefix,
     );
   }
 }
@@ -1651,7 +1704,7 @@ class ImportAugmentationWithUri<U extends DirectiveUriWithUri>
 
 /// Information about a single `import` directive.
 class ImportDirectiveState<U extends DirectiveUri> extends DirectiveState {
-  final UnlinkedNamespaceDirective directive;
+  final UnlinkedImportDirective directive;
   final U selectedUri;
   final NamespaceDirectiveUris uris;
 
@@ -1671,7 +1724,7 @@ class ImportDirectiveState<U extends DirectiveUri> extends DirectiveState {
   /// into a [Source].
   Source? get importedSource => null;
 
-  bool get isSyntheticDartCoreImport => directive.isSyntheticDartCoreImport;
+  bool get isSyntheticDartCore => directive.isSyntheticDartCore;
 }
 
 /// [ImportDirectiveWithUri] that has a valid URI that references a file.

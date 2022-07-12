@@ -147,7 +147,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     }
 
     var performance = OperationPerformanceImpl('<root>');
-    performance.runAsync(
+    await performance.runAsync(
       'request',
       (performance) async {
         var resolvedUnit = await performance.runAsync(

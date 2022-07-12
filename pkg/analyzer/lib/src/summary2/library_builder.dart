@@ -132,6 +132,8 @@ class LibraryBuilder {
   /// Build elements for declarations in the library units, add top-level
   /// declarations to the local scope, for combining into export scopes.
   void buildElements() {
+    element.imports2 = kind.imports.map(_buildImport).toList();
+
     for (var linkingUnit in units) {
       var elementBuilder = ElementBuilder(
         libraryBuilder: this,
@@ -402,6 +404,121 @@ class LibraryBuilder {
     }
   }
 
+  ImportElement2Impl _buildImport(ImportDirectiveState state) {
+    final importPrefix = state.directive.prefix.mapOrNull((unlinked) {
+      if (unlinked.deferredOffset != null) {
+        return DeferredImportElementPrefixImpl(
+          element: _buildPrefix(
+            name: unlinked.name,
+            nameOffset: unlinked.nameOffset,
+          ),
+        );
+      } else {
+        return ImportElementPrefixImpl(
+          element: _buildPrefix(
+            name: unlinked.name,
+            nameOffset: unlinked.nameOffset,
+          ),
+        );
+      }
+    });
+
+    final combinators = state.directive.combinators.map((unlinked) {
+      if (unlinked.isShow) {
+        return ShowElementCombinatorImpl()
+          ..offset = unlinked.keywordOffset
+          ..end = unlinked.endOffset
+          ..shownNames = unlinked.names;
+      } else {
+        // TODO(scheglov) Why no offsets?
+        return HideElementCombinatorImpl()..hiddenNames = unlinked.names;
+      }
+    }).toList();
+
+    final DirectiveUri uri;
+    if (state is ImportDirectiveWithFile) {
+      final importedLibraryKind = state.importedLibrary;
+      if (importedLibraryKind != null) {
+        final importedFile = importedLibraryKind.file;
+        final importedUri = importedFile.uri;
+        final elementFactory = linker.elementFactory;
+        final importedLibrary = elementFactory.libraryOfUri2(importedUri);
+        uri = DirectiveUriWithLibraryImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: importedLibrary.source,
+          library: importedLibrary,
+        );
+      } else {
+        uri = DirectiveUriWithSourceImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: state.importedSource,
+        );
+      }
+    } else if (state is ImportDirectiveWithInSummarySource) {
+      final importedLibrarySource = state.importedLibrarySource;
+      if (importedLibrarySource != null) {
+        final importedUri = importedLibrarySource.uri;
+        final elementFactory = linker.elementFactory;
+        final importedLibrary = elementFactory.libraryOfUri2(importedUri);
+        uri = DirectiveUriWithLibraryImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: importedLibrary.source,
+          library: importedLibrary,
+        );
+      } else {
+        uri = DirectiveUriWithSourceImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: state.importedSource,
+        );
+      }
+    } else {
+      final selectedUri = state.selectedUri;
+      if (selectedUri is file_state.DirectiveUriWithUri) {
+        uri = DirectiveUriWithRelativeUriImpl(
+          relativeUriString: selectedUri.relativeUriStr,
+          relativeUri: selectedUri.relativeUri,
+        );
+      } else if (selectedUri is file_state.DirectiveUriWithString) {
+        uri = DirectiveUriWithRelativeUriStringImpl(
+          relativeUriString: selectedUri.relativeUriStr,
+        );
+      } else {
+        uri = DirectiveUriImpl();
+      }
+    }
+
+    return ImportElement2Impl(
+      importKeywordOffset: state.directive.importKeywordOffset,
+      uri: uri,
+      prefix: importPrefix,
+    )
+      ..combinators = combinators
+      ..isSynthetic = state.isSyntheticDartCore;
+  }
+
+  PrefixElementImpl _buildPrefix({
+    required String name,
+    required int nameOffset,
+  }) {
+    final reference = this.reference.getChild('@prefix').getChild(name);
+    final existing = reference.element;
+    if (existing is PrefixElementImpl) {
+      return existing;
+    } else {
+      final result = PrefixElementImpl(
+        name,
+        nameOffset,
+        reference: reference,
+      );
+      element.encloseElement(result);
+      return result;
+    }
+  }
+
   /// These elements are implicitly declared in `dart:core`.
   void _declareDartCoreDynamicNever() {
     if (reference.name == 'dart:core') {
@@ -590,5 +707,12 @@ class _FlushElementOffsets extends GeneralizingElementVisitor<void> {
       element.nameEnd = null;
     }
     super.visitElement(element);
+  }
+}
+
+extension<T> on T? {
+  R? mapOrNull<R>(R Function(T) mapper) {
+    final self = this;
+    return self != null ? mapper(self) : null;
   }
 }

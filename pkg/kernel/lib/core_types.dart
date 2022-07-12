@@ -119,56 +119,14 @@ class CoreTypes {
   CoreTypes(Component component)
       : index = new LibraryIndex.coreLibraries(component);
 
-  late final Procedure asyncErrorWrapperHelperProcedure =
-      index.getTopLevelProcedure('dart:async', '_asyncErrorWrapperHelper');
-
   late final Library asyncLibrary = index.getLibrary('dart:async');
-
-  late final Procedure asyncStarStreamControllerAdd =
-      index.getProcedure('dart:async', '_AsyncStarStreamController', 'add');
-
-  late final Procedure asyncStarStreamControllerAddError = index.getProcedure(
-      'dart:async', '_AsyncStarStreamController', 'addError');
-
-  late final Procedure asyncStarStreamControllerAddStream = index.getProcedure(
-      'dart:async', '_AsyncStarStreamController', 'addStream');
-
-  late final Class asyncStarStreamControllerClass =
-      index.getClass('dart:async', '_AsyncStarStreamController');
-
-  late final Procedure asyncStarStreamControllerClose =
-      index.getProcedure('dart:async', '_AsyncStarStreamController', 'close');
-
-  late final Constructor asyncStarStreamControllerDefaultConstructor =
-      index.getConstructor('dart:async', '_AsyncStarStreamController', '');
-
-  late final Member asyncStarStreamControllerStream =
-      index.getMember('dart:async', '_AsyncStarStreamController', 'get:stream');
 
   late final Procedure asyncStarMoveNextHelper =
       index.getTopLevelProcedure('dart:async', '_asyncStarMoveNextHelper');
 
-  late final Procedure asyncThenWrapperHelperProcedure =
-      index.getTopLevelProcedure('dart:async', '_asyncThenWrapperHelper');
-
-  late final Procedure awaitHelperProcedure =
-      index.getTopLevelProcedure('dart:async', '_awaitHelper');
-
   late final Class boolClass = index.getClass('dart:core', 'bool');
 
   late final Class futureImplClass = index.getClass('dart:async', '_Future');
-
-  late final Constructor futureImplConstructor =
-      index.getConstructor('dart:async', '_Future', '');
-
-  late final Procedure completeOnAsyncReturn =
-      index.getTopLevelProcedure('dart:async', '_completeOnAsyncReturn');
-
-  late final Procedure completeWithNoFutureOnAsyncReturn = index
-      .getTopLevelProcedure('dart:async', '_completeWithNoFutureOnAsyncReturn');
-
-  late final Procedure completeOnAsyncError =
-      index.getTopLevelProcedure('dart:async', '_completeOnAsyncError');
 
   late final Library coreLibrary = index.getLibrary('dart:core');
 
@@ -286,18 +244,6 @@ class CoreTypes {
   late final Class stringClass = index.getClass('dart:core', 'String');
 
   late final Class symbolClass = index.getClass('dart:core', 'Symbol');
-
-  late final Constructor syncIterableDefaultConstructor =
-      index.getConstructor('dart:core', '_SyncIterable', '');
-
-  late final Class syncIteratorClass =
-      index.getClass('dart:core', '_SyncIterator');
-
-  late final Member syncIteratorCurrent =
-      index.getMember('dart:core', '_SyncIterator', '_current');
-
-  late final Member syncIteratorYieldEachIterable =
-      index.getMember('dart:core', '_SyncIterator', '_yieldEachIterable');
 
   late final Class typeClass = index.getClass('dart:core', 'Type');
 

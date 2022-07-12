@@ -122,7 +122,7 @@ class ElementMatcher {
     if (library == null) {
       return null;
     }
-    for (var importElement in library.imports) {
+    for (var importElement in library.imports2) {
       // TODO(brianwilkerson) Filter based on combinators to help avoid making
       //  invalid suggestions.
       var uri = importElement.importedLibrary?.source.uri;

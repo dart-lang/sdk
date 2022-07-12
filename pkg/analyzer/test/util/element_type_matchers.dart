@@ -30,7 +30,7 @@ const isGenericFunctionTypeElement = TypeMatcher<GenericFunctionTypeElement>();
 
 const isHideElementCombinator = TypeMatcher<HideElementCombinator>();
 
-const isImportElement = TypeMatcher<ImportElement>();
+const isImportElement = TypeMatcher<ImportElement2>();
 
 const isLabelElement = TypeMatcher<LabelElement>();
 

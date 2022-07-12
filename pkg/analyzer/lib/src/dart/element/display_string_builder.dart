@@ -138,9 +138,9 @@ class ElementDisplayStringBuilder {
     _writeFormalParameters(element.parameters, forElement: true);
   }
 
-  void writeImportElement(ImportElementImpl element) {
+  void writeImportElement(ImportElement2Impl element) {
     _write('import ');
-    (element.importedLibrary as LibraryElementImpl).appendTo(this);
+    _writeDirectiveUri(element.uri);
   }
 
   void writeInterfaceType(InterfaceType type) {
@@ -164,15 +164,7 @@ class ElementDisplayStringBuilder {
 
   void writePartElement(PartElementImpl element) {
     _write('part ');
-
-    final uri = element.uri;
-    if (uri is DirectiveUriWithUnitImpl) {
-      _write('unit ${uri.unit.source.uri}');
-    } else if (uri is DirectiveUriWithSourceImpl) {
-      _write('source ${uri.source}');
-    } else {
-      _write('<unknown>');
-    }
+    _writeDirectiveUri(element.uri);
   }
 
   void writePrefixElement(PrefixElementImpl element) {
@@ -239,6 +231,16 @@ class ElementDisplayStringBuilder {
 
   void _write(String str) {
     _buffer.write(str);
+  }
+
+  void _writeDirectiveUri(DirectiveUri uri) {
+    if (uri is DirectiveUriWithUnitImpl) {
+      _write('unit ${uri.unit.source.uri}');
+    } else if (uri is DirectiveUriWithSourceImpl) {
+      _write('source ${uri.source}');
+    } else {
+      _write('<unknown>');
+    }
   }
 
   void _writeFormalParameters(

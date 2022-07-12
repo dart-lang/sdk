@@ -3197,7 +3197,7 @@ class StoreOptimizer : public LivenessAnalysis {
 };
 
 void DeadStoreElimination::Optimize(FlowGraph* graph) {
-  if (FLAG_dead_store_elimination) {
+  if (FLAG_dead_store_elimination && FLAG_load_cse) {
     StoreOptimizer::OptimizeGraph(graph);
   }
 }
@@ -3599,6 +3599,12 @@ void AllocationSinking::DiscoverFailedCandidates() {
 }
 
 void AllocationSinking::Optimize() {
+  // Allocation sinking depends on load forwarding, so give up early if load
+  // forwarding is disabled.
+  if (!FLAG_load_cse || flow_graph_->is_huge_method()) {
+    return;
+  }
+
   CollectCandidates();
 
   // Insert MaterializeObject instructions that will describe the state of the

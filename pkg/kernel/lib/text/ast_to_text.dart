@@ -818,8 +818,6 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
         return 'async';
       case AsyncMarker.AsyncStar:
         return 'async*';
-      case AsyncMarker.SyncYielding:
-        return 'yielding';
       default:
         return '<Invalid async marker: $marker>';
     }
@@ -2414,8 +2412,6 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeIndentation();
     if (node.isYieldStar) {
       writeWord('yield*');
-    } else if (node.isNative) {
-      writeWord('[yield]');
     } else {
       writeWord('yield');
     }
