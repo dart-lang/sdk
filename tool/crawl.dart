@@ -40,12 +40,6 @@ List<String>? _sdkTags;
 
 Map<String, List<String?>> _sinceMap = <String, List<String>>{};
 
-// todo(pq): deprecated
-final _stagehandOptionsUrl = Uri.https('raw.githubusercontent.com',
-    '/dart-lang/stagehand/master/templates/analysis_options.yaml');
-
-List<String>? _stagehandRules;
-
 Future<List<String>> get flutterRepoRules async =>
     _flutterRepoRules ??= await score_utils.fetchRules(_flutterRepoOptionsUrl);
 
@@ -64,9 +58,6 @@ Iterable<LintRule> get registeredLints {
   }
   return _registeredLints!;
 }
-
-Future<List<String>> get stagehandRules async =>
-    _stagehandRules ??= await score_utils.fetchRules(_stagehandOptionsUrl);
 
 Future<String?> dartSdkForLinter(String version, Authentication? auth) async {
   var sdkVersions = <String>[];
