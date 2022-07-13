@@ -697,7 +697,7 @@ Tearoffs of JS types should bind `this`, as noted in
 decide what runtime type information to attach. Tearoffs could get the
 statically visible type at the call site, or they could be treated like other
 JS functions, and be assignable to any function type. Untyped is advantageous
-for performance/simplicity, so it's probably preferrable, unless we find
+for performance/simplicity, so it's probably preferable, unless we find
 compelling examples.
 
 

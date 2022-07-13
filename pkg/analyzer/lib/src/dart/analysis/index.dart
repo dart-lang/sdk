@@ -687,7 +687,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    ExportElement? element = node.element;
+    final element = node.element2;
     recordUriReference(element?.exportedLibrary, node.uri);
     super.visitExportDirective(node);
   }

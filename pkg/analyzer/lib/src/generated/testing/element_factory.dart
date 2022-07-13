@@ -136,14 +136,6 @@ class ElementFactory {
           [List<DartType> argumentTypes = const []]) =>
       constructorElement(definingClass, name, false, argumentTypes);
 
-  static ExportElementImpl exportFor(LibraryElement exportedLibrary,
-      [List<NamespaceCombinator> combinators = const <NamespaceCombinator>[]]) {
-    ExportElementImpl spec = ExportElementImpl(-1);
-    spec.exportedLibrary = exportedLibrary;
-    spec.combinators = combinators;
-    return spec;
-  }
-
   static FieldElementImpl fieldElement(
       String name, bool isStatic, bool isFinal, bool isConst, DartType type,
       {Expression? initializer}) {

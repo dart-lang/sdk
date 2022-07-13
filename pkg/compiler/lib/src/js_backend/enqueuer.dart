@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.js.enqueue;
 
 import 'dart:collection' show Queue;
@@ -16,7 +14,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart';
 import '../js_backend/annotations.dart';
-import '../universe/codegen_world_builder.dart';
+import '../universe/codegen_world_builder_interfaces.dart';
 import '../universe/member_usage.dart';
 import '../universe/use.dart'
     show
@@ -34,7 +32,7 @@ class CodegenEnqueuer extends Enqueuer {
   final String name;
   final Set<ClassEntity> _recentClasses = Setlet();
   bool _recentConstants = false;
-  final CodegenWorldBuilderImpl worldBuilder;
+  final CodegenWorldBuilderImplForEnqueuer worldBuilder;
   final WorkItemBuilder _workItemBuilder;
 
   @override
@@ -52,7 +50,7 @@ class CodegenEnqueuer extends Enqueuer {
 
   // If not `null` this is called when the queue has been emptied. It allows for
   // applying additional impacts before re-emptying the queue.
-  void Function() onEmptyForTesting;
+  void Function()? onEmptyForTesting;
 
   CodegenEnqueuer(this.task, this.worldBuilder, this._workItemBuilder,
       this.listener, this._annotationsData)
@@ -77,7 +75,7 @@ class CodegenEnqueuer extends Enqueuer {
   void _addToWorkList(MemberEntity entity) {
     if (_processedEntities.contains(entity)) return;
 
-    WorkItem workItem = _workItemBuilder.createWorkItem(entity);
+    final workItem = _workItemBuilder.createWorkItem(entity);
     if (workItem == null) return;
 
     if (queueIsClosed) {
@@ -134,7 +132,7 @@ class CodegenEnqueuer extends Enqueuer {
       _addToWorkList(member);
     }
     if (useSet.contains(MemberUse.CLOSURIZE_INSTANCE)) {
-      _registerClosurizedMember(member);
+      _registerClosurizedMember(member as FunctionEntity);
     }
     if (useSet.contains(MemberUse.CLOSURIZE_STATIC)) {
       applyImpact(listener.registerGetOfStaticFunction());
@@ -149,17 +147,17 @@ class CodegenEnqueuer extends Enqueuer {
   }
 
   @override
-  void processStaticUse(MemberEntity member, StaticUse staticUse) {
+  void processStaticUse(MemberEntity? member, StaticUse staticUse) {
     task.measureSubtask('codegen.staticUse', () {
       worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
       switch (staticUse.kind) {
         case StaticUseKind.CONSTRUCTOR_INVOKE:
         case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-          processTypeUse(member, TypeUse.instantiation(staticUse.type));
+          processTypeUse(member, TypeUse.instantiation(staticUse.type!));
           break;
         case StaticUseKind.INLINING:
           // TODO(johnniwinther): Should this be tracked with _MemberUsage ?
-          listener.registerUsedElement(staticUse.element);
+          listener.registerUsedElement(staticUse.element as MemberEntity);
           break;
         default:
           break;
@@ -168,14 +166,14 @@ class CodegenEnqueuer extends Enqueuer {
   }
 
   @override
-  void processTypeUse(MemberEntity member, TypeUse typeUse) {
+  void processTypeUse(MemberEntity? member, TypeUse typeUse) {
     DartType type = typeUse.type;
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
-        _registerInstantiatedType(type);
+        _registerInstantiatedType(type as InterfaceType);
         break;
       case TypeUseKind.NATIVE_INSTANTIATION:
-        _registerInstantiatedType(type, nativeUsage: true);
+        _registerInstantiatedType(type as InterfaceType, nativeUsage: true);
         break;
       case TypeUseKind.IS_CHECK:
       case TypeUseKind.CATCH_TYPE:
@@ -209,14 +207,13 @@ class CodegenEnqueuer extends Enqueuer {
         worldBuilder.registerTypeArgument(type);
         break;
       case TypeUseKind.CONSTRUCTOR_REFERENCE:
-        worldBuilder.registerConstructorReference(type);
+        worldBuilder.registerConstructorReference(type as InterfaceType);
         break;
       case TypeUseKind.CONST_INSTANTIATION:
         failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected type use: $typeUse.");
-        break;
       case TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI:
-        assert(type is TypeVariableType);
-        _registerNamedTypeVariableNewRti(type);
+        _registerNamedTypeVariableNewRti(type as TypeVariableType);
+        break;
     }
   }
 
@@ -267,7 +264,7 @@ class CodegenEnqueuer extends Enqueuer {
   void forEach(void f(WorkItem work)) {
     _forEach(f);
     if (onEmptyForTesting != null) {
-      onEmptyForTesting();
+      onEmptyForTesting!();
       _forEach(f);
     }
   }

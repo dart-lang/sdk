@@ -891,7 +891,7 @@ extension on Element {
   /// Returns the 'type' of `this`, when accessed as a "reference", not
   /// immediately followed by parentheses and arguments.
   ///
-  /// For all elements that don't have a type (for example, [ExportElement]),
+  /// For all elements that don't have a type (for example, [ExportElement2]),
   /// `null` is returned. For [PropertyAccessorElement], the return value is
   /// returned. For all other elements, their `type` property is returned.
   DartType? get referenceType {

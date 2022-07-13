@@ -381,12 +381,15 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
       }
     }
 
-    for (var export in element.exports) {
-      export as ExportElementImpl;
+    for (var export in element.exports2) {
+      export as ExportElement2Impl;
       export.metadata = reader._readAnnotationList(
         unitElement: unitElement,
       );
-      export.exportedLibrary = reader.readElement() as LibraryElementImpl?;
+      final uri = export.uri;
+      if (uri is DirectiveUriWithLibraryImpl) {
+        uri.library = reader.libraryOfUri(uri.source.uri);
+      }
     }
 
     for (final part in element.parts2) {
@@ -453,7 +456,11 @@ class LibraryReader {
         libraryElement: libraryElement,
       );
     });
-    libraryElement.exports = _reader.readTypedList(_readExportElement);
+    libraryElement.exports2 = _reader.readTypedList(() {
+      return _readExportElement(
+        libraryElement: libraryElement,
+      );
+    });
     LibraryElementFlags.read(_reader, libraryElement);
 
     for (final import in libraryElement.imports2) {
@@ -728,10 +735,19 @@ class LibraryReader {
     }
   }
 
-  ExportElementImpl _readExportElement() {
-    var element = ExportElementImpl(-1);
-    element.uri = _reader.readOptionalStringReference();
-    element.combinators = _reader.readTypedList(_readNamespaceCombinator);
+  ExportElement2Impl _readExportElement({
+    required LibraryElementImpl libraryElement,
+  }) {
+    final uri = _readDirectiveUri(
+      libraryElement: libraryElement,
+    );
+    // TODO(scheglov) pass to the constructor
+    final combinators = _reader.readTypedList(_readNamespaceCombinator);
+
+    final element = ExportElement2Impl(
+      exportKeywordOffset: -1,
+      uri: uri,
+    )..combinators = combinators;
     return element;
   }
 

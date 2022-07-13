@@ -65,7 +65,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitExportDirective(ExportDirective node) {
-    return node.element;
+    return node.element2;
   }
 
   @override

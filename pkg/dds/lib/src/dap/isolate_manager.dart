@@ -823,8 +823,8 @@ class ThreadInfo {
   /// sdk-path/lib/core/print.dart -> dart:core/print.dart
   ///
   /// This is required so that when the user sets a breakpoint in an SDK source
-  /// (which they may have nagivated to via the Analysis Server) we generate a
-  /// vaid URI that the VM would create a breakpoint for.
+  /// (which they may have navigated to via the Analysis Server) we generate a
+  /// valid URI that the VM would create a breakpoint for.
   Future<Uri?> resolvePathToUri(String filePath) async {
     // We don't currently need to call lookupPackageUris because the VM can
     // handle incoming file:/// URIs for packages, and also the org-dartlang-sdk

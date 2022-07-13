@@ -18,10 +18,10 @@ class FindElement extends _FindElementBase {
   @override
   CompilationUnitElement get unitElement => unit.declaredElement!;
 
-  ExportElement export(String targetUri) {
-    ExportElement? result;
+  ExportElement2 export(String targetUri) {
+    ExportElement2? result;
 
-    for (var export in libraryElement.exports) {
+    for (var export in libraryElement.exports2) {
       var exportedUri = export.exportedLibrary?.source.uri.toString();
       if (exportedUri == targetUri) {
         if (result != null) {

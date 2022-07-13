@@ -1394,8 +1394,11 @@ void SuspendInstr::PrintOperandsTo(BaseTextBuffer* f) const {
     case StubId::kYieldAsyncStar:
       name = "YieldAsyncStar";
       break;
-    case StubId::kYieldSyncStar:
-      name = "YieldSyncStar";
+    case StubId::kSuspendSyncStarAtStart:
+      name = "SuspendSyncStarAtStart";
+      break;
+    case StubId::kSuspendSyncStarAtYield:
+      name = "SuspendSyncStarAtYield";
       break;
   }
   f->Printf("%s(", name);

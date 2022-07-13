@@ -104,8 +104,12 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
 
   R? visitExecutableElement(ExecutableElement element) => visitElement(element);
 
+  @Deprecated('Override visitExportElement2() instead')
   @override
   R? visitExportElement(ExportElement element) => visitElement(element);
+
+  @override
+  R? visitExportElement2(ExportElement2 element) => visitElement(element);
 
   @override
   R? visitExtensionElement(ExtensionElement element) => visitElement(element);
@@ -240,8 +244,15 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
     return null;
   }
 
+  @Deprecated('Override visitExportElement2() instead')
   @override
   R? visitExportElement(ExportElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitExportElement2(ExportElement2 element) {
     element.visitChildren(this);
     return null;
   }
@@ -396,8 +407,12 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   @override
   R? visitConstructorElement(ConstructorElement element) => null;
 
+  @Deprecated('Override visitExportElement2() instead')
   @override
   R? visitExportElement(ExportElement element) => null;
+
+  @override
+  R? visitExportElement2(ExportElement2 element) => null;
 
   @override
   R? visitExtensionElement(ExtensionElement element) => null;
@@ -493,8 +508,12 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
   @override
   R? visitConstructorElement(ConstructorElement element) => _throw(element);
 
+  @Deprecated('Override visitExportElement2() instead')
   @override
   R? visitExportElement(ExportElement element) => _throw(element);
+
+  @override
+  R? visitExportElement2(ExportElement2 element) => _throw(element);
 
   @override
   R? visitExtensionElement(ExtensionElement element) => _throw(element);

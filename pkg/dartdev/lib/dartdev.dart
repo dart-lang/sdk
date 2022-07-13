@@ -59,7 +59,6 @@ Future<void> runDartdev(List<String> args, SendPort? port) async {
   }
 
   // Finally, call the runner to execute the command; see DartdevRunner.
-
   final runner = DartdevRunner(args);
   int? exitCode = 1;
   try {
@@ -198,10 +197,9 @@ class DartdevRunner extends CommandRunner<int> {
       }
     }
 
-    final Ansi ansi = Ansi(Ansi.terminalSupportsAnsi);
-    log = topLevelResults['diagnostics']
-        ? Logger.verbose(ansi: ansi)
-        : Logger.standard(ansi: ansi);
+    if (topLevelResults['diagnostics']) {
+      log = Logger.verbose(ansi: ansi);
+    }
 
     var command = topLevelResults.command;
     final commandNames = [];

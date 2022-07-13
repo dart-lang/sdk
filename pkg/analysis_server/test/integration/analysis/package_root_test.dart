@@ -40,18 +40,18 @@ f() {}
 ''';
     writeFile(mainPath, mainText);
     var normalizedFooBarPath = writeFile(fooBarPath, fooBarText);
-    sendServerSetSubscriptions([ServerService.STATUS]);
+    await sendServerSetSubscriptions([ServerService.STATUS]);
     var navigationParamsFuture = onAnalysisNavigation.first;
-    sendAnalysisSetSubscriptions({
+    await sendAnalysisSetSubscriptions({
       AnalysisService.NAVIGATION: [mainPath]
     });
     List<NavigationRegion> navigationRegions;
     List<NavigationTarget> navigationTargets;
     List<String> navigationTargetFiles;
 
-    sendAnalysisSetAnalysisRoots([projPath], [],
+    await sendAnalysisSetAnalysisRoots([projPath], [],
         packageRoots: {projPath: packagesPath});
-    sendAnalysisSetPriorityFiles([mainPath]);
+    await sendAnalysisSetPriorityFiles([mainPath]);
 
     var params = await navigationParamsFuture;
 

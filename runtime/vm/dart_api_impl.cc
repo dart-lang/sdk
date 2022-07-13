@@ -5503,8 +5503,10 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   // is not correct because main can be in the exported namespace of a library
   // or it could be a getter.
   if (tmp.IsNull()) {
-    return Api::NewError("%s: The binary program does not contain 'main'.",
-                         CURRENT_FUNC);
+    return Api::NewError(
+        "Invoked Dart programs must have a 'main' function defined:\n"
+        "https://dart.dev/guides/language/"
+        "language-tour#a-basic-dart-program");
   }
   library ^= tmp.ptr();
   IG->object_store()->set_root_library(library);

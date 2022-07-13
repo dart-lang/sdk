@@ -373,7 +373,7 @@ export 'dart:math' hide pi;
     await assertNoErrorsInCode('''
 export 'dart:math';
 ''');
-    expect(findNode.export('dart:math').element!.exportedLibrary!.name,
+    expect(findNode.export('dart:math').element2!.exportedLibrary!.name,
         'dart.math');
   }
 

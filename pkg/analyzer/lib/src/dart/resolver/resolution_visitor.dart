@@ -432,8 +432,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    var element = node.element;
-    if (element is ExportElementImpl) {
+    var element = node.element2;
+    if (element is ExportElement2Impl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
 

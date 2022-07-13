@@ -8628,13 +8628,7 @@ class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual Representation representation() const {
-    // This works since double is the representation that the typed array
-    // store expects.
-    // TODO(fschneider): Change this to a genuine float representation once it
-    // is supported.
-    return kUnboxedDouble;
-  }
+  virtual Representation representation() const { return kUnboxedFloat; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
@@ -8676,7 +8670,7 @@ class FloatToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
-    return kUnboxedDouble;
+    return kUnboxedFloat;
   }
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
@@ -9626,7 +9620,8 @@ class SuspendInstr : public TemplateDefinition<1, Throws> {
   enum class StubId {
     kAwait,
     kYieldAsyncStar,
-    kYieldSyncStar,
+    kSuspendSyncStarAtStart,
+    kSuspendSyncStarAtYield,
   };
 
   SuspendInstr(const InstructionSource& source,

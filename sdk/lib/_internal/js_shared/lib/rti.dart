@@ -841,7 +841,7 @@ bool _installSpecializedIsTest(Object? object) {
   }
 
   // `o is T*` generally behaves like `o is T`.
-  // The exeptions are `Object*` (handled above) and `Never*`
+  // The exceptions are `Object*` (handled above) and `Never*`
   //
   //   `null is Never`  --> `false`
   //   `null is Never*` --> `true`

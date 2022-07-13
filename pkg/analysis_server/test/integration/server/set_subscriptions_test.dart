@@ -53,7 +53,7 @@ class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
 void f() {
   var x;
 }''');
-    standardAnalysisSetup(subscribeStatus: false);
+    await standardAnalysisSetup(subscribeStatus: false);
     // Analysis should begin, but no server.status notification should be
     // received.
     await analysisBegun.future;

@@ -28,7 +28,7 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
     writeFile(pathname, text);
     await standardAnalysisSetup();
     await analysisFinished;
-    sendAnalysisSetSubscriptions({
+    await sendAnalysisSetSubscriptions({
       AnalysisService.HIGHLIGHTS: [pathname]
     });
     // Map from highlight type to highlighted text

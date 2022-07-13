@@ -12,21 +12,19 @@ import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/comment.dart';
-import 'package:analyzer/src/util/uri.dart';
 import 'package:collection/collection.dart';
 
 class ElementBuilder extends ThrowingAstVisitor<void> {
   final LibraryBuilder _libraryBuilder;
   final CompilationUnitElementImpl _unitElement;
 
-  final _exports = <ExportElement>[];
   var _isFirstLibraryDirective = true;
+  var _exportDirectiveIndex = 0;
   var _importDirectiveIndex = 0;
   var _partDirectiveIndex = 0;
 
@@ -62,8 +60,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   /// Build exports and imports, metadata into [_libraryElement].
   void buildLibraryElementChildren(CompilationUnit unit) {
     unit.directives.accept(this);
-
-    _libraryElement.exports = _exports;
 
     if (_isFirstLibraryDirective) {
       _isFirstLibraryDirective = false;
@@ -369,20 +365,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitExportDirective(covariant ExportDirectiveImpl node) {
-    var element = ExportElementImpl(node.exportKeyword.offset);
-    element.combinators = _buildCombinators(node.combinators);
-
-    try {
-      element.exportedLibrary = _selectLibrary(node);
-    } on ArgumentError {
-      // TODO(scheglov) Remove this when using `ExportDirectiveState`.
-    }
-
-    element.metadata = _buildAnnotations(node.metadata);
-    element.uri = node.uri.stringValue;
-
-    node.element = element;
-    _exports.add(element);
+    final index = _exportDirectiveIndex++;
+    final exportElement = _libraryElement.exports2[index];
+    exportElement as ExportElement2Impl;
+    exportElement.metadata = _buildAnnotations(node.metadata);
+    node.element = exportElement;
   }
 
   @override
@@ -1173,51 +1160,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
   }
 
-  Uri? _selectAbsoluteUri(NamespaceDirective directive) {
-    var relativeUriStr = _selectRelativeUri(
-      directive.configurations,
-      directive.uri.stringValue,
-    );
-    if (relativeUriStr == null) {
-      return null;
-    }
-
-    Uri relativeUri;
-    try {
-      relativeUri = Uri.parse(relativeUriStr);
-    } on FormatException {
-      return null;
-    }
-
-    var absoluteUri = resolveRelativeUri(_libraryBuilder.uri, relativeUri);
-
-    var sourceFactory = _linker.analysisContext.sourceFactory;
-    return rewriteToCanonicalUri(sourceFactory, absoluteUri);
-  }
-
-  LibraryElement? _selectLibrary(NamespaceDirective node) {
-    var uri = _selectAbsoluteUri(node);
-    if (uri == null) {
-      return null;
-    } else {
-      return _linker.elementFactory.libraryOfUri(uri);
-    }
-  }
-
-  String? _selectRelativeUri(
-    List<Configuration> configurations,
-    String? defaultUri,
-  ) {
-    for (var configuration in configurations) {
-      var name = configuration.name.components.join('.');
-      var value = configuration.value?.stringValue ?? 'true';
-      if (_linker.declaredVariables.get(name) == value) {
-        return configuration.uri.stringValue;
-      }
-    }
-    return defaultUri;
-  }
-
   bool _shouldBeConstField(FieldDeclaration node) {
     var fields = node.fields;
     return fields.isConst ||
@@ -1274,24 +1216,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       annotations.add(element);
     }
     return annotations;
-  }
-
-  static List<NamespaceCombinator> _buildCombinators(
-    List<Combinator> combinators,
-  ) {
-    return combinators.map((node) {
-      if (node is HideCombinator) {
-        return HideElementCombinatorImpl()
-          ..hiddenNames = node.hiddenNames.nameList;
-      }
-      if (node is ShowCombinator) {
-        return ShowElementCombinatorImpl()
-          ..offset = node.keyword.offset
-          ..end = node.end
-          ..shownNames = node.shownNames.nameList;
-      }
-      throw UnimplementedError('${node.runtimeType}');
-    }).toList();
   }
 
   static void _setCodeRange(ElementImpl element, AstNode node) {
@@ -1453,11 +1377,5 @@ class _EnclosingContext {
     element.reference = reference;
     this.element.encloseElement(element);
     return reference;
-  }
-}
-
-extension on Iterable<SimpleIdentifier> {
-  List<String> get nameList {
-    return map((e) => e.name).toList();
   }
 }

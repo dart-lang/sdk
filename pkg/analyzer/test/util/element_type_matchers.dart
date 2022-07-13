@@ -15,7 +15,7 @@ const isElementAnnotation = TypeMatcher<ElementAnnotation>();
 
 const isExecutableElement = TypeMatcher<ExecutableElement>();
 
-const isExportElement = TypeMatcher<ExportElement>();
+const isExportElement = TypeMatcher<ExportElement2>();
 
 const isFieldElement = TypeMatcher<FieldElement>();
 

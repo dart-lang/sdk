@@ -18,7 +18,7 @@ class SliderMenu extends View {
   // currently selected menu item
   Element selectedItem;
 
-  // This holds the element where a touchstart occured.  (This is set
+  // This holds the element where a touchstart occurred.  (This is set
   // in touchstart, and cleared in touchend.)  If this is null, then a
   // touch operation is not in progress.
   // TODO(mattsh) - move this to a touch mixin
@@ -79,7 +79,7 @@ class SliderMenu extends View {
             selectItem(touchItem, true);
           } else {
             // the Touch target is somewhere other where than the touchstart
-            // occured, so revert the selected menu text back to where it was
+            // occurred, so revert the selected menu text back to where it was
             // before the touchstart,
             selectItemText(selectedItem);
           }

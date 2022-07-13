@@ -55,8 +55,11 @@ class DevToolsServer {
   static ArgParser buildArgParser({
     bool verbose = false,
     bool includeHelpOption = true,
+    int? usageLineLength,
   }) {
-    final argParser = ArgParser();
+    final argParser = ArgParser(
+      usageLineLength: usageLineLength,
+    );
 
     if (includeHelpOption) {
       argParser.addFlag(

@@ -2090,8 +2090,8 @@ export 'dart:math';
     ResolvedUnitResult result = await driver.getResultValid(testFile);
     expect(result.path, testFile);
     // Has only exports for valid URIs.
-    List<ExportElement> imports = result.libraryElement.exports;
-    expect(imports.map((import) {
+    final exports = result.libraryElement.exports2;
+    expect(exports.map((import) {
       return import.exportedLibrary?.source.uri.toString();
     }), ['dart:async', null, 'dart:math']);
   }

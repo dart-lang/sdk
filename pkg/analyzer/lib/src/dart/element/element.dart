@@ -3119,17 +3119,65 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   }
 }
 
-/// A concrete implementation of an [ExportElement].
-class ExportElementImpl extends UriReferencedElementImpl
-    implements ExportElement {
-  @override
-  LibraryElement? exportedLibrary;
-
+class ExportElement2Impl extends _ExistingElementImpl
+    implements ExportElement2 {
   @override
   List<NamespaceCombinator> combinators = const [];
 
-  /// Initialize a newly created export element at the given [offset].
-  ExportElementImpl(int offset) : super(null, offset);
+  @override
+  final int exportKeywordOffset;
+
+  @override
+  final DirectiveUri uri;
+
+  ExportElement2Impl({
+    required this.exportKeywordOffset,
+    required this.uri,
+  }) : super(null, exportKeywordOffset);
+
+  @override
+  LibraryElement? get exportedLibrary {
+    final uri = this.uri;
+    if (uri is DirectiveUriWithLibrary) {
+      return uri.library;
+    }
+    return null;
+  }
+
+  @override
+  int get hashCode => identityHashCode(this);
+
+  @override
+  ElementKind get kind => ElementKind.EXPORT;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other);
+  }
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) {
+    return visitor.visitExportElement2(this);
+  }
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExportElement(this);
+  }
+}
+
+/// A concrete implementation of an [ExportElement].
+@Deprecated('Use ExportElement2 instead')
+class ExportElementImpl extends ElementImpl
+    with WrapperElementImpl
+    implements ExportElement {
+  @override
+  final ExportElement2Impl base;
+
+  ExportElementImpl(this.base) : super(base.name, base.nameOffset);
+
+  @override
+  List<NamespaceCombinator> get combinators => base.combinators;
 
   @override
   CompilationUnitElementImpl get enclosingUnit {
@@ -3138,18 +3186,40 @@ class ExportElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  String get identifier => exportedLibrary!.name;
+  LibraryElement? get exportedLibrary {
+    final uri = base.uri;
+    if (uri is DirectiveUriWithLibrary) {
+      return uri.library;
+    }
+    return null;
+  }
+
+  @override
+  String get identifier => 'export@$nameOffset';
 
   @override
   ElementKind get kind => ElementKind.EXPORT;
 
   @override
-  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitExportElement(this);
+  String? get uri {
+    final uri = base.uri;
+    if (uri is DirectiveUriWithRelativeUriString) {
+      return uri.relativeUriString;
+    } else {
+      return null;
+    }
+  }
 
   @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeExportElement(this);
-  }
+  // TODO: implement uriEnd
+  int get uriEnd => throw UnimplementedError();
+
+  @override
+  // TODO: implement uriOffset
+  int get uriOffset => throw UnimplementedError();
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitExportElement(this);
 }
 
 /// A concrete implementation of an [ExtensionElement].
@@ -3693,8 +3763,11 @@ class ImportElement2Impl extends _ExistingElementImpl
 
 /// A concrete implementation of an [ImportElement].
 @Deprecated('Use ImportElement2 instead')
-class ImportElementImpl extends ElementImpl implements ImportElement {
-  final ImportElement2 base;
+class ImportElementImpl extends ElementImpl
+    with WrapperElementImpl
+    implements ImportElement {
+  @override
+  final ImportElement2Impl base;
 
   ImportElementImpl(this.base) : super(base.name, base.nameOffset);
 
@@ -3702,82 +3775,10 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
   List<NamespaceCombinator> get combinators => base.combinators;
 
   @override
-  AnalysisContext get context => base.context;
-
-  @override
-  Element get declaration => base.declaration;
-
-  @override
-  String get displayName => base.displayName;
-
-  @override
-  String? get documentationComment => base.documentationComment;
-
-  @override
-  Element? get enclosingElement => base.enclosingElement;
-
-  @override
-  bool get hasAlwaysThrows => base.hasAlwaysThrows;
-
-  @override
-  bool get hasDeprecated => base.hasDeprecated;
-
-  @override
-  bool get hasDoNotStore => base.hasDoNotStore;
-
-  @override
-  bool get hasFactory => base.hasFactory;
-
-  @override
-  bool get hasInternal => base.hasInternal;
-
-  @override
-  bool get hasIsTest => base.hasIsTest;
-
-  @override
-  bool get hasIsTestGroup => base.hasIsTestGroup;
-
-  @override
-  bool get hasJS => base.hasJS;
-
-  @override
-  bool get hasLiteral => base.hasLiteral;
-
-  @override
-  bool get hasMustCallSuper => base.hasMustCallSuper;
-
-  @override
-  bool get hasNonVirtual => base.hasNonVirtual;
-
-  @override
-  bool get hasOptionalTypeArgs => base.hasOptionalTypeArgs;
-
-  @override
-  bool get hasOverride => base.hasOverride;
-
-  @override
-  bool get hasProtected => base.hasProtected;
-
-  @override
-  bool get hasRequired => base.hasRequired;
-
-  @override
-  bool get hasSealed => base.hasSealed;
-
-  @override
-  bool get hasUseResult => base.hasUseResult;
-
-  @override
-  bool get hasVisibleForOverriding => base.hasVisibleForOverriding;
-
-  @override
-  bool get hasVisibleForTemplate => base.hasVisibleForTemplate;
-
-  @override
-  bool get hasVisibleForTesting => base.hasVisibleForTesting;
-
-  @override
-  int get id => base.id;
+  CompilationUnitElementImpl get enclosingUnit {
+    var enclosingLibrary = enclosingElement as LibraryElementImpl;
+    return enclosingLibrary._definingCompilationUnit;
+  }
 
   @override
   String get identifier => 'import@$nameOffset';
@@ -3795,52 +3796,10 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
   bool get isDeferred => base.prefix is DeferredImportElementPrefix;
 
   @override
-  bool get isPrivate => base.isPrivate;
-
-  @override
-  bool get isPublic => base.isPublic;
-
-  @override
-  bool get isSynthetic => base.isSynthetic;
-
-  @override
-  ElementKind get kind => base.kind;
-
-  @override
-  LibraryElementImpl get library => base.library as LibraryElementImpl;
-
-  @override
-  Source get librarySource => base.librarySource;
-
-  @override
-  ElementLocation get location => base.location!;
-
-  @override
-  List<ElementAnnotation> get metadata => base.metadata;
-
-  @override
-  String? get name => base.name;
-
-  @override
-  int get nameLength => base.nameLength;
-
-  @override
-  int get nameOffset => base.nameOffset;
-
-  @override
   Namespace get namespace => base.namespace;
 
   @override
-  Element get nonSynthetic => this;
-
-  @override
   PrefixElement? get prefix => base.prefix?.element;
-
-  @override
-  AnalysisSession? get session => base.session;
-
-  @override
-  Source get source => base.source;
 
   @override
   String? get uri {
@@ -3868,47 +3827,6 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
   @override
   T? accept<T>(ElementVisitor<T> visitor) {
     return visitor.visitImportElement(this);
-  }
-
-  @override
-  String getDisplayString(
-      {required bool withNullability, bool multiline = false}) {
-    return base.getDisplayString(
-      withNullability: withNullability,
-      multiline: multiline,
-    );
-  }
-
-  @override
-  String getExtendedDisplayName(String? shortName) {
-    return base.getExtendedDisplayName(shortName);
-  }
-
-  @Deprecated('Use isAccessibleIn2() instead')
-  @override
-  bool isAccessibleIn(LibraryElement? library) {
-    return base.isAccessibleIn(library);
-  }
-
-  @override
-  bool isAccessibleIn2(LibraryElement library) {
-    return base.isAccessibleIn2(library);
-  }
-
-  @override
-  E thisOrAncestorMatching<E extends Element>(
-      bool Function(Element p1) predicate) {
-    return base.thisOrAncestorMatching(predicate) as E;
-  }
-
-  @override
-  E? thisOrAncestorOfType<E extends Element>() {
-    return base.thisOrAncestorOfType();
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    base.visitChildren(visitor);
   }
 }
 
@@ -3977,6 +3895,10 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   @override
   // TODO: implement accessibleExtensions
   List<ExtensionElement> get accessibleExtensions => throw UnimplementedError();
+
+  @override
+  // TODO: implement exports2
+  List<ExportElement2> get exports2 => throw UnimplementedError();
 
   @override
   FeatureSet get featureSet => augmented.featureSet;
@@ -4098,14 +4020,11 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   List<LibraryElement> get exportedLibraries {
-    HashSet<LibraryElement> libraries = HashSet<LibraryElement>();
-    for (ExportElement element in exports) {
-      var library = element.exportedLibrary;
-      if (library != null) {
-        libraries.add(library);
-      }
-    }
-    return libraries.toList(growable: false);
+    return exports2
+        .map((import) => import.exportedLibrary)
+        .whereNotNull()
+        .toSet()
+        .toList();
   }
 
   @override
@@ -4128,10 +4047,18 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     _exportNamespace = exportNamespace;
   }
 
+  @Deprecated('Use exports2 instead')
   @override
   List<ExportElement> get exports {
+    return exports2
+        .map((e) => ExportElementImpl(e as ExportElement2Impl))
+        .toList();
+  }
+
+  @override
+  List<ExportElement2> get exports2 {
     linkedData?.read(this);
-    return _exports;
+    return _exports2;
   }
 
   bool get hasPartOfDirective {
@@ -4148,9 +4075,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   List<LibraryElement> get importedLibraries {
     return imports2
-        .map((import) => import.uri)
-        .whereType<DirectiveUriWithLibrary>()
-        .map((uri) => uri.library)
+        .map((import) => import.importedLibrary)
+        .whereNotNull()
         .toSet()
         .toList();
   }
@@ -4158,7 +4084,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @Deprecated('Use imports2 instead')
   @override
   List<ImportElement> get imports {
-    return imports2.map(ImportElementImpl.new).toList();
+    return imports2
+        .map((e) => ImportElementImpl(e as ImportElement2Impl))
+        .toList();
   }
 
   @override
@@ -4487,11 +4415,11 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
 
   /// A list containing specifications of all of the imports defined in this
   /// library.
-  List<ImportElement2> _imports2 = _Sentinel.importElement2;
+  List<ExportElement2> _exports2 = _Sentinel.exportElement2;
 
-  /// A list containing specifications of all of the exports defined in this
+  /// A list containing specifications of all of the imports defined in this
   /// library.
-  List<ExportElement> _exports = _Sentinel.exportElement;
+  List<ImportElement2> _imports2 = _Sentinel.importElement2;
 
   /// The cached list of prefixes.
   List<PrefixElement>? _prefixes;
@@ -4530,22 +4458,25 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
     return _definingCompilationUnit;
   }
 
+  @Deprecated('Use exports2 instead')
   @override
   List<ExportElement> get exports {
-    return _exports;
+    return exports2
+        .map((e) => ExportElementImpl(e as ExportElement2Impl))
+        .toList();
   }
 
   /// Set the specifications of all of the exports defined in this library to
   /// the given list of [exports].
-  set exports(List<ExportElement> exports) {
-    for (ExportElement exportElement in exports) {
-      (exportElement as ExportElementImpl).enclosingElement = this;
+  set exports2(List<ExportElement2> exports) {
+    for (final exportElement in exports) {
+      (exportElement as ExportElement2Impl).enclosingElement = this;
     }
-    _exports = exports;
+    _exports2 = exports;
   }
 
-  List<ExportElement> get exports_unresolved {
-    return _exports;
+  List<ExportElement2> get exports_unresolved {
+    return _exports2;
   }
 
   @override
@@ -4554,7 +4485,9 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   @Deprecated('Use imports2 instead')
   @override
   List<ImportElement> get imports {
-    return _imports2.map(ImportElementImpl.new).toList();
+    return imports2
+        .map((e) => ImportElementImpl(e as ImportElement2Impl))
+        .toList();
   }
 
   /// Set the specifications of all of the imports defined in this library to
@@ -4587,7 +4520,9 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     _definingCompilationUnit.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
     safelyVisitChildren(exports, visitor);
+    safelyVisitChildren(exports2, visitor);
     // ignore: deprecated_member_use_from_same_package
     safelyVisitChildren(imports, visitor);
     safelyVisitChildren(imports2, visitor);
@@ -6508,6 +6443,177 @@ abstract class VariableElementImpl extends ElementImpl
   DartObject? computeConstantValue() => null;
 }
 
+@Deprecated('Remove it when removing its uses')
+mixin WrapperElementImpl implements ElementImpl {
+  _ExistingElementImpl get base;
+
+  @override
+  AnalysisContext get context => base.context;
+
+  @override
+  Element get declaration => base.declaration;
+
+  @override
+  String get displayName => base.displayName;
+
+  @override
+  String? get documentationComment => base.documentationComment;
+
+  @override
+  Element? get enclosingElement => base.enclosingElement;
+
+  @override
+  bool get hasAlwaysThrows => base.hasAlwaysThrows;
+
+  @override
+  bool get hasDeprecated => base.hasDeprecated;
+
+  @override
+  bool get hasDoNotStore => base.hasDoNotStore;
+
+  @override
+  bool get hasFactory => base.hasFactory;
+
+  @override
+  bool get hasInternal => base.hasInternal;
+
+  @override
+  bool get hasIsTest => base.hasIsTest;
+
+  @override
+  bool get hasIsTestGroup => base.hasIsTestGroup;
+
+  @override
+  bool get hasJS => base.hasJS;
+
+  @override
+  bool get hasLiteral => base.hasLiteral;
+
+  @override
+  bool get hasMustCallSuper => base.hasMustCallSuper;
+
+  @override
+  bool get hasNonVirtual => base.hasNonVirtual;
+
+  @override
+  bool get hasOptionalTypeArgs => base.hasOptionalTypeArgs;
+
+  @override
+  bool get hasOverride => base.hasOverride;
+
+  @override
+  bool get hasProtected => base.hasProtected;
+
+  @override
+  bool get hasRequired => base.hasRequired;
+
+  @override
+  bool get hasSealed => base.hasSealed;
+
+  @override
+  bool get hasUseResult => base.hasUseResult;
+
+  @override
+  bool get hasVisibleForOverriding => base.hasVisibleForOverriding;
+
+  @override
+  bool get hasVisibleForTemplate => base.hasVisibleForTemplate;
+
+  @override
+  bool get hasVisibleForTesting => base.hasVisibleForTesting;
+
+  @override
+  int get id => base.id;
+
+  @override
+  bool get isPrivate => base.isPrivate;
+
+  @override
+  bool get isPublic => base.isPublic;
+
+  @override
+  bool get isSynthetic => base.isSynthetic;
+
+  @override
+  ElementKind get kind => base.kind;
+
+  @override
+  LibraryElementImpl get library => base.library;
+
+  @override
+  Source get librarySource => base.librarySource;
+
+  @override
+  ElementLocation get location => base.location;
+
+  @override
+  List<ElementAnnotation> get metadata => base.metadata;
+
+  @override
+  String? get name => base.name;
+
+  @override
+  int get nameLength => base.nameLength;
+
+  @override
+  int get nameOffset => base.nameOffset;
+
+  @override
+  Element get nonSynthetic => this;
+
+  @override
+  AnalysisSession? get session => base.session;
+
+  @override
+  Source get source => base.source;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other);
+  }
+
+  @override
+  String getDisplayString(
+      {required bool withNullability, bool multiline = false}) {
+    return base.getDisplayString(
+      withNullability: withNullability,
+      multiline: multiline,
+    );
+  }
+
+  @override
+  String getExtendedDisplayName(String? shortName) {
+    return base.getExtendedDisplayName(shortName);
+  }
+
+  @Deprecated('Use isAccessibleIn2() instead')
+  @override
+  bool isAccessibleIn(LibraryElement? library) {
+    return base.isAccessibleIn(library);
+  }
+
+  @override
+  bool isAccessibleIn2(LibraryElement library) {
+    return base.isAccessibleIn2(library);
+  }
+
+  @override
+  E thisOrAncestorMatching<E extends Element>(
+      bool Function(Element p1) predicate) {
+    return base.thisOrAncestorMatching(predicate) as E;
+  }
+
+  @override
+  E? thisOrAncestorOfType<E extends Element>() {
+    return base.thisOrAncestorOfType();
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    base.visitChildren(visitor);
+  }
+}
+
 abstract class _ExistingElementImpl extends ElementImpl with _HasLibraryMixin {
   _ExistingElementImpl(super.name, super.offset, {super.reference});
 }
@@ -6528,7 +6634,7 @@ mixin _HasLibraryMixin on ElementImpl {
 class _Sentinel {
   static final List<ConstructorElement> constructorElement =
       List.unmodifiable([]);
-  static final List<ExportElement> exportElement = List.unmodifiable([]);
+  static final List<ExportElement2> exportElement2 = List.unmodifiable([]);
   static final List<FieldElement> fieldElement = List.unmodifiable([]);
   static final List<AugmentationImportElement> augmentationImportElement =
       List.unmodifiable([]);

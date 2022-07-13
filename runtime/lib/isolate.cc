@@ -880,7 +880,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
   void FailedSpawn(const char* error, bool has_current_isolate = true) {
     ReportError(error != nullptr
                     ? error
-                    : "Unknown error occured during Isolate spawning.");
+                    : "Unknown error occurred during Isolate spawning.");
     // Destruction of [IsolateSpawnState] may cause destruction of [Message]
     // which make need to delete persistent handles (which requires a current
     // isolate group).

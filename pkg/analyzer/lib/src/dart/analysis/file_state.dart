@@ -1125,6 +1125,7 @@ class FileState {
     return UnlinkedExportDirective(
       combinators: _serializeCombinators(node.combinators),
       configurations: _serializeConfigurations(node.configurations),
+      exportKeywordOffset: node.exportKeyword.offset,
       uri: node.uri.stringValue,
     );
   }

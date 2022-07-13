@@ -233,7 +233,8 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->in(0).reg();
   ASSERT(result == EAX);
 
-  if (compiler->parsed_function().function().IsSuspendableFunction()) {
+  if (compiler->parsed_function().function().IsAsyncFunction() ||
+      compiler->parsed_function().function().IsAsyncGenerator()) {
     ASSERT(compiler->flow_graph().graph_entry()->NeedsFrame());
     const Code& stub = GetReturnStub(compiler);
     compiler->EmitJumpToStub(stub);
@@ -1525,7 +1526,8 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
     locs->set_in(1, (index_scale() == 1) ? Location::WritableRegister()
                                          : Location::RequiresRegister());
   }
-  if ((representation() == kUnboxedDouble) ||
+  if ((representation() == kUnboxedFloat) ||
+      (representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
       (representation() == kUnboxedInt32x4) ||
       (representation() == kUnboxedFloat64x2)) {
@@ -1562,7 +1564,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
 
-  if ((representation() == kUnboxedDouble) ||
+  if ((representation() == kUnboxedFloat) ||
+      (representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
       (representation() == kUnboxedInt32x4) ||
       (representation() == kUnboxedFloat64x2)) {

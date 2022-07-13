@@ -58,7 +58,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['element'] = node.declaredElement;
       properties['keyword'] = node.keyword;
     } else if (node is ExportDirective) {
-      properties['element'] = node.element;
+      properties['element'] = node.element2;
       properties['selectedSource'] = node.selectedSource;
       properties['uriSource'] = node.uriSource;
     } else if (node is FieldDeclaration) {

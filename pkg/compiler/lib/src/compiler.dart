@@ -698,7 +698,9 @@ class Compiler implements CompilerDiagnosticsFacade {
     DumpInfoStateData dumpInfoState;
     dumpInfoTask.reportSize(programSize);
     if (options.features.newDumpInfo.isEnabled) {
-      assert(untrimmedComponentForDumpInfo != null);
+      if (untrimmedComponentForDumpInfo == null) {
+        untrimmedComponentForDumpInfo = (await produceKernel()).component;
+      }
       dumpInfoState = await dumpInfoTask.dumpInfoNew(
           untrimmedComponentForDumpInfo,
           closedWorld,

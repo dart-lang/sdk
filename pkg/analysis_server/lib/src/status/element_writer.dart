@@ -82,9 +82,9 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['returnType'] = element.returnType;
       properties['type'] = element.type;
     }
-    if (element is ExportElement) {
+    if (element is ExportElement2) {
       properties['combinators'] = element.combinators;
-      properties['library'] = element.library;
+      properties['library'] = element.exportedLibrary;
     }
     if (element is FieldElement) {
       properties['isEnumConstant'] = element.isEnumConstant;
@@ -102,7 +102,7 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
     if (element is ImportElement2) {
       properties['combinators'] = element.combinators;
       properties['isDeferred'] = element.prefix is DeferredImportElementPrefix;
-      properties['library'] = element.library;
+      properties['library'] = element.importedLibrary;
     }
     if (element is LibraryElement) {
       properties['definingCompilationUnit'] = element.definingCompilationUnit;

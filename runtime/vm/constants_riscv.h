@@ -377,7 +377,8 @@ struct DoubleToIntegerStubABI {
   static constexpr Register kResultReg = A0;
 };
 
-// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub, YieldSyncStarStub).
+// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub,
+// SuspendSyncStarAtStartStub, SuspendSyncStarAtYieldStub).
 struct SuspendStubABI {
   static const Register kArgumentReg = A0;
   static const Register kTempReg = T0;
@@ -411,7 +412,7 @@ struct ResumeStubABI {
 };
 
 // ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub,
-// ReturnAsyncStarStub, ReturnSyncStarStub).
+// ReturnAsyncStarStub).
 struct ReturnStubABI {
   static const Register kSuspendStateReg = T1;
 };

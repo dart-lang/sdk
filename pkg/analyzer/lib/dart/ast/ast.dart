@@ -1703,8 +1703,13 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExportDirective implements NamespaceDirective {
+  @Deprecated('Use element2 instead')
   @override
   ExportElement? get element;
+
+  /// Return the element associated with this directive, or `null` if the AST
+  /// structure has not been resolved.
+  ExportElement2? get element2;
 
   /// The token representing the 'export' keyword.
   Token get exportKeyword;

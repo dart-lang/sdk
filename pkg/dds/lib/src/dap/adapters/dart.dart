@@ -1711,7 +1711,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
               ? _converter.convertToRelativePath(path)
               : uri.toString())
           : null;
-      // Because we split on newlines, all items exept the last one need to
+      // Because we split on newlines, all items except the last one need to
       // have their trailing newlines added back.
       final output = i == lines.length - 1 ? line : '$line\n';
       events.add(

@@ -138,8 +138,6 @@ class Thread;
     StubCode::ReturnAsyncNotFuture().ptr(), nullptr)                           \
   V(CodePtr, return_async_star_stub_, StubCode::ReturnAsyncStar().ptr(),       \
     nullptr)                                                                   \
-  V(CodePtr, return_sync_star_stub_, StubCode::ReturnSyncStar().ptr(),         \
-    nullptr)                                                                   \
   V(CodePtr, stack_overflow_shared_without_fpu_regs_stub_,                     \
     StubCode::StackOverflowSharedWithoutFPURegs().ptr(), nullptr)              \
   V(CodePtr, stack_overflow_shared_with_fpu_regs_stub_,                        \
@@ -186,8 +184,7 @@ class Thread;
   V(suspend_state_yield_async_star)                                            \
   V(suspend_state_return_async_star)                                           \
   V(suspend_state_init_sync_star)                                              \
-  V(suspend_state_yield_sync_star)                                             \
-  V(suspend_state_return_sync_star)                                            \
+  V(suspend_state_suspend_sync_star_at_start)                                  \
   V(suspend_state_handle_exception)
 
 // This assertion marks places which assume that boolean false immediate

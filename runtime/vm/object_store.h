@@ -165,12 +165,8 @@ class ObjectPointerVisitor;
   RW(Function, simple_instance_of_function)                                    \
   RW(Function, simple_instance_of_true_function)                               \
   RW(Function, simple_instance_of_false_function)                              \
-  RW(Function, async_star_move_next_helper)                                    \
   RW(Function, async_star_stream_controller_add)                               \
   RW(Function, async_star_stream_controller_add_stream)                        \
-  RW(Function, complete_on_async_return)                                       \
-  RW(Function, complete_with_no_future_on_async_return)                        \
-  RW(Function, complete_on_async_error)                                        \
   RW(Function, suspend_state_init_async)                                       \
   RW(Function, suspend_state_await)                                            \
   RW(Function, suspend_state_return_async)                                     \
@@ -179,13 +175,14 @@ class ObjectPointerVisitor;
   RW(Function, suspend_state_yield_async_star)                                 \
   RW(Function, suspend_state_return_async_star)                                \
   RW(Function, suspend_state_init_sync_star)                                   \
-  RW(Function, suspend_state_yield_sync_star)                                  \
-  RW(Function, suspend_state_return_sync_star)                                 \
+  RW(Function, suspend_state_suspend_sync_star_at_start)                       \
   RW(Function, suspend_state_handle_exception)                                 \
   RW(Class, async_star_stream_controller)                                      \
   RW(Class, stream_class)                                                      \
+  RW(Class, sync_star_iterator_class)                                          \
   RW(Field, async_star_stream_controller_async_star_body)                      \
   RW(Field, sync_star_iterator_current)                                        \
+  RW(Field, sync_star_iterator_state)                                          \
   RW(Field, sync_star_iterator_yield_star_iterable)                            \
   ARW_RELAXED(Smi, future_timeout_future_index)                                \
   ARW_RELAXED(Smi, future_wait_future_index)                                   \
@@ -267,8 +264,8 @@ class ObjectPointerVisitor;
   RW(Code, yield_async_star_stub)                                              \
   RW(Code, return_async_star_stub)                                             \
   RW(Code, init_sync_star_stub)                                                \
-  RW(Code, yield_sync_star_stub)                                               \
-  RW(Code, return_sync_star_stub)                                              \
+  RW(Code, suspend_sync_star_at_start_stub)                                    \
+  RW(Code, suspend_sync_star_at_yield_stub)                                    \
   RW(Array, dispatch_table_code_entries)                                       \
   RW(GrowableObjectArray, instructions_tables)                                 \
   RW(Array, obfuscation_map)                                                   \
@@ -355,8 +352,8 @@ class ObjectPointerVisitor;
   DO(yield_async_star_stub, YieldAsyncStar)                                    \
   DO(return_async_star_stub, ReturnAsyncStar)                                  \
   DO(init_sync_star_stub, InitSyncStar)                                        \
-  DO(yield_sync_star_stub, YieldSyncStar)                                      \
-  DO(return_sync_star_stub, ReturnSyncStar)                                    \
+  DO(suspend_sync_star_at_start_stub, SuspendSyncStarAtStart)                  \
+  DO(suspend_sync_star_at_yield_stub, SuspendSyncStarAtYield)                  \
   DO(instance_of_stub, InstanceOf)
 
 #define ISOLATE_OBJECT_STORE_FIELD_LIST(R_, RW)                                \

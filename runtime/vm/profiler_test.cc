@@ -534,7 +534,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
     AllocationFilter filter(isolate->main_port(), class_a.id(),
                             Dart_TimelineGetMicros(), 16000);
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
-    // We should have no allocation samples because none occured within
+    // We should have no allocation samples because none occurred within
     // the specified time range.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -631,7 +631,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
     Profile profile;
     NativeAllocationSampleFilter filter(Dart_TimelineGetMicros(), 16000);
     profile.Build(thread, &filter, Profiler::sample_block_buffer());
-    // We should have no allocation samples because none occured within
+    // We should have no allocation samples because none occurred within
     // the specified time range.
     EXPECT_EQ(0, profile.sample_count());
   }

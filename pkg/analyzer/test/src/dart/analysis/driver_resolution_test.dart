@@ -7755,7 +7755,7 @@ c.A a2;
     final cImport = unit.declaredElement!.library.imports2[1];
 
     LibraryElement bLibrary = bImport.importedLibrary!;
-    LibraryElement aLibrary = bLibrary.exports[0].exportedLibrary!;
+    LibraryElement aLibrary = bLibrary.exports2[0].exportedLibrary!;
     ClassElement aClass = aLibrary.getType('A')!;
 
     {

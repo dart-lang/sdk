@@ -46,19 +46,11 @@ class FunctionInlineCache {
   static const int _canInlineInLoopMayInlineOutside = 3;
   static const int _canInline = 4;
 
+  final AnnotationsData _annotationsData;
+
   final Map<FunctionEntity, int> _cachedDecisions = {};
 
-  final Set<FunctionEntity> _noInlineFunctions = {};
-  final Set<FunctionEntity> _tryInlineFunctions = {};
-
-  FunctionInlineCache(AnnotationsData annotationsData) {
-    annotationsData.forEachNoInline((FunctionEntity function) {
-      markAsNoInline(function);
-    });
-    annotationsData.forEachTryInline((FunctionEntity function) {
-      markAsTryInline(function);
-    });
-  }
+  FunctionInlineCache(this._annotationsData) {}
 
   /// Checks that [method] is the canonical representative for this method.
   ///
@@ -237,24 +229,14 @@ class FunctionInlineCache {
     }
   }
 
-  void markAsNoInline(FunctionEntity element) {
-    assert(checkFunction(element), failedAt(element));
-    _noInlineFunctions.add(element);
-  }
-
   bool markedAsNoInline(FunctionEntity element) {
     assert(checkFunction(element), failedAt(element));
-    return _noInlineFunctions.contains(element);
-  }
-
-  void markAsTryInline(FunctionEntity element) {
-    assert(checkFunction(element), failedAt(element));
-    _tryInlineFunctions.add(element);
+    return _annotationsData.hasNoInline(element);
   }
 
   bool markedAsTryInline(FunctionEntity element) {
     assert(checkFunction(element), failedAt(element));
-    return _tryInlineFunctions.contains(element);
+    return _annotationsData.hasTryInline(element);
   }
 }
 

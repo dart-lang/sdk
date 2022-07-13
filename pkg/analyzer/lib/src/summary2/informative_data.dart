@@ -464,11 +464,11 @@ class InformativeDataApplier {
       },
     );
 
-    forCorrespondingPairs<ExportElement, _InfoExport>(
+    forCorrespondingPairs<ExportElement2, _InfoExport>(
       element.exports_unresolved,
       info.exports,
       (element, info) {
-        element as ExportElementImpl;
+        element as ExportElement2Impl;
         element.nameOffset = info.nameOffset;
         _applyToCombinators(element.combinators, info.combinators);
       },
@@ -488,7 +488,7 @@ class InformativeDataApplier {
       (applier) {
         applier.applyToMetadata(element);
         applier.applyToImports(element.imports2);
-        applier.applyToDirectives(element.exports);
+        applier.applyToExports(element.exports2);
         applier.applyToPartDirectives(element.parts2);
       },
     );
@@ -1671,15 +1671,15 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
-  void applyToDirectives(List<UriReferencedElement> elements) {
-    for (var element in elements) {
-      applyToMetadata(element);
-    }
-  }
-
   void applyToEnumConstants(List<FieldElement> constants) {
     for (var constant in constants) {
       applyToMetadata(constant);
+    }
+  }
+
+  void applyToExports(List<ExportElement2> elements) {
+    for (var element in elements) {
+      applyToMetadata(element);
     }
   }
 
