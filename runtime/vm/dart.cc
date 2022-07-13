@@ -307,6 +307,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
 #endif
 
   OSThread::Init();
+  Random::Init();
   Zone::Init();
 #if defined(SUPPORT_TIMELINE)
   Timeline::Init();
@@ -779,6 +780,7 @@ char* Dart::Cleanup() {
   Timeline::Cleanup();
 #endif
   Zone::Cleanup();
+  Random::Cleanup();
   // Delete the current thread's TLS and set it's TLS to null.
   // If it is the last thread then the destructor would call
   // OSThread::Cleanup.

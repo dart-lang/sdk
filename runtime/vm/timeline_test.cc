@@ -318,8 +318,8 @@ TEST_CASE(TimelineEventCallbackRecorderBasic) {
 
   event = stream.StartEvent();
   EXPECT_EQ(0, override.recorder()->CountFor(TimelineEvent::kAsyncBegin));
-  int64_t async_id = override.recorder()->GetNextAsyncId();
-  EXPECT(async_id >= 0);
+  int64_t async_id = thread->GetNextTaskId();
+  EXPECT(async_id != 0);
   event->AsyncBegin("asyncBeginCabbage", async_id);
   EXPECT_EQ(0, override.recorder()->CountFor(TimelineEvent::kAsyncBegin));
   event->Complete();

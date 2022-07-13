@@ -334,10 +334,12 @@ class TimelineEvent {
 
   void Begin(
       const char* label,
+      int64_t id,
       int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline(),
       int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
 
   void End(const char* label,
+           int64_t id,
            int64_t micros = OS::GetCurrentMonotonicMicrosForTimeline(),
            int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
 
@@ -390,8 +392,11 @@ class TimelineEvent {
   int64_t ThreadCPUTimeDuration() const;
   int64_t ThreadCPUTimeOrigin() const;
 
-  int64_t TimeOrigin() const;
-  int64_t AsyncId() const;
+  int64_t TimeOrigin() const { return timestamp0_; }
+  int64_t Id() const {
+    ASSERT(event_type() != kDuration);
+    return timestamp1_;
+  }
   int64_t TimeDuration() const;
   int64_t TimeEnd() const {
     ASSERT(IsFinishedDuration());
@@ -598,6 +603,8 @@ class TimelineEventScope : public StackResource {
 
   const char* label() const { return label_; }
 
+  int64_t id() const { return id_; }
+
   TimelineEventArgument* arguments() const { return arguments_.buffer(); }
 
   intptr_t arguments_length() const { return arguments_.length(); }
@@ -613,6 +620,7 @@ class TimelineEventScope : public StackResource {
 
   TimelineStream* stream_;
   const char* label_;
+  int64_t id_;
   TimelineEventArguments arguments_;
   bool enabled_;
 
@@ -783,7 +791,6 @@ class TimelineEventRecorder : public MallocAllocated {
   virtual void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) = 0;
 #endif
   virtual const char* name() const = 0;
-  int64_t GetNextAsyncId();
 
   void FinishBlock(TimelineEventBlock* block);
 
@@ -814,7 +821,6 @@ class TimelineEventRecorder : public MallocAllocated {
   int64_t TimeExtentMicros() const;
 
   Mutex lock_;
-  RelaxedAtomic<uintptr_t> async_id_;
   int64_t time_low_micros_;
   int64_t time_high_micros_;
 
