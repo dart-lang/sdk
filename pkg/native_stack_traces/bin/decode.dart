@@ -18,11 +18,10 @@ ArgParser _createBaseDebugParser(ArgParser parser) => parser
   ..addFlag('verbose',
       abbr: 'v',
       negatable: false,
-      help: 'Translate all frames, not just user or library code frames');
-
-final ArgParser _dumpParser = ArgParser(allowTrailingOptions: true)
-  ..addOption('output',
-      abbr: 'o', help: 'Filename for generated output', valueHelp: 'FILE');
+      help: 'Translate all frames, not just user or library code frames')
+  ..addFlag('dump_debug_file_contents',
+      negatable: false,
+      help: 'Dump all the parsed information from the debugging file');
 
 final ArgParser _translateParser =
     _createBaseDebugParser(ArgParser(allowTrailingOptions: true))
@@ -49,7 +48,6 @@ final ArgParser _findParser =
 final ArgParser _helpParser = ArgParser(allowTrailingOptions: true);
 
 final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
-  ..addCommand('dump', _dumpParser)
   ..addCommand('help', _helpParser)
   ..addCommand('find', _findParser)
   ..addCommand('translate', _translateParser)
@@ -125,22 +123,12 @@ ${_argParser.usage}
 Options specific to the find command:
 ${_findParser.usage}''';
 
-final String _dumpUsage = '''
-Usage: decode dump [options] <snapshot>
-
-The dump command dumps the DWARF information in the given snapshot to either
-standard output or a given output file.
-
-Options specific to the dump command:
-${_dumpParser.usage}''';
-
 final _usages = <String?, String>{
   null: _mainUsage,
   '': _mainUsage,
   'help': _helpUsage,
   'translate': _translateUsage,
   'find': _findUsage,
-  'dump': _dumpUsage,
 };
 
 const int _badUsageExitCode = 1;
@@ -174,16 +162,15 @@ Dwarf? _loadFromFile(String? original, Function(String) usageError) {
     return null;
   }
   final filename = path.canonicalize(path.normalize(original));
-  try {
-    final dwarf = Dwarf.fromFile(filename);
-    if (dwarf == null) {
-      usageError('file "$original" does not contain debugging information');
-    }
-    return dwarf;
-  } on io.FileSystemException {
+  if (!io.File(filename).existsSync()) {
     usageError('debug file "$original" does not exist');
     return null;
   }
+  final dwarf = Dwarf.fromFile(filename);
+  if (dwarf == null) {
+    usageError('file "$original" does not contain debugging information');
+  }
+  return dwarf;
 }
 
 void find(ArgResults options) {
@@ -211,6 +198,10 @@ void find(ArgResults options) {
 
   final dwarf = _loadFromFile(options['debug'], usageError);
   if (dwarf == null) return;
+
+  if (options['dump_debug_file_contents']) {
+    print(dwarf.dumpFileInfo());
+  }
 
   if ((options['vm_start'] == null) != (options['isolate_start'] == null)) {
     return usageError('need both VM start and isolate start');
@@ -275,6 +266,9 @@ Future<void> translate(ArgResults options) async {
   if (dwarf == null) {
     return;
   }
+  if (options['dump_debug_file_contents']) {
+    print(dwarf.dumpFileInfo());
+  }
 
   final verbose = options['verbose'];
   final output = options['output'] != null
@@ -293,27 +287,6 @@ Future<void> translate(ArgResults options) async {
       .transform(utf8.encoder);
 
   await output.addStream(convertedStream);
-  await output.flush();
-  await output.close();
-}
-
-Future<void> dump(ArgResults options) async {
-  void usageError(String message) => errorWithUsage(message, command: 'dump');
-
-  if (options.rest.isEmpty) {
-    return usageError('must provide a path to an ELF file or dSYM directory '
-        'that contains DWARF information');
-  }
-  final dwarf = _loadFromFile(options.rest.first, usageError);
-  if (dwarf == null) {
-    return usageError("'${options.rest.first}' contains no DWARF information");
-  }
-
-  final output = options['output'] != null
-      ? io.File(path.canonicalize(path.normalize(options['output'])))
-          .openWrite()
-      : io.stdout;
-  output.write(dwarf.dumpFileInfo());
   await output.flush();
   await output.close();
 }
@@ -337,7 +310,5 @@ Future<void> main(List<String> arguments) async {
       return find(options.command!);
     case 'translate':
       return await translate(options.command!);
-    case 'dump':
-      return await dump(options.command!);
   }
 }

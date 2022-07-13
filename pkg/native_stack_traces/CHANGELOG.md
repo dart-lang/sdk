@@ -1,9 +1,3 @@
-## 0.5.0
-
-- Add support for parsing DWARF in Mach-O files and dSYM directories.
-- Add `dump` command to replace the old `--dump_debug_file_contents`
-  flag to `find` and `translate`.
-
 ## 0.4.6
 
 - Upgrade to `package:lints` 2.0.
