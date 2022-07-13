@@ -13,6 +13,28 @@ import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
+/// Returns the container for [element] that should be used in Call Hierarchy.
+///
+/// Returns `null` if none of [elements] are valid containers.
+///
+/// This is used to construct (and group calls by) a [CallHierarchyItem] that
+/// contains calls and also locate their containers for additional labelling.
+Element? _getContainer(Element element) {
+  const containerKinds = {
+    ElementKind.CLASS,
+    ElementKind.COMPILATION_UNIT,
+    ElementKind.CONSTRUCTOR,
+    ElementKind.ENUM,
+    ElementKind.EXTENSION,
+    ElementKind.FUNCTION,
+    ElementKind.GETTER,
+    ElementKind.METHOD,
+    ElementKind.SETTER,
+  };
+  return element.thisOrAncestorMatching(
+      (ancestor) => containerKinds.contains(ancestor.kind));
+}
+
 /// A [CallHierarchyItem] and a set of ranges that call to or from it.
 class CallHierarchyCalls {
   final CallHierarchyItem item;
@@ -38,8 +60,14 @@ class CallHierarchyItem {
   /// This may be used to select an icon to show in the Call Hierarchy tree.
   final CallHierarchyKind kind;
 
-  // The user-visible name for this item in the Call Hierarchy.
+  /// The user-visible name for this item in the Call Hierarchy.
   final String displayName;
+
+  /// The user-visible name for the container of this item in the Call
+  /// Hierarchy.
+  ///
+  /// `null` if this item does not have a named container.
+  late final String? containerName;
 
   /// The file that contains the declaration of this item.
   final String file;
@@ -51,17 +79,16 @@ class CallHierarchyItem {
   final SourceRange codeRange;
 
   CallHierarchyItem.forElement(Element element)
-      : displayName = element is CompilationUnitElement
-            ? element.source.shortName
-            : element is PropertyAccessorElement
-                ? element.isGetter
-                    ? 'get ${element.displayName}'
-                    : 'set ${element.displayName}'
-                : element.displayName,
+      : displayName = _getDisplayName(element),
         nameRange = _nameRangeForElement(element),
         codeRange = _codeRangeForElement(element),
         file = element.source!.fullName,
-        kind = CallHierarchyKind.forElement(element);
+        kind = CallHierarchyKind.forElement(element) {
+    final enclosingElement = element.enclosingElement;
+    final container =
+        enclosingElement != null ? _getContainer(enclosingElement) : null;
+    containerName = container != null ? _getDisplayName(container) : null;
+  }
 
   /// Returns the [SourceRange] of the code for [element].
   static SourceRange _codeRangeForElement(Element element) {
@@ -71,6 +98,16 @@ class CallHierarchyItem {
 
     // Non-synthetic elements should always have code locations.
     return SourceRange(elementImpl.codeOffset!, elementImpl.codeLength!);
+  }
+
+  static String _getDisplayName(Element element) {
+    return element is CompilationUnitElement
+        ? element.source.shortName
+        : element is PropertyAccessorElement
+            ? element.isGetter
+                ? 'get ${element.displayName}'
+                : 'set ${element.displayName}'
+            : element.displayName;
   }
 
   /// Returns the [SourceRange] of the name for [element].
@@ -281,28 +318,6 @@ class DartCallHierarchyComputer {
     }
 
     return node;
-  }
-
-  /// Returns the container for [element] that should be used in Call Hierarchy.
-  ///
-  /// Returns `null` if none of [elements] are valid containers.
-  ///
-  /// This is used to construct (and group calls by) a [CallHierarchyItem] that
-  /// contains calls.
-  Element? _getContainer(Element element) {
-    const containerKinds = {
-      ElementKind.CLASS,
-      ElementKind.COMPILATION_UNIT,
-      ElementKind.CONSTRUCTOR,
-      ElementKind.ENUM,
-      ElementKind.EXTENSION,
-      ElementKind.FUNCTION,
-      ElementKind.GETTER,
-      ElementKind.METHOD,
-      ElementKind.SETTER,
-    };
-    return element.thisOrAncestorMatching(
-        (ancestor) => containerKinds.contains(ancestor.kind));
   }
 
   /// Return the [Element] of the given [node], or `null` if [node] is `null`,
