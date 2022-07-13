@@ -222,6 +222,13 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       // read positional_parameters and named_parameters.
       AddPositionalAndNamedParameters(pos, type_check_mode, attrs);
 
+      if (function.IsSuspendableFunction()) {
+        // Read return type which is used to create a result of
+        // async/async*/sync* function. It may reference receiver or type
+        // arguments of the enclosing function which need to be captured.
+        VisitDartType();
+      }
+
       // We generate a synthetic body for implicit closure functions - which
       // will forward the call to the real function.
       //     -> see BuildGraphOfImplicitClosureFunction
@@ -1485,6 +1492,13 @@ void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
   ProcedureAttributesMetadata default_attrs;
   AddPositionalAndNamedParameters(0, kTypeCheckForNonDynamicallyInvokedMethod,
                                   default_attrs);
+
+  if (function_node_helper.async_marker_ != FunctionNodeHelper::kSync) {
+    // Read return type which is used to create a result of async/async*/sync*
+    // function. It may reference receiver or type arguments of the enclosing
+    // function which need to be captured.
+    VisitDartType();
+  }
 
   // "Peek" is now done.
   helper_.SetOffset(offset);
