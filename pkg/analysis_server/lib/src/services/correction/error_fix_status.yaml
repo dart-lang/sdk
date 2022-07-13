@@ -89,10 +89,7 @@ AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES:
 AnalysisOptionsWarningCode.UNSUPPORTED_VALUE:
   status: needsEvaluation
 CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER:
-  status: needsFix
-  notes: |-
-    1. Remove the initializer.
-    2. Remove the `abstract` keyword.
+  status: hasFix
 CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER:
   status: needsFix
   notes: |-

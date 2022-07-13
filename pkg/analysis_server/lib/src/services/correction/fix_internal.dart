@@ -385,7 +385,7 @@ class FixProcessor extends BaseProcessor {
       ConvertForEachToForLoop.new,
     ],
     LintNames.avoid_init_to_null: [
-      RemoveInitializer.new,
+      RemoveInitializer.bulkFixable,
     ],
     LintNames.avoid_null_checks_in_equality_operators: [
       RemoveComparison.new,
@@ -862,6 +862,9 @@ class FixProcessor extends BaseProcessor {
   /// those diagnostics. The generators used for lint rules are in the
   /// [lintProducerMap].
   static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
+    CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER: [
+      RemoveInitializer.new,
+    ],
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL: [
       MakeFieldNotFinal.new,
       AddLate.new,

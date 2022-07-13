@@ -194,6 +194,14 @@ class RangeFactory_NodeInListTest extends AbstractSingleUnitTest {
     return invocation.argumentList.arguments;
   }
 
+  /// Assuming that the test code starts with a class whose default constructor,
+  /// return the list of initializers in that constructor.
+  NodeList<ConstructorInitializer> get _constructorInitializers {
+    var c = testUnit.declarations[0] as ClassDeclaration;
+    var constructor = c.getConstructor(null) as ConstructorDeclaration;
+    return constructor.initializers;
+  }
+
   Future<void> test_argumentList_first_named() async {
     await resolveTestCode('''
 void f() {
@@ -302,6 +310,28 @@ void g(int a) {}
 ''');
     var list = _argumentList;
     expect(range.nodeInList(list, list[0]), SourceRange(15, 2));
+  }
+
+  Future<void> test_constructorDeclaration_first() async {
+    await resolveTestCode('''
+class A {
+  int x;
+  A() : x = 0;
+}
+''');
+    var list = _constructorInitializers;
+    expect(range.nodeInList(list, list[0]), SourceRange(24, 8));
+  }
+
+  Future<void> test_constructorDeclaration_last() async {
+    await resolveTestCode('''
+class A {
+  int x, y;
+  A() : x = 0, y = 1;
+}
+''');
+    var list = _constructorInitializers;
+    expect(range.nodeInList(list, list[1]), SourceRange(35, 7));
   }
 }
 
