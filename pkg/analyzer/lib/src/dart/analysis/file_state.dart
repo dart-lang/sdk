@@ -316,7 +316,9 @@ class ExternalLibrary {
 
 abstract class FileContent {
   String get content;
+
   String get contentHash;
+
   bool get exists;
 }
 
@@ -1818,8 +1820,8 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
     file._fsState._libraryNameToFiles.add(this);
   }
 
-  /// The list of files files that this library consists of, i.e. this library
-  /// file itself, its [parts], and augmentations.
+  /// The list of files that this library consists of, i.e. this library file
+  /// itself, its [parts], and augmentations.
   List<FileState> get files {
     final files = [
       file,
