@@ -1,5 +1,9 @@
 # Changelog
 
+## 9.1.0
+- Remove `required` keyword from most of the named parameters in the
+  constructors of the Dart API objects.
+
 ## 9.0.0
 - Update to version `3.58` of the spec.
 - Added optional `local` parameter to `lookupResolvedPackageUris` RPC.

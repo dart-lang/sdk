@@ -1829,13 +1829,10 @@ class TypeField extends Member {
   }
 
   void generateNamedParameter(DartGenerator gen, {bool fromParent = false}) {
-    if (!optional) {
-      gen.write('required ');
-    }
     if (fromParent) {
       String? typeName =
           api.isEnumName(type.name) ? '/*${type.name}*/ String' : type.name;
-      gen.writeStatement('$typeName ${generatableName},');
+      gen.writeStatement('required $typeName ${generatableName},');
     } else {
       gen.writeStatement('this.${generatableName},');
     }
