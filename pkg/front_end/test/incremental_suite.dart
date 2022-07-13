@@ -99,6 +99,7 @@ import 'binary_md_dill_reader.dart' show DillComparer;
 
 import "incremental_utils.dart" as util;
 
+import 'test_utils.dart';
 import 'testing_utils.dart' show checkEnvironment;
 
 import 'utils/io_utils.dart' show computeRepoDir;
@@ -1844,25 +1845,8 @@ String componentToStringSdkFiltered(Component component) {
   StringBuffer s = new StringBuffer();
   s.write(componentToString(c));
 
-  bool printedConstantCoverageHeader = false;
-  for (Source source in component.uriToSource.values) {
-    if (source.importUri?.scheme == "dart") continue;
-
-    if (source.constantCoverageConstructors != null &&
-        source.constantCoverageConstructors!.isNotEmpty) {
-      if (!printedConstantCoverageHeader) {
-        s.writeln("");
-        s.writeln("");
-        s.writeln("Constructor coverage from constants:");
-        printedConstantCoverageHeader = true;
-      }
-      s.writeln("${source.fileUri}:");
-      for (Reference reference in source.constantCoverageConstructors!) {
-        s.writeln("- ${reference.node} (from ${reference.node?.location})");
-      }
-      s.writeln("");
-    }
-  }
+  addConstantCoverageToExpectation(component, s,
+      skipImportUri: (Uri? importUri) => importUri?.scheme == "dart");
 
   if (dartUris.isNotEmpty) {
     s.writeln("");

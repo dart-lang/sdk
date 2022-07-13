@@ -58,4 +58,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///magic_const.dart:
 - Constant. (from org-dartlang-testcase:///magic_const.dart:10:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

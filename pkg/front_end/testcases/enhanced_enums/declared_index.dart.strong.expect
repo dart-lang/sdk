@@ -307,8 +307,8 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///declared_index.dart:
 - E1. (from org-dartlang-testcase:///declared_index.dart:5:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - E2. (from org-dartlang-testcase:///declared_index.dart:11:6)
 - E3. (from org-dartlang-testcase:///declared_index.dart:17:6)
 - E4. (from org-dartlang-testcase:///declared_index.dart:23:6)

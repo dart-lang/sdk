@@ -96,7 +96,7 @@ Extra constant evaluation: evaluated: 7, effectively constant: 1
 Constructor coverage from constants:
 org-dartlang-testcase:///const_functions_const_ctor_error.dart:
 - Simple. (from org-dartlang-testcase:///const_functions_const_ctor_error.dart:16:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - Simple2. (from org-dartlang-testcase:///const_functions_const_ctor_error.dart:25:9)
 - B. (from org-dartlang-testcase:///const_functions_const_ctor_error.dart:38:9)
 - A. (from org-dartlang-testcase:///const_functions_const_ctor_error.dart:32:9)

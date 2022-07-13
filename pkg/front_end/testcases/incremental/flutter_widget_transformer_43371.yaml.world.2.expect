@@ -77,5 +77,5 @@ org-dartlang-test:///main.dart:
 - StatelessWidget. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:10:9)
 - Widget. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:7:9)
 - Bar. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:2:9)
-- Object. (from org-dartlang-sdk:///lib/core/object.dart:-1:-1)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
 

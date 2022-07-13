@@ -44,4 +44,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///multiple_imports.dart:
 - Const. (from org-dartlang-testcase:///multiple_imports_lib.dart:18:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
