@@ -135,6 +135,13 @@ class RangeFactory {
       if (nextToken?.type == TokenType.COMMA) {
         return startEnd(item, nextToken!);
       }
+      var owner = list.owner;
+      if (owner is ConstructorDeclaration) {
+        var previousToSeparator = owner.separator?.previous;
+        if (previousToSeparator != null) {
+          return endStart(previousToSeparator, owner.body);
+        }
+      }
       return node(item);
     }
     final index = list.indexOf(item);

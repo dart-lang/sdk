@@ -63,10 +63,10 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///issue46518.dart:
 - OT. (from org-dartlang-testcase:///issue46518_lib.dart:10:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - CheckIdentical. (from org-dartlang-testcase:///issue46518.dart:11:9)
 
 org-dartlang-testcase:///issue46518_lib.dart:
 - OT. (from org-dartlang-testcase:///issue46518_lib.dart:10:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - CheckIdentical. (from org-dartlang-testcase:///issue46518.dart:11:9)

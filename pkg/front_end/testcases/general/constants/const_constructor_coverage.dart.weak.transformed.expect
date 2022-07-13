@@ -102,7 +102,7 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///const_constructor_coverage.dart:
 - Foo. (from org-dartlang-testcase:///const_constructor_coverage_lib1.dart:9:15)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - Foo.named1 (from org-dartlang-testcase:///const_constructor_coverage_lib1.dart:10:15)
 - Foo.named2 (from org-dartlang-testcase:///const_constructor_coverage_lib1.dart:11:15)
 - Foo.named3 (from org-dartlang-testcase:///const_constructor_coverage_lib1.dart:12:15)
@@ -110,7 +110,7 @@ org-dartlang-testcase:///const_constructor_coverage.dart:
 org-dartlang-testcase:///const_constructor_coverage_lib1.dart:
 - Bar. (from org-dartlang-testcase:///const_constructor_coverage_lib1.dart:17:15)
 - Baz. (from org-dartlang-testcase:///const_constructor_coverage_lib2.dart:9:15)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - Bar.named1 (from org-dartlang-testcase:///const_constructor_coverage_lib1.dart:18:15)
 - Baz.named1 (from org-dartlang-testcase:///const_constructor_coverage_lib2.dart:10:15)
 - Baz.named5 (from org-dartlang-testcase:///const_constructor_coverage_lib2.dart:14:15)
@@ -119,7 +119,7 @@ org-dartlang-testcase:///const_constructor_coverage_lib1.dart:
 
 org-dartlang-testcase:///const_constructor_coverage_lib2.dart:
 - Bar.named3 (from org-dartlang-testcase:///const_constructor_coverage_lib1.dart:20:15)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - Baz.named4 (from org-dartlang-testcase:///const_constructor_coverage_lib2.dart:13:15)
 - Foo.named2 (from org-dartlang-testcase:///const_constructor_coverage_lib1.dart:11:15)
 - Bar.named2 (from org-dartlang-testcase:///const_constructor_coverage_lib1.dart:19:15)

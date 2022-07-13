@@ -3316,8 +3316,8 @@ Constructor coverage from constants:
 org-dartlang-testcase:///class_header.dart:
 - E. (from org-dartlang-testcase:///class_header.dart:61:6)
 - _E&_Enum&C. (from org-dartlang-testcase:///class_header.dart:61:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - E1. (from org-dartlang-testcase:///class_header.dart:62:6)
 - E2. (from org-dartlang-testcase:///class_header.dart:63:6)
 - E3. (from org-dartlang-testcase:///class_header.dart:64:6)

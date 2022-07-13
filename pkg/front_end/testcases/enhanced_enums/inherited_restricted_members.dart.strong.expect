@@ -326,8 +326,8 @@ Constructor coverage from constants:
 org-dartlang-testcase:///inherited_restricted_members.dart:
 - E1. (from org-dartlang-testcase:///inherited_restricted_members.dart:9:6)
 - _E1&_Enum&A1. (from org-dartlang-testcase:///inherited_restricted_members.dart:9:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - E2. (from org-dartlang-testcase:///inherited_restricted_members.dart:17:6)
 - _E2&_Enum&A2. (from org-dartlang-testcase:///inherited_restricted_members.dart:17:6)
 - E3. (from org-dartlang-testcase:///inherited_restricted_members.dart:25:6)
