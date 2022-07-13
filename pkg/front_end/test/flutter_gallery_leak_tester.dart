@@ -192,6 +192,8 @@ Future<void> main(List<String> args) async {
   ];
   if (alternativeInvalidation) {
     processArgs.add("--enable-experiment=alternative-invalidation-strategy");
+  } else {
+    processArgs.add("--enable-experiment=no-alternative-invalidation-strategy");
   }
 
   await heapHelper.start(processArgs,
