@@ -394,7 +394,7 @@ class ScoreCard {
       'https://raw.githubusercontent.com/dart-lang/lints/main/lib/core.yaml');
 
   static Future<List<String>> _readFlutterLints() async => _fetchLints(
-      'https://raw.githubusercontent.com/flutter/packages/master/packages/flutter_lints/lib/flutter.yaml');
+      'https://raw.githubusercontent.com/flutter/packages/main/packages/flutter_lints/lib/flutter.yaml');
 
   static List<String> _readLints(String contents) {
     var lintConfigs = processAnalysisOptionsFile(contents);

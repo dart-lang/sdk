@@ -57,11 +57,11 @@ while others may be marked *EXPERIMENTAL* or *PROPOSED* to indicate that they ar
 
 ## Mechanics
 
-Lints live in the [lib/src/rules](https://github.com/dart-lang/linter/tree/master/lib/src/rules) directory. 
-Corresponding tests live in [test_data/rules](https://github.com/dart-lang/linter/tree/master/test_data/rules). 
+Lints live in the [lib/src/rules](https://github.com/dart-lang/linter/tree/main/lib/src/rules) directory. 
+Corresponding tests live in [test_data/rules](https://github.com/dart-lang/linter/tree/main/test_data/rules). 
 
-Rule stubs can be generated with the [rule.dart](https://github.com/dart-lang/linter/blob/master/tool/rule.dart) 
-helper script and documentation gets generated with [doc.dart](https://github.com/dart-lang/linter/blob/master/tool/doc.dart). 
+Rule stubs can be generated with the [rule.dart](https://github.com/dart-lang/linter/blob/main/tool/rule.dart) 
+helper script and documentation gets generated with [doc.dart](https://github.com/dart-lang/linter/blob/main/tool/doc.dart). 
 Helper scripts can be invoked via `dart` or grinder (`pub run grinder docs --dir=doc_location` and `pub run grinder rule --name=my_new_rule` respectively).  Using grinder, for example
 
     $ pub run grinder rule --name=my_new_lint
@@ -70,7 +70,7 @@ generates lint and test stubs in `lib/src/rules` and `test_data/rules`.
 
 ### Analyzer APIs
 
-The linter has a close relationship with the `analyzer` package and at times reaches into non-public APIs.  For the most part, we have isolated these references in an [analyzer.dart utility library](https://github.com/dart-lang/linter/blob/master/lib/src/analyzer.dart).  *Whereever possible please use this library to access analyzer internals.*  
+The linter has a close relationship with the `analyzer` package and at times reaches into non-public APIs.  For the most part, we have isolated these references in an [analyzer.dart utility library](https://github.com/dart-lang/linter/blob/main/lib/src/analyzer.dart).  *Whereever possible please use this library to access analyzer internals.*  
 
   * If `analyzer.dart` is missing something please consider opening an issue where we can discuss how best to add it. 
   * If you find yourself tempted to make references to analyzer [implementation classes](https://dart-lang.github.io/linter/lints/implementation_imports.html) also consider opening an issue so that we can see how best to manage the new dependency.

@@ -72,7 +72,7 @@ Many lints are included in various predefined rulesets:
 
 * [core](https://github.com/dart-lang/lints) for official "core" Dart team lint rules.
 * [recommended](https://github.com/dart-lang/lints) for additional lint rules "recommended" by the Dart team.
-* [flutter](https://github.com/flutter/packages/blob/master/packages/flutter_lints/lib/flutter.yaml) for rules recommended for Flutter projects (`flutter create` enables these by default).
+* [flutter](https://github.com/flutter/packages/blob/main/packages/flutter_lints/lib/flutter.yaml) for rules recommended for Flutter projects (`flutter create` enables these by default).
 
 Rules included in these rulesets are badged in the documentation below.
 
@@ -122,7 +122,7 @@ String describeMaturity(LintRule r) =>
 
 Future<void> fetchBadgeInfo() async {
   var core = await fetchConfig(
-      'https://raw.githubusercontent.com/dart-lang/lints/master/lib/core.yaml');
+      'https://raw.githubusercontent.com/dart-lang/lints/main/lib/core.yaml');
   if (core != null) {
     for (var ruleConfig in core.ruleConfigs) {
       coreRules.add(ruleConfig.name);
@@ -130,7 +130,7 @@ Future<void> fetchBadgeInfo() async {
   }
 
   var recommended = await fetchConfig(
-      'https://raw.githubusercontent.com/dart-lang/lints/master/lib/recommended.yaml');
+      'https://raw.githubusercontent.com/dart-lang/lints/main/lib/recommended.yaml');
   if (recommended != null) {
     recommendedRules.addAll(coreRules);
     for (var ruleConfig in recommended.ruleConfigs) {
@@ -148,7 +148,7 @@ Future<void> fetchBadgeInfo() async {
   }
 
   var flutter = await fetchConfig(
-      'https://raw.githubusercontent.com/flutter/packages/master/packages/flutter_lints/lib/flutter.yaml');
+      'https://raw.githubusercontent.com/flutter/packages/main/packages/flutter_lints/lib/flutter.yaml');
   if (flutter != null) {
     flutterRules.addAll(recommendedRules);
     for (var ruleConfig in flutter.ruleConfigs) {
@@ -244,7 +244,7 @@ String getBadges(String rule) {
   }
   if (flutterRules.contains(rule)) {
     sb.write(
-        '<a class="style-type" href="https://github.com/flutter/packages/blob/master/packages/flutter_lints/lib/flutter.yaml">'
+        '<a class="style-type" href="https://github.com/flutter/packages/blob/main/packages/flutter_lints/lib/flutter.yaml">'
         '<!--suppress HtmlUnknownTarget --><img alt="flutter" src="style-flutter.svg"></a>');
   }
   if (pedanticRules.contains(rule)) {
@@ -423,7 +423,7 @@ class MarkdownIndexer {
       }
       if (flutterRules.contains(rule.name)) {
         buffer.writeln('[![flutter](style-flutter.svg)]'
-            '(https://github.com/flutter/packages/blob/master/packages/'
+            '(https://github.com/flutter/packages/blob/main/packages/'
             'flutter_lints/lib/flutter.yaml)');
       }
       if (pedanticRules.contains(rule.name)) {
@@ -704,7 +704,7 @@ class RuleMarkdownGenerator {
     }
     if (flutterRules.contains(name)) {
       buffer.writeln('[![flutter](style-flutter.svg)]'
-          '(https://github.com/flutter/packages/blob/master/packages/'
+          '(https://github.com/flutter/packages/blob/main/packages/'
           'flutter_lints/lib/flutter.yaml)');
     }
     if (pedanticRules.contains(name)) {

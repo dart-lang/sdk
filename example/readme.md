@@ -11,4 +11,4 @@ Official Dart lint rules are maintained in
 [`package:lints`](https://github.com/dart-lang/lints/).
 
 Flutter team rules are maintained in
-[`package:flutter_lints`](https://github.com/flutter/packages/tree/master/packages/flutter_lints).
+[`package:flutter_lints`](https://github.com/flutter/packages/tree/main/packages/flutter_lints).

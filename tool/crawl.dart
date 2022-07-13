@@ -23,9 +23,9 @@ final Version bottomDartSdk = Version(2, 0, 0);
 Map<String, String?> _dartSdkToLinterMap = <String, String?>{};
 
 final _flutterOptionsUrl = Uri.https('raw.githubusercontent.com',
-    '/flutter/packages/master/packages/flutter_lints/lib/flutter.yaml');
-final _flutterRepoOptionsUrl = Uri.https('raw.githubusercontent.com',
-    '/flutter/flutter/master/analysis_options.yaml');
+    '/flutter/packages/main/packages/flutter_lints/lib/flutter.yaml');
+final _flutterRepoOptionsUrl = Uri.https(
+    'raw.githubusercontent.com', '/flutter/flutter/main/analysis_options.yaml');
 
 List<String>? _flutterRepoRules;
 
@@ -40,6 +40,7 @@ List<String>? _sdkTags;
 
 Map<String, List<String?>> _sinceMap = <String, List<String>>{};
 
+// todo(pq): deprecated
 final _stagehandOptionsUrl = Uri.https('raw.githubusercontent.com',
     '/dart-lang/stagehand/master/templates/analysis_options.yaml');
 

@@ -26,7 +26,7 @@ Future<String> get pedanticLatestVersion async {
 
 /// todo(pq): de-duplicate these fetches / URIs
 Future<List<String>> _readFlutterLints() async => _fetchLints(
-    'https://raw.githubusercontent.com/flutter/packages/master/packages/flutter_lints/lib/flutter.yaml');
+    'https://raw.githubusercontent.com/flutter/packages/main/packages/flutter_lints/lib/flutter.yaml');
 
 Future<List<String>> _readRecommendedLints() async => _fetchLints(
     'https://raw.githubusercontent.com/dart-lang/lints/main/lib/recommended.yaml');

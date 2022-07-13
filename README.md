@@ -97,7 +97,7 @@ Please file feature requests and bugs in the [issue tracker][tracker].
 [lints]: https://dart-lang.github.io/linter/lints/
 [options_file]: https://dart.dev/guides/language/analysis-options#the-analysis-options-file
 [package-dart-lints]: https://github.com/dart-lang/lints
-[package-flutter-lints]: https://github.com/flutter/packages/tree/master/packages/flutter_lints
+[package-flutter-lints]: https://github.com/flutter/packages/tree/main/packages/flutter_lints
 [package-pedantic]: https://github.com/dart-lang/pedantic/blob/master/lib/analysis_options.yaml
 [style_guide]:https://dart.dev/guides/language/effective-dart/style/
 [tracker]: https://github.com/dart-lang/linter/issues
