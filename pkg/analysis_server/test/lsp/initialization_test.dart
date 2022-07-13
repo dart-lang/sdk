@@ -470,14 +470,12 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // The server will send an unregister request followed by another register
     // request to change document filter on folding. We need to respond to the
     // unregister request as the server awaits that.
-    requestsFromServer
+    // This is set up as a future callback and should not be awaited here.
+    unawaited(requestsFromServer
         .firstWhere((r) => r.method == Method.client_unregisterCapability)
         .then((request) {
       respondTo(request, null);
-      return UnregistrationParams.fromJson(
-              request.params as Map<String, Object?>)
-          .unregisterations;
-    });
+    }));
 
     final request = await expectRequest(Method.client_registerCapability, () {
       final plugin = configureTestPlugin();

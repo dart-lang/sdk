@@ -863,6 +863,7 @@ class FixProcessor extends BaseProcessor {
   /// [lintProducerMap].
   static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
     CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER: [
+      RemoveAbstract.new,
       RemoveInitializer.new,
     ],
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL: [
@@ -1382,7 +1383,7 @@ class FixProcessor extends BaseProcessor {
       RemoveNameFromCombinator.new,
     ],
     ParserErrorCode.ABSTRACT_CLASS_MEMBER: [
-      RemoveAbstract.new,
+      RemoveAbstract.bulkFixable,
     ],
     ParserErrorCode.EXPECTED_TOKEN: [
       InsertSemicolon.new,

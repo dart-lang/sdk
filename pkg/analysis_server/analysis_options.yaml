@@ -24,5 +24,6 @@ analyzer:
 linter:
   rules:
     - depend_on_referenced_packages
+    - unawaited_futures
     - unnecessary_parenthesis
     - use_super_parameters

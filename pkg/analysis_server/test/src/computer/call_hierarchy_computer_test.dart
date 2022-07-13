@@ -25,12 +25,14 @@ Matcher _isItem(
   CallHierarchyKind kind,
   String displayName,
   String file, {
+  required String? containerName,
   required SourceRange nameRange,
   required SourceRange codeRange,
 }) =>
     TypeMatcher<CallHierarchyItem>()
         .having((e) => e.kind, 'kind', kind)
         .having((e) => e.displayName, 'displayName', displayName)
+        .having((e) => e.containerName, 'containerName', containerName)
         .having((e) => e.file, 'file', file)
         .having((e) => e.nameRange, 'nameRange', nameRange)
         .having((e) => e.codeRange, 'codeRange', codeRange);
@@ -40,6 +42,7 @@ Matcher _isResult(
   CallHierarchyKind kind,
   String displayName,
   String file, {
+  required String? containerName,
   required SourceRange nameRange,
   required SourceRange codeRange,
   List<SourceRange>? ranges,
@@ -48,7 +51,9 @@ Matcher _isResult(
       (c) => c.item,
       'item',
       _isItem(kind, displayName, file,
-          nameRange: nameRange, codeRange: codeRange));
+          containerName: containerName,
+          nameRange: nameRange,
+          codeRange: codeRange));
 
   if (ranges != null) {
     matcher = matcher.having((c) => c.ranges, 'ranges', ranges);
@@ -148,6 +153,7 @@ class Foo {
         CallHierarchyKind.constructor,
         'Foo',
         testFile,
+        containerName: 'Foo',
         nameRange: rangeAtSearch('Foo(', contents, 'Foo'),
         codeRange: rangeNumbered(1, contents),
       ),
@@ -176,6 +182,7 @@ class Foo {
           CallHierarchyKind.constructor,
           'Foo',
           otherFile,
+          containerName: 'Foo',
           nameRange: rangeAtSearch('Foo(', otherContents, 'Foo'),
           codeRange: rangeNumbered(1, otherContents),
         ));
@@ -194,6 +201,7 @@ extension StringExtension on String {
           CallHierarchyKind.method,
           'myMethod',
           testFile,
+          containerName: 'StringExtension',
           nameRange: rangeAtSearch('myMethod', contents),
           codeRange: rangeNumbered(1, contents),
         ));
@@ -221,6 +229,7 @@ extension StringExtension on String {
           CallHierarchyKind.method,
           'myMethod',
           otherFile,
+          containerName: 'StringExtension',
           nameRange: rangeAtSearch('myMethod', otherContents),
           codeRange: rangeNumbered(1, otherContents),
         ));
@@ -237,6 +246,7 @@ extension StringExtension on String {
           CallHierarchyKind.function,
           'myFunction',
           testFile,
+          containerName: 'test.dart',
           nameRange: rangeAtSearch('myFunction', contents),
           codeRange: rangeNumbered(1, contents),
         ));
@@ -262,6 +272,7 @@ void f() {
           CallHierarchyKind.function,
           'myFunction',
           otherFile,
+          containerName: 'other.dart',
           nameRange: rangeAtSearch('myFunction', otherContents),
           codeRange: rangeNumbered(1, otherContents),
         ));
@@ -280,6 +291,7 @@ class Foo {
           CallHierarchyKind.property,
           'get foo',
           testFile,
+          containerName: 'Foo',
           nameRange: rangeAtSearch('foo', contents),
           codeRange: rangeNumbered(1, contents),
         ));
@@ -305,6 +317,7 @@ void f() {
           CallHierarchyKind.property,
           'get bar',
           otherFile,
+          containerName: 'other.dart',
           nameRange: rangeAtSearch('bar', otherContents),
           codeRange: rangeNumbered(1, otherContents),
         ));
@@ -333,6 +346,7 @@ void f() {
           CallHierarchyKind.constructor,
           'Foo',
           otherFile,
+          containerName: 'Foo',
           nameRange: rangeAtSearch('Foo {', otherContents, 'Foo'),
           codeRange: rangeNumbered(1, otherContents),
         ));
@@ -351,6 +365,7 @@ class Foo {
           CallHierarchyKind.method,
           'myMethod',
           testFile,
+          containerName: 'Foo',
           nameRange: rangeAtSearch('myMethod', contents),
           codeRange: rangeNumbered(1, contents),
         ));
@@ -378,6 +393,7 @@ class Foo {
           CallHierarchyKind.method,
           'myMethod',
           otherFile,
+          containerName: 'Foo',
           nameRange: rangeAtSearch('myMethod', otherContents),
           codeRange: rangeNumbered(1, otherContents),
         ));
@@ -396,6 +412,7 @@ mixin Bar {
           CallHierarchyKind.method,
           'myMethod',
           testFile,
+          containerName: 'Bar',
           nameRange: rangeAtSearch('myMethod', contents),
           codeRange: rangeNumbered(1, contents),
         ));
@@ -425,6 +442,7 @@ class Foo with Bar {}
           CallHierarchyKind.method,
           'myMethod',
           otherFile,
+          containerName: 'Bar',
           nameRange: rangeAtSearch('myMethod', otherContents),
           codeRange: rangeNumbered(1, otherContents),
         ));
@@ -443,6 +461,7 @@ class Foo {
           CallHierarchyKind.constructor,
           'Foo.Bar',
           testFile,
+          containerName: 'Foo',
           nameRange: rangeAtSearch('Bar', contents),
           codeRange: rangeNumbered(1, contents),
         ));
@@ -480,6 +499,7 @@ class Foo {
           CallHierarchyKind.constructor,
           'Foo.Bar',
           otherFile,
+          containerName: 'Foo',
           nameRange: rangeAtSearch('Bar', otherContents),
           codeRange: rangeNumbered(1, otherContents),
         ));
@@ -517,6 +537,7 @@ class Foo {
           CallHierarchyKind.property,
           'set foo',
           testFile,
+          containerName: 'Foo',
           nameRange: rangeAtSearch('foo', contents),
           codeRange: rangeNumbered(1, contents),
         ));
@@ -542,6 +563,7 @@ void f() {
           CallHierarchyKind.property,
           'set bar',
           otherFile,
+          containerName: 'other.dart',
           nameRange: rangeAtSearch('bar', otherContents),
           codeRange: rangeNumbered(1, otherContents),
         ));
@@ -622,30 +644,35 @@ final foo1 = Foo();
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.file, 'other.dart', otherFile,
+            containerName: null,
             nameRange: startOfFile,
             codeRange: entireRange(otherContents),
             ranges: [
               rangeAfter('foo1 = '),
             ]),
         _isResult(CallHierarchyKind.class_, 'Bar', otherFile,
+            containerName: 'other.dart',
             nameRange: rangeAtSearch('Bar {', otherContents, 'Bar'),
             codeRange: rangeNumbered(1, otherContents),
             ranges: [
               rangeAfter('foo2 = '),
             ]),
         _isResult(CallHierarchyKind.property, 'get foo3', otherFile,
+            containerName: 'Bar',
             nameRange: rangeAtSearch('foo3', otherContents),
             codeRange: rangeNumbered(2, otherContents),
             ranges: [
               rangeAfter('foo3 => '),
             ]),
         _isResult(CallHierarchyKind.constructor, 'Bar', otherFile,
+            containerName: 'Bar',
             nameRange: rangeAtSearch('Bar() {', otherContents, 'Bar'),
             codeRange: rangeNumbered(3, otherContents),
             ranges: [
               rangeAfter('foo4 = '),
             ]),
         _isResult(CallHierarchyKind.method, 'bar', otherFile,
+            containerName: 'Bar',
             nameRange: rangeAtSearch('bar() {', otherContents, 'bar'),
             codeRange: rangeNumbered(4, otherContents),
             ranges: [
@@ -681,6 +708,7 @@ import 'test.dart';
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.function, 'f', otherFile,
+            containerName: 'other.dart',
             nameRange: rangeAtSearch('f() {', otherContents, 'f'),
             codeRange: rangeNumbered(1, otherContents),
             ranges: [
@@ -723,30 +751,35 @@ final foo1 = myFunction();
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.file, 'other.dart', otherFile,
+            containerName: null,
             nameRange: startOfFile,
             codeRange: entireRange(otherContents),
             ranges: [
               rangeAfter('foo1 = '),
             ]),
         _isResult(CallHierarchyKind.class_, 'Bar', otherFile,
+            containerName: 'other.dart',
             nameRange: rangeAtSearch('Bar {', otherContents, 'Bar'),
             codeRange: rangeNumbered(1, otherContents),
             ranges: [
               rangeAfter('foo2 = '),
             ]),
         _isResult(CallHierarchyKind.property, 'get foo3', otherFile,
+            containerName: 'Bar',
             nameRange: rangeAtSearch('foo3', otherContents),
             codeRange: rangeNumbered(2, otherContents),
             ranges: [
               rangeAfter('foo3 => '),
             ]),
         _isResult(CallHierarchyKind.constructor, 'Bar', otherFile,
+            containerName: 'Bar',
             nameRange: rangeAtSearch('Bar() {', otherContents, 'Bar'),
             codeRange: rangeNumbered(3, otherContents),
             ranges: [
               rangeAfter('foo4 = '),
             ]),
         _isResult(CallHierarchyKind.method, 'bar', otherFile,
+            containerName: 'Bar',
             nameRange: rangeAtSearch('bar() {', otherContents, 'bar'),
             codeRange: rangeNumbered(4, otherContents),
             ranges: [
@@ -789,30 +822,35 @@ final foo1 = foo;
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.file, 'other.dart', otherFile,
+            containerName: null,
             nameRange: startOfFile,
             codeRange: entireRange(otherContents),
             ranges: [
               rangeAfter('foo1 = '),
             ]),
         _isResult(CallHierarchyKind.class_, 'Bar', otherFile,
+            containerName: 'other.dart',
             nameRange: rangeAtSearch('Bar {', otherContents, 'Bar'),
             codeRange: rangeNumbered(1, otherContents),
             ranges: [
               rangeAfter('foo2 = '),
             ]),
         _isResult(CallHierarchyKind.property, 'get foo3', otherFile,
+            containerName: 'Bar',
             nameRange: rangeAtSearch('foo3', otherContents),
             codeRange: rangeNumbered(2, otherContents),
             ranges: [
               rangeAfter('foo3 => '),
             ]),
         _isResult(CallHierarchyKind.constructor, 'Bar', otherFile,
+            containerName: 'Bar',
             nameRange: rangeAtSearch('Bar() {', otherContents, 'Bar'),
             codeRange: rangeNumbered(3, otherContents),
             ranges: [
               rangeAfter('foo4 = '),
             ]),
         _isResult(CallHierarchyKind.method, 'bar', otherFile,
+            containerName: 'Bar',
             nameRange: rangeAtSearch('bar() {', otherContents, 'bar'),
             codeRange: rangeNumbered(4, otherContents),
             ranges: [
@@ -851,12 +889,14 @@ final foo2 = Foo();
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.function, 'f', testFile,
+            containerName: 'test.dart',
             nameRange: rangeAtSearch('f() {', contents, 'f'),
             codeRange: rangeNumbered(1, contents),
             ranges: [
               rangeAfter('foo1 = ', contents),
             ]),
         _isResult(CallHierarchyKind.file, 'other.dart', otherFile,
+            containerName: null,
             nameRange: startOfFile,
             codeRange: entireRange(otherContents),
             ranges: [
@@ -892,6 +932,7 @@ import 'test.dart';
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.function, 'f', otherFile,
+            containerName: 'other.dart',
             nameRange: rangeAtSearch('f() {', otherContents, 'f'),
             codeRange: rangeNumbered(1, otherContents),
             ranges: [
@@ -929,6 +970,7 @@ import 'test.dart';
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.function, 'f', otherFile,
+            containerName: 'other.dart',
             nameRange: rangeAtSearch('f() {', otherContents, 'f'),
             codeRange: rangeNumbered(1, otherContents),
             ranges: [
@@ -963,6 +1005,7 @@ import 'test.dart';
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.function, 'f', otherFile,
+            containerName: 'other.dart',
             nameRange: rangeAtSearch('f() {', otherContents, 'f'),
             codeRange: rangeNumbered(1, otherContents),
             ranges: [
@@ -1001,12 +1044,14 @@ class Bar {
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.constructor, 'Bar', otherFile,
+            containerName: 'Bar',
             nameRange: rangeAtSearch('Bar() {', otherContents, 'Bar'),
             codeRange: rangeNumbered(1, otherContents),
             ranges: [
               rangeAfter('/*a*/'),
             ]),
         _isResult(CallHierarchyKind.method, 'bar', otherFile,
+            containerName: 'Bar',
             nameRange: rangeAtSearch('bar() {', otherContents, 'bar'),
             codeRange: rangeNumbered(2, otherContents),
             ranges: [
@@ -1080,6 +1125,7 @@ class A {
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.constructor, 'A', otherFile,
+            containerName: 'A',
             nameRange: rangeAtSearch('A();', otherContents, 'A'),
             codeRange: rangeNumbered(1, otherContents),
             ranges: [
@@ -1087,6 +1133,7 @@ class A {
               rangeAfterPrefix('constructorTearoffA = A.', contents, 'new'),
             ]),
         _isResult(CallHierarchyKind.constructor, 'B', otherFile,
+            containerName: 'B',
             nameRange: rangeAtSearch('B {', otherContents, 'B'),
             codeRange: rangeNumbered(2, otherContents),
             ranges: [
@@ -1122,6 +1169,7 @@ extension StringExtension on String {
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.method, 'bar', otherFile,
+            containerName: 'StringExtension',
             nameRange: rangeAtSearch('bar() {', otherContents, 'bar'),
             codeRange: rangeNumbered(1, otherContents),
             ranges: [
@@ -1158,6 +1206,7 @@ void fo^o() {
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.function, 'f', otherFile,
+            containerName: 'other.dart',
             nameRange: rangeAtSearch('f() {', otherContents, 'f'),
             codeRange: rangeNumbered(1, otherContents),
             ranges: [
@@ -1165,6 +1214,7 @@ void fo^o() {
               rangeAfterPrefix('tearoff = ', contents, 'f'),
             ]),
         _isResult(CallHierarchyKind.function, 'nested', testFile,
+            containerName: 'foo',
             nameRange: rangeAtSearch('nested() {', contents, 'nested'),
             codeRange: rangeNumbered(1, contents),
             ranges: [
@@ -1203,10 +1253,12 @@ String get fo^o {
           CallHierarchyKind.constructor,
           'A',
           otherFile,
+          containerName: 'A',
           nameRange: rangeAtSearch('A {', otherContents, 'A'),
           codeRange: rangeNumbered(1, otherContents),
         ),
         _isResult(CallHierarchyKind.property, 'get b', otherFile,
+            containerName: 'A',
             nameRange: rangeAtSearch('b => ', otherContents, 'b'),
             codeRange: rangeNumbered(2, otherContents),
             ranges: [
@@ -1273,10 +1325,12 @@ class Foo {
           CallHierarchyKind.constructor,
           'A',
           otherFile,
+          containerName: 'A',
           nameRange: rangeAtSearch('A {', otherContents, 'A'),
           codeRange: rangeNumbered(1, otherContents),
         ),
         _isResult(CallHierarchyKind.method, 'bar', otherFile,
+            containerName: 'A',
             nameRange: rangeAtSearch('bar() {', otherContents, 'bar'),
             codeRange: rangeNumbered(2, otherContents),
             ranges: [
@@ -1319,10 +1373,12 @@ mixin OtherMixin {
           CallHierarchyKind.constructor,
           'A',
           otherFile,
+          containerName: 'A',
           nameRange: rangeAtSearch('A with', otherContents, 'A'),
           codeRange: rangeNumbered(1, otherContents),
         ),
         _isResult(CallHierarchyKind.method, 'foo', otherFile,
+            containerName: 'OtherMixin',
             nameRange: rangeAtSearch('foo() {', otherContents, 'foo'),
             codeRange: rangeNumbered(2, otherContents),
             ranges: [
@@ -1360,6 +1416,7 @@ class A {
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.constructor, 'A.named', otherFile,
+            containerName: 'A',
             nameRange: rangeAtSearch('named', otherContents),
             codeRange: rangeNumbered(1, otherContents),
             ranges: [
@@ -1396,10 +1453,12 @@ set fo^o(String value) {
           CallHierarchyKind.constructor,
           'A',
           otherFile,
+          containerName: 'A',
           nameRange: rangeAtSearch('A {', otherContents, 'A'),
           codeRange: rangeNumbered(1, otherContents),
         ),
         _isResult(CallHierarchyKind.property, 'set b', otherFile,
+            containerName: 'A',
             nameRange: rangeAtSearch('b(String ', otherContents, 'b'),
             codeRange: rangeNumbered(2, otherContents),
             ranges: [

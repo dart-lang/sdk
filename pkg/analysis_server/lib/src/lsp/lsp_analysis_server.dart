@@ -272,7 +272,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
     // Client config can affect capabilities, so this should only be done after
     // we have the initial/updated config.
-    capabilitiesComputer.performDynamicRegistration();
+    // Don't await this because it involves sending requests to the client (for
+    // config) that should not stop/delay initialization.
+    unawaited(capabilitiesComputer.performDynamicRegistration());
   }
 
   /// Return a [LineInfo] for the file with the given [path].

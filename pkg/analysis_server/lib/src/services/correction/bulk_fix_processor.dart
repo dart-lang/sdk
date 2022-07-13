@@ -200,37 +200,6 @@ class BulkFixProcessor {
     return builder;
   }
 
-  /// Return a change builder that has been used to create all fixes for a
-  /// specific diagnostic code in the given [unit].
-  Future<ChangeBuilder> fixOfTypeInUnit(
-    ResolvedUnitResult unit,
-    String errorCode,
-  ) async {
-    final errorCodeLowercase = errorCode.toLowerCase();
-    final errors = unit.errors.where(
-      (error) => error.errorCode.name.toLowerCase() == errorCodeLowercase,
-    );
-
-    final analysisOptions = unit.session.analysisContext.analysisOptions;
-
-    var overrideSet = _readOverrideSet(unit);
-    for (var error in errors) {
-      final processor = ErrorProcessor.getProcessor(analysisOptions, error);
-      // Only fix errors not filtered out in analysis options.
-      if (processor == null || processor.severity != null) {
-        final fixContext = DartFixContextImpl(
-          instrumentationService,
-          workspace,
-          unit,
-          error,
-        );
-        await _fixSingleError(fixContext, unit, error, overrideSet);
-      }
-    }
-
-    return builder;
-  }
-
   Future<void> _applyProducer(
       CorrectionProducerContext context, CorrectionProducer producer) async {
     producer.configure(context);

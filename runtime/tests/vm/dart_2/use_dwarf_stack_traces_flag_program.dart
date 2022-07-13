@@ -6,8 +6,6 @@
 
 // @dart = 2.9
 
-import 'dart:_internal' show VMInternalsForTesting;
-
 import "package:expect/expect.dart";
 
 class C {
@@ -19,6 +17,5 @@ bar(c) => c * 4;
 foo(c) => bar(c);
 
 main() {
-  print(VMInternalsForTesting.randomAddressInsideAllocateObjectStub());
   var a = foo(new C());
 }

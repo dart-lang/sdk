@@ -179,10 +179,6 @@ abstract class VMInternalsForTesting {
 
   @pragma("vm:external-name", "Internal_deoptimizeFunctionsOnStack")
   external static void deoptimizeFunctionsOnStack();
-
-  // Used to verify that PC addresses in stubs can be named using DWARF info.
-  @pragma("vm:external-name", "Internal_randomAddressInsideAllocateObjectStub")
-  external static int randomAddressInsideAllocateObjectStub();
 }
 
 @patch

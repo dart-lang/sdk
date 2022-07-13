@@ -37,15 +37,9 @@ class Reader {
         bdata = ByteData.sublistView(File(path).readAsBytesSync());
 
   /// Returns a reader focused on a different portion of the underlying buffer.
-  /// If size is not provided, then the new reader extends to the end of the
-  /// buffer.
-  Reader refocusedCopy(int pos, [int? size]) {
+  Reader refocusedCopy(int pos, int size) {
     assert(pos >= 0 && pos < bdata.buffer.lengthInBytes);
-    if (size != null) {
-      assert(size >= 0 && (pos + size) <= bdata.buffer.lengthInBytes);
-    } else {
-      size = bdata.buffer.lengthInBytes - pos;
-    }
+    assert(size >= 0 && (pos + size) <= bdata.buffer.lengthInBytes);
     return Reader.fromTypedData(ByteData.view(bdata.buffer, pos, size),
         wordSize: _wordSize, endian: _endian);
   }
@@ -57,7 +51,7 @@ class Reader {
 
   void seek(int offset, {bool absolute = false}) {
     final newOffset = (absolute ? 0 : _offset) + offset;
-    assert(newOffset >= 0 && newOffset <= bdata.lengthInBytes);
+    assert(newOffset >= 0 && newOffset < bdata.lengthInBytes);
     _offset = newOffset;
   }
 
@@ -91,26 +85,16 @@ class Reader {
 
   int readByte({bool signed = false}) => readBytes(1, signed: signed);
   int readWord() => readBytes(wordSize);
-  String readNullTerminatedString({int? maxSize}) {
-    final start = _offset;
-    int end = maxSize != null ? _offset + maxSize : bdata.lengthInBytes;
-    for (; _offset < end; _offset++) {
-      if (bdata.getUint8(_offset) == 0) {
-        end = _offset;
-        _offset++; // Move reader past null terminator.
-        break;
+  String readNullTerminatedString() {
+    final start = bdata.offsetInBytes + _offset;
+    for (var i = 0; _offset + i < bdata.lengthInBytes; i++) {
+      if (bdata.getUint8(_offset + i) == 0) {
+        _offset += i + 1;
+        return String.fromCharCodes(bdata.buffer.asUint8List(start, i));
       }
     }
     return String.fromCharCodes(
-        bdata.buffer.asUint8List(bdata.offsetInBytes + start, end - start));
-  }
-
-  String readFixedLengthNullTerminatedString(int maxSize) {
-    final start = _offset;
-    final str = readNullTerminatedString(maxSize: maxSize);
-    // Ensure reader points past fixed space, not at end of string within it.
-    _offset = start + maxSize;
-    return str;
+        bdata.buffer.asUint8List(start, bdata.lengthInBytes - _offset));
   }
 
   int readLEB128EncodedInteger({bool signed = false}) {

@@ -2605,14 +2605,14 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  E thisOrAncestorMatching<E extends Element>(
+  E? thisOrAncestorMatching<E extends Element>(
     bool Function(Element) predicate,
   ) {
     Element? element = this;
     while (element != null && !predicate(element)) {
       element = element.enclosingElement;
     }
-    return element as E;
+    return element as E?;
   }
 
   @override
@@ -6598,9 +6598,9 @@ mixin WrapperElementImpl implements ElementImpl {
   }
 
   @override
-  E thisOrAncestorMatching<E extends Element>(
+  E? thisOrAncestorMatching<E extends Element>(
       bool Function(Element p1) predicate) {
-    return base.thisOrAncestorMatching(predicate) as E;
+    return base.thisOrAncestorMatching(predicate);
   }
 
   @override
