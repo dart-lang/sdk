@@ -22,11 +22,11 @@ class OutlineTest extends AbstractLspAnalysisServerTest {
     await initialize(initializationOptions: {'outline': true});
 
     final outlineUpdateBeforeChange = waitForOutline(mainFileUri);
-    openFile(mainFileUri, initialContent);
+    await openFile(mainFileUri, initialContent);
     final outlineBeforeChange = await outlineUpdateBeforeChange;
 
     final outlineUpdateAfterChange = waitForOutline(mainFileUri);
-    replaceFile(1, mainFileUri, updatedContent);
+    await replaceFile(1, mainFileUri, updatedContent);
     final outlineAfterChange = await outlineUpdateAfterChange;
 
     expect(outlineBeforeChange, isNotNull);
@@ -46,7 +46,7 @@ extension on String {}
     await initialize(initializationOptions: {'outline': true});
 
     final outlineUpdate = waitForOutline(mainFileUri);
-    openFile(mainFileUri, initialContent);
+    await openFile(mainFileUri, initialContent);
     final outline = await outlineUpdate;
 
     expect(outline, isNotNull);
@@ -72,7 +72,7 @@ class A {
     await initialize(initializationOptions: {'outline': true});
 
     final outlineNotification = waitForOutline(mainFileUri);
-    openFile(mainFileUri, content);
+    await openFile(mainFileUri, content);
     final outline = await outlineNotification;
 
     expect(outline, isNotNull);

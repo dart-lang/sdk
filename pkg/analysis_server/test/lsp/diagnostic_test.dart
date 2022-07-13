@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -270,11 +272,15 @@ void f() {
     newFile(dotFolderFilePath, 'String a = 1;');
 
     List<Diagnostic>? diagnostics;
-    waitForDiagnostics(dotFolderFileUri).then((d) => diagnostics = d);
+    // Record if diagnostics are recieved, but since we don't expect them
+    // don't await them.
+    unawaited(
+        waitForDiagnostics(dotFolderFileUri).then((d) => diagnostics = d));
 
     // Send a request for a hover.
     await initialize();
     await getHover(dotFolderFileUri, Position(line: 0, character: 0));
+    await pumpEventQueue(times: 5000);
 
     // Ensure that as part of responding to getHover, diagnostics were not
     // transmitted.
