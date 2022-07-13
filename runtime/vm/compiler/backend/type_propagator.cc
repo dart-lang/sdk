@@ -286,7 +286,7 @@ void FlowGraphTypePropagator::VisitCheckNull(CheckNullInstr* check) {
     // motion of the check may still enable valid code motion
     // of the checked code.
     if (check->ssa_temp_index() == -1) {
-      flow_graph_->AllocateSSAIndexes(check);
+      flow_graph_->AllocateSSAIndex(check);
       GrowTypes(check->ssa_temp_index() + 1);
     }
     FlowGraph::RenameDominatedUses(receiver, check, check);
@@ -370,7 +370,7 @@ void FlowGraphTypePropagator::VisitAssertAssignable(
   auto defn = check->value()->definition();
   SetTypeOf(defn, new (zone()) CompileType(check->ComputeType()));
   if (check->ssa_temp_index() == -1) {
-    flow_graph_->AllocateSSAIndexes(check);
+    flow_graph_->AllocateSSAIndex(check);
     GrowTypes(check->ssa_temp_index() + 1);
   }
   FlowGraph::RenameDominatedUses(defn, check, check);

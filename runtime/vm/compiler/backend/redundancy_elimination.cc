@@ -2611,7 +2611,7 @@ class LoadOptimizer : public ValueObject {
       replacement->AddInputUse(input);
     }
 
-    graph_->AllocateSSAIndexes(phi);
+    graph_->AllocateSSAIndex(phi);
     phis_.Add(phi);  // Postpone phi insertion until after load forwarding.
 
     if (FLAG_support_il_printer && FLAG_trace_load_optimization) {
@@ -4259,10 +4259,7 @@ void TryCatchAnalyzer::Optimize() {
         ConstantInstr* orig = cdefs[j]->AsConstant();
         ConstantInstr* copy =
             new (flow_graph_->zone()) ConstantInstr(orig->value());
-        copy->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
-        if (FlowGraph::NeedsPairLocation(copy->representation())) {
-          flow_graph_->alloc_ssa_temp_index();
-        }
+        flow_graph_->AllocateSSAIndex(copy);
         old->ReplaceUsesWith(copy);
         copy->set_previous(old->previous());  // partial link
         (*idefs)[j] = copy;

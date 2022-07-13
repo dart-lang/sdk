@@ -782,10 +782,7 @@ static void ReplaceParameterStubs(Zone* zone,
             callee_signature, first_arg_index, i)) {
       RedefinitionInstr* redefinition =
           new (zone) RedefinitionInstr(actual->Copy(zone));
-      redefinition->set_ssa_temp_index(caller_graph->alloc_ssa_temp_index());
-      if (FlowGraph::NeedsPairLocation(redefinition->representation())) {
-        caller_graph->alloc_ssa_temp_index();
-      }
+      caller_graph->AllocateSSAIndex(redefinition);
       if (is_polymorphic_receiver && target_info->IsSingleCid()) {
         redefinition->UpdateType(CompileType::FromCid(target_info->cid_start));
       }
@@ -831,11 +828,7 @@ static void ReplaceParameterStubs(Zone* zone,
           LoadFieldInstr* context_load = new (zone) LoadFieldInstr(
               new Value((*arguments)[first_arg_index]->definition()),
               Slot::Closure_context(), call_data->call->source());
-          context_load->set_ssa_temp_index(
-              caller_graph->alloc_ssa_temp_index());
-          if (FlowGraph::NeedsPairLocation(context_load->representation())) {
-            caller_graph->alloc_ssa_temp_index();
-          }
+          caller_graph->AllocateSSAIndex(context_load);
           context_load->InsertBefore(callee_entry->next());
           param->ReplaceUsesWith(context_load);
           break;
@@ -1290,7 +1283,7 @@ class CallSiteInliner : public ValueObject {
         {
           // Compute SSA on the callee graph, catching bailouts.
           COMPILER_TIMINGS_TIMER_SCOPE(thread(), ComputeSSA);
-          callee_graph->ComputeSSA(caller_graph_->max_virtual_register_number(),
+          callee_graph->ComputeSSA(caller_graph_->current_ssa_temp_index(),
                                    param_stubs);
 #if defined(DEBUG)
           // The inlining IDs of instructions in the callee graph are unset
@@ -1977,11 +1970,7 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
   Definition* receiver = call_->Receiver()->definition();
   RedefinitionInstr* redefinition =
       new (Z) RedefinitionInstr(new (Z) Value(receiver));
-  redefinition->set_ssa_temp_index(
-      owner_->caller_graph()->alloc_ssa_temp_index());
-  if (FlowGraph::NeedsPairLocation(redefinition->representation())) {
-    owner_->caller_graph()->alloc_ssa_temp_index();
-  }
+  owner_->caller_graph()->AllocateSSAIndex(redefinition);
   if (FlowGraphInliner::TryInlineRecognizedMethod(
           owner_->caller_graph(), receiver_cid, target, call_, redefinition,
           call_->source(), call_->ic_data(), graph_entry, &entry, &last,
@@ -2038,7 +2027,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
   // at least one branch on the class id.
   LoadClassIdInstr* load_cid =
       new (Z) LoadClassIdInstr(new (Z) Value(receiver));
-  load_cid->set_ssa_temp_index(owner_->caller_graph()->alloc_ssa_temp_index());
+  owner_->caller_graph()->AllocateSSAIndex(load_cid);
   cursor = AppendInstruction(cursor, load_cid);
   for (intptr_t i = 0; i < inlined_variants_.length(); ++i) {
     const CidRange& variant = inlined_variants_[i];
@@ -2054,8 +2043,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       if (!call_->complete()) {
         RedefinitionInstr* cid_redefinition =
             new RedefinitionInstr(new (Z) Value(load_cid));
-        cid_redefinition->set_ssa_temp_index(
-            owner_->caller_graph()->alloc_ssa_temp_index());
+        owner_->caller_graph()->AllocateSSAIndex(cid_redefinition);
         cursor = AppendInstruction(cursor, cid_redefinition);
         CheckClassIdInstr* check_class_id = new (Z) CheckClassIdInstr(
             new (Z) Value(cid_redefinition), variant, call_->deopt_id());
@@ -2242,11 +2230,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     PolymorphicInstanceCallInstr* fallback_call =
         PolymorphicInstanceCallInstr::FromCall(Z, call_, *non_inlined_variants_,
                                                call_->complete());
-    fallback_call->set_ssa_temp_index(
-        owner_->caller_graph()->alloc_ssa_temp_index());
-    if (FlowGraph::NeedsPairLocation(fallback_call->representation())) {
-      owner_->caller_graph()->alloc_ssa_temp_index();
-    }
+    owner_->caller_graph()->AllocateSSAIndex(fallback_call);
     fallback_call->InheritDeoptTarget(zone(), call_);
     fallback_call->set_total_call_count(call_->CallCount());
     ReturnInstr* fallback_return = new ReturnInstr(

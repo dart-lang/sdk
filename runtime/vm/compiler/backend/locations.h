@@ -66,6 +66,19 @@ enum Representation {
       kNumRepresentations
 };
 
+static const intptr_t kMaxLocationCount = 2;
+
+inline intptr_t LocationCount(Representation rep) {
+  switch (rep) {
+    case kPairOfTagged:
+      return 2;
+    case kUnboxedInt64:
+      return compiler::target::kWordSize == 8 ? 1 : 2;
+    default:
+      return 1;
+  }
+}
+
 struct RepresentationUtils : AllStatic {
   // Whether the representation is for a type of unboxed integer.
   static bool IsUnboxedInteger(Representation rep);
