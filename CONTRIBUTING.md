@@ -41,7 +41,7 @@ All files in the project must start with the following header.
 Contributing code is easy.
 
  * First, get the source by forking `https://github.com/dart-lang/linter` into your own GitHub account.
- * If you haven't configured your machine with an SSH key that's known to github then follow the directions here: https://help.github.com/articles/generating-ssh-keys/.
+ * If you haven't configured your machine with an SSH key that's known to GitHub then follow the directions here: https://help.github.com/articles/generating-ssh-keys/.
  * `git clone git@github.com:<your_name_here>/linter.git`
  * `cd linter`
  * `git remote add upstream git@github.com:dart-lang/linter.git` (So that you fetch from the main repository, not your clone, when running git fetch et al.)
@@ -59,7 +59,7 @@ To send us a pull request:
  * `git pull-request` (if you are using [Hub](https://github.com/github/hub/)) or
   go to `https://github.com/dart-lang/linter` and click the
   "Compare & pull request" button
- * either explicitly name a reviewer in the github UI or add their github name in the pull request message body
+ * either explicitly name a reviewer in the GitHub UI or add their GitHub name in the pull request message body
 
 Please make sure all your checkins have detailed commit messages explaining the patch and if a PR is *not* ready to land, consider making it clear in the description and/or prefixing the title with "WIP".
 

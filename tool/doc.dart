@@ -21,7 +21,7 @@ import 'since.dart';
 void main(List<String> args) async {
   var parser = ArgParser()
     ..addOption('out', abbr: 'o', help: 'Specifies output directory.')
-    ..addOption('token', abbr: 't', help: 'Specifies a github auth token.')
+    ..addOption('token', abbr: 't', help: 'Specifies a GitHub auth token.')
     ..addFlag('create-dirs',
         abbr: 'd', help: 'Enables creation of necessary directories.')
     ..addFlag('markdown',
