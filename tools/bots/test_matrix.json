@@ -1492,7 +1492,6 @@
         "vm-kernel-precomp-linux-release-simarm64",
         "vm-kernel-precomp-linux-release-simriscv32",
         "vm-kernel-precomp-linux-release-simriscv64",
-        "vm-kernel-precomp-mac-product-x64",
         "vm-kernel-precomp-mac-release-simarm64",
         "vm-kernel-precomp-mac-release-simarm64c",
         "vm-kernel-precomp-win-product-x64",
@@ -1518,6 +1517,30 @@
           ],
           "fileset": "vm-kernel",
           "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-mac-product-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm kernel precomp builders lacking shard support."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-${system}-${mode}-${arch}"
+          ]
         }
       ]
     },
