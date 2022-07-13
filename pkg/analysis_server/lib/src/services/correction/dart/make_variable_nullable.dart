@@ -218,10 +218,7 @@ class MakeVariableNullable extends CorrectionProducer {
   }
 
   bool _typeCanBeMadeNullable(TypeAnnotation typeAnnotation) {
-    if (typeSystem.isNullable(typeAnnotation.typeOrThrow)) {
-      return false;
-    }
-    return true;
+    return !typeSystem.isNullable(typeAnnotation.typeOrThrow);
   }
 
   /// Add edits to the [builder] to update the type in the [declarationList] to

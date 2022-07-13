@@ -20,7 +20,7 @@
 # - 'notes', whose value is text, typically describing what fix should be
 #   created or why we think a fix for the diagnostic is not appropriate.
 # - 'issue', whose value is a list of the URLs of GitHub issues for the fixes
-#   that should be added. Ideally every issue marked as 'needFix' would have an
+#   that should be added. Ideally every issue marked as 'needsFix' would have an
 #   issue created for it.
 #
 # Stats:
