@@ -1092,7 +1092,10 @@ abstract class ElementVisitor<R> {
 
   R? visitConstructorElement(ConstructorElement element);
 
+  @Deprecated('Override visitExportElement2() instead')
   R? visitExportElement(ExportElement element);
+
+  R? visitExportElement2(ExportElement2 element);
 
   R? visitExtensionElement(ExtensionElement element);
 
@@ -1194,6 +1197,7 @@ abstract class ExecutableElement implements FunctionTypedElement {
 /// An export directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use ExportElement2 instead')
 abstract class ExportElement implements UriReferencedElement {
   /// Return a list containing the combinators that were specified as part of
   /// the export directive in the order in which they were specified.
@@ -1202,6 +1206,24 @@ abstract class ExportElement implements UriReferencedElement {
   /// Return the library that is exported from this library by this export
   /// directive, or `null` if the URI has invalid syntax or cannot be resolved.
   LibraryElement? get exportedLibrary;
+}
+
+/// A single export directive within a library.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ExportElement2 implements _ExistingElement {
+  /// Return a list containing the combinators that were specified as part of
+  /// the export directive in the order in which they were specified.
+  List<NamespaceCombinator> get combinators;
+
+  /// Returns the [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
+  LibraryElement? get exportedLibrary;
+
+  /// The offset of the `export` keyword.
+  int get exportKeywordOffset;
+
+  /// The interpretation of the URI specified in the directive.
+  DirectiveUri get uri;
 }
 
 /// An element that represents an extension.
@@ -1549,7 +1571,11 @@ abstract class LibraryOrAugmentationElement implements Element {
   CompilationUnitElement get definingCompilationUnit;
 
   /// Return a list containing all of the exports defined in this library.
+  @Deprecated('Use exports2 instead')
   List<ExportElement> get exports;
+
+  /// Return a list containing all of the exports defined in this library.
+  List<ExportElement2> get exports2;
 
   /// The set of features available to this library.
   ///

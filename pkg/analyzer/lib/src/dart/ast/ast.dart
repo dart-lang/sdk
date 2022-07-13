@@ -3782,8 +3782,18 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
       super.combinators,
       super.semicolon);
 
+  @Deprecated('Use element2 instead')
   @override
-  ExportElement? get element => super.element as ExportElement?;
+  ExportElement? get element {
+    final element2 = this.element2;
+    if (element2 is ExportElement2Impl) {
+      return ExportElementImpl(element2);
+    }
+    return null;
+  }
+
+  @override
+  ExportElement2? get element2 => super.element as ExportElement2?;
 
   @override
   Token get firstTokenAfterCommentAndMetadata => exportKeyword;
@@ -3794,7 +3804,7 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
 
   @override
   LibraryElement? get uriElement {
-    return element?.exportedLibrary;
+    return element2?.exportedLibrary;
   }
 
   @override
@@ -6425,7 +6435,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   ImportElement? get element {
     final element2 = this.element2;
-    if (element2 != null) {
+    if (element2 is ImportElement2Impl) {
       return ImportElementImpl(element2);
     }
     return null;

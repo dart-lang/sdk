@@ -122,9 +122,12 @@ class UnlinkedCombinator {
 
 /// Unlinked information about an `export` directive.
 class UnlinkedExportDirective extends UnlinkedNamespaceDirective {
+  final int exportKeywordOffset;
+
   UnlinkedExportDirective({
     required super.combinators,
     required super.configurations,
+    required this.exportKeywordOffset,
     required super.uri,
   });
 
@@ -136,6 +139,7 @@ class UnlinkedExportDirective extends UnlinkedNamespaceDirective {
       configurations: reader.readTypedList(
         () => UnlinkedNamespaceDirectiveConfiguration.read(reader),
       ),
+      exportKeywordOffset: reader.readUInt30(),
       uri: reader.readOptionalStringUtf8(),
     );
   }
@@ -151,6 +155,7 @@ class UnlinkedExportDirective extends UnlinkedNamespaceDirective {
         x.write(sink);
       },
     );
+    sink.writeUInt30(exportKeywordOffset);
     sink.writeOptionalStringUtf8(uri);
   }
 }

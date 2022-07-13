@@ -20038,7 +20038,7 @@ library
     A: package:test/foo.dart;A
 ''',
         withExportScope: true);
-    expect(library.exports[0].exportedLibrary!.source.shortName, 'foo.dart');
+    expect(library.exports2[0].exportedLibrary!.source.shortName, 'foo.dart');
   }
 
   test_export_configurations_useFirst() async {
@@ -20067,7 +20067,8 @@ library
     A: package:test/foo_io.dart;A
 ''',
         withExportScope: true);
-    expect(library.exports[0].exportedLibrary!.source.shortName, 'foo_io.dart');
+    expect(
+        library.exports2[0].exportedLibrary!.source.shortName, 'foo_io.dart');
   }
 
   test_export_configurations_useSecond() async {
@@ -20096,7 +20097,7 @@ library
     A: package:test/foo_html.dart;A
 ''',
         withExportScope: true);
-    ExportElement export = library.exports[0];
+    final export = library.exports2[0];
     expect(export.exportedLibrary!.source.shortName, 'foo_html.dart');
   }
 
@@ -20357,7 +20358,9 @@ library
     var library = await buildLibrary('''
 export 'foo.dart';
 ''');
-    expect(library.exports[0].uri, 'foo.dart');
+
+    final uri = library.exports2[0].uri as DirectiveUriWithLibrary;
+    expect(uri.relativeUriString, 'foo.dart');
   }
 
   test_export_variable() async {
@@ -25355,46 +25358,6 @@ library
 ''');
   }
 
-  test_invalidUris() async {
-    var library = await buildLibrary(r'''
-import ':[invaliduri]';
-import ':[invaliduri]:foo.dart';
-import 'a1.dart';
-import ':[invaliduri]';
-import ':[invaliduri]:foo.dart';
-
-export ':[invaliduri]';
-export ':[invaliduri]:foo.dart';
-export 'a2.dart';
-export ':[invaliduri]';
-export ':[invaliduri]:foo.dart';
-
-part ':[invaliduri]';
-part 'a3.dart';
-part ':[invaliduri]';
-''');
-    checkElementText(library, r'''
-library
-  imports
-    relativeUriString ':[invaliduri]'
-    relativeUriString ':[invaliduri]:foo.dart'
-    package:test/a1.dart
-    relativeUriString ':[invaliduri]'
-    relativeUriString ':[invaliduri]:foo.dart'
-  exports
-    <unresolved>
-    <unresolved>
-    package:test/a2.dart
-    <unresolved>
-    <unresolved>
-  definingUnit
-  parts
-    relativeUriString ':[invaliduri]'
-    source 'package:test/a3.dart'
-    relativeUriString ':[invaliduri]'
-''');
-  }
-
   test_library() async {
     var library = await buildLibrary('');
     checkElementText(library, r'''
@@ -25430,6 +25393,96 @@ library
   name: test
   nameOffset: 30
   documentationComment: /**\n * aaa\n * bbb\n */
+  definingUnit
+''');
+  }
+
+  test_library_exports_noRelativeUriStr() async {
+    final library = await buildLibrary(r'''
+export '${'foo'}.dart';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    noRelativeUriString
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUri_emptyUriSelf() async {
+    final library = await buildLibrary(r'''
+export '';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    package:test/test.dart
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUri_noSource() async {
+    final library = await buildLibrary(r'''
+export 'foo:bar';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    relativeUri 'foo:bar'
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUri_notExists() async {
+    final library = await buildLibrary(r'''
+export 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    package:test/a.dart
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUri_notLibrary_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+''');
+    final library = await buildLibrary(r'''
+export 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUri_notLibrary_part() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of other.lib;
+''');
+    final library = await buildLibrary(r'''
+export 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUriString() async {
+    final library = await buildLibrary(r'''
+export ':';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    relativeUriString ':'
   definingUnit
 ''');
   }

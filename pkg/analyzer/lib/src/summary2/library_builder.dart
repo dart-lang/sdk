@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' hide DirectiveUri;
 import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
+import 'package:analyzer/src/dart/analysis/unlinked_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -89,7 +90,7 @@ class LibraryBuilder {
   }
 
   void addExporters() {
-    final exportElements = element.exports;
+    final exportElements = element.exports2;
     for (var i = 0; i < exportElements.length; i++) {
       final exportElement = exportElements[i];
 
@@ -132,6 +133,7 @@ class LibraryBuilder {
   /// Build elements for declarations in the library units, add top-level
   /// declarations to the local scope, for combining into export scopes.
   void buildElements() {
+    element.exports2 = kind.exports.map(_buildExport).toList();
     element.imports2 = kind.imports.map(_buildImport).toList();
 
     for (var linkingUnit in units) {
@@ -404,6 +406,89 @@ class LibraryBuilder {
     }
   }
 
+  List<NamespaceCombinator> _buildCombinators(
+    List<UnlinkedCombinator> combinators2,
+  ) {
+    return combinators2.map((unlinked) {
+      if (unlinked.isShow) {
+        return ShowElementCombinatorImpl()
+          ..offset = unlinked.keywordOffset
+          ..end = unlinked.endOffset
+          ..shownNames = unlinked.names;
+      } else {
+        // TODO(scheglov) Why no offsets?
+        return HideElementCombinatorImpl()..hiddenNames = unlinked.names;
+      }
+    }).toList();
+  }
+
+  ExportElement2Impl _buildExport(ExportDirectiveState state) {
+    final combinators = _buildCombinators(
+      state.directive.combinators,
+    );
+
+    final DirectiveUri uri;
+    if (state is ExportDirectiveWithFile) {
+      final exportedLibraryKind = state.exportedLibrary;
+      if (exportedLibraryKind != null) {
+        final exportedFile = exportedLibraryKind.file;
+        final exportedUri = exportedFile.uri;
+        final elementFactory = linker.elementFactory;
+        final exportedLibrary = elementFactory.libraryOfUri2(exportedUri);
+        uri = DirectiveUriWithLibraryImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: exportedLibrary.source,
+          library: exportedLibrary,
+        );
+      } else {
+        uri = DirectiveUriWithSourceImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: state.exportedSource,
+        );
+      }
+    } else if (state is ExportDirectiveWithInSummarySource) {
+      final exportedLibrarySource = state.exportedLibrarySource;
+      if (exportedLibrarySource != null) {
+        final exportedUri = exportedLibrarySource.uri;
+        final elementFactory = linker.elementFactory;
+        final exportedLibrary = elementFactory.libraryOfUri2(exportedUri);
+        uri = DirectiveUriWithLibraryImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: exportedLibrary.source,
+          library: exportedLibrary,
+        );
+      } else {
+        uri = DirectiveUriWithSourceImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: state.exportedSource,
+        );
+      }
+    } else {
+      final selectedUri = state.selectedUri;
+      if (selectedUri is file_state.DirectiveUriWithUri) {
+        uri = DirectiveUriWithRelativeUriImpl(
+          relativeUriString: selectedUri.relativeUriStr,
+          relativeUri: selectedUri.relativeUri,
+        );
+      } else if (selectedUri is file_state.DirectiveUriWithString) {
+        uri = DirectiveUriWithRelativeUriStringImpl(
+          relativeUriString: selectedUri.relativeUriStr,
+        );
+      } else {
+        uri = DirectiveUriImpl();
+      }
+    }
+
+    return ExportElement2Impl(
+      exportKeywordOffset: state.directive.exportKeywordOffset,
+      uri: uri,
+    )..combinators = combinators;
+  }
+
   ImportElement2Impl _buildImport(ImportDirectiveState state) {
     final importPrefix = state.directive.prefix.mapOrNull((unlinked) {
       if (unlinked.deferredOffset != null) {
@@ -423,17 +508,9 @@ class LibraryBuilder {
       }
     });
 
-    final combinators = state.directive.combinators.map((unlinked) {
-      if (unlinked.isShow) {
-        return ShowElementCombinatorImpl()
-          ..offset = unlinked.keywordOffset
-          ..end = unlinked.endOffset
-          ..shownNames = unlinked.names;
-      } else {
-        // TODO(scheglov) Why no offsets?
-        return HideElementCombinatorImpl()..hiddenNames = unlinked.names;
-      }
-    }).toList();
+    final combinators = _buildCombinators(
+      state.directive.combinators,
+    );
 
     final DirectiveUri uri;
     if (state is ImportDirectiveWithFile) {

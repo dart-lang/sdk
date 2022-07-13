@@ -103,7 +103,7 @@ class BundleWriter {
     _writeLanguageVersion(libraryElement.languageVersion);
     _resolutionSink._writeAnnotationList(libraryElement.metadata);
     _writeList(libraryElement.imports2, _writeImportElement);
-    _writeList(libraryElement.exports, _writeExportElement);
+    _writeList(libraryElement.exports2, _writeExportElement);
     for (final partElement in libraryElement.parts2) {
       _resolutionSink._writeAnnotationList(partElement.metadata);
     }
@@ -254,11 +254,11 @@ class BundleWriter {
     });
   }
 
-  void _writeExportElement(ExportElement element) {
-    _sink._writeOptionalStringReference(element.uri);
-    _sink.writeList(element.combinators, _writeNamespaceCombinator);
+  void _writeExportElement(ExportElement2 element) {
+    element as ExportElement2Impl;
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeElement(element.exportedLibrary);
+    _writeDirectiveUri(element.uri);
+    _sink.writeList(element.combinators, _writeNamespaceCombinator);
   }
 
   void _writeExtensionElement(ExtensionElement element) {

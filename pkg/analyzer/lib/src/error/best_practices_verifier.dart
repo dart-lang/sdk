@@ -1071,7 +1071,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           [libraryElement.displayName]);
     }
     var exportNamespace =
-        NamespaceBuilder().createExportNamespaceForDirective(node.element!);
+        NamespaceBuilder().createExportNamespaceForDirective(node.element2!);
     exportNamespace.definedNames.forEach((String name, Element element) {
       if (element.hasInternal) {
         _errorReporter.reportErrorForNode(

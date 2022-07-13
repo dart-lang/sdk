@@ -47,7 +47,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    ExportElement? exportElement = node.element;
+    final exportElement = node.element2;
     if (exportElement != null) {
       // The element is null when the URI is invalid.
       LibraryElement? library = exportElement.exportedLibrary;

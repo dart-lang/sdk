@@ -57,7 +57,7 @@ import 'package:analyzer/src/generated/super_context.dart';
 /// 5. Every [ImportDirective] and [ExportDirective] should resolve to the
 ///    element representing the library being specified by the directive unless
 ///    the specified library does not exist (an [ImportElement2] or
-///    [ExportElement]).
+///    [ExportElement2]).
 /// 6. The identifier representing the prefix in an [ImportDirective] should
 ///    resolve to the element representing the prefix (a [PrefixElement]).
 /// 7. The identifiers in the hide and show combinators in [ImportDirective]s
@@ -188,7 +188,7 @@ class ElementResolver {
   }
 
   void visitExportDirective(ExportDirective node) {
-    var exportElement = node.element;
+    var exportElement = node.element2;
     if (exportElement != null) {
       // The element is null when the URI is invalid
       // TODO(brianwilkerson) Figure out whether the element can ever be

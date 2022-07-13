@@ -163,7 +163,7 @@ class _ElementWriter {
           .toList();
       _writeElements('imports', imports, _writeImportElement);
 
-      _writeElements('exports', e.exports, _writeExportElement);
+      _writeElements('exports', e.exports2, _writeExportElement);
 
       _writelnWithIndent('definingUnit');
       _withIndent(() {
@@ -496,9 +496,9 @@ class _ElementWriter {
     }
   }
 
-  void _writeExportElement(ExportElement e) {
+  void _writeExportElement(ExportElement2 e) {
     _writeIndentedLine(() {
-      _writeUri(e.exportedLibrary?.source);
+      _writeDirectiveUri(e.uri);
     });
 
     _withIndent(() {
@@ -978,19 +978,6 @@ class _ElementWriter {
       _writePropertyAccessorElement,
     );
     _writeElements('functions', e.functions, _writeFunctionElement);
-  }
-
-  void _writeUri(Source? source) {
-    if (source != null) {
-      Uri uri = source.uri;
-      String uriStr = uri.toString();
-      if (uri.isScheme('file')) {
-        uriStr = uri.pathSegments.last;
-      }
-      buffer.write(uriStr);
-    } else {
-      buffer.write('<unresolved>');
-    }
   }
 }
 

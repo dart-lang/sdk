@@ -590,7 +590,7 @@ class LibraryAnalyzer {
       } else if (directive is ExportDirectiveImpl) {
         _resolveExportDirective(
           directive: directive,
-          exportElement: _libraryElement.exports[exportIndex],
+          exportElement: _libraryElement.exports2[exportIndex],
           exportState: _library.exports[exportIndex],
           libraryErrorReporter: libraryErrorReporter,
         );
@@ -621,7 +621,7 @@ class LibraryAnalyzer {
 
   void _resolveExportDirective({
     required ExportDirectiveImpl directive,
-    required ExportElement exportElement,
+    required ExportElement2 exportElement,
     required ExportDirectiveState exportState,
     required ErrorReporter libraryErrorReporter,
   }) {

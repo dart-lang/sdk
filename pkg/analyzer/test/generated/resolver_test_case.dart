@@ -87,7 +87,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    _checkResolved(node, node.element, (node) => node is ExportElement);
+    _checkResolved(node, node.element2, (node) => node is ExportElement2);
   }
 
   @override

@@ -621,7 +621,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitExportDirective(ExportDirective node) {
-    var exportElement = node.element;
+    var exportElement = node.element2;
     if (exportElement != null) {
       var exportedLibrary = exportElement.exportedLibrary;
       _checkForAmbiguousExport(node, exportElement, exportedLibrary);
@@ -1528,13 +1528,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Verify that the export namespace of the given export [directive] does not
   /// export any name already exported by another export directive. The
-  /// [exportElement] is the [ExportElement] retrieved from the node. If the
+  /// [exportElement] is the [ExportElement2] retrieved from the node. If the
   /// element in the node was `null`, then this method is not called. The
   /// [exportedLibrary] is the library element containing the exported element.
   ///
   /// See [CompileTimeErrorCode.AMBIGUOUS_EXPORT].
   void _checkForAmbiguousExport(ExportDirective directive,
-      ExportElement exportElement, LibraryElement? exportedLibrary) {
+      ExportElement2 exportElement, LibraryElement? exportedLibrary) {
     if (exportedLibrary == null) {
       return;
     }
@@ -2495,12 +2495,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Check that if the visiting library is not system, then any given library
   /// should not be SDK internal library. The [exportElement] is the
-  /// [ExportElement] retrieved from the node, if the element in the node was
+  /// [ExportElement2] retrieved from the node, if the element in the node was
   /// `null`, then this method is not called.
   ///
   /// See [CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY].
   void _checkForExportInternalLibrary(
-      ExportDirective directive, ExportElement exportElement) {
+      ExportDirective directive, ExportElement2 exportElement) {
     if (_isInSystemLibrary) {
       return;
     }
@@ -2537,7 +2537,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var element = node.element!;
+    var element = node.element2!;
     // TODO(scheglov) Expose from ExportElement.
     var namespace =
         NamespaceBuilder().createExportNamespaceForDirective(element);

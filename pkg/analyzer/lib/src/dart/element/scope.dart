@@ -284,7 +284,7 @@ class PrefixScope implements Scope {
   ) {
     if (exportedReference is ExportedReferenceExported) {
       for (final exportIndex in exportedReference.indexes) {
-        final export = importedLibrary.exports[exportIndex];
+        final export = importedLibrary.exports2[exportIndex];
         if (!export.hasDeprecated) {
           return false;
         }

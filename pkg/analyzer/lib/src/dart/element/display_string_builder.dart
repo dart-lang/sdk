@@ -94,9 +94,9 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void writeExportElement(ExportElementImpl element) {
+  void writeExportElement(ExportElement2Impl element) {
     _write('export ');
-    (element.exportedLibrary as LibraryElementImpl).appendTo(this);
+    _writeDirectiveUri(element.uri);
   }
 
   void writeExtensionElement(ExtensionElementImpl element) {
