@@ -102,9 +102,9 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/inlineValue | | | |
 | textDocument/linkedEditingRange | | | |
 | textDocument/moniker | | | |
-| textDocument/prepareCallHierarchy | | | |
-|   callHierarchy/incomingCalls | | | |
-|   callHierarchy/outgoingCalls | | | |
+| textDocument/prepareCallHierarchy | ✅ | | |
+|   callHierarchy/incomingCalls | ✅ | | |
+|   callHierarchy/outgoingCalls | ✅ | | |
 | textDocument/prepareRename | ✅ | | |
 |   textDocument/rename | ✅ | | |
 | textDocument/prepareTypeHierarchy | | | |

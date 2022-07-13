@@ -6,6 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/lsp/lsp_packet_transformer_test.dart' as lsp_packet_transformer;
 import 'analyzer_status_test.dart' as analyzer_status;
+import 'call_hierarchy_test.dart' as call_hierarchy;
 import 'cancel_request_test.dart' as cancel_request;
 import 'change_workspace_folders_test.dart' as change_workspace_folders;
 import 'client_configuration_test.dart' as client_configuration;
@@ -50,6 +51,7 @@ import 'workspace_symbols_test.dart' as workspace_symbols;
 void main() {
   defineReflectiveSuite(() {
     analyzer_status.main();
+    call_hierarchy.main();
     cancel_request.main();
     change_workspace_folders.main();
     client_configuration.main();
