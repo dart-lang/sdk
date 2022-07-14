@@ -23,6 +23,7 @@ class AnalyzerStatePrinter {
   final bool withKeysGetPut;
 
   String _indent = '';
+  final Set<LibraryCycle> _libraryCyclesWithWrittenDetails = Set.identity();
 
   AnalyzerStatePrinter({
     required this.byteStore,
@@ -509,6 +510,11 @@ class AnalyzerStatePrinter {
   void _writeLibraryCycle(LibraryFileStateKind library) {
     final cycle = library.libraryCycle;
     _writelnWithIndent(idProvider.libraryCycle(cycle));
+
+    if (!_libraryCyclesWithWrittenDetails.add(cycle)) {
+      return;
+    }
+
     _withIndent(() {
       final dependencyIds = cycle.directDependencies
           .map(_stringOfLibraryCycle)

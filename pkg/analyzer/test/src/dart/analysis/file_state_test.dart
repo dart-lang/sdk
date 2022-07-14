@@ -472,7 +472,6 @@ export 'a.dart';
 
     fileStateFor(a);
 
-    // TODO(scheglov) Write details for a cycle only once.
     assertDriverStateString(testFile, r'''
 files
   /home/test/lib/a.dart
@@ -500,9 +499,6 @@ files
         exports
           library_0
         cycle_0
-          dependencies: dart:core
-          libraries: library_0 library_1
-          apiSignature_0
       referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
@@ -558,7 +554,6 @@ import 'a.dart';
 
     fileStateFor(a);
 
-    // TODO(scheglov) Write details for a cycle only once.
     assertDriverStateString(testFile, r'''
 files
   /home/test/lib/a.dart
@@ -584,9 +579,6 @@ files
           library_0
           library_2 dart:core synthetic
         cycle_0
-          dependencies: dart:core
-          libraries: library_0 library_1
-          apiSignature_0
       referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
