@@ -306,7 +306,7 @@ ActivationFrame::ActivationFrame(const Closure& async_activation,
       pc_desc_(PcDescriptors::ZoneHandle()) {
   // Extract the function and the code from the asynchronous activation.
   function_ = async_activation.function();
-  if (caller_closure_finder->IsCompactAsyncCallback(function_)) {
+  if (caller_closure_finder->IsAsyncCallback(function_)) {
     const auto& suspend_state = SuspendState::Handle(
         caller_closure_finder->GetSuspendStateFromAsyncCallback(
             async_activation));
@@ -2944,16 +2944,6 @@ Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure,
   return bpt_location->AddPerClosure(this, closure, for_over_await);
 }
 
-Breakpoint* Debugger::SetBreakpointAtAsyncOp(const Function& async_op) {
-  const Script& script = Script::Handle(async_op.script());
-  BreakpointLocation* bpt_location =
-      SetBreakpoint(script, async_op.token_pos(), async_op.end_token_pos(), -1,
-                    -1 /* no line/col */, async_op);
-  auto bpt = bpt_location->AddSingleShot(this);
-  bpt->set_is_synthetic_async(true);
-  return bpt;
-}
-
 Breakpoint* Debugger::BreakpointAtActivation(const Instance& closure) {
   if (!closure.IsClosure()) {
     return NULL;
@@ -4422,7 +4412,7 @@ void Debugger::MaybeAsyncStepInto(const Closure& async_op) {
 void Debugger::AsyncStepInto(const Closure& async_op) {
   Zone* zone = Thread::Current()->zone();
   CallerClosureFinder caller_closure_finder(zone);
-  if (caller_closure_finder.IsCompactAsyncCallback(
+  if (caller_closure_finder.IsAsyncCallback(
           Function::Handle(zone, async_op.function()))) {
     const auto& suspend_state = SuspendState::Handle(
         zone, caller_closure_finder.GetSuspendStateFromAsyncCallback(async_op));

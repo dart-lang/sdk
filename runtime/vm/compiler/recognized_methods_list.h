@@ -97,9 +97,9 @@ namespace dart {
     0xc40903ac)                                                                \
   V(_SuspendState, _clone, SuspendState_clone, 0xae1a40a0)                     \
   V(_SuspendState, _createAsyncCallbacks, SuspendState_createAsyncCallbacks,   \
-    0x68be1bf3)                                                                \
+    0x967521b1)                                                                \
   V(_SuspendState, _createAsyncStarCallback,                                   \
-    SuspendState_createAsyncStarCallback, 0xfa7537e4)                          \
+    SuspendState_createAsyncStarCallback, 0xa50f923c)                          \
   V(_SuspendState, _resume, SuspendState_resume, 0x5d7a8489)                   \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 0x97728b46)             \
   V(_Double, _add, DoubleAdd, 0xea666327)                                      \

@@ -82,16 +82,12 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                              bool constructor);
 
   // Pieces of the prologue. They are all agnostic to the current Kernel offset.
-  Fragment BuildEveryTimePrologue(const Function& dart_function,
-                                  TokenPosition token_position,
-                                  intptr_t type_parameters_offset);
-  Fragment BuildFirstTimePrologue(const Function& dart_function,
-                                  LocalVariable* first_parameter,
-                                  intptr_t type_parameters_offset);
+  Fragment BuildRegularFunctionPrologue(const Function& dart_function,
+                                        TokenPosition token_position,
+                                        LocalVariable* first_parameter);
   Fragment ClearRawParameters(const Function& dart_function);
   Fragment DebugStepCheckInPrologue(const Function& dart_function,
                                     TokenPosition position);
-  Fragment SetAsyncStackTrace(const Function& dart_function);
   Fragment CheckStackOverflowInPrologue(const Function& dart_function);
   Fragment SetupCapturedParameters(const Function& dart_function);
   Fragment InitSuspendableFunction(const Function& dart_function);
@@ -102,8 +98,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   static UncheckedEntryPointStyle ChooseEntryPointStyle(
       const Function& dart_function,
       const Fragment& implicit_type_checks,
-      const Fragment& first_time_prologue,
-      const Fragment& every_time_prologue,
+      const Fragment& regular_function_prologue,
       const Fragment& type_args_handling);
 
   void loop_depth_inc();

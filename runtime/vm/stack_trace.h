@@ -27,10 +27,6 @@ class CallerClosureFinder {
   // Returns closure found either via the `result` Future, or the `callback`.
   ClosurePtr GetCallerInFutureListener(const Object& future_listener);
 
-  // Find caller closure from an async* function receiver context.
-  // Returns either the `onData` or the Future awaiter.
-  ClosurePtr FindCallerInAsyncGenClosure(const Context& receiver_context);
-
   // Find caller closure from an _AsyncStarStreamController instance
   // corresponding to async* function.
   // Returns either the `onData` or the Future awaiter.
@@ -47,14 +43,11 @@ class CallerClosureFinder {
 
   // Returns true if given closure function is a Future callback
   // corresponding to an async/async* function or async* body callback.
-  bool IsCompactAsyncCallback(const Function& function);
+  bool IsAsyncCallback(const Function& function);
 
   // Returns SuspendState from the given callback which corresponds
   // to an async/async* function.
   SuspendStatePtr GetSuspendStateFromAsyncCallback(const Closure& closure);
-
-  // Finds the awaited Future from an async function receiver closure.
-  ObjectPtr GetAsyncFuture(const Closure& receiver_closure);
 
   // Get sdk/lib/async/future_impl.dart:_FutureListener.state.
   intptr_t GetFutureListenerState(const Object& future_listener);

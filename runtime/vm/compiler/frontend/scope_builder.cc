@@ -148,7 +148,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       helper_.ReadUntilFunctionNode();
       function_node_helper.ReadUntilExcluding(
           FunctionNodeHelper::kPositionalParameters);
-      current_function_async_marker_ = function_node_helper.async_marker_;
       // NOTE: FunctionNode is read further below the if.
 
       intptr_t pos = 0;
@@ -368,7 +367,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       scope_->InsertParameterAt(pos++, parsed_function_->receiver_var());
 
       // Create all positional and named parameters.
-      current_function_async_marker_ = FunctionNodeHelper::kSync;
       AddPositionalAndNamedParameters(
           pos, kTypeCheckEverythingNotCheckedInNonDynamicallyInvokedMethod,
           attrs);
@@ -393,7 +391,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       // Callbacks and calls with handles need try/catch variables.
       if ((function.FfiCallbackTarget() != Function::null() ||
            function.FfiCSignatureContainsHandles())) {
-        current_function_async_marker_ = FunctionNodeHelper::kSync;
         ++depth_.try_;
         AddTryVariables();
         --depth_.try_;
@@ -1462,13 +1459,10 @@ void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
 
   LocalScope* saved_function_scope = current_function_scope_;
-  FunctionNodeHelper::AsyncMarker saved_function_async_marker =
-      current_function_async_marker_;
   DepthState saved_depth_state = depth_;
   depth_ = DepthState(depth_.function_ + 1);
   EnterScope(parent_kernel_offset);
   current_function_scope_ = scope_;
-  current_function_async_marker_ = function_node_helper.async_marker_;
   if (depth_.function_ == 1) {
     FunctionScope function_scope = {offset, scope_};
     result_->function_scopes.Add(function_scope);
@@ -1516,7 +1510,6 @@ void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
   ExitScope(function_node_helper.position_, function_node_helper.end_position_);
   depth_ = saved_depth_state;
   current_function_scope_ = saved_function_scope;
-  current_function_async_marker_ = saved_function_async_marker;
 }
 
 void ScopeBuilder::EnterScope(intptr_t kernel_offset) {

@@ -235,7 +235,6 @@ class ObjectPointerVisitor;
   V(SpaceOfSpace, " of ")                                                      \
   V(SpaceWhereNewLine, " where\n")                                             \
   V(StackOverflowError, "StackOverflowError")                                  \
-  V(StackTraceParameter, ":stack_trace")                                       \
   V(Stream, "Stream")                                                          \
   V(StringBase, "_StringBase")                                                 \
   V(Struct, "Struct")                                                          \
@@ -436,7 +435,6 @@ class ObjectPointerVisitor;
   V(_returnAsync, "_returnAsync")                                              \
   V(_returnAsyncNotFuture, "_returnAsyncNotFuture")                            \
   V(_returnAsyncStar, "_returnAsyncStar")                                      \
-  V(_returnSyncStar, "_returnSyncStar")                                        \
   V(_runExtension, "_runExtension")                                            \
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
   V(_scanFlags, "_scanFlags")                                                  \

@@ -698,22 +698,14 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionBody(
   return body;
 }
 
-Fragment StreamingFlowGraphBuilder::BuildEveryTimePrologue(
+Fragment StreamingFlowGraphBuilder::BuildRegularFunctionPrologue(
     const Function& dart_function,
     TokenPosition token_position,
-    intptr_t type_parameters_offset) {
+    LocalVariable* first_parameter) {
   Fragment F;
   F += CheckStackOverflowInPrologue(dart_function);
   F += DebugStepCheckInPrologue(dart_function, token_position);
   F += B->InitConstantParameters();
-  return F;
-}
-
-Fragment StreamingFlowGraphBuilder::BuildFirstTimePrologue(
-    const Function& dart_function,
-    LocalVariable* first_parameter,
-    intptr_t type_parameters_offset) {
-  Fragment F;
   F += SetupCapturedParameters(dart_function);
   F += ShortcutForUserDefinedEquals(dart_function, first_parameter);
   return F;
@@ -747,8 +739,7 @@ Fragment StreamingFlowGraphBuilder::ClearRawParameters(
 UncheckedEntryPointStyle StreamingFlowGraphBuilder::ChooseEntryPointStyle(
     const Function& dart_function,
     const Fragment& implicit_type_checks,
-    const Fragment& first_time_prologue,
-    const Fragment& every_time_prologue,
+    const Fragment& regular_function_prologue,
     const Fragment& type_args_handling) {
   ASSERT(!dart_function.IsImplicitClosureFunction());
   if (!dart_function.MayHaveUncheckedEntryPoint() ||
@@ -761,17 +752,21 @@ UncheckedEntryPointStyle StreamingFlowGraphBuilder::ChooseEntryPointStyle(
   //
   // 1. There is a non-empty PrologueBuilder-prologue.
   //
-  // 2. There is a non-empty "first-time" prologue.
+  // 2. The regular function prologue has more than two instructions
+  //    (DebugStepCheck and CheckStackOverflow).
   //
-  // 3. The "every-time" prologue has more than two instructions (DebugStepCheck
-  //    and CheckStackOverflow).
-  //
-  // TODO(#34162): For regular closures we can often avoid the
-  // PrologueBuilder-prologue on non-dynamic invocations.
   if (!PrologueBuilder::HasEmptyPrologue(dart_function) ||
-      !type_args_handling.is_empty() || !first_time_prologue.is_empty() ||
-      !(every_time_prologue.entry == every_time_prologue.current ||
-        every_time_prologue.current->previous() == every_time_prologue.entry)) {
+      !type_args_handling.is_empty()) {
+    return UncheckedEntryPointStyle::kSharedWithVariable;
+  }
+  Instruction* instr = regular_function_prologue.entry;
+  if (instr != nullptr && instr->IsCheckStackOverflow()) {
+    instr = instr->next();
+  }
+  if (instr != nullptr && instr->IsDebugStepCheck()) {
+    instr = instr->next();
+  }
+  if (instr != nullptr) {
     return UncheckedEntryPointStyle::kSharedWithVariable;
   }
 
@@ -782,15 +777,11 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
     bool is_constructor) {
   const Function& dart_function = parsed_function()->function();
 
-  intptr_t type_parameters_offset = 0;
   LocalVariable* first_parameter = nullptr;
   TokenPosition token_position = TokenPosition::kNoSource;
   {
     AlternativeReadingScope alt(&reader_);
     FunctionNodeHelper function_node_helper(this);
-    function_node_helper.ReadUntilExcluding(
-        FunctionNodeHelper::kTypeParameters);
-    type_parameters_offset = ReaderOffset();
     function_node_helper.ReadUntilExcluding(
         FunctionNodeHelper::kPositionalParameters);
     intptr_t list_length = ReadListLength();  // read number of positionals.
@@ -811,15 +802,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
   BlockEntryInstr* instruction_cursor =
       flow_graph_builder_->BuildPrologue(normal_entry, &prologue_info);
 
-  // The 'every_time_prologue' runs first and is run when resuming from yield
-  // points.
-  const Fragment every_time_prologue = BuildEveryTimePrologue(
-      dart_function, token_position, type_parameters_offset);
-
-  // The 'first_time_prologue' run after 'every_time_prologue' and is *not* run
-  // when resuming from yield points.
-  const Fragment first_time_prologue = BuildFirstTimePrologue(
-      dart_function, first_parameter, type_parameters_offset);
+  const Fragment regular_prologue = BuildRegularFunctionPrologue(
+      dart_function, token_position, first_parameter);
 
   // TODO(#34162): We can remove the default type handling (and
   // shorten the prologue type handling sequence) for non-dynamic invocations of
@@ -847,30 +831,28 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
       InitSuspendableFunction(dart_function) +
       BuildFunctionBody(dart_function, first_parameter, is_constructor);
 
-  auto extra_entry_point_style = ChooseEntryPointStyle(
-      dart_function, implicit_type_checks, first_time_prologue,
-      every_time_prologue, type_args_handling);
+  auto extra_entry_point_style =
+      ChooseEntryPointStyle(dart_function, implicit_type_checks,
+                            regular_prologue, type_args_handling);
 
   Fragment function(instruction_cursor);
   FunctionEntryInstr* extra_entry = nullptr;
   switch (extra_entry_point_style) {
     case UncheckedEntryPointStyle::kNone: {
-      function += every_time_prologue + first_time_prologue +
-                  type_args_handling + implicit_type_checks +
+      function += regular_prologue + type_args_handling + implicit_type_checks +
                   explicit_type_checks + body;
       break;
     }
     case UncheckedEntryPointStyle::kSeparate: {
       ASSERT(instruction_cursor == normal_entry);
-      ASSERT(first_time_prologue.is_empty());
       ASSERT(type_args_handling.is_empty());
 
-      const Fragment prologue_copy = BuildEveryTimePrologue(
-          dart_function, token_position, type_parameters_offset);
+      const Fragment prologue_copy = BuildRegularFunctionPrologue(
+          dart_function, token_position, first_parameter);
 
       extra_entry = B->BuildSeparateUncheckedEntryPoint(
           normal_entry,
-          /*normal_prologue=*/every_time_prologue + implicit_type_checks,
+          /*normal_prologue=*/regular_prologue + implicit_type_checks,
           /*extra_prologue=*/prologue_copy,
           /*shared_prologue=*/explicit_type_checks,
           /*body=*/body);
@@ -878,8 +860,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
     }
     case UncheckedEntryPointStyle::kSharedWithVariable: {
       Fragment prologue(normal_entry, instruction_cursor);
-      prologue += every_time_prologue;
-      prologue += first_time_prologue;
+      prologue += regular_prologue;
       prologue += type_args_handling;
       prologue += explicit_type_checks;
       extra_entry = B->BuildSharedUncheckedEntryPoint(
