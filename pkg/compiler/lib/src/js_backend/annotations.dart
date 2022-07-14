@@ -317,14 +317,6 @@ abstract class AnnotationsData {
   /// annotation.
   bool hasNoSideEffects(MemberEntity member);
 
-  /// Calls [f] for all functions with a `@pragma('dart2js:noThrows')`
-  /// annotation.
-  void forEachNoThrows(void f(FunctionEntity function));
-
-  /// Calls [f] for all functions with a `@pragma('dart2js:noSideEffects')`
-  /// annotation.
-  void forEachNoSideEffects(void f(FunctionEntity function));
-
   /// What the compiler should do with parameter type assertions in [member].
   ///
   /// If [member] is `null`, the default policy is returned.
@@ -441,26 +433,6 @@ class AnnotationsDataImpl implements AnnotationsData {
   @override
   bool hasNoSideEffects(MemberEntity member) =>
       _hasPragma(member, PragmaAnnotation.noSideEffects);
-
-  @override
-  void forEachNoThrows(void f(FunctionEntity function)) {
-    pragmaAnnotations
-        .forEach((MemberEntity member, EnumSet<PragmaAnnotation> set) {
-      if (set.contains(PragmaAnnotation.noThrows)) {
-        f(member as FunctionEntity);
-      }
-    });
-  }
-
-  @override
-  void forEachNoSideEffects(void f(FunctionEntity function)) {
-    pragmaAnnotations
-        .forEach((MemberEntity member, EnumSet<PragmaAnnotation> set) {
-      if (set.contains(PragmaAnnotation.noSideEffects)) {
-        f(member as FunctionEntity);
-      }
-    });
-  }
 
   @override
   CheckPolicy getParameterCheckPolicy(MemberEntity? member) {

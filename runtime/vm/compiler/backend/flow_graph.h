@@ -200,11 +200,6 @@ class FlowGraph : public ZoneAllocated {
             env_index == SuspendStateEnvIndex());
   }
 
-  static bool NeedsPairLocation(Representation representation) {
-    return representation == kUnboxedInt64 &&
-           compiler::target::kIntSpillFactor == 2;
-  }
-
   // Flow graph orders.
   const GrowableArray<BlockEntryInstr*>& preorder() const { return preorder_; }
   const GrowableArray<BlockEntryInstr*>& postorder() const {
@@ -246,8 +241,8 @@ class FlowGraph : public ZoneAllocated {
     current_ssa_temp_index_ = index;
   }
 
-  intptr_t max_virtual_register_number() const {
-    return current_ssa_temp_index();
+  intptr_t max_vreg() const {
+    return current_ssa_temp_index() * kMaxLocationCount;
   }
 
   enum class ToCheck { kNoCheck, kCheckNull, kCheckCid };
@@ -272,14 +267,9 @@ class FlowGraph : public ZoneAllocated {
 
   ConstantInstr* constant_dead() const { return constant_dead_; }
 
-  intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
-
-  void AllocateSSAIndexes(Definition* def) {
-    ASSERT(def);
-    def->set_ssa_temp_index(alloc_ssa_temp_index());
-    // Always allocate a second index. This index is unused except
-    // for Definitions with register pair outputs.
-    alloc_ssa_temp_index();
+  void AllocateSSAIndex(Definition* def) {
+    def->set_ssa_temp_index(current_ssa_temp_index_);
+    current_ssa_temp_index_++;
   }
 
   intptr_t InstructionCount() const;

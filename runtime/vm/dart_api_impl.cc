@@ -6361,10 +6361,10 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
   if (event != NULL) {
     switch (type) {
       case Dart_Timeline_Event_Begin:
-        event->Begin(label, timestamp0);
+        event->Begin(label, timestamp0, timestamp1_or_async_id);
         break;
       case Dart_Timeline_Event_End:
-        event->End(label, timestamp0);
+        event->End(label, timestamp0, timestamp1_or_async_id);
         break;
       case Dart_Timeline_Event_Instant:
         event->Instant(label, timestamp0);

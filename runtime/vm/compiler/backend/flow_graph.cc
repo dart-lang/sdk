@@ -67,7 +67,7 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
 
 void FlowGraph::EnsureSSATempIndex(Definition* defn, Definition* replacement) {
   if ((replacement->ssa_temp_index() == -1) && (defn->ssa_temp_index() != -1)) {
-    AllocateSSAIndexes(replacement);
+    AllocateSSAIndex(replacement);
   }
 }
 
@@ -191,10 +191,7 @@ ConstantInstr* FlowGraph::GetConstant(const Object& object,
     } else {
       constant = new (zone()) UnboxedConstantInstr(zone_object, representation);
     }
-    constant->set_ssa_temp_index(alloc_ssa_temp_index());
-    if (NeedsPairLocation(constant->representation())) {
-      alloc_ssa_temp_index();
-    }
+    AllocateSSAIndex(constant);
     AddToGraphInitialDefinitions(constant);
     constant_instr_pool_.Insert(constant);
   }
@@ -271,7 +268,7 @@ void FlowGraph::InsertAfter(Instruction* prev,
                             UseKind use_kind) {
   if (use_kind == kValue) {
     ASSERT(instr->IsDefinition());
-    AllocateSSAIndexes(instr->AsDefinition());
+    AllocateSSAIndex(instr->AsDefinition());
   }
   instr->InsertAfter(prev);
   ASSERT(instr->env() == NULL);
@@ -296,7 +293,7 @@ Instruction* FlowGraph::AppendTo(Instruction* prev,
                                  UseKind use_kind) {
   if (use_kind == kValue) {
     ASSERT(instr->IsDefinition());
-    AllocateSSAIndexes(instr->AsDefinition());
+    AllocateSSAIndex(instr->AsDefinition());
   }
   ASSERT(instr->env() == NULL);
   if (env != NULL) {
@@ -1215,8 +1212,7 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
           new (zone()) ParameterInstr(i, param_offset, function_entry, kTagged);
       param_offset++;
     }
-    param->set_ssa_temp_index(alloc_ssa_temp_index());
-    if (NeedsPairLocation(param->representation())) alloc_ssa_temp_index();
+    AllocateSSAIndex(param);
     AddToInitialDefinitions(function_entry, param);
     (*env)[i] = param;
   }
@@ -1228,7 +1224,7 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
     if (inlining_parameters != NULL) {
       for (intptr_t i = 0; i < function().NumParameters(); ++i) {
         Definition* defn = (*inlining_parameters)[inlined_type_args_param + i];
-        AllocateSSAIndexes(defn);
+        AllocateSSAIndex(defn);
         AddToInitialDefinitions(function_entry, defn);
 
         intptr_t index = EnvIndex(parsed_function_.RawParameterVariable(i));
@@ -1250,7 +1246,7 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
       } else {
         defn = (*inlining_parameters)[0];
       }
-      AllocateSSAIndexes(defn);
+      AllocateSSAIndex(defn);
       AddToInitialDefinitions(function_entry, defn);
       (*env)[RawTypeArgumentEnvIndex()] = defn;
     }
@@ -1260,7 +1256,7 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
       Definition* defn =
           new (Z) SpecialParameterInstr(SpecialParameterInstr::kArgDescriptor,
                                         DeoptId::kNone, function_entry);
-      AllocateSSAIndexes(defn);
+      AllocateSSAIndex(defn);
       AddToInitialDefinitions(function_entry, defn);
       (*env)[ArgumentDescriptorEnvIndex()] = defn;
     }
@@ -1279,7 +1275,7 @@ void FlowGraph::PopulateEnvironmentFromOsrEntry(
   for (intptr_t i = 0; i < parameter_count; i++) {
     ParameterInstr* param =
         new (zone()) ParameterInstr(i, i, osr_entry, kTagged);
-    param->set_ssa_temp_index(alloc_ssa_temp_index());
+    AllocateSSAIndex(param);
     AddToInitialDefinitions(osr_entry, param);
     (*env)[i] = param;
   }
@@ -1313,7 +1309,7 @@ void FlowGraph::PopulateEnvironmentFromCatchEntry(
       param = new (Z) ParameterInstr(i, i, catch_entry, kTagged);
     }
 
-    param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
+    AllocateSSAIndex(param);  // New SSA temp.
     (*env)[i] = param;
     AddToInitialDefinitions(catch_entry, param);
   }
@@ -1346,7 +1342,7 @@ void FlowGraph::RenameRecursive(
         PhiInstr* phi = (*join->phis())[i];
         if (phi != nullptr) {
           (*env)[i] = phi;
-          AllocateSSAIndexes(phi);  // New SSA temp.
+          AllocateSSAIndex(phi);  // New SSA temp.
           if (block_entry->InsideTryBlock() && !phi->is_alive()) {
             // This is a safe approximation.  Inside try{} all locals are
             // used at every call implicitly, so we mark all phis as live
@@ -1549,7 +1545,7 @@ void FlowGraph::RenameRecursive(
         if (Definition* definition = current->AsDefinition()) {
           if (definition->HasTemp()) {
             // Assign fresh SSA temporary and update expression stack.
-            AllocateSSAIndexes(definition);
+            AllocateSSAIndex(definition);
             env->Add(definition);
           }
         }
@@ -2573,7 +2569,7 @@ void FlowGraph::RenameUsesDominatedByRedefinitions() {
         Value* redefined = definition->RedefinedValue();
         if (redefined != nullptr) {
           if (!definition->HasSSATemp()) {
-            AllocateSSAIndexes(definition);
+            AllocateSSAIndex(definition);
           }
           Definition* original = redefined->definition();
           RenameDominatedUses(original, definition, definition);
@@ -2821,7 +2817,7 @@ JoinEntryInstr* FlowGraph::NewDiamond(Instruction* instruction,
 
   // Short-circuit second comparison and connect through phi.
   condition.oper2->InsertAfter(bt);
-  AllocateSSAIndexes(condition.oper2);
+  AllocateSSAIndex(condition.oper2);
   condition.oper2->InheritDeoptTarget(zone(), inherit);  // must inherit
   PhiInstr* phi =
       AddPhi(mid_point, condition.oper2, GetConstant(Bool::False()));
@@ -2841,7 +2837,7 @@ PhiInstr* FlowGraph::AddPhi(JoinEntryInstr* join,
   Value* v1 = new (zone()) Value(d1);
   Value* v2 = new (zone()) Value(d2);
 
-  AllocateSSAIndexes(phi);
+  AllocateSSAIndex(phi);
 
   phi->mark_alive();
   phi->SetInputAt(0, v1);

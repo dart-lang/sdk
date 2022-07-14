@@ -39,8 +39,7 @@ class ReachingDefs : public ValueObject {
 class SSALivenessAnalysis : public LivenessAnalysis {
  public:
   explicit SSALivenessAnalysis(const FlowGraph& flow_graph)
-      : LivenessAnalysis(flow_graph.max_virtual_register_number(),
-                         flow_graph.postorder()),
+      : LivenessAnalysis(flow_graph.max_vreg(), flow_graph.postorder()),
         graph_entry_(flow_graph.graph_entry()) {}
 
  private:

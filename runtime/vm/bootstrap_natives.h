@@ -153,7 +153,7 @@ namespace dart {
   V(TypeError_throwNew, 4)                                                     \
   V(Stopwatch_now, 0)                                                          \
   V(Stopwatch_frequency, 0)                                                    \
-  V(Timeline_getNextAsyncId, 0)                                                \
+  V(Timeline_getNextTaskId, 0)                                                 \
   V(Timeline_getTraceClock, 0)                                                 \
   V(Timeline_isDartStreamEnabled, 0)                                           \
   V(Timeline_reportFlowEvent, 5)                                               \

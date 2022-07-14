@@ -439,12 +439,7 @@ void FlowGraphPrinter::PrintCidRangeData(const CallTargets& targets,
 
 static void PrintUse(BaseTextBuffer* f, const Definition& definition) {
   if (definition.HasSSATemp()) {
-    if (definition.HasPairRepresentation()) {
-      f->Printf("(v%" Pd ", v%" Pd ")", definition.ssa_temp_index(),
-                definition.ssa_temp_index() + 1);
-    } else {
-      f->Printf("v%" Pd "", definition.ssa_temp_index());
-    }
+    f->Printf("v%" Pd "", definition.ssa_temp_index());
   } else if (definition.HasTemp()) {
     f->Printf("t%" Pd "", definition.temp_index());
   }
@@ -1142,12 +1137,7 @@ const char* RepresentationToCString(Representation rep) {
 }
 
 void PhiInstr::PrintTo(BaseTextBuffer* f) const {
-  if (HasPairRepresentation()) {
-    f->Printf("(v%" Pd ", v%" Pd ") <- phi(", ssa_temp_index(),
-              ssa_temp_index() + 1);
-  } else {
-    f->Printf("v%" Pd " <- phi(", ssa_temp_index());
-  }
+  f->Printf("v%" Pd " <- phi(", ssa_temp_index());
   for (intptr_t i = 0; i < inputs_.length(); ++i) {
     if (inputs_[i] != NULL) inputs_[i]->PrintTo(f);
     if (i < inputs_.length() - 1) f->AddString(", ");

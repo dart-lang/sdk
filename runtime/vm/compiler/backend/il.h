@@ -2321,14 +2321,14 @@ class Definition : public Instruction {
   }
   bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
   void ClearSSATempIndex() { ssa_temp_index_ = -1; }
-  bool HasPairRepresentation() const {
-    if (compiler::target::kWordSize == 8) {
-      return representation() == kPairOfTagged;
-    } else {
-      return (representation() == kPairOfTagged) ||
-             (representation() == kUnboxedInt64);
-    }
+
+  intptr_t vreg(intptr_t index) const {
+    ASSERT((index >= 0) && (index < location_count()));
+    if (ssa_temp_index_ == -1) return -1;
+    return ssa_temp_index_ * kMaxLocationCount + index;
   }
+  intptr_t location_count() const { return LocationCount(representation()); }
+  bool HasPairRepresentation() const { return location_count() == 2; }
 
   // Compile time type of the definition, which may be requested before type
   // propagation during graph building.
