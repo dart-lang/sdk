@@ -60,7 +60,7 @@ class Flow {
   /// If [id] is not provided, an id that conflicts with no other Dart-generated
   /// flow id's will be generated.
   static Flow begin({int? id}) {
-    return new Flow._(_begin, id ?? _getNextTaskId());
+    return new Flow._(_begin, id ?? _getNextAsyncId());
   }
 
   /// A "step" Flow event.
@@ -112,8 +112,7 @@ class Timeline {
       _stack.add(null);
       return;
     }
-    var block = new _SyncBlock._(name, _getNextTaskId(),
-        arguments: arguments, flow: flow);
+    var block = new _SyncBlock._(name, arguments: arguments, flow: flow);
     _stack.add(block);
     block._startSync();
   }
@@ -191,7 +190,7 @@ class TimelineTask {
   TimelineTask({TimelineTask? parent, String? filterKey})
       : _parent = parent,
         _filterKey = filterKey,
-        _taskId = _getNextTaskId() {}
+        _taskId = _getNextAsyncId() {}
 
   /// Create a task with an explicit [taskId]. This is useful if you are
   /// passing a task from one isolate to another.
@@ -336,9 +335,6 @@ class _SyncBlock {
   /// The name of this block.
   final String name;
 
-  /// Signpost needs help matching begin and end events.
-  final int taskId;
-
   /// An (optional) set of arguments which will be serialized to JSON and
   /// associated with this block.
   final Map? arguments;
@@ -348,18 +344,18 @@ class _SyncBlock {
 
   late final String _jsonArguments = _argumentsAsJson(arguments);
 
-  _SyncBlock._(this.name, this.taskId, {this.arguments, this.flow});
+  _SyncBlock._(this.name, {this.arguments, this.flow});
 
   /// Start this block of time.
   void _startSync() {
-    _reportTaskEvent(taskId, 'B', category, name, _jsonArguments);
+    _reportTaskEvent(0, 'B', category, name, _jsonArguments);
   }
 
   /// Finish this block of time. At this point, this block can no longer be
   /// used.
   void finish() {
     // Report event to runtime.
-    _reportTaskEvent(taskId, 'E', category, name, _jsonArguments);
+    _reportTaskEvent(0, 'E', category, name, _jsonArguments);
     final Flow? tempFlow = flow;
     if (tempFlow != null) {
       _reportFlowEvent(category, "${tempFlow.id}", tempFlow._type, tempFlow.id,
@@ -380,9 +376,8 @@ String _argumentsAsJson(Map? arguments) {
 @pragma("vm:recognized", "asm-intrinsic")
 external bool _isDartStreamEnabled();
 
-/// Returns the next task id.
-@pragma("vm:recognized", "asm-intrinsic")
-external int _getNextTaskId();
+/// Returns the next async task id.
+external int _getNextAsyncId();
 
 /// Returns the current value from the trace clock.
 external int _getTraceClock();

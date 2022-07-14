@@ -526,20 +526,31 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 }
 
-/// A concrete implementation of a [AugmentationImportElement].
-class AugmentationImportElementImpl extends UriReferencedElementImpl
+class AugmentationImportElementImpl extends _ExistingElementImpl
     implements AugmentationImportElement {
   @override
-  final LibraryAugmentationElement augmentation;
+  final int importKeywordOffset;
+
+  @override
+  final DirectiveUri uri;
 
   AugmentationImportElementImpl({
-    required this.augmentation,
-    required int nameOffset,
-  }) : super(null, nameOffset);
+    required this.importKeywordOffset,
+    required this.uri,
+  }) : super(null, importKeywordOffset);
 
   @override
   LibraryOrAugmentationElementImpl get enclosingElement {
     return super.enclosingElement as LibraryOrAugmentationElementImpl;
+  }
+
+  @override
+  LibraryAugmentationElementImpl? get importedAugmentation {
+    final uri = this.uri;
+    if (uri is DirectiveUriWithAugmentationImpl) {
+      return uri.augmentation;
+    }
+    return null;
   }
 
   @override
@@ -1671,6 +1682,19 @@ class DeferredImportElementPrefixImpl extends ImportElementPrefixImpl
 
 class DirectiveUriImpl implements DirectiveUri {}
 
+class DirectiveUriWithAugmentationImpl extends DirectiveUriWithSourceImpl
+    implements DirectiveUriWithAugmentation {
+  @override
+  late LibraryAugmentationElementImpl augmentation;
+
+  DirectiveUriWithAugmentationImpl({
+    required super.relativeUriString,
+    required super.relativeUri,
+    required super.source,
+    required this.augmentation,
+  });
+}
+
 class DirectiveUriWithLibraryImpl extends DirectiveUriWithSourceImpl
     implements DirectiveUriWithLibrary {
   @override
@@ -2619,7 +2643,11 @@ abstract class ElementImpl implements Element {
   E? thisOrAncestorOfType<E extends Element>() {
     Element? element = this;
     while (element != null && element is! E) {
-      element = element.enclosingElement;
+      if (element is CompilationUnitElement) {
+        element = element.enclosingElement2;
+      } else {
+        element = element.enclosingElement;
+      }
     }
     return element as E?;
   }
@@ -2697,7 +2725,12 @@ class ElementLocationImpl implements ElementLocation {
     Element? ancestor = element;
     while (ancestor != null) {
       components.insert(0, (ancestor as ElementImpl).identifier);
-      ancestor = ancestor.enclosingElement;
+      if (ancestor is CompilationUnitElementImpl) {
+        // TODO(scheglov) switch everything to `enclosingElement2`.
+        ancestor = ancestor.enclosingElement2;
+      } else {
+        ancestor = ancestor.enclosingElement;
+      }
     }
     _components = components;
   }
@@ -3887,6 +3920,8 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   @override
   final LibraryOrAugmentationElementImpl augmented;
 
+  LibraryElementLinkedData? linkedData;
+
   LibraryAugmentationElementImpl({
     required this.augmented,
     required super.nameOffset,
@@ -3897,15 +3932,19 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   List<ExtensionElement> get accessibleExtensions => throw UnimplementedError();
 
   @override
-  // TODO: implement exports2
-  List<ExportElement2> get exports2 => throw UnimplementedError();
+  List<ExportElement2> get exports2 {
+    linkedData?.read(this);
+    return _exports2;
+  }
 
   @override
   FeatureSet get featureSet => augmented.featureSet;
 
   @override
-  // TODO: implement imports2
-  List<ImportElement2> get imports2 => throw UnimplementedError();
+  List<ImportElement2> get imports2 {
+    linkedData?.read(this);
+    return _imports2;
+  }
 
   @override
   bool get isNonNullableByDefault => augmented.isNonNullableByDefault;
@@ -4241,7 +4280,28 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     return [
       _definingCompilationUnit,
       ..._partUnits,
+      ..._augmentationUnits,
     ];
+  }
+
+  List<CompilationUnitElementImpl> get _augmentationUnits {
+    final result = <CompilationUnitElementImpl>[];
+
+    void visitAugmentations(LibraryOrAugmentationElementImpl container) {
+      if (container is LibraryAugmentationElementImpl) {
+        result.add(container.definingCompilationUnit);
+      }
+      for (final import in container.augmentationImports) {
+        import as AugmentationImportElementImpl;
+        final augmentation = import.importedAugmentation;
+        if (augmentation != null) {
+          visitAugmentations(augmentation);
+        }
+      }
+    }
+
+    visitAugmentations(this);
+    return result;
   }
 
   List<CompilationUnitElement> get _partUnits {
@@ -4436,7 +4496,9 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
 
   set augmentationImports(List<AugmentationImportElement> imports) {
     for (final importElement in imports) {
-      (importElement as AugmentationImportElementImpl).enclosingElement = this;
+      importElement as AugmentationImportElementImpl;
+      importElement.enclosingElement = this;
+      importElement.importedAugmentation?.enclosingElement = this;
     }
     _augmentationImports = imports;
   }

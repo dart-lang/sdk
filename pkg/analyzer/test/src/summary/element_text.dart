@@ -155,20 +155,7 @@ class _ElementWriter {
         _writelnWithIndent('nameOffset: $nameOffset');
       }
 
-      _writeDocumentation(e);
-      _writeMetadata(e);
-
-      var imports = e.imports2
-          .where((import) => withSyntheticDartCoreImport || !import.isSynthetic)
-          .toList();
-      _writeElements('imports', imports, _writeImportElement);
-
-      _writeElements('exports', e.exports2, _writeExportElement);
-
-      _writelnWithIndent('definingUnit');
-      _withIndent(() {
-        _writeUnitElement(e.definingCompilationUnit);
-      });
+      _writeLibraryOrAugmentationElement(e);
 
       _writeElements('parts', e.parts2, _writePartElement);
 
@@ -259,6 +246,24 @@ class _ElementWriter {
     indent = '$savedIndent  ';
     f();
     indent = savedIndent;
+  }
+
+  void _writeAugmentationElement(LibraryAugmentationElement e) {
+    _writeLibraryOrAugmentationElement(e);
+  }
+
+  void _writeAugmentationImportElement(AugmentationImportElement e) {
+    final uri = e.uri;
+    _writeIndentedLine(() {
+      _writeDirectiveUri(e.uri);
+    });
+
+    _withIndent(() {
+      _writeMetadata(e);
+      if (uri is DirectiveUriWithAugmentation) {
+        _writeAugmentationElement(uri.augmentation);
+      }
+    });
   }
 
   void _writeBodyModifiers(ExecutableElement e) {
@@ -432,7 +437,9 @@ class _ElementWriter {
   }
 
   void _writeDirectiveUri(DirectiveUri uri) {
-    if (uri is DirectiveUriWithLibraryImpl) {
+    if (uri is DirectiveUriWithAugmentationImpl) {
+      buffer.write('${uri.augmentation.source.uri}');
+    } else if (uri is DirectiveUriWithLibraryImpl) {
       buffer.write('${uri.library.source.uri}');
     } else if (uri is DirectiveUriWithUnit) {
       buffer.write('${uri.unit.source.uri}');
@@ -604,6 +611,26 @@ class _ElementWriter {
     buffer.write(indent);
     f();
     buffer.writeln();
+  }
+
+  void _writeLibraryOrAugmentationElement(LibraryOrAugmentationElement e) {
+    _writeDocumentation(e);
+    _writeMetadata(e);
+
+    var imports = e.imports2
+        .where((import) => withSyntheticDartCoreImport || !import.isSynthetic)
+        .toList();
+    _writeElements('imports', imports, _writeImportElement);
+
+    _writeElements('exports', e.exports2, _writeExportElement);
+
+    _writeElements('augmentationImports', e.augmentationImports,
+        _writeAugmentationImportElement);
+
+    _writelnWithIndent('definingUnit');
+    _withIndent(() {
+      _writeUnitElement(e.definingCompilationUnit);
+    });
   }
 
   void _writelnWithIndent(String line) {

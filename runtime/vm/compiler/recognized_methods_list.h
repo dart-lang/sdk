@@ -97,9 +97,9 @@ namespace dart {
     0xc40903ac)                                                                \
   V(_SuspendState, _clone, SuspendState_clone, 0xae1a40a0)                     \
   V(_SuspendState, _createAsyncCallbacks, SuspendState_createAsyncCallbacks,   \
-    0x68be1bf3)                                                                \
+    0x967521b1)                                                                \
   V(_SuspendState, _createAsyncStarCallback,                                   \
-    SuspendState_createAsyncStarCallback, 0xfa7537e4)                          \
+    SuspendState_createAsyncStarCallback, 0xa50f923c)                          \
   V(_SuspendState, _resume, SuspendState_resume, 0x5d7a8489)                   \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 0x97728b46)             \
   V(_Double, _add, DoubleAdd, 0xea666327)                                      \
@@ -437,7 +437,6 @@ namespace dart {
   V(::, _getDefaultTag, UserTag_defaultTag, 0x6c19c8a5)                        \
   V(::, _getCurrentTag, Profiler_getCurrentTag, 0x70ead08e)                    \
   V(::, _isDartStreamEnabled, Timeline_isDartStreamEnabled, 0xc97aafb3)        \
-  V(::, _getNextTaskId, Timeline_getNextTaskId, 0x5b2b0b0b)                    \
 
 #define INTERNAL_LIB_INTRINSIC_LIST(V)                                         \
   V(::, allocateOneByteString, AllocateOneByteString, 0x9e7745d5)              \

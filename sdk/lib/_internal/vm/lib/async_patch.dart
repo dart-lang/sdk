@@ -39,7 +39,7 @@ class _AsyncStarStreamController<T> {
   @pragma("vm:entry-point")
   StreamController<T> controller;
   @pragma("vm:entry-point")
-  Function? asyncStarBody;
+  void Function(Object?)? asyncStarBody;
   bool isAdding = false;
   bool onListenReceived = false;
   bool isScheduled = false;
@@ -66,7 +66,7 @@ class _AsyncStarStreamController<T> {
     isSuspendedAtYield = false;
     final bool? argument = continuationArgument;
     continuationArgument = null;
-    asyncStarBody!(argument, null);
+    asyncStarBody!(argument);
   }
 
   void scheduleGenerator() {
@@ -169,8 +169,7 @@ class _AsyncStarStreamController<T> {
     controller.close();
   }
 
-  _AsyncStarStreamController(this.asyncStarBody)
-      : controller = new StreamController(sync: true) {
+  _AsyncStarStreamController() : controller = new StreamController(sync: true) {
     controller.onListen = this.onListen;
     controller.onResume = this.onResume;
     controller.onCancel = this.onCancel;
@@ -217,32 +216,22 @@ external void _moveNextDebuggerStepCheck(Function async_op);
 
 @pragma("vm:entry-point")
 class _SuspendState {
-  static const bool _trace = false;
-
   @pragma("vm:entry-point", "call")
   @pragma("vm:invisible")
   static Object? _initAsync<T>() {
-    if (_trace) print('_initAsync<$T>');
     return _Future<T>();
   }
 
   @pragma("vm:invisible")
   @pragma("vm:recognized", "other")
   void _createAsyncCallbacks() {
-    if (_trace) print('_createAsyncCallbacks');
-
     @pragma("vm:invisible")
     thenCallback(value) {
-      if (_trace) print('thenCallback (this=$this, value=$value)');
       _resume(value, null, null);
     }
 
     @pragma("vm:invisible")
     errorCallback(Object exception, StackTrace stackTrace) {
-      if (_trace) {
-        print('errorCallback (this=$this, '
-            'exception=$exception, stackTrace=$stackTrace)');
-      }
       _resume(null, exception, stackTrace);
     }
 
@@ -335,7 +324,6 @@ class _SuspendState {
   @pragma("vm:entry-point", "call")
   @pragma("vm:invisible")
   Object? _await(Object? object) {
-    if (_trace) print('_await (object=$object)');
     if (_thenCallback == null) {
       _createAsyncCallbacks();
     }
@@ -358,10 +346,6 @@ class _SuspendState {
   @pragma("vm:entry-point", "call")
   @pragma("vm:invisible")
   static Future _returnAsync(Object suspendState, Object? returnValue) {
-    if (_trace) {
-      print('_returnAsync (suspendState=$suspendState, '
-          'returnValue=$returnValue)');
-    }
     _Future future;
     if (suspendState is _SuspendState) {
       future = unsafeCast<_Future>(suspendState._functionData);
@@ -380,10 +364,6 @@ class _SuspendState {
   @pragma("vm:invisible")
   static Future _returnAsyncNotFuture(
       Object suspendState, Object? returnValue) {
-    if (_trace) {
-      print('_returnAsyncNotFuture (suspendState=$suspendState, '
-          'returnValue=$returnValue)');
-    }
     _Future future;
     if (suspendState is _SuspendState) {
       future = unsafeCast<_Future>(suspendState._functionData);
@@ -397,15 +377,13 @@ class _SuspendState {
   @pragma("vm:entry-point", "call")
   @pragma("vm:invisible")
   static Object? _initAsyncStar<T>() {
-    if (_trace) print('_initAsyncStar<$T>');
-    return _AsyncStarStreamController<T>(null);
+    return _AsyncStarStreamController<T>();
   }
 
   @pragma("vm:invisible")
   @pragma("vm:recognized", "other")
   _createAsyncStarCallback(_AsyncStarStreamController controller) {
-    controller.asyncStarBody = (value, _) {
-      if (_trace) print('asyncStarBody callback (value=$value)');
+    controller.asyncStarBody = (value) {
       _resume(value, null, null);
     };
   }
@@ -424,10 +402,6 @@ class _SuspendState {
   @pragma("vm:entry-point", "call")
   @pragma("vm:invisible")
   static void _returnAsyncStar(Object suspendState, Object? returnValue) {
-    if (_trace) {
-      print('_returnAsyncStar (suspendState=$suspendState, '
-          'returnValue=$returnValue)');
-    }
     final controller = unsafeCast<_AsyncStarStreamController>(
         unsafeCast<_SuspendState>(suspendState)._functionData);
     controller.close();
@@ -437,10 +411,6 @@ class _SuspendState {
   @pragma("vm:invisible")
   static Object? _handleException(
       Object suspendState, Object exception, StackTrace stackTrace) {
-    if (_trace) {
-      print('_handleException (suspendState=$suspendState, '
-          'exception=$exception, stackTrace=$stackTrace)');
-    }
     Object? functionData;
     bool isSync = true;
     if (suspendState is _SuspendState) {
@@ -469,14 +439,12 @@ class _SuspendState {
   @pragma("vm:entry-point", "call")
   @pragma("vm:invisible")
   static Object? _initSyncStar<T>() {
-    if (_trace) print('_initSyncStar<$T>');
     return _SyncStarIterable<T>();
   }
 
   @pragma("vm:entry-point", "call")
   @pragma("vm:invisible")
   Object? _suspendSyncStarAtStart(Object? object) {
-    if (_trace) print('_suspendSyncStarAtStart($object)');
     final data = _functionData;
     unsafeCast<_SyncStarIterable>(data)._stateAtStart = this;
     return data;

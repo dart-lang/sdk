@@ -104,6 +104,17 @@ class AugmentationKnownFileStateKind extends AugmentationFileStateKind {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    invalidateLibraryCycle();
+  }
+
+  @override
+  void invalidateLibraryCycle() {
+    augmented?.invalidateLibraryCycle();
+  }
+
+  @override
   bool isAugmentationOf(LibraryOrAugmentationFileKind container) {
     return uriFile == container.file;
   }
@@ -1688,7 +1699,7 @@ class ImportAugmentationDirectiveWithFile
   FileState get importedFile => uri.file;
 
   @override
-  Source? get importedSource => importedFile.source;
+  Source get importedSource => importedFile.source;
 
   @override
   void dispose() {
@@ -1839,7 +1850,23 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
       }
     }
 
-    // TODO(scheglov) Include augmentations.
+    // TODO(scheglov) Test how augmentations affect signatures.
+    void visitAugmentations(LibraryOrAugmentationFileKind kind) {
+      if (kind is AugmentationFileStateKind) {
+        files.add(kind.file);
+      }
+      for (final import in kind.augmentations) {
+        if (import is ImportAugmentationDirectiveWithFile) {
+          final augmentation = import.importedAugmentation;
+          if (augmentation != null) {
+            visitAugmentations(augmentation);
+          }
+        }
+      }
+    }
+
+    visitAugmentations(this);
+
     return files;
   }
 
@@ -1922,6 +1949,7 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
     _libraryCycle = cycle;
   }
 
+  @override
   void invalidateLibraryCycle() {
     _libraryCycle?.invalidate();
     _libraryCycle = null;
@@ -2084,6 +2112,9 @@ abstract class LibraryOrAugmentationFileKind extends FileStateKind {
     }
     return false;
   }
+
+  /// Invalidates the containing [LibraryFileStateKind] cycle.
+  void invalidateLibraryCycle() {}
 }
 
 class NamespaceDirectiveUris {

@@ -35,6 +35,12 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitAugmentationImportDirective(AugmentationImportDirective node) {
+    // TODO(scheglov) write test
+    node.metadata.accept(this);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
@@ -167,6 +173,12 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
+    node.metadata.accept(this);
+  }
+
+  @override
+  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    // TODO(scheglov) write test
     node.metadata.accept(this);
   }
 

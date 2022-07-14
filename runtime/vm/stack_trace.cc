@@ -133,13 +133,6 @@ ClosurePtr CallerClosureFinder::GetCallerInFutureImpl(const Object& future) {
   return GetCallerInFutureListener(listener);
 }
 
-ClosurePtr CallerClosureFinder::FindCallerInAsyncGenClosure(
-    const Context& receiver_context) {
-  // Get the async* _AsyncStarStreamController.
-  context_entry_ = receiver_context.At(Context::kControllerIndex);
-  return FindCallerInAsyncStarStreamController(context_entry_);
-}
-
 ClosurePtr CallerClosureFinder::FindCallerInAsyncStarStreamController(
     const Object& async_star_stream_controller) {
   ASSERT(async_star_stream_controller.IsInstance());
@@ -246,7 +239,7 @@ ClosurePtr CallerClosureFinder::FindCallerFromSuspendState(
   }
 }
 
-bool CallerClosureFinder::IsCompactAsyncCallback(const Function& function) {
+bool CallerClosureFinder::IsAsyncCallback(const Function& function) {
   parent_function_ = function.parent_function();
   auto kind = parent_function_.recognized_kind();
   return (kind == MethodRecognizer::kSuspendState_createAsyncCallbacks) ||
@@ -255,7 +248,7 @@ bool CallerClosureFinder::IsCompactAsyncCallback(const Function& function) {
 
 SuspendStatePtr CallerClosureFinder::GetSuspendStateFromAsyncCallback(
     const Closure& closure) {
-  ASSERT(IsCompactAsyncCallback(Function::Handle(closure.function())));
+  ASSERT(IsAsyncCallback(Function::Handle(closure.function())));
   // Async/async* handler only captures the receiver (SuspendState).
   receiver_context_ = closure.context();
   RELEASE_ASSERT(receiver_context_.num_variables() == 1);
@@ -266,7 +259,7 @@ ClosurePtr CallerClosureFinder::FindCaller(const Closure& receiver_closure) {
   receiver_function_ = receiver_closure.function();
   receiver_context_ = receiver_closure.context();
 
-  if (IsCompactAsyncCallback(receiver_function_)) {
+  if (IsAsyncCallback(receiver_function_)) {
     suspend_state_ = GetSuspendStateFromAsyncCallback(receiver_closure);
     return FindCallerFromSuspendState(suspend_state_);
   }
@@ -300,12 +293,6 @@ ClosurePtr CallerClosureFinder::FindCaller(const Closure& receiver_closure) {
   }
 
   return Closure::null();
-}
-
-ObjectPtr CallerClosureFinder::GetAsyncFuture(const Closure& receiver_closure) {
-  // Closure -> Context -> _Future.
-  receiver_context_ = receiver_closure.context();
-  return receiver_context_.At(Context::kAsyncFutureIndex);
 }
 
 ObjectPtr CallerClosureFinder::GetFutureFutureListener(const Object& future) {
@@ -462,7 +449,7 @@ void StackTraceUtils::UnwindAwaiterChain(
     if (function.IsNull()) {
       continue;
     }
-    if (caller_closure_finder->IsCompactAsyncCallback(function)) {
+    if (caller_closure_finder->IsAsyncCallback(function)) {
       suspend_state =
           caller_closure_finder->GetSuspendStateFromAsyncCallback(closure);
       const uword pc = suspend_state.pc();

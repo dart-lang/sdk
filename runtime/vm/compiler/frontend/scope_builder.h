@@ -154,7 +154,6 @@ class ScopeBuilder {
   TranslationHelper translation_helper_;
   Zone* zone_;
 
-  FunctionNodeHelper::AsyncMarker current_function_async_marker_;
   LocalScope* current_function_scope_;
   LocalScope* scope_;
   DepthState depth_;

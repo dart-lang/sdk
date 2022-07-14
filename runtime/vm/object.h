@@ -6996,13 +6996,6 @@ class Context : public Object {
   static const intptr_t kBytesPerElement = kCompressedWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
-  static const intptr_t kAwaitJumpVarIndex = 0;
-  static const intptr_t kAsyncFutureIndex = 1;
-  static const intptr_t kControllerIndex = 1;
-  // Expected context index of chained futures in recognized async functions.
-  // These are used to unwind async stacks.
-  static const intptr_t kIsSyncIndex = 2;
-
   struct ArrayTraits {
     static intptr_t elements_start_offset() { return sizeof(UntaggedContext); }
     static constexpr intptr_t kElementSize = kBytesPerElement;
