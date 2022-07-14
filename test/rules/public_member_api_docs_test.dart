@@ -38,4 +38,16 @@ enum A {
       lint('public_member_api_docs', 44, 1),
     ]);
   }
+
+  /// https://github.com/dart-lang/linter/issues/3525
+  test_extension() async {
+    await assertDiagnostics(r'''
+extension E on Object {
+  void f() { }
+}
+''', [
+      lint('public_member_api_docs', 10, 1),
+      lint('public_member_api_docs', 31, 1),
+    ]);
+  }
 }

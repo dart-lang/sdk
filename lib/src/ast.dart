@@ -367,6 +367,9 @@ AstNode? _getNodeToAnnotate(Declaration node) {
   if (node is EnumDeclaration) {
     return node.name;
   }
+  if (node is ExtensionDeclaration) {
+    return node.name;
+  }
   if (node is FunctionDeclaration) {
     return node.name;
   }
