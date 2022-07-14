@@ -69,6 +69,19 @@ abstract class AbstractCallHierarchyTest extends AbstractSingleUnitTest {
   SourceRange entireRange(String code) =>
       SourceRange(0, withoutMarkers(code).length);
 
+  Future<CallHierarchyItem?> findTarget(String code) async {
+    final marker = code.indexOf('^');
+    expect(marker, greaterThanOrEqualTo(0));
+    addTestSource(withoutMarkers(code));
+
+    final result = await getResolvedUnit(testFile);
+
+    return DartCallHierarchyComputer(result).findTarget(marker);
+  }
+
+  Future<ResolvedUnitResult> getResolvedUnit(String file) async =>
+      await (await session).getResolvedUnit(file) as ResolvedUnitResult;
+
   // Gets the expected range that follows the string [prefix] in [code] with a
   // length of [match.length].
   SourceRange rangeAfterPrefix(String prefix, String code, String match) =>
@@ -111,16 +124,6 @@ class CallHierarchyComputerFindTargetTest extends AbstractCallHierarchyTest {
     expect(target, matcher);
   }
 
-  Future<CallHierarchyItem?> findTarget(String code) async {
-    final marker = code.indexOf('^');
-    expect(marker, greaterThanOrEqualTo(0));
-    addTestSource(withoutMarkers(code));
-    final result =
-        await (await session).getResolvedUnit(testFile) as ResolvedUnitResult;
-
-    return DartCallHierarchyComputer(result).findTarget(marker);
-  }
-
   @override
   void setUp() {
     super.setUp();
@@ -128,7 +131,7 @@ class CallHierarchyComputerFindTargetTest extends AbstractCallHierarchyTest {
   }
 
   Future<void> test_args() async {
-    await expectNoTarget('main(int ^a) {}');
+    await expectNoTarget('f(int ^a) {}');
   }
 
   Future<void> test_block() async {
@@ -580,25 +583,18 @@ class CallHierarchyComputerIncomingCallsTest extends AbstractCallHierarchyTest {
   late SearchEngine searchEngine;
 
   Future<List<CallHierarchyCalls>> findIncomingCalls(String code) async {
-    final marker = code.indexOf('^');
-    expect(marker, greaterThanOrEqualTo(0));
-    addTestSource(withoutMarkers(code));
-    final session_ = await session;
+    final target = (await findTarget(code))!;
+    return findIncomingCallsForTarget(target);
+  }
 
-    var result = await session_.getResolvedUnit(testFile) as ResolvedUnitResult;
+  Future<List<CallHierarchyCalls>> findIncomingCallsForTarget(
+    CallHierarchyItem target,
+  ) async {
+    final result = await getResolvedUnit(target.file);
     expect(result.errors, isEmpty);
-    var computer = DartCallHierarchyComputer(result);
-    // It's possible that the target is in a different file (because we were
-    // invoked on a call and not a declaration), so fetch the resolved unit
-    // for the target.
-    final target = computer.findTarget(marker)!;
-    if (target.file != testFile) {
-      result =
-          await session_.getResolvedUnit(target.file) as ResolvedUnitResult;
-      expect(result.errors, isEmpty);
-      computer = DartCallHierarchyComputer(result);
-    }
-    return computer.findIncomingCalls(target, searchEngine);
+
+    return DartCallHierarchyComputer(result)
+        .findIncomingCalls(target, searchEngine);
   }
 
   @override
@@ -716,6 +712,28 @@ import 'test.dart';
             ]),
       ]),
     );
+  }
+
+  Future<void> test_fileModifications() async {
+    final contents = '''
+void o^ne() {}
+void two() {
+  one();
+}
+    ''';
+
+    final target = (await findTarget(contents))!;
+
+    // Ensure there are some results before modification.
+    var calls = await findIncomingCallsForTarget(target);
+    expect(calls, isNotEmpty);
+
+    // Modify the file so that the target offset is no longer the original item.
+    addTestSource(testCode.replaceAll('one()', 'three()'));
+
+    // Ensure there are now no results for the original target.
+    calls = await findIncomingCallsForTarget(target);
+    expect(calls, isEmpty);
   }
 
   Future<void> test_function() async {
@@ -1068,25 +1086,17 @@ class CallHierarchyComputerOutgoingCallsTest extends AbstractCallHierarchyTest {
   late String otherFile;
 
   Future<List<CallHierarchyCalls>> findOutgoingCalls(String code) async {
-    final marker = code.indexOf('^');
-    expect(marker, greaterThanOrEqualTo(0));
-    addTestSource(withoutMarkers(code));
-    final session_ = await session;
+    final target = (await findTarget(code))!;
+    return findOutgoingCallsForTarget(target);
+  }
 
-    var result = await session_.getResolvedUnit(testFile) as ResolvedUnitResult;
+  Future<List<CallHierarchyCalls>> findOutgoingCallsForTarget(
+    CallHierarchyItem target,
+  ) async {
+    final result = await getResolvedUnit(target.file);
     expect(result.errors, isEmpty);
-    var computer = DartCallHierarchyComputer(result);
-    // It's possible that the target is in a different file (because we were
-    // invoked on a call and not a declaration), so fetch the resolved unit
-    // for the target.
-    final target = computer.findTarget(marker)!;
-    if (target.file != testFile) {
-      result =
-          await session_.getResolvedUnit(target.file) as ResolvedUnitResult;
-      expect(result.errors, isEmpty);
-      computer = DartCallHierarchyComputer(result);
-    }
-    return computer.findOutgoingCalls(target);
+
+    return DartCallHierarchyComputer(result).findOutgoingCalls(target);
   }
 
   @override
@@ -1178,6 +1188,28 @@ extension StringExtension on String {
             ]),
       ]),
     );
+  }
+
+  Future<void> test_fileModifications() async {
+    final contents = '''
+void o^ne() {
+  two();
+}
+void two() {}
+    ''';
+
+    final target = (await findTarget(contents))!;
+
+    // Ensure there are some results before modification.
+    var calls = await findOutgoingCallsForTarget(target);
+    expect(calls, isNotEmpty);
+
+    // Modify the file so that the target offset is no longer the original item.
+    addTestSource(testCode.replaceAll('one()', 'three()'));
+
+    // Ensure there are now no results for the original target.
+    calls = await findOutgoingCallsForTarget(target);
+    expect(calls, isEmpty);
   }
 
   Future<void> test_function() async {
