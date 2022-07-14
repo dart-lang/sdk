@@ -9,4 +9,4 @@
 
 import "ast.dart";
 
-Version defaultLanguageVersion = const Version(2, 18);
+Version defaultLanguageVersion = const Version(2, 19);

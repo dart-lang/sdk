@@ -35,6 +35,17 @@ Element? _getContainer(Element element) {
       (ancestor) => containerKinds.contains(ancestor.kind));
 }
 
+/// Gets a user-friendly display name for [element].
+String _getDisplayName(Element element) {
+  return element is CompilationUnitElement
+      ? element.source.shortName
+      : element is PropertyAccessorElement
+          ? element.isGetter
+              ? 'get ${element.displayName}'
+              : 'set ${element.displayName}'
+          : element.displayName;
+}
+
 /// A [CallHierarchyItem] and a set of ranges that call to or from it.
 class CallHierarchyCalls {
   final CallHierarchyItem item;
@@ -109,16 +120,6 @@ class CallHierarchyItem {
     return SourceRange(elementImpl.codeOffset!, elementImpl.codeLength!);
   }
 
-  static String _getDisplayName(Element element) {
-    return element is CompilationUnitElement
-        ? element.source.shortName
-        : element is PropertyAccessorElement
-            ? element.isGetter
-                ? 'get ${element.displayName}'
-                : 'set ${element.displayName}'
-            : element.displayName;
-  }
-
   /// Returns the [SourceRange] of the name for [element].
   static SourceRange _nameRangeForElement(Element element) {
     // For synthetic items (like implicit constructors), use the nonSynthetic
@@ -185,6 +186,9 @@ class DartCallHierarchyComputer {
 
   /// Finds incoming calls to [target], returning the elements that call them
   /// and ranges of those calls within.
+  ///
+  /// Returns an empty list if [target] is not valid, including if source code
+  /// has changed and its offset is no longer correct.
   Future<List<CallHierarchyCalls>> findIncomingCalls(
     CallHierarchyItem target,
     SearchEngine searchEngine,
@@ -192,7 +196,7 @@ class DartCallHierarchyComputer {
     assert(target.file == _result.path);
     final node = _findTargetNode(target.nameRange.offset);
     var element = _getElementOfNode(node);
-    if (element == null) {
+    if (element == null || !_isMatchingElement(element, target)) {
       return [];
     }
 
@@ -242,12 +246,18 @@ class DartCallHierarchyComputer {
 
   /// Finds outgoing calls from [target], returning the elements that are called
   /// and the ranges that call them.
+  ///
+  /// Returns an empty list if [target] is not valid, including if source code
+  /// has changed and its offset is no longer correct.
   Future<List<CallHierarchyCalls>> findOutgoingCalls(
     CallHierarchyItem target,
   ) async {
     assert(target.file == _result.path);
     final node = _findTargetNode(target.nameRange.offset);
-    if (node == null) {
+    final element = _getElementOfNode(node);
+    if (node == null ||
+        element == null ||
+        !_isMatchingElement(element, target)) {
       return [];
     }
 
@@ -357,6 +367,15 @@ class DartCallHierarchyComputer {
     }
 
     return element;
+  }
+
+  /// Checks whether [element] is a match for [target].
+  ///
+  /// This is used to ensure calls are only returned for the expected target
+  /// if source code has changed since the earlier request that provided
+  /// [target] to the client.
+  bool _isMatchingElement(Element element, CallHierarchyItem target) {
+    return _getDisplayName(element) == target.displayName;
   }
 
   /// Returns the [SourceRange] to use for [node].
