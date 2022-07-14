@@ -48,4 +48,4 @@ worlds:
           print(foo == bar);
         }
     expectedLibraryCount: 3
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

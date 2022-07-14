@@ -53,4 +53,4 @@ worlds:
           static final int staticFinalField = 42;
         }
     expectedLibraryCount: 1
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

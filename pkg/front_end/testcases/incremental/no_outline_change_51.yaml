@@ -40,7 +40,7 @@ worlds:
           return "foo!";
         }
     expectedLibraryCount: 2
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly
 
   - entry: main.dart
     experiments: alternative-invalidation-strategy
@@ -56,4 +56,4 @@ worlds:
           return "bar";
         }
     expectedLibraryCount: 2
-    expectsRebuildBodiesOnly: false # part changed its outline.
+    advancedInvalidation: outlineChange # part changed its outline.

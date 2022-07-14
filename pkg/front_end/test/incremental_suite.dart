@@ -45,7 +45,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
     show DiagnosticMessageFromJson, FormattedMessage;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show IncrementalCompiler, RecorderForTesting;
+    show AdvancedInvalidationResult, IncrementalCompiler, RecorderForTesting;
 
 import 'package:front_end/src/fasta/incremental_serializer.dart'
     show IncrementalSerializer;
@@ -109,6 +109,11 @@ void main([List<String> arguments = const []]) =>
 
 final ExpectationSet staticExpectationSet =
     new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
+
+class Flags {
+  /// The expected result of the advanced invalidation.
+  static const String advancedInvalidation = 'advancedInvalidation';
+}
 
 const String EXPECTATIONS = '''
 [
@@ -181,7 +186,7 @@ const String EXPECTATIONS = '''
     "group": "Fail"
   },
   {
-    "name": "UnexpectedRebuildBodiesOnly",
+    "name": "UnexpectedAdvancedInvalidation",
     "group": "Fail"
   },
   {
@@ -232,8 +237,8 @@ final Expectation MissingPlatformLibraries =
     staticExpectationSet["MissingPlatformLibraries"];
 final Expectation UnexpectedPlatformLibraries =
     staticExpectationSet["UnexpectedPlatformLibraries"];
-final Expectation UnexpectedRebuildBodiesOnly =
-    staticExpectationSet["UnexpectedRebuildBodiesOnly"];
+final Expectation UnexpectedAdvancedInvalidation =
+    staticExpectationSet["UnexpectedAdvancedInvalidation"];
 final Expectation UnexpectedEntryToLibraryCount =
     staticExpectationSet["UnexpectedEntryToLibraryCount"];
 final Expectation LibraryCountMismatch =
@@ -1007,16 +1012,18 @@ class NewWorldTest {
         }
       }
 
-      if (world["expectsRebuildBodiesOnly"] != null) {
-        bool didRebuildBodiesOnly =
-            compiler.recorderForTesting.rebuildBodiesCount! > 0;
-        if (world["expectsRebuildBodiesOnly"] != didRebuildBodiesOnly) {
+      String? expectedAdvancedInvalidation = world[Flags.advancedInvalidation];
+      if (expectedAdvancedInvalidation != null) {
+        AdvancedInvalidationResult? actualAdvancedInvalidation =
+            compiler.recorderForTesting.advancedInvalidationResult;
+        if (expectedAdvancedInvalidation != actualAdvancedInvalidation?.name) {
           return new Result<TestData>(
               data,
-              UnexpectedRebuildBodiesOnly,
-              "Expected didRebuildBodiesOnly="
-              "${world["expectsRebuildBodiesOnly"]}, "
-              "didRebuildBodiesOnly=${didRebuildBodiesOnly}.");
+              UnexpectedAdvancedInvalidation,
+              "Expected ${Flags.advancedInvalidation}: "
+              "$expectedAdvancedInvalidation, "
+              "${Flags.advancedInvalidation}: "
+              "${actualAdvancedInvalidation?.name}.");
         }
       }
 
@@ -2147,6 +2154,7 @@ class TestIncrementalCompiler extends IncrementalCompiler {
 
 class TestRecorderForTesting extends RecorderForTesting {
   Set<Uri>? invalidatedImportUrisForTesting;
+  AdvancedInvalidationResult? advancedInvalidationResult;
   int? rebuildBodiesCount;
 
   @override
@@ -2168,6 +2176,16 @@ class TestRecorderForTesting extends RecorderForTesting {
   @override
   void recordRebuildBodiesCount(int count) {
     rebuildBodiesCount = count;
+    assert(
+        count == 0 ||
+            advancedInvalidationResult == AdvancedInvalidationResult.bodiesOnly,
+        "Unexpected successful advanced invalidation: "
+        "${advancedInvalidationResult}");
+  }
+
+  @override
+  void recordAdvancedInvalidationResult(AdvancedInvalidationResult result) {
+    advancedInvalidationResult = result;
   }
 
   @override

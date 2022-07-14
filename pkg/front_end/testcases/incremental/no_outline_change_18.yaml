@@ -41,4 +41,4 @@ worlds:
           print("exports!")
         }
     expectedLibraryCount: 3
-    expectsRebuildBodiesOnly: false # For now, libraries with errors cannot have bodies rebuild.
+    advancedInvalidation: problemsInLibrary # For now, libraries with errors cannot have bodies rebuild.

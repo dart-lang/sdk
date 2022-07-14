@@ -59,4 +59,4 @@ worlds:
 
         enum CompilationStrategy { direct, toKernel, toData, fromData }
     expectedLibraryCount: 2
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

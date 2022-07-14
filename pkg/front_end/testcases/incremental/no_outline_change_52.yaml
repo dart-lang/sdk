@@ -45,4 +45,4 @@ worlds:
           }
         }
     expectedLibraryCount: 2
-    expectsRebuildBodiesOnly: false
+    advancedInvalidation: mixin

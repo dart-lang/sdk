@@ -52,4 +52,4 @@ worlds:
         }
         mainHello() {}
     expectedLibraryCount: 4
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

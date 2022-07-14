@@ -33,4 +33,4 @@ worlds:
           void operator []=(int index, int value) => null;
         }
     expectedLibraryCount: 1
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly
