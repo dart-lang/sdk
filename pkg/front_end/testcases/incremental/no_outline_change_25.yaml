@@ -48,4 +48,4 @@ worlds:
           }
         }
     expectedLibraryCount: 1
-    expectsRebuildBodiesOnly: false # For now, libraries with errors cannot have bodies rebuild.
+    advancedInvalidation: problemsInLibrary # For now, libraries with errors cannot have bodies rebuild.

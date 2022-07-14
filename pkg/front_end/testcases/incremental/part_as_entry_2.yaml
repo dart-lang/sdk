@@ -29,7 +29,7 @@ worlds:
     invalidate:
       - lib.dart
     expectedLibraryCount: 2
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly
 
   - entry: entry.dart
     experiments: alternative-invalidation-strategy
@@ -39,4 +39,4 @@ worlds:
     invalidate:
       - lib1.dart
     expectedLibraryCount: 2
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

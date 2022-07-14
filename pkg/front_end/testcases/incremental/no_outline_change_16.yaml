@@ -50,4 +50,4 @@ worlds:
           }
         }
     expectedLibraryCount: 2
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

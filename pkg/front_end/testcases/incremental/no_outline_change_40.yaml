@@ -55,7 +55,7 @@ worlds:
           a.baz();
         }
     expectedLibraryCount: 3
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly
   - entry: main.dart
     experiments: alternative-invalidation-strategy
     worldType: updated
@@ -76,4 +76,4 @@ worlds:
           boz() { return 123; }
         }
     expectedLibraryCount: 3
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

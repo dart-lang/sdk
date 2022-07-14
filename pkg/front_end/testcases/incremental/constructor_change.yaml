@@ -57,7 +57,7 @@ worlds:
           }
         }
     expectedLibraryCount: 4
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly
   - entry: main.dart
     experiments: alternative-invalidation-strategy
     worldType: updated
@@ -76,4 +76,4 @@ worlds:
           print("Done!");
         }
     expectedLibraryCount: 4
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

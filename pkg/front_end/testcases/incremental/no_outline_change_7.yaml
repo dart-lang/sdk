@@ -90,4 +90,4 @@ worlds:
         @useMeAsAnnotation
         enum CompilationStrategy { @useMeAsAnnotation direct, @useMeAsAnnotation toKernel, @useMeAsAnnotation toData, @useMeAsAnnotation fromData }
     expectedLibraryCount: 2
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

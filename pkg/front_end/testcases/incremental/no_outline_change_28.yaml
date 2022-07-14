@@ -85,4 +85,5 @@ worlds:
           print("top level method topLevelD!");
         }
     expectedLibraryCount: 1
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly
+

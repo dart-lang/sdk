@@ -1055,6 +1055,7 @@ rebasing
 rebind
 rebuild
 rebuilds
+rebuilt
 recalculating
 recalculation
 recall

@@ -37,7 +37,7 @@ worlds:
           property = 87;
         }
     expectedLibraryCount: 4
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly
   - entry: main.dart
     experiments: alternative-invalidation-strategy
     worldType: updated
@@ -50,7 +50,7 @@ worlds:
           print(123);
         }
     expectedLibraryCount: 4
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly
   - entry: main.dart
     experiments: alternative-invalidation-strategy
     worldType: updated
@@ -64,4 +64,4 @@ worlds:
           property = property;
         }
     expectedLibraryCount: 4
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

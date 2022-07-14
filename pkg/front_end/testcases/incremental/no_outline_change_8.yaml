@@ -41,4 +41,4 @@ worlds:
           foo.x = "hello";
         }
     expectedLibraryCount: 1
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

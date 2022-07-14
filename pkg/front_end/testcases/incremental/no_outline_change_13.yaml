@@ -39,4 +39,4 @@ worlds:
           print(prefix.Foo.BAR);
         }
     expectedLibraryCount: 3
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

@@ -40,4 +40,4 @@ worlds:
           A1.foo2(){}
         }
     expectedLibraryCount: 1
-    expectsRebuildBodiesOnly: false
+    advancedInvalidation: problemsInLibrary

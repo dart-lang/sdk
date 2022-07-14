@@ -50,4 +50,4 @@ worlds:
           print('method2');
         }
     expectedLibraryCount: 1
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

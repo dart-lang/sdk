@@ -49,4 +49,4 @@ worlds:
           static void set setter2(String s) {}
         }
     expectedLibraryCount: 1
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

@@ -41,5 +41,5 @@ worlds:
     invalidate:
       - package:flutter/src/widgets/framework.dart
     expectedLibraryCount: 3
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly
 

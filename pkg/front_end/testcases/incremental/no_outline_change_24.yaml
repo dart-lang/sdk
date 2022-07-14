@@ -28,4 +28,4 @@ worlds:
         void foo() {}
         void foo() {}
     expectedLibraryCount: 1
-    expectsRebuildBodiesOnly: false
+    advancedInvalidation: problemsInLibrary
