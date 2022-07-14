@@ -28,6 +28,14 @@ import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
+class DefiningLinkingUnit extends LinkingUnit {
+  DefiningLinkingUnit({
+    required super.reference,
+    required super.node,
+    required super.element,
+  });
+}
+
 class ImplicitEnumNodes {
   final EnumElementImpl element;
   final ast.NamedTypeImpl valuesTypeNode;
@@ -133,8 +141,10 @@ class LibraryBuilder {
   /// Build elements for declarations in the library units, add top-level
   /// declarations to the local scope, for combining into export scopes.
   void buildElements() {
-    element.exports2 = kind.exports.map(_buildExport).toList();
-    element.imports2 = kind.imports.map(_buildImport).toList();
+    _buildDirectives(
+      kind: kind,
+      element: element,
+    );
 
     for (var linkingUnit in units) {
       var elementBuilder = ElementBuilder(
@@ -142,7 +152,7 @@ class LibraryBuilder {
         unitReference: linkingUnit.reference,
         unitElement: linkingUnit.element,
       );
-      if (linkingUnit.isDefiningUnit) {
+      if (linkingUnit is DefiningLinkingUnit) {
         elementBuilder.buildLibraryElementChildren(linkingUnit.node);
       }
       elementBuilder.buildDeclarationElements(linkingUnit.node);
@@ -347,7 +357,6 @@ class LibraryBuilder {
 
     units.add(
       LinkingUnit(
-        isDefiningUnit: false,
         reference: unitReference,
         node: unitNode,
         element: unitElement,
@@ -406,6 +415,83 @@ class LibraryBuilder {
     }
   }
 
+  AugmentationImportElementImpl _buildAugmentationImport(
+    LibraryOrAugmentationElementImpl augmentedElement,
+    ImportAugmentationDirectiveState state,
+  ) {
+    final DirectiveUri uri;
+    if (state is ImportAugmentationDirectiveWithFile) {
+      final importedAugmentation = state.importedAugmentation;
+      if (importedAugmentation != null) {
+        final importedFile = importedAugmentation.file;
+
+        final unitNode = importedFile.parse();
+        final unitElement = CompilationUnitElementImpl(
+          source: importedFile.source,
+          // TODO(scheglov) Remove this parameter.
+          librarySource: importedFile.source,
+          lineInfo: unitNode.lineInfo,
+        );
+        unitElement.setCodeRange(0, unitNode.length);
+
+        final unitReference =
+            reference.getChild('@augmentation').getChild(importedFile.uriStr);
+        _bindReference(unitReference, unitElement);
+
+        units.add(
+          DefiningLinkingUnit(
+            reference: unitReference,
+            node: unitNode,
+            element: unitElement,
+          ),
+        );
+
+        final augmentation = LibraryAugmentationElementImpl(
+          augmented: augmentedElement,
+          nameOffset: -1, // TODO(scheglov) fix it
+        );
+        augmentation.definingCompilationUnit = unitElement;
+
+        _buildDirectives(
+          kind: importedAugmentation,
+          element: augmentation,
+        );
+
+        uri = DirectiveUriWithAugmentationImpl(
+          relativeUriString: state.uri.relativeUriStr,
+          relativeUri: state.uri.relativeUri,
+          source: importedFile.source,
+          augmentation: augmentation,
+        );
+      } else {
+        uri = DirectiveUriWithSourceImpl(
+          relativeUriString: state.uri.relativeUriStr,
+          relativeUri: state.uri.relativeUri,
+          source: state.importedSource,
+        );
+      }
+    } else {
+      final selectedUri = state.uri;
+      if (selectedUri is file_state.DirectiveUriWithUri) {
+        uri = DirectiveUriWithRelativeUriImpl(
+          relativeUriString: selectedUri.relativeUriStr,
+          relativeUri: selectedUri.relativeUri,
+        );
+      } else if (selectedUri is file_state.DirectiveUriWithString) {
+        uri = DirectiveUriWithRelativeUriStringImpl(
+          relativeUriString: selectedUri.relativeUriStr,
+        );
+      } else {
+        uri = DirectiveUriImpl();
+      }
+    }
+
+    return AugmentationImportElementImpl(
+      importKeywordOffset: -1, // TODO(scheglov) fix it
+      uri: uri,
+    );
+  }
+
   List<NamespaceCombinator> _buildCombinators(
     List<UnlinkedCombinator> combinators2,
   ) {
@@ -419,6 +505,20 @@ class LibraryBuilder {
         // TODO(scheglov) Why no offsets?
         return HideElementCombinatorImpl()..hiddenNames = unlinked.names;
       }
+    }).toList();
+  }
+
+  /// Builds directive elements, for the library and recursively for its
+  /// augmentations.
+  void _buildDirectives({
+    required LibraryOrAugmentationFileKind kind,
+    required LibraryOrAugmentationElementImpl element,
+  }) {
+    element.exports2 = kind.exports.map(_buildExport).toList();
+    element.imports2 = kind.imports.map(_buildImport).toList();
+
+    element.augmentationImports = kind.augmentations.map((state) {
+      return _buildAugmentationImport(element, state);
     }).toList();
   }
 
@@ -660,8 +760,7 @@ class LibraryBuilder {
       _bindReference(unitReference, unitElement);
 
       linkingUnits.add(
-        LinkingUnit(
-          isDefiningUnit: true,
+        DefiningLinkingUnit(
           reference: unitReference,
           node: libraryUnitNode,
           element: unitElement,
@@ -695,7 +794,6 @@ class LibraryBuilder {
 
           linkingUnits.add(
             LinkingUnit(
-              isDefiningUnit: false,
               reference: unitReference,
               node: partUnitNode,
               element: unitElement,
@@ -761,13 +859,11 @@ class LibraryBuilder {
 }
 
 class LinkingUnit {
-  final bool isDefiningUnit;
   final Reference reference;
   final ast.CompilationUnitImpl node;
   final CompilationUnitElementImpl element;
 
   LinkingUnit({
-    required this.isDefiningUnit,
     required this.reference,
     required this.node,
     required this.element,

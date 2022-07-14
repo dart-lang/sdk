@@ -24,6 +24,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   final CompilationUnitElementImpl _unitElement;
 
   var _isFirstLibraryDirective = true;
+  var _augmentationDirectiveIndex = 0;
   var _exportDirectiveIndex = 0;
   var _importDirectiveIndex = 0;
   var _partDirectiveIndex = 0;
@@ -74,6 +75,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         }
       }
     }
+  }
+
+  @override
+  void visitAugmentationImportDirective(AugmentationImportDirective node) {
+    final index = _augmentationDirectiveIndex++;
+    final element = _libraryElement.augmentationImports[index];
+    element as AugmentationImportElementImpl;
+    element.metadata = _buildAnnotations(node.metadata);
   }
 
   @override
@@ -737,6 +746,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     importElement as ImportElement2Impl;
     importElement.metadata = _buildAnnotations(node.metadata);
     node.element = importElement;
+  }
+
+  @override
+  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    // TODO: implement visitLibraryAugmentationDirective
+    // super.visitLibraryAugmentationDirective(node);
   }
 
   @override

@@ -25366,6 +25366,126 @@ library
 ''');
   }
 
+  test_library_augmentationImports_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class A {}
+''');
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+class B {}
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class A @35
+            constructors
+              synthetic @-1
+  definingUnit
+    classes
+      class B @31
+        constructors
+          synthetic @-1
+''');
+
+    final import_0 = library.augmentationImports[0];
+    final augmentation = import_0.importedAugmentation!;
+    expect(augmentation.enclosingElement, same(library));
+  }
+
+  test_library_augmentationImports_noRelativeUriStr() async {
+    final library = await buildLibrary(r'''
+import augment '${'foo'}.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    noRelativeUriString
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUri_emptyUriSelf() async {
+    final library = await buildLibrary(r'''
+import augment '';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    source 'package:test/test.dart'
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUri_noSource() async {
+    final library = await buildLibrary(r'''
+import augment 'foo:bar';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    relativeUri 'foo:bar'
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUri_notAugmentation_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library my.lib;
+''');
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUri_notAugmentation_part() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of other.lib;
+''');
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUri_notExists() async {
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUriString() async {
+    final library = await buildLibrary(r'''
+import augment ':';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    relativeUriString ':'
+  definingUnit
+''');
+  }
+
   test_library_documented_lines() async {
     var library = await buildLibrary('''
 /// aaa

@@ -461,6 +461,11 @@ class LibraryReader {
         libraryElement: libraryElement,
       );
     });
+    libraryElement.augmentationImports = _reader.readTypedList(() {
+      return _readAugmentationImportElement(
+        libraryElement: libraryElement,
+      );
+    });
     LibraryElementFlags.read(_reader, libraryElement);
 
     for (final import in libraryElement.imports2) {
@@ -507,6 +512,38 @@ class LibraryReader {
       _reference.getChild('dynamic').element = DynamicElementImpl.instance;
       _reference.getChild('Never').element = NeverElementImpl.instance;
     }
+  }
+
+  LibraryAugmentationElementImpl _readAugmentationElement({
+    required LibraryOrAugmentationElementImpl augmented,
+    required LibraryElementImpl libraryElement,
+    required Source unitSource,
+  }) {
+    final definingUnit = _readUnitElement(
+      libraryElement: libraryElement,
+      librarySource: unitSource,
+      unitSource: unitSource,
+    );
+
+    final augmentation = LibraryAugmentationElementImpl(
+      augmented: augmented,
+      nameOffset: -1, // TODO(scheglov) implement, test
+    );
+    augmentation.definingCompilationUnit = definingUnit;
+
+    return augmentation;
+  }
+
+  AugmentationImportElementImpl _readAugmentationImportElement({
+    required LibraryElementImpl libraryElement,
+  }) {
+    final uri = _readDirectiveUri(
+      libraryElement: libraryElement,
+    );
+    return AugmentationImportElementImpl(
+      importKeywordOffset: -1, // TODO(scheglov) implement, test
+      uri: uri,
+    );
   }
 
   ClassElementImpl _readClassElement(
@@ -639,6 +676,26 @@ class LibraryReader {
     final kindIndex = _reader.readByte();
     final kind = DirectiveUriKind.values[kindIndex];
     switch (kind) {
+      case DirectiveUriKind.withAugmentation:
+        final parent = readWithSource();
+        final augmentation = _readAugmentationElement(
+          augmented: libraryElement,
+          libraryElement: libraryElement,
+          unitSource: parent.source,
+        );
+        return DirectiveUriWithAugmentationImpl(
+          relativeUriString: parent.relativeUriString,
+          relativeUri: parent.relativeUri,
+          source: parent.source,
+          augmentation: augmentation,
+        );
+      case DirectiveUriKind.withLibrary:
+        final parent = readWithSource();
+        return DirectiveUriWithLibraryImpl.read(
+          relativeUriString: parent.relativeUriString,
+          relativeUri: parent.relativeUri,
+          source: parent.source,
+        );
       case DirectiveUriKind.withUnit:
         final parent = readWithSource();
         final unitElement = _readUnitElement(
@@ -650,13 +707,6 @@ class LibraryReader {
           relativeUriString: parent.relativeUriString,
           relativeUri: parent.relativeUri,
           unit: unitElement,
-        );
-      case DirectiveUriKind.withLibrary:
-        final parent = readWithSource();
-        return DirectiveUriWithLibraryImpl.read(
-          relativeUriString: parent.relativeUriString,
-          relativeUri: parent.relativeUri,
-          source: parent.source,
         );
       case DirectiveUriKind.withSource:
         return readWithSource();

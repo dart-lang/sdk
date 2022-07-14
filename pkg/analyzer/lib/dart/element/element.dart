@@ -56,12 +56,19 @@ import 'package:pub_semver/pub_semver.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class AugmentationImportElement implements UriReferencedElement {
-  /// Returns the augmentation library that this element imports.
-  LibraryAugmentationElement get augmentation;
-
+abstract class AugmentationImportElement implements _ExistingElement {
   @override
   LibraryOrAugmentationElement get enclosingElement;
+
+  /// Returns the [LibraryAugmentationElement], if [uri] is a
+  /// [DirectiveUriWithAugmentation].
+  LibraryAugmentationElement? get importedAugmentation;
+
+  /// The offset of the `import` keyword.
+  int get importKeywordOffset;
+
+  /// The interpretation of the URI specified in the directive.
+  DirectiveUri get uri;
 }
 
 /// An element that represents a class or a mixin. The class can be defined by
@@ -513,6 +520,13 @@ abstract class DeferredImportElementPrefix implements ImportElementPrefix {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUri {}
+
+/// [DirectiveUriWithSource] that references a [LibraryAugmentationElement].
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class DirectiveUriWithAugmentation extends DirectiveUriWithSource {
+  LibraryAugmentationElement get augmentation;
+}
 
 /// [DirectiveUriWithSource] that references a [LibraryElement].
 ///

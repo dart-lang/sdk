@@ -4118,7 +4118,6 @@ elementFactory
 
     // Not an augmentation anymore, but a library.
     // But `a.dart` still uses `b.dart` as an augmentation.
-    // TODO(scheglov) Any `augmentation_to_X` should change the signature.
     assertDriverStateString(testFile, r'''
 files
   /home/test/lib/a.dart
@@ -4130,10 +4129,10 @@ files
           library_2 dart:core synthetic
         augmentations
           notAugmentation file_1
-        cycle_0
+        cycle_2
           dependencies: dart:core
           libraries: library_0
-          apiSignature_0
+          apiSignature_1
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -4142,10 +4141,10 @@ files
       kind: library_7
         imports
           library_2 dart:core synthetic
-        cycle_2
+        cycle_3
           dependencies: dart:core
           libraries: library_7
-          apiSignature_1
+          apiSignature_2
       referencingFiles: file_0
       unlinkedKey: k02
 libraryCycles
@@ -4165,10 +4164,10 @@ files
           library_2 dart:core synthetic
         augmentations
           notAugmentation file_1
-        cycle_3
+        cycle_4
           dependencies: dart:core
           libraries: library_8
-          apiSignature_0
+          apiSignature_1
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -4177,10 +4176,10 @@ files
       kind: library_7
         imports
           library_2 dart:core synthetic
-        cycle_2
+        cycle_3
           dependencies: dart:core
           libraries: library_7
-          apiSignature_1
+          apiSignature_2
       referencingFiles: file_0
       unlinkedKey: k02
 libraryCycles
@@ -4259,7 +4258,7 @@ files
         cycle_2
           dependencies: dart:core
           libraries: library_0
-          apiSignature_0
+          apiSignature_1
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -4291,7 +4290,7 @@ files
         cycle_3
           dependencies: dart:core
           libraries: library_8
-          apiSignature_0
+          apiSignature_1
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -4329,7 +4328,7 @@ files
         cycle_4
           dependencies: dart:core
           libraries: library_9
-          apiSignature_1
+          apiSignature_2
       unlinkedKey: k03
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -4409,7 +4408,7 @@ files
         cycle_2
           dependencies: dart:core
           libraries: library_0
-          apiSignature_0
+          apiSignature_1
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -4439,7 +4438,7 @@ files
         cycle_3
           dependencies: dart:core
           libraries: library_8
-          apiSignature_0
+          apiSignature_1
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -4474,7 +4473,7 @@ files
         cycle_4
           dependencies: dart:core
           libraries: library_9
-          apiSignature_1
+          apiSignature_2
       unlinkedKey: k03
   /home/test/lib/b.dart
     uri: package:test/b.dart

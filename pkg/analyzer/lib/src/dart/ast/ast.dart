@@ -919,7 +919,7 @@ class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
 
   @override
   LibraryAugmentationElement? get uriElement {
-    return element?.augmentation;
+    return element?.importedAugmentation;
   }
 
   @override

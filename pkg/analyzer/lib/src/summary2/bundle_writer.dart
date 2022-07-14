@@ -104,6 +104,10 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(libraryElement.metadata);
     _writeList(libraryElement.imports2, _writeImportElement);
     _writeList(libraryElement.exports2, _writeExportElement);
+    _writeList(
+      libraryElement.augmentationImports,
+      _writeAugmentationImportElement,
+    );
     for (final partElement in libraryElement.parts2) {
       _resolutionSink._writeAnnotationList(partElement.metadata);
     }
@@ -121,6 +125,17 @@ class BundleWriter {
         classMembersOffsets: _classMembersLengths,
       ),
     );
+  }
+
+  void _writeAugmentationElement(LibraryAugmentationElement augmentation) {
+    augmentation as LibraryAugmentationElementImpl;
+    _writeUnitElement(augmentation.definingCompilationUnit);
+  }
+
+  void _writeAugmentationImportElement(AugmentationImportElement element) {
+    element as AugmentationImportElementImpl;
+    _resolutionSink._writeAnnotationList(element.metadata);
+    _writeDirectiveUri(element.uri);
   }
 
   void _writeClassElement(ClassElement element) {
@@ -189,7 +204,11 @@ class BundleWriter {
       _sink._writeStringReference('${element.source.uri}');
     }
 
-    if (element is DirectiveUriWithLibrary) {
+    if (element is DirectiveUriWithAugmentationImpl) {
+      _sink.writeByte(DirectiveUriKind.withAugmentation.index);
+      writeWithSource(element);
+      _writeAugmentationElement(element.augmentation);
+    } else if (element is DirectiveUriWithLibrary) {
       _sink.writeByte(DirectiveUriKind.withLibrary.index);
       writeWithSource(element);
     } else if (element is DirectiveUriWithUnit) {

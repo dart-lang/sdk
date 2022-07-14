@@ -8,6 +8,7 @@ class AliasedElementTag {
 }
 
 enum DirectiveUriKind {
+  withAugmentation,
   withLibrary,
   withUnit,
   withSource,
