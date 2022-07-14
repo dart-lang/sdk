@@ -24,10 +24,10 @@ export 'package:analyzer/src/utilities/cancellation.dart';
 
 /// Converts an iterable using the provided function and skipping over any
 /// null values.
-Iterable<T> convert<T, E>(Iterable<E> items, T Function(E) converter) {
+Iterable<T> convert<T, E>(Iterable<E> items, T? Function(E) converter) {
   // TODO(dantup): Now this is used outside of handlers, is there somewhere
   // better to put it, and/or a better name for it?
-  return items.map(converter).where((item) => item != null);
+  return items.map(converter).where((item) => item != null).cast<T>();
 }
 
 abstract class CommandHandler<P, R> with Handler<P, R> {

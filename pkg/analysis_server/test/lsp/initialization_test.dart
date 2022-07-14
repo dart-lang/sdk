@@ -327,6 +327,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         expect(options.change, equals(TextDocumentSyncKind.Incremental));
       },
     );
+    expect(initResult.capabilities.callHierarchyProvider, isNotNull);
     expect(initResult.capabilities.completionProvider, isNotNull);
     expect(initResult.capabilities.hoverProvider, isNotNull);
     expect(initResult.capabilities.signatureHelpProvider, isNotNull);
@@ -387,6 +388,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Ensure no static registrations. This list should include all server equivalents
     // of the dynamic registrations listed in `ClientDynamicRegistrations.supported`.
     expect(initResult.capabilities.textDocumentSync, isNull);
+    expect(initResult.capabilities.callHierarchyProvider, isNull);
     expect(initResult.capabilities.completionProvider, isNull);
     expect(initResult.capabilities.hoverProvider, isNull);
     expect(initResult.capabilities.signatureHelpProvider, isNull);

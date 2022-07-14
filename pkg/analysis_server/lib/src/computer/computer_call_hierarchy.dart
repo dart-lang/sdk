@@ -78,6 +78,15 @@ class CallHierarchyItem {
   /// The range of the code for the declaration of this item.
   final SourceRange codeRange;
 
+  CallHierarchyItem({
+    required this.displayName,
+    required this.containerName,
+    required this.kind,
+    required this.file,
+    required this.nameRange,
+    required this.codeRange,
+  });
+
   CallHierarchyItem.forElement(Element element)
       : displayName = _getDisplayName(element),
         nameRange = _nameRangeForElement(element),

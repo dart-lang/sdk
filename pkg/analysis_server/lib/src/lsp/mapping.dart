@@ -400,7 +400,10 @@ lsp.CompletionItemKind? elementKindToCompletionItemKind(
       case server.ElementKind.CLASS_TYPE_ALIAS:
         return const [lsp.CompletionItemKind.Class];
       case server.ElementKind.COMPILATION_UNIT:
-        return const [lsp.CompletionItemKind.Module];
+        return const [
+          lsp.CompletionItemKind.File,
+          lsp.CompletionItemKind.Module,
+        ];
       case server.ElementKind.CONSTRUCTOR:
       case server.ElementKind.CONSTRUCTOR_INVOCATION:
         return const [lsp.CompletionItemKind.Constructor];
@@ -468,7 +471,7 @@ lsp.SymbolKind elementKindToSymbolKind(
       case server.ElementKind.CLASS_TYPE_ALIAS:
         return const [lsp.SymbolKind.Class];
       case server.ElementKind.COMPILATION_UNIT:
-        return const [lsp.SymbolKind.Module];
+        return const [lsp.SymbolKind.File];
       case server.ElementKind.CONSTRUCTOR:
       case server.ElementKind.CONSTRUCTOR_INVOCATION:
         return const [lsp.SymbolKind.Constructor];
@@ -655,8 +658,9 @@ List<lsp.DiagnosticTag>? getDiagnosticTags(
   return tags != null && tags.isNotEmpty ? tags : null;
 }
 
-bool isDartDocument(lsp.TextDocumentIdentifier? doc) =>
-    doc?.uri.endsWith('.dart') ?? false;
+bool isDartDocument(lsp.TextDocumentIdentifier doc) => isDartUri(doc.uri);
+
+bool isDartUri(String uri) => uri.endsWith('.dart');
 
 /// Converts a [server.Location] to an [lsp.Range] by translating the
 /// offset/length using a `LineInfo`.

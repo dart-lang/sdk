@@ -39,6 +39,7 @@ class ClientDynamicRegistrations {
     Method.textDocument_foldingRange,
     Method.textDocument_selectionRange,
     Method.textDocument_typeDefinition,
+    Method.textDocument_prepareCallHierarchy,
     // workspace.fileOperations covers all file operation methods but we only
     // support this one.
     Method.workspace_willRenameFiles,
@@ -49,6 +50,9 @@ class ClientDynamicRegistrations {
   final ClientCapabilities _capabilities;
 
   ClientDynamicRegistrations(this._capabilities);
+
+  bool get callHierarchy =>
+      _capabilities.textDocument?.callHierarchy?.dynamicRegistration ?? false;
 
   bool get codeActions =>
       _capabilities.textDocument?.foldingRange?.dynamicRegistration ?? false;
@@ -186,6 +190,10 @@ class ServerCapabilitiesComputer {
               willSaveWaitUntil: false,
               save: null,
             )),
+      callHierarchyProvider: dynamicRegistrations.callHierarchy
+          ? null
+          : Either3<bool, CallHierarchyOptions,
+              CallHierarchyRegistrationOptions>.t1(true),
       completionProvider: dynamicRegistrations.completion
           ? null
           : CompletionOptions(
@@ -507,6 +515,13 @@ class ServerCapabilitiesComputer {
       dynamicRegistrations.selectionRange,
       Method.textDocument_selectionRange,
       SelectionRangeRegistrationOptions(
+        documentSelector: [dartFiles],
+      ),
+    );
+    register(
+      dynamicRegistrations.callHierarchy,
+      Method.textDocument_prepareCallHierarchy,
+      CallHierarchyRegistrationOptions(
         documentSelector: [dartFiles],
       ),
     );
