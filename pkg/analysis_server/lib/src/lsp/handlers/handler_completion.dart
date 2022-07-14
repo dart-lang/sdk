@@ -433,12 +433,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           item,
           replacementRange: replacementRange,
           insertionRange: insertionRange,
-          // TODO(dantup): Move commit characters to the main response
-          // and remove from each individual item (to reduce payload size)
-          // once the following change ships (and the Dart VS Code
-          // extension is updated to use it).
-          // https://github.com/microsoft/vscode-languageserver-node/issues/673
-          includeCommitCharacters:
+          commitCharactersEnabled:
               server.clientConfiguration.global.previewCommitCharacters,
           completeFunctionCalls: completeFunctionCalls,
           resolutionData: resolutionInfo,
@@ -555,12 +550,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
                       completionRequest.replacementOffset,
                       insertLength,
                       completionRequest.replacementLength,
-                      // TODO(dantup): Move commit characters to the main response
-                      // and remove from each individual item (to reduce payload size)
-                      // once the following change ships (and the Dart VS Code
-                      // extension is updated to use it).
-                      // https://github.com/microsoft/vscode-languageserver-node/issues/673
-                      includeCommitCharacters: server
+                      commitCharactersEnabled: server
                           .clientConfiguration.global.previewCommitCharacters,
                       completeFunctionCalls: completeFunctionCalls,
                     ));
@@ -645,7 +635,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
             item,
             replacementRange: replacementRange,
             insertionRange: insertionRange,
-            includeCommitCharacters: false,
+            commitCharactersEnabled: false,
             completeFunctionCalls: false,
             // Add on any completion-kind-specific resolution data that will be
             // used during resolve() calls to provide additional information.
@@ -714,7 +704,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           // Plugins cannot currently contribute commit characters and we should
           // not assume that the Dart ones would be correct for all of their
           // completions.
-          includeCommitCharacters: false,
+          commitCharactersEnabled: false,
           completeFunctionCalls: false,
         ),
       );

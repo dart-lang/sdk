@@ -277,7 +277,7 @@ lsp.CompletionItem declarationToCompletionItem(
   int replacementOffset,
   int insertLength,
   int replacementLength, {
-  required bool includeCommitCharacters,
+  required bool commitCharactersEnabled,
   required bool completeFunctionCalls,
 }) {
   final supportsSnippets = capabilities.completionSnippets;
@@ -304,7 +304,7 @@ lsp.CompletionItem declarationToCompletionItem(
 
   final insertTextInfo = _buildInsertText(
     supportsSnippets: supportsSnippets,
-    includeCommitCharacters: includeCommitCharacters,
+    commitCharactersEnabled: commitCharactersEnabled,
     completeFunctionCalls: completeFunctionCalls,
     isCallable: isCallable,
     // For SuggestionSets, we don't have a CompletionKind to check if it's
@@ -349,8 +349,6 @@ lsp.CompletionItem declarationToCompletionItem(
       if (supportsDeprecatedTag && declaration.isDeprecated)
         lsp.CompletionItemTag.Deprecated
     ]),
-    commitCharacters:
-        includeCommitCharacters ? lsp.dartCompletionCommitCharacters : null,
     detail: getDeclarationCompletionDetail(declaration, completionKind,
         supportsDeprecatedFlag || supportsDeprecatedTag),
     deprecated:
@@ -1109,7 +1107,7 @@ lsp.CompletionItem toCompletionItem(
   required Range replacementRange,
   required Range insertionRange,
   bool includeDocs = true,
-  required bool includeCommitCharacters,
+  required bool commitCharactersEnabled,
   required bool completeFunctionCalls,
   CompletionItemResolutionInfo? resolutionData,
 }) {
@@ -1163,7 +1161,7 @@ lsp.CompletionItem toCompletionItem(
 
   final insertTextInfo = _buildInsertText(
     supportsSnippets: supportsSnippets,
-    includeCommitCharacters: includeCommitCharacters,
+    commitCharactersEnabled: commitCharactersEnabled,
     completeFunctionCalls: completeFunctionCalls,
     isCallable: isCallable,
     isInvocation: isInvocation,
@@ -1203,8 +1201,6 @@ lsp.CompletionItem toCompletionItem(
       if (supportsDeprecatedTag && suggestion.isDeprecated)
         lsp.CompletionItemTag.Deprecated
     ]),
-    commitCharacters:
-        includeCommitCharacters ? dartCompletionCommitCharacters : null,
     data: resolutionData,
     detail: detail,
     documentation: cleanedDoc != null && includeDocs
@@ -1635,7 +1631,7 @@ lsp.MarkupContent _asMarkup(
 
 Pair<String, lsp.InsertTextFormat> _buildInsertText({
   required bool supportsSnippets,
-  required bool includeCommitCharacters,
+  required bool commitCharactersEnabled,
   required bool completeFunctionCalls,
   required bool isCallable,
   required bool isInvocation,
@@ -1662,7 +1658,7 @@ Pair<String, lsp.InsertTextFormat> _buildInsertText({
   if (supportsSnippets) {
     // completeFunctionCalls should only work if commit characters are disabled
     // otherwise the editor may insert parens that we're also inserting.
-    if (!includeCommitCharacters &&
+    if (!commitCharactersEnabled &&
         completeFunctionCalls &&
         isCallable &&
         isInvocation) {
