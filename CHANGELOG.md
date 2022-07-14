@@ -1,70 +1,14 @@
 ## 2.19.0
 
-#### Dart command line
-
-- **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
-  The standalone `dartanalyzer` tool has been removed as previously
-  announced. `dartanalyzer` is replaced by the `dart analyze` command.
-
 ### Language
 
-- **Breaking Change** [#48167](https://github.com/dart-lang/sdk/issues/48167):
-  Mixin of classes that don't extend `Object` is no longer supported:
-  ```dart
-  class Base {}
-  class Mixin extends Base {}
-  class C extends Base with Mixin {}
-  ```
-  This should instead be written using a mixin declaration of `Mixin`:
-  ```dart
-  class Base {}
-  mixin Mixin on Base {}
-  class C extends Base with Mixin {}
-  ```
-  This feature has not been supported in most compilation targets for some
-  time but is now completely removed.
-
 ### Libraries
-
-#### `dart:async`
-
-- The `Stream.fromIterable` stream can now be listened to more than once.
-
-### `dart:collection`
-
-- Deprecates `BidirectionalIterator`.
 
 ### `dart:developer`
 
 - Deprecates `UserTag.MAX_USER_TAGS` in favor of `UserTag.maxUserTags`.
 
-### Dart VM
-
-Implementation of `async`/`async*`/`sync*` is revamped in Dart VM,
-both in JIT and AOT modes. This also affects Flutter except Flutter Web.
-
-Besides smaller code size and better performance of async methods,
-the new implementation carries a few subtle changes in behavior:
-
-- If `async` method returns before reaching the first `await`, it now returns a completed Future.
-  Previously `async` methods completed resulting Future in separate microtasks.
-
-- Stack traces no longer have duplicate entries for `async` methods.
-
-- New implementation now correctly throws an error if `null` occurs as
-  an argument of a logical expression (`&&` and `||`) which also contains
-  an `await`.
-
-- New implementation avoids unnecessary extending the liveness of local
-  variables in `async`/`async*`/`sync*` methods, which means that unused
-  objects stored in local variables in such methods might be garbage
-  collected earlier than they were before
-  (see issue [#36983](https://github.com/dart-lang/sdk/issues/36983) for details).
-
-
 ### Tools
-
-#### Dart command line
 
 #### Linter
 
@@ -131,7 +75,31 @@ them, you must set the lower bound on the SDK constraint for your package to
    }
    ```
 
+- **Breaking Change** [#48167](https://github.com/dart-lang/sdk/issues/48167):
+  Mixin of classes that don't extend `Object` is no longer supported:
+  ```dart
+  class Base {}
+  class Mixin extends Base {}
+  class C extends Base with Mixin {}
+  ```
+  This should instead be written using a mixin declaration of `Mixin`:
+  ```dart
+  class Base {}
+  mixin Mixin on Base {}
+  class C extends Base with Mixin {}
+  ```
+  This feature has not been supported in most compilation targets for some
+  time but is now completely removed.
+
 ### Core libraries
+
+#### `dart:async`
+
+- The `Stream.fromIterable` stream can now be listened to more than once.
+
+### `dart:collection`
+
+- Deprecates `BidirectionalIterator`.
 
 #### `dart:html`
 
@@ -202,6 +170,29 @@ them, you must set the lower bound on the SDK constraint for your package to
 - Allow omitting the `unencodedPath` positional argument to `Uri.http` and
   `Uri.https` to default to an empty path.
 
+### Dart VM
+
+Implementation of `async`/`async*`/`sync*` is revamped in Dart VM,
+both in JIT and AOT modes. This also affects Flutter except Flutter Web.
+
+Besides smaller code size and better performance of async methods,
+the new implementation carries a few subtle changes in behavior:
+
+- If `async` method returns before reaching the first `await`, it now returns a completed Future.
+  Previously `async` methods completed resulting Future in separate microtasks.
+
+- Stack traces no longer have duplicate entries for `async` methods.
+
+- New implementation now correctly throws an error if `null` occurs as
+  an argument of a logical expression (`&&` and `||`) which also contains
+  an `await`.
+
+- New implementation avoids unnecessary extending the liveness of local
+  variables in `async`/`async*`/`sync*` methods, which means that unused
+  objects stored in local variables in such methods might be garbage
+  collected earlier than they were before
+  (see issue [#36983](https://github.com/dart-lang/sdk/issues/36983) for details).
+
 ### Tools
 
 #### Dart command line
@@ -210,6 +201,10 @@ them, you must set the lower bound on the SDK constraint for your package to
   The standalone `dart2js` and `dartdevc` tools have been removed as previously
   announced. `dart2js` is replaced by the `dart compile js` command, `dartdevc`
   is no longer exposed as a command-line tool.
+
+- **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The standalone `dartanalyzer` tool has been removed as previously
+  announced. `dartanalyzer` is replaced by the `dart analyze` command.
 
 #### Linter
 
