@@ -24,11 +24,15 @@ DEFINE_NATIVE_ENTRY(Timeline_isDartStreamEnabled, 0, 0) {
   return Bool::False().ptr();
 }
 
-DEFINE_NATIVE_ENTRY(Timeline_getNextTaskId, 0, 0) {
+DEFINE_NATIVE_ENTRY(Timeline_getNextAsyncId, 0, 0) {
 #if !defined(SUPPORT_TIMELINE)
   return Integer::New(0);
 #else
-  return Integer::New(thread->GetNextTaskId());
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  if (recorder == NULL) {
+    return Integer::New(0);
+  }
+  return Integer::New(recorder->GetNextAsyncId());
 #endif
 }
 
