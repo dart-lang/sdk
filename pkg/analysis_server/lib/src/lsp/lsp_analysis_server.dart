@@ -26,6 +26,7 @@ import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/performance.dart';
@@ -120,6 +121,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Starts completed and will be replaced each time a context rebuild starts.
   Completer<void> _analysisContextRebuildCompleter = Completer()..complete();
 
+  /// An optional manager to handle file systems which may not always be
+  /// available.
+  final DetachableFileSystemManager? detachableFileSystemManager;
+
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
   LspAnalysisServer(
@@ -133,6 +138,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     http.Client? httpClient,
     ProcessRunner? processRunner,
     DiagnosticServer? diagnosticServer,
+    this.detachableFileSystemManager,
     // Disable to avoid using this in unit tests.
     bool enableBazelWatcher = false,
   }) : super(
@@ -723,6 +729,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   Future<void> shutdown() {
     super.shutdown();
 
+    detachableFileSystemManager?.dispose();
+
     // Defer closing the channel so that the shutdown response can be sent and
     // logged.
     Future(() {
@@ -852,10 +860,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
     final completer = _analysisContextRebuildCompleter = Completer();
     try {
+      var includedPathsList = includedPaths.toList();
+      var excludedPathsList = excludedPaths.toList();
       notificationManager.setAnalysisRoots(
-          includedPaths.toList(), excludedPaths.toList());
-      await contextManager.setRoots(
-          includedPaths.toList(), excludedPaths.toList());
+          includedPathsList, excludedPathsList);
+      if (detachableFileSystemManager != null) {
+        detachableFileSystemManager?.setAnalysisRoots(
+            null, includedPathsList, excludedPathsList);
+      } else {
+        await contextManager.setRoots(includedPathsList, excludedPathsList);
+      }
     } finally {
       completer.complete();
     }

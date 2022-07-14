@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -39,12 +40,17 @@ class LspSocketServer implements AbstractSocketServer {
 
   final InstrumentationService instrumentationService;
 
+  /// An optional manager to handle file systems which may not always be
+  /// available.
+  final DetachableFileSystemManager? detachableFileSystemManager;
+
   LspSocketServer(
     this.analysisServerOptions,
     this.diagnosticServer,
     this.analyticsManager,
     this.sdkManager,
     this.instrumentationService,
+    this.detachableFileSystemManager,
   );
 
   /// Create an analysis server which will communicate with the client using the
@@ -73,7 +79,7 @@ class LspSocketServer implements AbstractSocketServer {
     var resourceProvider = PhysicalResourceProvider(
         stateLocation: analysisServerOptions.cacheFolder);
 
-    analysisServer = LspAnalysisServer(
+    var server = analysisServer = LspAnalysisServer(
       serverChannel,
       resourceProvider,
       analysisServerOptions,
@@ -82,7 +88,9 @@ class LspSocketServer implements AbstractSocketServer {
       CrashReportingAttachmentsBuilder.empty,
       instrumentationService,
       diagnosticServer: diagnosticServer,
+      detachableFileSystemManager: detachableFileSystemManager,
       enableBazelWatcher: true,
     );
+    detachableFileSystemManager?.setAnalysisServer(server);
   }
 }
