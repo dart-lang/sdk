@@ -1831,6 +1831,29 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
     file._fsState._libraryNameToFiles.add(this);
   }
 
+  /// All augmentations referenced by this library, in the depth-first
+  /// pre-order traversal order.
+  List<AugmentationFileStateKind> get allAugmentations {
+    final result = <AugmentationFileStateKind>[];
+
+    void visitAugmentations(LibraryOrAugmentationFileKind kind) {
+      if (kind is AugmentationFileStateKind) {
+        result.add(kind);
+      }
+      for (final import in kind.augmentations) {
+        if (import is ImportAugmentationDirectiveWithFile) {
+          final augmentation = import.importedAugmentation;
+          if (augmentation != null) {
+            visitAugmentations(augmentation);
+          }
+        }
+      }
+    }
+
+    visitAugmentations(this);
+    return result;
+  }
+
   /// The list of files that this library consists of, i.e. this library file
   /// itself, its [parts], and augmentations.
   List<FileState> get files {
@@ -1844,22 +1867,7 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
       }
     }
 
-    // TODO(scheglov) Test how augmentations affect signatures.
-    void visitAugmentations(LibraryOrAugmentationFileKind kind) {
-      if (kind is AugmentationFileStateKind) {
-        files.add(kind.file);
-      }
-      for (final import in kind.augmentations) {
-        if (import is ImportAugmentationDirectiveWithFile) {
-          final augmentation = import.importedAugmentation;
-          if (augmentation != null) {
-            visitAugmentations(augmentation);
-          }
-        }
-      }
-    }
-
-    visitAugmentations(this);
+    files.addAll(allAugmentations.map((e) => e.file));
 
     return files;
   }

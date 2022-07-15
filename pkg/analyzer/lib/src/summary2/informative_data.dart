@@ -67,6 +67,7 @@ class InformativeDataApplier {
       throw StateError('Unexpected recursion.');
     }
     _elementFactory.isApplyingInformativeData = true;
+    libraryElement.linkedData?.lock();
 
     var unitElements = libraryElement.units;
     for (var i = 0; i < unitElements.length; i++) {
@@ -139,6 +140,7 @@ class InformativeDataApplier {
       }
     }
 
+    libraryElement.linkedData?.unlock();
     _elementFactory.isApplyingInformativeData = false;
   }
 

@@ -101,13 +101,7 @@ class BundleWriter {
     _sink._writeStringReference(libraryElement.name);
     _writeFeatureSet(libraryElement.featureSet);
     _writeLanguageVersion(libraryElement.languageVersion);
-    _resolutionSink._writeAnnotationList(libraryElement.metadata);
-    _writeList(libraryElement.imports2, _writeImportElement);
-    _writeList(libraryElement.exports2, _writeExportElement);
-    _writeList(
-      libraryElement.augmentationImports,
-      _writeAugmentationImportElement,
-    );
+    _writeLibraryOrAugmentationElement(libraryElement);
     for (final partElement in libraryElement.parts2) {
       _resolutionSink._writeAnnotationList(partElement.metadata);
     }
@@ -130,6 +124,8 @@ class BundleWriter {
   void _writeAugmentationElement(LibraryAugmentationElement augmentation) {
     augmentation as LibraryAugmentationElementImpl;
     _writeUnitElement(augmentation.definingCompilationUnit);
+    _sink.writeUInt30(_resolutionSink.offset);
+    _writeLibraryOrAugmentationElement(augmentation);
   }
 
   void _writeAugmentationImportElement(AugmentationImportElement element) {
@@ -369,6 +365,18 @@ class BundleWriter {
     } else {
       _sink.writeBool(false);
     }
+  }
+
+  void _writeLibraryOrAugmentationElement(
+    LibraryOrAugmentationElementImpl container,
+  ) {
+    _resolutionSink._writeAnnotationList(container.metadata);
+    _writeList(container.imports2, _writeImportElement);
+    _writeList(container.exports2, _writeExportElement);
+    _writeList(
+      container.augmentationImports,
+      _writeAugmentationImportElement,
+    );
   }
 
   void _writeList<T>(List<T> elements, void Function(T) writeElement) {

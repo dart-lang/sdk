@@ -40,6 +40,110 @@ class ElementsKeepLinkingTest extends ElementsTest {
 }
 
 abstract class ElementsTest extends ElementsBaseTest {
+  test_augmentation_augmentationImports_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import augment 'b.dart';
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+class B {}
+''');
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+class C {}
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            classes
+              class B @32
+                constructors
+                  synthetic @-1
+      definingUnit
+        classes
+          class A @60
+            constructors
+              synthetic @-1
+  definingUnit
+    classes
+      class C @31
+        constructors
+          synthetic @-1
+''');
+  }
+
+  test_augmentation_libraryExports_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+export 'dart:async';
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+export 'dart:collection';
+export 'dart:math';
+''');
+    final library = await buildLibrary(r'''
+import 'dart:io';
+import augment 'a.dart';
+import augment 'b.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    dart:io
+  augmentationImports
+    package:test/a.dart
+      exports
+        dart:async
+      definingUnit
+    package:test/b.dart
+      exports
+        dart:collection
+        dart:math
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_augmentation_libraryImports_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import 'dart:async';
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'dart:collection';
+import 'dart:math';
+''');
+    final library = await buildLibrary(r'''
+import 'dart:io';
+import augment 'a.dart';
+import augment 'b.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    dart:io
+  augmentationImports
+    package:test/a.dart
+      imports
+        dart:async
+      definingUnit
+    package:test/b.dart
+      imports
+        dart:collection
+        dart:math
+      definingUnit
+  definingUnit
+''');
+  }
+
   test_class_abstract() async {
     var library = await buildLibrary('abstract class C {}');
     checkElementText(library, r'''

@@ -33,6 +33,7 @@ class DefiningLinkingUnit extends LinkingUnit {
     required super.reference,
     required super.node,
     required super.element,
+    required super.container,
   });
 }
 
@@ -149,6 +150,7 @@ class LibraryBuilder {
     for (var linkingUnit in units) {
       var elementBuilder = ElementBuilder(
         libraryBuilder: this,
+        container: linkingUnit.container,
         unitReference: linkingUnit.reference,
         unitElement: linkingUnit.element,
       );
@@ -239,6 +241,7 @@ class LibraryBuilder {
 
     final elementBuilder = ElementBuilder(
       libraryBuilder: this,
+      container: element,
       unitReference: unitReference,
       unitElement: unitElement,
     );
@@ -348,6 +351,7 @@ class LibraryBuilder {
 
     ElementBuilder(
       libraryBuilder: this,
+      container: element,
       unitReference: unitReference,
       unitElement: unitElement,
     ).buildDeclarationElements(unitNode);
@@ -359,6 +363,7 @@ class LibraryBuilder {
       LinkingUnit(
         reference: unitReference,
         node: unitNode,
+        container: element,
         element: unitElement,
       ),
     );
@@ -438,14 +443,6 @@ class LibraryBuilder {
             reference.getChild('@augmentation').getChild(importedFile.uriStr);
         _bindReference(unitReference, unitElement);
 
-        units.add(
-          DefiningLinkingUnit(
-            reference: unitReference,
-            node: unitNode,
-            element: unitElement,
-          ),
-        );
-
         final augmentation = LibraryAugmentationElementImpl(
           augmented: augmentedElement,
           nameOffset: -1, // TODO(scheglov) fix it
@@ -462,6 +459,15 @@ class LibraryBuilder {
           relativeUri: state.uri.relativeUri,
           source: importedFile.source,
           augmentation: augmentation,
+        );
+
+        units.add(
+          DefiningLinkingUnit(
+            reference: unitReference,
+            node: unitNode,
+            element: unitElement,
+            container: augmentation,
+          ),
         );
       } else {
         uri = DirectiveUriWithSourceImpl(
@@ -764,6 +770,7 @@ class LibraryBuilder {
           reference: unitReference,
           node: libraryUnitNode,
           element: unitElement,
+          container: libraryElement,
         ),
       );
 
@@ -796,6 +803,7 @@ class LibraryBuilder {
             LinkingUnit(
               reference: unitReference,
               node: partUnitNode,
+              container: libraryElement,
               element: unitElement,
             ),
           );
@@ -861,11 +869,13 @@ class LibraryBuilder {
 class LinkingUnit {
   final Reference reference;
   final ast.CompilationUnitImpl node;
+  final LibraryOrAugmentationElementImpl container;
   final CompilationUnitElementImpl element;
 
   LinkingUnit({
     required this.reference,
     required this.node,
+    required this.container,
     required this.element,
   });
 }

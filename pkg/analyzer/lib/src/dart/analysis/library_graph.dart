@@ -139,16 +139,19 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 
   @override
   List<_LibraryNode> computeDependencies() {
-    final referencedLibraries = {
-      ...kind.imports
-          .whereType<ImportDirectiveWithFile>()
-          .map((import) => import.importedLibrary)
-          .whereNotNull(),
-      ...kind.exports
-          .whereType<ExportDirectiveWithFile>()
-          .map((export) => export.exportedLibrary)
-          .whereNotNull(),
-    };
+    final referencedLibraries = {kind, ...kind.allAugmentations}
+        .map((container) => [
+              ...container.imports
+                  .whereType<ImportDirectiveWithFile>()
+                  .map((import) => import.importedLibrary),
+              ...container.exports
+                  .whereType<ExportDirectiveWithFile>()
+                  .map((export) => export.exportedLibrary),
+            ])
+        .expand((libraries) => libraries)
+        .whereNotNull()
+        .toSet();
+
     return referencedLibraries.map(walker.getNode).toList();
   }
 }

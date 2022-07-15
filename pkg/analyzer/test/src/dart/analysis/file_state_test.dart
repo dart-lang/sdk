@@ -1491,6 +1491,150 @@ elementFactory
 ''');
   }
 
+  test_newFile_library_augmentations_imports() {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'c.dart';
+import 'a.dart';
+''');
+
+    final c = newFile('$testPackageLibPath/c.dart', r'''
+import augment 'b.dart';
+''');
+
+    fileStateFor(c);
+
+    // `a.dart` is imported by the augmentation `b.dart`, so it becomes a
+    // dependency for the library `c.dart` cycle.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_3 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_1
+      referencingFiles: file_1
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: augmentation_1
+        augmented: library_2
+        library: library_2
+        imports
+          library_0
+          library_3 dart:core synthetic
+      referencingFiles: file_2
+      unlinkedKey: k01
+  /home/test/lib/c.dart
+    uri: package:test/c.dart
+    current
+      id: file_2
+      kind: library_2
+        imports
+          library_3 dart:core synthetic
+        augmentations
+          augmentation_1
+        cycle_1
+          dependencies: cycle_0 dart:core
+          libraries: library_2
+          apiSignature_1
+      unlinkedKey: k02
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_newFile_library_augmentations_imports2() {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'c.dart';
+import 'a.dart';
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+library augment 'd.dart';
+import augment 'b.dart';
+''');
+
+    final d = newFile('$testPackageLibPath/d.dart', r'''
+import augment 'c.dart';
+''');
+
+    fileStateFor(d);
+
+    // `a.dart` is transitively imported by augmentations into `d.dart`, so it
+    // becomes a dependency for the library `d.dart` cycle.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_4 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_1
+      referencingFiles: file_1
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: augmentation_1
+        augmented: augmentation_2
+        library: library_3
+        imports
+          library_0
+          library_4 dart:core synthetic
+      referencingFiles: file_2
+      unlinkedKey: k01
+  /home/test/lib/c.dart
+    uri: package:test/c.dart
+    current
+      id: file_2
+      kind: augmentation_2
+        augmented: library_3
+        library: library_3
+        imports
+          library_4 dart:core synthetic
+        augmentations
+          augmentation_1
+      referencingFiles: file_3
+      unlinkedKey: k02
+  /home/test/lib/d.dart
+    uri: package:test/d.dart
+    current
+      id: file_3
+      kind: library_3
+        imports
+          library_4 dart:core synthetic
+        augmentations
+          augmentation_2
+        cycle_1
+          dependencies: cycle_0 dart:core
+          libraries: library_3
+          apiSignature_1
+      unlinkedKey: k03
+libraryCycles
+elementFactory
+''');
+  }
+
   test_newFile_library_augmentations_invalidUri_cannotParse() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
 import augment 'da:';
@@ -4063,6 +4207,90 @@ elementFactory
 ''');
   }
 
+  test_refresh_augmentation_renameClass() {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'b.dart';
+class A {}
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+import augment 'a.dart';
+''');
+
+    fileStateFor(b);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: augmentation_0
+        augmented: library_1
+        library: library_1
+        imports
+          library_2 dart:core synthetic
+      referencingFiles: file_1
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: library_1
+        imports
+          library_2 dart:core synthetic
+        augmentations
+          augmentation_0
+        cycle_0
+          dependencies: dart:core
+          libraries: library_1
+          apiSignature_0
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+
+    newFile(a.path, r'''
+library augment 'b.dart';
+class A2 {}
+''');
+    fileStateFor(a).refresh();
+
+    // The augmentation `a.dart` has a different unlinked key, and its
+    // refresh invalidated the library cycle `b.dart`, which has a differrent
+    // signature now.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: augmentation_7
+        augmented: library_1
+        library: library_1
+        imports
+          library_2 dart:core synthetic
+      referencingFiles: file_1
+      unlinkedKey: k02
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: library_1
+        imports
+          library_2 dart:core synthetic
+        augmentations
+          augmentation_7
+        cycle_2
+          dependencies: dart:core
+          libraries: library_1
+          apiSignature_1
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+  }
+
   test_refresh_augmentation_to_library() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
 import augment 'b.dart';
@@ -4474,6 +4702,124 @@ files
       kind: partOfUriKnown_7
         library: library_9
       referencingFiles: file_0
+      unlinkedKey: k02
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_refresh_library_importedBy_augmentation() {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'c.dart';
+import 'a.dart';
+''');
+
+    final c = newFile('$testPackageLibPath/c.dart', r'''
+import augment 'b.dart';
+''');
+
+    fileStateFor(c);
+
+    // `a.dart` is imported by the augmentation `b.dart`, so it is a dependency
+    // of `c.dart`.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_3 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_1
+      referencingFiles: file_1
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: augmentation_1
+        augmented: library_2
+        library: library_2
+        imports
+          library_0
+          library_3 dart:core synthetic
+      referencingFiles: file_2
+      unlinkedKey: k01
+  /home/test/lib/c.dart
+    uri: package:test/c.dart
+    current
+      id: file_2
+      kind: library_2
+        imports
+          library_3 dart:core synthetic
+        augmentations
+          augmentation_1
+        cycle_1
+          dependencies: cycle_0 dart:core
+          libraries: library_2
+          apiSignature_1
+      unlinkedKey: k02
+libraryCycles
+elementFactory
+''');
+
+    newFile(a.path, r'''
+class A2 {}
+''');
+    fileStateFor(a).refresh();
+
+    // Updated `a.dart` invalidates the library cycle for `c.dart`, both
+    // have now different signatures.
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_8
+        imports
+          library_3 dart:core synthetic
+        cycle_3
+          dependencies: dart:core
+          libraries: library_8
+          apiSignature_2
+          users: cycle_4
+      referencingFiles: file_1
+      unlinkedKey: k03
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: augmentation_1
+        augmented: library_2
+        library: library_2
+        imports
+          library_8
+          library_3 dart:core synthetic
+      referencingFiles: file_2
+      unlinkedKey: k01
+  /home/test/lib/c.dart
+    uri: package:test/c.dart
+    current
+      id: file_2
+      kind: library_2
+        imports
+          library_3 dart:core synthetic
+        augmentations
+          augmentation_1
+        cycle_4
+          dependencies: cycle_3 dart:core
+          libraries: library_2
+          apiSignature_3
       unlinkedKey: k02
 libraryCycles
 elementFactory
