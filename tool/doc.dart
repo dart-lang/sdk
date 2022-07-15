@@ -264,8 +264,7 @@ String getBadges(String rule, [String? fixStatus]) {
   }
   if (fixStatus == 'hasFix') {
     sb.write(
-        // todo(pq): consider a custom style and an href
-        '<a class="style-type">'
+        '<a class="style-type" href="https://medium.com/dartlang/quick-fixes-for-analysis-issues-c10df084971a">'
         '<!--suppress HtmlUnknownTarget --><img alt="has-fix" src="has-fix.svg"></a>');
   }
   return sb.toString();
@@ -467,8 +466,8 @@ class MarkdownIndexer {
             '(https://github.com/dart-lang/pedantic/#enabled-lints)');
       }
       if (fixStatusMap[rule.name] == 'hasFix') {
-        // todo(pq): add a url when we have a good doc to link to.
-        buffer.writeln('![has-fix](has-fix.svg)');
+        buffer.writeln('[![has-fix](has-fix.svg)]'
+            '(https://medium.com/dartlang/quick-fixes-for-analysis-issues-c10df084971a)');
       }
 
       buffer.writeln();
@@ -754,8 +753,8 @@ class RuleMarkdownGenerator {
           '(https://github.com/dart-lang/pedantic/#enabled-lints)');
     }
     if (fixStatus == 'hasFix') {
-      // todo(pq): add a url when we have a good doc to link to.
-      buffer.writeln('![has-fix](has-fix.svg)');
+      buffer.writeln('[![has-fix](has-fix.svg)]'
+          '(https://medium.com/dartlang/quick-fixes-for-analysis-issues-c10df084971a)');
     }
 
     buffer.writeln();
