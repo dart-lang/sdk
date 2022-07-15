@@ -1855,7 +1855,7 @@ elementFactory
     sdkSummaryFile = await _writeSdkSummary();
     this.librarySummaryFiles = librarySummaryFiles;
 
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     final a = newFile('$testPackageLibPath/a.dart', r'''
 export 'dart:async';
@@ -1948,7 +1948,7 @@ part of 'foo.dart';
     sdkSummaryFile = await _writeSdkSummary();
     this.librarySummaryFiles = librarySummaryFiles;
 
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     final a = newFile('$testPackageLibPath/a.dart', r'''
 export 'package:foo/foo2.dart';
@@ -2379,7 +2379,7 @@ elementFactory
     sdkSummaryFile = await _writeSdkSummary();
     this.librarySummaryFiles = librarySummaryFiles;
 
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     final a = newFile('$testPackageLibPath/a.dart', r'''
 import 'dart:async';
@@ -2471,7 +2471,7 @@ part of 'foo.dart';
     sdkSummaryFile = await _writeSdkSummary();
     this.librarySummaryFiles = librarySummaryFiles;
 
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     final a = newFile('$testPackageLibPath/a.dart', r'''
 import 'package:foo/foo2.dart';

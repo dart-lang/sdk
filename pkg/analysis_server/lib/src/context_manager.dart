@@ -454,7 +454,7 @@ class ContextManagerImpl implements ContextManager {
       /// A helper that performs the context rebuild and waits for all watchers
       /// to be fully initialized.
       Future<void> performContextRebuild() async {
-        _destroyAnalysisContexts();
+        await _destroyAnalysisContexts();
         _fileContentCache.invalidateAll();
 
         var watchers = <ResourceWatcher>[];
@@ -610,7 +610,6 @@ class ContextManagerImpl implements ContextManager {
 
   /// Clean up and destroy the context associated with the given folder.
   void _destroyAnalysisContext(DriverBasedAnalysisContext context) {
-    context.driver.dispose();
     var rootFolder = context.contextRoot.root;
     var watched = bazelWatchedPathsPerFolder.remove(rootFolder);
     if (watched != null) {
@@ -623,15 +622,16 @@ class ContextManagerImpl implements ContextManager {
     driverMap.remove(rootFolder);
   }
 
-  void _destroyAnalysisContexts() {
-    var collection = _collection;
+  Future<void> _destroyAnalysisContexts() async {
+    final collection = _collection;
     if (collection != null) {
       for (final subscription in watcherSubscriptions) {
-        subscription.cancel();
+        await subscription.cancel();
       }
-      for (var analysisContext in collection.contexts) {
+      for (final analysisContext in collection.contexts) {
         _destroyAnalysisContext(analysisContext);
       }
+      await collection.dispose();
       callbacks.afterContextsDestroyed();
     }
   }

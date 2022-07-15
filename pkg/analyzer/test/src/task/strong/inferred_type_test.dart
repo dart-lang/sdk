@@ -1766,27 +1766,27 @@ void main() {
 ''';
     await _assertNoErrors(
         build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await _assertNoErrors(
         build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"));
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await _assertNoErrors(
         build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"));
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await _assertNoErrors(build(
         declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"));
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await _assertNoErrors(
         build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await _assertNoErrors(
         build(declared: "Future", downwards: "Future", upwards: "Future"));
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
   }
 
   test_futureThen_downwardsMethodTarget() async {
@@ -1860,7 +1860,7 @@ $declared foo() => new $declared<int>.value(1);
         error(HintCode.UNNECESSARY_CAST, 480, 47),
       ],
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await assertErrorsInCode(
       build(declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"),
@@ -1871,7 +1871,7 @@ $declared foo() => new $declared<int>.value(1);
         error(HintCode.UNNECESSARY_CAST, 484, 49),
       ],
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await assertErrorsInCode(
       build(declared: "Future", downwards: "Future", upwards: "Future"),
@@ -1882,7 +1882,7 @@ $declared foo() => new $declared<int>.value(1);
         error(HintCode.UNNECESSARY_CAST, 480, 47),
       ],
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
   }
 
   test_futureThen_upwardsFromBlock() async {
@@ -1927,12 +1927,12 @@ $downwards<int> g3(bool x) async {
     await assertNoErrorsInCode(
       build(downwards: "Future", upwards: "Future", expectedInfo: ''),
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await assertNoErrorsInCode(
       build(downwards: "Future", upwards: "MyFuture"),
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
   }
 
   test_futureUnion_downwards() async {
@@ -1975,7 +1975,7 @@ $downwards<List<int>> g3() async {
         error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 338, 4),
       ],
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await assertErrorsInCode(
       build(
@@ -1985,7 +1985,7 @@ $downwards<List<int>> g3() async {
       ),
       [],
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await assertErrorsInCode(
       build(
@@ -1998,7 +1998,7 @@ $downwards<List<int>> g3() async {
         error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 336, 4),
       ],
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     await assertErrorsInCode(
       build(
@@ -2008,7 +2008,7 @@ $downwards<List<int>> g3() async {
       ),
       [],
     );
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
   }
 
   test_futureUnion_downwardsGenericMethodWithFutureReturn() async {

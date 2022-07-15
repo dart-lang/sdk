@@ -167,7 +167,7 @@ abstract class AbstractLspAnalysisServerTest
   @override
   Future sendNotificationToServer(NotificationMessage notification) async {
     channel.sendNotificationToServer(notification);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
   }
 
   @override

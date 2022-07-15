@@ -203,10 +203,6 @@ class MyAnnotation {
   }
 
   Future<void> test_OK_genericFunctionType() async {
-    newAnalysisOptionsYamlFile(testPackageRootPath, '''
-analyzer:
-  strong-mode: true
-''');
     addTestFile('''
 class C {
   void caller() {

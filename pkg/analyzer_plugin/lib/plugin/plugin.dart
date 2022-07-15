@@ -258,7 +258,7 @@ abstract class ServerPlugin {
       await beforeContextCollectionDispose(
         contextCollection: currentContextCollection,
       );
-      currentContextCollection.dispose();
+      await currentContextCollection.dispose();
     }
 
     final includedPaths = parameters.roots.map((e) => e.root).toList();

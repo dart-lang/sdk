@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_utilities/check/check.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
@@ -59,6 +60,7 @@ class DirectiveUriTest extends AbstractCompletionDriverTest {
     required void Function(CompletionResponseForTesting response) validator,
   }) async {
     _configurePackagesFooBar();
+    await pumpEventQueue(times: 5000);
 
     {
       var response = await getTestCodeSuggestions('''
