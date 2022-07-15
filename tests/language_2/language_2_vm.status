@@ -18,8 +18,6 @@ assert/initializer_const_error2_test/cc11: MissingCompileTimeError # Not reporti
 
 [ $runtime == vm ]
 async_star/async_star_await_for_test: RuntimeError
-async_star/async_star_cancel_test: RuntimeError
-async_star/async_star_test: RuntimeError
 
 [ $arch == arm64 && $runtime == vm ]
 class/large_class_declaration_test: SkipSlow # Uses too much memory.
