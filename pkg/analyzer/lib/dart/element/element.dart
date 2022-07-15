@@ -525,6 +525,7 @@ abstract class DirectiveUri {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithAugmentation extends DirectiveUriWithSource {
+  /// The library augmentation referenced by the [source].
   LibraryAugmentationElement get augmentation;
 }
 
@@ -532,6 +533,7 @@ abstract class DirectiveUriWithAugmentation extends DirectiveUriWithSource {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithLibrary extends DirectiveUriWithSource {
+  /// The library referenced by the [source].
   LibraryElement get library;
 }
 
@@ -540,6 +542,7 @@ abstract class DirectiveUriWithLibrary extends DirectiveUriWithSource {
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithRelativeUri
     extends DirectiveUriWithRelativeUriString {
+  /// The relative URI, parsed from [relativeUriString].
   Uri get relativeUri;
 }
 
@@ -547,6 +550,7 @@ abstract class DirectiveUriWithRelativeUri
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithRelativeUriString extends DirectiveUri {
+  /// The relative URI string specified in code.
   String get relativeUriString;
 }
 
@@ -554,6 +558,7 @@ abstract class DirectiveUriWithRelativeUriString extends DirectiveUri {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithSource extends DirectiveUriWithRelativeUri {
+  /// The result of resolving [relativeUri] against the enclosing URI.
   Source get source;
 }
 
@@ -561,6 +566,7 @@ abstract class DirectiveUriWithSource extends DirectiveUriWithRelativeUri {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
+  /// The unit referenced by the [source].
   CompilationUnitElement get unit;
 }
 
