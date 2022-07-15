@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:dart2native/dart2native.dart';
 import 'package:path/path.dart' as path;
