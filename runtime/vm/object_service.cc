@@ -341,6 +341,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("static", is_static());
   jsobj.AddProperty("const", is_const());
   jsobj.AddProperty("implicit", IsImplicitGetterOrSetter());
+  jsobj.AddProperty("abstract", is_abstract());
   jsobj.AddProperty("_intrinsic", is_intrinsic());
   jsobj.AddProperty("_native", is_native());
 
