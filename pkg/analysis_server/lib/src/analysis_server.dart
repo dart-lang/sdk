@@ -307,6 +307,8 @@ class AnalysisServer extends AbstractAnalysisServer {
   @visibleForTesting
   Duration pendingFilesRemoveOverlayDelay = const Duration(seconds: 10);
 
+  /// An optional manager to handle file systems which may not always be
+  /// available.
   final DetachableFileSystemManager? detachableFileSystemManager;
 
   /// The broadcast stream of requests that were discarded because there

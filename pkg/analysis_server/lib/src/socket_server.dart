@@ -47,6 +47,8 @@ class SocketServer implements AbstractSocketServer {
   /// The object through which analytics are to be sent.
   final AnalyticsManager analyticsManager;
 
+  /// An optional manager to handle file systems which may not always be
+  /// available.
   final DetachableFileSystemManager? detachableFileSystemManager;
 
   /// The analysis server that was created when a client established a

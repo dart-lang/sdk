@@ -44,9 +44,8 @@ class AnalysisSetAnalysisRootsHandler extends LegacyHandler {
 
     var detachableFileSystemManager = server.detachableFileSystemManager;
     if (detachableFileSystemManager != null) {
-      // TODO(scheglov) remove the last argument
-      detachableFileSystemManager
-          .setAnalysisRoots(request.id, includedPathList, excludedPathList, {});
+      detachableFileSystemManager.setAnalysisRoots(
+          request.id, includedPathList, excludedPathList);
     } else {
       await server.setAnalysisRoots(
           request.id, includedPathList, excludedPathList);

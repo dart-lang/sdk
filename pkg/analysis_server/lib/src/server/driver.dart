@@ -482,12 +482,12 @@ class Driver implements ServerStarter {
     var diagnosticServer = _DiagnosticServerImpl();
 
     final socketServer = LspSocketServer(
-      analysisServerOptions,
-      diagnosticServer,
-      analyticsManager,
-      dartSdkManager,
-      instrumentationService,
-    );
+        analysisServerOptions,
+        diagnosticServer,
+        analyticsManager,
+        dartSdkManager,
+        instrumentationService,
+        detachableFileSystemManager);
     errorNotifier.server = socketServer.analysisServer;
 
     diagnosticServer.httpServer = httpServer = HttpAnalysisServer(socketServer);

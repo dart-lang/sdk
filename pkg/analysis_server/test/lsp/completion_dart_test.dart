@@ -124,32 +124,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     expect(res, isEmpty);
   }
 
-  Future<void> test_commitCharacter_completionItem() async {
-    await provideConfig(
-      () => initialize(
-        textDocumentCapabilities:
-            withAllSupportedTextDocumentDynamicRegistrations(
-                emptyTextDocumentClientCapabilities),
-        workspaceCapabilities:
-            withConfigurationSupport(emptyWorkspaceClientCapabilities),
-      ),
-      {'previewCommitCharacters': true},
-    );
-
-    final content = '''
-void f() {
-  pri^
-}
-    ''';
-
-    await openFile(mainFileUri, withoutMarkers(content));
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-
-    final print = res.singleWhere((c) => c.label == 'print(…)');
-    expect(print.commitCharacters, equals(dartCompletionCommitCharacters));
-  }
-
-  Future<void> test_commitCharacter_config() async {
+  Future<void> test_commitCharacter_dynamicRegistration() async {
     final registrations = <Registration>[];
     // Provide empty config and collect dynamic registrations during
     // initialization.
