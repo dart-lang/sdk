@@ -30,10 +30,10 @@ void main(List<String> args) async {
 }
 
 String getMachineListing(Iterable<LintRule> ruleRegistry,
-    {bool pretty = true}) {
+    {Map<String, String>? fixStatusMap, bool pretty = true}) {
   var rules = List<LintRule>.of(ruleRegistry, growable: false)..sort();
   var encoder = pretty ? JsonEncoder.withIndent('  ') : JsonEncoder();
-
+  fixStatusMap ??= {};
   var json = encoder.convert([
     for (var rule in rules)
       {
@@ -48,6 +48,7 @@ String getMachineListing(Iterable<LintRule> ruleRegistry,
           if (flutterRules.contains(rule.name)) 'flutter',
           if (pedanticRules.contains(rule.name)) 'pedantic',
         ],
+        'fixStatus': fixStatusMap[rule.name] ?? 'unregistered',
         'details': rule.details,
       }
   ]);

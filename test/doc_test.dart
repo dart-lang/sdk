@@ -1,0 +1,19 @@
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test/test.dart';
+
+import '../tool/doc.dart';
+
+void main() {
+  group('doc generation', () {
+    test('fixStatus (sanity)', () async {
+      var fixStatusMap = await fetchFixStatusMap();
+      // Doc generation reads the fix status map to associate fix status
+      // badges with rule documentation.  Here we check one for sanity.
+      // If the file moves or format changes, we'd expect this to fail.
+      expect(fixStatusMap['always_declare_return_types'], 'hasFix');
+    });
+  });
+}

@@ -5,6 +5,7 @@
 import 'package:analyzer/src/lint/io.dart';
 
 import 'ascii_utils_test.dart' as ascii_utils;
+import 'doc_test.dart' as doc_test;
 import 'engine_test.dart' as engine_test;
 import 'formatter_test.dart' as formatter_test;
 import 'integration_test.dart' as integration_test;
@@ -23,6 +24,7 @@ void main() {
   outSink = MockIOSink();
 
   ascii_utils.main();
+  doc_test.main();
   engine_test.main();
   formatter_test.main();
   integration_test.main();

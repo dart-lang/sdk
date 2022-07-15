@@ -13,6 +13,7 @@ import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:markdown/markdown.dart';
+import 'package:yaml/yaml.dart';
 
 import 'machine.dart';
 import 'since.dart';
@@ -43,7 +44,6 @@ void main(List<String> args) async {
   var auth = token is String ? Authentication.withToken(token) : null;
 
   var createDirectories = options['create-dirs'] == true;
-
   var enableMarkdown = options['markdown'] == true;
 
   await generateDocs(outDir,
@@ -93,19 +93,7 @@ final List<LintRule> rules =
 
 late Map<String, SinceInfo> sinceInfo;
 
-String get enumerateErrorRules =>
-    rules.where((r) => r.group == Group.errors).map(toDescription).join('\n\n');
-
-String get enumerateGroups => Group.builtin
-    .map((Group g) =>
-        '<li><strong>${g.name} -</strong> ${markdownToHtml(g.description)}</li>')
-    .join('\n');
-
-String get enumeratePubRules =>
-    rules.where((r) => r.group == Group.pub).map(toDescription).join('\n\n');
-
-String get enumerateStyleRules =>
-    rules.where((r) => r.group == Group.style).map(toDescription).join('\n\n');
+final Map<String, String> _fixStatusMap = <String, String>{};
 
 Future<String> get pedanticLatestVersion async {
   var url =
@@ -164,6 +152,24 @@ Future<LintConfig?> fetchConfig(String url) async {
   return processAnalysisOptionsFile(req.body);
 }
 
+Future<Map<String, String>> fetchFixStatusMap() async {
+  if (_fixStatusMap.isNotEmpty) return _fixStatusMap;
+  var url =
+      'https://raw.githubusercontent.com/dart-lang/sdk/main/pkg/analysis_server/lib/src/services/correction/error_fix_status.yaml';
+  var client = http.Client();
+  print('loading $url...');
+  var req = await client.get(Uri.parse(url));
+  var yaml = loadYamlNode(req.body) as YamlMap;
+  for (var entry in yaml.entries) {
+    var code = entry.key as String;
+    if (code.startsWith('LintCode.')) {
+      _fixStatusMap[code.substring(9)] =
+          (entry.value as YamlMap)['status'] as String;
+    }
+  }
+  return _fixStatusMap;
+}
+
 Future<void> fetchSinceInfo(Authentication? auth) async {
   sinceInfo = await getSinceMap(auth);
 }
@@ -208,29 +214,33 @@ Future<void> generateDocs(String? dir,
   // Fetch since info.
   await fetchSinceInfo(auth);
 
+  var fixStatusMap = await fetchFixStatusMap();
+
   // Generate rule files.
   for (var l in rules) {
-    RuleHtmlGenerator(l).generate(outDir);
+    var fixStatus = fixStatusMap[l.name] ?? 'unregistered';
+    RuleHtmlGenerator(l, fixStatus).generate(outDir);
     if (enableMarkdown) {
-      RuleMarkdownGenerator(l).generate(filePath: outDir);
+      RuleMarkdownGenerator(l).generate(filePath: outDir, fixStatus: fixStatus);
     }
   }
 
   // Generate index.
-  HtmlIndexer(Registry.ruleRegistry).generate(outDir);
+  HtmlIndexer(Registry.ruleRegistry, fixStatusMap).generate(outDir);
 
   if (enableMarkdown) {
-    MarkdownIndexer(Registry.ruleRegistry).generate(filePath: outDir);
+    MarkdownIndexer(Registry.ruleRegistry, fixStatusMap)
+        .generate(filePath: outDir);
   }
 
   // Generate options samples.
   OptionsSample(rules).generate(outDir);
 
   // Generate a machine-readable summary of rules.
-  MachineSummaryGenerator(Registry.ruleRegistry).generate(outDir);
+  MachineSummaryGenerator(Registry.ruleRegistry, fixStatusMap).generate(outDir);
 }
 
-String getBadges(String rule) {
+String getBadges(String rule, [String? fixStatus]) {
   var sb = StringBuffer();
   if (coreRules.contains(rule)) {
     sb.write(
@@ -252,6 +262,12 @@ String getBadges(String rule) {
         '<a class="style-type" href="https://github.com/dart-lang/pedantic/#enabled-lints">'
         '<!--suppress HtmlUnknownTarget --><img alt="pedantic" src="style-pedantic.svg"></a>');
   }
+  if (fixStatus == 'hasFix') {
+    sb.write(
+        // todo(pq): consider a custom style and an href
+        '<a class="style-type">'
+        '<!--suppress HtmlUnknownTarget --><img alt="has-fix" src="has-fix.svg"></a>');
+  }
   return sb.toString();
 }
 
@@ -268,9 +284,6 @@ ${parser.usage}
 }
 
 String qualify(LintRule r) => r.name + describeMaturity(r);
-
-String toDescription(LintRule r) =>
-    '<!--suppress HtmlUnknownTarget --><strong><a href = "${r.name}.html">${qualify(r)}</a></strong><br/> ${getBadges(r.name)} ${markdownToHtml(r.description)}';
 
 class CountBadger {
   Iterable<LintRule> rules;
@@ -290,8 +303,26 @@ class CountBadger {
 
 class HtmlIndexer {
   final Iterable<LintRule> rules;
+  final Map<String, String> fixStatusMap;
+  HtmlIndexer(this.rules, this.fixStatusMap);
 
-  HtmlIndexer(this.rules);
+  String get enumerateErrorRules => rules
+      .where((r) => r.group == Group.errors)
+      .map(toDescription)
+      .join('\n\n');
+
+  String get enumerateGroups => Group.builtin
+      .map((Group g) =>
+          '<li><strong>${g.name} -</strong> ${markdownToHtml(g.description)}</li>')
+      .join('\n');
+
+  String get enumeratePubRules =>
+      rules.where((r) => r.group == Group.pub).map(toDescription).join('\n\n');
+
+  String get enumerateStyleRules => rules
+      .where((r) => r.group == Group.style)
+      .map(toDescription)
+      .join('\n\n');
 
   void generate(String? filePath) {
     var generated = _generate();
@@ -303,6 +334,9 @@ class HtmlIndexer {
       print(generated);
     }
   }
+
+  String toDescription(LintRule r) =>
+      '<!--suppress HtmlUnknownTarget --><strong><a href = "${r.name}.html">${qualify(r)}</a></strong><br/> ${getBadges(r.name, fixStatusMap[r.name])} ${markdownToHtml(r.description)}';
 
   String _generate() => '''
 <!DOCTYPE html>
@@ -365,11 +399,12 @@ class HtmlIndexer {
 
 class MachineSummaryGenerator {
   final Iterable<LintRule> rules;
+  final Map<String, String> fixStatusMap;
 
-  MachineSummaryGenerator(this.rules);
+  MachineSummaryGenerator(this.rules, this.fixStatusMap);
 
   void generate(String? filePath) {
-    var generated = getMachineListing(rules);
+    var generated = getMachineListing(rules, fixStatusMap: fixStatusMap);
     if (filePath != null) {
       var outPath = '$filePath/machine/rules.json';
       print('Writing to $outPath');
@@ -382,8 +417,9 @@ class MachineSummaryGenerator {
 
 class MarkdownIndexer {
   final Iterable<LintRule> rules;
+  final Map<String, String> fixStatusMap;
 
-  MarkdownIndexer(this.rules);
+  MarkdownIndexer(this.rules, this.fixStatusMap);
 
   void generate({String? filePath}) {
     var buffer = StringBuffer();
@@ -430,6 +466,11 @@ class MarkdownIndexer {
         buffer.writeln('[![pedantic](style-pedantic.svg)]'
             '(https://github.com/dart-lang/pedantic/#enabled-lints)');
       }
+      if (fixStatusMap[rule.name] == 'hasFix') {
+        // todo(pq): add a url when we have a good doc to link to.
+        buffer.writeln('![has-fix](has-fix.svg)');
+      }
+
       buffer.writeln();
     }
 
@@ -549,8 +590,9 @@ linter:
 
 class RuleHtmlGenerator {
   final LintRule rule;
+  final String fixStatus;
 
-  RuleHtmlGenerator(this.rule);
+  RuleHtmlGenerator(this.rule, this.fixStatus);
 
   String get details => rule.details;
 
@@ -636,7 +678,7 @@ class RuleHtmlGenerator {
                <p>$since</p>
                <span class="tooltip-content">Since info is static, may be stale</span>
             </div>
-            ${getBadges(name)}
+            ${getBadges(name, fixStatus)}
             <ul>
                <li><a href="index.html">View all <strong>Lint Rules</strong></a></li>
                <li><a href="https://dart.dev/guides/language/analysis-options#enabling-linter-rules">Using the <strong>Linter</strong></a></li>
@@ -683,7 +725,7 @@ class RuleMarkdownGenerator {
     return sinceLinter != null ? 'Linter v$sinceLinter' : 'Unreleased';
   }
 
-  void generate({String? filePath}) {
+  void generate({String? filePath, String? fixStatus}) {
     var buffer = StringBuffer();
 
     buffer.writeln('# Rule $name');
@@ -710,6 +752,10 @@ class RuleMarkdownGenerator {
     if (pedanticRules.contains(name)) {
       buffer.writeln('[![pedantic](style-pedantic.svg)]'
           '(https://github.com/dart-lang/pedantic/#enabled-lints)');
+    }
+    if (fixStatus == 'hasFix') {
+      // todo(pq): add a url when we have a good doc to link to.
+      buffer.writeln('![has-fix](has-fix.svg)');
     }
 
     buffer.writeln();
