@@ -445,7 +445,7 @@ class LibraryBuilder {
 
         final augmentation = LibraryAugmentationElementImpl(
           augmented: augmentedElement,
-          nameOffset: -1, // TODO(scheglov) fix it
+          nameOffset: importedAugmentation.directive.libraryKeywordOffset,
         );
         augmentation.definingCompilationUnit = unitElement;
 
@@ -493,7 +493,7 @@ class LibraryBuilder {
     }
 
     return AugmentationImportElementImpl(
-      importKeywordOffset: -1, // TODO(scheglov) fix it
+      importKeywordOffset: state.directive.importKeywordOffset,
       uri: uri,
     );
   }

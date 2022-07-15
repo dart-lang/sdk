@@ -161,9 +161,13 @@ class UnlinkedExportDirective extends UnlinkedNamespaceDirective {
 }
 
 class UnlinkedImportAugmentationDirective {
+  final int augmentKeywordOffset;
+  final int importKeywordOffset;
   final String? uri;
 
   UnlinkedImportAugmentationDirective({
+    required this.augmentKeywordOffset,
+    required this.importKeywordOffset,
     required this.uri,
   });
 
@@ -171,11 +175,15 @@ class UnlinkedImportAugmentationDirective {
     SummaryDataReader reader,
   ) {
     return UnlinkedImportAugmentationDirective(
+      augmentKeywordOffset: reader.readUInt30(),
+      importKeywordOffset: reader.readUInt30(),
       uri: reader.readOptionalStringUtf8(),
     );
   }
 
   void write(BufferedSink sink) {
+    sink.writeUInt30(augmentKeywordOffset);
+    sink.writeUInt30(importKeywordOffset);
     sink.writeOptionalStringUtf8(uri);
   }
 }
@@ -264,10 +272,14 @@ class UnlinkedImportDirectivePrefix {
 }
 
 class UnlinkedLibraryAugmentationDirective {
+  final int augmentKeywordOffset;
+  final int libraryKeywordOffset;
   final String? uri;
   final UnlinkedSourceRange uriRange;
 
   UnlinkedLibraryAugmentationDirective({
+    required this.augmentKeywordOffset,
+    required this.libraryKeywordOffset,
     required this.uri,
     required this.uriRange,
   });
@@ -276,12 +288,16 @@ class UnlinkedLibraryAugmentationDirective {
     SummaryDataReader reader,
   ) {
     return UnlinkedLibraryAugmentationDirective(
+      augmentKeywordOffset: reader.readUInt30(),
+      libraryKeywordOffset: reader.readUInt30(),
       uri: reader.readOptionalStringUtf8(),
       uriRange: UnlinkedSourceRange.read(reader),
     );
   }
 
   void write(BufferedSink sink) {
+    sink.writeUInt30(augmentKeywordOffset);
+    sink.writeUInt30(libraryKeywordOffset);
     sink.writeOptionalStringUtf8(uri);
     uriRange.write(sink);
   }

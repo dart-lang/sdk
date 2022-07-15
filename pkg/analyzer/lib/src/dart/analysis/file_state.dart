@@ -952,6 +952,8 @@ class FileState {
       } else if (directive is AugmentationImportDirectiveImpl) {
         augmentations.add(
           UnlinkedImportAugmentationDirective(
+            augmentKeywordOffset: directive.augmentKeyword.offset,
+            importKeywordOffset: directive.importKeyword.offset,
             uri: directive.uri.stringValue,
           ),
         );
@@ -966,6 +968,8 @@ class FileState {
         final uriStr = uri.stringValue;
         if (uriStr != null) {
           libraryAugmentationDirective = UnlinkedLibraryAugmentationDirective(
+            augmentKeywordOffset: directive.augmentKeyword.offset,
+            libraryKeywordOffset: directive.libraryKeyword.offset,
             uri: uriStr,
             uriRange: UnlinkedSourceRange(
               offset: uri.offset,
