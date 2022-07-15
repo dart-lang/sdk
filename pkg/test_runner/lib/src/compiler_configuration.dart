@@ -963,12 +963,14 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   Command computeAssembleCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
     late String cc;
-    String? shared, ldFlags;
+    String? shared;
+    var ldFlags = <String>[];
     List<String>? target;
     if (_isAndroid) {
       cc = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
           "$host-x86_64/bin/$abiTriple-gcc";
       shared = '-shared';
+      ldFlags.add('-Wl,--no-undefined');
     } else if (Platform.isLinux) {
       if (_isSimArm || (_isArm && _configuration.useQemu)) {
         cc = 'arm-linux-gnueabihf-gcc';
@@ -982,11 +984,13 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         cc = 'gcc';
       }
       shared = '-shared';
+      ldFlags.add('-Wl,--no-undefined');
     } else if (Platform.isMacOS) {
       cc = 'clang';
       shared = '-dynamiclib';
+      ldFlags.add('-Wl,-undefined,error');
       // Tell Mac linker to give up generating eh_frame from dwarf.
-      ldFlags = '-Wl,-no_compact_unwind';
+      ldFlags.add('-Wl,-no_compact_unwind');
       if ({Architecture.arm64, Architecture.arm64c}
           .contains(_configuration.architecture)) {
         target = ['-arch', 'arm64'];
@@ -1022,7 +1026,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     var args = [
       if (target != null) ...target,
       if (ccFlags != null) ccFlags,
-      if (ldFlags != null) ldFlags,
+      ...ldFlags,
       shared,
       '-o',
       '$tempDir/out.aotsnapshot',
