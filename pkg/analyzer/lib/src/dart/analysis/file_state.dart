@@ -1838,15 +1838,9 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
       file,
     ];
 
-    // TODO(scheglov) When we include only valid parts, use this instead.
-    final includeOnlyValidParts = 0 > 1;
     for (final part in parts) {
       if (part is PartDirectiveWithFile) {
-        if (includeOnlyValidParts) {
-          files.addIfNotNull(part.includedPart?.file);
-        } else {
-          files.add(part.includedFile);
-        }
+        files.addIfNotNull(part.includedPart?.file);
       }
     }
 

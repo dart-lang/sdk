@@ -5304,8 +5304,8 @@ class A2 {}
 
     // `a.dart` is still a part.
     // ...but the unlinked signature of `a.dart` is different.
-    // API signatures of both `b.dart` and `c.dart` changed.
-    // Even though `a.dart` is not a valid part of `c.dart`.
+    // The API signatures of `b.dart` is changed, because `a.dart` is its part.
+    // But `c.dart` still has the previous API signature.
     assertDriverStateString(testFile, r'''
 files
   /home/test/lib/a.dart
@@ -5342,7 +5342,7 @@ files
         cycle_4
           dependencies: dart:core
           libraries: library_7
-          apiSignature_3
+          apiSignature_1
       unlinkedKey: k01
 libraryCycles
 elementFactory
