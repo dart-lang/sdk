@@ -159,8 +159,18 @@ class DartObjectImpl implements DartObject {
   /// The state of the object.
   final InstanceState _state;
 
+  @override
+  final VariableElement? variable;
+
   /// Initialize a newly created object to have the given [type] and [_state].
-  DartObjectImpl(this._typeSystem, this.type, this._state);
+  DartObjectImpl(this._typeSystem, this.type, this._state, {this.variable});
+
+  /// Creates a duplicate instance of [other], tied to [variable].
+  factory DartObjectImpl.forVariable(
+      DartObjectImpl other, VariableElement variable) {
+    return DartObjectImpl(other._typeSystem, other.type, other._state,
+        variable: variable);
+  }
 
   /// Create an object to represent an unknown value.
   factory DartObjectImpl.validWithUnknownValue(

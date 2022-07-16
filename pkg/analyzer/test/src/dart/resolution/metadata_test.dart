@@ -39,6 +39,7 @@ Annotation
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
+  variable: self::@variable::a
 ''');
   }
 
@@ -67,6 +68,7 @@ Annotation
     var annotationElement = annotation.elementAnnotation!;
     _assertElementAnnotationValueText(annotationElement, r'''
 int 42
+  variable: self::@variable::foo
 ''');
   }
 
@@ -102,6 +104,7 @@ Annotation
     var annotationElement = annotation.elementAnnotation!;
     _assertElementAnnotationValueText(annotationElement, r'''
 int 42
+  variable: self::@variable::foo
 ''');
   }
 
@@ -128,6 +131,7 @@ Annotation
 E
   _name: String v
   index: int 0
+  variable: self::@enum::E::@field::v
 ''');
   }
 
@@ -413,6 +417,7 @@ Annotation
     _assertElementAnnotationValueText(
         findElement.function('f').metadata[0], r'''
 int 42
+  variable: package:test/a.dart::@class::A::@field::foo
 ''');
   }
 
@@ -446,6 +451,7 @@ Annotation
     _assertElementAnnotationValueText(
         findElement.function('f').metadata[0], r'''
 int 42
+  variable: package:test/a.dart::@variable::foo
 ''');
   }
 
@@ -707,6 +713,7 @@ Annotation
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
+  variable: self::@class::A::@field::foo
 ''');
   }
 
@@ -1678,6 +1685,7 @@ Annotation
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
+  variable: package:test/a.dart::@class::A::@field::foo
 ''');
   }
 
@@ -1979,6 +1987,7 @@ Annotation
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
+  variable: self::@class::A::@field::foo
 ''');
   }
 
