@@ -3933,13 +3933,12 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   List<AugmentationImportElement> get augmentationImports {
-    linkedData?.read(this);
+    _readLinkedData();
     return super.augmentationImports;
   }
 
   @override
   List<ExportElement2> get exports2 {
-    linkedData?.read(this);
     return _exports2;
   }
 
@@ -3948,7 +3947,7 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   List<ImportElement2> get imports2 {
-    linkedData?.read(this);
+    _readLinkedData();
     return _imports2;
   }
 
@@ -3977,6 +3976,11 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   @override
   T? accept<T>(ElementVisitor<T> visitor) {
     return visitor.visitLibraryAugmentationElement(this);
+  }
+
+  @override
+  void _readLinkedData() {
+    augmented._readLinkedData();
   }
 }
 
@@ -4050,7 +4054,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   List<AugmentationImportElement> get augmentationImports {
-    linkedData?.read(this);
+    _readLinkedData();
     return super.augmentationImports;
   }
 
@@ -4061,7 +4065,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   FunctionElement? get entryPoint {
-    linkedData?.read(this);
+    _readLinkedData();
     return _entryPoint;
   }
 
@@ -4108,7 +4112,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   List<ExportElement2> get exports2 {
-    linkedData?.read(this);
+    _readLinkedData();
     return _exports2;
   }
 
@@ -4142,7 +4146,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   List<ImportElement2> get imports2 {
-    linkedData?.read(this);
+    _readLinkedData();
     return _imports2;
   }
 
@@ -4221,7 +4225,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
-    linkedData?.read(this);
+    _readLinkedData();
     return super.metadata;
   }
 
@@ -4446,6 +4450,11 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     }
   }
 
+  @override
+  void _readLinkedData() {
+    linkedData?.read(this);
+  }
+
   static List<PrefixElement> buildPrefixesFromImports(
       List<ImportElement2> imports) {
     HashSet<PrefixElement> prefixes = HashSet<PrefixElement>();
@@ -4601,6 +4610,8 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
     safelyVisitChildren(imports, visitor);
     safelyVisitChildren(imports2, visitor);
   }
+
+  void _readLinkedData();
 
   static List<PrefixElement> buildPrefixesFromImports(
       List<ImportElement2> imports) {

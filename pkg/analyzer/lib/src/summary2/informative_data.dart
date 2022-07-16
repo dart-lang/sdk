@@ -78,8 +78,13 @@ class InformativeDataApplier {
         var unitReader = SummaryDataReader(unitInfoBytes);
         var unitInfo = _InfoUnit(unitReader);
 
-        if (i == 0) {
-          _applyToLibrary(libraryElement, unitInfo);
+        final enclosing = unitElement.enclosingElement2;
+        if (enclosing is LibraryElementImpl) {
+          if (identical(enclosing.definingCompilationUnit, unitElement)) {
+            _applyToLibrary(enclosing, unitInfo);
+          }
+        } else if (enclosing is LibraryAugmentationElementImpl) {
+          _applyToAugmentation(enclosing, unitInfo);
         }
 
         unitElement.setCodeRange(unitInfo.codeOffset, unitInfo.codeLength);
@@ -172,6 +177,29 @@ class InformativeDataApplier {
             },
           );
         }
+      },
+    );
+  }
+
+  void _applyToAugmentation(
+    LibraryAugmentationElementImpl element,
+    _InfoUnit info,
+  ) {
+    if (info.docComment.isNotEmpty) {
+      element.documentationComment = info.docComment;
+    }
+
+    _applyToImports(element, info);
+    _applyToExports(element, info);
+
+    var linkedData = element.linkedData as LibraryAugmentationElementLinkedData;
+    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+      info.libraryConstantOffsets,
+      (applier) {
+        applier.applyToMetadata(element);
+        applier.applyToImports(element.imports2);
+        applier.applyToExports(element.exports2);
+        applier.applyToAugmentationImports(element.augmentationImports);
       },
     );
   }
@@ -301,6 +329,21 @@ class InformativeDataApplier {
       (applier) {
         applier.applyToMetadata(element);
         applier.applyToTypeParameters(element.typeParameters);
+      },
+    );
+  }
+
+  void _applyToExports(
+    LibraryOrAugmentationElementImpl element,
+    _InfoUnit info,
+  ) {
+    forCorrespondingPairs<ExportElement2, _InfoExport>(
+      element.exports_unresolved,
+      info.exports,
+      (element, info) {
+        element as ExportElement2Impl;
+        element.nameOffset = info.nameOffset;
+        _applyToCombinators(element.combinators, info.combinators);
       },
     );
   }
@@ -442,14 +485,10 @@ class InformativeDataApplier {
     );
   }
 
-  void _applyToLibrary(LibraryElementImpl element, _InfoUnit info) {
-    element.nameOffset = info.libraryName.offset;
-    element.nameLength = info.libraryName.length;
-
-    if (info.docComment.isNotEmpty) {
-      element.documentationComment = info.docComment;
-    }
-
+  void _applyToImports(
+    LibraryOrAugmentationElementImpl element,
+    _InfoUnit info,
+  ) {
     forCorrespondingPairs<ImportElement2, _InfoImport>(
       element.imports_unresolved,
       info.imports,
@@ -465,16 +504,18 @@ class InformativeDataApplier {
         _applyToCombinators(element.combinators, info.combinators);
       },
     );
+  }
 
-    forCorrespondingPairs<ExportElement2, _InfoExport>(
-      element.exports_unresolved,
-      info.exports,
-      (element, info) {
-        element as ExportElement2Impl;
-        element.nameOffset = info.nameOffset;
-        _applyToCombinators(element.combinators, info.combinators);
-      },
-    );
+  void _applyToLibrary(LibraryElementImpl element, _InfoUnit info) {
+    element.nameOffset = info.libraryName.offset;
+    element.nameLength = info.libraryName.length;
+
+    if (info.docComment.isNotEmpty) {
+      element.documentationComment = info.docComment;
+    }
+
+    _applyToImports(element, info);
+    _applyToExports(element, info);
 
     forCorrespondingPairs<PartElement, _InfoPart>(
       element.parts2,
@@ -491,6 +532,7 @@ class InformativeDataApplier {
         applier.applyToMetadata(element);
         applier.applyToImports(element.imports2);
         applier.applyToExports(element.exports2);
+        applier.applyToAugmentationImports(element.augmentationImports);
         applier.applyToPartDirectives(element.parts2);
       },
     );
@@ -1392,6 +1434,8 @@ class _InformativeDataWriter {
       metadata: firstDirective?.metadata,
       importDirectives: unit.directives.whereType<ImportDirective>(),
       exportDirectives: unit.directives.whereType<ExportDirective>(),
+      augmentationImportDirectives:
+          unit.directives.whereType<AugmentationImportDirective>(),
       partDirectives: unit.directives.whereType<PartDirective>(),
     );
   }
@@ -1422,6 +1466,7 @@ class _InformativeDataWriter {
     NodeList<Annotation>? metadata,
     Iterable<ImportDirective>? importDirectives,
     Iterable<ExportDirective>? exportDirectives,
+    Iterable<AugmentationImportDirective>? augmentationImportDirectives,
     Iterable<PartDirective>? partDirectives,
     TypeParameterList? typeParameters,
     FormalParameterList? formalParameters,
@@ -1468,6 +1513,7 @@ class _InformativeDataWriter {
     metadata?.accept(collector);
     addDirectives(importDirectives);
     addDirectives(exportDirectives);
+    addDirectives(augmentationImportDirectives);
     addDirectives(partDirectives);
     addTypeParameters(typeParameters);
     addFormalParameters(formalParameters);
@@ -1588,7 +1634,6 @@ class _InfoUnit {
       libraryName: _InfoLibraryName(reader),
       libraryConstantOffsets: reader.readUInt30List(),
       docComment: reader.readStringUtf8(),
-      // TODO(scheglov)
       imports: reader.readTypedList(
         () => _InfoImport(reader),
       ),
@@ -1658,6 +1703,12 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   final _SafeListIterator<int> _iterator;
 
   _OffsetsApplier(this._iterator);
+
+  void applyToAugmentationImports(List<AugmentationImportElement> elements) {
+    for (var element in elements) {
+      applyToMetadata(element);
+    }
+  }
 
   void applyToConstantInitializer(Element element) {
     if (element is ConstFieldElementImpl && element.isEnumConstant) {

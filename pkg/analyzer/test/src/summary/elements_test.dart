@@ -78,6 +78,24 @@ library
 ''');
   }
 
+  test_augmentation_documented() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+/// My documentation.
+library augment 'test.dart';
+''');
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      documentationComment: /// My documentation.
+      definingUnit
+  definingUnit
+''');
+  }
+
   test_augmentation_libraryExports_library() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
@@ -26283,6 +26301,149 @@ library
 ''');
   }
 
+  test_metadata_augmentation_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+@deprecated
+class A {}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class A @47
+            metadata
+              Annotation
+                atSign: @ @29
+                name: SimpleIdentifier
+                  token: deprecated @30
+                  staticElement: dart:core::@getter::deprecated
+                  staticType: null
+                element: dart:core::@getter::deprecated
+            constructors
+              synthetic @-1
+  definingUnit
+''');
+  }
+
+  test_metadata_augmentation_directive() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+@deprecated
+library augment 'test.dart';
+''');
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      metadata
+        Annotation
+          atSign: @ @0
+          name: SimpleIdentifier
+            token: deprecated @1
+            staticElement: dart:core::@getter::deprecated
+            staticType: null
+          element: dart:core::@getter::deprecated
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_metadata_augmentation_exportLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+@deprecated
+export 'dart:math';
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      exports
+        dart:math
+          metadata
+            Annotation
+              atSign: @ @29
+              name: SimpleIdentifier
+                token: deprecated @30
+                staticElement: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_metadata_augmentation_importAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'b.dart';
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+@deprecated
+import augment 'a.dart';
+''');
+    var library = await buildLibrary('''
+import augment 'b.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      augmentationImports
+        package:test/a.dart
+          metadata
+            Annotation
+              atSign: @ @29
+              name: SimpleIdentifier
+                token: deprecated @30
+                staticElement: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+          definingUnit
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_metadata_augmentation_importLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+@deprecated
+import 'dart:math';
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      imports
+        dart:math
+          metadata
+            Annotation
+              atSign: @ @29
+              name: SimpleIdentifier
+                token: deprecated @30
+                staticElement: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+      definingUnit
+  definingUnit
+''');
+  }
+
   test_metadata_class_field_first() async {
     var library = await buildLibrary(r'''
 const a = 0;
@@ -28838,6 +28999,53 @@ library
           requiredPositional _ @2
             type: dynamic
         returnType: dynamic
+''');
+  }
+
+  test_metadata_library_importAugmentation_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+''');
+    var library = await buildLibrary('''
+@deprecated
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      metadata
+        Annotation
+          atSign: @ @0
+          name: SimpleIdentifier
+            token: deprecated @1
+            staticElement: dart:core::@getter::deprecated
+            staticType: null
+          element: dart:core::@getter::deprecated
+      definingUnit
+  definingUnit
+''');
+  }
+
+  /// Even though the target is not an augmentation, metadata is available.
+  test_metadata_library_importAugmentation_notAugmentation_library() async {
+    var library = await buildLibrary('''
+@deprecated
+import augment 'dart:math';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    source 'dart:math'
+      metadata
+        Annotation
+          atSign: @ @0
+          name: SimpleIdentifier
+            token: deprecated @1
+            staticElement: dart:core::@getter::deprecated
+            staticType: null
+          element: dart:core::@getter::deprecated
+  definingUnit
 ''');
   }
 
