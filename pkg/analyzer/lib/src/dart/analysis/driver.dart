@@ -85,7 +85,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 232;
+  static const int DATA_VERSION = 234;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -196,6 +196,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// [getUnitElement] to the [Completer]s to report the result.
   final _unitElementRequestedFiles =
       <String, List<Completer<SomeUnitElementResult>>>{};
+
+  /// The list of dispose requests, added in [dispose2], almost always empty.
+  /// We expect that at most one is added, at the very end of the life cycle.
+  final List<Completer<void>> _disposeRequests = [];
 
   /// The controller for the [results] stream.
   final _resultController = StreamController<Object>();
@@ -397,6 +401,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   @override
   AnalysisDriverPriority get workPriority {
+    if (_disposeRequests.isNotEmpty) {
+      return AnalysisDriverPriority.interactive;
+    }
     if (_resolveForCompletionRequests.isNotEmpty) {
       return AnalysisDriverPriority.completion;
     }
@@ -581,10 +588,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return _discoverAvailableFilesTask!.completer.future;
   }
 
+  @Deprecated('Use dispose2() instead')
   @override
   void dispose() {
     _scheduler.remove(this);
     clearLibraryContext();
+  }
+
+  @override
+  Future<void> dispose2() async {
+    final completer = Completer<void>();
+    _disposeRequests.add(completer);
+    _scheduler.notify(this);
+    return completer.future;
   }
 
   /// Return the cached [ResolvedUnitResult] for the Dart file with the given
@@ -1649,6 +1665,17 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return _resourceProvider.pathContext.isAbsolute(path);
   }
 
+  Future<void> _maybeDispose() async {
+    if (_disposeRequests.isNotEmpty) {
+      _scheduler.remove(this);
+      clearLibraryContext();
+
+      for (final completer in _disposeRequests.toList()) {
+        completer.complete();
+      }
+    }
+  }
+
   /// We detected that one of the required `dart` libraries is missing.
   /// Return the empty analysis result with the error.
   AnalysisResult _newMissingDartLibraryResult(
@@ -1908,7 +1935,11 @@ abstract class AnalysisDriverGeneric {
   void addFile(String path);
 
   /// Notify the driver that the client is going to stop using it.
+  @Deprecated('Use dispose2() instead')
   void dispose();
+
+  /// Notify the driver that the client is going to stop using it.
+  Future<void> dispose2();
 
   /// Perform a single chunk of work and produce [results].
   Future<void> performWork();
@@ -2054,6 +2085,12 @@ class AnalysisDriverScheduler {
       }
 
       await _hasWork.signal;
+
+      for (final driver in _drivers.toList()) {
+        if (driver is AnalysisDriver) {
+          await driver._maybeDispose();
+        }
+      }
 
       for (var driver in _drivers) {
         if (driver is AnalysisDriver) {

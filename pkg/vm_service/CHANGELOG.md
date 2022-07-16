@@ -1,5 +1,9 @@
 # Changelog
 
+## 9.2.0
+- Update to version `3.59` of the spec.
+- Add `abstract` flag to `FuncRef`.
+
 ## 9.1.0
 - Remove `required` keyword from most of the named parameters in the
   constructors of the Dart API objects.

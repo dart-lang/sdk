@@ -58,7 +58,7 @@ void f(int? a) {}
 dart_package(null_safety = True)
 ''');
 
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // We have null safety enabled, so no errors.

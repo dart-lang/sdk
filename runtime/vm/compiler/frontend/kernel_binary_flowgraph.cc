@@ -5194,12 +5194,16 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement(
     // if (controller.add(<expr>)) {
     //   return;
     // }
-    // suspend();
+    // if (suspend()) {
+    //   return;
+    // }
     //
     // Generate the following code for yield* <expr>:
     //
     // _AsyncStarStreamController controller = :suspend_state._functionData;
-    // controller.addStream(<expr>);
+    // if (controller.addStream(<expr>)) {
+    //   return;
+    // }
     // if (suspend()) {
     //   return;
     // }
@@ -5215,31 +5219,25 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement(
     instructions +=
         StaticCall(TokenPosition::kNoSource, add_method, 2, ICData::kNoRebind);
 
-    if (is_yield_star) {
-      // Discard result of _AsyncStarStreamController.addStream().
-      instructions += Drop();
-      // Suspend and test value passed to the resumed async* body.
-      instructions += NullConstant();
-      instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldAsyncStar);
-    } else {
-      // Test value returned by _AsyncStarStreamController.add().
-    }
+    TargetEntryInstr *return1, *continue1;
+    instructions += BranchIfTrue(&return1, &continue1, false);
+    JoinEntryInstr* return_join = BuildJoinEntry();
+    Fragment(return1) + Goto(return_join);
+    instructions = Fragment(instructions.entry, continue1);
 
-    TargetEntryInstr* exit;
-    TargetEntryInstr* continue_execution;
-    instructions += BranchIfTrue(&exit, &continue_execution, false);
+    // Suspend and test value passed to the resumed async* body.
+    instructions += NullConstant();
+    instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldAsyncStar);
 
-    Fragment do_exit(exit);
-    do_exit += TranslateFinallyFinalizers(nullptr, -1);
-    do_exit += NullConstant();
-    do_exit += Return(TokenPosition::kNoSource);
+    TargetEntryInstr *return2, *continue2;
+    instructions += BranchIfTrue(&return2, &continue2, false);
+    Fragment(return2) + Goto(return_join);
+    instructions = Fragment(instructions.entry, continue2);
 
-    instructions = Fragment(instructions.entry, continue_execution);
-    if (!is_yield_star) {
-      instructions += NullConstant();
-      instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldAsyncStar);
-      instructions += Drop();
-    }
+    Fragment do_return(return_join);
+    do_return += TranslateFinallyFinalizers(nullptr, -1);
+    do_return += NullConstant();
+    do_return += Return(TokenPosition::kNoSource);
 
   } else if (parsed_function()->function().IsSyncGenerator()) {
     // In the sync* functions, generate the following code for yield <expr>:

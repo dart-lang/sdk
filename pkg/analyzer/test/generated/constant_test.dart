@@ -66,6 +66,7 @@ const x = kIsWeb ? a : b;
     var x_result = findElement.topVar('x').evaluationResult;
     assertDartObjectText(x_result.value, r'''
 dynamic <unknown>
+  variable: self::@variable::x
 ''');
   }
 
@@ -404,12 +405,14 @@ const x2 = E.v2;
 E
   _name: String v1
   index: int 0
+  variable: self::@variable::x1
 ''');
 
     _assertTopVarConstValue('x2', r'''
 E
   _name: String v2
   index: int 1
+  variable: self::@variable::x2
 ''');
   }
 
@@ -430,7 +433,9 @@ E
     _name: String v1
     a: int 42
     index: int 0
+    variable: self::@enum::E::@field::v1
   index: int 1
+  variable: self::@enum::E::@field::v2
 ''');
   }
 
@@ -452,6 +457,7 @@ E<double>
   _name: String v1
   f: double 10.0
   index: int 0
+  variable: self::@variable::x1
 ''');
 
     _assertTopVarConstValue('x2', r'''
@@ -459,6 +465,7 @@ E<int>
   _name: String v2
   f: int 20
   index: int 1
+  variable: self::@variable::x2
 ''');
   }
 
@@ -482,6 +489,7 @@ E<int>
   _name: String v1
   f: int 10
   index: int 0
+  variable: self::@variable::x1
 ''');
 
     _assertTopVarConstValue('x2', r'''
@@ -489,6 +497,7 @@ E<int>
   _name: String v2
   f: int 20
   index: int 1
+  variable: self::@variable::x2
 ''');
 
     _assertTopVarConstValue('x3', r'''
@@ -496,6 +505,7 @@ E<String>
   _name: String v3
   f: String abc
   index: int 2
+  variable: self::@variable::x3
 ''');
   }
 
@@ -594,6 +604,7 @@ B
     a: int 1
     b: int 2
   c: int 3
+  variable: self::@variable::x
 ''');
   }
 
@@ -620,6 +631,7 @@ B
     a: int 1
     b: int 2
   c: int 3
+  variable: self::@variable::x
 ''');
   }
 
@@ -644,6 +656,7 @@ B
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -668,6 +681,7 @@ B<int>
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -692,6 +706,7 @@ B
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -716,6 +731,7 @@ B<int>
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -740,6 +756,7 @@ B
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -764,6 +781,7 @@ B<int>
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -788,6 +806,7 @@ B
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -812,6 +831,47 @@ B<int>
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
+''');
+  }
+
+  test_variable_alias() async {
+    await resolveTestCode('''
+const a = 42;
+const b = a;
+''');
+
+    final a_result = findElement.topVar('a').evaluationResult;
+    assertDartObjectText(a_result.value, r'''
+int 42
+  variable: self::@variable::a
+''');
+
+    final b_result = findElement.topVar('b').evaluationResult;
+    assertDartObjectText(b_result.value, r'''
+int 42
+  variable: self::@variable::b
+''');
+  }
+
+  test_variable_list_elements() async {
+    await resolveTestCode('''
+const a = 0;
+const b = 2;
+const c = [a, 1, b];
+''');
+
+    final b_result = findElement.topVar('c').evaluationResult;
+    assertDartObjectText(b_result.value, r'''
+List
+  elementType: int
+  elements
+    int 0
+      variable: self::@variable::a
+    int 1
+    int 2
+      variable: self::@variable::b
+  variable: self::@variable::c
 ''');
   }
 

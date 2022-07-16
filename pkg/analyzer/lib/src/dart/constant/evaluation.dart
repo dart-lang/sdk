@@ -107,6 +107,9 @@ class ConstantEvaluationEngine {
                 constantInitializer,
                 [dartObject.type, constant.type]);
           }
+
+          // Associate with the variable.
+          dartObject = DartObjectImpl.forVariable(dartObject, constant);
         }
 
         if (dartObject != null) {

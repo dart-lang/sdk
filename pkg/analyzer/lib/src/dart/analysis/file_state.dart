@@ -952,6 +952,8 @@ class FileState {
       } else if (directive is AugmentationImportDirectiveImpl) {
         augmentations.add(
           UnlinkedImportAugmentationDirective(
+            augmentKeywordOffset: directive.augmentKeyword.offset,
+            importKeywordOffset: directive.importKeyword.offset,
             uri: directive.uri.stringValue,
           ),
         );
@@ -966,6 +968,8 @@ class FileState {
         final uriStr = uri.stringValue;
         if (uriStr != null) {
           libraryAugmentationDirective = UnlinkedLibraryAugmentationDirective(
+            augmentKeywordOffset: directive.augmentKeyword.offset,
+            libraryKeywordOffset: directive.libraryKeyword.offset,
             uri: uriStr,
             uriRange: UnlinkedSourceRange(
               offset: uri.offset,
@@ -1831,29 +1835,14 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
     file._fsState._libraryNameToFiles.add(this);
   }
 
-  /// The list of files that this library consists of, i.e. this library file
-  /// itself, its [parts], and augmentations.
-  List<FileState> get files {
-    final files = [
-      file,
-    ];
+  /// All augmentations referenced by this library, in the depth-first
+  /// pre-order traversal order.
+  List<AugmentationFileStateKind> get allAugmentations {
+    final result = <AugmentationFileStateKind>[];
 
-    // TODO(scheglov) When we include only valid parts, use this instead.
-    final includeOnlyValidParts = 0 > 1;
-    for (final part in parts) {
-      if (part is PartDirectiveWithFile) {
-        if (includeOnlyValidParts) {
-          files.addIfNotNull(part.includedPart?.file);
-        } else {
-          files.add(part.includedFile);
-        }
-      }
-    }
-
-    // TODO(scheglov) Test how augmentations affect signatures.
     void visitAugmentations(LibraryOrAugmentationFileKind kind) {
       if (kind is AugmentationFileStateKind) {
-        files.add(kind.file);
+        result.add(kind);
       }
       for (final import in kind.augmentations) {
         if (import is ImportAugmentationDirectiveWithFile) {
@@ -1866,6 +1855,23 @@ class LibraryFileStateKind extends LibraryOrAugmentationFileKind {
     }
 
     visitAugmentations(this);
+    return result;
+  }
+
+  /// The list of files that this library consists of, i.e. this library file
+  /// itself, its [parts], and augmentations.
+  List<FileState> get files {
+    final files = [
+      file,
+    ];
+
+    for (final part in parts) {
+      if (part is PartDirectiveWithFile) {
+        files.addIfNotNull(part.includedPart?.file);
+      }
+    }
+
+    files.addAll(allAugmentations.map((e) => e.file));
 
     return files;
   }

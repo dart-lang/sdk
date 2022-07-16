@@ -212,10 +212,10 @@ abstract class ContextResolutionTest
     return _contextFor(path);
   }
 
-  void disposeAnalysisContextCollection() {
+  Future<void> disposeAnalysisContextCollection() async {
     final analysisContextCollection = _analysisContextCollection;
     if (analysisContextCollection != null) {
-      analysisContextCollection.dispose(
+      await analysisContextCollection.dispose(
         forTesting: true,
       );
       _analysisContextCollection = null;
@@ -258,7 +258,7 @@ abstract class ContextResolutionTest
 
   @mustCallSuper
   Future<void> tearDown() async {
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
     KernelCompilationService.disposeDelayed(
       const Duration(milliseconds: 500),
     );
@@ -492,7 +492,7 @@ mixin WithNoImplicitCastsMixin on PubPackageResolutionTest {
     await resolveTestCode(code);
     assertNoErrorsInResult();
 
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
@@ -539,7 +539,7 @@ mixin WithStrictCastsMixin on PubPackageResolutionTest {
     await resolveTestCode(code);
     assertNoErrorsInResult();
 
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(

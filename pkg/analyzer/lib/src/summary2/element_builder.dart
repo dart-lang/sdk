@@ -21,6 +21,7 @@ import 'package:collection/collection.dart';
 
 class ElementBuilder extends ThrowingAstVisitor<void> {
   final LibraryBuilder _libraryBuilder;
+  final LibraryOrAugmentationElementImpl _container;
   final CompilationUnitElementImpl _unitElement;
 
   var _isFirstLibraryDirective = true;
@@ -34,13 +35,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   ElementBuilder({
     required LibraryBuilder libraryBuilder,
+    required LibraryOrAugmentationElementImpl container,
     required Reference unitReference,
     required CompilationUnitElementImpl unitElement,
   })  : _libraryBuilder = libraryBuilder,
+        _container = container,
         _unitElement = unitElement,
         _enclosingContext = _EnclosingContext(unitReference, unitElement);
-
-  LibraryElementImpl get _libraryElement => _libraryBuilder.element;
 
   Linker get _linker => _libraryBuilder.linker;
 
@@ -58,7 +59,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _unitElement.typeAliases = _enclosingContext.typeAliases;
   }
 
-  /// Build exports and imports, metadata into [_libraryElement].
+  /// Build exports and imports, metadata into [_container].
   void buildLibraryElementChildren(CompilationUnit unit) {
     unit.directives.accept(this);
 
@@ -66,12 +67,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _isFirstLibraryDirective = false;
       var firstDirective = unit.directives.firstOrNull;
       if (firstDirective != null) {
-        _libraryElement.documentationComment = getCommentNodeRawText(
+        _container.documentationComment = getCommentNodeRawText(
           firstDirective.documentationComment,
         );
         var firstDirectiveMetadata = firstDirective.element?.metadata;
         if (firstDirectiveMetadata != null) {
-          _libraryElement.metadata = firstDirectiveMetadata;
+          _container.metadata = firstDirectiveMetadata;
         }
       }
     }
@@ -80,7 +81,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitAugmentationImportDirective(AugmentationImportDirective node) {
     final index = _augmentationDirectiveIndex++;
-    final element = _libraryElement.augmentationImports[index];
+    final element = _container.augmentationImports[index];
     element as AugmentationImportElementImpl;
     element.metadata = _buildAnnotations(node.metadata);
   }
@@ -375,7 +376,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     final index = _exportDirectiveIndex++;
-    final exportElement = _libraryElement.exports2[index];
+    final exportElement = _container.exports2[index];
     exportElement as ExportElement2Impl;
     exportElement.metadata = _buildAnnotations(node.metadata);
     node.element = exportElement;
@@ -742,7 +743,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     final index = _importDirectiveIndex++;
-    final importElement = _libraryElement.imports2[index];
+    final importElement = _container.imports2[index];
     importElement as ImportElement2Impl;
     importElement.metadata = _buildAnnotations(node.metadata);
     node.element = importElement;
@@ -758,11 +759,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitLibraryDirective(covariant LibraryDirectiveImpl node) {
     if (_isFirstLibraryDirective) {
       _isFirstLibraryDirective = false;
-      node.element = _libraryElement;
-      _libraryElement.documentationComment = getCommentNodeRawText(
+      node.element = _container;
+      _container.documentationComment = getCommentNodeRawText(
         node.documentationComment,
       );
-      _libraryElement.metadata = _buildAnnotations(node.metadata);
+      _container.metadata = _buildAnnotations(node.metadata);
     }
   }
 
@@ -882,15 +883,21 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
-    final index = _partDirectiveIndex++;
-    final partElement = _libraryElement.parts2[index];
-    partElement as PartElementImpl;
-    partElement.metadata = _buildAnnotations(node.metadata);
+    final libraryElement = _container;
+    if (libraryElement is LibraryElementImpl) {
+      final index = _partDirectiveIndex++;
+      final partElement = libraryElement.parts2[index];
+      partElement as PartElementImpl;
+      partElement.metadata = _buildAnnotations(node.metadata);
+    }
   }
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    _libraryElement.hasPartOfDirective = true;
+    final libraryElement = _container;
+    if (libraryElement is LibraryElementImpl) {
+      libraryElement.hasPartOfDirective = true;
+    }
   }
 
   @override

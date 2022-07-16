@@ -3920,7 +3920,7 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   @override
   final LibraryOrAugmentationElementImpl augmented;
 
-  LibraryElementLinkedData? linkedData;
+  LibraryAugmentationElementLinkedData? linkedData;
 
   LibraryAugmentationElementImpl({
     required this.augmented,
@@ -3930,6 +3930,12 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   @override
   // TODO: implement accessibleExtensions
   List<ExtensionElement> get accessibleExtensions => throw UnimplementedError();
+
+  @override
+  List<AugmentationImportElement> get augmentationImports {
+    linkedData?.read(this);
+    return super.augmentationImports;
+  }
 
   @override
   List<ExportElement2> get exports2 {
@@ -4041,6 +4047,12 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   List<ExtensionElement> get accessibleExtensions => scope.extensions;
+
+  @override
+  List<AugmentationImportElement> get augmentationImports {
+    linkedData?.read(this);
+    return super.augmentationImports;
+  }
 
   @override
   CompilationUnitElementImpl get enclosingUnit {

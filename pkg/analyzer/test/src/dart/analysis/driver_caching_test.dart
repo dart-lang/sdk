@@ -64,7 +64,7 @@ int b = a;
     assertErrorsInList(await _computeTestFileErrors(), []);
 
     // Configure `strict-casts: true`.
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
         strictCasts: true,
@@ -155,7 +155,7 @@ class A {
     // Dispose the collection, with its driver.
     // The next analysis will recreate it.
     // We will reuse the byte store, so can reuse summaries.
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     newFile(testFilePath, r'''
 class A {
@@ -193,7 +193,7 @@ void f() {
     // Dispose the collection, with its driver.
     // The next analysis will recreate it.
     // We will reuse the byte store, so can reuse summaries.
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     newFile(testFilePath, r'''
 void f() {
@@ -299,7 +299,7 @@ import 'package:aaa/a.dart';
 
     // We will recreate it with new pubspec.yaml content.
     // But we will reuse the byte store, so can reuse summaries.
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     // Add dependency on `package:aaa`.
     writeTestPackagePubspecYamlFile(
@@ -341,7 +341,7 @@ void f() {
 
     // We will recreate it with new analysis options.
     // But we will reuse the byte store, so can reuse summaries.
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     // Configure to run a lint.
     writeTestPackageAnalysisOptionsFile(
