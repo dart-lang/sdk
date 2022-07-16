@@ -751,8 +751,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
-    // TODO: implement visitLibraryAugmentationDirective
-    // super.visitLibraryAugmentationDirective(node);
+    _container.metadata = _buildAnnotations(node.metadata);
   }
 
   @override

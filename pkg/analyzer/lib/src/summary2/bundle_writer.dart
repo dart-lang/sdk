@@ -124,6 +124,8 @@ class BundleWriter {
   void _writeAugmentationElement(LibraryAugmentationElement augmentation) {
     augmentation as LibraryAugmentationElementImpl;
     _writeUnitElement(augmentation.definingCompilationUnit);
+    // The offset where resolution for the augmentation starts.
+    // We need it to skip resolution information from the unit.
     _sink.writeUInt30(_resolutionSink.offset);
     _writeLibraryOrAugmentationElement(augmentation);
   }

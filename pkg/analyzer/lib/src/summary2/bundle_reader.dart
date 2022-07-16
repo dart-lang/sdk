@@ -350,55 +350,23 @@ class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
   }
 }
 
-class LibraryAugmentationElementLinkedData
-    extends LibraryOrAugmentationElementLinkedData<
-        LibraryAugmentationElementImpl> {
+/// Not a [ElementLinkedData], just a bundle with data.
+class LibraryAugmentationElementLinkedData {
+  final int offset;
+  ApplyConstantOffsets? applyConstantOffsets;
+
   LibraryAugmentationElementLinkedData({
-    required super.reference,
-    required super.libraryReader,
-    required super.unitElement,
-    required super.offset,
+    required this.offset,
   });
-
-  @override
-  void read(ElementImpl element) {
-    final libraryData = element.library?.linkedData;
-    if (libraryData != null && !libraryData._isLocked) {
-      super.read(element);
-    }
-  }
 }
 
-class LibraryElementLinkedData
-    extends LibraryOrAugmentationElementLinkedData<LibraryElementImpl> {
-  LibraryElementLinkedData({
-    required super.reference,
-    required super.libraryReader,
-    required super.unitElement,
-    required super.offset,
-  });
-
-  @override
-  void _readAdditional(element, reader) {
-    for (final part in element.parts2) {
-      part as PartElementImpl;
-      part.metadata = reader._readAnnotationList(
-        unitElement: unitElement,
-      );
-    }
-
-    element.entryPoint = reader.readElement() as FunctionElement?;
-  }
-}
-
-class LibraryOrAugmentationElementLinkedData<
-    E extends LibraryOrAugmentationElementImpl> extends ElementLinkedData<E> {
+class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
 
   /// When we are applying offsets to a library, we want to lock it.
   bool _isLocked = false;
 
-  LibraryOrAugmentationElementLinkedData({
+  LibraryElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
     required CompilationUnitElementImpl unitElement,
@@ -428,6 +396,23 @@ class LibraryOrAugmentationElementLinkedData<
 
   @override
   void _read(element, reader) {
+    _readLibraryOrAugmentation(element, reader);
+    for (final part in element.parts2) {
+      part as PartElementImpl;
+      part.metadata = reader._readAnnotationList(
+        unitElement: unitElement,
+      );
+    }
+
+    element.entryPoint = reader.readElement() as FunctionElement?;
+
+    applyConstantOffsets?.perform();
+  }
+
+  void _readLibraryOrAugmentation(
+    LibraryOrAugmentationElementImpl element,
+    ResolutionReader reader,
+  ) {
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
@@ -454,14 +439,21 @@ class LibraryOrAugmentationElementLinkedData<
       }
     }
 
-    // TODO(scheglov) metadata on augmentation imports
-
-    _readAdditional(element, reader);
-
-    applyConstantOffsets?.perform();
+    for (var import in element.augmentationImports) {
+      import as AugmentationImportElementImpl;
+      import.metadata = reader._readAnnotationList(
+        // TODO(scheglov) Here and for parts, unit is not valid. Test and fix.
+        unitElement: unitElement,
+      );
+      final importedAugmentation = import.importedAugmentation;
+      if (importedAugmentation != null) {
+        final linkedData = importedAugmentation.linkedData!;
+        reader.setOffset(linkedData.offset);
+        _readLibraryOrAugmentation(importedAugmentation, reader);
+        linkedData.applyConstantOffsets?.perform();
+      }
+    }
   }
-
-  void _readAdditional(E element, ResolutionReader reader) {}
 }
 
 class LibraryReader {
@@ -570,9 +562,6 @@ class LibraryReader {
     _readLibraryOrAugmentationElement(augmentation);
 
     augmentation.linkedData = LibraryAugmentationElementLinkedData(
-      reference: _reference,
-      libraryReader: this,
-      unitElement: definingUnit,
       offset: resolutionOffset,
     );
 
@@ -1756,6 +1745,10 @@ class ResolutionReader {
 
   int readUInt32() {
     return _reader.readUInt32();
+  }
+
+  void setOffset(int offset) {
+    _reader.offset = offset;
   }
 
   void _addFormalParameters(List<ParameterElement> parameters) {
