@@ -1,6 +1,6 @@
 {
   "branches": [
-    "master"
+    "main"
   ],
   "filesets": {
     "analyzer_unit_tests": [
