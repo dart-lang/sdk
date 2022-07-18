@@ -290,6 +290,7 @@ ctx
 customizable
 customized
 cut
+cuts
 cwd
 cyclical
 cyclically
@@ -437,6 +438,7 @@ equivalences
 erase
 erased
 es
+escalate
 establish
 established
 estimate

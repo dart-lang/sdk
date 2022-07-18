@@ -3734,7 +3734,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void ifNullExpression_end() {
     _IfNullExpressionContext<Type> context =
         _stack.removeLast() as _IfNullExpressionContext<Type>;
-    _current = _merge(_current, context._previous);
+    _current = _merge(_current, context._shortcutState);
   }
 
   @override
@@ -3742,17 +3742,30 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       Expression leftHandSide, Type leftHandSideType) {
     ReferenceWithType<Type>? lhsReference =
         _getExpressionReference(leftHandSide);
-    FlowModel<Type> promoted;
+    FlowModel<Type> shortcutState;
     _current = _current.split();
     if (lhsReference != null) {
-      ExpressionInfo<Type> promotionInfo = _current.tryMarkNonNullable(
-          operations, lhsReference, _promotionKeyStore);
-      _current = promotionInfo.ifFalse;
-      promoted = promotionInfo.ifTrue;
+      shortcutState = _current
+          .tryMarkNonNullable(operations, lhsReference, _promotionKeyStore)
+          .ifTrue;
     } else {
-      promoted = _current;
+      shortcutState = _current;
     }
-    _stack.add(new _IfNullExpressionContext<Type>(promoted));
+    _stack.add(new _IfNullExpressionContext<Type>(shortcutState));
+    // Note: we are now on the RHS of the `??`, and so at this point in the
+    // flow, it is known that the LHS evaluated to `null`.  It's tempting to
+    // update `_current` to reflect this (either promoting the type of the LHS,
+    // if it's a variable reference, or marking the flow as unreachable, if the
+    // LHS had a non-nullable static type).  However:
+    // - In the case where the LHS was a variable reference, we can't promote
+    //   it, because we don't promote to `Null` (see
+    //   https://github.com/dart-lang/language/issues/1505#issuecomment-975706918)
+    // - In the case where the LHS had a non-nullable static type, it still
+    //   might have been `null` due to mixed-mode unsoundness, so we can't mark
+    //   the flow as unreachable without allowing the unsoundness to escalate
+    //   (see https://github.com/dart-lang/language/issues/1143)
+    //
+    // So we just leave `_current` as is.
   }
 
   @override
@@ -4372,12 +4385,15 @@ class _IfContext<Type extends Object> extends _BranchContext<Type> {
 }
 
 /// [_FlowContext] representing an "if-null" (`??`) expression.
-class _IfNullExpressionContext<Type extends Object>
-    extends _SimpleContext<Type> {
-  _IfNullExpressionContext(super.previous);
+class _IfNullExpressionContext<Type extends Object> extends _FlowContext {
+  /// The state if the operation short-cuts (i.e. if the expression before the
+  /// `??` was non-`null`).
+  final FlowModel<Type> _shortcutState;
+
+  _IfNullExpressionContext(this._shortcutState);
 
   @override
-  String toString() => '_IfNullExpressionContext(previous: $_previous)';
+  String toString() => '_IfNullExpressionContext($_shortcutState)';
 }
 
 /// Contextual information tracked by legacy type promotion about a binary "and"
@@ -5002,9 +5018,7 @@ class _PropertyReferenceWithType<Type extends Object>
 abstract class _SimpleContext<Type extends Object> extends _FlowContext {
   /// The stored state.  For a `try` statement, this is the state from the
   /// beginning of the `try` block.  For a function expression, this is the
-  /// state at the point the function expression was created.  For an "if-null"
-  /// expression, this is the state after execution of the expression before the
-  /// `??`.
+  /// state at the point the function expression was created.
   final FlowModel<Type> _previous;
 
   _SimpleContext(this._previous);
