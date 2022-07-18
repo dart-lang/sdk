@@ -1,8 +1,6 @@
 // Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
-// SharedOptions=--enable-experiment=enhanced-enums
 
 // @dart=2.17
 
@@ -193,7 +191,8 @@ final tests = <IsolateTest>[
     expect(e1, isA<InstanceRef>());
     final e1Id = e1.id!;
 
-    dynamic result = await service.evaluate(isolateId, e1Id, 'interfaceGetter1');
+    dynamic result =
+        await service.evaluate(isolateId, e1Id, 'interfaceGetter1');
     expect(result, isA<InstanceRef>());
     expect(result.valueAsString, '42');
 
@@ -219,7 +218,8 @@ final tests = <IsolateTest>[
   },
   (VmService service, _) async {
     // Ensure we can evaluate static getters and methods.
-    dynamic result = await service.evaluate(isolateId, enumEClsId, 'staticGetter');
+    dynamic result =
+        await service.evaluate(isolateId, enumEClsId, 'staticGetter');
     expect(result, isA<InstanceRef>());
     expect(result.valueAsString, '0');
 
@@ -233,7 +233,8 @@ final tests = <IsolateTest>[
     expect(e1, isA<InstanceRef>());
     final e1Id = e1.id!;
 
-    dynamic result = await service.invoke(isolateId, e1Id, 'interfaceMethod1', []);
+    dynamic result =
+        await service.invoke(isolateId, e1Id, 'interfaceMethod1', []);
     expect(result, isA<InstanceRef>());
     expect(result.valueAsString, '42');
 
@@ -251,7 +252,8 @@ final tests = <IsolateTest>[
   },
   (VmService service, _) async {
     // Ensure we can invoke static methods.
-    dynamic result = await service.evaluate(isolateId, enumEClsId, 'staticMethod()');
+    dynamic result =
+        await service.evaluate(isolateId, enumEClsId, 'staticMethod()');
     expect(result, isA<InstanceRef>());
     expect(result.valueAsString, '42');
   },
@@ -278,7 +280,8 @@ final tests = <IsolateTest>[
   resumeIsolate,
   hasStoppedAtBreakpoint,
   (VmService service, _) async {
-    dynamic result = await service.evaluateInFrame(isolateId, 0, 'T.toString()');
+    dynamic result =
+        await service.evaluateInFrame(isolateId, 0, 'T.toString()');
     expect(result.valueAsString, 'int');
 
     result = await service.evaluateInFrame(isolateId, 0, 'value');
@@ -291,5 +294,4 @@ main([args = const <String>[]]) => runIsolateTests(
       tests,
       'enhanced_enum_test.dart',
       testeeConcurrent: testMain,
-      experiments: ['enhanced-enums'],
     );
