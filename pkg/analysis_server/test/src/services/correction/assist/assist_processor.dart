@@ -84,7 +84,9 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   /// files that are modified (other than the test file) and the values are
   /// pairs of source code: the states of the code before and after the edits
   /// have been applied.
-  Future<void> assertHasAssist(String expected,
+  ///
+  /// Returns the [SourceChange] for the matching assist.
+  Future<SourceChange> assertHasAssist(String expected,
       {Map<String, List<String>>? additionallyChangedFiles}) async {
     if (useLineEndingsForPlatform) {
       expected = normalizeNewlinesForPlatform(expected);
@@ -113,6 +115,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
         expect(resultCode, pair[1]);
       }
     }
+    return _change;
   }
 
   /// Asserts that there is an [Assist] of the given [kind] at the offset of the
