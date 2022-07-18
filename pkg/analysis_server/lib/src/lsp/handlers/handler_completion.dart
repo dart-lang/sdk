@@ -351,6 +351,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       notImportedSuggestions = NotImportedSuggestions();
     }
 
+    var isIncomplete = false;
     try {
       final serverSuggestions2 =
           await performance.runAsync('computeSuggestions', (performance) async {
@@ -362,11 +363,17 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           notImportedSuggestions: notImportedSuggestions,
         );
 
-        // `await` required for `performance.runAsync` to count time.
-        return await contributor.computeSuggestions(
+        final suggestions = await contributor.computeSuggestions(
           completionRequest,
           performance,
         );
+
+        // Keep track of whether the set of results was truncated (because
+        // budget was exhausted).
+        isIncomplete =
+            contributor.notImportedSuggestions?.isIncomplete ?? false;
+
+        return suggestions;
       });
 
       final serverSuggestions =
@@ -589,7 +596,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           rankedResults.length + unrankedResults.length;
 
       return success(_CompletionResults(
-          isIncomplete: false,
+          isIncomplete: isIncomplete,
           targetPrefix: targetPrefix,
           rankedItems: rankedResults,
           unrankedItems: unrankedResults));
