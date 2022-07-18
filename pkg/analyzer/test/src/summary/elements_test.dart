@@ -20160,7 +20160,8 @@ library
     A: package:test/foo.dart;A
 ''',
         withExportScope: true);
-    expect(library.exports2[0].exportedLibrary!.source.shortName, 'foo.dart');
+    expect(library.libraryExports[0].exportedLibrary!.source.shortName,
+        'foo.dart');
   }
 
   test_export_configurations_useFirst() async {
@@ -20189,8 +20190,8 @@ library
     A: package:test/foo_io.dart;A
 ''',
         withExportScope: true);
-    expect(
-        library.exports2[0].exportedLibrary!.source.shortName, 'foo_io.dart');
+    expect(library.libraryExports[0].exportedLibrary!.source.shortName,
+        'foo_io.dart');
   }
 
   test_export_configurations_useSecond() async {
@@ -20219,7 +20220,7 @@ library
     A: package:test/foo_html.dart;A
 ''',
         withExportScope: true);
-    final export = library.exports2[0];
+    final export = library.libraryExports[0];
     expect(export.exportedLibrary!.source.shortName, 'foo_html.dart');
   }
 
@@ -20481,7 +20482,7 @@ library
 export 'foo.dart';
 ''');
 
-    final uri = library.exports2[0].uri as DirectiveUriWithLibrary;
+    final uri = library.libraryExports[0].uri as DirectiveUriWithLibrary;
     expect(uri.relativeUriString, 'foo.dart');
   }
 
@@ -23316,7 +23317,7 @@ library
       expect(prefixElement.nameLength, 1);
     }
 
-    final prefixElement = library.imports2[0].prefix!.element;
+    final prefixElement = library.libraryImports[0].prefix!.element;
     expect(prefixElement.nameOffset, 19);
 
     checkElementText(library, r'''
@@ -23344,9 +23345,10 @@ import 'test.dart' as p;
 class C {}
 class D extends p.C {} // Prevent "unused import" warning
 ''');
-    expect(library.imports2, hasLength(2));
-    expect(library.imports2[0].importedLibrary!.location, library.location);
-    expect(library.imports2[1].importedLibrary!.isDartCore, true);
+    expect(library.libraryImports, hasLength(2));
+    expect(
+        library.libraryImports[0].importedLibrary!.location, library.location);
+    expect(library.libraryImports[1].importedLibrary!.isDartCore, true);
     checkElementText(library, r'''
 library
   imports
@@ -23404,7 +23406,7 @@ library
     var library = await buildLibrary('''
 import "dart:math" show e, pi;
 ''');
-    var import = library.imports2[0];
+    var import = library.libraryImports[0];
     var combinator = import.combinators[0] as ShowElementCombinator;
     expect(combinator.offset, 19);
     expect(combinator.end, 29);
@@ -23415,7 +23417,7 @@ import "dart:math" show e, pi;
 import 'foo.dart';
 ''');
 
-    final uri = library.imports2[0].uri as DirectiveUriWithLibrary;
+    final uri = library.libraryImports[0].uri as DirectiveUriWithLibrary;
     expect(uri.relativeUriString, 'foo.dart');
   }
 
@@ -26099,8 +26101,8 @@ import 'dart:collection' as p2;
 import 'dart:math' as p1;
 ''');
     final p1 = library.prefixes.singleWhere((prefix) => prefix.name == 'p1');
-    final import_async = library.imports2[0];
-    final import_math = library.imports2[2];
+    final import_async = library.libraryImports[0];
+    final import_math = library.libraryImports[2];
     expect(p1.imports2, unorderedEquals([import_async, import_math]));
   }
 
@@ -38917,7 +38919,7 @@ library
 
   test_unresolved_import() async {
     var library = await buildLibrary("import 'foo.dart';", allowErrors: true);
-    var importedLibrary = library.imports2[0].importedLibrary!;
+    var importedLibrary = library.libraryImports[0].importedLibrary!;
     expect(importedLibrary.loadLibraryFunction, isNotNull);
     expect(importedLibrary.publicNamespace, isNotNull);
     expect(importedLibrary.exportNamespace, isNotNull);

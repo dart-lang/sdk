@@ -417,8 +417,8 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
       unitElement: unitElement,
     );
 
-    for (var import in element.imports2) {
-      import as ImportElement2Impl;
+    for (var import in element.libraryImports) {
+      import as LibraryImportElementImpl;
       import.metadata = reader._readAnnotationList(
         unitElement: unitElement,
       );
@@ -428,8 +428,8 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
       }
     }
 
-    for (var export in element.exports2) {
-      export as ExportElement2Impl;
+    for (var export in element.libraryExports) {
+      export as LibraryExportElementImpl;
       export.metadata = reader._readAnnotationList(
         unitElement: unitElement,
       );
@@ -820,7 +820,7 @@ class LibraryReader {
     }
   }
 
-  ExportElement2Impl _readExportElement({
+  LibraryExportElementImpl _readExportElement({
     required LibraryOrAugmentationElementImpl container,
   }) {
     final uri = _readDirectiveUri(
@@ -829,7 +829,7 @@ class LibraryReader {
     // TODO(scheglov) pass to the constructor
     final combinators = _reader.readTypedList(_readNamespaceCombinator);
 
-    final element = ExportElement2Impl(
+    final element = LibraryExportElementImpl(
       exportKeywordOffset: -1,
       uri: uri,
     )..combinators = combinators;
@@ -982,7 +982,7 @@ class LibraryReader {
     });
   }
 
-  ImportElement2Impl _readImportElement({
+  LibraryImportElementImpl _readImportElement({
     required LibraryOrAugmentationElementImpl container,
   }) {
     final uri = _readDirectiveUri(
@@ -991,7 +991,7 @@ class LibraryReader {
     final prefix = _readImportElementPrefix();
     final combinators = _reader.readTypedList(_readNamespaceCombinator);
 
-    final element = ImportElement2Impl(
+    final element = LibraryImportElementImpl(
       importKeywordOffset: -1,
       uri: uri,
       prefix: prefix,
@@ -1047,13 +1047,13 @@ class LibraryReader {
   void _readLibraryOrAugmentationElement(
     LibraryOrAugmentationElementImpl container,
   ) {
-    container.imports2 = _reader.readTypedList(() {
+    container.libraryImports = _reader.readTypedList(() {
       return _readImportElement(
         container: container,
       );
     });
 
-    container.exports2 = _reader.readTypedList(() {
+    container.libraryExports = _reader.readTypedList(() {
       return _readExportElement(
         container: container,
       );
@@ -1065,7 +1065,7 @@ class LibraryReader {
       );
     });
 
-    for (final import in container.imports2) {
+    for (final import in container.libraryImports) {
       final prefixElement = import.prefix?.element;
       if (prefixElement is PrefixElementImpl) {
         container.encloseElement(prefixElement);

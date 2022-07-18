@@ -16,16 +16,16 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/// A [Refactoring] for renaming [ImportElement2]s.
+/// A [Refactoring] for renaming [LibraryImportElement]s.
 class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   final AnalysisSession session;
 
-  RenameImportRefactoringImpl(
-      RefactoringWorkspace workspace, this.session, ImportElement2 element)
+  RenameImportRefactoringImpl(RefactoringWorkspace workspace, this.session,
+      LibraryImportElement element)
       : super(workspace, element);
 
   @override
-  ImportElement2 get element => super.element as ImportElement2;
+  LibraryImportElement get element => super.element as LibraryImportElement;
 
   @override
   String get refactoringName {
@@ -107,7 +107,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
       return null;
     }
     var unit = unitResult.unit;
-    var index = library.imports2.indexOf(element);
+    var index = library.libraryImports.indexOf(element);
     return unit.directives.whereType<ImportDirective>().elementAt(index);
   }
 

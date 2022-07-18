@@ -165,7 +165,7 @@ class PrefixScope implements Scope {
 
   PrefixScope(this._library, PrefixElement? prefix) {
     final elementFactory = _library.session.elementFactory;
-    for (final import in _library.imports2) {
+    for (final import in _library.libraryImports) {
       final importedUri = import.uri;
       if (importedUri is DirectiveUriWithLibrary &&
           import.prefix?.element == prefix) {

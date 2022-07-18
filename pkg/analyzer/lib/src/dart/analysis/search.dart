@@ -130,13 +130,13 @@ enum DeclarationKind {
 class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
   final List<SearchResult> results = <SearchResult>[];
 
-  final ImportElement2 importElement;
+  final LibraryImportElement importElement;
   final CompilationUnitElement enclosingUnitElement;
 
   late final Set<Element> importedElements;
 
   ImportElementReferencesVisitor(
-      ImportElement2 element, this.enclosingUnitElement)
+      LibraryImportElement element, this.enclosingUnitElement)
       : importElement = element {
     importedElements = element.namespace.definedNames.values.toSet();
   }
@@ -262,7 +262,7 @@ class Search {
             element, (n) => n is Block, searchedFiles);
       }
       return _searchReferences_Function(element, searchedFiles);
-    } else if (element is ImportElement2) {
+    } else if (element is LibraryImportElement) {
       return _searchReferences_Import(element, searchedFiles);
     } else if (kind == ElementKind.LABEL ||
         kind == ElementKind.LOCAL_VARIABLE) {
@@ -556,7 +556,7 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Import(
-      ImportElement2 element, SearchedFiles searchedFiles) async {
+      LibraryImportElement element, SearchedFiles searchedFiles) async {
     String path = element.source.fullName;
     if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];

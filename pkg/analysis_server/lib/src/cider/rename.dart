@@ -53,7 +53,7 @@ class CanRenameResponse {
     } else if (element is ConstructorElement) {
       status = validateConstructorName(name);
       _analyzePossibleConflicts(element, status, name);
-    } else if (element is ImportElement2) {
+    } else if (element is LibraryImportElement) {
       status = validateImportPrefixName(name);
     }
 
@@ -156,7 +156,7 @@ class CheckNameResponse {
           replaceMatches.addMatch(result.path, result.matches.toList());
         }
       }
-    } else if (element is ImportElement2) {
+    } else if (element is LibraryImportElement) {
       var replaceInfo = <ReplaceInfo>[];
       for (var match in matches) {
         for (var ref in match.references) {
@@ -214,10 +214,10 @@ class CheckNameResponse {
             lineInfo.getLocation(element.setter!.nameOffset),
             element.setter!.nameLength));
       }
-    } else if (element is ImportElement2) {
+    } else if (element is LibraryImportElement) {
       var unit =
           (await canRename._fileResolver.resolve2(path: sourcePath)).unit;
-      var index = element.library.imports2.indexOf(element);
+      var index = element.library.libraryImports.indexOf(element);
       var node = unit.directives.whereType<ImportDirective>().elementAt(index);
       final prefixNode = node.prefix;
       if (newName.isEmpty) {
@@ -386,7 +386,7 @@ class CiderRenameComputer {
     if (element is ConstructorElement) {
       return true;
     }
-    if (element is ImportElement2) {
+    if (element is LibraryImportElement) {
       return true;
     }
     if (element is LabelElement || element is LocalElement) {

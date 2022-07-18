@@ -94,7 +94,7 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void writeExportElement(ExportElement2Impl element) {
+  void writeExportElement(LibraryExportElementImpl element) {
     _write('export ');
     _writeDirectiveUri(element.uri);
   }
@@ -138,7 +138,7 @@ class ElementDisplayStringBuilder {
     _writeFormalParameters(element.parameters, forElement: true);
   }
 
-  void writeImportElement(ImportElement2Impl element) {
+  void writeImportElement(LibraryImportElementImpl element) {
     _write('import ');
     _writeDirectiveUri(element.uri);
   }

@@ -582,7 +582,7 @@ class LibraryAnalyzer {
       } else if (directive is ImportDirectiveImpl) {
         _resolveImportDirective(
           directive: directive,
-          importElement: _libraryElement.imports2[importIndex],
+          importElement: _libraryElement.libraryImports[importIndex],
           importState: _library.libraryImports[importIndex],
           libraryErrorReporter: libraryErrorReporter,
         );
@@ -590,7 +590,7 @@ class LibraryAnalyzer {
       } else if (directive is ExportDirectiveImpl) {
         _resolveExportDirective(
           directive: directive,
-          exportElement: _libraryElement.exports2[exportIndex],
+          exportElement: _libraryElement.libraryExports[exportIndex],
           exportState: _library.libraryExports[exportIndex],
           libraryErrorReporter: libraryErrorReporter,
         );
@@ -621,7 +621,7 @@ class LibraryAnalyzer {
 
   void _resolveExportDirective({
     required ExportDirectiveImpl directive,
-    required ExportElement2 exportElement,
+    required LibraryExportElement exportElement,
     required LibraryExportState exportState,
     required ErrorReporter libraryErrorReporter,
   }) {
@@ -715,7 +715,7 @@ class LibraryAnalyzer {
 
   void _resolveImportDirective({
     required ImportDirectiveImpl directive,
-    required ImportElement2 importElement,
+    required LibraryImportElement importElement,
     required LibraryImportState importState,
     required ErrorReporter libraryErrorReporter,
   }) {

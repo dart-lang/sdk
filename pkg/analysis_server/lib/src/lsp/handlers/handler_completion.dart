@@ -223,7 +223,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
   Map<String, Set<String>> _buildLookupOfImportedSymbols(
       ResolvedUnitResult unit) {
     final alreadyImportedSymbols = <String, Set<String>>{};
-    final importElementList = unit.libraryElement.imports2;
+    final importElementList = unit.libraryElement.libraryImports;
     for (var import in importElementList) {
       final importedLibrary = import.importedLibrary;
       if (importedLibrary == null) continue;

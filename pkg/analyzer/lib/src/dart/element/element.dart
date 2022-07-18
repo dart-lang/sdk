@@ -3152,60 +3152,13 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   }
 }
 
-class ExportElement2Impl extends _ExistingElementImpl
-    implements ExportElement2 {
-  @override
-  List<NamespaceCombinator> combinators = const [];
-
-  @override
-  final int exportKeywordOffset;
-
-  @override
-  final DirectiveUri uri;
-
-  ExportElement2Impl({
-    required this.exportKeywordOffset,
-    required this.uri,
-  }) : super(null, exportKeywordOffset);
-
-  @override
-  LibraryElement? get exportedLibrary {
-    final uri = this.uri;
-    if (uri is DirectiveUriWithLibrary) {
-      return uri.library;
-    }
-    return null;
-  }
-
-  @override
-  int get hashCode => identityHashCode(this);
-
-  @override
-  ElementKind get kind => ElementKind.EXPORT;
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other);
-  }
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitExportElement2(this);
-  }
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeExportElement(this);
-  }
-}
-
 /// A concrete implementation of an [ExportElement].
-@Deprecated('Use ExportElement2 instead')
+@Deprecated('Use LibraryExportElement instead')
 class ExportElementImpl extends ElementImpl
     with WrapperElementImpl
     implements ExportElement {
   @override
-  final ExportElement2Impl base;
+  final LibraryExportElementImpl base;
 
   ExportElementImpl(this.base) : super(base.name, base.nameOffset);
 
@@ -3727,80 +3680,13 @@ class HideElementCombinatorImpl implements HideElementCombinator {
   }
 }
 
-class ImportElement2Impl extends _ExistingElementImpl
-    implements ImportElement2 {
-  @override
-  List<NamespaceCombinator> combinators = const [];
-
-  @override
-  final int importKeywordOffset;
-
-  @override
-  final ImportElementPrefix? prefix;
-
-  @override
-  final DirectiveUri uri;
-
-  Namespace? _namespace;
-
-  ImportElement2Impl({
-    required this.importKeywordOffset,
-    required this.prefix,
-    required this.uri,
-  }) : super(null, importKeywordOffset);
-
-  @override
-  int get hashCode => identityHashCode(this);
-
-  @override
-  LibraryElement? get importedLibrary {
-    final uri = this.uri;
-    if (uri is DirectiveUriWithLibrary) {
-      return uri.library;
-    }
-    return null;
-  }
-
-  @override
-  ElementKind get kind => ElementKind.IMPORT;
-
-  @override
-  Namespace get namespace {
-    final uri = this.uri;
-    if (uri is DirectiveUriWithLibrary) {
-      return _namespace ??=
-          NamespaceBuilder().createImportNamespaceForDirective(
-        importedLibrary: uri.library,
-        combinators: combinators,
-        prefix: prefix?.element,
-      );
-    }
-    return Namespace.EMPTY;
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other);
-  }
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitImportElement2(this);
-  }
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeImportElement(this);
-  }
-}
-
 /// A concrete implementation of an [ImportElement].
-@Deprecated('Use ImportElement2 instead')
+@Deprecated('Use LibraryImportElement instead')
 class ImportElementImpl extends ElementImpl
     with WrapperElementImpl
     implements ImportElement {
   @override
-  final ImportElement2Impl base;
+  final LibraryImportElementImpl base;
 
   ImportElementImpl(this.base) : super(base.name, base.nameOffset);
 
@@ -3938,18 +3824,7 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   @override
-  List<ExportElement2> get exports2 {
-    return _exports2;
-  }
-
-  @override
   FeatureSet get featureSet => augmented.featureSet;
-
-  @override
-  List<ImportElement2> get imports2 {
-    _readLinkedData();
-    return _imports2;
-  }
 
   @override
   bool get isNonNullableByDefault => augmented.isNonNullableByDefault;
@@ -3959,6 +3834,17 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   LibraryLanguageVersion get languageVersion => augmented.languageVersion;
+
+  @override
+  List<LibraryExportElement> get libraryExports {
+    return _exports2;
+  }
+
+  @override
+  List<LibraryImportElement> get libraryImports {
+    _readLinkedData();
+    return _imports2;
+  }
 
   @override
   // TODO: implement scope
@@ -4079,7 +3965,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   List<LibraryElement> get exportedLibraries {
-    return exports2
+    return libraryExports
         .map((import) => import.exportedLibrary)
         .whereNotNull()
         .toSet()
@@ -4109,15 +3995,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @Deprecated('Use exports2 instead')
   @override
   List<ExportElement> get exports {
-    return exports2
-        .map((e) => ExportElementImpl(e as ExportElement2Impl))
+    return libraryExports
+        .map((e) => ExportElementImpl(e as LibraryExportElementImpl))
         .toList();
-  }
-
-  @override
-  List<ExportElement2> get exports2 {
-    _readLinkedData();
-    return _exports2;
   }
 
   bool get hasPartOfDirective {
@@ -4133,7 +4013,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   List<LibraryElement> get importedLibraries {
-    return imports2
+    return libraryImports
         .map((import) => import.importedLibrary)
         .whereNotNull()
         .toSet()
@@ -4143,15 +4023,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @Deprecated('Use imports2 instead')
   @override
   List<ImportElement> get imports {
-    return imports2
-        .map((e) => ImportElementImpl(e as ImportElement2Impl))
+    return libraryImports
+        .map((e) => ImportElementImpl(e as LibraryImportElementImpl))
         .toList();
-  }
-
-  @override
-  List<ImportElement2> get imports2 {
-    _readLinkedData();
-    return _imports2;
   }
 
   @override
@@ -4223,6 +4097,18 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   LibraryElementImpl get library => this;
 
   @override
+  List<LibraryExportElement> get libraryExports {
+    _readLinkedData();
+    return _exports2;
+  }
+
+  @override
+  List<LibraryImportElement> get libraryImports {
+    _readLinkedData();
+    return _imports2;
+  }
+
+  @override
   FunctionElement get loadLibraryFunction {
     return _loadLibraryFunction;
   }
@@ -4259,7 +4145,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   List<PrefixElement> get prefixes =>
-      _prefixes ??= buildPrefixesFromImports(imports2);
+      _prefixes ??= buildPrefixesFromImports(libraryImports);
 
   @override
   Namespace get publicNamespace {
@@ -4366,7 +4252,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     required String? prefix,
     required String name,
   }) {
-    for (var importElement in imports2) {
+    for (var importElement in libraryImports) {
       if (importElement.prefix?.element.name == prefix &&
           importElement.importedLibrary?.isSynthetic != false) {
         var showCombinators = importElement.combinators
@@ -4460,9 +4346,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   static List<PrefixElement> buildPrefixesFromImports(
-      List<ImportElement2> imports) {
+      List<LibraryImportElement> imports) {
     HashSet<PrefixElement> prefixes = HashSet<PrefixElement>();
-    for (ImportElement2 element in imports) {
+    for (LibraryImportElement element in imports) {
       var prefix = element.prefix?.element;
       if (prefix != null) {
         prefixes.add(prefix);
@@ -4489,6 +4375,120 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 }
 
+class LibraryExportElementImpl extends _ExistingElementImpl
+    implements LibraryExportElement {
+  @override
+  List<NamespaceCombinator> combinators = const [];
+
+  @override
+  final int exportKeywordOffset;
+
+  @override
+  final DirectiveUri uri;
+
+  LibraryExportElementImpl({
+    required this.exportKeywordOffset,
+    required this.uri,
+  }) : super(null, exportKeywordOffset);
+
+  @override
+  LibraryElement? get exportedLibrary {
+    final uri = this.uri;
+    if (uri is DirectiveUriWithLibrary) {
+      return uri.library;
+    }
+    return null;
+  }
+
+  @override
+  int get hashCode => identityHashCode(this);
+
+  @override
+  ElementKind get kind => ElementKind.EXPORT;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other);
+  }
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) {
+    return visitor.visitExportElement2(this);
+  }
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExportElement(this);
+  }
+}
+
+class LibraryImportElementImpl extends _ExistingElementImpl
+    implements LibraryImportElement {
+  @override
+  List<NamespaceCombinator> combinators = const [];
+
+  @override
+  final int importKeywordOffset;
+
+  @override
+  final ImportElementPrefix? prefix;
+
+  @override
+  final DirectiveUri uri;
+
+  Namespace? _namespace;
+
+  LibraryImportElementImpl({
+    required this.importKeywordOffset,
+    required this.prefix,
+    required this.uri,
+  }) : super(null, importKeywordOffset);
+
+  @override
+  int get hashCode => identityHashCode(this);
+
+  @override
+  LibraryElement? get importedLibrary {
+    final uri = this.uri;
+    if (uri is DirectiveUriWithLibrary) {
+      return uri.library;
+    }
+    return null;
+  }
+
+  @override
+  ElementKind get kind => ElementKind.IMPORT;
+
+  @override
+  Namespace get namespace {
+    final uri = this.uri;
+    if (uri is DirectiveUriWithLibrary) {
+      return _namespace ??=
+          NamespaceBuilder().createImportNamespaceForDirective(
+        importedLibrary: uri.library,
+        combinators: combinators,
+        prefix: prefix?.element,
+      );
+    }
+    return Namespace.EMPTY;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other);
+  }
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) {
+    return visitor.visitImportElement2(this);
+  }
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeImportElement(this);
+  }
+}
+
 /// A concrete implementation of a [LibraryOrAugmentationElement].
 abstract class LibraryOrAugmentationElementImpl extends ElementImpl
     implements LibraryOrAugmentationElement, MacroTargetElementContainer {
@@ -4500,11 +4500,11 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
 
   /// A list containing specifications of all of the imports defined in this
   /// library.
-  List<ExportElement2> _exports2 = _Sentinel.exportElement2;
+  List<LibraryExportElement> _exports2 = _Sentinel.exportElement2;
 
   /// A list containing specifications of all of the imports defined in this
   /// library.
-  List<ImportElement2> _imports2 = _Sentinel.importElement2;
+  List<LibraryImportElement> _imports2 = _Sentinel.importElement2;
 
   /// The cached list of prefixes.
   List<PrefixElement>? _prefixes;
@@ -4548,27 +4548,12 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   @Deprecated('Use exports2 instead')
   @override
   List<ExportElement> get exports {
-    return exports2
-        .map((e) => ExportElementImpl(e as ExportElement2Impl))
+    return libraryExports
+        .map((e) => ExportElementImpl(e as LibraryExportElementImpl))
         .toList();
   }
 
-  @override
-  List<ExportElement2> get exports2 {
-    _readLinkedData();
-    return _exports2;
-  }
-
-  /// Set the specifications of all of the exports defined in this library to
-  /// the given list of [exports].
-  set exports2(List<ExportElement2> exports) {
-    for (final exportElement in exports) {
-      (exportElement as ExportElement2Impl).enclosingElement = this;
-    }
-    _exports2 = exports;
-  }
-
-  List<ExportElement2> get exports_unresolved {
+  List<LibraryExportElement> get exports_unresolved {
     return _exports2;
   }
 
@@ -4578,28 +4563,43 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   @Deprecated('Use imports2 instead')
   @override
   List<ImportElement> get imports {
-    return imports2
-        .map((e) => ImportElementImpl(e as ImportElement2Impl))
+    return libraryImports
+        .map((e) => ImportElementImpl(e as LibraryImportElementImpl))
         .toList();
+  }
+
+  List<LibraryImportElement> get imports_unresolved {
+    return _imports2;
+  }
+
+  @override
+  List<LibraryExportElement> get libraryExports {
+    _readLinkedData();
+    return _exports2;
+  }
+
+  /// Set the specifications of all of the exports defined in this library to
+  /// the given list of [exports].
+  set libraryExports(List<LibraryExportElement> exports) {
+    for (final exportElement in exports) {
+      (exportElement as LibraryExportElementImpl).enclosingElement = this;
+    }
+    _exports2 = exports;
   }
 
   /// Set the specifications of all of the imports defined in this library to
   /// the given list of [imports].
-  set imports2(List<ImportElement2> imports) {
+  set libraryImports(List<LibraryImportElement> imports) {
     for (final importElement in imports) {
-      (importElement as ImportElement2Impl).enclosingElement = this;
+      (importElement as LibraryImportElementImpl).enclosingElement = this;
     }
     _imports2 = imports;
     _prefixes = null;
   }
 
-  List<ImportElement2> get imports_unresolved {
-    return _imports2;
-  }
-
   @override
   List<PrefixElement> get prefixes =>
-      _prefixes ??= buildPrefixesFromImports(imports2);
+      _prefixes ??= buildPrefixesFromImports(libraryImports);
 
   @override
   AnalysisSessionImpl get session;
@@ -4615,16 +4615,16 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
     _definingCompilationUnit.accept(visitor);
     // ignore: deprecated_member_use_from_same_package
     safelyVisitChildren(exports, visitor);
-    safelyVisitChildren(exports2, visitor);
+    safelyVisitChildren(libraryExports, visitor);
     // ignore: deprecated_member_use_from_same_package
     safelyVisitChildren(imports, visitor);
-    safelyVisitChildren(imports2, visitor);
+    safelyVisitChildren(libraryImports, visitor);
   }
 
   void _readLinkedData();
 
   static List<PrefixElement> buildPrefixesFromImports(
-      List<ImportElement2> imports) {
+      List<LibraryImportElement> imports) {
     HashSet<PrefixElement> prefixes = HashSet<PrefixElement>();
     for (final import in imports) {
       var prefix = import.prefix;
@@ -5519,8 +5519,8 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   }
 
   @override
-  List<ImportElement2> get imports2 {
-    return enclosingElement2.imports2
+  List<LibraryImportElement> get imports2 {
+    return enclosingElement2.libraryImports
         .where((import) => import.prefix?.element == this)
         .toList();
   }
@@ -6729,11 +6729,13 @@ mixin _HasLibraryMixin on ElementImpl {
 class _Sentinel {
   static final List<ConstructorElement> constructorElement =
       List.unmodifiable([]);
-  static final List<ExportElement2> exportElement2 = List.unmodifiable([]);
+  static final List<LibraryExportElement> exportElement2 =
+      List.unmodifiable([]);
   static final List<FieldElement> fieldElement = List.unmodifiable([]);
   static final List<AugmentationImportElement> augmentationImportElement =
       List.unmodifiable([]);
-  static final List<ImportElement2> importElement2 = List.unmodifiable([]);
+  static final List<LibraryImportElement> importElement2 =
+      List.unmodifiable([]);
   static final List<MethodElement> methodElement = List.unmodifiable([]);
   static final List<PropertyAccessorElement> propertyAccessorElement =
       List.unmodifiable([]);

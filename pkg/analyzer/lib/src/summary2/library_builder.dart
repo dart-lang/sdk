@@ -104,7 +104,7 @@ class LibraryBuilder {
         containerIndex < containers.length;
         containerIndex++) {
       final container = containers[containerIndex];
-      final exportElements = container.exports2;
+      final exportElements = container.libraryExports;
       for (var exportIndex = 0;
           exportIndex < exportElements.length;
           exportIndex++) {
@@ -535,15 +535,15 @@ class LibraryBuilder {
     required LibraryOrAugmentationFileKind kind,
     required LibraryOrAugmentationElementImpl element,
   }) {
-    element.exports2 = kind.libraryExports.map(_buildExport).toList();
-    element.imports2 = kind.libraryImports.map(_buildImport).toList();
+    element.libraryExports = kind.libraryExports.map(_buildExport).toList();
+    element.libraryImports = kind.libraryImports.map(_buildImport).toList();
 
     element.augmentationImports = kind.augmentationImports.map((state) {
       return _buildAugmentationImport(element, state);
     }).toList();
   }
 
-  ExportElement2Impl _buildExport(LibraryExportState state) {
+  LibraryExportElementImpl _buildExport(LibraryExportState state) {
     final combinators = _buildCombinators(
       state.unlinked.combinators,
     );
@@ -604,13 +604,13 @@ class LibraryBuilder {
       }
     }
 
-    return ExportElement2Impl(
+    return LibraryExportElementImpl(
       exportKeywordOffset: state.unlinked.exportKeywordOffset,
       uri: uri,
     )..combinators = combinators;
   }
 
-  ImportElement2Impl _buildImport(LibraryImportState state) {
+  LibraryImportElementImpl _buildImport(LibraryImportState state) {
     final importPrefix = state.unlinked.prefix.mapOrNull((unlinked) {
       if (unlinked.deferredOffset != null) {
         return DeferredImportElementPrefixImpl(
@@ -689,7 +689,7 @@ class LibraryBuilder {
       }
     }
 
-    return ImportElement2Impl(
+    return LibraryImportElementImpl(
       importKeywordOffset: state.unlinked.importKeywordOffset,
       uri: uri,
       prefix: importPrefix,

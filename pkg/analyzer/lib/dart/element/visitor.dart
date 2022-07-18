@@ -109,7 +109,7 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   R? visitExportElement(ExportElement element) => visitElement(element);
 
   @override
-  R? visitExportElement2(ExportElement2 element) => visitElement(element);
+  R? visitExportElement2(LibraryExportElement element) => visitElement(element);
 
   @override
   R? visitExtensionElement(ExtensionElement element) => visitElement(element);
@@ -135,7 +135,7 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   R? visitImportElement(ImportElement element) => visitElement(element);
 
   @override
-  R? visitImportElement2(ImportElement2 element) => visitElement(element);
+  R? visitImportElement2(LibraryImportElement element) => visitElement(element);
 
   @override
   R? visitLabelElement(LabelElement element) => visitElement(element);
@@ -252,7 +252,7 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
-  R? visitExportElement2(ExportElement2 element) {
+  R? visitExportElement2(LibraryExportElement element) {
     element.visitChildren(this);
     return null;
   }
@@ -295,7 +295,7 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
-  R? visitImportElement2(ImportElement2 element) {
+  R? visitImportElement2(LibraryImportElement element) {
     element.visitChildren(this);
     return null;
   }
@@ -412,7 +412,7 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R? visitExportElement(ExportElement element) => null;
 
   @override
-  R? visitExportElement2(ExportElement2 element) => null;
+  R? visitExportElement2(LibraryExportElement element) => null;
 
   @override
   R? visitExtensionElement(ExtensionElement element) => null;
@@ -436,7 +436,7 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R? visitImportElement(ImportElement element) => null;
 
   @override
-  R? visitImportElement2(ImportElement2 element) => null;
+  R? visitImportElement2(LibraryImportElement element) => null;
 
   @override
   R? visitLabelElement(LabelElement element) => null;
@@ -513,7 +513,7 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
   R? visitExportElement(ExportElement element) => _throw(element);
 
   @override
-  R? visitExportElement2(ExportElement2 element) => _throw(element);
+  R? visitExportElement2(LibraryExportElement element) => _throw(element);
 
   @override
   R? visitExtensionElement(ExtensionElement element) => _throw(element);
@@ -537,7 +537,7 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
   R? visitImportElement(ImportElement element) => _throw(element);
 
   @override
-  R? visitImportElement2(ImportElement2 element) => _throw(element);
+  R? visitImportElement2(LibraryImportElement element) => _throw(element);
 
   @override
   R? visitLabelElement(LabelElement element) => _throw(element);

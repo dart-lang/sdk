@@ -69,7 +69,7 @@ class ExportLocation {
   /// augmentations.
   final int containerIndex;
 
-  /// The index in [LibraryElementImpl.exports2].
+  /// The index in [LibraryElementImpl.libraryExports].
   final int exportIndex;
 
   ExportLocation({
@@ -84,11 +84,11 @@ class ExportLocation {
         other.exportIndex == exportIndex;
   }
 
-  ExportElement2Impl exportOf(LibraryElementImpl library) {
+  LibraryExportElementImpl exportOf(LibraryElementImpl library) {
     final container = containerIndex == 0
         ? library
         : library.augmentations[containerIndex - 1];
-    return container.exports2[exportIndex] as ExportElement2Impl;
+    return container.libraryExports[exportIndex] as LibraryExportElementImpl;
   }
 
   @override

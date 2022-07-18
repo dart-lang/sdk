@@ -503,7 +503,7 @@ class _ElementWriter {
     }
   }
 
-  void _writeExportElement(ExportElement2 e) {
+  void _writeExportElement(LibraryExportElement e) {
     _writeIndentedLine(() {
       _writeDirectiveUri(e.uri);
     });
@@ -586,7 +586,7 @@ class _ElementWriter {
     }
   }
 
-  void _writeImportElement(ImportElement2 e) {
+  void _writeImportElement(LibraryImportElement e) {
     _writeIndentedLine(() {
       _writeDirectiveUri(e.uri);
       _writeIf(e.isSynthetic, ' synthetic');
@@ -617,12 +617,12 @@ class _ElementWriter {
     _writeDocumentation(e);
     _writeMetadata(e);
 
-    var imports = e.imports2
+    var imports = e.libraryImports
         .where((import) => withSyntheticDartCoreImport || !import.isSynthetic)
         .toList();
     _writeElements('imports', imports, _writeImportElement);
 
-    _writeElements('exports', e.exports2, _writeExportElement);
+    _writeElements('exports', e.libraryExports, _writeExportElement);
 
     _writeElements('augmentationImports', e.augmentationImports,
         _writeAugmentationImportElement);

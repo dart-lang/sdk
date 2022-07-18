@@ -197,8 +197,8 @@ class InformativeDataApplier {
       info.libraryConstantOffsets,
       (applier) {
         applier.applyToMetadata(element);
-        applier.applyToImports(element.imports2);
-        applier.applyToExports(element.exports2);
+        applier.applyToImports(element.libraryImports);
+        applier.applyToExports(element.libraryExports);
         applier.applyToAugmentationImports(element.augmentationImports);
       },
     );
@@ -337,11 +337,11 @@ class InformativeDataApplier {
     LibraryOrAugmentationElementImpl element,
     _InfoUnit info,
   ) {
-    forCorrespondingPairs<ExportElement2, _InfoExport>(
+    forCorrespondingPairs<LibraryExportElement, _InfoExport>(
       element.exports_unresolved,
       info.exports,
       (element, info) {
-        element as ExportElement2Impl;
+        element as LibraryExportElementImpl;
         element.nameOffset = info.nameOffset;
         _applyToCombinators(element.combinators, info.combinators);
       },
@@ -489,11 +489,11 @@ class InformativeDataApplier {
     LibraryOrAugmentationElementImpl element,
     _InfoUnit info,
   ) {
-    forCorrespondingPairs<ImportElement2, _InfoImport>(
+    forCorrespondingPairs<LibraryImportElement, _InfoImport>(
       element.imports_unresolved,
       info.imports,
       (element, info) {
-        element as ImportElement2Impl;
+        element as LibraryImportElementImpl;
         element.nameOffset = info.nameOffset;
 
         final prefixElement = element.prefix?.element;
@@ -530,8 +530,8 @@ class InformativeDataApplier {
       info.libraryConstantOffsets,
       (applier) {
         applier.applyToMetadata(element);
-        applier.applyToImports(element.imports2);
-        applier.applyToExports(element.exports2);
+        applier.applyToImports(element.libraryImports);
+        applier.applyToExports(element.libraryExports);
         applier.applyToAugmentationImports(element.augmentationImports);
         applier.applyToPartDirectives(element.parts2);
       },
@@ -1730,7 +1730,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
-  void applyToExports(List<ExportElement2> elements) {
+  void applyToExports(List<LibraryExportElement> elements) {
     for (var element in elements) {
       applyToMetadata(element);
     }
@@ -1744,7 +1744,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
-  void applyToImports(List<ImportElement2> elements) {
+  void applyToImports(List<LibraryImportElement> elements) {
     for (var element in elements) {
       applyToMetadata(element);
     }

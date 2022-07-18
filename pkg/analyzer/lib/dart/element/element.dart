@@ -1115,7 +1115,7 @@ abstract class ElementVisitor<R> {
   @Deprecated('Override visitExportElement2() instead')
   R? visitExportElement(ExportElement element);
 
-  R? visitExportElement2(ExportElement2 element);
+  R? visitExportElement2(LibraryExportElement element);
 
   R? visitExtensionElement(ExtensionElement element);
 
@@ -1130,7 +1130,7 @@ abstract class ElementVisitor<R> {
   @Deprecated('Override visitImportElement2() instead')
   R? visitImportElement(ImportElement element);
 
-  R? visitImportElement2(ImportElement2 element);
+  R? visitImportElement2(LibraryImportElement element);
 
   R? visitLabelElement(LabelElement element);
 
@@ -1217,7 +1217,7 @@ abstract class ExecutableElement implements FunctionTypedElement {
 /// An export directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use ExportElement2 instead')
+@Deprecated('Use LibraryExportElement instead')
 abstract class ExportElement implements UriReferencedElement {
   /// Return a list containing the combinators that were specified as part of
   /// the export directive in the order in which they were specified.
@@ -1226,24 +1226,6 @@ abstract class ExportElement implements UriReferencedElement {
   /// Return the library that is exported from this library by this export
   /// directive, or `null` if the URI has invalid syntax or cannot be resolved.
   LibraryElement? get exportedLibrary;
-}
-
-/// A single export directive within a library.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class ExportElement2 implements _ExistingElement {
-  /// Return a list containing the combinators that were specified as part of
-  /// the export directive in the order in which they were specified.
-  List<NamespaceCombinator> get combinators;
-
-  /// Returns the [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
-  LibraryElement? get exportedLibrary;
-
-  /// The offset of the `export` keyword.
-  int get exportKeywordOffset;
-
-  /// The interpretation of the URI specified in the directive.
-  DirectiveUri get uri;
 }
 
 /// An element that represents an extension.
@@ -1392,7 +1374,7 @@ abstract class HideElementCombinator implements NamespaceCombinator {
 /// A single import directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use ImportElement2 instead')
+@Deprecated('Use LibraryImportElement instead')
 abstract class ImportElement implements UriReferencedElement {
   /// Return a list containing the combinators that were specified as part of
   /// the import directive in the order in which they were specified.
@@ -1411,31 +1393,6 @@ abstract class ImportElement implements UriReferencedElement {
   /// Return the prefix that was specified as part of the import directive, or
   /// `null` if there was no prefix specified.
   PrefixElement? get prefix;
-}
-
-/// A single import directive within a library.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class ImportElement2 implements _ExistingElement {
-  /// Return a list containing the combinators that were specified as part of
-  /// the import directive in the order in which they were specified.
-  List<NamespaceCombinator> get combinators;
-
-  /// Returns the [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
-  LibraryElement? get importedLibrary;
-
-  /// The offset of the `import` keyword.
-  int get importKeywordOffset;
-
-  /// The [Namespace] that this directive contributes to the containing library.
-  Namespace get namespace;
-
-  /// Return the prefix that was specified as part of the import directive, or
-  /// `null` if there was no prefix specified.
-  ImportElementPrefix? get prefix;
-
-  /// The interpretation of the URI specified in the directive.
-  DirectiveUri get uri;
 }
 
 /// Usage of a [PrefixElement] in an `import` directive.
@@ -1556,6 +1513,49 @@ abstract class LibraryElement
   DartType toLegacyTypeIfOptOut(DartType type);
 }
 
+/// A single export directive within a library.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class LibraryExportElement implements _ExistingElement {
+  /// Return a list containing the combinators that were specified as part of
+  /// the export directive in the order in which they were specified.
+  List<NamespaceCombinator> get combinators;
+
+  /// Returns the [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
+  LibraryElement? get exportedLibrary;
+
+  /// The offset of the `export` keyword.
+  int get exportKeywordOffset;
+
+  /// The interpretation of the URI specified in the directive.
+  DirectiveUri get uri;
+}
+
+/// A single import directive within a library.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class LibraryImportElement implements _ExistingElement {
+  /// Return a list containing the combinators that were specified as part of
+  /// the import directive in the order in which they were specified.
+  List<NamespaceCombinator> get combinators;
+
+  /// Returns the [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
+  LibraryElement? get importedLibrary;
+
+  /// The offset of the `import` keyword.
+  int get importKeywordOffset;
+
+  /// The [Namespace] that this directive contributes to the containing library.
+  Namespace get namespace;
+
+  /// Return the prefix that was specified as part of the import directive, or
+  /// `null` if there was no prefix specified.
+  ImportElementPrefix? get prefix;
+
+  /// The interpretation of the URI specified in the directive.
+  DirectiveUri get uri;
+}
+
 class LibraryLanguageVersion {
   /// The version for the whole package that contains this library.
   final Version package;
@@ -1594,9 +1594,6 @@ abstract class LibraryOrAugmentationElement implements Element {
   @Deprecated('Use exports2 instead')
   List<ExportElement> get exports;
 
-  /// Return a list containing all of the exports defined in this library.
-  List<ExportElement2> get exports2;
-
   /// The set of features available to this library.
   ///
   /// Determined by the combination of the language version for the enclosing
@@ -1608,13 +1605,16 @@ abstract class LibraryOrAugmentationElement implements Element {
   @Deprecated('Use imports2 instead')
   List<ImportElement> get imports;
 
-  /// Return a list containing all of the imports defined in this library.
-  List<ImportElement2> get imports2;
-
   bool get isNonNullableByDefault;
 
   /// The language version for this library.
   LibraryLanguageVersion get languageVersion;
+
+  /// Return a list containing all of the exports defined in this library.
+  List<LibraryExportElement> get libraryExports;
+
+  /// Return a list containing all of the imports defined in this library.
+  List<LibraryImportElement> get libraryImports;
 
   /// Return a list containing elements for each of the prefixes used to
   /// `import` libraries into this library. Each prefix can be used in more
@@ -1823,7 +1823,7 @@ abstract class PrefixElement implements _ExistingElement {
   List<ImportElement> get imports;
 
   /// Return the imports that share this prefix.
-  List<ImportElement2> get imports2;
+  List<LibraryImportElement> get imports2;
 
   @override
   String get name;

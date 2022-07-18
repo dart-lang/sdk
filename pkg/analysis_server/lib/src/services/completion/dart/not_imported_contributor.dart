@@ -46,7 +46,7 @@ class NotImportedContributor extends DartCompletionContributor {
     }
 
     var importedLibraries = Set<LibraryElement>.identity();
-    for (var import in request.libraryElement.imports2) {
+    for (var import in request.libraryElement.libraryImports) {
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null) {
         if (import.combinators.isEmpty) {

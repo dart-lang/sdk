@@ -153,12 +153,12 @@ class FunctionElementFlags {
 class ImportElementFlags {
   static const int _isSynthetic = 1 << 0;
 
-  static void read(SummaryDataReader reader, ImportElement2Impl element) {
+  static void read(SummaryDataReader reader, LibraryImportElementImpl element) {
     var byte = reader.readByte();
     element.isSynthetic = (byte & _isSynthetic) != 0;
   }
 
-  static void write(BufferedSink sink, ImportElement2Impl element) {
+  static void write(BufferedSink sink, LibraryImportElementImpl element) {
     var result = 0;
     result |= element.isSynthetic ? _isSynthetic : 0;
     sink.writeByte(result);

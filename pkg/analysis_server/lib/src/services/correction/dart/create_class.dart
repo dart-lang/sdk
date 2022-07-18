@@ -72,7 +72,7 @@ class CreateClass extends CorrectionProducer {
       filePath = file;
       prefix = '$eol$eol';
     } else {
-      for (var import in libraryElement.imports2) {
+      for (var import in libraryElement.libraryImports) {
         if (prefixElement is PrefixElement &&
             import.prefix?.element == prefixElement) {
           var library = import.importedLibrary;

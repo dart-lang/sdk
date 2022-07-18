@@ -318,7 +318,7 @@ class DuplicateDefinitionVerifier {
       }
     }
 
-    for (final importElement in _currentLibrary.imports2) {
+    for (final importElement in _currentLibrary.libraryImports) {
       var prefix = importElement.prefix?.element;
       if (prefix != null) {
         definedGetters[prefix.name] = prefix;

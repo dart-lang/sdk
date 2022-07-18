@@ -15,7 +15,7 @@ class LibraryPrefixContributor extends DartCompletionContributor {
       return;
     }
 
-    var imports = request.libraryElement.imports2;
+    var imports = request.libraryElement.libraryImports;
     for (var element in imports) {
       var prefix = element.prefix?.element.name;
       if (prefix != null && prefix.isNotEmpty) {
