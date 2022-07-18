@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:dev_compiler/src/kernel/module_symbols.dart';
 import 'package:test/test.dart';
 
@@ -18,8 +16,8 @@ void main() async {
     group(mode.description, () {
       var options = SetupCompilerOptions(soundNullSafety: mode.soundNullSafety);
       group('global variable debug symbols', () {
-        TestDriver driver;
-        VariableSymbol variableSymbol;
+        late final TestDriver driver;
+        late final VariableSymbol variableSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -28,8 +26,8 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          variableSymbol = result.symbols.variables.single;
+          var symbols = await driver.compileAndGetSymbols();
+          variableSymbol = symbols.variables.single;
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -60,21 +58,21 @@ void main() async {
         });
         group('location', () {
           test('has scriptId', () async {
-            expect(variableSymbol.location.scriptId, endsWith('/foo.dart'));
+            expect(variableSymbol.location!.scriptId, endsWith('/foo.dart'));
           });
           test('start token position', () async {
-            expect(variableSymbol.location.tokenPos,
+            expect(variableSymbol.location!.tokenPos,
                 source.indexOf('globalVariable'));
           });
           test('end token position', () async {
             expect(
-                variableSymbol.location.endTokenPos, source.lastIndexOf(';'));
+                variableSymbol.location!.endTokenPos, source.lastIndexOf(';'));
           });
         });
       });
       group('global final variable debug symbols', () {
-        TestDriver driver;
-        VariableSymbol variableSymbol;
+        late final TestDriver driver;
+        late final VariableSymbol variableSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -83,8 +81,8 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          variableSymbol = result.symbols.variables.single;
+          var symbols = await driver.compileAndGetSymbols();
+          variableSymbol = symbols.variables.single;
         });
         tearDownAll(() {
           driver.cleanUp();
@@ -94,8 +92,8 @@ void main() async {
         });
       });
       group('global const variable debug symbols', () {
-        TestDriver driver;
-        VariableSymbol variableSymbol;
+        late final TestDriver driver;
+        late final VariableSymbol variableSymbol;
         final source = '''
           ${options.dartLangComment}
 
@@ -106,8 +104,8 @@ void main() async {
           ''';
         setUpAll(() async {
           driver = TestDriver(options, source);
-          var result = await driver.compile();
-          variableSymbol = result.symbols.variables.single;
+          var symbols = await driver.compileAndGetSymbols();
+          variableSymbol = symbols.variables.single;
         });
         tearDownAll(() {
           driver.cleanUp();
