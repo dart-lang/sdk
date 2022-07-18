@@ -28,9 +28,9 @@ import 'a.dart';
 
     // Ask for files, so that they are known.
     var analysisSession = analysisContext.currentSession;
-    analysisSession.getFile(a.path);
-    analysisSession.getFile(b.path);
-    analysisSession.getFile(c.path);
+    await analysisSession.getUnitElement(a.path);
+    await analysisSession.getUnitElement(b.path);
+    await analysisSession.getUnitElement(c.path);
 
     analysisContext.changeFile(a.path);
 
@@ -59,10 +59,10 @@ import 'a.dart';
 
     // Ask for files, so that they are known.
     var analysisSession = analysisContext.currentSession;
-    analysisSession.getFile(a.path);
-    analysisSession.getFile(b.path);
-    analysisSession.getFile(c.path);
-    analysisSession.getFile(d.path);
+    await analysisSession.getUnitElement(a.path);
+    await analysisSession.getUnitElement(b.path);
+    await analysisSession.getUnitElement(c.path);
+    await analysisSession.getUnitElement(d.path);
 
     analysisContext.changeFile(b.path);
 

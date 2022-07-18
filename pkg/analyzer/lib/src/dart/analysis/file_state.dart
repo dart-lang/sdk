@@ -400,11 +400,6 @@ class FileState {
   /// Files that reference this file.
   final Set<FileState> referencingFiles = {};
 
-  List<FileState?>? _importedFiles;
-  List<FileState?>? _exportedFiles;
-
-  Set<FileState>? _directReferencedFiles;
-
   /// The flag that shows whether the file has an error or warning that
   /// might be fixed by a change to another file.
   bool hasErrorOrWarning = false;
@@ -443,56 +438,11 @@ class FileState {
     return _driverUnlinkedUnit!.definedTopLevelNames;
   }
 
-  /// Return the set of all directly referenced files - imported, exported or
-  /// parted.
-  /// TODO(scheglov) Stop using [partedFiles].
-  Set<FileState> get directReferencedFiles {
-    return _directReferencedFiles ??= <FileState>{
-      ...importedFiles.whereNotNull(),
-      ...exportedFiles.whereNotNull(),
-      ...partedFiles.whereNotNull(),
-    };
-  }
-
   /// Return `true` if the file exists.
   bool get exists => _fileContent!.exists;
 
-  /// The list of files this file exports.
-  List<FileState?> get exportedFiles {
-    return _exportedFiles ??= _unlinked2!.exports.map((directive) {
-      var uri = _selectRelativeUri(directive);
-      if (uri == null) {
-        return null;
-      }
-      return _fileForRelativeUri(uri).map(
-        (file) {
-          file?.referencingFiles.add(this);
-          return file;
-        },
-        (_) => null,
-      );
-    }).toList();
-  }
-
   @override
   int get hashCode => uri.hashCode;
-
-  /// The list of files this file imports.
-  List<FileState?> get importedFiles {
-    return _importedFiles ??= _unlinked2!.imports.map((directive) {
-      var uri = _selectRelativeUri(directive);
-      if (uri == null) {
-        return null;
-      }
-      return _fileForRelativeUri(uri).map(
-        (file) {
-          file?.referencingFiles.add(this);
-          return file;
-        },
-        (_) => null,
-      );
-    }).toList();
-  }
 
   /// Return `true` if the file does not have a `library` directive, and has a
   /// `part of` directive, so is probably a part.
@@ -508,22 +458,6 @@ class FileState {
 
   /// Return information about line in the file.
   LineInfo get lineInfo => _lineInfo!;
-
-  /// The list of files this library file references as parts.
-  List<FileState?> get partedFiles {
-    final kind = _kind;
-    if (kind is LibraryFileKind) {
-      return kind.parts.map((part) {
-        if (part is PartWithFile) {
-          return part.includedFile;
-        } else {
-          return null;
-        }
-      }).toList();
-    } else {
-      return [];
-    }
-  }
 
   /// The external names referenced by the file.
   Set<String> get referencedNames {
@@ -605,11 +539,6 @@ class FileState {
     bool apiSignatureChanged = _apiSignature != null &&
         !_equalByteLists(_apiSignature, newApiSignature);
     _apiSignature = newApiSignature;
-
-    // Read imports/exports on demand.
-    _importedFiles = null;
-    _exportedFiles = null;
-    _directReferencedFiles = null;
 
     // Read parts eagerly to link parts to libraries.
     _updateKind();
@@ -832,21 +761,6 @@ class FileState {
     }
 
     prefetchFiles(paths.toList());
-  }
-
-  /// TODO(scheglov) move to _fsState?
-  String? _selectRelativeUri(UnlinkedNamespaceDirective directive) {
-    for (var configuration in directive.configurations) {
-      var name = configuration.name;
-      var value = configuration.value;
-      if (value.isEmpty) {
-        value = 'true';
-      }
-      if (_fsState._declaredVariables.get(name) == value) {
-        return configuration.uri;
-      }
-    }
-    return directive.uri;
   }
 
   void _updateKind() {
@@ -1276,14 +1190,6 @@ class FileSystemState {
   /// Collected files that transitively reference a file with the [path].
   /// These files are potentially affected by the change.
   void collectAffected(String path, Set<FileState> affected) {
-    // TODO(scheglov) This should not be necessary.
-    // We use affected files to remove library elements, and we can only get
-    // these library elements when we link or load them, using library cycles.
-    // And we get library cycles by asking `directReferencedFiles`.
-    for (var file in knownFiles.toList()) {
-      file.directReferencedFiles;
-    }
-
     collectAffected(FileState file) {
       if (affected.add(file)) {
         for (var other in file.referencingFiles) {
@@ -2109,6 +2015,16 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
       }
     }
     return false;
+  }
+
+  /// Returns `true` if [file] is imported as a library, or an augmentation.
+  bool importsFile(FileState file) {
+    return augmentationImports
+            .whereType<AugmentationImportWithFile>()
+            .any((import) => import.importedFile == file) ||
+        libraryImports
+            .whereType<LibraryImportWithFile>()
+            .any((import) => import.importedFile == file);
   }
 
   /// Invalidates the containing [LibraryFileKind] cycle.
