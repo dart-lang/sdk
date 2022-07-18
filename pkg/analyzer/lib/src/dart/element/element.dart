@@ -5161,14 +5161,14 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
 /// The synthetic element representing the declaration of the type `Never`.
 class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
-  /// Return the unique instance of this class.
-  static NeverElementImpl get instance => NeverTypeImpl.instance.element;
+  /// The unique instance of this class.
+  static final instance = NeverElementImpl._();
 
   /// Initialize a newly created instance of this class. Instances of this class
   /// should <b>not</b> be created except as part of creating the type
   /// associated with this element. The single instance of this class should be
   /// accessed through the method [instance].
-  NeverElementImpl() : super('Never', -1) {
+  NeverElementImpl._() : super('Never', -1) {
     setModifier(Modifier.SYNTHETIC, true);
   }
 
