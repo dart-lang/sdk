@@ -3836,6 +3836,9 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   LibraryLanguageVersion get languageVersion => augmented.languageVersion;
 
   @override
+  LibraryElementImpl get library => augmented.library;
+
+  @override
   List<LibraryExportElement> get libraryExports {
     return _exports2;
   }
@@ -3845,10 +3848,6 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
     _readLinkedData();
     return _imports2;
   }
-
-  @override
-  // TODO: implement scope
-  Scope get scope => throw UnimplementedError();
 
   @override
   AnalysisSessionImpl get session => augmented.session;
@@ -3921,9 +3920,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   /// The public [Namespace] of this library, `null` if it has not been
   /// computed yet.
   Namespace? _publicNamespace;
-
-  /// The scope of this library, `null` if it has not been created yet.
-  LibraryScope? _scope;
 
   /// The macro executor for the bundle to which this library belongs.
   BundleMacroExecutor? bundleMacroExecutor;
@@ -4155,11 +4151,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   set publicNamespace(Namespace publicNamespace) {
     _publicNamespace = publicNamespace;
-  }
-
-  @override
-  LibraryScope get scope {
-    return _scope ??= LibraryScope(this);
   }
 
   @override
@@ -4509,6 +4500,9 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   /// The cached list of prefixes.
   List<PrefixElement>? _prefixes;
 
+  /// The scope of this library, `null` if it has not been created yet.
+  LibraryOrAugmentationScope? _scope;
+
   LibraryOrAugmentationElementImpl({
     required String? name,
     required int nameOffset,
@@ -4573,6 +4567,9 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   }
 
   @override
+  LibraryElementImpl get library;
+
+  @override
   List<LibraryExportElement> get libraryExports {
     _readLinkedData();
     return _exports2;
@@ -4600,6 +4597,11 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   @override
   List<PrefixElement> get prefixes =>
       _prefixes ??= buildPrefixesFromImports(libraryImports);
+
+  @override
+  LibraryOrAugmentationScope get scope {
+    return _scope ??= LibraryOrAugmentationScope(this);
+  }
 
   @override
   AnalysisSessionImpl get session;

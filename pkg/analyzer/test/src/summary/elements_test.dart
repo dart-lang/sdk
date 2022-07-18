@@ -96,6 +96,108 @@ library
 ''');
   }
 
+  test_augmentation_importScope_topInference() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+final b = a;
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static final b @52
+            type: int
+        accessors
+          synthetic static get b @-1
+            returnType: int
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_types_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+A f() {}
+''');
+
+    // The augmentation imports `a.dart`, so can resolve `A`.
+    // But the library does not import, so there `A` is unresolved.
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        functions
+          f @48
+            returnType: A
+  definingUnit
+    functions
+      f @27
+        returnType: dynamic
+''');
+  }
+
+  test_augmentation_importScope_types_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+import 'a.dart';
+A f() {}
+''');
+
+    // The library imports `a.dart`, so can resolve `A`.
+    // But the augmentation does not import, so there `A` is unresolved.
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  augmentationImports
+    package:test/b.dart
+      definingUnit
+        functions
+          f @31
+            returnType: dynamic
+  definingUnit
+    functions
+      f @44
+        returnType: A
+''');
+  }
+
   test_augmentation_libraryExports_library() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
@@ -159,6 +261,70 @@ library
         dart:math
       definingUnit
   definingUnit
+''');
+  }
+
+  test_augmentation_topScope_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class A {}
+A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+A f() {}
+''');
+
+    // The augmentation declares `A`, and can it be used in the library.
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class A @35
+            constructors
+              synthetic @-1
+        functions
+          f @42
+            returnType: A
+  definingUnit
+    functions
+      f @27
+        returnType: A
+''');
+  }
+
+  test_augmentation_topScope_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {}
+A f() {}
+''');
+
+    // The library declares `A`, and can it be used in the augmentation.
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        functions
+          f @31
+            returnType: A
+  definingUnit
+    classes
+      class A @31
+        constructors
+          synthetic @-1
+    functions
+      f @38
+        returnType: A
 ''');
   }
 

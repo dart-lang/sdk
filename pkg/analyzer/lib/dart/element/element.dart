@@ -1610,6 +1610,9 @@ abstract class LibraryOrAugmentationElement implements Element {
   /// The language version for this library.
   LibraryLanguageVersion get languageVersion;
 
+  @override
+  LibraryElement get library;
+
   /// Return a list containing all of the exports defined in this library.
   List<LibraryExportElement> get libraryExports;
 

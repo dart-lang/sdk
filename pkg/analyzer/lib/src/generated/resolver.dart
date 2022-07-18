@@ -2934,7 +2934,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   /// [errorListener] is the error listener that will be informed of any errors
   /// that are found during resolution.
   /// [nameScope] is the scope used to resolve identifiers in the node that will
-  /// first be visited.  If `null` or unspecified, a new [LibraryScope] will be
+  /// first be visited.  If `null` or unspecified, a new [LibraryOrAugmentationScope] will be
   /// created based on [definingLibrary] and [typeProvider].
   ScopeResolverVisitor(this.definingLibrary, this.source, this.typeProvider,
       AnalysisErrorListener errorListener,
@@ -2944,7 +2944,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           source,
           isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
         ),
-        nameScope = nameScope ?? LibraryScope(definingLibrary);
+        nameScope = nameScope ?? LibraryOrAugmentationScope(definingLibrary);
 
   /// Return the implicit label scope in which the current node is being
   /// resolved.

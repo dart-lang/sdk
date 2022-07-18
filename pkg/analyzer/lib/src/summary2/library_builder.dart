@@ -409,7 +409,11 @@ class LibraryBuilder {
 
   void resolveTypes(NodesToBuildType nodesToBuildType) {
     for (var linkingUnit in units) {
-      var resolver = ReferenceResolver(linker, nodesToBuildType, element);
+      var resolver = ReferenceResolver(
+        linker,
+        nodesToBuildType,
+        linkingUnit.container,
+      );
       linkingUnit.node.accept(resolver);
     }
   }
