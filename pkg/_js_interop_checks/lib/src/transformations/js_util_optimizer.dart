@@ -101,7 +101,7 @@ class JsUtilOptimizer extends Transformer {
   @override
   visitProcedure(Procedure node) {
     _staticTypeContext.enterMember(node);
-    var transformedBody;
+    ReturnStatement? transformedBody;
     if (node.isExternal && node.isExtensionMember) {
       var index = _extensionMemberIndex ??=
           _createExtensionMembersIndex(node.enclosingLibrary);

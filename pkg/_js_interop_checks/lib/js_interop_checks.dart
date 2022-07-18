@@ -262,7 +262,7 @@ class JsInteropChecks extends RecursiveVisitor {
       if (isAnonymousFactory) {
         // ignore: unnecessary_null_comparison
         if (procedure.function != null &&
-            !procedure.function.positionalParameters.isEmpty) {
+            procedure.function.positionalParameters.isNotEmpty) {
           var firstPositionalParam = procedure.function.positionalParameters[0];
           _diagnosticsReporter.report(
               messageJsInteropAnonymousFactoryPositionalParameters,
@@ -339,7 +339,7 @@ class JsInteropChecks extends RecursiveVisitor {
   /// Reports an error if [functionNode] has named parameters.
   void _checkNoNamedParameters(FunctionNode functionNode) {
     // ignore: unnecessary_null_comparison
-    if (functionNode != null && !functionNode.namedParameters.isEmpty) {
+    if (functionNode != null && functionNode.namedParameters.isNotEmpty) {
       var firstNamedParam = functionNode.namedParameters[0];
       _diagnosticsReporter.report(
           messageJsInteropNamedParameters,

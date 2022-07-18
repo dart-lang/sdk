@@ -35,7 +35,7 @@ String getJSName(Annotatable a) {
   for (var annotation in a.annotations) {
     if (_isPublicJSAnnotation(annotation)) {
       var jsClasses = _stringAnnotationValues(annotation);
-      if (jsClasses.length > 0) {
+      if (jsClasses.isNotEmpty) {
         jsClass = jsClasses[0];
       }
     }
@@ -144,7 +144,7 @@ List<String> _stringAnnotationValues(Expression node) {
     }
   } else if (node is ConstructorInvocation) {
     var argLength = node.arguments.positional.length;
-    if (argLength > 1 || node.arguments.named.length > 0) {
+    if (argLength > 1 || node.arguments.named.isNotEmpty) {
       throw new ArgumentError('Method expects annotation with at most one '
           'positional argument: $node.');
     } else if (argLength == 1) {
