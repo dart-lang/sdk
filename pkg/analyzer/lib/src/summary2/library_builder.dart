@@ -51,7 +51,7 @@ class ImplicitEnumNodes {
 
 class LibraryBuilder {
   final Linker linker;
-  final LibraryFileStateKind kind;
+  final LibraryFileKind kind;
   final Uri uri;
   final Reference reference;
   final LibraryElementImpl element;
@@ -437,10 +437,10 @@ class LibraryBuilder {
 
   AugmentationImportElementImpl _buildAugmentationImport(
     LibraryOrAugmentationElementImpl augmentedElement,
-    ImportAugmentationDirectiveState state,
+    AugmentationImportState state,
   ) {
     final DirectiveUri uri;
-    if (state is ImportAugmentationDirectiveWithFile) {
+    if (state is AugmentationImportWithFile) {
       final importedAugmentation = state.importedAugmentation;
       if (importedAugmentation != null) {
         final importedFile = importedAugmentation.file;
@@ -460,7 +460,7 @@ class LibraryBuilder {
 
         final augmentation = LibraryAugmentationElementImpl(
           augmented: augmentedElement,
-          nameOffset: importedAugmentation.directive.libraryKeywordOffset,
+          nameOffset: importedAugmentation.unlinked.libraryKeywordOffset,
         );
         augmentation.definingCompilationUnit = unitElement;
 
@@ -508,7 +508,7 @@ class LibraryBuilder {
     }
 
     return AugmentationImportElementImpl(
-      importKeywordOffset: state.directive.importKeywordOffset,
+      importKeywordOffset: state.unlinked.importKeywordOffset,
       uri: uri,
     );
   }
@@ -535,21 +535,21 @@ class LibraryBuilder {
     required LibraryOrAugmentationFileKind kind,
     required LibraryOrAugmentationElementImpl element,
   }) {
-    element.exports2 = kind.exports.map(_buildExport).toList();
-    element.imports2 = kind.imports.map(_buildImport).toList();
+    element.exports2 = kind.libraryExports.map(_buildExport).toList();
+    element.imports2 = kind.libraryImports.map(_buildImport).toList();
 
-    element.augmentationImports = kind.augmentations.map((state) {
+    element.augmentationImports = kind.augmentationImports.map((state) {
       return _buildAugmentationImport(element, state);
     }).toList();
   }
 
-  ExportElement2Impl _buildExport(ExportDirectiveState state) {
+  ExportElement2Impl _buildExport(LibraryExportState state) {
     final combinators = _buildCombinators(
-      state.directive.combinators,
+      state.unlinked.combinators,
     );
 
     final DirectiveUri uri;
-    if (state is ExportDirectiveWithFile) {
+    if (state is LibraryExportWithFile) {
       final exportedLibraryKind = state.exportedLibrary;
       if (exportedLibraryKind != null) {
         final exportedFile = exportedLibraryKind.file;
@@ -569,7 +569,7 @@ class LibraryBuilder {
           source: state.exportedSource,
         );
       }
-    } else if (state is ExportDirectiveWithInSummarySource) {
+    } else if (state is LibraryExportWithInSummarySource) {
       final exportedLibrarySource = state.exportedLibrarySource;
       if (exportedLibrarySource != null) {
         final exportedUri = exportedLibrarySource.uri;
@@ -605,13 +605,13 @@ class LibraryBuilder {
     }
 
     return ExportElement2Impl(
-      exportKeywordOffset: state.directive.exportKeywordOffset,
+      exportKeywordOffset: state.unlinked.exportKeywordOffset,
       uri: uri,
     )..combinators = combinators;
   }
 
-  ImportElement2Impl _buildImport(ImportDirectiveState state) {
-    final importPrefix = state.directive.prefix.mapOrNull((unlinked) {
+  ImportElement2Impl _buildImport(LibraryImportState state) {
+    final importPrefix = state.unlinked.prefix.mapOrNull((unlinked) {
       if (unlinked.deferredOffset != null) {
         return DeferredImportElementPrefixImpl(
           element: _buildPrefix(
@@ -630,11 +630,11 @@ class LibraryBuilder {
     });
 
     final combinators = _buildCombinators(
-      state.directive.combinators,
+      state.unlinked.combinators,
     );
 
     final DirectiveUri uri;
-    if (state is ImportDirectiveWithFile) {
+    if (state is LibraryImportWithFile) {
       final importedLibraryKind = state.importedLibrary;
       if (importedLibraryKind != null) {
         final importedFile = importedLibraryKind.file;
@@ -654,7 +654,7 @@ class LibraryBuilder {
           source: state.importedSource,
         );
       }
-    } else if (state is ImportDirectiveWithInSummarySource) {
+    } else if (state is LibraryImportWithInSummarySource) {
       final importedLibrarySource = state.importedLibrarySource;
       if (importedLibrarySource != null) {
         final importedUri = importedLibrarySource.uri;
@@ -690,7 +690,7 @@ class LibraryBuilder {
     }
 
     return ImportElement2Impl(
-      importKeywordOffset: state.directive.importKeywordOffset,
+      importKeywordOffset: state.unlinked.importKeywordOffset,
       uri: uri,
       prefix: importPrefix,
     )
@@ -730,7 +730,7 @@ class LibraryBuilder {
     }
   }
 
-  static void build(Linker linker, LibraryFileStateKind inputLibrary) {
+  static void build(Linker linker, LibraryFileKind inputLibrary) {
     final elementFactory = linker.elementFactory;
     final rootReference = linker.rootReference;
 
@@ -797,7 +797,7 @@ class LibraryBuilder {
       final uriState = partState.uri;
 
       final DirectiveUri directiveUri;
-      if (partState is PartDirectiveWithFile) {
+      if (partState is PartWithFile) {
         final includedPart = partState.includedPart;
         if (includedPart != null) {
           final partFile = includedPart.file;

@@ -85,7 +85,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 235;
+  static const int DATA_VERSION = 236;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -167,7 +167,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The mapping from the files for which analysis was requested using
   /// [getResolvedLibrary] to the [Completer]s to report the result.
   final _requestedLibraries =
-      <LibraryFileStateKind, List<Completer<ResolvedLibraryResult>>>{};
+      <LibraryFileKind, List<Completer<ResolvedLibraryResult>>>{};
 
   /// The queue of requests for completion.
   final List<_ResolveForCompletionRequest> _resolveForCompletionRequests = [];
@@ -728,10 +728,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         }
 
         final kind = file.kind;
-        if (kind is LibraryFileStateKind) {
-        } else if (kind is AugmentationFileStateKind) {
+        if (kind is LibraryFileKind) {
+        } else if (kind is AugmentationFileKind) {
           return NotLibraryButAugmentationResult();
-        } else if (kind is PartFileStateKind) {
+        } else if (kind is PartFileKind) {
           return NotLibraryButPartResult();
         } else {
           throw UnimplementedError('(${kind.runtimeType}) $kind');
@@ -783,10 +783,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     final file = _fsState.getFileForPath(path);
     final kind = file.kind;
-    if (kind is LibraryFileStateKind) {
-    } else if (kind is AugmentationFileStateKind) {
+    if (kind is LibraryFileKind) {
+    } else if (kind is AugmentationFileKind) {
       return NotLibraryButAugmentationResult();
-    } else if (kind is PartFileStateKind) {
+    } else if (kind is PartFileKind) {
       return NotLibraryButPartResult();
     } else {
       throw UnimplementedError('(${kind.runtimeType}) $kind');
@@ -846,16 +846,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     final file = _fsState.getFileForPath(path);
     final kind = file.kind;
-    if (kind is LibraryFileStateKind) {
+    if (kind is LibraryFileKind) {
       final completer = Completer<ResolvedLibraryResult>();
       _requestedLibraries
           .putIfAbsent(kind, () => <Completer<ResolvedLibraryResult>>[])
           .add(completer);
       _scheduler.notify(this);
       return completer.future;
-    } else if (kind is AugmentationFileStateKind) {
+    } else if (kind is AugmentationFileKind) {
       return NotLibraryButAugmentationResult();
-    } else if (kind is PartFileStateKind) {
+    } else if (kind is PartFileKind) {
       return NotLibraryButPartResult();
     } else {
       throw UnimplementedError('(${kind.runtimeType}) $kind');
@@ -1399,7 +1399,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return the newly computed resolution result of the library with the
   /// given [path].
   Future<ResolvedLibraryResultImpl> _computeResolvedLibrary(
-    LibraryFileStateKind library,
+    LibraryFileKind library,
   ) async {
     final path = library.file.path;
     return _logger.runAsync('Compute resolved library $path', () async {
@@ -1532,7 +1532,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     _fsState.getFileForUri(Uri.parse('dart:core')).map(
       (file) {
-        final kind = file?.kind as LibraryFileStateKind;
+        final kind = file?.kind as LibraryFileKind;
         kind.discoverReferencedFiles();
       },
       (externalLibrary) {},
@@ -1641,8 +1641,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// Return the signature that identifies fully resolved results for the [file]
   /// in the [library], e.g. element model, errors, index, etc.
-  String _getResolvedUnitSignature(
-      LibraryFileStateKind library, FileState file) {
+  String _getResolvedUnitSignature(LibraryFileKind library, FileState file) {
     ApiSignature signature = ApiSignature();
     signature.addUint32List(_saltForResolution);
     signature.addString(library.file.uriStr);
@@ -1709,7 +1708,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     // TODO(scheglov) Eventually list of `LibraryOrAugmentationFileKind`.
     for (final file in affected) {
       final kind = file.kind;
-      if (kind is LibraryFileStateKind) {
+      if (kind is LibraryFileKind) {
         kind.invalidateLibraryCycle();
       }
       accumulatedAffected.add(file.path);
@@ -1834,7 +1833,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         .toBuffer();
   }
 
-  String? _storeExceptionContext(String path, LibraryFileStateKind library,
+  String? _storeExceptionContext(String path, LibraryFileKind library,
       Object exception, StackTrace stackTrace) {
     if (allowedNumberOfContextsToWrite <= 0) {
       return null;

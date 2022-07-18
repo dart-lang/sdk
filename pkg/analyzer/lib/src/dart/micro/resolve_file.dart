@@ -317,7 +317,7 @@ class FileResolver {
       );
       var file = fileContext.file;
       // TODO(scheglov) Casts are unsafe.
-      final kind = file.kind as LibraryFileStateKind;
+      final kind = file.kind as LibraryFileKind;
 
       final errorsSignatureBuilder = ApiSignature();
       errorsSignatureBuilder.addString(kind.libraryCycle.apiSignature);
@@ -413,7 +413,7 @@ class FileResolver {
     var file = fileContext.file;
 
     final kind = file.kind;
-    if (kind is! LibraryFileStateKind) {
+    if (kind is! LibraryFileKind) {
       throw ArgumentError('$uri is not a library.');
     }
 
@@ -439,7 +439,7 @@ class FileResolver {
     );
 
     // TODO(scheglov) Casts are unsafe.
-    final kind = file.kind as LibraryFileStateKind;
+    final kind = file.kind as LibraryFileKind;
     return kind.libraryCycle.apiSignature;
   }
 

@@ -416,7 +416,7 @@ class Search {
       if (searchedFiles.add(libraryPath, this)) {
         final libraryFile = _driver.fsState.getFileForPath(libraryPath);
         final libraryKind = libraryFile.kind;
-        if (libraryKind is LibraryFileStateKind) {
+        if (libraryKind is LibraryFileKind) {
           for (final file in libraryKind.files) {
             if (file.path == path || file.referencedNames.contains(name)) {
               files.add(file.path);
