@@ -3840,13 +3840,13 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   List<LibraryExportElement> get libraryExports {
-    return _exports2;
+    return _libraryExports;
   }
 
   @override
   List<LibraryImportElement> get libraryImports {
     _readLinkedData();
-    return _imports2;
+    return _libraryImports;
   }
 
   @override
@@ -4095,13 +4095,13 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   List<LibraryExportElement> get libraryExports {
     _readLinkedData();
-    return _exports2;
+    return _libraryExports;
   }
 
   @override
   List<LibraryImportElement> get libraryImports {
     _readLinkedData();
-    return _imports2;
+    return _libraryImports;
   }
 
   @override
@@ -4491,11 +4491,11 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
 
   /// A list containing specifications of all of the imports defined in this
   /// library.
-  List<LibraryExportElement> _exports2 = _Sentinel.exportElement2;
+  List<LibraryExportElement> _libraryExports = _Sentinel.libraryExportElement;
 
   /// A list containing specifications of all of the imports defined in this
   /// library.
-  List<LibraryImportElement> _imports2 = _Sentinel.importElement2;
+  List<LibraryImportElement> _libraryImports = _Sentinel.libraryImportElement;
 
   /// The cached list of prefixes.
   List<PrefixElement>? _prefixes;
@@ -4548,7 +4548,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   }
 
   List<LibraryExportElement> get exports_unresolved {
-    return _exports2;
+    return _libraryExports;
   }
 
   @override
@@ -4563,7 +4563,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   }
 
   List<LibraryImportElement> get imports_unresolved {
-    return _imports2;
+    return _libraryImports;
   }
 
   @override
@@ -4572,7 +4572,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   @override
   List<LibraryExportElement> get libraryExports {
     _readLinkedData();
-    return _exports2;
+    return _libraryExports;
   }
 
   /// Set the specifications of all of the exports defined in this library to
@@ -4581,7 +4581,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
     for (final exportElement in exports) {
       (exportElement as LibraryExportElementImpl).enclosingElement = this;
     }
-    _exports2 = exports;
+    _libraryExports = exports;
   }
 
   /// Set the specifications of all of the imports defined in this library to
@@ -4590,7 +4590,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
     for (final importElement in imports) {
       (importElement as LibraryImportElementImpl).enclosingElement = this;
     }
-    _imports2 = imports;
+    _libraryImports = imports;
     _prefixes = null;
   }
 
@@ -6729,14 +6729,14 @@ mixin _HasLibraryMixin on ElementImpl {
 /// Instances of [List]s that are used as "not yet computed" values, they
 /// must be not `null`, and not identical to `const <T>[]`.
 class _Sentinel {
-  static final List<ConstructorElement> constructorElement =
-      List.unmodifiable([]);
-  static final List<LibraryExportElement> exportElement2 =
-      List.unmodifiable([]);
-  static final List<FieldElement> fieldElement = List.unmodifiable([]);
   static final List<AugmentationImportElement> augmentationImportElement =
       List.unmodifiable([]);
-  static final List<LibraryImportElement> importElement2 =
+  static final List<ConstructorElement> constructorElement =
+      List.unmodifiable([]);
+  static final List<FieldElement> fieldElement = List.unmodifiable([]);
+  static final List<LibraryExportElement> libraryExportElement =
+      List.unmodifiable([]);
+  static final List<LibraryImportElement> libraryImportElement =
       List.unmodifiable([]);
   static final List<MethodElement> methodElement = List.unmodifiable([]);
   static final List<PropertyAccessorElement> propertyAccessorElement =
