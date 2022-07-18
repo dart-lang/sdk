@@ -134,6 +134,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_parameters_i
 import 'package:analysis_server/src/services/correction/dart/remove_parentheses_in_getter_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_print.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_question_mark.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_required.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_returned_value.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
@@ -911,6 +912,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR: [
       ConvertToListLiteral.new,
       ReplaceWithFilled.new,
+    ],
+    CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER: [
+      RemoveRequired.new,
     ],
     CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER: [
       ConvertIntoBlockBody.new,

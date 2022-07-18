@@ -1083,6 +1083,11 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove unnecessary question marks in file',
   );
+  static const REMOVE_REQUIRED = FixKind(
+    'dart.fix.remove.required',
+    DartFixKindPriority.DEFAULT,
+    "Remove 'required'",
+  );
   static const REMOVE_RETURNED_VALUE = FixKind(
     'dart.fix.remove.returnedValue',
     DartFixKindPriority.DEFAULT,
