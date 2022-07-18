@@ -30,7 +30,7 @@ void f() {
 }
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     sendAnalysisSetSubscriptions({
       AnalysisService.OCCURRENCES: [pathname]
     });

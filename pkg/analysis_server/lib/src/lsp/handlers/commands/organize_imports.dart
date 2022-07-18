@@ -16,21 +16,21 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Organize Imports';
 
   @override
-  Future<ErrorOr<void>> handle(List<Object?>? arguments,
+  Future<ErrorOr<void>> handle(Map<String, Object?> parameters,
       ProgressReporter progress, CancellationToken cancellationToken) async {
-    if (arguments == null || arguments.length != 1 || arguments[0] is! String) {
+    if (parameters['path'] is! String) {
       return ErrorOr.error(ResponseError(
         code: ServerErrorCodes.InvalidCommandArguments,
-        message:
-            '$commandName requires a single String parameter containing the path of a Dart file',
+        message: '$commandName requires a Map argument containing a "path"',
       ));
     }
 
     // Get the version of the doc before we calculate edits so we can send it back
     // to the client so that they can discard this edit if the document has been
     // modified since.
-    final path = arguments.single as String;
+    final path = parameters['path'] as String;
     final docIdentifier = server.getVersionedDocumentIdentifier(path);
+    final autoTriggered = (parameters['autoTriggered'] as bool?) ?? false;
 
     final result = await requireResolvedUnit(path);
 
@@ -43,13 +43,15 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
       final unit = result.unit;
 
       if (hasScanParseErrors(result.errors)) {
-        // It's not uncommon for editors to run this command automatically on-save
-        // so if the file in in an invalid state it's better to fail silently
-        // than trigger errors (VS Code recently started showing popups when
-        // LSP requests return errors).
-        server.instrumentationService.logInfo(
-            'Unable to $commandName because the file contains parse errors');
-        return success(null);
+        if (autoTriggered) {
+          return success(null);
+        }
+        return ErrorOr.error(ResponseError(
+          code: ServerErrorCodes.FileHasErrors,
+          message:
+              'Unable to $commandName because the file contains parse errors',
+          data: path,
+        ));
       }
 
       final organizer = ImportOrganizer(code, unit, result.errors);

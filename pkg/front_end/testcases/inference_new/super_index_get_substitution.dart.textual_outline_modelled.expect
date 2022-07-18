@@ -1,16 +1,15 @@
-// @dart = 2.9
 library test;
 
 import 'dart:async';
 
-T f<T>() => null;
+T f<T>() => throw '';
 
 class B<T> {
-  D<T> operator [](E<T> x) => null;
+  D<T> operator [](E<T> x) => throw '';
 }
 
 class C<U> extends B<Future<U>> {
-  E<Future<U>> operator [](Object x) => null;
+  E<Future<U>> operator [](Object x) => throw '';
   void h() {}
 }
 

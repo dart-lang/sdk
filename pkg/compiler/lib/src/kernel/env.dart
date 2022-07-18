@@ -20,12 +20,13 @@ import '../elements/types.dart';
 import '../ir/element_map.dart';
 import '../ir/static_type_cache.dart';
 import '../ir/util.dart';
+import '../js_model/class_type_variable_access.dart';
 import '../js_model/element_map.dart';
 import '../js_model/env.dart';
 import '../ordered_typeset.dart';
-import '../ssa/type_builder.dart';
 import '../universe/member_usage.dart';
 import 'element_map.dart';
+import 'element_map_interfaces.dart' show memberIsIgnorable;
 
 /// Environment for fast lookup of component libraries.
 class KProgramEnv {
@@ -776,12 +777,29 @@ class KConstructorDataImpl extends KFunctionDataImpl
 
 abstract class KFieldData extends KMemberData {
   DartType getFieldType(IrToElementMap elementMap);
+
+  /// `true` if this field is the backing field for a `late` or `late final`
+  /// instance field.
+  bool get isLateBackingField;
+
+  /// `true` if this field is the backing field for a `late final` instance
+  /// field.
+  bool get isLateFinalBackingField;
 }
 
 class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   DartType _type;
 
-  KFieldDataImpl(ir.Field node) : super(node);
+  @override
+  final bool isLateBackingField;
+
+  @override
+  final bool isLateFinalBackingField;
+
+  KFieldDataImpl(ir.Field node,
+      {/*required*/ this.isLateBackingField,
+      /*required*/ this.isLateFinalBackingField})
+      : super(node);
 
   @override
   ir.Field get node => super.node;

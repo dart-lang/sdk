@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
-import 'package:dev_compiler/dev_compiler.dart';
-import 'package:dev_compiler/src/kernel/command.dart';
+import 'package:dev_compiler/src/compiler/module_builder.dart'
+    show ModuleFormat;
+import 'package:dev_compiler/src/kernel/command.dart' show getSdkPath;
+import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/incremental_serializer.dart';
@@ -17,9 +17,9 @@ class DevelopmentIncrementalCompiler extends IncrementalCompiler {
   Uri entryPoint;
 
   DevelopmentIncrementalCompiler(CompilerOptions options, this.entryPoint,
-      [Uri initializeFrom,
-      bool outlineOnly,
-      IncrementalSerializer incrementalSerializer])
+      [Uri? initializeFrom,
+      bool? outlineOnly,
+      IncrementalSerializer? incrementalSerializer])
       : super(
             CompilerContext(
                 ProcessedOptions(options: options, inputs: [entryPoint])),
@@ -29,7 +29,7 @@ class DevelopmentIncrementalCompiler extends IncrementalCompiler {
 
   DevelopmentIncrementalCompiler.fromComponent(CompilerOptions options,
       this.entryPoint, Component componentToInitializeFrom,
-      [bool outlineOnly, IncrementalSerializer incrementalSerializer])
+      [bool? outlineOnly, IncrementalSerializer? incrementalSerializer])
       : super.fromComponent(
             CompilerContext(
                 ProcessedOptions(options: options, inputs: [entryPoint])),
@@ -43,6 +43,7 @@ class SetupCompilerOptions {
   static final sdkUnsoundSummaryPath = p.join(sdkRoot.path, 'ddc_sdk.dill');
   static final sdkSoundSummaryPath =
       p.join(sdkRoot.path, 'ddc_outline_sound.dill');
+  // TODO(46617) Call getSdkPath() from command.dart instead.
   static final librariesSpecificationUri =
       p.join(p.dirname(p.dirname(getSdkPath())), 'libraries.json');
 

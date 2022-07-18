@@ -73,7 +73,8 @@ abstract class TestCase {
     writeFile(fs, 'a.dart', sourceA);
     writeFile(fs, 'b.dart', sourceB);
     writeFile(fs, 'c.dart', sourceC);
-    writeFile(fs, '.packages', '');
+    writeFile(fs, '.dart_tool/package_config.json',
+        '{"configVersion": 2, "packages": []}');
     compiler = createIncrementalCompiler(
         'org-dartlang-test:///a.dart', new HybridFileSystem(fs));
     await rebuild(compiler, outputUri); // this is a full compile.

@@ -42,7 +42,7 @@ class TodoFinder {
   ///
   /// @param token the head of the list of tokens being searched
   void _gatherTodoComments(Token? token, LineInfo lineInfo) {
-    while (token != null && token.type != TokenType.EOF) {
+    while (token != null && !token.isEof) {
       Token? commentToken = token.precedingComments;
       while (commentToken != null) {
         if (commentToken.type == TokenType.SINGLE_LINE_COMMENT ||

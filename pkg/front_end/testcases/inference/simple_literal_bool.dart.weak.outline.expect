@@ -1,7 +1,7 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static field core::bool* a;
+static field core::bool a;
 static method main() → dynamic
   ;

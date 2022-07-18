@@ -29,9 +29,9 @@ class MemoryCachingByteStoreTest {
     cachingStore.get('1');
 
     // Add enough data to the store to force an eviction.
-    cachingStore.put('2', _b(40));
-    cachingStore.put('3', _b(40));
-    cachingStore.put('4', _b(40));
+    cachingStore.putGet('2', _b(40));
+    cachingStore.putGet('3', _b(40));
+    cachingStore.putGet('4', _b(40));
   }
 
   test_get_notFound_retry() {
@@ -43,7 +43,7 @@ class MemoryCachingByteStoreTest {
     expect(cachingStore.get('1'), isNull);
 
     // Add data to the base store, bypassing the caching store.
-    baseStore.put('1', _b(40));
+    baseStore.putGet('1', _b(40));
 
     // Request '1' again.  The previous `null` result should not have been
     // cached.
@@ -55,8 +55,8 @@ class MemoryCachingByteStoreTest {
     var cachingStore = MemoryCachingByteStore(store, 100);
 
     // Keys: [1, 2].
-    cachingStore.put('1', _b(40));
-    cachingStore.put('2', _b(50));
+    cachingStore.putGet('1', _b(40));
+    cachingStore.putGet('2', _b(50));
 
     // Request '1', so now it is the most recently used.
     // Keys: [2, 1].
@@ -64,7 +64,7 @@ class MemoryCachingByteStoreTest {
 
     // 40 + 50 + 30 > 100
     // So, '2' is evicted.
-    cachingStore.put('3', _b(30));
+    cachingStore.putGet('3', _b(30));
     expect(cachingStore.get('1'), hasLength(40));
     expect(cachingStore.get('2'), isNull);
     expect(cachingStore.get('3'), hasLength(30));
@@ -75,14 +75,14 @@ class MemoryCachingByteStoreTest {
     var cachingStore = MemoryCachingByteStore(store, 100);
 
     // 40 + 50 < 100
-    cachingStore.put('1', _b(40));
-    cachingStore.put('2', _b(50));
+    cachingStore.putGet('1', _b(40));
+    cachingStore.putGet('2', _b(50));
     expect(cachingStore.get('1'), hasLength(40));
     expect(cachingStore.get('2'), hasLength(50));
 
     // 40 + 50 + 30 > 100
     // So, '1' is evicted.
-    cachingStore.put('3', _b(30));
+    cachingStore.putGet('3', _b(30));
     expect(cachingStore.get('1'), isNull);
     expect(cachingStore.get('2'), hasLength(50));
     expect(cachingStore.get('3'), hasLength(30));
@@ -93,14 +93,14 @@ class MemoryCachingByteStoreTest {
     var cachingStore = MemoryCachingByteStore(store, 100);
 
     // 10 + 80 < 100
-    cachingStore.put('1', _b(10));
-    cachingStore.put('2', _b(80));
+    cachingStore.putGet('1', _b(10));
+    cachingStore.putGet('2', _b(80));
     expect(cachingStore.get('1'), hasLength(10));
     expect(cachingStore.get('2'), hasLength(80));
 
     // 10 + 80 + 30 > 100
     // So, '1' and '2' are evicted.
-    cachingStore.put('3', _b(30));
+    cachingStore.putGet('3', _b(30));
     expect(cachingStore.get('1'), isNull);
     expect(cachingStore.get('2'), isNull);
     expect(cachingStore.get('3'), hasLength(30));
@@ -114,7 +114,7 @@ class NullByteStoreTest {
 
     expect(store.get('1'), isNull);
 
-    store.put('1', _b(10));
+    store.putGet('1', _b(10));
     expect(store.get('1'), isNull);
   }
 }

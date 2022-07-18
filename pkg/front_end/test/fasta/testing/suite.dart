@@ -66,7 +66,6 @@ import 'package:front_end/src/fasta/util/parser_ast.dart'
 import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
 import 'package:kernel/ast.dart'
     show
-        AwaitExpression,
         BasicLiteral,
         Class,
         Component,
@@ -87,9 +86,7 @@ import 'package:kernel/ast.dart'
         TreeNode,
         UnevaluatedConstant,
         VariableDeclaration,
-        Version,
-        Visitor,
-        VisitorVoidMixin;
+        Version;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -138,7 +135,6 @@ import '../../testing_utils.dart' show checkEnvironment;
 import '../../utils/kernel_chain.dart'
     show
         ComponentResult,
-        KernelTextSerialization,
         MatchContext,
         MatchExpectation,
         Print,
@@ -202,8 +198,6 @@ const String EXPECTATIONS = '''
   }
 ]
 ''';
-
-const String KERNEL_TEXT_SERIALIZATION = " kernel text serialization ";
 
 final Expectation runtimeError = ExpectationSet.Default["RuntimeError"];
 
@@ -361,7 +355,6 @@ class FastaContext extends ChainContext with MatchContext {
       bool updateComments,
       this.skipVm,
       this.semiFuzz,
-      bool kernelTextSerialization,
       CompileMode compileMode,
       this.verify,
       this.soundNullSafety)
@@ -405,33 +398,36 @@ class FastaContext extends ChainContext with MatchContext {
     }
     steps.add(const TypeCheck());
     steps.add(const EnsureNoErrors());
-    if (kernelTextSerialization) {
-      steps.add(const KernelTextSerialization());
-    }
-    if (compileMode == CompileMode.full) {
-      steps.add(const Transform());
-      steps.add(const Verify(CompileMode.full));
-      steps.add(const StressConstantEvaluatorStep());
-      if (!ignoreExpectations) {
-        steps.add(new MatchExpectation("$prefix$infix.transformed.expect",
-            serializeFirst: false, isLastMatchStep: updateExpectations));
-        if (!updateExpectations) {
+    switch (compileMode) {
+      case CompileMode.full:
+        steps.add(const Transform());
+        steps.add(const Verify(CompileMode.full));
+        steps.add(const StressConstantEvaluatorStep());
+        if (!ignoreExpectations) {
           steps.add(new MatchExpectation("$prefix$infix.transformed.expect",
-              serializeFirst: true, isLastMatchStep: true));
+              serializeFirst: false, isLastMatchStep: updateExpectations));
+          if (!updateExpectations) {
+            steps.add(new MatchExpectation("$prefix$infix.transformed.expect",
+                serializeFirst: true, isLastMatchStep: true));
+          }
         }
-      }
-      steps.add(const EnsureNoErrors());
-      steps.add(new WriteDill(skipVm: skipVm));
-      if (semiFuzz) {
-        steps.add(const FuzzCompiles());
-      }
+        steps.add(const EnsureNoErrors());
+        steps.add(new WriteDill(skipVm: skipVm));
+        if (semiFuzz) {
+          steps.add(const FuzzCompiles());
+        }
 
-      // Notice: The below steps will run async, i.e. the next test will run
-      // intertwined with this/these step(s). That for instance means that they
-      // should not touch any ASTs!
-      if (!skipVm) {
-        steps.add(const Run());
-      }
+        // Notice: The below steps will run async, i.e. the next test will run
+        // intertwined with this/these step(s). That for instance means that they
+        // should not touch any ASTs!
+        if (!skipVm) {
+          steps.add(const Run());
+        }
+        break;
+      case CompileMode.modular:
+      case CompileMode.outline:
+        steps.add(new WriteDill(skipVm: true));
+        break;
     }
   }
 
@@ -755,7 +751,6 @@ class FastaContext extends ChainContext with MatchContext {
       "skipVm",
       "semiFuzz",
       "verify",
-      KERNEL_TEXT_SERIALIZATION,
       "platformBinaries",
       COMPILATION_MODE,
     };
@@ -785,8 +780,6 @@ class FastaContext extends ChainContext with MatchContext {
     bool skipVm = environment["skipVm"] == "true";
     bool semiFuzz = environment["semiFuzz"] == "true";
     bool verify = environment["verify"] != "false";
-    bool kernelTextSerialization =
-        environment.containsKey(KERNEL_TEXT_SERIALIZATION);
     String? platformBinaries = environment["platformBinaries"];
     if (platformBinaries != null && !platformBinaries.endsWith('/')) {
       platformBinaries = '$platformBinaries/';
@@ -804,7 +797,6 @@ class FastaContext extends ChainContext with MatchContext {
         updateComments,
         skipVm,
         semiFuzz,
-        kernelTextSerialization,
         compileModeFromName(environment[COMPILATION_MODE]),
         verify,
         soundNullSafety));
@@ -855,7 +847,8 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
               NonNullableByDefaultCompiledMode.Invalid) {
             // In this case we expect and want a runtime error.
             if (runResult.outcome == ExpectationSet.Default["RuntimeError"]) {
-              // We convert this to pass because that's exactly what we'd expect.
+              // We convert this to pass because that's exactly what we'd
+              // expect.
               return pass(result);
             } else {
               // Different outcome - that's a failure!
@@ -1244,6 +1237,9 @@ class FuzzCompiles
       }
 
       return pass(result);
+    } catch (e, st) {
+      return new Result<ComponentResult>(result, semiFuzzCrash,
+          "Crashed with '$e' when fuzz compiling.\n\n$st");
     } finally {
       if (originalFlag != null) {
         context.explicitExperimentalFlags[
@@ -2421,13 +2417,6 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
           backendTarget.performModularTransformations = false;
         }
       }
-      List<String> errors = VerifyTransformed.verify(component, backendTarget);
-      if (errors.isNotEmpty) {
-        return new Result<ComponentResult>(
-            result,
-            context.expectationSet["TransformVerificationError"],
-            errors.join('\n'));
-      }
       if (backendTarget is TestTarget &&
           backendTarget.hasGlobalTransformation) {
         component =
@@ -2489,34 +2478,6 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
     }, errorOnMissingInput: false);
     result.options.rawOptionsForTesting.onDiagnostic = previousOnDiagnostics;
     return verifyResult;
-  }
-}
-
-/// Visitor that checks that the component has been transformed properly.
-// TODO(johnniwinther): Add checks for all nodes that are unsupported after
-// transformation.
-class VerifyTransformed extends Visitor<void> with VisitorVoidMixin {
-  final Target target;
-  List<String> errors = [];
-
-  VerifyTransformed(this.target);
-
-  @override
-  void defaultNode(Node node) {
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitAwaitExpression(AwaitExpression node) {
-    if (target is VmTarget) {
-      errors.add("ERROR: Untransformed await expression: $node");
-    }
-  }
-
-  static List<String> verify(Component component, Target target) {
-    VerifyTransformed visitor = new VerifyTransformed(target);
-    component.accept(visitor);
-    return visitor.errors;
   }
 }
 

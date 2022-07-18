@@ -11,8 +11,8 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-class PrepareRenameHandler
-    extends MessageHandler<TextDocumentPositionParams, PlaceholderAndRange?> {
+class PrepareRenameHandler extends MessageHandler<TextDocumentPositionParams,
+    TextDocumentPrepareRenameResult> {
   PrepareRenameHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_prepareRename;
@@ -22,7 +22,7 @@ class PrepareRenameHandler
       TextDocumentPositionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<PlaceholderAndRange?>> handle(
+  Future<ErrorOr<TextDocumentPrepareRenameResult>> handle(
       TextDocumentPositionParams params,
       MessageInfo message,
       CancellationToken token) async {
@@ -61,7 +61,7 @@ class PrepareRenameHandler
             ServerErrorCodes.RenameNotValid, initStatus.problem!.message, null);
       }
 
-      return success(PlaceholderAndRange(
+      return success(TextDocumentPrepareRenameResult.t1(PlaceholderAndRange(
         range: toRange(
           unit.result.lineInfo,
           // If the offset is set to -1 it means there is no location for the
@@ -72,7 +72,7 @@ class PrepareRenameHandler
           refactorDetails.length,
         ),
         placeholder: refactoring.oldName,
-      ));
+      )));
     });
   }
 }
@@ -109,7 +109,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
     final path = pathOfDoc(params.textDocument);
     // If the client provided us a version doc identifier, we'll use it to ensure
     // we're not computing a rename for an old document. If not, we'll just assume
-    // the version the server had at the time of recieving the request is valid
+    // the version the server had at the time of receiving the request is valid
     // and then use it to verify the document hadn't changed again before we
     // send the edits.
     final docIdentifier = await path.mapResult((path) => success(

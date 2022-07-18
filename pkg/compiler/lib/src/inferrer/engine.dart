@@ -261,10 +261,6 @@ class InferrerEngine {
 
     info.bailedOut = false;
     info.elementType.inferred = true;
-    if (abstractValueDomain.isSpecializationOf(
-        info.originalType, abstractValueDomain.fixedListType)) {
-      info.checksGrowable = tracer.callsGrowableMethod;
-    }
     tracer.inputs.forEach(info.elementType.addInput);
     // Enqueue the list for later refinement
     _workQueue.add(info);
@@ -548,7 +544,6 @@ class InferrerEngine {
         break;
     }
     failedAt(member, 'Unexpected member definition: $definition.');
-    return null;
   }
 
   /// Returns the `call` method on [cls] or the `noSuchMethod` if [cls] doesn't

@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
+import 'dart:convert' show jsonEncode;
 import 'dart:io';
 
-import 'package:dev_compiler/src/kernel/command.dart';
+import 'package:dev_compiler/src/kernel/command.dart' show getSdkPath;
 import 'package:dev_compiler/src/kernel/js_typerep.dart';
 import 'package:dev_compiler/src/kernel/nullable_inference.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
@@ -18,6 +17,7 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 const AstTextStrategy astTextStrategy = AstTextStrategy(
@@ -535,13 +535,13 @@ Future expectAllNotNull(String code) async {
 }
 
 bool useAnnotations = false;
-NullableInference inference;
+NullableInference? inference;
 
 class _TestRecursiveVisitor extends RecursiveVisitor {
   final Set<Library> librariesFromDill;
   int _functionNesting = 0;
-  TypeEnvironment _typeEnvironment;
-  StatefulStaticTypeContext _staticTypeContext;
+  late TypeEnvironment _typeEnvironment;
+  late StatefulStaticTypeContext _staticTypeContext;
 
   _TestRecursiveVisitor(this.librariesFromDill);
 
@@ -558,8 +558,8 @@ class _TestRecursiveVisitor extends RecursiveVisitor {
     inference ??= NullableInference(jsTypeRep, _staticTypeContext);
 
     if (useAnnotations) {
-      inference.allowNotNullDeclarations = useAnnotations;
-      inference.allowPackageMetaAnnotations = useAnnotations;
+      inference!.allowNotNullDeclarations = useAnnotations;
+      inference!.allowPackageMetaAnnotations = useAnnotations;
     }
     super.visitComponent(node);
   }
@@ -601,10 +601,10 @@ class _TestRecursiveVisitor extends RecursiveVisitor {
   void visitFunctionNode(FunctionNode node) {
     _functionNesting++;
     if (_functionNesting == 1) {
-      inference.enterFunction(node);
+      inference!.enterFunction(node);
     }
     super.visitFunctionNode(node);
-    if (_functionNesting == 1) inference.exitFunction(node);
+    if (_functionNesting == 1) inference!.exitFunction(node);
     _functionNesting--;
   }
 }
@@ -616,7 +616,7 @@ class NotNullCollector extends _TestRecursiveVisitor {
 
   @override
   void defaultExpression(Expression node) {
-    if (!inference.isNullable(node)) {
+    if (!inference!.isNullable(node)) {
       notNullExpressions.add(node);
     }
     super.defaultExpression(node);
@@ -628,13 +628,13 @@ class ExpectAllNotNull extends _TestRecursiveVisitor {
 
   @override
   void defaultExpression(Expression node) {
-    expect(inference.isNullable(node), false,
+    expect(inference!.isNullable(node), false,
         reason: 'expression `$node` should be inferred as not-null');
     super.defaultExpression(node);
   }
 }
 
-fe.InitializedCompilerState _compilerState;
+fe.InitializedCompilerState? _compilerState;
 final _fileSystem = fe.MemoryFileSystem(Uri.file('/memory/'));
 
 class CompileResult {
@@ -653,16 +653,31 @@ Future<CompileResult> kernelCompile(String code) async {
     fe.printDiagnosticMessage(message, print);
   }
 
+  var root = Uri.file('/memory');
   var sdkUri = Uri.file('/memory/dart_sdk.dill');
   var sdkFile = _fileSystem.entityForUri(sdkUri);
   if (!await sdkFile.exists()) {
-    sdkFile.writeAsBytesSync(
-        File(defaultSdkSummaryPath(soundNullSafety: false)).readAsBytesSync());
+    var outlineDill = p.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.dill');
+    sdkFile.writeAsBytesSync(File(outlineDill).readAsBytesSync());
   }
-  var packagesUri = Uri.file('/memory/.packages');
+  var librariesUri = Uri.file('/memory/libraries.json');
+  var librariesFile = _fileSystem.entityForUri(librariesUri);
+  if (!await librariesFile.exists()) {
+    var librariesJson = p.join(getSdkPath(), 'lib', 'libraries.json');
+    librariesFile.writeAsBytesSync(File(librariesJson).readAsBytesSync());
+  }
+  var packagesUri = Uri.file('/memory/.dart_tool/package_config.json');
   var packagesFile = _fileSystem.entityForUri(packagesUri);
   if (!await packagesFile.exists()) {
-    packagesFile.writeAsStringSync('meta:/memory/meta/lib');
+    packagesFile.writeAsStringSync(jsonEncode({
+      'configVersion': 2,
+      'packages': [
+        {
+          'name': 'meta',
+          'rootUri': '/memory/meta/lib',
+        },
+      ],
+    }));
     _fileSystem
         .entityForUri(Uri.file('/memory/meta/lib/meta.dart'))
         .writeAsStringSync('''
@@ -676,17 +691,17 @@ const nullCheck = const _NullCheck();
   var mainUri = Uri.file('/memory/test.dart');
   _fileSystem.entityForUri(mainUri).writeAsStringSync(code);
   var oldCompilerState = _compilerState;
-  _compilerState = fe.initializeCompiler(oldCompilerState, false, null, sdkUri,
-      packagesUri, null, [], DevCompilerTarget(TargetFlags()),
+  _compilerState = fe.initializeCompiler(oldCompilerState, false, root, sdkUri,
+      packagesUri, librariesUri, [], DevCompilerTarget(TargetFlags()),
       fileSystem: _fileSystem,
       explicitExperimentalFlags: const {},
       environmentDefines: const {},
       nnbdMode: fe.NnbdMode.Weak);
   if (!identical(oldCompilerState, _compilerState)) inference = null;
   var result =
-      await fe.compile(_compilerState, [mainUri], diagnosticMessageHandler);
+      await (fe.compile(_compilerState!, [mainUri], diagnosticMessageHandler));
   expect(succeeded, true);
 
-  var librariesFromDill = result.computeLibrariesFromDill();
+  var librariesFromDill = result!.computeLibrariesFromDill();
   return CompileResult(result.component, librariesFromDill);
 }

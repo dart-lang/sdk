@@ -161,8 +161,7 @@ class JavaScriptBundler {
         // Source locations come through as absolute file uris. In order to
         // make relative paths in the source map we get the absolute uri for
         // the module and make them relative to that.
-        sourceMapBase =
-            p.dirname((await _packageConfig.resolve(moduleUri)).path);
+        sourceMapBase = p.dirname((_packageConfig.resolve(moduleUri)).path);
       }
 
       final code = jsProgramToCode(

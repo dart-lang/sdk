@@ -17,7 +17,6 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
@@ -47,6 +46,7 @@ import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
@@ -427,8 +427,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       List<ClassMember> members = node.members;
       _duplicateDefinitionVerifier.checkClass(node);
-      _checkForBuiltInIdentifierAsName(
-          node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+      if (!element.isDartCoreFunctionImpl) {
+        _checkForBuiltInIdentifierAsName(
+            node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+      }
       _checkForConflictingClassTypeVariableErrorCodes();
       var superclass = node.extendsClause?.superclass;
       var implementsClause = node.implementsClause;
@@ -1661,11 +1663,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var implementsClause = node.implementsClause;
     var withClause = node.withClause;
 
-    if (node.name.name == "Function") {
-      errorReporter.reportErrorForNode(
-          HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION, node.name);
-    }
-
     if (extendsClause != null) {
       var superElement = extendsClause.superclass.name.staticElement;
       if (superElement != null && superElement.name == "Function") {
@@ -1921,7 +1918,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
     var element = node.declaredElement as ClassElement;
 
-    var analysisSession = _currentLibrary.session as AnalysisSessionImpl;
+    var analysisSession = _currentLibrary.session;
     var errors = analysisSession.classHierarchy.errors(element);
 
     for (var error in errors) {
@@ -3280,7 +3277,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var enumElement = expressionType.element;
       if (enumElement.isEnum) {
         var constantNames = enumElement.fields
-            .where((field) => field.isStatic && !field.isSynthetic)
+            .where((field) => field.isEnumConstant)
             .map((field) => field.name)
             .toSet();
 
@@ -5341,13 +5338,5 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.NOT_INSTANTIATED_BOUND, node, []);
     }
-  }
-}
-
-extension on Object? {
-  /// If the target is [T], return it, otherwise `null`.
-  T? ifTypeOrNull<T>() {
-    final self = this;
-    return self is T ? self : null;
   }
 }

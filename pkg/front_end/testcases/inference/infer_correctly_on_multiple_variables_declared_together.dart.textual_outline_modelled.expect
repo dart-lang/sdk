@@ -1,8 +1,9 @@
-// @dart = 2.9
 library test;
 
+String? nullableString = "hi";
+
 class A {
-  var x, y = 2, z = "hi";
+  var x, y = 2, z = nullableString;
 }
 
 class B implements A {

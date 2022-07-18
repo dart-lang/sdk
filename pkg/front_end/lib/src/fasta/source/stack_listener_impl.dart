@@ -25,6 +25,9 @@ abstract class StackListenerImpl extends StackListener {
 
   LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
 
+  @override
+  Uri get importUri => libraryBuilder.importUri;
+
   AsyncMarker asyncMarkerFromTokens(Token? asyncToken, Token? starToken) {
     if (asyncToken == null || identical(asyncToken.stringValue, "sync")) {
       if (starToken == null) {

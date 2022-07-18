@@ -25,11 +25,14 @@ main() {
 
 @reflectiveTest
 class AnalysisDriverCachingTest extends PubPackageResolutionTest {
+  @override
+  bool get retainDataForTesting => true;
+
   String get testFilePathPlatform => convertPath(testFilePath);
 
   List<Set<String>> get _linkedCycles {
     var driver = driverFor(testFilePath);
-    return driver.test.libraryContextTestView.linkedCycles;
+    return driver.testView!.libraryContext.linkedCycles;
   }
 
   @override

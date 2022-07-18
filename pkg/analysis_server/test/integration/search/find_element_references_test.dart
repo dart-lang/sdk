@@ -29,7 +29,7 @@ void f() {
 
     pathname = sourcePath('foo.dart');
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     var results = await _findElementReferences(text);
@@ -47,7 +47,7 @@ foo(String str) {}
 
     pathname = sourcePath('foo.dart');
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     var results = (await _findElementReferences(text))!;

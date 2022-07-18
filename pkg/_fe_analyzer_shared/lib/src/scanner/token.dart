@@ -78,8 +78,7 @@ class CommentToken extends StringToken {
    * Initialize a newly created token to represent a token of the given [type]
    * with the given [value] at the given [offset].
    */
-  CommentToken(TokenType type, String value, int offset)
-      : super(type, value, offset);
+  CommentToken(super.type, super.value, super.offset);
 }
 
 /**
@@ -90,8 +89,7 @@ class DocumentationCommentToken extends CommentToken {
    * Initialize a newly created token to represent a token of the given [type]
    * with the given [value] at the given [offset].
    */
-  DocumentationCommentToken(TokenType type, String value, int offset)
-      : super(type, value, offset);
+  DocumentationCommentToken(super.type, super.value, super.offset);
 }
 
 enum KeywordStyle {
@@ -197,7 +195,7 @@ class Keyword extends TokenType {
   static const Keyword FOR = const Keyword("for", "FOR", KeywordStyle.reserved);
 
   static const Keyword FUNCTION =
-      const Keyword("Function", "FUNCTION", KeywordStyle.pseudo);
+      const Keyword("Function", "FUNCTION", KeywordStyle.builtIn);
 
   static const Keyword GET = const Keyword("get", "GET", KeywordStyle.builtIn);
 
@@ -655,10 +653,8 @@ class StringToken extends SimpleToken {
    * Initialize a newly created token to represent a token of the given [type]
    * with the given [value] at the given [offset].
    */
-  StringToken(TokenType type, String value, int offset,
-      [CommentToken? precedingComment])
-      : _value = StringUtilities.intern(value),
-        super(type, offset, precedingComment);
+  StringToken(super.type, String value, super.offset, [super.precedingComment])
+      : _value = StringUtilities.intern(value);
 
   @override
   bool get isIdentifier => identical(kind, IDENTIFIER_TOKEN);
@@ -678,9 +674,7 @@ class SyntheticBeginToken extends BeginToken {
    * Initialize a newly created token to have the given [type] at the given
    * [offset].
    */
-  SyntheticBeginToken(TokenType type, int offset,
-      [CommentToken? precedingComment])
-      : super(type, offset, precedingComment);
+  SyntheticBeginToken(super.type, super.offset, [super.precedingComment]);
 
   @override
   Token? beforeSynthetic;
@@ -700,7 +694,7 @@ class SyntheticKeywordToken extends KeywordToken {
    * Initialize a newly created token to represent the given [keyword] at the
    * given [offset].
    */
-  SyntheticKeywordToken(Keyword keyword, int offset) : super(keyword, offset);
+  SyntheticKeywordToken(super.keyword, super.offset);
 
   @override
   Token? beforeSynthetic;
@@ -720,8 +714,7 @@ class SyntheticStringToken extends StringToken {
    * with the given [value] at the given [offset]. If the [length] is
    * not specified, then it defaults to the length of [value].
    */
-  SyntheticStringToken(TokenType type, String value, int offset, [this._length])
-      : super(type, value, offset);
+  SyntheticStringToken(super.type, super.value, super.offset, [this._length]);
 
   @override
   Token? beforeSynthetic;
@@ -737,7 +730,7 @@ class SyntheticStringToken extends StringToken {
  * A synthetic token.
  */
 class SyntheticToken extends SimpleToken {
-  SyntheticToken(TokenType type, int offset) : super(type, offset);
+  SyntheticToken(super.type, super.offset);
 
   @override
   Token? beforeSynthetic;
@@ -782,7 +775,7 @@ abstract class Token implements SyntacticEntity {
   /**
    * Initialize a newly created token to have the given [type] and [offset].
    */
-  factory Token(TokenType type, int offset, [CommentToken? preceedingComment]) =
+  factory Token(TokenType type, int offset, [CommentToken? precedingComment]) =
       SimpleToken;
 
   /**

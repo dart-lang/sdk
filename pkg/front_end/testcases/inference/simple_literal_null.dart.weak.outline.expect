@@ -1,4 +1,4 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
 
 static field dynamic a;

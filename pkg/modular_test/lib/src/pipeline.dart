@@ -49,13 +49,13 @@ class ModularStep {
   final bool notOnSdk;
 
   ModularStep(
-      {this.needsSources: true,
-      this.dependencyDataNeeded: const [],
-      this.moduleDataNeeded: const [],
-      this.resultData: const [],
-      this.onlyOnMain: false,
-      this.onlyOnSdk: false,
-      this.notOnSdk: false});
+      {this.needsSources = true,
+      this.dependencyDataNeeded = const [],
+      this.moduleDataNeeded = const [],
+      this.resultData = const [],
+      this.onlyOnMain = false,
+      this.onlyOnSdk = false,
+      this.notOnSdk = false});
 
   /// Notifies that the step was not executed, but cached instead.
   void notifyCached(Module module) {}

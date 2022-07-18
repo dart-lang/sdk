@@ -144,7 +144,11 @@ class Disassembler : public AllStatic {
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
     DisassembleToStdout stdout_formatter;
     LogBlock lb;
-    Disassemble(start, end, &stdout_formatter, code);
+    if (!code.IsNull()) {
+      Disassemble(start, end, &stdout_formatter, code, &code.comments());
+    } else {
+      Disassemble(start, end, &stdout_formatter, code);
+    }
 #else
     UNREACHABLE();
 #endif

@@ -15,11 +15,11 @@ library from "package:moduleB/lib.dart" as lib2 {
 
   import "package:moduleC/lib.dart";
 
-  static const field dart.core::List<dart.core::Object*>* constB = const <dart.core::Object*>["value_b", lib3::constC];
+  static const field dart.core::List<dart.core::Object> constB = const <dart.core::Object>["value_b", lib3::constC];
 }
 library from "package:moduleC/lib.dart" as lib3 {
 
-  static const field dart.core::List<dart.core::String*>* constC = const <dart.core::String*>["value_c"];
+  static const field dart.core::List<dart.core::String> constC = const <dart.core::String>["value_c"];
 }
 constants  {
   #C1 = 42.0

@@ -307,8 +307,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
         length = 0;
       }
       references.add(MatchInfo(offset, length, kind));
-    }
-    if (e!.enclosingElement == element) {
+    } else if (e != null && e.enclosingElement == element) {
       kind = MatchKind.REFERENCE;
       offset = node.offset;
       length = element.nameLength;

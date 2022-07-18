@@ -13,6 +13,7 @@ class BinaryDataSink implements DataSink {
   final Sink<List<int>> sink;
   // Nullable and non-final to allow storage to be released.
   BufferedSink? _bufferedSink;
+  final Map<int, int> _deferredOffsetToSize = {};
   int _length = 0;
 
   BinaryDataSink(this.sink) : _bufferedSink = BufferedSink(sink);
@@ -54,6 +55,21 @@ class BinaryDataSink implements DataSink {
     }
   }
 
+  void _writeUInt32(int value) {
+    _length += 4;
+    _bufferedSink!.addByte4((value >> 24) & 0xFF, (value >> 16) & 0xFF,
+        (value >> 8) & 0xFF, value & 0xFF);
+  }
+
+  @override
+  void writeDeferred(void writer()) {
+    final indexOffset = _length;
+    writeInt(0); // Padding so the offset won't collide with a nested write.
+    final dataStartOffset = _length;
+    writer();
+    _deferredOffsetToSize[indexOffset] = _length - dataStartOffset;
+  }
+
   @override
   void writeEnum(dynamic value) {
     writeInt(value.index);
@@ -61,8 +77,16 @@ class BinaryDataSink implements DataSink {
 
   @override
   void close() {
+    final deferredDataStart = _length;
+    writeInt(_deferredOffsetToSize.length);
+    for (final entry in _deferredOffsetToSize.entries) {
+      writeInt(entry.key);
+      writeInt(entry.value);
+    }
+    _writeUInt32(deferredDataStart);
     _bufferedSink!.flushAndDestroy();
     _bufferedSink = null;
+    _deferredOffsetToSize.clear();
     sink.close();
   }
 }

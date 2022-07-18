@@ -178,11 +178,21 @@ Try correcting the name to the name of an existing method, or defining a method 
         0;
       } =>1;
     } =>new self::Class1::_()){({a: dynamic}) → dynamic};
-    super.[](new self::Class1::_());
-    super.[]=(0, new self::Class1::_());
-    super.foo = new self::Class1::_();
-    super.foo(new self::Class1::_());
-    super.+(new self::Class1::_());
+    invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:47:10: Error: Superclass has no method named '[]'.
+    super[new Class1()];
+         ^";
+    invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:49:10: Error: Superclass has no method named '[]='.
+    super[0] = new Class1();
+         ^";
+    invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:51:11: Error: Superclass has no setter named 'foo'.
+    super.foo = new Class1();
+          ^^^";
+    invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:53:11: Error: Superclass has no method named 'foo'.
+    super.foo(new Class1());
+          ^^^";
+    invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:55:11: Error: Superclass has no method named '+'.
+    super + new Class1();
+          ^";
   }
   method method({dynamic a = #C2}) → dynamic {}
   get call() → core::int

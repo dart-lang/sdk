@@ -6,7 +6,7 @@ abstract class A extends Enum { // Ok.
   int get foo => index;
 }
 
-enum EA with A { element }
+enum EA with A { element } // Error.
 
 abstract class B implements Enum { // Ok.
   int get foo => index;

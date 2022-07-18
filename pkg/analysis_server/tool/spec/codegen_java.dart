@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Tools for Java code generation.
+import 'package:analyzer_utilities/html_dom.dart' as dom;
 import 'package:analyzer_utilities/tools.dart';
-import 'package:html/dom.dart' as dom;
 
 import 'api.dart';
 import 'from_html.dart';
@@ -51,8 +51,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   /// Visitor used to produce doc comments.
   final ToHtmlVisitor toHtmlVisitor;
 
-  CodegenJavaVisitor(super.api)
-      : toHtmlVisitor = ToHtmlVisitor(api);
+  CodegenJavaVisitor(super.api) : toHtmlVisitor = ToHtmlVisitor(api);
 
   /// Create a constructor, using [callback] to create its contents.
   void constructor(String name, void Function() callback) {

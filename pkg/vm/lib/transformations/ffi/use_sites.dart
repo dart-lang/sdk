@@ -6,16 +6,12 @@ import 'package:front_end/src/api_unstable/vm.dart'
     show
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
-        messageFfiLeafCallMustNotReturnHandle,
-        messageFfiLeafCallMustNotTakeHandle,
         templateFfiDartTypeMismatch,
         templateFfiExpectedConstantArg,
         templateFfiExpectedExceptionalReturn,
         templateFfiExpectedNoExceptionalReturn,
         templateFfiExtendsOrImplementsSealedClass,
-        templateFfiNotStatic,
-        templateFfiTypeInvalid,
-        templateFfiTypeMismatch;
+        templateFfiNotStatic;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -30,7 +26,13 @@ import 'package:kernel/type_environment.dart';
 import 'abi.dart' show wordSize;
 import 'native_type_cfe.dart';
 import 'common.dart'
-    show NativeType, FfiTransformer, nativeTypeSizes, WORD_SIZE, UNKNOWN;
+    show
+        FfiStaticTypeError,
+        FfiTransformer,
+        NativeType,
+        nativeTypeSizes,
+        UNKNOWN,
+        WORD_SIZE;
 import 'finalizable.dart';
 
 /// Checks and replaces calls to dart:ffi compound fields and methods.
@@ -106,7 +108,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     try {
       _ensureNotExtendsOrImplementsSealedClass(node);
       return super.visitClass(node);
-    } on _FfiStaticTypeError {
+    } on FfiStaticTypeError {
       // It's OK to swallow the exception because the diagnostics issued will
       // cause compilation to fail. By continuing, we can report more
       // diagnostics before compilation ends.
@@ -134,7 +136,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       return super.visitStaticInvocation(node);
     }
     // We've just created this node. We're likely not going to need to transform
-    // this node itself. Visit its sub exprssions.
+    // this node itself. Visit its sub expressions.
     return super.defaultExpression(modifiedExpression);
   }
 
@@ -154,7 +156,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final pointer = node.arguments.positional[0];
         final pointerType =
             pointer.getStaticType(staticTypeContext!) as InterfaceType;
-        _ensureNativeTypeValid(pointerType, pointer,
+        ensureNativeTypeValid(pointerType, pointer,
             allowCompounds: true, allowInlineArray: true);
 
         final typeArg = pointerType.typeArguments.single;
@@ -187,7 +189,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           target == unionPointerGetElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
-        _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
         return _replaceGetRef(node);
       } else if (target == structPointerSetRef ||
@@ -196,33 +198,33 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           target == unionPointerSetElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
-        _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
         return _replaceSetRef(node);
       } else if (target == structArrayElemAt || target == unionArrayElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
-        _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
         return _replaceRefArray(node);
       } else if (target == arrayArrayElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
-        _ensureNativeTypeValid(nativeType, node,
+        ensureNativeTypeValid(nativeType, node,
             allowInlineArray: true, allowCompounds: true);
 
         return _replaceArrayArrayElemAt(node);
       } else if (target == arrayArrayAssignAt) {
         final DartType nativeType = node.arguments.types[0];
 
-        _ensureNativeTypeValid(nativeType, node,
+        ensureNativeTypeValid(nativeType, node,
             allowInlineArray: true, allowCompounds: true);
 
         return _replaceArrayArrayElemAt(node, setter: true);
       } else if (target == sizeOfMethod) {
         final DartType nativeType = node.arguments.types[0];
 
-        _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
         if (nativeType is InterfaceType) {
           Expression? inlineSizeOf = _inlineSizeOf(nativeType);
@@ -235,58 +237,34 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
         final DartType dartType = node.arguments.types[1];
 
-        _ensureNativeTypeValid(nativeType, node);
-        _ensureNativeTypeToDartType(nativeType, dartType, node);
+        ensureNativeTypeValid(nativeType, node);
+        ensureNativeTypeToDartType(nativeType, dartType, node);
         _ensureIsLeafIsConst(node);
-        _ensureLeafCallDoesNotUseHandles(nativeType, node);
+        final isLeaf = getIsLeafBoolean(node) ?? false;
+        ensureLeafCallDoesNotUseHandles(nativeType, isLeaf, node);
 
-        final replacement = _replaceLookupFunction(node);
-
-        if (dartType is FunctionType) {
-          final returnType = dartType.returnType;
-          if (returnType is InterfaceType) {
-            final clazz = returnType.classNode;
-            if (clazz.superclass == structClass ||
-                clazz.superclass == unionClass) {
-              return _invokeCompoundConstructor(replacement, clazz);
-            }
-          }
-        }
-        return replacement;
+        return _replaceLookupFunction(node);
       } else if (target == asFunctionMethod) {
         final dartType = node.arguments.types[1];
         final InterfaceType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
 
-        _ensureNativeTypeValid(nativeType, node);
-        _ensureNativeTypeToDartType(nativeType, dartType, node);
+        ensureNativeTypeValid(nativeType, node);
+        ensureNativeTypeToDartType(nativeType, dartType, node);
         _ensureIsLeafIsConst(node);
-        _ensureLeafCallDoesNotUseHandles(nativeType, node);
+
+        final isLeaf = getIsLeafBoolean(node) ?? false;
+        ensureLeafCallDoesNotUseHandles(nativeType, isLeaf, node);
 
         final DartType nativeSignature = nativeType.typeArguments[0];
 
-        bool? isLeaf = _getIsLeafBoolean(node);
-        if (isLeaf == null) {
-          isLeaf = false;
-        }
-
-        // Inline function body to make all type arguments instatiated.
-        final replacement = StaticInvocation(
-            asFunctionInternal,
-            Arguments([node.arguments.positional[0], BoolLiteral(isLeaf)],
-                types: [dartType, nativeSignature]));
-
-        if (dartType is FunctionType) {
-          final returnType = dartType.returnType;
-          if (returnType is InterfaceType) {
-            final clazz = returnType.classNode;
-            if (clazz.superclass == structClass ||
-                clazz.superclass == unionClass) {
-              return _invokeCompoundConstructor(replacement, clazz);
-            }
-          }
-        }
-        return replacement;
+        return buildAsFunctionInternal(
+          functionPointer: node.arguments.positional[0],
+          nativeSignature: nativeSignature,
+          dartSignature: dartType,
+          isLeaf: isLeaf,
+          fileOffset: node.fileOffset,
+        );
       } else if (target == fromFunctionMethod) {
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
@@ -295,8 +273,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
         _ensureIsStaticFunction(func);
 
-        _ensureNativeTypeValid(nativeType, node);
-        _ensureNativeTypeToDartType(nativeType, dartType, node);
+        ensureNativeTypeValid(nativeType, node);
+        ensureNativeTypeToDartType(nativeType, dartType, node);
 
         final funcType = dartType as FunctionType;
 
@@ -383,10 +361,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       } else if (target == allocateMethod) {
         final DartType nativeType = node.arguments.types[0];
 
-        _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
         // Inline the body to get rid of a generic invocation of sizeOf.
-        // TODO(http://dartbug.com/39964): Add `allignmentOf<T>()` call.
+        // TODO(http://dartbug.com/39964): Add `alignmentOf<T>()` call.
         Expression? sizeInBytes = _inlineSizeOf(nativeType as InterfaceType);
         if (sizeInBytes != null) {
           if (node.arguments.positional.length == 2) {
@@ -406,7 +384,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
                       .withoutTypeParameters) as FunctionType);
         }
       }
-    } on _FfiStaticTypeError {
+    } on FfiStaticTypeError {
       // It's OK to swallow the exception because the diagnostics issued will
       // cause compilation to fail. By continuing, we can report more
       // diagnostics before compilation ends.
@@ -415,39 +393,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     return node;
   }
 
-  /// Prevents the struct from being tree-shaken in TFA by invoking its
-  /// constructor in a `_nativeEffect` expression.
-  Expression _invokeCompoundConstructor(
-      Expression nestedExpression, Class compoundClass) {
-    final constructor = compoundClass.constructors
-        .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
-    return BlockExpression(
-        Block([
-          ExpressionStatement(StaticInvocation(
-              nativeEffectMethod,
-              Arguments([
-                ConstructorInvocation(
-                    constructor,
-                    Arguments([
-                      StaticInvocation(
-                          uint8ListFactory,
-                          Arguments([
-                            ConstantExpression(IntConstant(1)),
-                          ]))
-                        ..fileOffset = nestedExpression.fileOffset,
-                    ]))
-                  ..fileOffset = nestedExpression.fileOffset
-              ])))
-        ]),
-        nestedExpression)
-      ..fileOffset = nestedExpression.fileOffset;
-  }
-
   Expression _invokeCompoundConstructors(
           Expression nestedExpression, List<Class> compoundClasses) =>
       compoundClasses
           .distinct()
-          .fold(nestedExpression, _invokeCompoundConstructor);
+          .fold(nestedExpression, invokeCompoundConstructor);
 
   Expression? _inlineSizeOf(InterfaceType nativeType) {
     final Class nativeClass = nativeType.classNode;
@@ -503,15 +453,15 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
                 .substituteType(lookupFunctionType.withoutTypeParameters)
             as FunctionType);
 
-    bool? isLeaf = _getIsLeafBoolean(node);
-    if (isLeaf == null) {
-      isLeaf = false;
-    }
+    final isLeaf = getIsLeafBoolean(node) ?? false;
 
-    return StaticInvocation(
-        asFunctionInternal,
-        Arguments([lookupResult, BoolLiteral(isLeaf)],
-            types: [dartSignature, nativeSignature]));
+    return buildAsFunctionInternal(
+      functionPointer: lookupResult,
+      nativeSignature: nativeSignature,
+      dartSignature: dartSignature,
+      isLeaf: isLeaf,
+      fileOffset: node.fileOffset,
+    );
   }
 
   // We need to rewrite calls to 'fromFunction' into two calls, representing the
@@ -761,7 +711,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       return super.visitInstanceInvocation(node);
     }
     // We've just created this node. We're likely not going to need to transform
-    // this node itself. Visit its sub exprssions.
+    // this node itself. Visit its sub expressions.
     return super.defaultExpression(modifiedExpression);
   }
 
@@ -777,7 +727,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             node.receiver.getStaticType(staticTypeContext!);
         final DartType nativeType = _pointerTypeGetTypeArg(pointerType)!;
 
-        _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+        ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
         Expression? inlineSizeOf = _inlineSizeOf(nativeType as InterfaceType);
         if (inlineSizeOf != null) {
@@ -795,7 +745,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
                       as FunctionType);
         }
       }
-    } on _FfiStaticTypeError {
+    } on FfiStaticTypeError {
       // It's OK to swallow the exception because the diagnostics issued will
       // cause compilation to fail. By continuing, we can report more
       // diagnostics before compilation ends.
@@ -806,58 +756,6 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
   DartType? _pointerTypeGetTypeArg(DartType pointerType) {
     return pointerType is InterfaceType ? pointerType.typeArguments[0] : null;
-  }
-
-  void _ensureNativeTypeToDartType(
-      DartType nativeType, DartType dartType, Expression node,
-      {bool allowHandle: false}) {
-    final DartType correspondingDartType = convertNativeTypeToDartType(
-        nativeType,
-        allowCompounds: true,
-        allowHandle: allowHandle)!;
-    if (dartType == correspondingDartType) return;
-    if (env.isSubtypeOf(correspondingDartType, dartType,
-        SubtypeCheckMode.ignoringNullabilities)) {
-      return;
-    }
-    diagnosticReporter.report(
-        templateFfiTypeMismatch.withArguments(dartType, correspondingDartType,
-            nativeType, currentLibrary.isNonNullableByDefault),
-        node.fileOffset,
-        1,
-        node.location?.file);
-    throw _FfiStaticTypeError();
-  }
-
-  void _ensureNativeTypeValid(DartType nativeType, Expression node,
-      {bool allowHandle: false,
-      bool allowCompounds: false,
-      bool allowInlineArray = false}) {
-    if (!_nativeTypeValid(nativeType,
-        allowCompounds: allowCompounds,
-        allowHandle: allowHandle,
-        allowInlineArray: allowInlineArray)) {
-      diagnosticReporter.report(
-          templateFfiTypeInvalid.withArguments(
-              nativeType, currentLibrary.isNonNullableByDefault),
-          node.fileOffset,
-          1,
-          node.location?.file);
-      throw _FfiStaticTypeError();
-    }
-  }
-
-  /// The Dart type system does not enforce that NativeFunction return and
-  /// parameter types are only NativeTypes, so we need to check this.
-  bool _nativeTypeValid(DartType nativeType,
-      {bool allowCompounds: false,
-      bool allowHandle = false,
-      bool allowInlineArray = false}) {
-    return convertNativeTypeToDartType(nativeType,
-            allowCompounds: allowCompounds,
-            allowHandle: allowHandle,
-            allowInlineArray: allowInlineArray) !=
-        null;
   }
 
   void _ensureIsStaticFunction(Expression node) {
@@ -871,7 +769,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         node.fileOffset,
         1,
         node.location?.file);
-    throw _FfiStaticTypeError();
+    throw FfiStaticTypeError();
   }
 
   /// Returns the class that should not be implemented or extended.
@@ -928,36 +826,12 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           klass.fileOffset,
           1,
           klass.location?.file);
-      throw _FfiStaticTypeError();
+      throw FfiStaticTypeError();
     }
-  }
-
-  // Returns
-  // - `true` if leaf
-  // - `false` if not leaf
-  // - `null` if the expression is not valid (e.g. non-const bool, null)
-  bool? _getIsLeafBoolean(StaticInvocation node) {
-    for (final named in node.arguments.named) {
-      if (named.name == 'isLeaf') {
-        final expr = named.value;
-        if (expr is BoolLiteral) {
-          return expr.value;
-        } else if (expr is ConstantExpression) {
-          final constant = expr.constant;
-          if (constant is BoolConstant) {
-            return constant.value;
-          }
-        }
-        // isLeaf is passed some invalid value.
-        return null;
-      }
-    }
-    // isLeaf defaults to false.
-    return false;
   }
 
   void _ensureIsLeafIsConst(StaticInvocation node) {
-    final isLeaf = _getIsLeafBoolean(node);
+    final isLeaf = getIsLeafBoolean(node);
     if (isLeaf == null) {
       diagnosticReporter.report(
           templateFfiExpectedConstantArg.withArguments('isLeaf'),
@@ -966,42 +840,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           node.location?.file);
       // Throw so we don't get another error about not replacing
       // `lookupFunction`, which will shadow the above error.
-      throw _FfiStaticTypeError();
-    }
-  }
-
-  void _ensureLeafCallDoesNotUseHandles(
-      InterfaceType nativeType, StaticInvocation node) {
-    // Handles are only disallowed for leaf calls.
-    final isLeaf = _getIsLeafBoolean(node);
-    if (isLeaf == null || isLeaf == false) {
-      return;
-    }
-
-    // Check if return type is Handle.
-    final functionType = nativeType.typeArguments[0];
-    if (functionType is FunctionType) {
-      final returnType = functionType.returnType;
-      if (returnType is InterfaceType) {
-        if (returnType.classNode == handleClass) {
-          diagnosticReporter.report(messageFfiLeafCallMustNotReturnHandle,
-              node.fileOffset, 1, node.location?.file);
-        }
-      }
-      // Check if any of the argument types are Handle.
-      for (DartType param in functionType.positionalParameters) {
-        if ((param as InterfaceType).classNode == handleClass) {
-          diagnosticReporter.report(messageFfiLeafCallMustNotTakeHandle,
-              node.fileOffset, 1, node.location?.file);
-        }
-      }
+      throw FfiStaticTypeError();
     }
   }
 }
-
-/// Used internally for abnormal control flow to prevent cascading error
-/// messages.
-class _FfiStaticTypeError implements Exception {}
 
 extension<T extends Object> on List<T> {
   /// Order-preserved distinct elements.

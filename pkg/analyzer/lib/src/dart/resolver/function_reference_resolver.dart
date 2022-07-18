@@ -475,6 +475,15 @@ class FunctionReferenceResolver {
       return;
     }
 
+    if (propertyType != null) {
+      // If the property is unknown, [UNDEFINED_GETTER] is reported elsewhere.
+      // If it is known, we must report the bad type instantiation here.
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+        function.identifier,
+        [],
+      );
+    }
     function.accept(_resolver);
     node.staticType = DynamicTypeImpl.instance;
   }
@@ -532,12 +541,18 @@ class FunctionReferenceResolver {
           rawType: functionType,
           name: function.propertyName.name,
         );
-      } else {
-        // The target is known, but the method is not; [UNDEFINED_GETTER] is
-        // reported elsewhere.
-        node.staticType = DynamicTypeImpl.instance;
+        return;
+      } else if (functionType != null) {
+        // If the property is unknown, [UNDEFINED_GETTER] is reported elsewhere.
+        // If it is known, we must report the bad type instantiation here.
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          function.propertyName,
+          [],
+        );
       }
 
+      node.staticType = DynamicTypeImpl.instance;
       return;
     }
 

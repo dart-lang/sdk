@@ -125,19 +125,11 @@ class Heap {
   void CollectAllGarbage(GCReason reason = GCReason::kFull,
                          bool compact = false);
 
-  void CheckStartConcurrentMarking(Thread* thread, GCReason reason);
+  void CheckConcurrentMarking(Thread* thread, GCReason reason, intptr_t size);
   void StartConcurrentMarking(Thread* thread, GCReason reason);
-  void CheckFinishConcurrentMarking(Thread* thread);
   void WaitForMarkerTasks(Thread* thread);
   void WaitForSweeperTasks(Thread* thread);
   void WaitForSweeperTasksAtSafepoint(Thread* thread);
-
-  // Enables growth control on the page space heaps.  This should be
-  // called before any user code is executed.
-  void InitGrowthControl();
-  void DisableGrowthControl() { SetGrowthControlState(false); }
-  void SetGrowthControlState(bool state);
-  bool GrowthControlState();
 
   // Protect access to the heap. Note: Code pages are made
   // executable/non-executable when 'read_only' is true/false, respectively.
@@ -220,9 +212,9 @@ class Heap {
   }
   void ResetObjectIdTable();
 
-  void SetLoadingUnit(ObjectPtr raw_obj, intptr_t object_id) {
+  void SetLoadingUnit(ObjectPtr raw_obj, intptr_t unit_id) {
     ASSERT(Thread::Current()->IsMutatorThread());
-    SetWeakEntry(raw_obj, kLoadingUnits, object_id);
+    SetWeakEntry(raw_obj, kLoadingUnits, unit_id);
   }
   intptr_t GetLoadingUnit(ObjectPtr raw_obj) const {
     ASSERT(Thread::Current()->IsMutatorThread());
@@ -425,14 +417,13 @@ class HeapIterationScope : public ThreadStackResource {
   DISALLOW_COPY_AND_ASSIGN(HeapIterationScope);
 };
 
-class NoHeapGrowthControlScope : public ThreadStackResource {
+class ForceGrowthScope : public ThreadStackResource {
  public:
-  NoHeapGrowthControlScope();
-  ~NoHeapGrowthControlScope();
+  explicit ForceGrowthScope(Thread* thread);
+  ~ForceGrowthScope();
 
  private:
-  bool current_growth_controller_state_;
-  DISALLOW_COPY_AND_ASSIGN(NoHeapGrowthControlScope);
+  DISALLOW_COPY_AND_ASSIGN(ForceGrowthScope);
 };
 
 // Note: During this scope all pages are writable and the code pages are

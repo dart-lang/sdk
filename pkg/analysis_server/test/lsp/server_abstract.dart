@@ -6,7 +6,8 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/analytics/noop_analytics_manager.dart';
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
+import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
@@ -197,7 +198,7 @@ abstract class AbstractLspAnalysisServerTest
         resourceProvider,
         serverOptions,
         DartSdkManager(sdkRoot.path),
-        NoopAnalyticsManager(),
+        AnalyticsManager(NoopAnalytics()),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE,
         httpClient: httpClient,
@@ -223,6 +224,23 @@ abstract class AbstractLspAnalysisServerTest
   Future tearDown() async {
     channel.close();
     await server.shutdown();
+  }
+
+  /// Adds a trailing slash (direction based on path context) to [path].
+  ///
+  /// Throws if the path already has a trailing slash.
+  String withTrailingSlash(String path) {
+    final pathSeparator = server.resourceProvider.pathContext.separator;
+    expect(path, isNot(endsWith(pathSeparator)));
+    return '$path$pathSeparator';
+  }
+
+  /// Adds a trailing slash to [uri].
+  ///
+  /// Throws if the URI already has a trailing slash.
+  Uri withTrailingSlashUri(Uri uri) {
+    expect(uri.path, isNot(endsWith('/')));
+    return uri.replace(path: '${uri.path}/');
   }
 }
 
@@ -626,8 +644,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   /// A progress token used in tests where the client-provides the token, which
   /// should not be validated as being created by the server first.
-  final clientProvidedTestWorkDoneToken =
-      Either2<int, String>.t2('client-test');
+  final clientProvidedTestWorkDoneToken = ProgressToken.t2('client-test');
 
   int _id = 0;
   late String projectFolderPath,
@@ -646,10 +663,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   /// null if an initialization request has not yet been sent.
   ClientCapabilities? _clientCapabilities;
 
-  final validProgressTokens = <Either2<num, String>>{};
+  final validProgressTokens = <ProgressToken>{};
 
   /// Whether to include 'clientRequestTime' fields in outgoing messages.
   bool includeClientRequestTime = false;
+
+  /// Default initialization options to be used if [initialize] is not provided
+  /// options explicitly.
+  Map<String, Object?>? defaultInitializationOptions;
 
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
@@ -716,7 +737,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       Map<String, String> oldFileContent, CreateFile create) {
     final path = Uri.parse(create.uri).toFilePath();
     if (oldFileContent.containsKey(path)) {
-      throw 'Recieved create instruction for $path which already existed.';
+      throw 'Received create instruction for $path which already existed.';
     }
     oldFileContent[path] = '';
   }
@@ -726,7 +747,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final oldPath = Uri.parse(rename.oldUri).toFilePath();
     final newPath = Uri.parse(rename.newUri).toFilePath();
     if (!oldFileContent.containsKey(oldPath)) {
-      throw 'Recieved rename instruction for $oldPath which did not exist.';
+      throw 'Received rename instruction for $oldPath which did not exist.';
     }
     oldFileContent[newPath] = oldFileContent[oldPath]!;
     oldFileContent.remove(oldPath);
@@ -741,7 +762,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     for (var edit in edits) {
       final path = Uri.parse(edit.textDocument.uri).toFilePath();
       if (!oldFileContent.containsKey(path)) {
-        throw 'Recieved edits for $path which was not provided as a file to be edited. '
+        throw 'Received edits for $path which was not provided as a file to be edited. '
             'Perhaps a CreateFile change was missing from the edits?';
       }
       oldFileContent[path] = applyTextDocumentEdit(oldFileContent[path]!, edit);
@@ -822,10 +843,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future changeFile(
     int newVersion,
     Uri uri,
-    List<
-            Either2<TextDocumentContentChangeEvent1,
-                TextDocumentContentChangeEvent2>>
-        changes,
+    List<TextDocumentContentChangeEvent> changes,
   ) async {
     var notification = makeNotification(
       Method.textDocument_didChange,
@@ -872,7 +890,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future<T> executeCommand<T>(
     Command command, {
     T Function(Map<String, Object?>)? decoder,
-    Either2<int, String>? workDoneToken,
+    ProgressToken? workDoneToken,
   }) async {
     final request = makeRequest(
       Method.workspace_executeCommand,
@@ -1016,19 +1034,24 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     Range? range,
     Position? position,
     List<CodeActionKind>? kinds,
+    CodeActionTriggerKind? triggerKind,
   }) {
     range ??= position != null
         ? Range(start: position, end: position)
-        : startOfDocRange;
+        : throw 'Supply either a Range or Position for CodeActions requests';
     final request = makeRequest(
       Method.textDocument_codeAction,
       CodeActionParams(
         textDocument: TextDocumentIdentifier(uri: fileUri),
         range: range,
-        // TODO(dantup): We may need to revise the tests/implementation when
-        // it's clear how we're supposed to handle diagnostics:
-        // https://github.com/Microsoft/language-server-protocol/issues/583
-        context: CodeActionContext(diagnostics: [], only: kinds),
+        context: CodeActionContext(
+          // TODO(dantup): We may need to revise the tests/implementation when
+          // it's clear how we're supposed to handle diagnostics:
+          // https://github.com/Microsoft/language-server-protocol/issues/583
+          diagnostics: [],
+          only: kinds,
+          triggerKind: triggerKind,
+        ),
       ),
     );
     return expectSuccessfulResponseTo(
@@ -1289,7 +1312,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo(request, Location.fromJson);
   }
 
-  Future<Either2<List<Location>, List<LocationLink>>> getTypeDefinition(
+  Future<TextDocumentTypeDefinitionResult> getTypeDefinition(
       Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_typeDefinition,
@@ -1298,30 +1321,51 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         position: pos,
       ),
     );
+
+    // TextDocumentTypeDefinitionResult is a nested Either, so we need to handle
+    // nested fromJson/canParse here.
+    // TextDocumentTypeDefinitionResult: Either2<Definition, List<DefinitionLink>>?
+    // Definition: Either2<List<Location>, Location>
+
+    // Definition = Either2<List<Location>, Location>
+    final definitionCanParse = _generateCanParseFor(
+      _canParseList(Location.canParse),
+      Location.canParse,
+    );
+    final definitionFromJson = _generateFromJsonFor(
+      _canParseList(Location.canParse),
+      _fromJsonList(Location.fromJson),
+      Location.canParse,
+      Location.fromJson,
+    );
+
     return expectSuccessfulResponseTo(
       request,
       _generateFromJsonFor(
-          _canParseList(Location.canParse),
-          _fromJsonList(Location.fromJson),
-          _canParseList(LocationLink.canParse),
-          _fromJsonList(LocationLink.fromJson)),
+          definitionCanParse,
+          definitionFromJson,
+          _canParseList(DefinitionLink.canParse),
+          _fromJsonList(DefinitionLink.fromJson)),
     );
   }
 
   Future<List<Location>> getTypeDefinitionAsLocation(
       Uri uri, Position pos) async {
-    final results = await getTypeDefinition(uri, pos);
+    final results = (await getTypeDefinition(uri, pos))!;
     return results.map(
-      (locations) => locations,
-      (locationLinks) => throw 'Expected List<Location> got List<LocationLink>',
+      (locationOrList) => locationOrList.map(
+        (locations) => locations,
+        (location) => [location],
+      ),
+      (locationLinks) => throw 'Expected Locations, got LocationLinks',
     );
   }
 
   Future<List<LocationLink>> getTypeDefinitionAsLocationLinks(
       Uri uri, Position pos) async {
-    final results = await getTypeDefinition(uri, pos);
+    final results = (await getTypeDefinition(uri, pos))!;
     return results.map(
-      (locations) => throw 'Expected List<LocationLink> got List<Location>',
+      (locationOrList) => throw 'Expected LocationLinks, got Locations',
       (locationLinks) => locationLinks,
     );
   }
@@ -1341,7 +1385,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   ///
   /// This is used for testing things like code actions, where the client initiates
   /// a request but the server does not respond to it until it's sent its own
-  /// request to the client and it recieved a response.
+  /// request to the client and it received a response.
   ///
   ///     Client                                 Server
   ///     1. |- Req: textDocument/codeAction      ->
@@ -1449,7 +1493,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         InitializeParams(
           rootPath: rootPath,
           rootUri: rootUri?.toString(),
-          initializationOptions: initializationOptions,
+          initializationOptions:
+              initializationOptions ?? defaultInitializationOptions,
           capabilities: clientCapabilities,
           workspaceFolders: workspaceFolders?.map(toWorkspaceFolder).toList(),
         ));
@@ -1723,8 +1768,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       newVersion,
       uri,
       [
-        Either2<TextDocumentContentChangeEvent1,
-                TextDocumentContentChangeEvent2>.t2(
+        TextDocumentContentChangeEvent.t2(
             TextDocumentContentChangeEvent2(text: content))
       ],
     );
@@ -1814,7 +1858,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         if (message.method == CustomMethods.analyzerStatus) {
           if (_clientCapabilities!.window?.workDoneProgress == true) {
             throw Exception(
-                'Recieved ${CustomMethods.analyzerStatus} notification '
+                'Received ${CustomMethods.analyzerStatus} notification '
                 'but client supports workDoneProgress');
           }
 
@@ -1824,7 +1868,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         } else if (message.method == Method.progress) {
           if (_clientCapabilities!.window?.workDoneProgress != true) {
             throw Exception(
-                'Recieved ${CustomMethods.analyzerStatus} notification '
+                'Received ${CustomMethods.analyzerStatus} notification '
                 'but client supports workDoneProgress');
           }
 
@@ -1923,15 +1967,17 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   String withoutRangeMarkers(String contents) =>
       contents.replaceAll(rangeMarkerStart, '').replaceAll(rangeMarkerEnd, '');
 
-  bool Function(List<dynamic>, LspJsonReporter) _canParseList<T>(
-          bool Function(Map<String, dynamic>, LspJsonReporter) canParse) =>
-      (input, reporter) => input
-          .cast<Map<String, dynamic>>()
-          .every((item) => canParse(item, reporter));
+  bool Function(Object?, LspJsonReporter) _canParseList<T>(
+          bool Function(Map<String, Object?>, LspJsonReporter) canParse) =>
+      (input, reporter) =>
+          input is List &&
+          input
+              .cast<Map<String, Object?>>()
+              .every((item) => canParse(item, reporter));
 
-  List<T> Function(List<dynamic>) _fromJsonList<T>(
-          T Function(Map<String, dynamic>) fromJson) =>
-      (input) => input.cast<Map<String, dynamic>>().map(fromJson).toList();
+  List<T> Function(List<Object?>) _fromJsonList<T>(
+          T Function(Map<String, Object?>) fromJson) =>
+      (input) => input.cast<Map<String, Object?>>().map(fromJson).toList();
 
   Future<void> _handleProgress(NotificationMessage request) async {
     final params =
@@ -1969,22 +2015,32 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         notification.method == Method.window_showMessage;
   }
 
+  /// Creates a `canParse()` function for an `Either2<T1, T2>` using
+  /// the `canParse` function for each type.
+  static bool Function(Object?, LspJsonReporter) _generateCanParseFor<T1, T2>(
+    bool Function(Object?, LspJsonReporter) canParse1,
+    bool Function(Object?, LspJsonReporter) canParse2,
+  ) {
+    return (input, reporter) =>
+        canParse1(input, reporter) || canParse2(input, reporter);
+  }
+
   /// Creates a `fromJson()` function for an `Either2<T1, T2>` using
   /// the `canParse` and `fromJson` functions for each type.
-  static Either2<T1, T2> Function(R) _generateFromJsonFor<T1, T2, R>(
-      bool Function(R, LspJsonReporter) canParse1,
-      T1 Function(R) fromJson1,
-      bool Function(R, LspJsonReporter) canParse2,
-      T2 Function(R) fromJson2,
+  static Either2<T1, T2> Function(Object?) _generateFromJsonFor<T1, T2, R1, R2>(
+      bool Function(Object?, LspJsonReporter) canParse1,
+      T1 Function(R1) fromJson1,
+      bool Function(Object?, LspJsonReporter) canParse2,
+      T2 Function(R2) fromJson2,
       [LspJsonReporter? reporter]) {
     reporter ??= nullLspJsonReporter;
     return (input) {
       reporter!;
       if (canParse1(input, reporter)) {
-        return Either2<T1, T2>.t1(fromJson1(input));
+        return Either2<T1, T2>.t1(fromJson1(input as R1));
       }
       if (canParse2(input, reporter)) {
-        return Either2<T1, T2>.t2(fromJson2(input));
+        return Either2<T1, T2>.t2(fromJson2(input as R2));
       }
       throw '$input was not one of ($T1, $T2)';
     };

@@ -11,11 +11,11 @@ Constructor? unnamedConstructor(Class c) =>
     c.constructors.firstWhereOrNull((c) => c.name.text == '');
 
 /// Returns the enclosing library for reference [node].
-Library? getLibrary(NamedNode node) {
+Library getLibrary(NamedNode node) {
   for (TreeNode? n = node; n != null; n = n.parent) {
     if (n is Library) return n;
   }
-  return null;
+  throw UnsupportedError('Could not find a containing library for $node');
 }
 
 final Pattern _syntheticTypeCharacters = RegExp('[&^#.|]');
@@ -44,14 +44,14 @@ String getLocalClassName(Class node) => escapeIdentifier(node.name)!;
 ///
 /// In the current encoding, generic classes are generated in a function scope
 /// which avoids name clashes of the escaped parameter name.
-String? getTypeParameterName(TypeParameter node) => escapeIdentifier(node.name);
+String getTypeParameterName(TypeParameter node) => escapeIdentifier(node.name)!;
 
-String? getTopLevelName(NamedNode n) {
+String getTopLevelName(NamedNode n) {
   if (n is Procedure) return n.name.text;
   if (n is Class) return n.name;
   if (n is Typedef) return n.name;
   if (n is Field) return n.name.text;
-  return n.reference.canonicalName?.name;
+  return n.reference.canonicalName!.name;
 }
 
 /// Given an annotated [node] and a [test] function, returns the first matching

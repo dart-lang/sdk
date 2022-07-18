@@ -105,7 +105,7 @@ abstract class ErrorToken extends SimpleToken {
 
 /// Represents an encoding error.
 class EncodingErrorToken extends ErrorToken {
-  EncodingErrorToken(int charOffset) : super(charOffset);
+  EncodingErrorToken(super.charOffset);
 
   String toString() => "EncodingErrorToken()";
 

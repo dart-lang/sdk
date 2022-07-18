@@ -70,7 +70,7 @@ enum Register {
   S8 = 24,   // CALLEE_SAVED_TEMP / FAR_TMP
   S9 = 25,   // DISPATCH_TABLE_REG
   S10 = 26,  // NULL
-  S11 = 27,  // WRITE_BARRIER_MASK
+  S11 = 27,  // WRITE_BARRIER_STATE
   T3 = 28,
   T4 = 29,
   T5 = 30,
@@ -162,7 +162,7 @@ constexpr Register ARGS_DESC_REG = S4;  // Arguments descriptor register.
 constexpr Register THR = S1;  // Caches current thread in generated code.
 constexpr Register CALLEE_SAVED_TEMP = S8;
 constexpr Register CALLEE_SAVED_TEMP2 = S7;
-constexpr Register WRITE_BARRIER_MASK = S11;
+constexpr Register WRITE_BARRIER_STATE = S11;
 constexpr Register NULL_REG = S10;  // Caches NullObject() value.
 
 // ABI for catch-clause entry point.
@@ -377,7 +377,7 @@ struct DoubleToIntegerStubABI {
   static constexpr Register kResultReg = A0;
 };
 
-// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub).
+// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub, YieldSyncStarStub).
 struct SuspendStubABI {
   static const Register kArgumentReg = A0;
   static const Register kTempReg = T0;
@@ -388,7 +388,8 @@ struct SuspendStubABI {
   static const Register kDstFrameReg = T5;
 };
 
-// ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub).
+// ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub,
+// InitSyncStarStub).
 struct InitSuspendableFunctionStubABI {
   static const Register kTypeArgsReg = A0;
 };
@@ -404,12 +405,13 @@ struct ResumeStubABI {
   // Registers for control transfer.
   // (the 2nd part, can reuse registers from the 1st part)
   static const Register kResumePcReg = T2;
+  // Can also reuse kSuspendStateReg but should not conflict with CODE_REG/PP.
   static const Register kExceptionReg = T3;
   static const Register kStackTraceReg = T4;
 };
 
 // ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub,
-// ReturnAsyncStarStub).
+// ReturnAsyncStarStub, ReturnSyncStarStub).
 struct ReturnStubABI {
   static const Register kSuspendStateReg = T1;
 };
@@ -417,6 +419,16 @@ struct ReturnStubABI {
 // ABI for AsyncExceptionHandlerStub.
 struct AsyncExceptionHandlerStubABI {
   static const Register kSuspendStateReg = T1;
+};
+
+// ABI for CloneSuspendStateStub.
+struct CloneSuspendStateStubABI {
+  static const Register kSourceReg = A0;
+  static const Register kDestinationReg = A1;
+  static const Register kTempReg = T0;
+  static const Register kFrameSizeReg = T1;
+  static const Register kSrcFrameReg = T2;
+  static const Register kDstFrameReg = T3;
 };
 
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch
@@ -437,8 +449,9 @@ const RegList kAllFpuRegistersList = 0xFFFFFFFF;
 
 constexpr RegList kAbiArgumentCpuRegs =
     R(A0) | R(A1) | R(A2) | R(A3) | R(A4) | R(A5) | R(A6) | R(A7);
-constexpr RegList kAbiVolatileCpuRegs =
-    kAbiArgumentCpuRegs | R(T0) | R(T1) | R(T2) | R(T3) | R(T4) | R(T5) | R(T6);
+constexpr RegList kAbiVolatileCpuRegs = kAbiArgumentCpuRegs | R(T0) | R(T1) |
+                                        R(T2) | R(T3) | R(T4) | R(T5) | R(T6) |
+                                        R(RA);
 constexpr RegList kAbiPreservedCpuRegs = R(S1) | R(S2) | R(S3) | R(S4) | R(S5) |
                                          R(S6) | R(S7) | R(S8) | R(S9) |
                                          R(S10) | R(S11);
@@ -449,13 +462,13 @@ constexpr int kAbiPreservedCpuRegCount = 11;
 // We rely on that any calls into C++ also preserve X18.
 constexpr intptr_t kReservedCpuRegisters =
     R(ZR) | R(TP) | R(GP) | R(SP) | R(FP) | R(TMP) | R(TMP2) | R(PP) | R(THR) |
-    R(RA) | R(WRITE_BARRIER_MASK) | R(NULL_REG) | R(DISPATCH_TABLE_REG) |
+    R(RA) | R(WRITE_BARRIER_STATE) | R(NULL_REG) | R(DISPATCH_TABLE_REG) |
     R(FAR_TMP) | R(18);
 constexpr intptr_t kNumberOfReservedCpuRegisters = 15;
 #else
 constexpr intptr_t kReservedCpuRegisters =
     R(ZR) | R(TP) | R(GP) | R(SP) | R(FP) | R(TMP) | R(TMP2) | R(PP) | R(THR) |
-    R(RA) | R(WRITE_BARRIER_MASK) | R(NULL_REG) | R(DISPATCH_TABLE_REG) |
+    R(RA) | R(WRITE_BARRIER_STATE) | R(NULL_REG) | R(DISPATCH_TABLE_REG) |
     R(FAR_TMP);
 constexpr intptr_t kNumberOfReservedCpuRegisters = 14;
 #endif
@@ -510,7 +523,7 @@ class CallingConventions {
 
   // How stack arguments are aligned.
   static constexpr AlignmentStrategy kArgumentStackAlignment =
-      kAlignedToWordSize;
+      kAlignedToWordSizeAndValueSize;
 
   // How fields in compounds are aligned.
   static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;

@@ -6,7 +6,7 @@ import 'package:compiler/src/util/testing.dart';
 
 /*member: Foo.:[exact=Foo]*/
 class Foo {
-  /*member: Foo._#Foo#x:[sentinel|exact=JSUInt31]*/
+  /*member: Foo._#Foo#x#AI:[sentinel|exact=JSUInt31]*/
   /*member: Foo.x:[exact=JSUInt31]*/
   late int /*[exact=Foo]*/ /*update: [exact=Foo]*/ x = 42;
 }

@@ -179,15 +179,15 @@ class RunCommand extends DartdevCommand {
             hide: !verbose,
             help:
                 'Use the Dart Development Service (DDS) for enhanced debugging '
-                'functionality. Note: Disabling DDS may break some functionality '
-                'in IDEs and other tooling.',
+                'functionality. Note: Disabling DDS may break some '
+                'functionality in IDEs and other tooling.',
             defaultsTo: true)
         ..addFlag(
           'debug-dds',
           hide: true,
         );
     }
-    addExperimentalFlags(argParser, verbose);
+    argParser.addExperimentalFlags(verbose: verbose);
   }
 
   @override

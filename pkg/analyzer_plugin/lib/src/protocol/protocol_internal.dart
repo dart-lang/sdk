@@ -21,8 +21,9 @@ final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
 void addAllEditsForSource(
     SourceFileEdit sourceFileEdit, Iterable<SourceEdit> edits,
     {bool insertBeforeExisting = false}) {
-  edits.forEach((edit) =>
-      sourceFileEdit.add(edit, insertBeforeExisting: insertBeforeExisting));
+  for (var edit in edits) {
+    sourceFileEdit.add(edit, insertBeforeExisting: insertBeforeExisting);
+  }
 }
 
 /// Adds the given [sourceEdit] to the list in [sourceFileEdit] while preserving
@@ -108,9 +109,9 @@ String applyEdit(String code, SourceEdit edit) {
 /// are applied in the order they appear in [edits]. Access via
 /// SourceEdit.applySequence().
 String applySequenceOfEdits(String code, Iterable<SourceEdit> edits) {
-  edits.forEach((SourceEdit edit) {
+  for (var edit in edits) {
     code = edit.apply(code);
-  });
+  }
   return code;
 }
 

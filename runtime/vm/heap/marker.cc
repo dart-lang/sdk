@@ -33,14 +33,11 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
                      MarkingStack* marking_stack,
                      MarkingStack* deferred_marking_stack)
       : ObjectPointerVisitor(isolate_group),
-        thread_(Thread::Current()),
         page_space_(page_space),
         work_list_(marking_stack),
         deferred_work_list_(deferred_marking_stack),
         marked_bytes_(0),
-        marked_micros_(0) {
-    ASSERT(thread_->isolate_group() == isolate_group);
-  }
+        marked_micros_(0) {}
   ~MarkingVisitorBase() { ASSERT(delayed_.IsEmpty()); }
 
   uintptr_t marked_bytes() const { return marked_bytes_; }
@@ -87,7 +84,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   }
 
   void DrainMarkingStack() {
-    while (ProcessMarkingStack()) {
+    while (ProcessMarkingStack(kIntptrMax)) {
     }
   }
 
@@ -97,12 +94,19 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     // by a conservative estimate of the duration of one batch of work.
     deadline -= 1500;
 
+    // A 512kB budget is choosen to be large enough that we don't waste too much
+    // time on the overhead of exiting ProcessMarkingStack, querying the clock,
+    // and re-entering, and small enough that a few batches can fit in the idle
+    // time between animation frames. This amount of marking takes ~1ms on a
+    // Pixel phone.
+    constexpr intptr_t kBudget = 512 * KB;
+
     while ((OS::GetCurrentMonotonicMicros() < deadline) &&
-           ProcessMarkingStack()) {
+           ProcessMarkingStack(kBudget)) {
     }
   }
 
-  bool ProcessMarkingStack() {
+  bool ProcessMarkingStack(intptr_t remaining_budget) {
     ObjectPtr raw_obj = work_list_.Pop();
     if ((raw_obj == nullptr) && ProcessPendingWeakProperties()) {
       raw_obj = work_list_.Pop();
@@ -112,12 +116,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       return false;  // No more work.
     }
 
-    // A 512kB budget is choosen to be large enough that we don't waste too much
-    // time on the overhead of exiting this function, querying the clock, and
-    // re-entering, and small enough that a few batches can fit in the idle time
-    // between animation frames. This amount of marking takes ~1ms on a Pixel
-    // phone.
-    intptr_t remaining_budget = 512 * KB;
     do {
       do {
         // First drain the marking stacks.
@@ -134,6 +132,13 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
           FinalizerEntryPtr raw_weak = static_cast<FinalizerEntryPtr>(raw_obj);
           size = ProcessFinalizerEntry(raw_weak);
         } else {
+          if ((class_id == kArrayCid) || (class_id == kImmutableArrayCid)) {
+            size = raw_obj->untag()->HeapSize();
+            if (size > remaining_budget) {
+              work_list_.Push(raw_obj);
+              return true;  // More to mark.
+            }
+          }
           size = raw_obj->untag()->VisitPointersNonvirtual(this);
         }
         marked_bytes_ += size;
@@ -279,8 +284,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     // buffer. Release the store buffer to satisfy the invariant that
     // thread local store buffer is empty after marking and all references
     // are processed.
-    // TODO(http://dartbug.com/48957):  `thread_` can differ from
-    // `Thread::Current()`.
     Thread::Current()->ReleaseStoreBuffer();
   }
 
@@ -350,6 +353,14 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     work_list_.AbandonWork();
     deferred_work_list_.AbandonWork();
     delayed_.Release();
+  }
+
+  void FinalizeIncremental(GCLinkedLists* global_list) {
+    work_list_.Flush();
+    work_list_.Finalize();
+    deferred_work_list_.Flush();
+    deferred_work_list_.Finalize();
+    delayed_.FlushInto(global_list);
   }
 
  private:
@@ -840,6 +851,8 @@ GCMarker::GCMarker(IsolateGroup* isolate_group, Heap* heap)
     : isolate_group_(isolate_group),
       heap_(heap),
       marking_stack_(),
+      deferred_marking_stack_(),
+      global_list_(),
       visitors_(),
       marked_bytes_(0),
       marked_micros_(0) {
@@ -867,9 +880,6 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
                                            &deferred_marking_stack_);
 
   const intptr_t num_tasks = FLAG_marker_tasks;
-  RELEASE_ASSERT(num_tasks >= 1);
-  const intptr_t num_concurrent_tasks =
-      num_tasks - (FLAG_mark_when_idle ? 1 : 0);
 
   {
     // Bulk increase task count before starting any task, instead of
@@ -878,9 +888,9 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
     MonitorLocker ml(page_space->tasks_lock());
     ASSERT(page_space->phase() == PageSpace::kDone);
     page_space->set_phase(PageSpace::kMarking);
-    page_space->set_tasks(page_space->tasks() + num_concurrent_tasks);
+    page_space->set_tasks(page_space->tasks() + num_tasks);
     page_space->set_concurrent_marker_tasks(
-        page_space->concurrent_marker_tasks() + num_concurrent_tasks);
+        page_space->concurrent_marker_tasks() + num_tasks);
   }
 
   ResetSlices();
@@ -906,16 +916,10 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
         THR_Print("Task marked %" Pd " bytes in %" Pd64 " micros.\n",
                   visitor->marked_bytes(), visitor->marked_micros());
       }
-      if (FLAG_mark_when_idle) {
-        // Not spawning a thread to continue processing with the last visitor.
-        // This visitor is instead left available for the main thread to
-        // contribute to marking during idle time.
-      } else {
-        // Continue non-root marking concurrently.
-        bool result = Dart::thread_pool()->Run<ConcurrentMarkTask>(
-            this, isolate_group_, page_space, visitor);
-        ASSERT(result);
-      }
+      // Continue non-root marking concurrently.
+      bool result = Dart::thread_pool()->Run<ConcurrentMarkTask>(
+          this, isolate_group_, page_space, visitor);
+      ASSERT(result);
     }
   }
 
@@ -928,29 +932,60 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
   }
 }
 
-void GCMarker::AssistConcurrentMark() {
-  if (!FLAG_mark_when_idle) return;
+void GCMarker::IncrementalMarkWithUnlimitedBudget(PageSpace* page_space) {
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(),
+                                "IncrementalMarkWithUnlimitedBudget");
 
-  SyncMarkingVisitor* visitor = visitors_[FLAG_marker_tasks - 1];
-  ASSERT(visitor != nullptr);
-  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "Mark");
+  SyncMarkingVisitor visitor(isolate_group_, page_space, &marking_stack_,
+                             &deferred_marking_stack_);
   int64_t start = OS::GetCurrentMonotonicMicros();
-  visitor->DrainMarkingStack();
+  visitor.DrainMarkingStack();
   int64_t stop = OS::GetCurrentMonotonicMicros();
-  visitor->AddMicros(stop - start);
+  visitor.AddMicros(stop - start);
+  {
+    MonitorLocker ml(page_space->tasks_lock());
+    visitor.FinalizeIncremental(&global_list_);
+    marked_bytes_ += visitor.marked_bytes();
+    marked_micros_ += visitor.marked_micros();
+  }
 }
 
-void GCMarker::NotifyIdle(int64_t deadline) {
-  if (!FLAG_mark_when_idle) return;
+void GCMarker::IncrementalMarkWithSizeBudget(PageSpace* page_space,
+                                             intptr_t size) {
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(),
+                                "IncrementalMarkWithSizeBudget");
 
-  SyncMarkingVisitor* visitor = visitors_[FLAG_marker_tasks - 1];
-  if (visitor == nullptr) return;
-
-  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "IncrementalMark");
+  SyncMarkingVisitor visitor(isolate_group_, page_space, &marking_stack_,
+                             &deferred_marking_stack_);
   int64_t start = OS::GetCurrentMonotonicMicros();
-  visitor->ProcessMarkingStackUntil(deadline);
+  visitor.ProcessMarkingStack(size);
   int64_t stop = OS::GetCurrentMonotonicMicros();
-  visitor->AddMicros(stop - start);
+  visitor.AddMicros(stop - start);
+  {
+    MonitorLocker ml(page_space->tasks_lock());
+    visitor.FinalizeIncremental(&global_list_);
+    marked_bytes_ += visitor.marked_bytes();
+    marked_micros_ += visitor.marked_micros();
+  }
+}
+
+void GCMarker::IncrementalMarkWithTimeBudget(PageSpace* page_space,
+                                             int64_t deadline) {
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(),
+                                "IncrementalMarkWithTimeBudget");
+
+  SyncMarkingVisitor visitor(isolate_group_, page_space, &marking_stack_,
+                             &deferred_marking_stack_);
+  int64_t start = OS::GetCurrentMonotonicMicros();
+  visitor.ProcessMarkingStackUntil(deadline);
+  int64_t stop = OS::GetCurrentMonotonicMicros();
+  visitor.AddMicros(stop - start);
+  {
+    MonitorLocker ml(page_space->tasks_lock());
+    visitor.FinalizeIncremental(&global_list_);
+    marked_bytes_ += visitor.marked_bytes();
+    marked_micros_ += visitor.marked_micros();
+  }
 }
 
 void GCMarker::MarkObjects(PageSpace* page_space) {
@@ -991,8 +1026,6 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
       RelaxedAtomic<uintptr_t> num_busy = 0;
       // Phase 1: Iterate over roots and drain marking stack in tasks.
 
-      GCLinkedLists global_list;
-
       for (intptr_t i = 0; i < num_tasks; ++i) {
         SyncMarkingVisitor* visitor = visitors_[i];
         // Visitors may or may not have already been created depending on
@@ -1008,7 +1041,7 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
         // visitor might not get to run if it fails to reach TryEnter soon
         // enough, and we must fail to visit objects but they're sitting in
         // such a visitor's local blocks.
-        visitor->Flush(&global_list);
+        visitor->Flush(&global_list_);
         // Need to move weak property list too.
 
         if (i < (num_tasks - 1)) {
@@ -1019,7 +1052,7 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
           ASSERT(result);
         } else {
           // Last worker is the main thread.
-          visitor->Adopt(&global_list);
+          visitor->Adopt(&global_list_);
           ParallelMarkTask task(this, isolate_group_, &marking_stack_, barrier,
                                 visitor, &num_busy);
           task.RunEnteredIsolateGroup();
@@ -1036,6 +1069,8 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
         delete visitor;
         visitors_[i] = nullptr;
       }
+
+      ASSERT(global_list_.IsEmpty());
     }
   }
   Epilogue();

@@ -438,7 +438,7 @@ void f(A a) {
 ''');
     _createRefactoringWithSuffix('fff', ' = 1');
     return _assertConditionsFatal(
-        'Can not extract name part of a property access.');
+        'Cannot extract name part of a property access.');
   }
 
   Future<void> test_bad_newMethodName_notIdentifier() async {
@@ -750,6 +750,27 @@ void f() {
 ''');
     _createRefactoringForString('int');
     return _assertConditionsFatal('Cannot extract a single type reference.');
+  }
+
+  Future<void> test_bad_typeReference_nullable() async {
+    await indexTestUnit('''
+// Dummy comment ("The selection offset must be greater than zero")
+int? f;
+''');
+    _createRefactoringForString('int');
+    return _assertConditionsFatal('Cannot extract a single type reference.');
+  }
+
+  Future<void> test_bad_typeReference_prefix() async {
+    await indexTestUnit('''
+import 'dart:io' as io;
+void f() {
+  io.File f = io.File('');
+}
+''');
+    _createRefactoringWithSuffix('io', '.File f');
+    return _assertConditionsFatal(
+        'Cannot extract prefix part of a type reference.');
   }
 
   Future<void> test_bad_variableDeclarationFragment() async {
@@ -1249,6 +1270,29 @@ void f() {
     expect(refactoring.offsets,
         unorderedEquals([findOffset('1 + 2'), findOffset('1 +  2')]));
     expect(refactoring.lengths, unorderedEquals([5, 6]));
+  }
+
+  Future<void> test_prefixPartOfQualified() async {
+    await indexTestUnit('''
+class A {
+  var fff;
+}
+void f(A a) {
+  a.fff = 5;
+}
+''');
+    _createRefactoringForStringOffset('a.fff');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+class A {
+  var fff;
+}
+void f(A a) {
+  res(a).fff = 5;
+}
+
+A res(A a) => a;
+''');
   }
 
   Future<void> test_returnType_closure() async {

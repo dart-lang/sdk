@@ -22,11 +22,11 @@ void main() {
 void testPointerAllocateTooLarge() {
   // Try to allocate something that doesn't fit in 64 bit address space.
   int maxInt = 9223372036854775807; // 2^63 - 1
-  Expect.throws(() => calloc<Int64>(maxInt));
+  Expect.throws(() => calloc<Int8>(maxInt));
 
   // Try to allocate almost the full 64 bit address space.
   int maxInt1_8 = 1152921504606846975; // 2^60 -1
-  Expect.throws(() => calloc<Int64>(maxInt1_8));
+  Expect.throws(() => calloc<Int8>(maxInt1_8));
 }
 
 void testPointerAllocateNegative() {

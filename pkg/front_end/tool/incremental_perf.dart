@@ -215,9 +215,9 @@ class OverlayFileSystem implements FileSystem {
     if (uri.isScheme('org-dartlang-overlay')) {
       return new OverlayFileSystemEntity(uri, this);
     } else if (uri.isScheme('file')) {
-      // The IKG compiler reads ".packages" which might contain absolute file
-      // URIs (which it will then try to use on the FS).  We therefore replace
-      // them with overlay-fs URIs as usual.
+      // The IKG compiler reads ".dart_tool/package_config.json" which might
+      // contain absolute file URIs (which it will then try to use on the FS).
+      // We therefore replace them with overlay-fs URIs as usual.
       return new OverlayFileSystemEntity(_resolveOverlayUri('$uri'), this);
     } else {
       throw "Unsupported scheme: ${uri.scheme}."

@@ -5,6 +5,7 @@
 library fasta.builtin_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, Nullability;
+import 'package:kernel/class_hierarchy.dart';
 
 import 'library_builder.dart';
 import 'nullability_builder.dart';
@@ -32,6 +33,7 @@ abstract class BuiltinTypeDeclarationBuilder
       TypeUse typeUse,
       Uri fileUri,
       int charOffset,
+      ClassHierarchyBase? hierarchy,
       {required bool hasExplicitTypeArguments}) {
     return type.withDeclaredNullability(nullabilityBuilder.build(library));
   }

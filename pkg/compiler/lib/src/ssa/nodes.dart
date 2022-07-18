@@ -159,7 +159,7 @@ abstract class HGraphVisitor {
   }
 
   visitPostDominatorTree(HGraph graph) {
-    // Recusion free version of:
+    // Recursion-free version of:
     //
     //     void visitBasicBlockAndSuccessors(HBasicBlock block) {
     //       List dominated = block.dominatedBlocks;
@@ -594,13 +594,14 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitBoolConversion(HBoolConversion node) => visitCheck(node);
   @override
   visitNullCheck(HNullCheck node) => visitCheck(node);
+  visitLateCheck(HLateCheck node) => visitCheck(node);
   @override
-  visitLateReadCheck(HLateReadCheck node) => visitCheck(node);
+  visitLateReadCheck(HLateReadCheck node) => visitLateCheck(node);
   @override
-  visitLateWriteOnceCheck(HLateWriteOnceCheck node) => visitCheck(node);
+  visitLateWriteOnceCheck(HLateWriteOnceCheck node) => visitLateCheck(node);
   @override
   visitLateInitializeOnceCheck(HLateInitializeOnceCheck node) =>
-      visitCheck(node);
+      visitLateCheck(node);
   @override
   visitPrimitiveCheck(HPrimitiveCheck node) => visitCheck(node);
   @override
@@ -3702,7 +3703,12 @@ class HNullCheck extends HCheck {
 /// A check for a late sentinel to determine if a late field may be read from or
 /// written to.
 abstract class HLateCheck extends HCheck {
-  HLateCheck(HInstruction input, HInstruction /*?*/ name, AbstractValue type)
+  // Checks may be 'trusted' and result in no runtime check. This is done by
+  // compiling with the checks in place and removing them after optimizations.
+  final bool isTrusted;
+
+  HLateCheck(HInstruction input, HInstruction /*?*/ name, this.isTrusted,
+      AbstractValue type)
       : super([input, if (name != null) name], type);
 
   bool get hasName => inputs.length > 1;
@@ -3721,8 +3727,9 @@ abstract class HLateCheck extends HCheck {
 
 /// A check that a late field has been initialized and can therefore be read.
 class HLateReadCheck extends HLateCheck {
-  HLateReadCheck(HInstruction input, HInstruction name, AbstractValue type)
-      : super(input, name, type);
+  HLateReadCheck(
+      HInstruction input, HInstruction name, bool isTrusted, AbstractValue type)
+      : super(input, name, isTrusted, type);
 
   @override
   accept(HVisitor visitor) => visitor.visitLateReadCheck(this);
@@ -3734,7 +3741,7 @@ class HLateReadCheck extends HLateCheck {
   bool typeEquals(HInstruction other) => other is HLateReadCheck;
 
   @override
-  bool dataEquals(HLateReadCheck other) => true;
+  bool dataEquals(HLateReadCheck other) => isTrusted == other.isTrusted;
 
   bool isRedundant(JClosedWorld closedWorld) {
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
@@ -3755,8 +3762,9 @@ class HLateReadCheck extends HLateCheck {
 /// is that the latter occurs on writes performed as part of the initializer
 /// expression.
 class HLateWriteOnceCheck extends HLateCheck {
-  HLateWriteOnceCheck(HInstruction input, HInstruction name, AbstractValue type)
-      : super(input, name, type);
+  HLateWriteOnceCheck(
+      HInstruction input, HInstruction name, bool isTrusted, AbstractValue type)
+      : super(input, name, isTrusted, type);
 
   @override
   accept(HVisitor visitor) => visitor.visitLateWriteOnceCheck(this);
@@ -3768,7 +3776,7 @@ class HLateWriteOnceCheck extends HLateCheck {
   bool typeEquals(HInstruction other) => other is HLateWriteOnceCheck;
 
   @override
-  bool dataEquals(HLateWriteOnceCheck other) => true;
+  bool dataEquals(HLateWriteOnceCheck other) => isTrusted == other.isTrusted;
 
   bool isRedundant(JClosedWorld closedWorld) {
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
@@ -3790,8 +3798,8 @@ class HLateWriteOnceCheck extends HLateCheck {
 /// expression.
 class HLateInitializeOnceCheck extends HLateCheck {
   HLateInitializeOnceCheck(
-      HInstruction input, HInstruction name, AbstractValue type)
-      : super(input, name, type);
+      HInstruction input, HInstruction name, bool isTrusted, AbstractValue type)
+      : super(input, name, isTrusted, type);
 
   @override
   accept(HVisitor visitor) => visitor.visitLateInitializeOnceCheck(this);
@@ -3803,7 +3811,8 @@ class HLateInitializeOnceCheck extends HLateCheck {
   bool typeEquals(HInstruction other) => other is HLateInitializeOnceCheck;
 
   @override
-  bool dataEquals(HLateInitializeOnceCheck other) => true;
+  bool dataEquals(HLateInitializeOnceCheck other) =>
+      isTrusted == other.isTrusted;
 
   bool isRedundant(JClosedWorld closedWorld) {
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;

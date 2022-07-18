@@ -755,77 +755,49 @@ class TypeCheckingVisitor
   @override
   DartType visitAbstractSuperMethodInvocation(
       AbstractSuperMethodInvocation node) {
-    Member? target = node.interfaceTarget;
-    if (target == null) {
-      checkUnresolvedInvocation(currentThisType!, node);
-      return handleDynamicCall(currentThisType!, node.arguments);
-    } else {
-      return handleCall(node.arguments, target.superGetterType,
-          receiver: getSuperReceiverType(target));
-    }
+    Member target = node.interfaceTarget;
+    return handleCall(node.arguments, target.superGetterType,
+        receiver: getSuperReceiverType(target));
   }
 
   @override
   DartType visitSuperMethodInvocation(SuperMethodInvocation node) {
-    Member? target = node.interfaceTarget;
-    if (target == null) {
-      checkUnresolvedInvocation(currentThisType!, node);
-      return handleDynamicCall(currentThisType!, node.arguments);
-    } else {
-      return handleCall(node.arguments, target.superGetterType,
-          receiver: getSuperReceiverType(target));
-    }
+    Member target = node.interfaceTarget;
+    return handleCall(node.arguments, target.superGetterType,
+        receiver: getSuperReceiverType(target));
   }
 
   @override
   DartType visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) {
-    Member? target = node.interfaceTarget;
-    if (target == null) {
-      checkUnresolvedInvocation(currentThisType!, node);
-      return const DynamicType();
-    } else {
-      Substitution receiver = getSuperReceiverType(target);
-      return receiver.substituteType(target.superGetterType);
-    }
+    Member target = node.interfaceTarget;
+    Substitution receiver = getSuperReceiverType(target);
+    return receiver.substituteType(target.superGetterType);
   }
 
   @override
   DartType visitAbstractSuperPropertySet(AbstractSuperPropertySet node) {
-    Member? target = node.interfaceTarget;
+    Member target = node.interfaceTarget;
     DartType value = visitExpression(node.value);
-    if (target != null) {
-      Substitution receiver = getSuperReceiverType(target);
-      checkAssignable(node.value, value,
-          receiver.substituteType(target.superSetterType, contravariant: true));
-    } else {
-      checkUnresolvedInvocation(currentThisType!, node);
-    }
+    Substitution receiver = getSuperReceiverType(target);
+    checkAssignable(node.value, value,
+        receiver.substituteType(target.superSetterType, contravariant: true));
     return value;
   }
 
   @override
   DartType visitSuperPropertyGet(SuperPropertyGet node) {
-    Member? target = node.interfaceTarget;
-    if (target == null) {
-      checkUnresolvedInvocation(currentThisType!, node);
-      return const DynamicType();
-    } else {
-      Substitution receiver = getSuperReceiverType(target);
-      return receiver.substituteType(target.superGetterType);
-    }
+    Member target = node.interfaceTarget;
+    Substitution receiver = getSuperReceiverType(target);
+    return receiver.substituteType(target.superGetterType);
   }
 
   @override
   DartType visitSuperPropertySet(SuperPropertySet node) {
-    Member? target = node.interfaceTarget;
+    Member target = node.interfaceTarget;
     DartType value = visitExpression(node.value);
-    if (target != null) {
-      Substitution receiver = getSuperReceiverType(target);
-      checkAssignable(node.value, value,
-          receiver.substituteType(target.superSetterType, contravariant: true));
-    } else {
-      checkUnresolvedInvocation(currentThisType!, node);
-    }
+    Substitution receiver = getSuperReceiverType(target);
+    checkAssignable(node.value, value,
+        receiver.substituteType(target.superSetterType, contravariant: true));
     return value;
   }
 

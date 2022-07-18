@@ -5,23 +5,20 @@
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 const Map<String, ClassData> expectedClassData = {
-  'Class1': ClassData(
-      superclassOf: 'Object', fieldsOf: ['field1'], constructorsOf: ['']),
-  'Class2': ClassData(isAbstract: true, superclassOf: 'Object'),
-  'Class3': ClassData(
-      superclassOf: 'Class2',
-      superSuperclassOf: 'Object',
-      interfacesOf: [
-        'Interface1'
-      ],
-      // TODO(johnniwinther): Should we require a specific order?
-      fieldsOf: [
+  'Class1': ClassData(fieldsOf: ['field1'], constructorsOf: ['']),
+  'Class2': ClassData(isAbstract: true, superclass: 'Object'),
+  'Class3':
+      ClassData(superclass: 'Class2', superSuperclass: 'Object', interfaces: [
+    'Interface1'
+  ],
+          // TODO(johnniwinther): Should we require a specific order?
+          fieldsOf: [
         'field1',
         'field2',
         'staticField1',
       ],
-      // TODO(johnniwinther): Should we require a specific order?
-      methodsOf: [
+          // TODO(johnniwinther): Should we require a specific order?
+          methodsOf: [
         'method1',
         'method2',
         'getter1',
@@ -30,25 +27,22 @@ const Map<String, ClassData> expectedClassData = {
         'setter1',
         'property1',
       ],
-      // TODO(johnniwinther): Should we require a specific order?
-      constructorsOf: [
+          // TODO(johnniwinther): Should we require a specific order?
+          constructorsOf: [
         // TODO(johnniwinther): Should we normalize no-name constructor names?
         '',
         'named',
         'fact',
         'redirect',
       ]),
-  'Class4': ClassData(
-      superclassOf: 'Class1',
-      superSuperclassOf: 'Object',
-      mixinsOf: ['Mixin1']),
+  'Class4': ClassData(superclass: 'Class1', mixins: ['Mixin1']),
   'Class5': ClassData(
-      superclassOf: 'Class2',
-      superSuperclassOf: 'Object',
-      mixinsOf: ['Mixin1', 'Mixin2'],
-      interfacesOf: ['Interface1', 'Interface2']),
-  'Interface1': ClassData(isAbstract: true, superclassOf: 'Object'),
-  'Interface2': ClassData(isAbstract: true, superclassOf: 'Object'),
+      superclass: 'Class2',
+      superSuperclass: 'Object',
+      mixins: ['Mixin1', 'Mixin2'],
+      interfaces: ['Interface1', 'Interface2']),
+  'Interface1': ClassData(isAbstract: true),
+  'Interface2': ClassData(isAbstract: true),
 };
 
 const Map<String, FunctionData> expectedFunctionData = {
@@ -120,42 +114,53 @@ void checkParameterDeclaration(
 }
 
 Future<void> checkClassDeclaration(ClassDeclaration declaration,
-    {ClassIntrospector? classIntrospector}) async {
+    {TypeDeclarationResolver? typeDeclarationResolver,
+    TypeIntrospector? typeIntrospector}) async {
   String name = declaration.identifier.name;
   ClassData? expected = expectedClassData[name];
   if (expected != null) {
     expect(expected.isAbstract, declaration.isAbstract, '$name.isAbstract');
     expect(expected.isExternal, declaration.isExternal, '$name.isExternal');
-    if (classIntrospector != null) {
-      ClassDeclaration? superclassOf =
-          await classIntrospector.superclassOf(declaration);
-      expect(expected.superclassOf, superclassOf?.identifier.name,
-          '$name.superclassOf');
-      if (superclassOf != null) {
-        ClassDeclaration? superSuperclassOf =
-            await classIntrospector.superclassOf(superclassOf);
-        expect(expected.superSuperclassOf, superSuperclassOf?.identifier.name,
-            '$name.superSuperclassOf');
-      }
-      List<ClassDeclaration> mixinsOf =
-          await classIntrospector.mixinsOf(declaration);
+    if (typeDeclarationResolver != null) {
+      TypeDeclaration? superclass = declaration.superclass == null
+          ? null
+          : await typeDeclarationResolver
+              .declarationOf(declaration.superclass!.identifier);
       expect(
-          expected.mixinsOf.length, mixinsOf.length, '$name.mixinsOf.length');
-      for (int i = 0; i < mixinsOf.length; i++) {
-        expect(expected.mixinsOf[i], mixinsOf[i].identifier.name,
-            '$name.mixinsOf[$i]');
+          expected.superclass, superclass?.identifier.name, '$name.superclass');
+      if (superclass is ClassDeclaration) {
+        TypeDeclaration? superSuperclass = superclass.superclass == null
+            ? null
+            : await typeDeclarationResolver
+                .declarationOf(superclass.superclass!.identifier);
+        expect(expected.superSuperclass, superSuperclass?.identifier.name,
+            '$name.superSuperclass');
       }
-      List<ClassDeclaration> interfacesOf =
-          await classIntrospector.interfacesOf(declaration);
-      expect(expected.interfacesOf.length, interfacesOf.length,
-          '$name.interfacesOf.length');
-      for (int i = 0; i < interfacesOf.length; i++) {
-        expect(expected.interfacesOf[i], interfacesOf[i].identifier.name,
-            '$name.interfacesOf[$i]');
+      List<TypeDeclaration> mixins = [
+        for (NamedTypeAnnotation mixin in declaration.mixins)
+          await typeDeclarationResolver.declarationOf(mixin.identifier),
+      ];
+      expect(expected.mixins.length, mixins.length, '$name.mixins.length');
+      for (int i = 0; i < mixins.length; i++) {
+        expect(
+            expected.mixins[i], mixins[i].identifier.name, '$name.mixins[$i]');
       }
 
+      List<TypeDeclaration> interfaces = [
+        for (NamedTypeAnnotation interface in declaration.interfaces)
+          await typeDeclarationResolver.declarationOf(interface.identifier),
+      ];
+      expect(expected.interfaces.length, interfaces.length,
+          '$name.interfaces.length');
+      for (int i = 0; i < interfaces.length; i++) {
+        expect(expected.interfaces[i], interfaces[i].identifier.name,
+            '$name.interfaces[$i]');
+      }
+    }
+    if (typeIntrospector != null &&
+        declaration is IntrospectableClassDeclaration) {
       List<FieldDeclaration> fieldsOf =
-          await classIntrospector.fieldsOf(declaration);
+          await typeIntrospector.fieldsOf(declaration);
       expect(
           expected.fieldsOf.length, fieldsOf.length, '$name.fieldsOf.length');
       for (int i = 0; i < fieldsOf.length; i++) {
@@ -164,7 +169,7 @@ Future<void> checkClassDeclaration(ClassDeclaration declaration,
       }
 
       List<MethodDeclaration> methodsOf =
-          await classIntrospector.methodsOf(declaration);
+          await typeIntrospector.methodsOf(declaration);
       expect(expected.methodsOf.length, methodsOf.length,
           '$name.methodsOf.length');
       for (int i = 0; i < methodsOf.length; i++) {
@@ -173,7 +178,7 @@ Future<void> checkClassDeclaration(ClassDeclaration declaration,
       }
 
       List<ConstructorDeclaration> constructorsOf =
-          await classIntrospector.constructorsOf(declaration);
+          await typeIntrospector.constructorsOf(declaration);
       expect(expected.constructorsOf.length, constructorsOf.length,
           '$name.constructorsOf.length');
       for (int i = 0; i < constructorsOf.length; i++) {
@@ -279,10 +284,10 @@ Future<void> checkTypeDeclarationResolver(
 class ClassData {
   final bool isAbstract;
   final bool isExternal;
-  final String superclassOf;
-  final String? superSuperclassOf;
-  final List<String> interfacesOf;
-  final List<String> mixinsOf;
+  final String? superclass;
+  final String? superSuperclass;
+  final List<String> interfaces;
+  final List<String> mixins;
   final List<String> fieldsOf;
   final List<String> methodsOf;
   final List<String> constructorsOf;
@@ -290,10 +295,10 @@ class ClassData {
   const ClassData(
       {this.isAbstract: false,
       this.isExternal: false,
-      required this.superclassOf,
-      this.superSuperclassOf,
-      this.interfacesOf: const [],
-      this.mixinsOf: const [],
+      this.superclass,
+      this.superSuperclass,
+      this.interfaces: const [],
+      this.mixins: const [],
       this.fieldsOf: const [],
       this.methodsOf: const [],
       this.constructorsOf: const []});

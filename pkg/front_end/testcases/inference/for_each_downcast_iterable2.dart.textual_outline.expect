@@ -1,0 +1,5 @@
+// @dart = 2.9
+library test;
+
+test(dynamic o) async {}
+main() {}

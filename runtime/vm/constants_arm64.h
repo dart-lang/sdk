@@ -367,7 +367,7 @@ struct DoubleToIntegerStubABI {
   static const Register kResultReg = R0;
 };
 
-// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub).
+// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub, YieldSyncStarStub).
 struct SuspendStubABI {
   static const Register kArgumentReg = R0;
   static const Register kTempReg = R1;
@@ -378,7 +378,8 @@ struct SuspendStubABI {
   static const Register kDstFrameReg = R6;
 };
 
-// ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub).
+// ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub,
+// InitSyncStarStub).
 struct InitSuspendableFunctionStubABI {
   static const Register kTypeArgsReg = R0;
 };
@@ -394,12 +395,13 @@ struct ResumeStubABI {
   // Registers for control transfer.
   // (the 2nd part, can reuse registers from the 1st part)
   static const Register kResumePcReg = R1;
+  // Can also reuse kSuspendStateReg but should not conflict with CODE_REG/PP.
   static const Register kExceptionReg = R3;
   static const Register kStackTraceReg = R4;
 };
 
 // ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub,
-// ReturnAsyncStarStub).
+// ReturnAsyncStarStub, ReturnSyncStarStub).
 struct ReturnStubABI {
   static const Register kSuspendStateReg = R2;
 };
@@ -407,6 +409,16 @@ struct ReturnStubABI {
 // ABI for AsyncExceptionHandlerStub.
 struct AsyncExceptionHandlerStubABI {
   static const Register kSuspendStateReg = R2;
+};
+
+// ABI for CloneSuspendStateStub.
+struct CloneSuspendStateStubABI {
+  static const Register kSourceReg = R0;
+  static const Register kDestinationReg = R1;
+  static const Register kTempReg = R2;
+  static const Register kFrameSizeReg = R3;
+  static const Register kSrcFrameReg = R4;
+  static const Register kDstFrameReg = R5;
 };
 
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch
@@ -439,9 +451,9 @@ const RegList kAllFpuRegistersList = 0xFFFFFFFF;
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs =
     R(R0) | R(R1) | R(R2) | R(R3) | R(R4) | R(R5) | R(R6) | R(R7);
-const RegList kAbiVolatileCpuRegs =
-    kAbiArgumentCpuRegs | R(R8) | R(R9) | R(R10) | R(R11) | R(R12) | R(R13) |
-    R(R14) | R(R15) | R(R16) | R(R17);
+const RegList kAbiVolatileCpuRegs = kAbiArgumentCpuRegs | R(R8) | R(R9) |
+                                    R(R10) | R(R11) | R(R12) | R(R13) | R(R14) |
+                                    R(R15) | R(R16) | R(R17) | R(LR);
 #if defined(DART_TARGET_OS_FUCHSIA)
 // We rely on R18 not being touched by Dart generated assembly or stubs at all.
 // We rely on that any calls into C++ also preserve R18.

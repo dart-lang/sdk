@@ -61,10 +61,9 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
       if (element != null) {
         // try CONVERT_METHOD_TO_GETTER
         if (element is ExecutableElement) {
-          Refactoring refactoring = ConvertMethodToGetterRefactoring(
-              searchEngine, resolvedUnit.session, element);
-          var status = await refactoring.checkInitialConditions();
-          if (!status.hasFatalError) {
+          if (ConvertMethodToGetterRefactoring(
+                  searchEngine, resolvedUnit.session, element)
+              .isAvailable()) {
             kinds.add(RefactoringKind.CONVERT_METHOD_TO_GETTER);
           }
         }

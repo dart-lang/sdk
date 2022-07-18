@@ -41,7 +41,7 @@ class DirectCallMetadataRepository
   @override
   void writeToBinary(DirectCallMetadata metadata, Node node, BinarySink sink) {
     sink.writeNullAllowedCanonicalNameReference(
-        getCanonicalNameOfMemberGetter(metadata.target));
+        getMemberReferenceGetter(metadata.target));
     sink.writeByte(metadata.checkReceiverForNull ? 1 : 0);
   }
 

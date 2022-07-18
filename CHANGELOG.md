@@ -1,3 +1,31 @@
+## 2.19.0
+
+### Language
+
+### Libraries
+
+### `dart:developer`
+
+- Deprecates `UserTag.MAX_USER_TAGS` in favor of `UserTag.maxUserTags`.
+
+### Tools
+
+#### Linter
+
+Updated the Linter to `1.26.0`, which includes changes that
+
+- add new lint: `combinators_ordering`.
+- fix `use_colored_box` and `use_decorated_box` to not over-report on containers without
+  a child.
+- fix `unnecessary_parenthesis` false positives on a map-or-set literal at the start of
+  an expression statement.
+- fix `prefer_final_locals` false positives reporting on fields.
+- fix `unnecessary_overrides` to allow overrides on `@Protected`members.
+- fix `avoid_multiple_declarations_per_line` false positives in `for` statements.
+- fix `prefer_final_locals` false positives on declaration lists with at least one
+  non-final variable.
+- fix`use_build_context_synchronously` to handle `await`s in `if` conditions.
+
 ## 2.18.0
 
 ### Language
@@ -47,7 +75,31 @@ them, you must set the lower bound on the SDK constraint for your package to
    }
    ```
 
+- **Breaking Change** [#48167](https://github.com/dart-lang/sdk/issues/48167):
+  Mixin of classes that don't extend `Object` is no longer supported:
+  ```dart
+  class Base {}
+  class Mixin extends Base {}
+  class C extends Base with Mixin {}
+  ```
+  This should instead be written using a mixin declaration of `Mixin`:
+  ```dart
+  class Base {}
+  mixin Mixin on Base {}
+  class C extends Base with Mixin {}
+  ```
+  This feature has not been supported in most compilation targets for some
+  time but is now completely removed.
+
 ### Core libraries
+
+#### `dart:async`
+
+- The `Stream.fromIterable` stream can now be listened to more than once.
+
+### `dart:collection`
+
+- Deprecates `BidirectionalIterator`.
 
 #### `dart:html`
 
@@ -55,6 +107,15 @@ them, you must set the lower bound on the SDK constraint for your package to
   `RtcPeerConnection`.
 
 #### `dart:io`
+
+- **Breaking Change** [#49045](https://github.com/dart-lang/sdk/issues/49045):
+  The `uri` property of `RedirectException` in `dart:io` has been changed to
+  be nullable. Programs must be updated to handle the `null` case.
+
+- **Breaking Change** [#34218](https://github.com/dart-lang/sdk/issues/34218):
+  Constants in `dart:io`'s networking APIs following the `SCREAMING_CAPS`
+  convention have been removed (they were previously deprecated). Please use
+  the corresponding `lowerCamelCase` constants instead.
 
 - **Breaking Change** [#45630][]: The Dart VM no longer automatically restores
     the initial terminal settings upon exit. Programs that change the `Stdin`
@@ -104,32 +165,76 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 - Added `dartify` and a number of minor helper functions.
 
+#### `dart:core`
+
+- Allow omitting the `unencodedPath` positional argument to `Uri.http` and
+  `Uri.https` to default to an empty path.
+
+### Dart VM
+
+Implementation of `async`/`async*`/`sync*` is revamped in Dart VM,
+both in JIT and AOT modes. This also affects Flutter except Flutter Web.
+
+Besides smaller code size and better performance of async methods,
+the new implementation carries a few subtle changes in behavior:
+
+- If `async` method returns before reaching the first `await`, it now returns a completed Future.
+  Previously `async` methods completed resulting Future in separate microtasks.
+
+- Stack traces no longer have duplicate entries for `async` methods.
+
+- New implementation now correctly throws an error if `null` occurs as
+  an argument of a logical expression (`&&` and `||`) which also contains
+  an `await`.
+
+- New implementation avoids unnecessary extending the liveness of local
+  variables in `async`/`async*`/`sync*` methods, which means that unused
+  objects stored in local variables in such methods might be garbage
+  collected earlier than they were before
+  (see issue [#36983](https://github.com/dart-lang/sdk/issues/36983) for details).
+
 ### Tools
+
+#### Dart command line
+
+- **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The standalone `dart2js` and `dartdevc` tools have been removed as previously
+  announced. `dart2js` is replaced by the `dart compile js` command, `dartdevc`
+  is no longer exposed as a command-line tool.
+
+- **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The standalone `dartanalyzer` tool has been removed as previously
+  announced. `dartanalyzer` is replaced by the `dart analyze` command.
 
 #### Linter
 
-Updated the Linter to `1.24.0`, which includes changes that
+Updated the Linter to `1.25.0`, which includes changes that
 
-- fixes `prefer_final_parameters` to support super parameters.
-- adds new lint: `unnecessary_to_list_in_spreads`.
-- fixes `unawaited_futures` to handle string interpolated
+- add new lint: `discarded_futures`.
+- improve message and highlight range for `no_duplicate_case_values`
+- improve performance for `lines_longer_than_80_chars`,
+  `prefer_const_constructors_in_immutables`, and
+  `prefer_initializing_formals`.
+- fix `prefer_final_parameters` to support super parameters.
+- add new lint: `unnecessary_to_list_in_spreads`.
+- fix `unawaited_futures` to handle string interpolated
   futures.
-- updates `use_colored_box` to not flag nullable colors,
-- adds new lint: 
+- update `use_colored_box` to not flag nullable colors,
+- add new lint:
   `unnecessary_null_aware_operator_on_extension_on_nullable`.
-- fixes `no_leading_underscores_for_local_identifiers`
+- fix `no_leading_underscores_for_local_identifiers`
   to lint local function declarations.
-- fixes `avoid_init_to_null` to correctly handle super
+- fix `avoid_init_to_null` to correctly handle super
   initializing defaults that are non-null.
-- updates `no_leading_underscores_for_local_identifiers`
+- update `no_leading_underscores_for_local_identifiers`
   to allow identifiers with just underscores.
-- fixes `flutter_style_todos` to support usernames that
+- fix `flutter_style_todos` to support usernames that
   start with a digit.
-- updates `require_trailing_commas` to handle functions
+- update `require_trailing_commas` to handle functions
   in asserts and multi-line strings.
-- updates `unsafe_html` to allow assignments to
+- update `unsafe_html` to allow assignments to
   `img.src`.
-- fixes `unnecessary_null_checks` to properly handle map
+- fix `unnecessary_null_checks` to properly handle map
   literal entries.
 
 #### Pub
@@ -138,6 +243,29 @@ Updated the Linter to `1.24.0`, which includes changes that
   [deprecated](https://github.com/dart-lang/sdk/issues/47431) `.packages` file.
   It can still be created with the `--legacy-packages-file` flag.
 * `dart pub outdated` now shows which of your dependencies are discontinued.
+* `dart pub publish` will now list all the files it is about to publish.
+
+## 2.17.6 - 2022-07-13
+
+This is a patch release that:
+
+- Improves code completion for Flutter (issue [#49054][]).
+- Fixes a crash on ARM (issue [#106510][]).
+- Fixes a compiler crash with Finalizable parameters (issue [#49402][]).
+
+[#49054]: https://github.com/dart-lang/sdk/issues/49054
+[#106510]: https://github.com/flutter/flutter/issues/106510
+[#49402]: https://github.com/dart-lang/sdk/issues/49402
+
+## 2.17.5 - 2022-06-22
+
+This is a patch release that fixes:
+
+- Improve analysis of enums and switch (issue [#49188]).
+- Fix compiler crash when initializing Finalizable objects (issue [#49075]).
+
+[#49188]: https://github.com/dart-lang/sdk/issues/49188
+[#49075]: https://github.com/dart-lang/sdk/issues/49075
 
 ## 2.17.3 - 2022-06-01
 
@@ -2158,11 +2286,11 @@ This is a patch release that fixes the following issues:
 
 ### Dart2JS
 
-- Adds support for deferred loading of types seperately from classes. This
+- Adds support for deferred loading of types separately from classes. This
   enables dart2js to make better optimization choices when deferred loading.
   This work is necessary to address unsoundness in the deferred loading
   algorithm. Currently, fixing this unsoundness would result in code bloat, but
-  loading types seperately from classes will allow us to fix the unsoundness
+  loading types separately from classes will allow us to fix the unsoundness
   with only a minimal regression. To explicitly disable deferred loading of
   types, pass `--no-defer-class-types`. See the original post on the
   [unsoundness in the deferred loading algorithm][].

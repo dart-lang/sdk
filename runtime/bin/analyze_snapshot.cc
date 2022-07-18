@@ -52,7 +52,6 @@ static void PrintUsage() {
 "following default flags:                                                    \n"
 "--enable_mirrors=false                                                      \n"
 "--background_compilation                                                    \n"
-"--lazy_async_stacks                                                         \n"
 "--precompilation                                                            \n"
 "                                                                            \n"
 "\n");
@@ -157,7 +156,6 @@ int RunAnalyzer(int argc, char** argv) {
   if (vm_options.count() == 0) {
     vm_options.AddArgument("--enable_mirrors=false");
     vm_options.AddArgument("--background_compilation");
-    vm_options.AddArgument("--lazy_async_stacks");
     vm_options.AddArgument("--precompilation");
   }
 

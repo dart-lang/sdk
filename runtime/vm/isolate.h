@@ -1150,6 +1150,16 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return OFFSET_OF(Isolate, single_step_);
   }
 
+  void set_has_resumption_breakpoints(bool value) {
+    has_resumption_breakpoints_ = value;
+  }
+  bool has_resumption_breakpoints() const {
+    return has_resumption_breakpoints_;
+  }
+  static intptr_t has_resumption_breakpoints_offset() {
+    return OFFSET_OF(Isolate, has_resumption_breakpoints_);
+  }
+
   bool ResumeRequest() const { return LoadIsolateFlagsBit<ResumeRequestBit>(); }
   // Lets the embedder know that a service message resulted in a resume request.
   void SetResumeRequest() {
@@ -1467,6 +1477,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   bool IsPrefixLoaded(const LibraryPrefix& prefix) const;
   void SetPrefixIsLoaded(const LibraryPrefix& prefix);
 
+  MallocGrowableArray<ObjectPtr>* pointers_to_verify_at_exit() {
+    return &pointers_to_verify_at_exit_;
+  }
+
  private:
   friend class Dart;                  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().
@@ -1554,6 +1568,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // shutdown to prevent usage of dangling pointers.
   GrowableObjectArrayPtr finalizers_;
   bool single_step_ = false;
+  bool has_resumption_breakpoints_ = false;
   bool is_system_isolate_ = false;
   // End accessed from generated code.
 
@@ -1723,6 +1738,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   static bool creation_enabled_;
 
   ArrayPtr loaded_prefixes_set_storage_;
+
+  MallocGrowableArray<ObjectPtr> pointers_to_verify_at_exit_;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;

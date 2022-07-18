@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.11
-
 import 'package:args/command_runner.dart';
 
 import 'package:dart2js_info/info.dart';
@@ -33,7 +31,8 @@ class CommonCommand extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    var args = argResults.rest;
+    final argRes = argResults!;
+    final args = argRes.rest;
     if (args.length < 2) {
       usageException(
           'Missing arguments, expected two dump-info files to compare');
@@ -41,8 +40,8 @@ class CommonCommand extends Command<void> with PrintUsageException {
 
     var oldInfo = await infoFromFile(args[0]);
     var newInfo = await infoFromFile(args[1]);
-    var packagesOnly = argResults['packages-only'];
-    var orderBySize = argResults['order-by-size'];
+    var packagesOnly = argRes['packages-only'];
+    var orderBySize = argRes['order-by-size'];
 
     var commonElements = findCommonalities(oldInfo, newInfo);
 
@@ -112,7 +111,7 @@ void reportPackages(List<CommonElement> commonElements, {orderBySize = false}) {
 
   var oldSizeTotal = 0, newSizeTotal = 0;
   oldPackageInfo.forEach((oldPackageName, oldPackageSize) {
-    var newPackageSize = newPackageInfo[oldPackageName];
+    var newPackageSize = newPackageInfo[oldPackageName]!;
     oldSizeTotal += oldPackageSize;
     newSizeTotal += newPackageSize;
   });
@@ -142,7 +141,9 @@ void reportPackages(List<CommonElement> commonElements, {orderBySize = false}) {
 }
 
 void _section(String title,
-    {int elementCount, int oldSizeTotal, int newSizeTotal}) {
+    {required int elementCount,
+    required int oldSizeTotal,
+    required int newSizeTotal}) {
   if (oldSizeTotal == newSizeTotal) {
     print('$title ($elementCount common elements, $oldSizeTotal bytes)');
   } else {

@@ -11,7 +11,6 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:package1/lib1.dart";
         import "package:package1/lib2.dart";
         import "package:package1/lib3.dart";
@@ -21,23 +20,28 @@ worlds:
           lib3();
         }
       package1/lib1.dart: |
-        // @dart=2.9
         lib1() {
           return 42;
         }
       package1/lib2.dart: |
-        // @dart=2.9
         lib2() {
           return 42;
         }
       package1/lib3.dart: |
-        // @dart=2.9
         import "package:package1/lib1.dart";
         lib3() {
           return lib1();
         }
-      .packages: |
-        package1:package1
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "package1",
+              "rootUri": "../package1"
+            }
+          ]
+        }
     expectedLibraryCount: 4
     incrementalSerializationDoesWork: true
   - entry: main.dart
@@ -47,7 +51,6 @@ worlds:
       - package:package1/lib3.dart
     sources:
       package1/lib3.dart: |
-        // @dart=2.9
         import "package:package1/lib1.dart";
         lib3() {
           return lib3_1();

@@ -35,10 +35,6 @@ assertDebugMode(String message) {
 ///
 ///     failedAt(position, message);
 ///
-/// or, if the enclosing function requires a result or control flow:
-///
-///     throw failedAt(position, message);
-///
-bool failedAt(Spannable spannable, [String? message]) {
+Never failedAt(Spannable spannable, [String? message]) {
   throw SpannableAssertionFailure(spannable, message);
 }

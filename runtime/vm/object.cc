@@ -3907,6 +3907,10 @@ bool Library::FindPragma(Thread* T,
 
   auto& metadata = Array::Cast(metadata_obj);
   auto& pragma_class = Class::Handle(Z, IG->object_store()->pragma_class());
+  if (pragma_class.IsNull()) {
+    // Precompiler may drop pragma class.
+    return false;
+  }
   auto& pragma_name_field =
       Field::Handle(Z, pragma_class.LookupField(Symbols::name()));
   auto& pragma_options_field =
@@ -12460,8 +12464,12 @@ void Library::set_name(const String& name) const {
   untag()->set_name(name.ptr());
 }
 
-void Library::set_url(const String& name) const {
-  untag()->set_url(name.ptr());
+void Library::set_url(const String& url) const {
+  untag()->set_url(url.ptr());
+}
+
+void Library::set_private_key(const String& key) const {
+  untag()->set_private_key(key.ptr());
 }
 
 void Library::set_kernel_data(const ExternalTypedData& data) const {
@@ -18592,6 +18600,60 @@ ObjectPtr LoadingUnit::CompleteLoad(const String& error_message,
   args.SetAt(1, error_message);
   args.SetAt(2, Bool::Get(transient_error));
   return DartEntry::InvokeFunction(func, args);
+}
+
+// The assignment to loading units here must match that in
+// AssignLoadingUnitsCodeVisitor, which runs after compilation is done.
+intptr_t LoadingUnit::LoadingUnitOf(const Function& function) {
+  Thread* thread = Thread::Current();
+  REUSABLE_CLASS_HANDLESCOPE(thread);
+  REUSABLE_LIBRARY_HANDLESCOPE(thread);
+  REUSABLE_LOADING_UNIT_HANDLESCOPE(thread);
+
+  Class& cls = thread->ClassHandle();
+  Library& lib = thread->LibraryHandle();
+  LoadingUnit& unit = thread->LoadingUnitHandle();
+
+  cls = function.Owner();
+  lib = cls.library();
+  unit = lib.loading_unit();
+  ASSERT(!unit.IsNull());
+  return unit.id();
+}
+
+intptr_t LoadingUnit::LoadingUnitOf(const Code& code) {
+  if (code.IsStubCode() || code.IsTypeTestStubCode()) {
+    return LoadingUnit::kRootId;
+  } else {
+    Thread* thread = Thread::Current();
+    REUSABLE_FUNCTION_HANDLESCOPE(thread);
+    REUSABLE_CLASS_HANDLESCOPE(thread);
+    REUSABLE_LIBRARY_HANDLESCOPE(thread);
+    REUSABLE_LOADING_UNIT_HANDLESCOPE(thread);
+
+    Class& cls = thread->ClassHandle();
+    Library& lib = thread->LibraryHandle();
+    LoadingUnit& unit = thread->LoadingUnitHandle();
+    Function& func = thread->FunctionHandle();
+
+    if (code.IsAllocationStubCode()) {
+      cls ^= code.owner();
+      lib = cls.library();
+      unit = lib.loading_unit();
+      ASSERT(!unit.IsNull());
+      return unit.id();
+    } else if (code.IsFunctionCode()) {
+      func ^= code.function();
+      cls = func.Owner();
+      lib = cls.library();
+      unit = lib.loading_unit();
+      ASSERT(!unit.IsNull());
+      return unit.id();
+    } else {
+      UNREACHABLE();
+      return LoadingUnit::kIllegalId;
+    }
+  }
 }
 
 const char* Error::ToErrorCString() const {
@@ -26055,18 +26117,69 @@ SuspendStatePtr SuspendState::New(intptr_t frame_size,
                                   const Instance& function_data,
                                   Heap::Space space) {
   SuspendState& result = SuspendState::Handle();
+  const intptr_t instance_size = SuspendState::InstanceSize(
+      frame_size + SuspendState::FrameSizeGrowthGap());
   {
-    ObjectPtr raw = Object::Allocate(
-        SuspendState::kClassId, SuspendState::InstanceSize(frame_size), space,
-        SuspendState::ContainsCompressedPointers());
+    ObjectPtr raw =
+        Object::Allocate(SuspendState::kClassId, instance_size, space,
+                         SuspendState::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    // Include heap object alignment overhead into the frame capacity.
+    const intptr_t frame_capacity =
+        instance_size - SuspendState::payload_offset();
+    ASSERT(SuspendState::InstanceSize(frame_capacity) == instance_size);
+    ASSERT(frame_size <= frame_capacity);
+    result.set_frame_capacity(frame_capacity);
+#endif
     result.set_frame_size(frame_size);
     result.set_pc(0);
     result.set_function_data(function_data);
   }
   return result.ptr();
 }
+
+SuspendStatePtr SuspendState::Clone(Thread* thread,
+                                    const SuspendState& src,
+                                    Heap::Space space) {
+  ASSERT(src.pc() != 0);
+  Zone* zone = thread->zone();
+  const intptr_t frame_size = src.frame_size();
+  const SuspendState& dst = SuspendState::Handle(
+      zone,
+      SuspendState::New(frame_size, Instance::Handle(zone, src.function_data()),
+                        space));
+  dst.set_then_callback(Closure::Handle(zone, src.then_callback()));
+  dst.set_error_callback(Closure::Handle(zone, src.error_callback()));
+  {
+    NoSafepointScope no_safepoint;
+    memmove(dst.payload(), src.payload(), frame_size);
+    // Update value of :suspend_state variable in the copied frame.
+    const uword fp = reinterpret_cast<uword>(dst.payload() + frame_size);
+    *reinterpret_cast<ObjectPtr*>(
+        LocalVarAddress(fp, runtime_frame_layout.FrameSlotForVariableIndex(
+                                kSuspendStateVarIndex))) = dst.ptr();
+    dst.set_pc(src.pc());
+    // Trigger write barrier if needed.
+    if (dst.ptr()->IsOldObject()) {
+      if (!dst.untag()->IsRemembered()) {
+        dst.untag()->EnsureInRememberedSet(thread);
+      }
+      if (thread->is_marking()) {
+        thread->DeferredMarkingStackAddObject(dst.ptr());
+      }
+    }
+  }
+  return dst.ptr();
+}
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+void SuspendState::set_frame_capacity(intptr_t frame_capcity) const {
+  ASSERT(frame_capcity >= 0);
+  StoreNonPointer(&untag()->frame_capacity_, frame_capcity);
+}
+#endif
 
 void SuspendState::set_frame_size(intptr_t frame_size) const {
   ASSERT(frame_size >= 0);
@@ -26079,6 +26192,14 @@ void SuspendState::set_pc(uword pc) const {
 
 void SuspendState::set_function_data(const Instance& function_data) const {
   untag()->set_function_data(function_data.ptr());
+}
+
+void SuspendState::set_then_callback(const Closure& then_callback) const {
+  untag()->set_then_callback(then_callback.ptr());
+}
+
+void SuspendState::set_error_callback(const Closure& error_callback) const {
+  untag()->set_error_callback(error_callback.ptr());
 }
 
 const char* SuspendState::ToCString() const {
@@ -26094,8 +26215,10 @@ CodePtr SuspendState::GetCodeObject() const {
   ASSERT(code != Code::null());
   return code;
 #else
-  UNIMPLEMENTED();
-  return Code::null();
+  ObjectPtr code = *(reinterpret_cast<ObjectPtr*>(
+      untag()->payload() + untag()->frame_size_ +
+      runtime_frame_layout.code_from_fp * kWordSize));
+  return Code::RawCast(code);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 

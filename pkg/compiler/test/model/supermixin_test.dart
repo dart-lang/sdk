@@ -23,7 +23,7 @@ class SuperB extends SuperA {
   method1(a) => 'B$a';
 }
 
-class Mixin extends SuperA {
+mixin Mixin on SuperA {
   method1(a) => super.method1('M$a');
   method2(a) => 'M$a';
 }
@@ -55,8 +55,10 @@ main() {
 
     Expect.isTrue(elementEnvironment.isMixinApplicationWithMembers(superClass));
     Expect.equals(mixin, elementEnvironment.getEffectiveMixinClass(superClass));
-    Expect.equals(superA, elementEnvironment.getSuperClass(mixin));
     Expect.equals(superB, elementEnvironment.getSuperClass(superClass));
+    Expect.equals(superA, elementEnvironment.getSuperClass(superB));
+    Expect.equals(elementEnvironment.getSuperClass(superA),
+        elementEnvironment.getSuperClass(mixin));
 
     MemberEntity method1 = lookupMember(elementEnvironment, 'Class.method1');
     Expect.equals(superClass, method1.enclosingClass);

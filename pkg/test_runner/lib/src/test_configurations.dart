@@ -28,31 +28,32 @@ export 'configuration.dart' show TestConfiguration;
 /// simpler to add them to test.dart. Existing test suites should be moved to
 /// here, if possible.
 final testSuiteDirectories = [
-  Path('third_party/pkg/dartdoc'),
   Path('pkg'),
-  Path('third_party/pkg_tested'),
-  Path('runtime/tests/vm'),
-  Path('runtime/observatory/tests/service'),
   Path('runtime/observatory/tests/observatory_ui'),
-  Path('runtime/observatory_2/tests/service_2'),
+  Path('runtime/observatory/tests/service'),
   Path('runtime/observatory_2/tests/observatory_ui_2'),
+  Path('runtime/observatory_2/tests/service_2'),
+  Path('runtime/tests/vm'),
   Path('samples'),
-  Path('samples_2'),
   Path('samples-dev'),
+  Path('samples_2'),
   Path('tests/corelib'),
   Path('tests/corelib_2'),
-  Path('tests/web'),
-  Path('tests/web_2'),
   Path('tests/dartdevc'),
   Path('tests/dartdevc_2'),
+  Path('tests/ffi'),
+  Path('tests/ffi_2'),
   Path('tests/language'),
   Path('tests/language_2'),
   Path('tests/lib'),
   Path('tests/lib_2'),
   Path('tests/standalone'),
   Path('tests/standalone_2'),
-  Path('tests/ffi'),
-  Path('tests/ffi_2'),
+  Path('tests/web'),
+  Path('tests/web_2'),
+  Path('third_party/pkg/dart_style'),
+  Path('third_party/pkg/dartdoc'),
+  Path('third_party/pkg/package_config'),
   Path('utils/tests/peg'),
 ];
 
@@ -103,12 +104,13 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     exit(1);
   }
 
-  var services = <WebDriverService>{};
+  var services = <Future<WebDriverService>>{};
   for (var configuration in configurations) {
     if (!listTests && !listStatusFiles && runningBrowserTests) {
       serverFutures.add(configuration.startServers());
       if (WebDriverService.supportedRuntimes.contains(configuration.runtime)) {
-        services.add(WebDriverService.fromRuntime(configuration.runtime));
+        services.add(
+            WebDriverService.startServiceForRuntime(configuration.runtime));
       }
     }
 
@@ -131,11 +133,14 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       // Issue: https://github.com/dart-lang/sdk/issues/23891
       // This change does not fix the problem.
       maxBrowserProcesses = math.max(1, maxBrowserProcesses ~/ 2);
+    } else if (configuration.runtime == Runtime.chromeOnAndroid) {
+      maxBrowserProcesses =
+          math.min(maxBrowserProcesses, (await AdbHelper.listDevices()).length);
     }
 
     // If we specifically pass in a suite only run that.
     if (configuration.suiteDirectory != null) {
-      var suitePath = Path(configuration.suiteDirectory);
+      var suitePath = Path(configuration.suiteDirectory!);
       testSuites.add(PackageTestSuite(configuration, suitePath));
     } else {
       for (var testSuiteDir in testSuiteDirectories) {
@@ -177,8 +182,8 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   }
 
   for (var service in services) {
-    serverFutures.add(service.start());
-    eventListeners.add(service);
+    serverFutures.add(service);
+    service.then(eventListeners.add);
   }
 
   // If we only need to print out status files for test suites
@@ -264,7 +269,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
 
   // If any of the configurations need to access android devices we'll first
   // make a pool of all available adb devices.
-  AdbDevicePool adbDevicePool;
+  AdbDevicePool? adbDevicePool;
   var needsAdbDevicePool = configurations.any((conf) {
     return conf.system == System.android;
   });

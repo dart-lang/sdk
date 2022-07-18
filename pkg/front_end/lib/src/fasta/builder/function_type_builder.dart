@@ -5,28 +5,21 @@
 library fasta.function_type_builder;
 
 import 'package:kernel/ast.dart'
-    show
-        DartType,
-        DynamicType,
-        FunctionType,
-        NamedType,
-        Supertype,
-        TypeParameter;
+    show DartType, FunctionType, NamedType, Supertype, TypeParameter;
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/unaliasing.dart';
 
 import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
-
+import '../kernel/implicit_field_type.dart';
 import '../source/source_library_builder.dart';
-
 import 'formal_parameter_builder.dart';
 import 'library_builder.dart';
 import 'named_type_builder.dart';
 import 'nullability_builder.dart';
-import 'omitted_type_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
 
-class FunctionTypeBuilder extends TypeBuilder {
+abstract class FunctionTypeBuilder extends TypeBuilder {
   final TypeBuilder returnType;
   final List<TypeVariableBuilder>? typeVariables;
   final List<ParameterBuilder>? formals;
@@ -37,9 +30,41 @@ class FunctionTypeBuilder extends TypeBuilder {
   @override
   final int charOffset;
 
-  FunctionType? _type;
+  factory FunctionTypeBuilder(
+      TypeBuilder returnType,
+      List<TypeVariableBuilder>? typeVariables,
+      List<ParameterBuilder>? formals,
+      NullabilityBuilder nullabilityBuilder,
+      Uri? fileUri,
+      int charOffset) {
+    bool isExplicit = true;
+    if (!returnType.isExplicit) {
+      isExplicit = false;
+    }
+    if (isExplicit && formals != null) {
+      for (ParameterBuilder formal in formals) {
+        if (!formal.type.isExplicit) {
+          isExplicit = false;
+          break;
+        }
+      }
+    }
+    if (isExplicit && typeVariables != null) {
+      for (TypeVariableBuilder typeVariable in typeVariables) {
+        if (!(typeVariable.bound?.isExplicit ?? true)) {
+          isExplicit = false;
+          break;
+        }
+      }
+    }
+    return isExplicit
+        ? new _ExplicitFunctionTypeBuilder(returnType, typeVariables, formals,
+            nullabilityBuilder, fileUri, charOffset)
+        : new _InferredFunctionTypeBuilder(returnType, typeVariables, formals,
+            nullabilityBuilder, fileUri, charOffset);
+  }
 
-  FunctionTypeBuilder(this.returnType, this.typeVariables, this.formals,
+  FunctionTypeBuilder._(this.returnType, this.typeVariables, this.formals,
       this.nullabilityBuilder, this.fileUri, this.charOffset);
 
   @override
@@ -85,30 +110,26 @@ class FunctionTypeBuilder extends TypeBuilder {
     return buffer;
   }
 
-  @override
-  FunctionType build(LibraryBuilder library, TypeUse typeUse) {
-    return _type ??= _buildInternal(library, typeUse) as FunctionType;
-  }
-
-  DartType _buildInternal(LibraryBuilder library, TypeUse typeUse) {
-    DartType aliasedType = buildAliased(library, typeUse);
+  DartType _buildInternal(
+      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
+    DartType aliasedType = buildAliased(library, typeUse, hierarchy);
     return unalias(aliasedType,
         legacyEraseAliases: !library.isNonNullableByDefault);
   }
 
   @override
-  DartType buildAliased(LibraryBuilder library, TypeUse typeUse) {
-    DartType builtReturnType = returnType is OmittedTypeBuilder
-        ? const DynamicType()
-        : returnType.buildAliased(library, TypeUse.returnType);
+  DartType buildAliased(
+      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
+    assert(hierarchy != null || isExplicit, "Cannot build $this.");
+    DartType builtReturnType =
+        returnType.buildAliased(library, TypeUse.returnType, hierarchy);
     List<DartType> positionalParameters = <DartType>[];
     List<NamedType>? namedParameters;
     int requiredParameterCount = 0;
     if (formals != null) {
       for (ParameterBuilder formal in formals!) {
-        DartType type = formal.type is OmittedTypeBuilder
-            ? const DynamicType()
-            : formal.type.buildAliased(library, TypeUse.parameterType);
+        DartType type =
+            formal.type.buildAliased(library, TypeUse.parameterType, hierarchy);
         if (formal.isPositional) {
           positionalParameters.add(type);
           if (formal.isRequiredPositional) requiredParameterCount++;
@@ -183,5 +204,68 @@ class FunctionTypeBuilder extends TypeBuilder {
       NullabilityBuilder nullabilityBuilder) {
     return new FunctionTypeBuilder(returnType, typeVariables, formals,
         nullabilityBuilder, fileUri, charOffset);
+  }
+}
+
+/// A function type that is defined without the need for type inference.
+///
+/// This is the normal function type whose return type or parameter types are
+/// either explicit or omitted.
+class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilder {
+  _ExplicitFunctionTypeBuilder(
+      TypeBuilder returnType,
+      List<TypeVariableBuilder>? typeVariables,
+      List<ParameterBuilder>? formals,
+      NullabilityBuilder nullabilityBuilder,
+      Uri? fileUri,
+      int charOffset)
+      : super._(returnType, typeVariables, formals, nullabilityBuilder, fileUri,
+            charOffset);
+
+  @override
+  bool get isExplicit => true;
+
+  DartType? _type;
+
+  @override
+  DartType build(LibraryBuilder library, TypeUse typeUse,
+      {ClassHierarchyBase? hierarchy}) {
+    return _type ??= _buildInternal(library, typeUse, hierarchy);
+  }
+}
+
+/// A function type that needs type inference to be fully defined.
+///
+/// This occurs through macros where return type or parameter types can be
+/// defined in terms of inferred types, making this type indirectly depend
+/// on type inference.
+class _InferredFunctionTypeBuilder extends FunctionTypeBuilder
+    with InferableTypeBuilderMixin {
+  _InferredFunctionTypeBuilder(
+      TypeBuilder returnType,
+      List<TypeVariableBuilder>? typeVariables,
+      List<ParameterBuilder>? formals,
+      NullabilityBuilder nullabilityBuilder,
+      Uri? fileUri,
+      int charOffset)
+      : super._(returnType, typeVariables, formals, nullabilityBuilder, fileUri,
+            charOffset);
+
+  @override
+  bool get isExplicit => false;
+
+  @override
+  DartType build(LibraryBuilder library, TypeUse typeUse,
+      {ClassHierarchyBase? hierarchy}) {
+    if (hasType) {
+      return type;
+    } else if (hierarchy != null) {
+      return registerType(_buildInternal(library, typeUse, hierarchy));
+    } else {
+      InferableTypeUse inferableTypeUse =
+          new InferableTypeUse(library as SourceLibraryBuilder, this, typeUse);
+      library.registerInferableType(inferableTypeUse);
+      return new InferredType.fromInferableTypeUse(inferableTypeUse);
+    }
   }
 }

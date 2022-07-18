@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:typed_data';
 
 import 'package:dart2wasm/class_info.dart';
@@ -97,6 +99,8 @@ class Translator {
   late final Class interfaceTypeClass;
   late final Class functionTypeClass;
   late final Class genericFunctionTypeClass;
+  late final Class interfaceTypeParameterTypeClass;
+  late final Class genericFunctionTypeParameterTypeClass;
   late final Class namedParameterClass;
   late final Class stackTraceClass;
   late final Class ffiCompoundClass;
@@ -119,8 +123,8 @@ class Translator {
   late final Procedure setFactory;
   late final Procedure setAdd;
   late final Procedure hashImmutableIndexNullable;
-  // TODO(joshualitt): Wire up runtime type checks.
   late final Procedure isSubtype;
+  late final Procedure objectRuntimeType;
   late final Map<Class, w.StorageType> builtinTypes;
   late final Map<w.ValueType, Class> boxedClasses;
 
@@ -213,6 +217,9 @@ class Translator {
     interfaceTypeClass = lookupCore("_InterfaceType");
     functionTypeClass = lookupCore("_FunctionType");
     genericFunctionTypeClass = lookupCore("_GenericFunctionType");
+    interfaceTypeParameterTypeClass = lookupCore("_InterfaceTypeParameterType");
+    genericFunctionTypeParameterTypeClass =
+        lookupCore("_GenericFunctionTypeParameterType");
     namedParameterClass = lookupCore("_NamedParameter");
     stackTraceClass = lookupCore("StackTrace");
     typeUniverseClass = lookupCore("_TypeUniverse");
@@ -256,6 +263,9 @@ class Translator {
         .firstWhere((l) => l.name == "dart.core")
         .procedures
         .firstWhere((p) => p.name.text == "_isSubtype");
+    objectRuntimeType = lookupCore("Object")
+        .procedures
+        .firstWhere((p) => p.name.text == "_runtimeType");
     builtinTypes = {
       coreTypes.boolClass: w.NumType.i32,
       coreTypes.intClass: w.NumType.i64,
@@ -532,7 +542,9 @@ class Translator {
   }
 
   w.ArrayType arrayTypeForDartType(DartType type) {
-    while (type is TypeParameterType) type = type.bound;
+    while (type is TypeParameterType) {
+      type = type.bound;
+    }
     return wasmArrayType(
         translateStorageType(type), type.toText(defaultAstTextStrategy));
   }

@@ -29,7 +29,7 @@ environment:
     writeFile(testPath, '''
 Future<int> zero() async => 0;
 ''');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     // There is a hint with this SDK version constraint.
     await analysisFinished;

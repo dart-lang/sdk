@@ -130,7 +130,7 @@ extension MyExt on A {
       checkInstanceValue(t0);
     }
 
-    // Extension members are ambigious.
+    // Extension members are ambiguous.
     {
       // Error cases tested in static_extension_internal_resolution_4_error_test.dart
     }
@@ -168,7 +168,7 @@ extension MyExt on A {
       checkInstanceValue(t0);
     }
 
-    // Extension members are ambigious.
+    // Extension members are ambiguous.
     {
       // Error cases tested in static_extension_internal_resolution_4_error_test.dart
     }
@@ -219,7 +219,7 @@ class B extends A {
       checkInstanceValue(t0);
     }
 
-    // Extension members are ambigious.
+    // Extension members are ambiguous.
     {
       // Error cases tested in static_extension_internal_resolution_4_error_test.dart
     }
@@ -263,7 +263,7 @@ void main() {
     checkInstanceValue(t2);
   }
 
-  // Extension members are ambigious.
+  // Extension members are ambiguous.
   {
     // Error cases tested in static_extension_internal_resolution_4_error_test.dart
   }

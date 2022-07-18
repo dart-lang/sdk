@@ -227,6 +227,10 @@ abstract class NamedNode extends TreeNode {
   void _relinkNode() {
     this.reference.node = this;
   }
+
+  /// Computes the canonical names for this node using the [parent] as the
+  /// canonical name of the parent node.
+  void bindCanonicalNames(CanonicalName parent);
 }
 
 abstract class FileUriNode extends TreeNode {
@@ -489,36 +493,28 @@ class Library extends NamedNode
     typedefs.add(typedef_);
   }
 
-  void computeCanonicalNames() {
-    CanonicalName canonicalName = this.reference.canonicalName!;
+  @override
+  CanonicalName bindCanonicalNames(CanonicalName parent) {
+    return parent.getChildFromUri(importUri)..bindTo(reference);
+  }
+
+  /// Computes the canonical name for this library and all its members.
+  void ensureCanonicalNames(CanonicalName parent) {
+    CanonicalName canonicalName = bindCanonicalNames(parent);
     for (int i = 0; i < typedefs.length; ++i) {
-      Typedef typedef_ = typedefs[i];
-      canonicalName.getChildFromTypedef(typedef_).bindTo(typedef_.reference);
+      typedefs[i].bindCanonicalNames(canonicalName);
     }
     for (int i = 0; i < fields.length; ++i) {
-      Field field = fields[i];
-      canonicalName.getChildFromField(field).bindTo(field.fieldReference);
-      canonicalName
-          .getChildFromFieldGetter(field)
-          .bindTo(field.getterReference);
-      if (field.hasSetter) {
-        canonicalName
-            .getChildFromFieldSetter(field)
-            .bindTo(field.setterReference!);
-      }
+      fields[i].bindCanonicalNames(canonicalName);
     }
     for (int i = 0; i < procedures.length; ++i) {
-      Procedure member = procedures[i];
-      canonicalName.getChildFromProcedure(member).bindTo(member.reference);
+      procedures[i].bindCanonicalNames(canonicalName);
     }
     for (int i = 0; i < classes.length; ++i) {
-      Class class_ = classes[i];
-      canonicalName.getChild(class_.name).bindTo(class_.reference);
-      class_.computeCanonicalNames();
+      classes[i].ensureCanonicalNames(canonicalName);
     }
     for (int i = 0; i < extensions.length; ++i) {
-      Extension extension = extensions[i];
-      canonicalName.getChild(extension.name).bindTo(extension.reference);
+      extensions[i].bindCanonicalNames(canonicalName);
     }
   }
 
@@ -854,6 +850,11 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
     setParents(this.typeParameters, this);
   }
 
+  @override
+  void bindCanonicalNames(CanonicalName parent) {
+    parent.getChildFromTypedef(this).bindTo(reference);
+  }
+
   Library get enclosingLibrary => parent as Library;
 
   @override
@@ -1071,7 +1072,11 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
         : (flags & ~FlagHasConstConstructor);
   }
 
-  List<Supertype> superclassConstraints() {
+  /// If this class is a mixin declaration, this list contains the types from
+  /// the `on` clause. Otherwise the list is empty.
+  List<Supertype> get onClause => _onClause ??= _computeOnClause();
+
+  List<Supertype> _computeOnClause() {
     List<Supertype> constraints = <Supertype>[];
 
     // Not a mixin declaration.
@@ -1107,6 +1112,8 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 
   /// The types from the `implements` clause.
   List<Supertype> implementedTypes;
+
+  List<Supertype>? _onClause;
 
   /// Internal. Should *ONLY* be used from within kernel.
   ///
@@ -1247,34 +1254,26 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     this.isAnonymousMixin = isAnonymousMixin;
   }
 
-  void computeCanonicalNames() {
-    CanonicalName canonicalName = this.reference.canonicalName!;
+  @override
+  CanonicalName bindCanonicalNames(CanonicalName parent) {
+    return parent.getChild(name)..bindTo(reference);
+  }
+
+  /// Computes the canonical name for this class and all its members.
+  void ensureCanonicalNames(CanonicalName parent) {
+    CanonicalName canonicalName = bindCanonicalNames(parent);
     if (!dirty) return;
     for (int i = 0; i < fields.length; ++i) {
-      Field member = fields[i];
-      canonicalName.getChildFromField(member).bindTo(member.fieldReference);
-      canonicalName
-          .getChildFromFieldGetter(member)
-          .bindTo(member.getterReference);
-      if (member.hasSetter) {
-        canonicalName
-            .getChildFromFieldSetter(member)
-            .bindTo(member.setterReference!);
-      }
+      fields[i].bindCanonicalNames(canonicalName);
     }
     for (int i = 0; i < procedures.length; ++i) {
-      Procedure member = procedures[i];
-      canonicalName.getChildFromProcedure(member).bindTo(member.reference);
+      procedures[i].bindCanonicalNames(canonicalName);
     }
     for (int i = 0; i < constructors.length; ++i) {
-      Constructor member = constructors[i];
-      canonicalName.getChildFromConstructor(member).bindTo(member.reference);
+      constructors[i].bindCanonicalNames(canonicalName);
     }
     for (int i = 0; i < redirectingFactories.length; ++i) {
-      RedirectingFactory member = redirectingFactories[i];
-      canonicalName
-          .getChildFromRedirectingFactory(member)
-          .bindTo(member.reference);
+      redirectingFactories[i].bindCanonicalNames(canonicalName);
     }
     dirty = false;
   }
@@ -1574,6 +1573,11 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
     if (onType != null) {
       this.onType = onType;
     }
+  }
+
+  @override
+  void bindCanonicalNames(CanonicalName parent) {
+    parent.getChild(name).bindTo(reference);
   }
 
   Library get enclosingLibrary => parent as Library;
@@ -1999,6 +2003,13 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   bool get isNonNullableByDefault;
   void set isNonNullableByDefault(bool value);
 
+  /// If `true` this procedure is not part of the interface but only part of the
+  /// class members.
+  ///
+  /// This is `true` for instance for augmented procedures and synthesized
+  /// fields added for the late lowering.
+  bool get isInternalImplementation => false;
+
   /// The function signature and body of the procedure or constructor, or `null`
   /// if this is a field.
   FunctionNode? get function => null;
@@ -2193,6 +2204,15 @@ class Field extends Member {
   }
 
   @override
+  void bindCanonicalNames(CanonicalName parent) {
+    parent.getChildFromField(this).bindTo(fieldReference);
+    parent.getChildFromFieldGetter(this).bindTo(getterReference);
+    if (hasSetter) {
+      parent.getChildFromFieldSetter(this).bindTo(setterReference!);
+    }
+  }
+
+  @override
   void _relinkNode() {
     this.fieldReference.node = this;
     this.getterReference.node = this;
@@ -2234,11 +2254,12 @@ class Field extends Member {
   /// Whether the field is declared with the `late` keyword.
   bool get isLate => flags & FlagLate != 0;
 
-  // If `true` this field is not part of the interface but only part of the
-  // class members.
-  //
-  // This is `true` for instance for synthesized fields added for the late
-  // lowering.
+  /// If `true` this field is not part of the interface but only part of the
+  /// class members.
+  ///
+  /// This is `true` for instance for synthesized fields added for the late
+  /// lowering.
+  @override
   bool get isInternalImplementation => flags & FlagInternalImplementation != 0;
 
   void set isCovariantByDeclaration(bool value) {
@@ -2407,6 +2428,11 @@ class Constructor extends Member {
   }
 
   @override
+  void bindCanonicalNames(CanonicalName parent) {
+    parent.getChildFromConstructor(this).bindTo(reference);
+  }
+
+  @override
   Class get enclosingClass => parent as Class;
 
   static const int FlagConst = 1 << 0; // Must match serialized bit positions.
@@ -2571,6 +2597,11 @@ class RedirectingFactory extends Member {
     this.isConst = isConst;
     this.isExternal = isExternal;
     this.transformerFlags = transformerFlags;
+  }
+
+  @override
+  void bindCanonicalNames(CanonicalName parent) {
+    parent.getChildFromRedirectingFactory(this).bindTo(reference);
   }
 
   @override
@@ -2881,38 +2912,13 @@ class Procedure extends Member {
   /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
   /// start offset is not available (this is the default if none is specifically
   /// set).
-  int startFileOffset = TreeNode.noOffset;
+  int fileStartOffset = TreeNode.noOffset;
 
   final ProcedureKind kind;
   int flags = 0;
 
   @override
   FunctionNode function;
-
-  // The function node's body might be lazily loaded, meaning that this value
-  // might not be set correctly yet. Make sure the body is loaded before
-  // returning anything.
-  @override
-  int get transformerFlags {
-    function.body;
-    return super.transformerFlags;
-  }
-
-  // The function node's body might be lazily loaded, meaning that this value
-  // might get overwritten later (when the body is read). To avoid that read the
-  // body now and only set the value afterwards.
-  @override
-  void set transformerFlags(int newValue) {
-    function.body;
-    super.transformerFlags = newValue;
-  }
-
-  // This function will set the transformer flags without loading the body.
-  // Used when reading the binary. For other cases one should probably use
-  // `transformerFlags = value;`.
-  void setTransformerFlagsWithoutLazyLoading(int newValue) {
-    super.transformerFlags = newValue;
-  }
 
   ProcedureStubKind stubKind;
   Reference? stubTargetReference;
@@ -3002,6 +3008,36 @@ class Procedure extends Member {
         "$memberSignatureOrigin for $this.");
   }
 
+  // The function node's body might be lazily loaded, meaning that this value
+  // might not be set correctly yet. Make sure the body is loaded before
+  // returning anything.
+  @override
+  int get transformerFlags {
+    function.body;
+    return super.transformerFlags;
+  }
+
+  // The function node's body might be lazily loaded, meaning that this value
+  // might get overwritten later (when the body is read). To avoid that read the
+  // body now and only set the value afterwards.
+  @override
+  void set transformerFlags(int newValue) {
+    function.body;
+    super.transformerFlags = newValue;
+  }
+
+  // This function will set the transformer flags without loading the body.
+  // Used when reading the binary. For other cases one should probably use
+  // `transformerFlags = value;`.
+  void setTransformerFlagsWithoutLazyLoading(int newValue) {
+    super.transformerFlags = newValue;
+  }
+
+  @override
+  void bindCanonicalNames(CanonicalName parent) {
+    parent.getChildFromProcedure(this).bindTo(reference);
+  }
+
   static const int FlagStatic = 1 << 0; // Must match serialized bit positions.
   static const int FlagAbstract = 1 << 1;
   static const int FlagExternal = 1 << 2;
@@ -3011,6 +3047,7 @@ class Procedure extends Member {
   static const int FlagExtensionMember = 1 << 5;
   static const int FlagNonNullableByDefault = 1 << 6;
   static const int FlagSynthetic = 1 << 7;
+  static const int FlagInternalImplementation = 1 << 8;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3064,6 +3101,19 @@ class Procedure extends Member {
 
   bool get isNoSuchMethodForwarder =>
       stubKind == ProcedureStubKind.NoSuchMethodForwarder;
+
+  /// If `true` this procedure is not part of the interface but only part of the
+  /// class members.
+  ///
+  /// This is `true` for instance for augmented procedures.
+  @override
+  bool get isInternalImplementation => flags & FlagInternalImplementation != 0;
+
+  void set isInternalImplementation(bool value) {
+    flags = value
+        ? (flags | FlagInternalImplementation)
+        : (flags & ~FlagInternalImplementation);
+  }
 
   @override
   bool get isExtensionMember => flags & FlagExtensionMember != 0;
@@ -4275,6 +4325,10 @@ enum DynamicAccessKind {
   /// type.
   Invalid,
 
+  /// An access of an unresolved target.
+  ///
+  /// An access of this kind always results in a value of an invalid static
+  /// type.
   Unresolved,
 }
 
@@ -4345,11 +4399,13 @@ class DynamicGet extends Expression {
   }
 }
 
-/// An property read of an instance getter or field with a statically known
+/// A property read of an instance getter or field with a statically known
 /// interface target.
 class InstanceGet extends Expression {
   final InstanceAccessKind kind;
   Expression receiver;
+
+  // TODO(johnniwinther): Can we pull this from the [interfaceTarget] instead?
   Name name;
 
   /// The static type of result of the property read.
@@ -4510,6 +4566,8 @@ class FunctionTearOff extends Expression {
 class InstanceTearOff extends Expression {
   final InstanceAccessKind kind;
   Expression receiver;
+
+  // TODO(johnniwinther): Can we pull this from the [interfaceTarget] instead?
   Name name;
 
   /// The static type of result of the tear-off.
@@ -4683,6 +4741,8 @@ class DynamicSet extends Expression {
 class InstanceSet extends Expression {
   final InstanceAccessKind kind;
   Expression receiver;
+
+  // TODO(johnniwinther): Can we pull this from the [interfaceTarget] instead?
   Name name;
   Expression value;
 
@@ -4801,28 +4861,23 @@ class InstanceSet extends Expression {
 class AbstractSuperPropertyGet extends Expression {
   Name name;
 
-  Reference? interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  AbstractSuperPropertyGet(Name name, [Member? interfaceTarget])
-      : this.byReference(name, getMemberReferenceGetter(interfaceTarget));
+  AbstractSuperPropertyGet(Name name, Member interfaceTarget)
+      : this.byReference(
+            name, getNonNullableMemberReferenceGetter(interfaceTarget));
 
   AbstractSuperPropertyGet.byReference(
       this.name, this.interfaceTargetReference);
 
-  Member? get interfaceTarget => interfaceTargetReference?.asMember;
+  Member get interfaceTarget => interfaceTargetReference.asMember;
 
-  void set interfaceTarget(Member? member) {
-    interfaceTargetReference = getMemberReferenceGetter(member);
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getNonNullableMemberReferenceGetter(member);
   }
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    Member? interfaceTarget = this.interfaceTarget;
-    if (interfaceTarget == null) {
-      // TODO(johnniwinther): SuperPropertyGet without a target should be
-      // replaced by invalid expressions.
-      return const DynamicType();
-    }
     Class declaringClass = interfaceTarget.enclosingClass!;
     if (declaringClass.typeParameters.isEmpty) {
       return interfaceTarget.getterType;
@@ -4843,7 +4898,7 @@ class AbstractSuperPropertyGet extends Expression {
 
   @override
   void visitChildren(Visitor v) {
-    interfaceTarget?.acceptReference(v);
+    interfaceTarget.acceptReference(v);
     name.accept(v);
   }
 
@@ -4871,27 +4926,22 @@ class AbstractSuperPropertyGet extends Expression {
 class SuperPropertyGet extends Expression {
   Name name;
 
-  Reference? interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  SuperPropertyGet(Name name, [Member? interfaceTarget])
-      : this.byReference(name, getMemberReferenceGetter(interfaceTarget));
+  SuperPropertyGet(Name name, Member interfaceTarget)
+      : this.byReference(
+            name, getNonNullableMemberReferenceGetter(interfaceTarget));
 
   SuperPropertyGet.byReference(this.name, this.interfaceTargetReference);
 
-  Member? get interfaceTarget => interfaceTargetReference?.asMember;
+  Member get interfaceTarget => interfaceTargetReference.asMember;
 
-  void set interfaceTarget(Member? member) {
-    interfaceTargetReference = getMemberReferenceGetter(member);
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getNonNullableMemberReferenceGetter(member);
   }
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    Member? interfaceTarget = this.interfaceTarget;
-    if (interfaceTarget == null) {
-      // TODO(johnniwinther): SuperPropertyGet without a target should be
-      // replaced by invalid expressions.
-      return const DynamicType();
-    }
     Class declaringClass = interfaceTarget.enclosingClass!;
     if (declaringClass.typeParameters.isEmpty) {
       return interfaceTarget.getterType;
@@ -4912,7 +4962,7 @@ class SuperPropertyGet extends Expression {
 
   @override
   void visitChildren(Visitor v) {
-    interfaceTarget?.acceptReference(v);
+    interfaceTarget.acceptReference(v);
     name.accept(v);
   }
 
@@ -4964,21 +5014,21 @@ class AbstractSuperPropertySet extends Expression {
   Name name;
   Expression value;
 
-  Reference? interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  AbstractSuperPropertySet(Name name, Expression value, Member? interfaceTarget)
+  AbstractSuperPropertySet(Name name, Expression value, Member interfaceTarget)
       : this.byReference(
-            name, value, getMemberReferenceSetter(interfaceTarget));
+            name, value, getNonNullableMemberReferenceSetter(interfaceTarget));
 
   AbstractSuperPropertySet.byReference(
       this.name, this.value, this.interfaceTargetReference) {
     value.parent = this;
   }
 
-  Member? get interfaceTarget => interfaceTargetReference?.asMember;
+  Member get interfaceTarget => interfaceTargetReference.asMember;
 
-  void set interfaceTarget(Member? member) {
-    interfaceTargetReference = getMemberReferenceSetter(member);
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getNonNullableMemberReferenceSetter(member);
   }
 
   @override
@@ -4994,7 +5044,7 @@ class AbstractSuperPropertySet extends Expression {
 
   @override
   void visitChildren(Visitor v) {
-    interfaceTarget?.acceptReference(v);
+    interfaceTarget.acceptReference(v);
     name.accept(v);
     value.accept(v);
   }
@@ -5040,21 +5090,21 @@ class SuperPropertySet extends Expression {
   Name name;
   Expression value;
 
-  Reference? interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  SuperPropertySet(Name name, Expression value, Member? interfaceTarget)
+  SuperPropertySet(Name name, Expression value, Member interfaceTarget)
       : this.byReference(
-            name, value, getMemberReferenceSetter(interfaceTarget));
+            name, value, getNonNullableMemberReferenceSetter(interfaceTarget));
 
   SuperPropertySet.byReference(
       this.name, this.value, this.interfaceTargetReference) {
     value.parent = this;
   }
 
-  Member? get interfaceTarget => interfaceTargetReference?.asMember;
+  Member get interfaceTarget => interfaceTargetReference.asMember;
 
-  void set interfaceTarget(Member? member) {
-    interfaceTargetReference = getMemberReferenceSetter(member);
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getNonNullableMemberReferenceSetter(member);
   }
 
   @override
@@ -5070,7 +5120,7 @@ class SuperPropertySet extends Expression {
 
   @override
   void visitChildren(Visitor v) {
-    interfaceTarget?.acceptReference(v);
+    interfaceTarget.acceptReference(v);
     name.accept(v);
     value.accept(v);
   }
@@ -5602,6 +5652,7 @@ class InstanceInvocation extends InstanceInvocationExpression {
   @override
   Expression receiver;
 
+  // TODO(johnniwinther): Can we pull this from the [interfaceTarget] instead?
   @override
   Name name;
 
@@ -6380,32 +6431,30 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
   @override
   Arguments arguments;
 
-  Reference? interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  AbstractSuperMethodInvocation(Name name, Arguments arguments,
-      [Procedure? interfaceTarget])
+  AbstractSuperMethodInvocation(
+      Name name, Arguments arguments, Procedure interfaceTarget)
       : this.byReference(
             name,
             arguments,
             // An invocation doesn't refer to the setter.
-            getMemberReferenceGetter(interfaceTarget));
+            getNonNullableMemberReferenceGetter(interfaceTarget));
 
   AbstractSuperMethodInvocation.byReference(
       this.name, this.arguments, this.interfaceTargetReference) {
     arguments.parent = this;
   }
 
-  Procedure? get interfaceTarget => interfaceTargetReference?.asProcedure;
+  Procedure get interfaceTarget => interfaceTargetReference.asProcedure;
 
-  void set interfaceTarget(Procedure? target) {
+  void set interfaceTarget(Procedure target) {
     // An invocation doesn't refer to the setter.
-    interfaceTargetReference = getMemberReferenceGetter(target);
+    interfaceTargetReference = getNonNullableMemberReferenceGetter(target);
   }
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    Procedure? interfaceTarget = this.interfaceTarget;
-    if (interfaceTarget == null) return const DynamicType();
     Class superclass = interfaceTarget.enclosingClass!;
     List<DartType>? receiverTypeArguments = context.typeEnvironment
         .getTypeArgumentsAsInstanceOf(context.thisType!, superclass);
@@ -6427,7 +6476,7 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
 
   @override
   void visitChildren(Visitor v) {
-    interfaceTarget?.acceptReference(v);
+    interfaceTarget.acceptReference(v);
     name.accept(v);
     arguments.accept(v);
   }
@@ -6473,32 +6522,30 @@ class SuperMethodInvocation extends InvocationExpression {
   @override
   Arguments arguments;
 
-  Reference? interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  SuperMethodInvocation(Name name, Arguments arguments,
-      [Procedure? interfaceTarget])
+  SuperMethodInvocation(
+      Name name, Arguments arguments, Procedure interfaceTarget)
       : this.byReference(
             name,
             arguments,
             // An invocation doesn't refer to the setter.
-            getMemberReferenceGetter(interfaceTarget));
+            getNonNullableMemberReferenceGetter(interfaceTarget));
 
   SuperMethodInvocation.byReference(
       this.name, this.arguments, this.interfaceTargetReference) {
     arguments.parent = this;
   }
 
-  Procedure? get interfaceTarget => interfaceTargetReference?.asProcedure;
+  Procedure get interfaceTarget => interfaceTargetReference.asProcedure;
 
-  void set interfaceTarget(Procedure? target) {
+  void set interfaceTarget(Procedure target) {
     // An invocation doesn't refer to the setter.
-    interfaceTargetReference = getMemberReferenceGetter(target);
+    interfaceTargetReference = getNonNullableMemberReferenceGetter(target);
   }
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    Procedure? interfaceTarget = this.interfaceTarget;
-    if (interfaceTarget == null) return const DynamicType();
     Class superclass = interfaceTarget.enclosingClass!;
     List<DartType>? receiverTypeArguments = context.typeEnvironment
         .getTypeArgumentsAsInstanceOf(context.thisType!, superclass);
@@ -6519,7 +6566,7 @@ class SuperMethodInvocation extends InvocationExpression {
 
   @override
   void visitChildren(Visitor v) {
-    interfaceTarget?.acceptReference(v);
+    interfaceTarget.acceptReference(v);
     name.accept(v);
     arguments.accept(v);
   }
@@ -9891,10 +9938,25 @@ class SwitchStatement extends Statement {
   Expression expression;
   final List<SwitchCase> cases;
 
-  SwitchStatement(this.expression, this.cases) {
+  /// For enum switches, whether all enum values are covered by a switch case.
+  /// Initialized during type inference.
+  bool isExplicitlyExhaustive;
+
+  SwitchStatement(this.expression, this.cases,
+      {this.isExplicitlyExhaustive = false}) {
     expression.parent = this;
     setParents(cases, this);
   }
+
+  /// Whether the switch has a `default` case.
+  bool get hasDefault {
+    assert(cases.every((c) => c == cases.last || !c.isDefault));
+    return cases.isNotEmpty && cases.last.isDefault;
+  }
+
+  /// Whether the switch is guaranteed to hit one of the cases (including the
+  /// default case, if present).
+  bool get isExhaustive => isExplicitlyExhaustive || hasDefault;
 
   @override
   R accept<R>(StatementVisitor<R> v) => v.visitSwitchStatement(this);
@@ -11410,9 +11472,7 @@ class InterfaceType extends DartType {
   /// list is omitted, 'dynamic' type arguments are filled in.
   InterfaceType(Class classNode, Nullability declaredNullability,
       [List<DartType>? typeArguments])
-      : this.byReference(
-            getNonNullableClassReference(classNode),
-            declaredNullability,
+      : this.byReference(classNode.reference, declaredNullability,
             typeArguments ?? _defaultTypeArguments(classNode));
 
   InterfaceType.byReference(
@@ -11714,9 +11774,9 @@ class TypedefType extends DartType {
   final Reference typedefReference;
   final List<DartType> typeArguments;
 
-  TypedefType(Typedef typedefNode, Nullability nullability,
+  TypedefType(Typedef typedef, Nullability nullability,
       [List<DartType>? typeArguments])
-      : this.byReference(typedefNode.reference, nullability,
+      : this.byReference(typedef.reference, nullability,
             typeArguments ?? const <DartType>[]);
 
   TypedefType.byReference(
@@ -12788,8 +12848,7 @@ class Supertype extends Node {
   final List<DartType> typeArguments;
 
   Supertype(Class classNode, List<DartType> typeArguments)
-      : this.byReference(
-            getNonNullableClassReference(classNode), typeArguments);
+      : this.byReference(classNode.reference, typeArguments);
 
   Supertype.byReference(this.className, this.typeArguments);
 
@@ -12901,10 +12960,6 @@ abstract class Constant extends Node {
 
   /// Gets the type of this constant.
   DartType getType(StaticTypeContext context);
-
-  Expression asExpression() {
-    return new ConstantExpression(this);
-  }
 }
 
 abstract class PrimitiveConstant<T> extends Constant {
@@ -13849,9 +13904,6 @@ class UnevaluatedConstant extends Constant {
       expression.getStaticType(context);
 
   @override
-  Expression asExpression() => expression;
-
-  @override
   void toTextInternal(AstPrinter printer) {
     printer.write('unevaluated{');
     printer.writeExpression(expression);
@@ -13973,8 +14025,7 @@ class Component extends TreeNode {
   }
 
   void computeCanonicalNamesForLibrary(Library library) {
-    root.getChildFromUri(library.importUri).bindTo(library.reference);
-    library.computeCanonicalNames();
+    library.ensureCanonicalNames(root);
   }
 
   void unbindCanonicalNames() {
@@ -14123,7 +14174,7 @@ abstract class BinarySink {
   /// Write List<Byte> into the sink.
   void writeByteList(List<int> bytes);
 
-  void writeNullAllowedCanonicalNameReference(CanonicalName? name);
+  void writeNullAllowedCanonicalNameReference(Reference? reference);
   void writeStringReference(String str);
   void writeName(Name node);
   void writeDartType(DartType type);
@@ -14329,75 +14380,6 @@ Reference getNonNullableMemberReferenceSetter(Member member) {
   return member.reference;
 }
 
-/// Returns the [Reference] object for the given class.
-///
-/// Returns `null` if the class is `null`.
-Reference? getClassReference(Class? class_) {
-  return class_?.reference;
-}
-
-/// Returns the [Reference] object for the given class.
-Reference getNonNullableClassReference(Class class_) {
-  return class_.reference;
-}
-
-/// Returns the canonical name of [member], or throws an exception if the
-/// member has not been assigned a canonical name yet.
-CanonicalName getCanonicalNameOfMemberGetter(Member member) {
-  CanonicalName? canonicalName;
-  if (member is Field) {
-    canonicalName = member.getterReference.canonicalName;
-  } else {
-    canonicalName = member.reference.canonicalName;
-  }
-  if (canonicalName == null) {
-    throw '$member has no canonical name';
-  }
-  return canonicalName;
-}
-
-/// Returns the canonical name of [member], or throws an exception if the
-/// member has not been assigned a canonical name yet.
-CanonicalName getCanonicalNameOfMemberSetter(Member member) {
-  CanonicalName? canonicalName;
-  if (member is Field) {
-    canonicalName = member.setterReference!.canonicalName;
-  } else {
-    canonicalName = member.reference.canonicalName;
-  }
-  if (canonicalName == null) {
-    throw '$member has no canonical name';
-  }
-  return canonicalName;
-}
-
-/// Returns the canonical name of [class_], or throws an exception if the
-/// class has not been assigned a canonical name yet.
-CanonicalName getCanonicalNameOfClass(Class class_) {
-  if (class_.reference.canonicalName == null) {
-    throw '$class_ has no canonical name';
-  }
-  return class_.reference.canonicalName!;
-}
-
-/// Returns the canonical name of [extension], or throws an exception if the
-/// class has not been assigned a canonical name yet.
-CanonicalName getCanonicalNameOfExtension(Extension extension) {
-  if (extension.reference.canonicalName == null) {
-    throw '$extension has no canonical name';
-  }
-  return extension.reference.canonicalName!;
-}
-
-/// Returns the canonical name of [library], or throws an exception if the
-/// library has not been assigned a canonical name yet.
-CanonicalName getCanonicalNameOfLibrary(Library library) {
-  if (library.reference.canonicalName == null) {
-    throw '$library has no canonical name';
-  }
-  return library.reference.canonicalName!;
-}
-
 /// Murmur-inspired hashing, with a fall-back to Jenkins-inspired hashing when
 /// compiled to JavaScript.
 ///
@@ -14527,15 +14509,6 @@ bool mapEquals(Map a, Map b) {
     if (!b.containsKey(key) || a[key] != b[key]) return false;
   }
   return true;
-}
-
-/// Returns the canonical name of [typedef_], or throws an exception if the
-/// typedef has not been assigned a canonical name yet.
-CanonicalName getCanonicalNameOfTypedef(Typedef typedef_) {
-  if (typedef_.reference.canonicalName == null) {
-    throw '$typedef_ has no canonical name';
-  }
-  return typedef_.reference.canonicalName!;
 }
 
 /// Annotation describing information which is not part of Dart semantics; in

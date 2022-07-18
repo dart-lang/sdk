@@ -7,6 +7,12 @@
 
 library vm.transformations.ffi;
 
+import 'package:front_end/src/api_unstable/vm.dart'
+    show
+        messageFfiLeafCallMustNotReturnHandle,
+        messageFfiLeafCallMustNotTakeHandle,
+        templateFfiTypeInvalid,
+        templateFfiTypeMismatch;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -585,7 +591,7 @@ class FfiTransformer extends Transformer {
     if (fun.positionalParameters.length != fun.requiredParameterCount) {
       return null;
     }
-    if (fun.typeParameters.length != 0) return null;
+    if (fun.typeParameters.isNotEmpty) return null;
 
     final DartType? returnType = convertNativeTypeToDartType(fun.returnType,
         allowCompounds: true, allowHandle: true);
@@ -981,6 +987,180 @@ class FfiTransformer extends Transformer {
       ]),
     )..fileOffset = fileOffset;
   }
+
+  /// Prevents the struct from being tree-shaken in TFA by invoking its
+  /// constructor in a `_nativeEffect` expression.
+  Expression invokeCompoundConstructor(
+      Expression nestedExpression, Class compoundClass) {
+    final constructor = compoundClass.constructors
+        .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
+    return BlockExpression(
+        Block([
+          ExpressionStatement(StaticInvocation(
+              nativeEffectMethod,
+              Arguments([
+                ConstructorInvocation(
+                    constructor,
+                    Arguments([
+                      StaticInvocation(
+                          uint8ListFactory,
+                          Arguments([
+                            ConstantExpression(IntConstant(1)),
+                          ]))
+                        ..fileOffset = nestedExpression.fileOffset,
+                    ]))
+                  ..fileOffset = nestedExpression.fileOffset
+              ])))
+        ]),
+        nestedExpression)
+      ..fileOffset = nestedExpression.fileOffset;
+  }
+
+  /// Creates an invocation to asFunctionInternal.
+  ///
+  /// Adds a native effect invoking a compound constructors if this is used
+  /// as return type.
+  Expression buildAsFunctionInternal({
+    required Expression functionPointer,
+    required DartType nativeSignature,
+    required DartType dartSignature,
+    required bool isLeaf,
+    required int fileOffset,
+  }) {
+    final asFunctionInternalInvocation = StaticInvocation(
+        asFunctionInternal,
+        Arguments([
+          functionPointer,
+          BoolLiteral(isLeaf),
+        ], types: [
+          dartSignature,
+          nativeSignature,
+        ]))
+      ..fileOffset = fileOffset;
+
+    if (dartSignature is FunctionType) {
+      final returnType = dartSignature.returnType;
+      if (returnType is InterfaceType) {
+        final clazz = returnType.classNode;
+        if (clazz.superclass == structClass || clazz.superclass == unionClass) {
+          return invokeCompoundConstructor(asFunctionInternalInvocation, clazz);
+        }
+      }
+    }
+
+    return asFunctionInternalInvocation;
+  }
+
+  /// Returns
+  /// - `true` if leaf
+  /// - `false` if not leaf
+  /// - `null` if the expression is not valid (e.g. non-const bool, null)
+  bool? getIsLeafBoolean(StaticInvocation node) {
+    for (final named in node.arguments.named) {
+      if (named.name == 'isLeaf') {
+        final expr = named.value;
+        if (expr is BoolLiteral) {
+          return expr.value;
+        } else if (expr is ConstantExpression) {
+          final constant = expr.constant;
+          if (constant is BoolConstant) {
+            return constant.value;
+          }
+        }
+        // isLeaf is passed some invalid value.
+        return null;
+      }
+    }
+    // isLeaf defaults to false.
+    return false;
+  }
+
+  void ensureLeafCallDoesNotUseHandles(
+      InterfaceType nativeType, bool isLeaf, TreeNode reportErrorOn) {
+    // Handles are only disallowed for leaf calls.
+    if (isLeaf == false) {
+      return;
+    }
+
+    bool error = false;
+
+    // Check if return type is Handle.
+    final functionType = nativeType.typeArguments[0];
+    if (functionType is FunctionType) {
+      final returnType = functionType.returnType;
+      if (returnType is InterfaceType) {
+        if (returnType.classNode == handleClass) {
+          diagnosticReporter.report(messageFfiLeafCallMustNotReturnHandle,
+              reportErrorOn.fileOffset, 1, reportErrorOn.location?.file);
+          error = true;
+        }
+      }
+      // Check if any of the argument types are Handle.
+      for (DartType param in functionType.positionalParameters) {
+        if ((param as InterfaceType).classNode == handleClass) {
+          diagnosticReporter.report(messageFfiLeafCallMustNotTakeHandle,
+              reportErrorOn.fileOffset, 1, reportErrorOn.location?.file);
+          error = true;
+        }
+      }
+    }
+
+    if (error) {
+      throw FfiStaticTypeError();
+    }
+  }
+
+  void ensureNativeTypeToDartType(
+      DartType nativeType, DartType dartType, TreeNode reportErrorOn,
+      {bool allowHandle: false}) {
+    final DartType correspondingDartType = convertNativeTypeToDartType(
+        nativeType,
+        allowCompounds: true,
+        allowHandle: allowHandle)!;
+    if (dartType == correspondingDartType) return;
+    if (env.isSubtypeOf(correspondingDartType, dartType,
+        SubtypeCheckMode.ignoringNullabilities)) {
+      return;
+    }
+    diagnosticReporter.report(
+        templateFfiTypeMismatch.withArguments(dartType, correspondingDartType,
+            nativeType, currentLibrary.isNonNullableByDefault),
+        reportErrorOn.fileOffset,
+        1,
+        reportErrorOn.location?.file);
+    throw FfiStaticTypeError();
+  }
+
+  void ensureNativeTypeValid(DartType nativeType, TreeNode reportErrorOn,
+      {bool allowHandle: false,
+      bool allowCompounds: false,
+      bool allowInlineArray = false}) {
+    if (!_nativeTypeValid(nativeType,
+        allowCompounds: allowCompounds,
+        allowHandle: allowHandle,
+        allowInlineArray: allowInlineArray)) {
+      diagnosticReporter.report(
+          templateFfiTypeInvalid.withArguments(
+              nativeType, currentLibrary.isNonNullableByDefault),
+          reportErrorOn.fileOffset,
+          1,
+          reportErrorOn.location?.file);
+      throw FfiStaticTypeError();
+    }
+  }
+
+  /// The Dart type system does not enforce that NativeFunction return and
+  /// parameter types are only NativeTypes, so we need to check this.
+  bool _nativeTypeValid(DartType nativeType,
+      {bool allowCompounds: false,
+      bool allowHandle = false,
+      bool allowInlineArray = false}) {
+    return convertNativeTypeToDartType(nativeType,
+            allowCompounds: allowCompounds,
+            allowHandle: allowHandle,
+            allowInlineArray: allowInlineArray) !=
+        null;
+  }
 }
 
 /// Returns all libraries including the ones from component except for platform
@@ -1044,3 +1224,7 @@ extension on Map<Abi, Object?> {
   bool get isPartial =>
       [for (final abi in Abi.values) this[abi]].contains(null);
 }
+
+/// Used internally for abnormal control flow to prevent cascading error
+/// messages.
+class FfiStaticTypeError implements Exception {}

@@ -320,7 +320,7 @@ class PreviewSite extends Site
   /// NNBD migration.
   PreviewSite(
       this.migrationState, this.rerunFunction, this.applyHook, this.logger)
-      : super('NNBD Migration Preview') {
+      : super('Null Safety Migration Preview') {
     reset();
   }
 

@@ -14,24 +14,24 @@ import 'src/expression.dart';
 /// Matches the header that begins a new section, like:
 ///
 ///     [ $compiler == dart2js && $minified ]
-final RegExp _sectionPattern = new RegExp(r"^\[(.+?)\]");
+final RegExp _sectionPattern = RegExp(r"^\[(.+?)\]");
 
 /// Matches an entry that defines the status for a path in the current section,
 /// like:
 ///
 ///     some/path/to/some_test: Pass || Fail
-final RegExp _entryPattern = new RegExp(r"^([^:#]+):([^#]+)(#.*)?");
+final RegExp _entryPattern = RegExp(r"^([^:#]+):([^#]+)(#.*)?");
 
 /// Matches an issue number in a comment, like:
 ///
 ///     blah_test: Fail # Issue 1234
 ///                       ^^^^
-final RegExp _issuePattern = new RegExp(r"[Ii]ssue (\d+)");
+final RegExp _issuePattern = RegExp(r"[Ii]ssue (\d+)");
 
 /// Matches a comment and indented comment, like:
 ///
 ///     < white space > #
-final RegExp _commentPattern = new RegExp(r"^(\s*)#");
+final RegExp _commentPattern = RegExp(r"^(\s*)#");
 
 /// A parsed status file, which describes how a collection of tests are
 /// expected to behave under various configurations and conditions.
@@ -80,7 +80,7 @@ class StatusFile {
   ///
   /// Throws a [SyntaxError] if the file could not be parsed.
   StatusFile.read(this.path) {
-    _parse(new File(path).readAsLinesSync());
+    _parse(File(path).readAsLinesSync());
   }
 
   /// Parses lines of strings coming from a status file at [path].
@@ -152,11 +152,10 @@ class StatusFile {
         break;
       }
       if (line.isEmpty) {
-        sectionHeaderComments.add(new EmptyEntry(_lineCount));
+        sectionHeaderComments.add(EmptyEntry(_lineCount));
         lastEmptyLine = _lineCount;
       } else {
-        sectionHeaderComments
-            .add(new CommentEntry(_lineCount, new Comment(line)));
+        sectionHeaderComments.add(CommentEntry(_lineCount, Comment(line)));
       }
     }
 
@@ -178,7 +177,7 @@ class StatusFile {
     // The current section whose rules are being parsed. Initialized to an
     // implicit section that matches everything.
     StatusSection section =
-        new StatusSection(Expression.always, -1, implicitSectionHeaderComments);
+        StatusSection(Expression.always, -1, implicitSectionHeaderComments);
     section.entries.addAll(entries);
     sections.add(section);
 
@@ -186,12 +185,12 @@ class StatusFile {
       var line = lines[_lineCount - 1];
 
       fail(String message, [List<String>? errors]) {
-        throw new SyntaxError(_shortPath, _lineCount, line, message, errors);
+        throw SyntaxError(_shortPath, _lineCount, line, message, errors);
       }
 
       // If it is an empty line
       if (line.isEmpty) {
-        section.entries.add(new EmptyEntry(_lineCount));
+        section.entries.add(EmptyEntry(_lineCount));
         continue;
       }
 
@@ -200,8 +199,7 @@ class StatusFile {
       if (match != null) {
         try {
           var condition = Expression.parse(match[1]!.trim());
-          section =
-              new StatusSection(condition, _lineCount, sectionHeaderComments);
+          section = StatusSection(condition, _lineCount, sectionHeaderComments);
           sections.add(section);
           // Reset section header comments.
           sectionHeaderComments = [];
@@ -226,10 +224,10 @@ class StatusFile {
         });
         if (match[3] == null) {
           section.entries
-              .add(new StatusEntry(path, _lineCount, expectations, null));
+              .add(StatusEntry(path, _lineCount, expectations, null));
         } else {
-          section.entries.add(new StatusEntry(
-              path, _lineCount, expectations, new Comment(match[3]!)));
+          section.entries.add(
+              StatusEntry(path, _lineCount, expectations, Comment(match[3]!)));
         }
         continue;
       }
@@ -238,7 +236,7 @@ class StatusFile {
       // section or the next section
       match = _commentPattern.firstMatch(line);
       if (match != null) {
-        var commentEntry = new CommentEntry(_lineCount, new Comment(line));
+        var commentEntry = CommentEntry(_lineCount, Comment(line));
         if (hasBreakFromPreviousSection(_lineCount) &&
             commentBelongsToNextSectionHeader(_lineCount)) {
           sectionHeaderComments.add(commentEntry);
@@ -253,7 +251,7 @@ class StatusFile {
 
     // There are no comment entries in [sectionHeaderComments], because of the
     // check for [commentBelongsToSectionHeader].
-    assert(sectionHeaderComments.length == 0);
+    assert(sectionHeaderComments.isEmpty);
   }
 
   bool get isEmpty => sections.length == 1 && sections[0].isEmpty();
@@ -269,7 +267,7 @@ class StatusFile {
 
       if (errors.isNotEmpty) {
         var s = errors.length > 1 ? "s" : "";
-        throw new SyntaxError(_shortPath, section.lineNumber,
+        throw SyntaxError(_shortPath, section.lineNumber,
             "[ ${section.condition} ]", 'Validation error$s', errors);
       }
     }
@@ -283,8 +281,9 @@ class StatusFile {
 
   /// Returns the status file as a string. This preserves comments and gives a
   /// "canonical" rendering of the status file that can be saved back to disc.
+  @override
   String toString() {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     sections.forEach(buffer.write);
     return buffer.toString();
   }
@@ -317,7 +316,7 @@ class StatusSection {
 
   @override
   String toString() {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     sectionHeaderComments.forEach(buffer.writeln);
     if (condition != Expression.always) {
       buffer.writeln("[ $condition ]");

@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 class I {
@@ -7,6 +6,6 @@ class I {
 
 abstract class C implements I {}
 
-C c;
+C c = throw '';
 var x = -c;
-main() {}
+test() {}

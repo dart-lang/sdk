@@ -2,16 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:js_util_wasm';
+import 'dart:js_util';
 
 import 'package:expect/expect.dart';
+import 'package:js/js.dart';
+
+@JS()
+external void eval(String code);
 
 void createObjectTest() {
-  JSValue o = newObject();
+  Object o = newObject();
   Expect.isFalse(hasProperty(o, 'foo'));
-  Expect.equals('bar', setProperty(o, 'foo', 'bar'.toJS()).toString());
+  Expect.equals('bar', setProperty(o, 'foo', 'bar'));
   Expect.isTrue(hasProperty(o, 'foo'));
-  Expect.equals('bar', getProperty(o, 'foo').toString());
+  Expect.equals('bar', getProperty(o, 'foo'));
 }
 
 // Unfortunately, lists do not currently compare identically.
@@ -33,14 +37,12 @@ void evalAndConstructTest() {
     }
     globalThis.JSClass = JSClass;
   ''');
-  JSValue gt = globalThis();
-  JSValue jsClass = callConstructorVarArgs(gt, 'JSClass', ['world!'.toJS()]);
-  Expect.equals(
-      'hello world!',
-      callMethodVarArgs(jsClass, 'sum', ['hello'.toJS(), ' '.toJS()])
-          .toString());
+  Object gt = globalThis;
+  Object constructor = getProperty(gt, 'JSClass');
+  Object jsClass = callConstructor(constructor, ['world!']);
+  Expect.equals('hello world!', callMethod(jsClass, 'sum', ['hello', ' ']));
   _expectListEquals(
-      ['a', 'b', 'c'], getProperty(jsClass, 'list')!.toObjectList());
+      ['a', 'b', 'c'], getProperty(jsClass, 'list') as List<Object?>);
 }
 
 class Foo {
@@ -49,15 +51,16 @@ class Foo {
 }
 
 void dartObjectRoundTripTest() {
-  JSValue o = newObject();
-  setProperty(o, 'foo', Foo(4).toJS());
-  Object foo = getProperty(o, 'foo')!.toObject();
+  Object o = newObject();
+  setProperty(o, 'foo', Foo(4));
+  Object foo = getProperty(o, 'foo')!;
   Expect.equals(4, (foo as Foo).i);
 }
 
 void deepConversionsTest() {
   // Dart to JS.
-  Expect.isNull(dartify(jsify(null)));
+  // TODO(joshualitt): Consider supporting `null` in jsify.
+  // Expect.isNull(dartify(jsify(null)));
   Expect.equals(true, dartify(jsify(true)));
   Expect.equals(2.0, dartify(jsify(2.0)));
   Expect.equals('foo', dartify(jsify('foo')));
@@ -69,12 +72,21 @@ void deepConversionsTest() {
     globalThis.a = null;
     globalThis.b = 'foo';
     globalThis.c = ['a', 'b', 'c'];
+    globalThis.d = 2.5;
+    globalThis.e = true;
+    globalThis.f = function () { return 'hello world'; };
+    globalThis.invoke = function (f) { return f(); }
   ''');
-  JSValue gt = globalThis();
-  Expect.isNull(dartify(getProperty(gt, 'a')));
-  Expect.equals('foo', dartify(getProperty(gt, 'b')));
-  _expectListEquals(
-      ['a', 'b', 'c'], dartify(getProperty(gt, 'c')) as List<Object?>);
+  Object gt = globalThis;
+  Expect.isNull(getProperty(gt, 'a'));
+  Expect.equals('foo', getProperty(gt, 'b'));
+  _expectListEquals(['a', 'b', 'c'], getProperty<List<Object?>>(gt, 'c'));
+  Expect.equals(2.5, getProperty(gt, 'd'));
+  Expect.equals(true, getProperty(gt, 'e'));
+
+  // Confirm a function that takes a roundtrip remains a function.
+  Expect.equals('hello world',
+      callMethod(gt, 'invoke', <Object?>[dartify(getProperty(gt, 'f'))]));
 }
 
 void main() {

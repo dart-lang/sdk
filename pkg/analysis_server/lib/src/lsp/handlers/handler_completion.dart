@@ -4,7 +4,7 @@
 
 import 'dart:math' as math;
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
@@ -37,8 +37,25 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
   /// Whether to include symbols from libraries that have not been imported.
   final bool suggestFromUnimportedLibraries;
 
+  /// Whether to use [NotImportedContributor] instead of SuggestionSets to
+  /// build completions for not-yet-imported libraries.
+  final bool previewNotImportedCompletions;
+
+  /// The budget to use for [NotImportedContributor] computation.
+  ///
+  /// This is usually the default value, but can be overridden via
+  /// initializationOptions (used for tests, but may also be useful for
+  /// debugging).
+  late final CompletionBudget completionBudget;
+
   CompletionHandler(super.server, LspInitializationOptions options)
-      : suggestFromUnimportedLibraries = options.suggestFromUnimportedLibraries;
+      : suggestFromUnimportedLibraries = options.suggestFromUnimportedLibraries,
+        previewNotImportedCompletions = options.previewNotImportedCompletions {
+    final budgetMs = options.notImportedCompletionBudgetMilliseconds;
+    completionBudget = CompletionBudget(budgetMs != null
+        ? Duration(milliseconds: budgetMs)
+        : CompletionBudget.defaultDuration);
+  }
 
   @override
   Method get handlesMessage => Method.textDocument_completion;
@@ -299,8 +316,12 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     String? triggerCharacter,
     CancellationToken token,
   ) async {
-    final useSuggestionSets =
-        suggestFromUnimportedLibraries && capabilities.applyEdit;
+    final useSuggestionSets = suggestFromUnimportedLibraries &&
+        capabilities.applyEdit &&
+        !previewNotImportedCompletions;
+    final useNotImportedCompletions = suggestFromUnimportedLibraries &&
+        capabilities.applyEdit &&
+        previewNotImportedCompletions;
 
     final completionRequest = DartCompletionRequest.forResolvedUnit(
       resolvedUnit: unit,
@@ -321,20 +342,24 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     Set<ElementKind>? includedElementKinds;
     Set<String>? includedElementNames;
     List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags;
+    NotImportedSuggestions? notImportedSuggestions;
     if (useSuggestionSets) {
       includedElementKinds = <ElementKind>{};
       includedElementNames = <String>{};
       includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
+    } else if (useNotImportedCompletions) {
+      notImportedSuggestions = NotImportedSuggestions();
     }
 
     try {
       final serverSuggestions2 =
           await performance.runAsync('computeSuggestions', (performance) async {
         var contributor = DartCompletionManager(
-          budget: CompletionBudget(CompletionBudget.defaultDuration),
+          budget: completionBudget,
           includedElementKinds: includedElementKinds,
           includedElementNames: includedElementNames,
           includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
+          notImportedSuggestions: notImportedSuggestions,
         );
 
         // `await` required for `performance.runAsync` to count time.
@@ -383,10 +408,24 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         }
 
         // Convert to LSP ranges using the LineInfo.
-        Range? replacementRange = toRange(
+        var replacementRange = toRange(
             unit.lineInfo, itemReplacementOffset, itemReplacementLength);
-        Range? insertionRange =
+        var insertionRange =
             toRange(unit.lineInfo, itemReplacementOffset, itemInsertLength);
+
+        // For not-imported items, we need to include the file+uri to be able
+        // to compute the import-inserting edits in the `completionItem/resolve`
+        // call later.
+        CompletionItemResolutionInfo? resolutionInfo;
+        final libraryUri = item.libraryUri;
+        if (useNotImportedCompletions &&
+            libraryUri != null &&
+            (item.isNotImported ?? false)) {
+          resolutionInfo = DartNotImportedCompletionResolutionInfo(
+            file: unit.path,
+            libraryUri: libraryUri,
+          );
+        }
 
         return toCompletionItem(
           capabilities,
@@ -402,6 +441,10 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           includeCommitCharacters:
               server.clientConfiguration.global.previewCommitCharacters,
           completeFunctionCalls: completeFunctionCalls,
+          resolutionData: resolutionInfo,
+          // Exclude docs if we will be providing them via
+          // `completionItem/resolve`.
+          includeDocs: resolutionInfo == null,
         );
       }
 
@@ -504,7 +547,6 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
                 .map((item) => declarationToCompletionItem(
                       capabilities,
                       unit.path,
-                      offset,
                       includedSet,
                       library,
                       tagBoosts,

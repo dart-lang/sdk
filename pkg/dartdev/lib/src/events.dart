@@ -69,7 +69,7 @@ Future<void> sendUsageEvent(
   commandFlags.sort();
   specifiedExperiments.sort();
 
-  // Insert a seperator before and after the flags list to make it easier to filter
+  // Insert a separator before and after the flags list to make it easier to filter
   // for a specific flag:
   final enabledExperimentsString = ' ${specifiedExperiments.join(' ')} ';
   final commandFlagsString = ' ${commandFlags.join(' ')} ';

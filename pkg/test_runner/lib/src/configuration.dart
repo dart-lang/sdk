@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:smith/configuration.dart';
 import 'package:smith/smith.dart';
 
 import 'compiler_configuration.dart';
@@ -24,28 +25,28 @@ export 'package:smith/smith.dart';
 /// executed on, etc.
 class TestConfiguration {
   TestConfiguration(
-      {this.configuration,
-      this.progress,
-      this.selectors,
-      this.build,
-      this.testList,
-      this.repeat,
-      this.batch,
-      this.copyCoreDumps,
-      this.rr,
-      this.isVerbose,
-      this.listTests,
-      this.listStatusFiles,
-      this.cleanExit,
-      this.silentFailures,
-      this.printTiming,
-      this.printReport,
-      this.reportFailures,
-      this.reportInJson,
-      this.resetBrowser,
-      this.writeDebugLog,
-      this.writeResults,
-      this.writeLogs,
+      {required this.configuration,
+      this.progress = Progress.compact,
+      this.selectors = const {},
+      this.build = false,
+      this.testList = const [],
+      this.repeat = 1,
+      this.batch = false,
+      this.copyCoreDumps = false,
+      this.rr = false,
+      this.isVerbose = false,
+      this.listTests = false,
+      this.listStatusFiles = false,
+      this.cleanExit = false,
+      this.silentFailures = false,
+      this.printTiming = false,
+      this.printReport = false,
+      this.reportFailures = false,
+      this.reportInJson = false,
+      this.resetBrowser = false,
+      this.writeDebugLog = false,
+      this.writeResults = false,
+      this.writeLogs = false,
       this.drtPath,
       this.chromePath,
       this.safariPath,
@@ -53,26 +54,29 @@ class TestConfiguration {
       this.dartPath,
       this.dartPrecompiledPath,
       this.genSnapshotPath,
-      this.taskCount,
-      this.shardCount,
-      this.shard,
+      this.taskCount = 1,
+      this.shardCount = 1,
+      this.shard = 1,
       this.stepName,
-      this.testServerPort,
-      this.testServerCrossOriginPort,
-      this.testDriverErrorPort,
-      this.localIP,
-      this.keepGeneratedFiles,
-      this.sharedOptions,
-      String packages,
+      this.testServerPort = 0,
+      this.testServerCrossOriginPort = 0,
+      this.testDriverErrorPort = 0,
+      this.localIP = '0.0.0.0',
+      this.keepGeneratedFiles = false,
+      this.sharedOptions = const [],
+      String? packages,
       this.serviceResponseSizesDirectory,
       this.suiteDirectory,
-      this.outputDirectory,
-      this.reproducingArguments,
-      this.fastTestsOnly,
-      this.printPassingStdout})
-      : _packages = packages;
+      required this.outputDirectory,
+      required this.reproducingArguments,
+      this.fastTestsOnly = false,
+      this.printPassingStdout = false})
+      : packages = packages ??
+            Repository.uri
+                .resolve('.dart_tool/package_config.json')
+                .toFilePath();
 
-  final Map<String, RegExp> selectors;
+  final Map<String, RegExp?> selectors;
   final Progress progress;
   // The test configuration read from the -n option and the test matrix
   // or else computed from the test options.
@@ -124,20 +128,20 @@ class TestConfiguration {
 
   // Various file paths.
 
-  final String drtPath;
-  final String chromePath;
-  final String safariPath;
-  final String firefoxPath;
-  final String dartPath;
-  final String dartPrecompiledPath;
-  final String genSnapshotPath;
-  final List<String> testList;
+  final String? drtPath;
+  final String? chromePath;
+  final String? safariPath;
+  final String? firefoxPath;
+  final String? dartPath;
+  final String? dartPrecompiledPath;
+  final String? genSnapshotPath;
+  final List<String>? testList;
 
   final int taskCount;
   final int shardCount;
   final int shard;
   final int repeat;
-  final String stepName;
+  final String? stepName;
 
   final int testServerPort;
   final int testServerCrossOriginPort;
@@ -168,30 +172,19 @@ class TestConfiguration {
   /// Extra general options passed to the testing script.
   final List<String> sharedOptions;
 
-  String _packages;
+  final String packages;
 
-  String get packages {
-    // If the package config file path wasn't given, find it.
-    _packages ??=
-        Repository.uri.resolve('.dart_tool/package_config.json').toFilePath();
-
-    return _packages;
-  }
-
-  final String serviceResponseSizesDirectory;
+  final String? serviceResponseSizesDirectory;
   final String outputDirectory;
-  final String suiteDirectory;
+  final String? suiteDirectory;
   String get babel => configuration.babel;
   String get builderTag => configuration.builderTag;
   final List<String> reproducingArguments;
 
-  TestingServers _servers;
+  TestingServers? _servers;
 
   TestingServers get servers {
-    if (_servers == null) {
-      throw StateError("Servers have not been started yet.");
-    }
-    return _servers;
+    return _servers ?? (throw StateError("Servers have not been started yet."));
   }
 
   /// Returns true if this configuration uses the new front end (fasta)
@@ -212,7 +205,7 @@ class TestConfiguration {
   /// The base directory named for this configuration, like:
   ///
   ///     ReleaseX64
-  String _configurationDirectory;
+  String? _configurationDirectory;
 
   String get configurationDirectory {
     // Lazy initialize and cache since it requires hitting the file system.
@@ -224,7 +217,7 @@ class TestConfiguration {
   ///     build/ReleaseX64
   String get buildDirectory => system.outputDirectory + configurationDirectory;
 
-  int _timeout;
+  int? _timeout;
 
   // TODO(whesse): Put non-default timeouts explicitly in configs, not this.
   /// Calculates a default timeout based on the compiler and runtime used,
@@ -247,7 +240,7 @@ class TestConfiguration {
       }
     }
 
-    return _timeout;
+    return _timeout!;
   }
 
   List<String> get standardOptions {
@@ -263,34 +256,28 @@ class TestConfiguration {
     return args;
   }
 
-  String _windowsSdkPath;
-
-  String get windowsSdkPath {
+  late final String? windowsSdkPath = () {
     if (!Platform.isWindows) {
       throw StateError(
           "Should not use windowsSdkPath when not running on Windows.");
     }
 
-    if (_windowsSdkPath == null) {
-      // When running tests on Windows, use cdb from depot_tools to dump
-      // stack traces of tests timing out.
-      try {
-        var path = Path("build/win_toolchain.json").toNativePath();
-        var text = File(path).readAsStringSync();
-        _windowsSdkPath = jsonDecode(text)['win_sdk'] as String;
-      } on dynamic {
-        // Ignore errors here. If win_sdk is not found, stack trace dumping
-        // for timeouts won't work.
-      }
+    // When running tests on Windows, use cdb from depot_tools to dump
+    // stack traces of tests timing out.
+    try {
+      var path = Path("build/win_toolchain.json").toNativePath();
+      var text = File(path).readAsStringSync();
+      return jsonDecode(text)['win_sdk'] as String;
+    } catch (_) {
+      // Ignore errors here. If win_sdk is not found, stack trace dumping
+      // for timeouts won't work.
     }
-
-    return _windowsSdkPath;
-  }
+  }();
 
   /// Gets the local file path to the browser executable for this configuration.
-  String get browserLocation {
+  late final String browserLocation = () {
     // If the user has explicitly configured a browser path, use it.
-    String location;
+    String? location;
     switch (runtime) {
       case Runtime.chrome:
         location = chromePath;
@@ -326,51 +313,39 @@ class TestConfiguration {
       }
     };
 
-    location = locations[runtime][System.find(Platform.operatingSystem)];
+    location = locations[runtime]![System.find(Platform.operatingSystem)];
 
     if (location == null) {
       throw "${runtime.name} is not supported on ${Platform.operatingSystem}";
     }
 
     return location;
-  }
+  }();
 
-  RuntimeConfiguration _runtimeConfiguration;
+  RuntimeConfiguration? _runtimeConfiguration;
 
   RuntimeConfiguration get runtimeConfiguration =>
       _runtimeConfiguration ??= RuntimeConfiguration(this);
 
-  CompilerConfiguration _compilerConfiguration;
+  CompilerConfiguration? _compilerConfiguration;
 
   CompilerConfiguration get compilerConfiguration =>
       _compilerConfiguration ??= CompilerConfiguration(this);
 
-  Set<Feature> _supportedFeatures;
-
   /// The set of [Feature]s supported by this configuration.
-  Set<Feature> get supportedFeatures {
-    if (_supportedFeatures != null) return _supportedFeatures;
-
-    _supportedFeatures = {};
-    switch (nnbdMode) {
-      case NnbdMode.legacy:
-        _supportedFeatures.add(Feature.nnbdLegacy);
-        break;
-      case NnbdMode.weak:
-        _supportedFeatures.add(Feature.nnbd);
-        _supportedFeatures.add(Feature.nnbdWeak);
-        break;
-      case NnbdMode.strong:
-        _supportedFeatures.add(Feature.nnbd);
-        _supportedFeatures.add(Feature.nnbdStrong);
-        break;
-    }
-
-    // TODO(rnystrom): Define more features for things like "dart:io", separate
-    // int/double representation, etc.
-
-    return _supportedFeatures;
-  }
+  late final Set<Feature> supportedFeatures = compiler == Compiler.dart2analyzer
+      // The analyzer should parse all tests.
+      ? {...Feature.all}
+      : {
+          // TODO(rnystrom): Define more features for things like "dart:io", separate
+          // int/double representation, etc.
+          if (NnbdMode.legacy == configuration.nnbdMode)
+            Feature.nnbdLegacy
+          else
+            Feature.nnbd,
+          if (NnbdMode.weak == configuration.nnbdMode) Feature.nnbdWeak,
+          if (NnbdMode.strong == configuration.nnbdMode) Feature.nnbdStrong,
+        };
 
   /// Determines if this configuration has a compatible compiler and runtime
   /// and other valid fields.
@@ -441,7 +416,7 @@ class TestConfiguration {
   }
 
   void stopServers() {
-    if (_servers != null) _servers.stopServers();
+    _servers?.stopServers();
   }
 
   /// Returns the correct configuration directory (the last component of the

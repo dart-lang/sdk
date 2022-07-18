@@ -195,8 +195,8 @@ main() {
   }
 
   {
-    // With IntPtr pointers, one could manually setup aribtrary data
-    // structres in C memory.
+    // With IntPtr pointers, one could manually setup arbitrary data
+    // structures in C memory.
     //
     // However, it is advised to use Pointer<Pointer<...>> for that.
 

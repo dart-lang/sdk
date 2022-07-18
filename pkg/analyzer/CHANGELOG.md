@@ -1,7 +1,12 @@
-## 4.2.0-dev
+## 4.3.0-dev
+* Deprecated `Directive.keyword`, use corresponding `xyzToken` in specific directives.
+* Deprecated `LibraryElement.parts`, use `parts2` instead.
+
+## 4.2.0
 * Update SDK constraints to `>=2.17.0 <3.0.0`.
 * Deprecated `ImportDirective.COMPARATOR`, use appropriate custom logic, if necessary.
 * Deprecated `Element.isAccessibleIn()`, use `isAccessibleIn2()` instead.
+* Bug fixes: 49225. 
 
 ## 4.1.0
 * Deprecated `ParameterElement.isNotOptional`, use `isRequired` instead.
@@ -477,7 +482,7 @@
 * Deprecated `AstFactory.indexExpressionForTarget()`.  Please use
   `indexExpressionForTarget2` instead.
 * Deprecated `ClassElement.isOrInheritsProxy` and `ClassElement.isProxy`.  The
-  `@proxy` annotation is deprecated in the langauge, and will be removed.
+  `@proxy` annotation is deprecated in the language, and will be removed.
 * Added new error codes: BODY_MIGHT_COMPLETE_NORMALLY,
   CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
   DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, LATE_FINAL_LOCAL_ALREADY_ASSIGNED,

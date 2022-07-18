@@ -23,6 +23,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -733,6 +734,7 @@ class SuggestionBuilder {
           // Let the user know that we are going to insert a complete statement.
           displayText: 'setState(() {});',
         ),
+        textToMatchOverride: 'setState',
       );
       return;
     }
@@ -1126,6 +1128,18 @@ class SuggestionBuilder {
       var key = suggestion.key;
       listener?.builtSuggestion(suggestion);
       if (laterReplacesEarlier || !_suggestionMap.containsKey(key)) {
+        // When suggesting from not-yet-imported libraries, record items
+        // with a key that includes the URI so that multiple not-yet-imported
+        // libraries can be included, but only if there is no imported library
+        // contributing that key.
+        if (isNotImportedLibrary) {
+          key += '::$libraryUriStr';
+          // If `!laterReplacesEarlier`, also ensure we don't already have this
+          // new key.
+          if (!laterReplacesEarlier && _suggestionMap.containsKey(key)) {
+            return;
+          }
+        }
         _suggestionMap[key] = suggestion;
       }
     }
@@ -1352,14 +1366,6 @@ class SuggestionBuilder {
 
   /// If the [element] has a documentation comment, return it.
   _ElementDocumentation? _getDocumentation(Element element) {
-    var documentationCache = request.documentationCache;
-    var data = documentationCache?.dataFor(element);
-    if (data != null) {
-      return _ElementDocumentation(
-        full: data.full,
-        summary: data.summary,
-      );
-    }
     var doc = DartUnitHoverComputer.computeDocumentation(
       request.dartdocDirectiveInfo,
       element,
@@ -1450,13 +1456,6 @@ class SuggestionBuilder {
   /// If the [element] has a documentation comment, fill the [suggestion]'s
   /// documentation fields.
   void _setDocumentation(CompletionSuggestion suggestion, Element element) {
-    var documentationCache = request.documentationCache;
-    var data = documentationCache?.dataFor(element);
-    if (data != null) {
-      suggestion.docComplete = data.full;
-      suggestion.docSummary = data.summary;
-      return;
-    }
     var doc = DartUnitHoverComputer.computeDocumentation(
         request.dartdocDirectiveInfo, element,
         includeSummary: true);
@@ -1643,12 +1642,4 @@ class _ElementDocumentation {
     required this.full,
     required this.summary,
   });
-}
-
-extension on Object? {
-  /// If the target is [T], return it, otherwise `null`.
-  T? ifTypeOrNull<T>() {
-    final self = this;
-    return self is T ? self : null;
-  }
 }

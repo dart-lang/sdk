@@ -45,10 +45,6 @@ void main() {
   testLookupFunctionTypeMismatch();
   testLookupFunctionPointervoid();
   testLookupFunctionPointerNFdyn();
-  testNativeFunctionSignatureInvalidReturn();
-  testNativeFunctionSignatureInvalidParam();
-  testNativeFunctionSignatureInvalidOptionalNamed();
-  testNativeFunctionSignatureInvalidOptionalPositional();
   testHandleVariance();
   testEmptyStructLookupFunctionArgument();
   testEmptyStructLookupFunctionReturn();
@@ -332,28 +328,6 @@ void testLookupFunctionPointerNFdyn() {
   DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
   // TODO(https://dartbug.com/44594): Should this be an error or not?
   // l.lookupFunction<PointerNFdynN, PointerNFdynD>("cos");
-}
-
-// TODO(dacoharkes): make the next 4 test compile errors
-typedef Invalid1 = int Function(Int8);
-typedef Invalid2 = Int8 Function(int);
-typedef Invalid3 = Int8 Function({Int8 named});
-typedef Invalid4 = Int8 Function([Int8 positional]);
-
-void testNativeFunctionSignatureInvalidReturn() {
-  // Pointer<NativeFunction<Invalid1>> p = fromAddress(999);
-}
-
-void testNativeFunctionSignatureInvalidParam() {
-  // Pointer<NativeFunction<Invalid2>> p = fromAddress(999);
-}
-
-void testNativeFunctionSignatureInvalidOptionalNamed() {
-  // Pointer<NativeFunction<Invalid3>> p = fromAddress(999);
-}
-
-void testNativeFunctionSignatureInvalidOptionalPositional() {
-  // Pointer<NativeFunction<Invalid4>> p = fromAddress(999);
 }
 
 // error on missing field annotation
@@ -783,45 +757,6 @@ class TestStruct1602 extends Struct {
   Pointer<Uint8> notEmpty;
 }
 
-class TestStruct1603 extends Struct {
-  Pointer<Uint8> notEmpty;
-}
-
-@Packed(1)
-class TestStruct1603Packed extends Struct {
-  Pointer<Uint8> notEmpty;
-
-  TestStruct1603 nestedNotPacked; //# 1603: compile-time error
-}
-
-@Packed(8)
-class TestStruct1604 extends Struct {
-  Pointer<Uint8> notEmpty;
-}
-
-@Packed(1)
-class TestStruct1604Packed extends Struct {
-  Pointer<Uint8> notEmpty;
-
-  TestStruct1604 nestedLooselyPacked; //# 1604: compile-time error
-}
-
-@Packed(1)
-class TestStruct1605Packed extends Struct {
-  Pointer<Uint8> notEmpty;
-
-  @Array(2) //# 1605: compile-time error
-  Array<TestStruct1603> nestedNotPacked; //# 1605: compile-time error
-}
-
-@Packed(1)
-class TestStruct1606Packed extends Struct {
-  Pointer<Uint8> notEmpty;
-
-  @Array(2) //# 1606: compile-time error
-  Array<TestStruct1604> nestedLooselyPacked; //# 1606: compile-time error
-}
-
 @Packed(0) //# 1607: compile-time error
 class TestStruct1607 extends Struct {
   Pointer<Uint8> notEmpty;
@@ -883,6 +818,5 @@ class AbiSpecificInteger4
 class MyFinalizableStruct extends Struct
     implements Finalizable //# 2000: compile-time error
 {
-   Pointer<Void> field;
+  Pointer<Void> field;
 }
-

@@ -29,8 +29,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     // to alert the user to something failing.
     final error = await expectErrorNotification(() async {
       await changeFile(222, mainFileUri, [
-        Either2<TextDocumentContentChangeEvent1,
-            TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
+        TextDocumentContentChangeEvent.t1(TextDocumentContentChangeEvent1(
           range: Range(
               start: Position(line: 999, character: 999),
               end: Position(line: 999, character: 999)),
@@ -63,8 +62,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, initialContent);
     await changeFile(222, mainFileUri, [
       // Replace line1:5-1:8 with spaces.
-      Either2<TextDocumentContentChangeEvent1,
-          TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
+      TextDocumentContentChangeEvent.t1(TextDocumentContentChangeEvent1(
         range: Range(
             start: Position(line: 1, character: 5),
             end: Position(line: 1, character: 8)),
@@ -81,8 +79,8 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     // It's not valid for a client to send a request to modify a file that it
     // has not opened, but Visual Studio has done it in the past so we should
     // ensure it generates an obvious error that the user can understand.
-    final simpleEdit = Either2<TextDocumentContentChangeEvent1,
-        TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
+    final simpleEdit =
+        TextDocumentContentChangeEvent.t1(TextDocumentContentChangeEvent1(
       range: Range(
           start: Position(line: 1, character: 1),
           end: Position(line: 1, character: 1)),

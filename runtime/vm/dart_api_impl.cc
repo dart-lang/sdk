@@ -1235,12 +1235,14 @@ VM_METRIC_LIST(VM_METRIC_API)
 #endif  // !defined(PRODUCT)
 
 #define ISOLATE_GROUP_METRIC_API(type, variable, name, unit)                   \
-  DART_EXPORT int64_t Dart_Isolate##variable##Metric(Dart_Isolate isolate) {   \
-    if (isolate == nullptr) {                                                  \
-      FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);   \
+  DART_EXPORT int64_t Dart_IsolateGroup##variable##Metric(                     \
+      Dart_IsolateGroup isolate_group) {                                       \
+    if (isolate_group == nullptr) {                                            \
+      FATAL1("%s expects argument 'isolate_group' to be non-null.",            \
+             CURRENT_FUNC);                                                    \
     }                                                                          \
-    Isolate* iso = reinterpret_cast<Isolate*>(isolate);                        \
-    return iso->group()->Get##variable##Metric()->Value();                     \
+    IsolateGroup* group = reinterpret_cast<IsolateGroup*>(isolate_group);      \
+    return group->Get##variable##Metric()->Value();                            \
   }
 ISOLATE_GROUP_METRIC_LIST(ISOLATE_GROUP_METRIC_API)
 #undef ISOLATE_GROUP_METRIC_API
@@ -1311,9 +1313,6 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
   }
 
   if (success) {
-    if (is_new_group) {
-      group->heap()->InitGrowthControl();
-    }
     // A Thread structure has been associated to the thread, we do the
     // safepoint transition explicitly here instead of using the
     // TransitionXXX scope objects as the reverse transition happens
@@ -1526,6 +1525,12 @@ DART_EXPORT void* Dart_CurrentIsolateGroupData() {
   CHECK_ISOLATE_GROUP(isolate_group);
   NoSafepointScope no_safepoint_scope;
   return isolate_group->embedder_data();
+}
+
+DART_EXPORT Dart_IsolateGroupId Dart_CurrentIsolateGroupId() {
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  return isolate_group->id();
 }
 
 DART_EXPORT void* Dart_IsolateGroupData(Dart_Isolate isolate) {
@@ -6728,24 +6733,12 @@ DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id) {
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
 
-  const GrowableObjectArray& result =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      Z, T->isolate_group()->object_store()->libraries());
-  Library& lib = Library::Handle(Z);
-  LoadingUnit& unit = LoadingUnit::Handle(Z);
-  String& uri = String::Handle(Z);
-  for (intptr_t i = 0; i < libs.Length(); i++) {
-    lib ^= libs.At(i);
-    unit = lib.loading_unit();
-    if (unit.IsNull() || (unit.id() != loading_unit_id)) {
-      continue;
-    }
-    uri = lib.url();
-    result.Add(uri);
+  const Array& loading_units =
+      Array::Handle(Z, T->isolate_group()->object_store()->loading_unit_uris());
+  if (loading_unit_id >= 0 && loading_unit_id < loading_units.Length()) {
+    return Api::NewHandle(T, loading_units.At(loading_unit_id));
   }
-
-  return Api::NewHandle(T, Array::MakeFixedLength(result));
+  return Api::NewError("Invalid loading_unit_id");
 #endif
 }
 

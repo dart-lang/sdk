@@ -1786,7 +1786,7 @@ class EquivalenceStrategy {
     }
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkProcedure_startFileOffset(visitor, node, other)) {
+    if (!checkProcedure_fileStartOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkProcedure_kind(visitor, node, other)) {
@@ -3707,6 +3707,9 @@ class EquivalenceStrategy {
     if (!checkSwitchStatement_cases(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkSwitchStatement_isExplicitlyExhaustive(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkSwitchStatement_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -5169,10 +5172,10 @@ class EquivalenceStrategy {
     return checkMember_fileOffset(visitor, node, other);
   }
 
-  bool checkProcedure_startFileOffset(
+  bool checkProcedure_fileStartOffset(
       EquivalenceVisitor visitor, Procedure node, Procedure other) {
     return visitor.checkValues(
-        node.startFileOffset, other.startFileOffset, 'startFileOffset');
+        node.fileStartOffset, other.fileStartOffset, 'fileStartOffset');
   }
 
   bool checkProcedure_kind(
@@ -6879,6 +6882,12 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, SwitchStatement node, SwitchStatement other) {
     return visitor.checkLists(
         node.cases, other.cases, visitor.checkNodes, 'cases');
+  }
+
+  bool checkSwitchStatement_isExplicitlyExhaustive(
+      EquivalenceVisitor visitor, SwitchStatement node, SwitchStatement other) {
+    return visitor.checkValues(node.isExplicitlyExhaustive,
+        other.isExplicitlyExhaustive, 'isExplicitlyExhaustive');
   }
 
   bool checkSwitchStatement_fileOffset(

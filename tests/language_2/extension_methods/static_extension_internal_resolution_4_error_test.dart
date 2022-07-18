@@ -120,7 +120,7 @@ extension MyExt on A {
       // No errors: see static_extension_internal_resolution_4_test.dart
     }
 
-    // Extension members are ambigious.
+    // Extension members are ambiguous.
     {
       bool t0 = this.fieldInExtensionScope;
       //             ^^^^^^^^^^^^^^^^^^^^^
@@ -182,7 +182,7 @@ extension MyExt on A {
       // No errors: see static_extension_internal_resolution_4_test.dart
     }
 
-    // Extension members are ambigious.
+    // Extension members are ambiguous.
     {
       bool t0 = self.fieldInExtensionScope;
       //             ^^^^^^^^^^^^^^^^^^^^^

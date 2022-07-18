@@ -216,19 +216,23 @@ class FindElement extends _FindElementBase {
   }
 
   CompilationUnitElement part(String targetUri) {
-    CompilationUnitElement? partElement;
+    CompilationUnitElement? result;
 
-    for (var part in libraryElement.parts) {
-      if (part.uri == targetUri) {
-        if (partElement != null) {
-          throw StateError('Not unique: $targetUri');
+    for (final partElement in libraryElement.parts2) {
+      final uri = partElement.uri;
+      if (uri is DirectiveUriWithUnit) {
+        final unitElement = uri.unit;
+        if ('${unitElement.source.uri}' == targetUri) {
+          if (result != null) {
+            throw StateError('Not unique: $targetUri');
+          }
+          result = unitElement;
         }
-        partElement = part;
       }
     }
 
-    if (partElement != null) {
-      return partElement;
+    if (result != null) {
+      return result;
     }
     throw StateError('Not found: $targetUri');
   }

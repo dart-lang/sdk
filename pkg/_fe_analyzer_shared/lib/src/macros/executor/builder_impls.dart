@@ -43,8 +43,7 @@ class TypeBuilderBase implements IdentifierResolver {
 }
 
 class TypeBuilderImpl extends TypeBuilderBase implements TypeBuilder {
-  TypeBuilderImpl(IdentifierResolver identifierResolver)
-      : super(identifierResolver);
+  TypeBuilderImpl(super.identifierResolver);
 
   @override
   void declareType(String name, DeclarationCode typeDeclaration) {
@@ -55,41 +54,33 @@ class TypeBuilderImpl extends TypeBuilderBase implements TypeBuilder {
 
 /// Base class for all [DeclarationBuilder]s.
 class DeclarationBuilderBase extends TypeBuilderBase
-    implements ClassIntrospector, TypeResolver {
-  final ClassIntrospector classIntrospector;
+    implements TypeIntrospector, TypeDeclarationResolver, TypeResolver {
+  final TypeIntrospector typeIntrospector;
+  final TypeDeclarationResolver typeDeclarationResolver;
   final TypeResolver typeResolver;
 
-  DeclarationBuilderBase(IdentifierResolver identifierResolver,
-      this.classIntrospector, this.typeResolver,
-      {Map<String, List<DeclarationCode>>? parentClassAugmentations,
-      List<DeclarationCode>? parentLibraryAugmentations})
-      : super(identifierResolver,
-            parentClassAugmentations: parentClassAugmentations,
-            parentLibraryAugmentations: parentLibraryAugmentations);
+  DeclarationBuilderBase(super.identifierResolver, this.typeIntrospector,
+      this.typeDeclarationResolver, this.typeResolver,
+      {super.parentClassAugmentations, super.parentLibraryAugmentations});
 
   @override
-  Future<List<ConstructorDeclaration>> constructorsOf(ClassDeclaration clazz) =>
-      classIntrospector.constructorsOf(clazz);
+  Future<TypeDeclaration> declarationOf(IdentifierImpl identifier) =>
+      typeDeclarationResolver.declarationOf(identifier);
 
   @override
-  Future<List<FieldDeclaration>> fieldsOf(ClassDeclaration clazz) =>
-      classIntrospector.fieldsOf(clazz);
+  Future<List<ConstructorDeclaration>> constructorsOf(
+          IntrospectableClassDeclaration clazz) =>
+      typeIntrospector.constructorsOf(clazz);
 
   @override
-  Future<List<ClassDeclaration>> interfacesOf(ClassDeclaration clazz) =>
-      classIntrospector.interfacesOf(clazz);
+  Future<List<FieldDeclaration>> fieldsOf(
+          IntrospectableClassDeclaration clazz) =>
+      typeIntrospector.fieldsOf(clazz);
 
   @override
-  Future<List<MethodDeclaration>> methodsOf(ClassDeclaration clazz) =>
-      classIntrospector.methodsOf(clazz);
-
-  @override
-  Future<List<ClassDeclaration>> mixinsOf(ClassDeclaration clazz) =>
-      classIntrospector.mixinsOf(clazz);
-
-  @override
-  Future<ClassDeclaration?> superclassOf(ClassDeclaration clazz) =>
-      classIntrospector.superclassOf(clazz);
+  Future<List<MethodDeclaration>> methodsOf(
+          IntrospectableClassDeclaration clazz) =>
+      typeIntrospector.methodsOf(clazz);
 
   @override
   Future<StaticType> resolve(TypeAnnotationCode code) =>
@@ -98,9 +89,8 @@ class DeclarationBuilderBase extends TypeBuilderBase
 
 class DeclarationBuilderImpl extends DeclarationBuilderBase
     implements DeclarationBuilder {
-  DeclarationBuilderImpl(IdentifierResolver identifierResolver,
-      ClassIntrospector classIntrospector, TypeResolver typeResolver)
-      : super(identifierResolver, classIntrospector, typeResolver);
+  DeclarationBuilderImpl(super.identifierResolver, super.typeIntrospector,
+      super.typeDeclarationResolver, super.typeResolver);
 
   @override
   void declareInLibrary(DeclarationCode declaration) {
@@ -115,9 +105,11 @@ class ClassMemberDeclarationBuilderImpl extends DeclarationBuilderImpl
   ClassMemberDeclarationBuilderImpl(
       this.definingClass,
       IdentifierResolver identifierResolver,
-      ClassIntrospector classIntrospector,
+      TypeIntrospector typeIntrospector,
+      TypeDeclarationResolver typeDeclarationResolver,
       TypeResolver typeResolver)
-      : super(identifierResolver, classIntrospector, typeResolver);
+      : super(identifierResolver, typeIntrospector, typeDeclarationResolver,
+            typeResolver);
 
   @override
   void declareInClass(DeclarationCode declaration) {
@@ -129,25 +121,12 @@ class ClassMemberDeclarationBuilderImpl extends DeclarationBuilderImpl
 
 /// Base class for all [DefinitionBuilder]s.
 class DefinitionBuilderBase extends DeclarationBuilderBase
-    implements TypeDeclarationResolver, TypeInferrer {
-  final TypeDeclarationResolver typeDeclarationResolver;
+    implements TypeInferrer {
   final TypeInferrer typeInferrer;
 
-  DefinitionBuilderBase(
-      IdentifierResolver identifierResolver,
-      ClassIntrospector classIntrospector,
-      TypeResolver typeResolver,
-      this.typeDeclarationResolver,
-      this.typeInferrer,
-      {Map<String, List<DeclarationCode>>? parentClassAugmentations,
-      List<DeclarationCode>? parentLibraryAugmentations})
-      : super(identifierResolver, classIntrospector, typeResolver,
-            parentClassAugmentations: parentClassAugmentations,
-            parentLibraryAugmentations: parentLibraryAugmentations);
-
-  @override
-  Future<TypeDeclaration> declarationOf(IdentifierImpl identifier) =>
-      typeDeclarationResolver.declarationOf(identifier);
+  DefinitionBuilderBase(super.identifierResolver, super.typeIntrospector,
+      super.typeDeclarationResolver, super.typeResolver, this.typeInferrer,
+      {super.parentClassAugmentations, super.parentLibraryAugmentations});
 
   @override
   Future<TypeAnnotation> inferType(OmittedTypeAnnotationImpl omittedType) =>
@@ -157,19 +136,19 @@ class DefinitionBuilderBase extends DeclarationBuilderBase
 class ClassDefinitionBuilderImpl extends DefinitionBuilderBase
     implements ClassDefinitionBuilder {
   /// The declaration this is a builder for.
-  final ClassDeclaration declaration;
+  final IntrospectableClassDeclaration declaration;
 
   ClassDefinitionBuilderImpl(
       this.declaration,
       IdentifierResolver identifierResolver,
-      ClassIntrospector classIntrospector,
+      TypeIntrospector typeIntrospector,
       TypeResolver typeResolver,
       TypeDeclarationResolver typeDeclarationResolver,
       TypeInferrer typeInferrer,
       {Map<String, List<DeclarationCode>>? parentClassAugmentations,
       List<DeclarationCode>? parentLibraryAugmentations})
-      : super(identifierResolver, classIntrospector, typeResolver,
-            typeDeclarationResolver, typeInferrer,
+      : super(identifierResolver, typeIntrospector, typeDeclarationResolver,
+            typeResolver, typeInferrer,
             parentClassAugmentations: parentClassAugmentations,
             parentLibraryAugmentations: parentLibraryAugmentations);
 
@@ -177,30 +156,30 @@ class ClassDefinitionBuilderImpl extends DefinitionBuilderBase
   Future<ConstructorDefinitionBuilder> buildConstructor(
       Identifier identifier) async {
     ConstructorDeclaration constructor =
-        (await classIntrospector.constructorsOf(declaration))
+        (await typeIntrospector.constructorsOf(declaration))
             .firstWhere((constructor) => constructor.identifier == identifier);
     return new ConstructorDefinitionBuilderImpl(constructor, identifierResolver,
-        classIntrospector, typeResolver, typeDeclarationResolver, typeInferrer,
+        typeIntrospector, typeDeclarationResolver, typeResolver, typeInferrer,
         parentClassAugmentations: _classAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
 
   @override
   Future<VariableDefinitionBuilder> buildField(Identifier identifier) async {
-    FieldDeclaration field = (await classIntrospector.fieldsOf(declaration))
+    FieldDeclaration field = (await typeIntrospector.fieldsOf(declaration))
         .firstWhere((field) => field.identifier == identifier);
     return new VariableDefinitionBuilderImpl(field, identifierResolver,
-        classIntrospector, typeResolver, typeDeclarationResolver, typeInferrer,
+        typeIntrospector, typeDeclarationResolver, typeResolver, typeInferrer,
         parentClassAugmentations: _classAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
 
   @override
   Future<FunctionDefinitionBuilder> buildMethod(Identifier identifier) async {
-    MethodDeclaration method = (await classIntrospector.methodsOf(declaration))
+    MethodDeclaration method = (await typeIntrospector.methodsOf(declaration))
         .firstWhere((method) => method.identifier == identifier);
     return new FunctionDefinitionBuilderImpl(method, identifierResolver,
-        classIntrospector, typeResolver, typeDeclarationResolver, typeInferrer,
+        typeIntrospector, typeDeclarationResolver, typeResolver, typeInferrer,
         parentClassAugmentations: _classAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
@@ -214,14 +193,14 @@ class FunctionDefinitionBuilderImpl extends DefinitionBuilderBase
   FunctionDefinitionBuilderImpl(
       this.declaration,
       IdentifierResolver identifierResolver,
-      ClassIntrospector classIntrospector,
-      TypeResolver typeResolver,
+      TypeIntrospector typeIntrospector,
       TypeDeclarationResolver typeDeclarationResolver,
+      TypeResolver typeResolver,
       TypeInferrer typeInferrer,
       {Map<String, List<DeclarationCode>>? parentClassAugmentations,
       List<DeclarationCode>? parentLibraryAugmentations})
-      : super(identifierResolver, classIntrospector, typeResolver,
-            typeDeclarationResolver, typeInferrer,
+      : super(identifierResolver, typeIntrospector, typeDeclarationResolver,
+            typeResolver, typeInferrer,
             parentClassAugmentations: parentClassAugmentations,
             parentLibraryAugmentations: parentLibraryAugmentations);
 
@@ -247,14 +226,14 @@ class ConstructorDefinitionBuilderImpl extends DefinitionBuilderBase
   ConstructorDefinitionBuilderImpl(
       this.declaration,
       IdentifierResolver identifierResolver,
-      ClassIntrospector classIntrospector,
-      TypeResolver typeResolver,
+      TypeIntrospector typeIntrospector,
       TypeDeclarationResolver typeDeclarationResolver,
+      TypeResolver typeResolver,
       TypeInferrer typeInferrer,
       {Map<String, List<DeclarationCode>>? parentClassAugmentations,
       List<DeclarationCode>? parentLibraryAugmentations})
-      : super(identifierResolver, classIntrospector, typeResolver,
-            typeDeclarationResolver, typeInferrer,
+      : super(identifierResolver, typeIntrospector, typeDeclarationResolver,
+            typeResolver, typeInferrer,
             parentClassAugmentations: parentClassAugmentations,
             parentLibraryAugmentations: parentLibraryAugmentations);
 
@@ -278,14 +257,14 @@ class VariableDefinitionBuilderImpl extends DefinitionBuilderBase
   VariableDefinitionBuilderImpl(
       this.declaration,
       IdentifierResolver identifierResolver,
-      ClassIntrospector classIntrospector,
-      TypeResolver typeResolver,
+      TypeIntrospector typeIntrospector,
       TypeDeclarationResolver typeDeclarationResolver,
+      TypeResolver typeResolver,
       TypeInferrer typeInferrer,
       {Map<String, List<DeclarationCode>>? parentClassAugmentations,
       List<DeclarationCode>? parentLibraryAugmentations})
-      : super(identifierResolver, classIntrospector, typeResolver,
-            typeDeclarationResolver, typeInferrer,
+      : super(identifierResolver, typeIntrospector, typeDeclarationResolver,
+            typeResolver, typeInferrer,
             parentClassAugmentations: parentClassAugmentations,
             parentLibraryAugmentations: parentLibraryAugmentations);
 

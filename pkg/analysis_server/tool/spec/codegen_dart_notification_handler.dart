@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer_utilities/html_dom.dart';
+import 'package:analyzer_utilities/html_generator.dart';
 import 'package:analyzer_utilities/tools.dart';
-import 'package:html/dom.dart';
 
 import 'api.dart';
 import 'codegen_dart.dart';
@@ -23,8 +24,8 @@ String _capitalize(String name) =>
     '${name.substring(0, 1).toUpperCase()}${name.substring(1)}';
 
 List<String> _generateDartDoc(Element html) => html.children
-    .where((Element elem) => elem.localName == 'p')
-    .map<String>((Element elem) => elem.text.trim())
+    .where((Element elem) => elem.name == 'p')
+    .map<String>((Element elem) => innerText(elem).trim())
     .toList();
 
 String _generateNotificationMethodName(String domainName, String event) =>

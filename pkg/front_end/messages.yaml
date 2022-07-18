@@ -1905,20 +1905,6 @@ NotAPrefixInTypeAnnotation:
           T.String field;
         }
 
-FunctionUsedAsDec:
-  problemMessage: "'Function' is a built-in identifier, could not used as a #name name."
-  script:
-    - class Function {}
-    - extension Function on int {}
-    - mixin Function {}
-
-FunctionAsTypeParameter:
-  problemMessage: "'Function' is a built-in identifier, could not used as a type identifier."
-  script:
-    - class C<Function> {}
-    - mixin A<Function> {}
-    - extension A<Function> on List<Function> {}
-
 UnresolvedPrefixInTypeAnnotation:
   problemMessage: "'#name.#name2' can't be used as a type because '#name' isn't defined."
   analyzerCode: NOT_A_TYPE
@@ -4667,11 +4653,6 @@ FfiPackedAnnotationAlignment:
   problemMessage: "Only packing to 1, 2, 4, 8, and 16 bytes is supported."
   external: test/ffi_test.dart
 
-FfiPackedNestingNonPacked:
-  # Used by dart:ffi
-  problemMessage: "Nesting the non-packed or less tightly packed struct '#name' in a packed struct '#name2' is not supported."
-  external: test/ffi_test.dart
-
 FfiSizeAnnotation:
   # Used by dart:ffi
   problemMessage: "Field '#name' must have exactly one 'Array' annotation."
@@ -5173,6 +5154,9 @@ JsInteropOperatorsNotSupported:
   problemMessage: "JS interop classes do not support operator methods."
   correctionMessage: "Try replacing this with a normal method."
 
+JsInteropInvalidStaticClassMemberName:
+  problemMessage: "JS interop static class members cannot have '.' in their JS name."
+
 JsInteropStaticInteropWithInstanceMembers:
   problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
   correctionMessage: "Try moving the instance member to a static extension."
@@ -5606,3 +5590,69 @@ EnumImplementerContainsRestrictedInstanceDeclaration:
 
 EnumAbstractMember:
   problemMessage: "Enums can't declare abstract members."
+
+MixinInheritsFromNotObject:
+  problemMessage: "The class '#name' can't be used as a mixin because it extends a class other than 'Object'."
+  analyzerCode: MIXIN_INHERITS_FROM_NOT_OBJECT
+  script: |
+    class Base {}
+    class Mixin extends Base {}
+    class C extends Base with Mixin {}
+
+MixinApplicationNoConcreteMethod:
+  problemMessage: "The class doesn't have a concrete implementation of the super-invoked member '#name'."
+  analyzerCode: MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+  script: |
+    class Super {
+      void method() {}
+    }
+    mixin Mixin on Super {
+      void method() {
+        super.method();
+      }
+    }
+    abstract class AbstractSuper implements Super {}
+    class Class extends AbstractSuper with Mixin {}
+
+MixinApplicationNoConcreteGetter:
+  problemMessage: "The class doesn't have a concrete implementation of the super-accessed member '#name'."
+  analyzerCode: MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+  script: |
+    class Super {
+      int get getter => 42; 
+    }
+    mixin Mixin on Super {
+      int get getter {
+        return super.getter;
+      }
+    }
+    abstract class AbstractSuper implements Super {}
+    class Class extends AbstractSuper with Mixin {}
+
+MixinApplicationNoConcreteSetter:
+  problemMessage: "The class doesn't have a concrete implementation of the super-accessed setter '#name'."
+  analyzerCode: MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+  script: |
+    class Super {
+      void set setter(int value) {} 
+    }
+    mixin Mixin on Super {
+      void set setter(int value) {
+        super.setter = value;
+      }
+    }
+    abstract class AbstractSuper implements Super {}
+    class Class extends AbstractSuper with Mixin {}
+
+MixinApplicationNoConcreteMemberContext:
+  problemMessage: "This is the super-access that doesn't have a concrete target."
+  severity: CONTEXT
+
+NoAugmentSuperReadTarget:
+  problemMessage: "Cannot read from 'augment super'."
+
+NoAugmentSuperWriteTarget:
+  problemMessage: "Cannot write to 'augment super'."
+
+NoAugmentSuperInvokeTarget:
+  problemMessage: "Cannot call 'augment super'."

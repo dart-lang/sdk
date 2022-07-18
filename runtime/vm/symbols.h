@@ -187,6 +187,7 @@ class ObjectPointerVisitor;
   V(InterpolateSingle, "_interpolateSingle")                                   \
   V(InvocationMirror, "_InvocationMirror")                                     \
   V(IsolateSpawnException, "IsolateSpawnException")                            \
+  V(Iterable, "Iterable")                                                      \
   V(Iterator, "iterator")                                                      \
   V(KernelProgramInfo, "KernelProgramInfo")                                    \
   V(LanguageError, "LanguageError")                                            \
@@ -383,6 +384,7 @@ class ObjectPointerVisitor;
   V(_String, "String")                                                         \
   V(_SuspendState, "_SuspendState")                                            \
   V(_SyncIterator, "_SyncIterator")                                            \
+  V(_SyncStarIterator, "_SyncStarIterator")                                    \
   V(_SyncStreamController, "_SyncStreamController")                            \
   V(_TransferableTypedDataImpl, "_TransferableTypedDataImpl")                  \
   V(_Type, "_Type")                                                            \
@@ -413,6 +415,7 @@ class ObjectPointerVisitor;
   V(_typedDataBase, "_typedDataBase")                                          \
   V(_await, "_await")                                                          \
   V(_classRangeCheck, "_classRangeCheck")                                      \
+  V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
   V(_future, "_future")                                                        \
   V(_handleException, "_handleException")                                      \
@@ -422,6 +425,7 @@ class ObjectPointerVisitor;
   V(_hasValue, "_hasValue")                                                    \
   V(_initAsync, "_initAsync")                                                  \
   V(_initAsyncStar, "_initAsyncStar")                                          \
+  V(_initSyncStar, "_initSyncStar")                                            \
   V(_instanceOf, "_instanceOf")                                                \
   V(_listGetAt, "_listGetAt")                                                  \
   V(_listLength, "_listLength")                                                \
@@ -442,6 +446,7 @@ class ObjectPointerVisitor;
   V(_returnAsync, "_returnAsync")                                              \
   V(_returnAsyncNotFuture, "_returnAsyncNotFuture")                            \
   V(_returnAsyncStar, "_returnAsyncStar")                                      \
+  V(_returnSyncStar, "_returnSyncStar")                                        \
   V(_runExtension, "_runExtension")                                            \
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
   V(_scanFlags, "_scanFlags")                                                  \
@@ -455,8 +460,11 @@ class ObjectPointerVisitor;
   V(_varData, "_varData")                                                      \
   V(_wordCharacterMap, "_wordCharacterMap")                                    \
   V(_yieldAsyncStar, "_yieldAsyncStar")                                        \
+  V(_yieldStarIterable, "_yieldStarIterable")                                  \
+  V(_yieldSyncStar, "_yieldSyncStar")                                          \
   V(add, "add")                                                                \
   V(addStream, "addStream")                                                    \
+  V(asyncStarBody, "asyncStarBody")                                            \
   V(callback, "callback")                                                      \
   V(capture_length, ":capture_length")                                         \
   V(capture_start_index, ":capture_start_index")                               \

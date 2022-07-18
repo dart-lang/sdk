@@ -11,7 +11,7 @@ import '../common.dart';
 import '../js/js.dart' as js;
 import '../js/js_debug.dart';
 import '../js/js_source_mapping.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../util/util.dart';
 import 'code_output.dart' show BufferedCodeOutput;
 import 'source_information.dart';

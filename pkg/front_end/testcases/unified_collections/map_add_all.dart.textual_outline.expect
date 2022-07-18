@@ -1,0 +1,4 @@
+// @dart = 2.9
+void useAddAll() {}
+main() {}
+void expect(Map map1, Map map2) {}

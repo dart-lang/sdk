@@ -1,4 +1,3 @@
-// @dart = 2.9
 import 'infer_statics_transitively.dart';
 import 'infer_statics_transitively_b.dart';
 

@@ -53,8 +53,10 @@ class GCLinkedList {
     } else {
       ASSERT(to->tail_ != Type::null());
       ASSERT(to->tail_->untag()->next_seen_by_gc() == Type::null());
-      to->tail_->untag()->next_seen_by_gc_ = head_;
-      to->tail_ = tail_;
+      if (head_ != Type::null()) {
+        to->tail_->untag()->next_seen_by_gc_ = head_;
+        to->tail_ = tail_;
+      }
     }
     Release();
   }

@@ -16,7 +16,7 @@ void main() {
 
 @reflectiveTest
 class UpdateContentTest extends AbstractAnalysisServerIntegrationTest {
-  Future<void> test_updateContent_list() {
+  Future<void> test_updateContent_list() async {
     var pathname = sourcePath('test.dart');
     var goodText = r'''
 void f() {
@@ -26,27 +26,24 @@ void f() {
     var badText = goodText.replaceAll('"', '');
     // Create a dummy file
     writeFile(pathname, '// dummy text');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     // Override file contents with badText.
-    sendAnalysisUpdateContent({pathname: AddContentOverlay(badText)});
-    return analysisFinished.then((_) {
-      // The overridden contents (badText) are missing quotation marks.
-      expect(currentAnalysisErrors[pathname], isNotEmpty);
-    }).then((_) {
-      // Prepare a set of edits which add the missing quotation marks, in the
-      // order in which they appear in the file.  If these edits are applied in
-      // the wrong order, some of the quotation marks will be in the wrong
-      // places, and there will still be errors.
-      var edits = '"'
-          .allMatches(goodText)
-          .map((Match match) => SourceEdit(match.start, 0, '"'))
-          .toList();
-      sendAnalysisUpdateContent({pathname: ChangeContentOverlay(edits)});
-      return analysisFinished;
-    }).then((_) {
-      // There should be no errors now, assuming that quotation marks have been
-      // inserted in all the correct places.
-      expect(currentAnalysisErrors[pathname], isEmpty);
-    });
+    await sendAnalysisUpdateContent({pathname: AddContentOverlay(badText)});
+    await analysisFinished;
+    // The overridden contents (badText) are missing quotation marks.
+    expect(currentAnalysisErrors[pathname], isNotEmpty);
+    // Prepare a set of edits which add the missing quotation marks, in the
+    // order in which they appear in the file.  If these edits are applied in
+    // the wrong order, some of the quotation marks will be in the wrong
+    // places, and there will still be errors.
+    var edits = '"'
+        .allMatches(goodText)
+        .map((Match match) => SourceEdit(match.start, 0, '"'))
+        .toList();
+    await sendAnalysisUpdateContent({pathname: ChangeContentOverlay(edits)});
+    await analysisFinished;
+    // There should be no errors now, assuming that quotation marks have been
+    // inserted in all the correct places.
+    expect(currentAnalysisErrors[pathname], isEmpty);
   }
 }

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,6 +22,68 @@ main() {
 @reflectiveTest
 class ClassMemberParserTest extends FastaParserTestCase
     implements AbstractParserViaProxyTestCase {
+  void parseClassMember_constructor_initializers_49132_helper(
+    String content, {
+    bool xIsNullable = false,
+    bool yIsNullable = false,
+    bool isVariation = false,
+  }) {
+    createParser(content);
+    ClassMember member = parser.parseClassMember('Foo');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, isConstructorDeclaration);
+    var constructor = member as ConstructorDeclaration;
+    expect(constructor.body, isNotNull);
+    expect(constructor.separator, isNotNull);
+    expect(constructor.externalKeyword, isNull);
+    expect(constructor.constKeyword, isNull);
+    expect(constructor.factoryKeyword, isNull);
+    expect(constructor.name, isNull);
+    expect(constructor.parameters, isNotNull);
+    expect(constructor.period, isNull);
+    expect(constructor.returnType, isNotNull);
+    expect(constructor.initializers, hasLength(2));
+
+    {
+      var x = constructor.initializers[0] as ConstructorFieldInitializer;
+      expect(x.fieldName.name, "x");
+      Expression expression;
+      NamedType namedType;
+      if (isVariation) {
+        var isExpression = x.expression as IsExpression;
+        expression = isExpression.expression;
+        namedType = isExpression.type as NamedType;
+      } else {
+        var asExpression = x.expression as AsExpression;
+        expression = asExpression.expression;
+        namedType = asExpression.type as NamedType;
+      }
+      expect(expression, isSimpleIdentifier);
+      expect(namedType.name.name, "int");
+      expect(namedType.question, xIsNullable ? isNotNull : isNull);
+    }
+
+    {
+      var y = constructor.initializers[1] as ConstructorFieldInitializer;
+      expect(y.fieldName.name, "y");
+      Expression expression;
+      NamedType namedType;
+      if (isVariation) {
+        var isExpression = y.expression as IsExpression;
+        expression = isExpression.expression;
+        namedType = isExpression.type as NamedType;
+      } else {
+        var asExpression = y.expression as AsExpression;
+        expression = asExpression.expression;
+        namedType = asExpression.type as NamedType;
+      }
+      expect(expression, isSimpleIdentifier);
+      expect(namedType.name.name, "int");
+      expect(namedType.question, yIsNullable ? isNotNull : isNull);
+    }
+  }
+
   void test_parse_member_called_late() {
     var unit = parseCompilationUnit(
       'class C { void late() { new C().late(); } }',
@@ -81,8 +144,8 @@ class ClassMemberParserTest extends FastaParserTestCase
     var method = parser.parseClassMember('C') as MethodDeclaration;
     expect(method, isNotNull);
     listener.assertErrors([
-      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 13, 5),
-      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 23, 5)
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 13, 5),
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 23, 5)
     ]);
     FunctionBody body = method.body;
     expect(body, isBlockFunctionBody);
@@ -90,6 +153,220 @@ class ClassMemberParserTest extends FastaParserTestCase
     expect(statement, isReturnStatement);
     Expression expression = (statement as ReturnStatement).expression!;
     expect(expression, isBinaryExpression);
+    expect((expression as BinaryExpression).leftOperand, isAwaitExpression);
+    expect(expression.rightOperand, isAwaitExpression);
+  }
+
+  void test_parseAwaitExpression_inSync_v1_49116() {
+    createParser('m() { await returnsFuture(); }');
+    var method = parser.parseClassMember('C') as MethodDeclaration;
+    expect(method, isNotNull);
+    listener.assertErrors([
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 6, 5),
+    ]);
+    FunctionBody body = method.body;
+    expect(body, isBlockFunctionBody);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    expect(statement, isExpressionStatement);
+    Expression expression = (statement as ExpressionStatement).expression;
+    expect(expression, isAwaitExpression);
+  }
+
+  void test_parseAwaitExpression_inSync_v2_49116() {
+    createParser('''m() {
+      if (await returnsFuture()) {}
+      else if (!await returnsFuture()) {}
+    }''');
+    var method = parser.parseClassMember('C') as MethodDeclaration;
+    expect(method, isNotNull);
+    listener.assertErrors([
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 16, 5),
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 58, 5),
+    ]);
+    FunctionBody body = method.body;
+    expect(body, isBlockFunctionBody);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    expect(statement, isIfStatement);
+    Expression expression = (statement as IfStatement).condition;
+    expect(expression, isAwaitExpression);
+    expect(statement.elseStatement, isNotNull);
+    Statement elseStatement = statement.elseStatement!;
+    expect(elseStatement, isIfStatement);
+    expression = (elseStatement as IfStatement).condition;
+    expect(expression, isPrefixExpression);
+    expect((expression as PrefixExpression).operator.lexeme, '!');
+    expression = expression.operand;
+    expect(expression, isAwaitExpression);
+  }
+
+  void test_parseAwaitExpression_inSync_v3_49116() {
+    createParser('m() { print(await returnsFuture()); }');
+    var method = parser.parseClassMember('C') as MethodDeclaration;
+    expect(method, isNotNull);
+    listener.assertErrors([
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 12, 5),
+    ]);
+    FunctionBody body = method.body;
+    expect(body, isBlockFunctionBody);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    expect(statement, isExpressionStatement);
+    Expression expression = (statement as ExpressionStatement).expression;
+    expect(expression, isMethodInvocation);
+    expression = (expression as MethodInvocation).argumentList.arguments.single;
+    expect(expression, isAwaitExpression);
+  }
+
+  void test_parseAwaitExpression_inSync_v4_49116() {
+    createParser('''m() {
+      xor(await returnsFuture(), await returnsFuture(), await returnsFuture());
+    }''');
+    var method = parser.parseClassMember('C') as MethodDeclaration;
+    expect(method, isNotNull);
+    listener.assertErrors([
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 16, 5),
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 39, 5),
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 62, 5),
+    ]);
+    FunctionBody body = method.body;
+    expect(body, isBlockFunctionBody);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    expect(statement, isExpressionStatement);
+    Expression expression = (statement as ExpressionStatement).expression;
+    expect(expression, isMethodInvocation);
+    expect((expression as MethodInvocation).argumentList.arguments.length, 3);
+    expect(expression.argumentList.arguments[0], isAwaitExpression);
+    expect(expression.argumentList.arguments[1], isAwaitExpression);
+    expect(expression.argumentList.arguments[2], isAwaitExpression);
+  }
+
+  void test_parseAwaitExpression_inSync_v5_49116() {
+    createParser('''m() {
+      await returnsFuture() ^ await returnsFuture();
+    }''');
+    var method = parser.parseClassMember('C') as MethodDeclaration;
+    expect(method, isNotNull);
+    listener.assertErrors([
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 12, 5),
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 36, 5),
+    ]);
+    FunctionBody body = method.body;
+    expect(body, isBlockFunctionBody);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    expect(statement, isExpressionStatement);
+    Expression expression = (statement as ExpressionStatement).expression;
+    expect(expression, isBinaryExpression);
+    expect((expression as BinaryExpression).leftOperand, isAwaitExpression);
+    expect(expression.rightOperand, isAwaitExpression);
+    expect(expression.operator.lexeme, '^');
+  }
+
+  void test_parseAwaitExpression_inSync_v6_49116() {
+    createParser('''m() {
+      print(await returnsFuture() ^ await returnsFuture());
+    }''');
+    var method = parser.parseClassMember('C') as MethodDeclaration;
+    expect(method, isNotNull);
+    listener.assertErrors([
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 18, 5),
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 42, 5),
+    ]);
+    FunctionBody body = method.body;
+    expect(body, isBlockFunctionBody);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    expect(statement, isExpressionStatement);
+    Expression expression = (statement as ExpressionStatement).expression;
+    expect(expression, isMethodInvocation);
+    expression = (expression as MethodInvocation).argumentList.arguments.single;
+    expect(expression, isBinaryExpression);
+    expect((expression as BinaryExpression).leftOperand, isAwaitExpression);
+    expect(expression.rightOperand, isAwaitExpression);
+    expect(expression.operator.lexeme, '^');
+  }
+
+  void test_parseClassMember_constructor_initializers_conditional() {
+    createParser("Foo(dynamic a) : x = a is int ? {} : [] { /*body */ }");
+    ClassMember member = parser.parseClassMember('Foo');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, isConstructorDeclaration);
+    var constructor = member as ConstructorDeclaration;
+    expect(constructor.body, isNotNull);
+    expect(constructor.separator, isNotNull);
+    expect(constructor.externalKeyword, isNull);
+    expect(constructor.constKeyword, isNull);
+    expect(constructor.factoryKeyword, isNull);
+    expect(constructor.name, isNull);
+    expect(constructor.parameters, isNotNull);
+    expect(constructor.period, isNull);
+    expect(constructor.returnType, isNotNull);
+    expect(constructor.initializers, hasLength(1));
+
+    var x = constructor.initializers[0] as ConstructorFieldInitializer;
+    expect(x.fieldName.name, "x");
+    var conditionalExpression = x.expression as ConditionalExpression;
+    expect(conditionalExpression.condition, isIsExpression);
+    expect(conditionalExpression.thenExpression, isSetOrMapLiteral);
+    expect(conditionalExpression.elseExpression, isListLiteral);
+  }
+
+  void test_parseClassMember_constructor_initializers_is_nullable_v1_49132() {
+    parseClassMember_constructor_initializers_49132_helper(
+      'Foo(dynamic a, dynamic b) : x = a is int, y = b is int?;',
+      yIsNullable: true,
+      isVariation: true,
+    );
+  }
+
+  void test_parseClassMember_constructor_initializers_is_nullable_v2_49132() {
+    parseClassMember_constructor_initializers_49132_helper(
+      'Foo(dynamic a, dynamic b) : x = a is int?, y = b is int;',
+      xIsNullable: true,
+      isVariation: true,
+    );
+  }
+
+  void test_parseClassMember_constructor_initializers_is_nullable_v3_49132() {
+    parseClassMember_constructor_initializers_49132_helper(
+      'Foo(dynamic a, dynamic b) : x = a is int, y = b is int? {}',
+      yIsNullable: true,
+      isVariation: true,
+    );
+  }
+
+  void test_parseClassMember_constructor_initializers_is_nullable_v4_49132() {
+    parseClassMember_constructor_initializers_49132_helper(
+      'Foo(dynamic a, dynamic b) : x = a is int?, y = b is int {}',
+      xIsNullable: true,
+      isVariation: true,
+    );
+  }
+
+  void test_parseClassMember_constructor_initializers_nullable_cast_v1_49132() {
+    parseClassMember_constructor_initializers_49132_helper(
+      'Foo(dynamic a, dynamic b) : x = a as int, y = b as int?;',
+      yIsNullable: true,
+    );
+  }
+
+  void test_parseClassMember_constructor_initializers_nullable_cast_v2_49132() {
+    parseClassMember_constructor_initializers_49132_helper(
+      'Foo(dynamic a, dynamic b) : x = a as int?, y = b as int;',
+      xIsNullable: true,
+    );
+  }
+
+  void test_parseClassMember_constructor_initializers_nullable_cast_v3_49132() {
+    parseClassMember_constructor_initializers_49132_helper(
+      'Foo(dynamic a, dynamic b) : x = a as int, y = b as int? {}',
+      yIsNullable: true,
+    );
+  }
+
+  void test_parseClassMember_constructor_initializers_nullable_cast_v4_49132() {
+    parseClassMember_constructor_initializers_49132_helper(
+      'Foo(dynamic a, dynamic b) : x = a as int?, y = b as int {}',
+      xIsNullable: true,
+    );
   }
 
   void test_parseClassMember_constructor_withDocComment() {

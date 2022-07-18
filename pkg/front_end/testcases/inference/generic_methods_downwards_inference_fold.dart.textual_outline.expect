@@ -1,6 +1,5 @@
-// @dart = 2.9
 library test;
 
-void test() {}
-void functionExpressionInvocation() {}
+void test(List<int> o) {}
+void functionExpressionInvocation(List<int> o) {}
 main() {}

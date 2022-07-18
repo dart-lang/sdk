@@ -424,6 +424,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment Call1ArgStub(TokenPosition position,
                         Call1ArgStubInstr::StubId stub_id);
 
+  // Generates Suspend instruction.
+  Fragment Suspend(TokenPosition position, SuspendInstr::StubId stub_id);
+
   LocalVariable* LookupVariable(intptr_t kernel_offset);
 
   // Build type argument type checks for the current function.

@@ -247,7 +247,6 @@ class Scrape {
 
       // Don't care about cached packages.
       if (entry.path.contains('sdk/third_party/pkg/')) continue;
-      if (entry.path.contains('sdk/third_party/pkg_tested/')) continue;
       if (entry.path.contains('/.dart_tool/')) continue;
 
       // Don't care about generated protobuf code.

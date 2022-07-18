@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /*library: scope=[
   A2,
   async.dart.FutureExtensions,
@@ -11,7 +9,7 @@
   core.dart.EnumName]*/
 
 class A1 {
-  int _instanceField;
+  int _instanceField = 0;
   int getInstanceField() => _instanceField;
   void setInstanceField(int value) {
     _instanceField = value;
@@ -27,14 +25,14 @@ class A1 {
  builder-name=A2,
  builder-onType=A1,
  extension-members=[
-  operator +=A2|+,
   getter instanceProperty=A2|get#instanceProperty,
+  operator +=A2|+,
   setter instanceProperty=A2|set#instanceProperty,
   static field staticField=A2|staticField,
   static getter staticProperty=A2|staticProperty,
   static setter staticProperty=A2|staticProperty=],
  extension-name=A2,
- extension-onType=A1
+ extension-onType=A1!
 */
 extension A2 on A1 {
   /*member: A2|get#instanceProperty:

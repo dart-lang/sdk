@@ -82,6 +82,7 @@ attributes
 augment
 augmentation
 augmentations
+augmented
 augmenting
 augments
 auto
@@ -577,6 +578,7 @@ heap
 height
 hello
 helpful
+helps
 hfs
 highlight
 highlighting
@@ -670,6 +672,7 @@ interval
 intervals
 intl
 introspect
+introspectable
 introspection
 introspector
 ints
@@ -751,6 +754,7 @@ linearized
 linebreak
 linter
 linux
+listenable
 listening
 lives
 ll
@@ -782,6 +786,7 @@ macro
 macros
 maintaining
 malbounded
+manage
 mangled
 manipulation
 manner
@@ -878,6 +883,7 @@ oked
 omitting
 op
 opens
+operate
 opt
 optimizations
 opting
@@ -1406,6 +1412,7 @@ traverse
 trees
 tricky
 triggering
+triggers
 trips
 trivially
 ts
@@ -1450,6 +1457,7 @@ unification
 unifier
 unifies
 unify
+uninferable
 uninhabited
 uninstantiable
 uninstantiated

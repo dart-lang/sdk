@@ -874,6 +874,10 @@ class AnalysisServerOptions {
 
   /// If set, this string will be reported as the protocol version.
   String? reportProtocolVersion;
+
+  /// Experiments which have been enabled (or disabled) via the
+  /// `--enable-experiment` command-line option.
+  List<String> enabledExperiments = [];
 }
 
 class ServerContextManagerCallbacks extends ContextManagerCallbacks {
@@ -999,8 +1003,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   void _handleResolvedUnitResult(ResolvedUnitResult result) {
     var path = result.path;
-
-    analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
 
     var unit = result.unit;
     if (analysisServer._hasAnalysisServiceSubscription(

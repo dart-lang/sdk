@@ -482,13 +482,6 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
     return false;
   }
 
-  // TODO(zra, kmillikin): Also load other large immediates from the object
-  // pool
-  if (target::IsSmi(object)) {
-    // If the raw smi does not fit into a 32-bit signed int, then we'll keep
-    // the raw value in the object pool.
-    return !Utils::IsInt(32, target::ToRawSmi(object));
-  }
   ASSERT(IsNotTemporaryScopedHandle(object));
   ASSERT(IsInOldSpace(object));
   return true;
@@ -535,18 +528,18 @@ void Assembler::LoadObjectHelper(Register dst,
       ldr(dst, Address(THR, offset));
       return;
     }
+    if (target::IsSmi(object)) {
+      LoadImmediate(dst, target::ToRawSmi(object));
+      return;
+    }
   }
-  if (CanLoadFromObjectPool(object)) {
-    const intptr_t index =
-        is_unique ? object_pool_builder().AddObject(
-                        object, ObjectPoolBuilderEntry::kPatchable)
-                  : object_pool_builder().FindObject(
-                        object, ObjectPoolBuilderEntry::kNotPatchable);
-    LoadWordFromPoolIndex(dst, index);
-    return;
-  }
-  ASSERT(target::IsSmi(object));
-  LoadImmediate(dst, target::ToRawSmi(object));
+  RELEASE_ASSERT(CanLoadFromObjectPool(object));
+  const intptr_t index =
+      is_unique ? object_pool_builder().AddObject(
+                      object, ObjectPoolBuilderEntry::kPatchable)
+                : object_pool_builder().FindObject(
+                      object, ObjectPoolBuilderEntry::kNotPatchable);
+  LoadWordFromPoolIndex(dst, index);
 }
 
 void Assembler::LoadObject(Register dst, const Object& object) {
@@ -1540,7 +1533,7 @@ void Assembler::CheckCodePointer() {
   const intptr_t entry_offset =
       CodeSize() + target::Instructions::HeaderSize() - kHeapObjectTag;
   adr(R0, Immediate(-entry_offset));
-  ldr(TMP, FieldAddress(CODE_REG, target::Code::saved_instructions_offset()));
+  ldr(TMP, FieldAddress(CODE_REG, target::Code::instructions_offset()));
   cmp(R0, Operand(TMP));
   b(&instructions_ok, EQ);
   brk(1);
@@ -1581,6 +1574,10 @@ void Assembler::SetupCSPFromThread(Register thr) {
 
 void Assembler::RestoreCSP() {
   mov(CSP, SP);
+}
+
+void Assembler::SetReturnAddress(Register value) {
+  RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(MoveRegister(LR, value));
 }
 
 void Assembler::EnterFrame(intptr_t frame_size) {

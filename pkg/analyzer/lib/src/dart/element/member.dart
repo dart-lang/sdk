@@ -852,9 +852,6 @@ class ParameterMember extends VariableMember
   bool get hasDefaultValue => declaration.hasDefaultValue;
 
   @override
-  int get hashCode => declaration.hashCode;
-
-  @override
   bool get isCovariant => declaration.isCovariant;
 
   @override
@@ -1084,8 +1081,7 @@ class SuperFormalParameterMember extends ParameterMember
       return null;
     }
 
-    return ParameterMember(
-        _typeProvider, superConstructorParameter, _substitution, isLegacy);
+    return ParameterMember.from(superConstructorParameter, substitution);
   }
 
   @override

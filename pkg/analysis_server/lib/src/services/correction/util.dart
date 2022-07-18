@@ -176,7 +176,7 @@ List<SimpleIdentifier> findPrefixElementReferences(
 List<SourceRange> getCommentRanges(CompilationUnit unit) {
   var ranges = <SourceRange>[];
   var token = unit.beginToken;
-  while (token.type != TokenType.EOF) {
+  while (!token.isEof) {
     var commentToken = token.precedingComments;
     while (commentToken != null) {
       ranges.add(range.token(commentToken));
@@ -571,6 +571,25 @@ class CorrectionUtils {
       return visitor.names;
     }
     return conflicts;
+  }
+
+  /// Returns the [ExpressionStatement] associated with [node] if [node] points
+  /// to the identifier for a simple `print`.  Returns `null`,
+  /// otherwise.
+  ExpressionStatement? findSimplePrintInvocation(AstNode node) {
+    var parent = node.parent;
+    var grandparent = parent?.parent;
+    if (node is SimpleIdentifier) {
+      var element = node.staticElement;
+      if (element is FunctionElement &&
+          element.name == 'print' &&
+          element.library.isDartCore &&
+          parent is MethodInvocation &&
+          grandparent is ExpressionStatement) {
+        return grandparent;
+      }
+    }
+    return null;
   }
 
   /// Returns the indentation with the given level.
@@ -1431,7 +1450,7 @@ class TokenUtils {
           featureSet: featureSet,
         );
       var token = scanner.tokenize();
-      while (token.type != TokenType.EOF) {
+      while (!token.isEof) {
         tokens.add(token);
         token = token.next!;
       }

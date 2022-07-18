@@ -5,6 +5,7 @@
 library fasta.null_type_declaration_builder;
 
 import 'package:kernel/ast.dart' show DartType, Nullability;
+import 'package:kernel/class_hierarchy.dart';
 
 import 'builtin_type_declaration_builder.dart';
 import 'library_builder.dart';
@@ -27,6 +28,7 @@ class NullTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
       TypeUse typeUse,
       Uri fileUri,
       int charOffset,
+      ClassHierarchyBase? hierarchy,
       {required bool hasExplicitTypeArguments}) {
     return type;
   }

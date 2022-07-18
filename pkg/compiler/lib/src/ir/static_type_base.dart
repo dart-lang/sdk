@@ -55,13 +55,10 @@ class ExactInterfaceType extends ir.InterfaceType {
 /// expression kind. For instance method invocations whose static type depend
 /// on the static types of the receiver and type arguments and the signature
 /// of the targeted procedure.
-abstract class StaticTypeBase extends ir.Visitor<ir.DartType?>
-    with ir.VisitorNullMixin<ir.DartType> {
+abstract class StaticTypeBase extends ir.TreeVisitor<ir.DartType> {
   final ir.TypeEnvironment _typeEnvironment;
 
   StaticTypeBase(this._typeEnvironment);
-
-  fail(String message) => message;
 
   ir.TypeEnvironment get typeEnvironment => _typeEnvironment;
 
@@ -70,23 +67,18 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType?>
   ThisInterfaceType get thisType;
 
   @override
-  ir.DartType? defaultNode(ir.Node node) {
-    return null;
+  ir.DartType defaultTreeNode(ir.TreeNode node) {
+    throw UnsupportedError('Unhandled node $node (${node.runtimeType})');
   }
 
-  ir.DartType? visitNode(ir.Node? node) {
-    return node?.accept(this);
-  }
+  ir.DartType visitNode(ir.TreeNode node) => node.accept(this);
 
-  Null visitNodes(List<ir.Node> nodes) {
-    for (ir.Node node in nodes) {
+  ir.DartType? visitNodeOrNull(ir.TreeNode? node) => node?.accept(this);
+
+  void visitNodes(Iterable<ir.TreeNode> nodes) {
+    for (ir.TreeNode node in nodes) {
       visitNode(node);
     }
-  }
-
-  @override
-  ir.DartType defaultExpression(ir.Expression node) {
-    throw fail('Unhandled node $node (${node.runtimeType})');
   }
 
   @override
@@ -96,7 +88,7 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType?>
 
   @override
   ir.DartType visitAwaitExpression(ir.AwaitExpression node) {
-    return typeEnvironment.flatten(visitNode(node.operand)!);
+    return typeEnvironment.flatten(visitNode(node.operand));
   }
 
   @override
@@ -150,7 +142,7 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType?>
   }
 
   @override
-  ir.DartType? visitVariableSet(ir.VariableSet node) {
+  ir.DartType visitVariableSet(ir.VariableSet node) {
     return visitNode(node.value);
   }
 
@@ -161,12 +153,12 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType?>
   ir.DartType visitStaticGet(ir.StaticGet node) => node.target.getterType;
 
   @override
-  ir.DartType? visitStaticSet(ir.StaticSet node) {
+  ir.DartType visitStaticSet(ir.StaticSet node) {
     return visitNode(node.value);
   }
 
   @override
-  ir.DartType? visitSuperPropertySet(ir.SuperPropertySet node) {
+  ir.DartType visitSuperPropertySet(ir.SuperPropertySet node) {
     return visitNode(node.value);
   }
 
@@ -205,12 +197,12 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType?>
   }
 
   @override
-  ir.DartType? visitLet(ir.Let node) {
+  ir.DartType visitLet(ir.Let node) {
     return visitNode(node.body);
   }
 
   @override
-  ir.DartType? visitBlockExpression(ir.BlockExpression node) {
+  ir.DartType visitBlockExpression(ir.BlockExpression node) {
     return visitNode(node.value);
   }
 

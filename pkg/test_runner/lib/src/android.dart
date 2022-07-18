@@ -38,7 +38,7 @@ class AdbCommandResult {
 /// If the exit code of the process was nonzero it will complete with an error.
 /// If starting the process failed, it will complete with an error as well.
 Future<AdbCommandResult> _executeCommand(String executable, List<String> args,
-    {String stdin, Duration timeout}) {
+    {String? stdin, Duration? timeout}) {
   Future<String> getOutput(Stream<List<int>> stream) {
     return stream
         .transform(utf8.decoder)
@@ -53,7 +53,7 @@ Future<AdbCommandResult> _executeCommand(String executable, List<String> args,
     }
     process.stdin.close();
 
-    Timer timer;
+    Timer? timer;
     var timedOut = false;
     if (timeout != null) {
       timer = Timer(timeout, () {
@@ -68,7 +68,7 @@ Future<AdbCommandResult> _executeCommand(String executable, List<String> args,
       getOutput(process.stderr),
       process.exitCode
     ]);
-    if (timer != null) timer.cancel();
+    timer?.cancel();
 
     var command = "$executable ${args.join(' ')}";
     return AdbCommandResult(command, results[0] as String, results[1] as String,
@@ -205,7 +205,9 @@ class AdbDevice {
       // TODO: Figure out a way to wait until the adb daemon was restarted in
       // 'root mode' on the device.
       Timer(_adbServerStartupTime, () => adbRootCompleter.complete(true));
-    }).catchError((error) => adbRootCompleter.completeError(error));
+    }).catchError((Object error) {
+      adbRootCompleter.completeError(error);
+    });
     return adbRootCompleter.future;
   }
 
@@ -253,7 +255,7 @@ class AdbDevice {
       intent.action,
       '-n',
       "${intent.package}/${intent.activity}",
-      if (intent.dataUri != null) ...['-d', intent.dataUri]
+      if (intent.dataUri != null) ...['-d', intent.dataUri!]
     ]);
   }
 
@@ -273,13 +275,13 @@ class AdbDevice {
   }
 
   Future<AdbCommandResult> runAdbCommand(List<String> adbArgs,
-      {Duration timeout}) {
+      {Duration? timeout}) {
     return _executeCommand("adb", _deviceSpecificArgs(adbArgs),
         timeout: timeout);
   }
 
   Future<AdbCommandResult> runAdbShellCommand(List<String> shellArgs,
-      {Duration timeout}) async {
+      {Duration? timeout}) async {
     const marker = 'AdbShellExitCode: ';
 
     // The exitcode of 'adb shell ...' can be 0 even though the command failed
@@ -332,12 +334,7 @@ class AdbDevice {
   }
 
   List<String> _deviceSpecificArgs(List<String> adbArgs) {
-    if (deviceId != null) {
-      var extendedAdbArgs = ['-s', deviceId];
-      extendedAdbArgs.addAll(adbArgs);
-      adbArgs = extendedAdbArgs;
-    }
-    return adbArgs;
+    return ['-s', deviceId, ...adbArgs];
   }
 }
 
@@ -354,7 +351,7 @@ class AdbHelper {
       }
       return _deviceLineRegexp
           .allMatches(result.stdout as String)
-          .map((Match m) => m.group(1))
+          .map((Match m) => m.group(1)!)
           .toList();
     });
   }
@@ -365,7 +362,7 @@ class Intent {
   String action;
   String package;
   String activity;
-  String dataUri;
+  String? dataUri;
 
   Intent(this.action, this.package, this.activity, [this.dataUri]);
 }

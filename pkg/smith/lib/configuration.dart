@@ -432,12 +432,14 @@ class Configuration {
     return true;
   }
 
+  @override
   bool operator ==(Object other) =>
       other is Configuration && name == other.name && optionsEqual(other);
 
   int _toBinary(List<bool> bits) =>
       bits.fold(0, (sum, bit) => (sum << 1) ^ (bit ? 1 : 0));
 
+  @override
   int get hashCode =>
       name.hashCode ^
       architecture.hashCode ^
@@ -468,6 +470,7 @@ class Configuration {
         useQemu
       ]);
 
+  @override
   String toString() {
     var buffer = StringBuffer();
     buffer.write(name);
@@ -576,6 +579,7 @@ class Architecture extends NamedEnum {
   static const x64 = Architecture._('x64');
   static const x64c = Architecture._('x64c');
   static const arm = Architecture._('arm');
+  // ignore: constant_identifier_names
   static const arm_x64 = Architecture._('arm_x64');
   static const arm64 = Architecture._('arm64');
   static const arm64c = Architecture._('arm64c');
@@ -621,7 +625,6 @@ class Compiler extends NamedEnum {
   static const dart2js = Compiler._('dart2js');
   static const dart2analyzer = Compiler._('dart2analyzer');
   static const dart2wasm = Compiler._('dart2wasm');
-  static const compareAnalyzerCfe = Compiler._('compare_analyzer_cfe');
   static const dartdevc = Compiler._('dartdevc');
   static const dartdevk = Compiler._('dartdevk');
   static const appJitk = Compiler._('app_jitk');
@@ -637,7 +640,6 @@ class Compiler extends NamedEnum {
     dart2js,
     dart2analyzer,
     dart2wasm,
-    compareAnalyzerCfe,
     dartdevc,
     dartdevk,
     appJitk,
@@ -696,7 +698,6 @@ class Compiler extends NamedEnum {
           Runtime.chrome,
         ];
       case Compiler.dart2analyzer:
-      case Compiler.compareAnalyzerCfe:
         return const [Runtime.none];
       case Compiler.appJitk:
       case Compiler.dartk:
@@ -726,7 +727,6 @@ class Compiler extends NamedEnum {
       case Compiler.dartdevk:
         return Runtime.chrome;
       case Compiler.dart2analyzer:
-      case Compiler.compareAnalyzerCfe:
         return Runtime.none;
       case Compiler.appJitk:
       case Compiler.dartk:
@@ -746,7 +746,6 @@ class Compiler extends NamedEnum {
   Mode get defaultMode {
     switch (this) {
       case Compiler.dart2analyzer:
-      case Compiler.compareAnalyzerCfe:
       case Compiler.dart2js:
       case Compiler.dart2wasm:
       case Compiler.dartdevc:
@@ -988,5 +987,6 @@ abstract class NamedEnum {
 
   const NamedEnum(this.name);
 
+  @override
   String toString() => name;
 }

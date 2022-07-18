@@ -94,6 +94,14 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the element
+  static const HintCode DEPRECATED_EXPORT_USE = HintCode(
+    'DEPRECATED_EXPORT_USE',
+    "The ability to import '{0}' indirectly has been deprecated.",
+    correctionMessage: "Try importing '{0}' directly.",
+  );
+
   ///  No parameters.
   static const HintCode DEPRECATED_EXTENDS_FUNCTION = HintCode(
     'DEPRECATED_SUBTYPE_OF_FUNCTION',
@@ -101,13 +109,6 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage: "Try removing 'Function' from the 'extends' clause.",
     hasPublishedDocs: true,
     uniqueName: 'DEPRECATED_EXTENDS_FUNCTION',
-  );
-
-  ///  Users should not create a class named `Function` anymore.
-  static const HintCode DEPRECATED_FUNCTION_CLASS_DECLARATION = HintCode(
-    'DEPRECATED_FUNCTION_CLASS_DECLARATION',
-    "Declaring a class named 'Function' is deprecated.",
-    correctionMessage: "Try renaming the class.",
   );
 
   ///  No parameters.

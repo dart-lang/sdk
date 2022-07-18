@@ -383,6 +383,28 @@ int64_t Simulator::Call(intx_t entry,
 }
 
 void Simulator::Execute() {
+  if (LIKELY(FLAG_trace_sim_after == ULLONG_MAX)) {
+    ExecuteNoTrace();
+  } else {
+    ExecuteTrace();
+  }
+}
+
+void Simulator::ExecuteNoTrace() {
+  while (pc_ != kEndSimulatingPC) {
+    uint16_t parcel = *reinterpret_cast<uint16_t*>(pc_);
+    if (IsCInstruction(parcel)) {
+      CInstr instr(parcel);
+      Interpret(instr);
+    } else {
+      Instr instr(*reinterpret_cast<uint32_t*>(pc_));
+      Interpret(instr);
+    }
+    instret_++;
+  }
+}
+
+void Simulator::ExecuteTrace() {
   while (pc_ != kEndSimulatingPC) {
     uint16_t parcel = *reinterpret_cast<uint16_t*>(pc_);
     if (IsCInstruction(parcel)) {
@@ -441,7 +463,9 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   pp -= kHeapObjectTag;  // In the PP register, the pool pointer is untagged.
   set_xreg(CODE_REG, code);
   set_xreg(PP, pp);
-  set_xreg(WRITE_BARRIER_MASK, thread->write_barrier_mask());
+  set_xreg(WRITE_BARRIER_STATE,
+           thread->write_barrier_mask() ^
+               ((UntaggedObject::kGenerationalBarrierMask << 1) - 1));
   set_xreg(NULL_REG, static_cast<uintx_t>(Object::null()));
   if (FLAG_precompiled_mode) {
     set_xreg(DISPATCH_TABLE_REG,
@@ -482,6 +506,7 @@ void Simulator::PrintStack() {
   }
 }
 
+DART_FORCE_INLINE
 void Simulator::Interpret(Instr instr) {
   switch (instr.opcode()) {
     case LUI:
@@ -552,6 +577,7 @@ void Simulator::Interpret(Instr instr) {
   }
 }
 
+DART_FORCE_INLINE
 void Simulator::Interpret(CInstr instr) {
   switch (instr.opcode()) {
     case C_LWSP: {
@@ -812,21 +838,25 @@ void Simulator::Interpret(CInstr instr) {
   pc_ += instr.length();
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretLUI(Instr instr) {
   set_xreg(instr.rd(), sign_extend(instr.utype_imm()));
   pc_ += instr.length();
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretAUIPC(Instr instr) {
   set_xreg(instr.rd(), pc_ + sign_extend(instr.utype_imm()));
   pc_ += instr.length();
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretJAL(Instr instr) {
   set_xreg(instr.rd(), pc_ + instr.length());
   pc_ += sign_extend(instr.jtype_imm());
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretJALR(Instr instr) {
   uintx_t base = get_xreg(instr.rs1());
   uintx_t offset = static_cast<uintx_t>(instr.itype_imm());
@@ -834,6 +864,7 @@ void Simulator::InterpretJALR(Instr instr) {
   pc_ = base + offset;
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretBRANCH(Instr instr) {
   switch (instr.funct3()) {
     case BEQ:
@@ -887,6 +918,7 @@ void Simulator::InterpretBRANCH(Instr instr) {
   }
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretLOAD(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1()) + instr.itype_imm();
   switch (instr.funct3()) {
@@ -919,6 +951,7 @@ void Simulator::InterpretLOAD(Instr instr) {
   pc_ += instr.length();
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretLOADFP(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1()) + instr.itype_imm();
   switch (instr.funct3()) {
@@ -934,6 +967,7 @@ void Simulator::InterpretLOADFP(Instr instr) {
   pc_ += instr.length();
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretSTORE(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1()) + instr.stype_imm();
   switch (instr.funct3()) {
@@ -957,6 +991,7 @@ void Simulator::InterpretSTORE(Instr instr) {
   pc_ += instr.length();
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretSTOREFP(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1()) + instr.stype_imm();
   switch (instr.funct3()) {
@@ -972,6 +1007,7 @@ void Simulator::InterpretSTOREFP(Instr instr) {
   pc_ += instr.length();
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretOPIMM(Instr instr) {
   switch (instr.funct3()) {
     case ADDI:
@@ -1018,6 +1054,7 @@ void Simulator::InterpretOPIMM(Instr instr) {
   pc_ += instr.length();
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretOPIMM32(Instr instr) {
   switch (instr.funct3()) {
     case ADDI: {
@@ -1049,6 +1086,7 @@ void Simulator::InterpretOPIMM32(Instr instr) {
   pc_ += instr.length();
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretOP(Instr instr) {
   switch (instr.funct7()) {
     case 0:
@@ -1065,6 +1103,7 @@ void Simulator::InterpretOP(Instr instr) {
   }
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretOP_0(Instr instr) {
   switch (instr.funct3()) {
     case ADD:
@@ -1247,6 +1286,7 @@ static uint32_t remuw(uint32_t a, uint32_t b) {
 }
 #endif  // XLEN >= 64
 
+DART_FORCE_INLINE
 void Simulator::InterpretOP_MULDIV(Instr instr) {
   switch (instr.funct3()) {
     case MUL:
@@ -1280,6 +1320,7 @@ void Simulator::InterpretOP_MULDIV(Instr instr) {
   pc_ += instr.length();
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretOP_SUB(Instr instr) {
   switch (instr.funct3()) {
     case ADD:
@@ -1296,6 +1337,7 @@ void Simulator::InterpretOP_SUB(Instr instr) {
   pc_ += instr.length();
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretOP32(Instr instr) {
   switch (instr.funct7()) {
 #if XLEN >= 64
@@ -1314,6 +1356,7 @@ void Simulator::InterpretOP32(Instr instr) {
   }
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretOP32_0(Instr instr) {
   switch (instr.funct3()) {
 #if XLEN >= 64
@@ -1342,6 +1385,7 @@ void Simulator::InterpretOP32_0(Instr instr) {
   pc_ += instr.length();
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretOP32_SUB(Instr instr) {
   switch (instr.funct3()) {
 #if XLEN >= 64
@@ -1364,6 +1408,7 @@ void Simulator::InterpretOP32_SUB(Instr instr) {
   pc_ += instr.length();
 }
 
+DART_FORCE_INLINE
 void Simulator::InterpretOP32_MULDIV(Instr instr) {
   switch (instr.funct3()) {
 #if XLEN >= 64
@@ -1954,6 +1999,42 @@ void Simulator::InterpretFNMADD(Instr instr) {
   pc_ += instr.length();
 }
 
+// "For the purposes of these instructions only, the value −0.0 is considered to
+//  be less than the value +0.0. If both inputs are NaNs, the result is the
+//  canonical NaN. If only one operand is a NaN, the result is the non-NaN
+//  operand."
+static double rv_fmin(double x, double y) {
+  if (isnan(x) && isnan(y)) return std::numeric_limits<double>::quiet_NaN();
+  if (isnan(x)) return y;
+  if (isnan(y)) return x;
+  if (x == y) return signbit(x) ? x : y;
+  return fmin(x, y);
+}
+
+static double rv_fmax(double x, double y) {
+  if (isnan(x) && isnan(y)) return std::numeric_limits<double>::quiet_NaN();
+  if (isnan(x)) return y;
+  if (isnan(y)) return x;
+  if (x == y) return signbit(x) ? y : x;
+  return fmax(x, y);
+}
+
+static float rv_fminf(float x, float y) {
+  if (isnan(x) && isnan(y)) return std::numeric_limits<float>::quiet_NaN();
+  if (isnan(x)) return y;
+  if (isnan(y)) return x;
+  if (x == y) return signbit(x) ? x : y;
+  return fminf(x, y);
+}
+
+static float rv_fmaxf(float x, float y) {
+  if (isnan(x) && isnan(y)) return std::numeric_limits<float>::quiet_NaN();
+  if (isnan(x)) return y;
+  if (isnan(y)) return x;
+  if (x == y) return signbit(x) ? y : x;
+  return fmaxf(x, y);
+}
+
 static bool is_quiet(float x) {
   // Warning: This is true on Intel/ARM, but not everywhere.
   return (bit_cast<uint32_t>(x) & (static_cast<uint32_t>(1) << 22)) != 0;
@@ -2215,10 +2296,10 @@ void Simulator::InterpretOPFP(Instr instr) {
       float rs2 = get_fregs(instr.frs2());
       switch (instr.funct3()) {
         case MIN:
-          set_fregs(instr.frd(), fminf(rs1, rs2));
+          set_fregs(instr.frd(), rv_fminf(rs1, rs2));
           break;
         case MAX:
-          set_fregs(instr.frd(), fmaxf(rs1, rs2));
+          set_fregs(instr.frd(), rv_fmaxf(rs1, rs2));
           break;
         default:
           IllegalInstruction(instr);
@@ -2369,10 +2450,10 @@ void Simulator::InterpretOPFP(Instr instr) {
       double rs2 = get_fregd(instr.frs2());
       switch (instr.funct3()) {
         case MIN:
-          set_fregd(instr.frd(), fmin(rs1, rs2));
+          set_fregd(instr.frd(), rv_fmin(rs1, rs2));
           break;
         case MAX:
-          set_fregd(instr.frd(), fmax(rs1, rs2));
+          set_fregd(instr.frd(), rv_fmax(rs1, rs2));
           break;
         default:
           IllegalInstruction(instr);

@@ -675,7 +675,7 @@ ASSEMBLER_TEST_RUN(Testb3, test) {
   EXPECT_DISASSEMBLY_NOT_WINDOWS(
       "push rdi\n"
       "movl rdx,0x10\n"
-      "testb rdx,[rsp]\n"
+      "testb dl,[rsp]\n"
       "jz +13\n"
       "movl rax,1\n"
       "pop rcx\n"
@@ -5508,7 +5508,7 @@ ASSEMBLER_TEST_RUN(TestSetCC, test) {
   EXPECT_DISASSEMBLY(
       "movl rax,0xffffffff\n"
       "cmpq rax,rax\n"
-      "setnzl rax\n"
+      "setnz al\n"
       "ret\n");
 }
 
@@ -5530,7 +5530,7 @@ ASSEMBLER_TEST_RUN(TestSetCC2, test) {
       "push rbx\n"
       "movl rbx,0xffffffff\n"
       "cmpq rbx,rbx\n"
-      "setzl rdi\n"
+      "setz bh\n"
       "movq rax,rbx\n"
       "pop rbx\n"
       "ret\n");
@@ -5554,7 +5554,7 @@ ASSEMBLER_TEST_RUN(TestSetCC3, test) {
       "push r10\n"
       "movl r10,0xffffffff\n"
       "cmpq r10,r10\n"
-      "setnzl r10\n"
+      "setnz r10b\n"
       "movq rax,r10\n"
       "pop r10\n"
       "ret\n");
@@ -5578,7 +5578,7 @@ ASSEMBLER_TEST_RUN(TestSetCC4, test) {
       "push rsi\n"
       "movl rsi,0xffffffff\n"
       "cmpq rsi,rsi\n"
-      "setzl rsi\n"
+      "setz dh\n"
       "movq rax,rsi\n"
       "pop rsi\n"
       "ret\n");

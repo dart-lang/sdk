@@ -7,7 +7,6 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
     as macro;
-import 'package:analyzer/dart/analysis/analysis_context.dart' as api;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -17,6 +16,7 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -48,7 +48,6 @@ import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:meta/meta.dart';
 
 /// This class computes [AnalysisResult]s for Dart files.
 ///
@@ -86,7 +85,7 @@ import 'package:meta/meta.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 222;
+  static const int DATA_VERSION = 229;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -116,15 +115,17 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// the content from the file.
   final FileContentCache _fileContentCache;
 
+  late final StoredFileContentStrategy _fileContentStrategy;
+
   /// The analysis options to analyze with.
-  AnalysisOptionsImpl _analysisOptions;
+  final AnalysisOptionsImpl _analysisOptions;
 
   /// The [Packages] object with packages and their language versions.
-  Packages _packages;
+  final Packages _packages;
 
   /// The [SourceFactory] is used to resolve URIs to paths and restore URIs
   /// from file paths.
-  SourceFactory _sourceFactory;
+  final SourceFactory _sourceFactory;
 
   final MacroKernelBuilder? macroKernelBuilder;
 
@@ -132,10 +133,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final macro.MultiMacroExecutor? macroExecutor;
 
   /// The declared environment variables.
-  DeclaredVariables declaredVariables = DeclaredVariables();
+  final DeclaredVariables declaredVariables;
 
   /// The analysis context that created this driver / session.
-  api.AnalysisContext? analysisContext;
+  DriverBasedAnalysisContext? analysisContext;
 
   /// The salt to mix into all hashes used as keys for unlinked data.
   Uint32List _saltForUnlinked = Uint32List(0);
@@ -215,7 +216,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The instance of the [Search] helper.
   late final Search _search;
 
-  late final AnalysisDriverTestView _testView;
+  final AnalysisDriverTestView? testView;
 
   late FeatureSetProvider featureSetProvider;
 
@@ -256,10 +257,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     required Packages packages,
     this.macroKernelBuilder,
     this.macroExecutor,
+    this.analysisContext,
     FileContentCache? fileContentCache,
     this.enableIndex = false,
     SummaryDataStore? externalSummaries,
+    DeclaredVariables? declaredVariables,
     bool retainDataForTesting = false,
+    this.testView,
   })  : _scheduler = scheduler,
         _resourceProvider = resourceProvider,
         _byteStore = byteStore,
@@ -270,9 +274,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _packages = packages,
         _sourceFactory = sourceFactory,
         _externalSummaries = externalSummaries,
+        declaredVariables = declaredVariables ?? DeclaredVariables(),
         testingData = retainDataForTesting ? TestingData() : null {
+    analysisContext?.driver = this;
+    testView?.driver = this;
     _onResults = _resultController.stream.asBroadcastStream();
-    _testView = AnalysisDriverTestView(this);
+
+    _fileContentStrategy = StoredFileContentStrategy(_fileContentCache);
+
     _createFileTracker();
     _scheduler.add(this);
     _search = Search(this);
@@ -313,7 +322,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return the context in which libraries should be analyzed.
   LibraryContext get libraryContext {
     return _libraryContext ??= LibraryContext(
-      testView: _testView.libraryContextTestView,
+      testData: testView?.libraryContext,
       analysisSession: AnalysisSessionImpl(this),
       logger: _logger,
       byteStore: _byteStore,
@@ -385,9 +394,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return the source factory used to resolve URIs to paths and restore URIs
   /// from file paths.
   SourceFactory get sourceFactory => _sourceFactory;
-
-  @visibleForTesting
-  AnalysisDriverTestView get test => _testView;
 
   @override
   AnalysisDriverPriority get workPriority {
@@ -558,45 +564,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// library that was resynthesized, but after some initial analysis we might
   /// not get again to many of these libraries. So, we should clear the context
   /// periodically.
-  @visibleForTesting
   void clearLibraryContext() {
     _libraryContext?.dispose();
     _libraryContext = null;
-  }
-
-  /// Some state on which analysis depends has changed, so the driver needs to be
-  /// re-configured with the new state.
-  ///
-  /// At least one of the optional parameters should be provided, but only those
-  /// that represent state that has actually changed need be provided.
-  void configure({
-    api.AnalysisContext? analysisContext,
-    AnalysisOptionsImpl? analysisOptions,
-    Packages? packages,
-    SourceFactory? sourceFactory,
-  }) {
-    if (analysisContext != null) {
-      this.analysisContext = analysisContext;
-      _scheduler.driverWatcher?.addedDriver(this);
-    }
-    if (analysisOptions != null) {
-      _analysisOptions = analysisOptions;
-    }
-    if (packages != null) {
-      _packages = packages;
-    }
-    if (sourceFactory != null) {
-      _sourceFactory = sourceFactory;
-    }
-
-    _priorityResults.clear();
-    clearLibraryContext();
-
-    Iterable<String> addedFiles = _fileTracker.addedFiles;
-    _createFileTracker();
-    _fileTracker.addFiles(addedFiles);
-
-    _scheduler.notify(this);
   }
 
   /// Return a [Future] that completes when discovery of all files that are
@@ -807,7 +777,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     var units = <ParsedUnitResult>[];
-    for (var unitFile in file.libraryFiles) {
+    for (var unitFile in kind.files) {
       var unitPath = unitFile.path;
       var unitResult = parseFileSync(unitPath);
       if (unitResult is! ParsedUnitResult) {
@@ -1270,6 +1240,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           break;
         case _FileChangeKind.remove:
           _fileTracker.removeFile(path);
+          // TODO(scheglov) We have to do this because we discard files.
+          // But this is not right, we need to handle removing better.
+          clearLibraryContext();
           break;
       }
     }
@@ -1316,7 +1289,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     final library = kind.library ?? kind.asLibrary;
 
     // Prepare the signature and key.
-    String signature = _getResolvedUnitSignature(library.file, file);
+    String signature = _getResolvedUnitSignature(library, file);
     String key = _getResolvedUnitKey(signature);
 
     // Skip reading if the signature, so errors, are the same as the last time.
@@ -1339,7 +1312,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return _logger.runAsync('Compute analysis result for $path', () async {
       _logger.writeln('Work in $name');
       try {
-        _testView.numOfAnalyzedLibraries++;
+        testView?.numOfAnalyzedLibraries++;
 
         if (!_hasLibraryByUri('dart:core')) {
           return _newMissingDartLibraryResult(file, 'dart:core');
@@ -1349,13 +1322,15 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           return _newMissingDartLibraryResult(file, 'dart:async');
         }
 
-        await libraryContext.load(library);
+        await libraryContext.load(
+          targetLibrary: library,
+          performance: OperationPerformanceImpl('<root>'),
+        );
 
         var results = LibraryAnalyzer(
           analysisOptions as AnalysisOptionsImpl,
           declaredVariables,
-          sourceFactory,
-          libraryContext.elementFactory.libraryOfUri2(library.file.uriStr),
+          libraryContext.elementFactory.libraryOfUri2(library.file.uri),
           libraryContext.elementFactory.analysisSession.inheritanceManager,
           library,
           testingData: testingData,
@@ -1367,9 +1342,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           var unitBytes =
               _serializeResolvedUnit(unitResult.unit, unitResult.errors);
           String unitSignature =
-              _getResolvedUnitSignature(library.file, unitResult.file);
+              _getResolvedUnitSignature(library, unitResult.file);
           String unitKey = _getResolvedUnitKey(unitSignature);
-          _byteStore.put(unitKey, unitBytes);
+          _byteStore.putGet(unitKey, unitBytes);
           if (unitResult.file == file) {
             bytes = unitBytes;
             resolvedUnit = unitResult.unit;
@@ -1387,7 +1362,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         return result;
       } catch (exception, stackTrace) {
         String? contextKey =
-            _storeExceptionContext(path, library.file, exception, stackTrace);
+            _storeExceptionContext(path, library, exception, stackTrace);
         throw _ExceptionState(exception, stackTrace, contextKey);
       }
     });
@@ -1412,14 +1387,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ) async {
     final path = library.file.path;
     return _logger.runAsync('Compute resolved library $path', () async {
-      _testView.numOfAnalyzedLibraries++;
-      await libraryContext.load(library);
+      testView?.numOfAnalyzedLibraries++;
+      await libraryContext.load(
+        targetLibrary: library,
+        performance: OperationPerformanceImpl('<root>'),
+      );
 
       var unitResults = LibraryAnalyzer(
               analysisOptions as AnalysisOptionsImpl,
               declaredVariables,
-              sourceFactory,
-              libraryContext.elementFactory.libraryOfUri2(library.file.uriStr),
+              libraryContext.elementFactory.libraryOfUri2(library.file.uri),
               libraryContext.elementFactory.analysisSession.inheritanceManager,
               library,
               testingData: testingData)
@@ -1460,7 +1437,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     return _logger.runAsync('Compute unit element for $path', () async {
       _logger.writeln('Work in $name');
-      await libraryContext.load(library);
+      await libraryContext.load(
+        targetLibrary: library,
+        performance: OperationPerformanceImpl('<root>'),
+      );
       var element = libraryContext.computeUnitElement(library, file);
       return UnitElementResultImpl(
         currentSession,
@@ -1497,14 +1477,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       name,
       sourceFactory,
       analysisContext?.contextRoot.workspace,
-      analysisOptions,
       declaredVariables,
       _saltForUnlinked,
       _saltForElements,
       featureSetProvider,
-      fileContentCache: _fileContentCache,
+      fileContentStrategy: _fileContentStrategy,
+      prefetchFiles: null,
+      isGenerated: (_) => false,
+      testData: testView?.fileSystem,
     );
-    _fileTracker = FileTracker(_logger, _fsState);
+    _fileTracker = FileTracker(_logger, _fsState, _fileContentStrategy);
   }
 
   /// If this has not been done yet, schedule discovery of all files that are
@@ -1516,7 +1498,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// When we look at a part that has a `part of name;` directive, we
   /// usually don't know the library (in contrast to `part of uri;`).
   /// So, we have no choice than to resolve this part as its own library.
-  /// TODO(scheglov) Maybe just return an error result instead?
   ///
   /// But parts of `dart:xyz` libraries are special. The reason is that
   /// `dart:core` is always implicitly imported. So, when we start building
@@ -1535,7 +1516,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     _fsState.getFileForUri(Uri.parse('dart:core')).map(
       (file) {
-        file?.transitiveFiles;
+        final kind = file?.kind as LibraryFileStateKind;
+        kind.discoverReferencedFiles();
       },
       (externalLibrary) {},
     );
@@ -1643,10 +1625,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// Return the signature that identifies fully resolved results for the [file]
   /// in the [library], e.g. element model, errors, index, etc.
-  String _getResolvedUnitSignature(FileState library, FileState file) {
+  String _getResolvedUnitSignature(
+      LibraryFileStateKind library, FileState file) {
     ApiSignature signature = ApiSignature();
     signature.addUint32List(_saltForResolution);
-    signature.addString(library.transitiveSignature);
+    signature.addString(library.file.uriStr);
+    signature.addString(library.libraryCycle.apiSignature);
+    signature.addString(file.uriStr);
     signature.addString(file.contentHash);
     return signature.toHex();
   }
@@ -1691,14 +1676,17 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var affected = <FileState>{};
     _fsState.collectAffected(path, affected);
 
-    for (var file in affected) {
-      file.invalidateLibraryCycle();
+    final removedKeys = <String>{};
+    _libraryContext?.remove(affected, removedKeys);
+
+    // TODO(scheglov) Eventually list of `LibraryOrAugmentationFileKind`.
+    for (final file in affected) {
+      final kind = file.kind;
+      if (kind is LibraryFileStateKind) {
+        kind.invalidateLibraryCycle();
+      }
       accumulatedAffected.add(file.path);
     }
-
-    _libraryContext?.elementFactory.removeLibraries(
-      affected.map((e) => e.uriStr).toSet(),
-    );
 
     _libraryContext?.elementFactory.replaceAnalysisSession(
       AnalysisSessionImpl(this),
@@ -1717,11 +1705,20 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     CaughtException caught = CaughtException(exception, stackTrace);
 
     var fileContentMap = <String, String>{};
-    var libraryFile = _fsState.getFileForPath(path);
+
+    var fileContent = '';
     try {
-      for (var file in libraryFile.libraryFiles) {
-        var path = file.path;
-        fileContentMap[path] = file.content;
+      final file = _fsState.getFileForPath(path);
+      fileContent = file.content;
+      final fileKind = file.kind;
+      final libraryKind = fileKind.library;
+      if (libraryKind != null) {
+        for (final file in libraryKind.files) {
+          fileContentMap[file.path] = file.content;
+        }
+      } else {
+        final file = fileKind.file;
+        fileContentMap[file.path] = file.content;
       }
     } catch (_) {
       // We might get an exception while parsing to access parts.
@@ -1738,7 +1735,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       ExceptionResult(
         filePath: path,
         fileContentMap: fileContentMap,
-        fileContent: libraryFile.content,
+        fileContent: fileContent,
         exception: caught,
         contextKey: contextKey,
       ),
@@ -1763,14 +1760,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     final kind = file.kind;
     final library = kind.library ?? kind.asLibrary;
 
-    await libraryContext.load(library);
+    await libraryContext.load(
+      targetLibrary: library,
+      performance: OperationPerformanceImpl('<root>'),
+    );
     var unitElement = libraryContext.computeUnitElement(library, file);
 
     var analysisResult = LibraryAnalyzer(
       analysisOptions as AnalysisOptionsImpl,
       declaredVariables,
-      sourceFactory,
-      libraryContext.elementFactory.libraryOfUri2(library.file.uriStr),
+      libraryContext.elementFactory.libraryOfUri2(library.file.uri),
       libraryContext.elementFactory.analysisSession.inheritanceManager,
       library,
       testingData: testingData,
@@ -1808,7 +1807,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         .toBuffer();
   }
 
-  String? _storeExceptionContext(String path, FileState libraryFile,
+  String? _storeExceptionContext(String path, LibraryFileStateKind library,
       Object exception, StackTrace stackTrace) {
     if (allowedNumberOfContextsToWrite <= 0) {
       return null;
@@ -1816,8 +1815,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       allowedNumberOfContextsToWrite--;
     }
     try {
-      List<AnalysisDriverExceptionFileBuilder> contextFiles = libraryFile
-          .transitiveFiles
+      final contextFiles = library.files
           .map((file) => AnalysisDriverExceptionFileBuilder(
               path: file.path, content: file.content))
           .toList();
@@ -1850,7 +1848,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       String ms = threeDigits(time.millisecond);
       String key = 'exception_${time.year}$m${d}_$h$min${sec}_$ms';
 
-      _byteStore.put(key, bytes);
+      _byteStore.putGet(key, bytes);
       return key;
     } catch (_) {
       return null;
@@ -2121,15 +2119,16 @@ class AnalysisDriverScheduler {
   }
 }
 
-@visibleForTesting
 class AnalysisDriverTestView {
-  final AnalysisDriver driver;
-  final LibraryContextTestView libraryContextTestView =
-      LibraryContextTestView();
+  final fileSystem = FileSystemTestData();
+
+  late final libraryContext = LibraryContextTestData(
+    fileSystemTestData: fileSystem,
+  );
+
+  late final AnalysisDriver driver;
 
   int numOfAnalyzedLibraries = 0;
-
-  AnalysisDriverTestView(this.driver);
 
   FileTracker get fileTracker => driver._fileTracker;
 

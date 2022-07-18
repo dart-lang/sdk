@@ -133,7 +133,7 @@ class GcWithoutDeoptTask : public StateMachineTask {
 
 // This test ensures that while a "deopt safepoint operation" is about to start
 // but is still waiting for some threads to hit a "deopt safepoint" another
-// safepoint operation can sucessfully start and finish.
+// safepoint operation can successfully start and finish.
 ISOLATE_UNIT_TEST_CASE(
     SafepointOperation_SafepointOpWhileDeoptSafepointOpBlocked) {
   auto isolate_group = thread->isolate_group();
@@ -166,7 +166,7 @@ ISOLATE_UNIT_TEST_CASE(
     gc->MarkAndNotify(GcWithoutDeoptTask::kStartSafepointOperation);
     gc->WaitUntil(GcWithoutDeoptTask::kEndSafepointOperation);
 
-    // We were sucessfully doing a safepoint operation, now let's ensure the
+    // We were successfully doing a safepoint operation, now let's ensure the
     // first thread is still stuck in the starting of deopt operation.
     deopt->AssertIsIn(DeoptTask::kStartDeoptOperation);
 

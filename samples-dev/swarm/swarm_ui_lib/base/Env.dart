@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of base;
 
 /**
@@ -13,7 +11,7 @@ part of base;
  * of the browser, the window object is available.
  */
 class Env {
-  static AnimationScheduler _animationScheduler;
+  static AnimationScheduler _animationScheduler = AnimationScheduler();
 
   /**
    * Provides functionality similar to [:window.requestAnimationFrame:] for
@@ -23,10 +21,7 @@ class Env {
    * cancel the pending callback.
    */
   static int requestAnimationFrame(AnimationCallback callback,
-      [Element element = null, num minTime = null]) {
-    if (_animationScheduler == null) {
-      _animationScheduler = new AnimationScheduler();
-    }
+      [Element? element = null, num? minTime = null]) {
     return _animationScheduler.requestAnimationFrame(
         callback, element, minTime);
   }

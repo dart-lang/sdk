@@ -92,7 +92,10 @@ class SourceToSummaryDillStep implements IOModularStep {
       assert(transitiveDependencies.isEmpty);
     } else {
       sources = module.sources.map(sourceToImportUri).toList();
-      extraArgs = ['--packages-file', '$rootScheme:/.packages'];
+      extraArgs = [
+        '--packages-file',
+        '$rootScheme:/.dart_tool/package_config.json'
+      ];
     }
 
     var sdkModule =
@@ -185,19 +188,20 @@ class DDCStep implements IOModularStep {
         '--dart-sdk-summary',
         '${toUri(sdkModule, dillId)}',
         '--packages',
-        '.packages',
+        '.dart_tool/package_config.json',
       ];
     }
 
     var output = toUri(module, jsId);
 
     var args = [
-      '--packages=${sdkRoot.toFilePath()}/.packages',
+      '--packages=${sdkRoot.toFilePath()}/.dart_tool/package_config.json',
       _dartdevcScript,
       '--kernel',
       '--modules=es6',
       '--no-summarize',
       '--no-source-map',
+      '--experimental-output-compiled-kernel',
       '--multi-root-scheme',
       rootScheme,
       ...sources,

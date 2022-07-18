@@ -14,6 +14,7 @@
 import '../../BigIntParsePrint/dart/BigIntParsePrint.dart'
     as lib_BigIntParsePrint;
 import '../../ListCopy/dart/ListCopy.dart' as lib_ListCopy;
+import '../../MapCopy/dart/MapCopy.dart' as lib_MapCopy;
 import '../../MD5/dart/md5.dart' as lib_MD5;
 import '../../RuntimeType/dart/RuntimeType.dart' as lib_RuntimeType;
 import '../../SHA1/dart/sha1.dart' as lib_SHA1;
@@ -28,8 +29,9 @@ import '../../Utf8Decode/dart/Utf8Decode.dart' as lib_Utf8Decode;
 import '../../Utf8Encode/dart/Utf8Encode.dart' as lib_Utf8Encode;
 
 final Map<String, Function()> benchmarks = {
-  'ListCopy': lib_ListCopy.main,
   'BigIntParsePrint': lib_BigIntParsePrint.main,
+  'ListCopy': lib_ListCopy.main,
+  'MapCopy': () => lib_MapCopy.main([]),
   'MD5': lib_MD5.main,
   'RuntimeType': lib_RuntimeType.main,
   'SHA1': lib_SHA1.main,

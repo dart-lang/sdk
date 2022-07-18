@@ -10,19 +10,26 @@ worlds:
   - entry: "package:example/main.dart"
     sources:
       pkg/example/main.dart: |
-        // @dart=2.9
         part "b.dart";
         main() {
           print("hello");
           b();
         }
       pkg/example/b.dart: |
-        // @dart=2.9
         part of "main.dart";
         b() {
           print("b1");
         }
-      .packages: example:pkg/example
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "example",
+              "rootUri": "../pkg/example"
+            }
+          ]
+        }
     expectedLibraryCount: 1
   - entry: "package:example/main.dart"
     invalidate:
@@ -31,19 +38,26 @@ worlds:
       - "package:example/b.dart"
     sources:
       pkg/example/main.dart: |
-        // @dart=2.9
         part "b.dart";
         main() {
           print("hello");
           b();
         }
       pkg/example/b.dart: |
-        // @dart=2.9
         part of "main.dart";
         b() {
           print("b2");
         }
-      .packages: example:pkg/example
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "example",
+              "rootUri": "../pkg/example"
+            }
+          ]
+        }
     expectedLibraryCount: 1
   - entry: "package:example/main.dart"
     invalidate:
@@ -52,17 +66,24 @@ worlds:
       - "package:example/b.dart"
     sources:
       pkg/example/main.dart: |
-        // @dart=2.9
         part "b.dart";
         main() {
           print("hello");
           b();
         }
       pkg/example/b.dart: |
-        // @dart=2.9
         part of "main.dart";
         b() {
           print("b3");
         }
-      .packages: example:pkg/example
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "example",
+              "rootUri": "../pkg/example"
+            }
+          ]
+        }
     expectedLibraryCount: 1

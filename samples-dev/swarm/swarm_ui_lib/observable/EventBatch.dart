@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of observable;
 
 /**
@@ -14,10 +12,10 @@ part of observable;
  */
 class EventBatch {
   /** The current active batch, if any. */
-  static EventBatch current;
+  static EventBatch? current;
 
   /** Used to generate unique ids for observable objects. */
-  static int nextUid;
+  static int nextUid = 1;
 
   /** Map from observable object's uid to their tracked events. */
   // TODO(sigmund): use [Observable] instead of [int] when [Map] can support it,
@@ -30,7 +28,7 @@ class EventBatch {
    * Private constructor that shouldn't be used externally. Use [wrap] to ensure
    * that a batch exists when running a function.
    */
-  EventBatch._internal() : summaries = new Map<int, EventSummary>();
+  EventBatch._internal() : summaries = Map<int, EventSummary>();
 
   /**
    * Ensure there is an event batch where [userFunction] can accumulate events.
@@ -40,7 +38,7 @@ class EventBatch {
     return (e) {
       if (current == null) {
         // Not in a batch so create one.
-        final batch = new EventBatch._internal();
+        final batch = EventBatch._internal();
         current = batch;
         var result = null;
         try {
@@ -78,19 +76,16 @@ class EventBatch {
 
   /** Returns a unique global id for observable objects. */
   static int genUid() {
-    if (nextUid == null) {
-      nextUid = 1;
-    }
     return nextUid++;
   }
 
   /** Retrieves the events associated with {@code obj}. */
   EventSummary getEvents(Observable obj) {
     int uid = obj.uid;
-    EventSummary summary = summaries[uid];
+    EventSummary? summary = summaries[uid];
     if (summary == null) {
       assert(!sealed);
-      summary = new EventSummary(obj);
+      summary = EventSummary(obj);
       summaries[uid] = summary;
     }
     return summary;

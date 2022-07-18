@@ -143,9 +143,15 @@ class RecursiveContinuationRewriter extends RemovingTransformer {
             helper, staticTypeContext, desugarAsync));
         return node;
       case AsyncMarker.SyncStar:
-        return new SyncStarFunctionRewriter(
-                helper, node, staticTypeContext, desugarAsync)
-            .rewrite();
+        if (desugarAsync) {
+          return new SyncStarFunctionRewriter(
+                  helper, node, staticTypeContext, desugarAsync)
+              .rewrite();
+        } else {
+          node.transformOrRemoveChildren(new RecursiveContinuationRewriter(
+              helper, staticTypeContext, desugarAsync));
+          return node;
+        }
       case AsyncMarker.Async:
         if (desugarAsync) {
           return new AsyncFunctionRewriter(
@@ -393,7 +399,7 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
   static DartType elementTypeFrom(Class containerClass, DartType type) {
     if (type is InterfaceType) {
       if (type.classNode == containerClass) {
-        if (type.typeArguments.length == 0) {
+        if (type.typeArguments.isEmpty) {
           return const DynamicType();
         } else if (type.typeArguments.length == 1) {
           return type.typeArguments[0];
@@ -492,7 +498,7 @@ class ShadowRewriter extends Transformer {
   ShadowRewriter(this.enclosingFunction) {
     for (final parameter in enclosingFunction.positionalParameters
         .followedBy(enclosingFunction.namedParameters)) {
-      // Put in placeholers so we can allocate new variables lazily- i.e. only
+      // Put in placeholders so we can allocate new variables lazily- i.e. only
       // if they're later referenced.
       _shadowedParameters[parameter] = null;
     }

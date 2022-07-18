@@ -645,7 +645,7 @@ void FlowGraphAllocator::BuildLiveRanges() {
         Definition* defn = (*catch_entry->initial_definitions())[i];
         LiveRange* range = GetLiveRange(defn->ssa_temp_index());
         range->DefineAt(catch_entry->start_pos());  // Defined at block entry.
-        ProcessInitialDefinition(defn, range, catch_entry);
+        ProcessInitialDefinition(defn, range, catch_entry, i);
       }
     } else if (auto entry = block->AsBlockEntryWithInitialDefs()) {
       ASSERT(block->IsFunctionEntry() || block->IsOsrEntry());
@@ -658,13 +658,13 @@ void FlowGraphAllocator::BuildLiveRanges() {
               GetLiveRange(ToSecondPairVreg(defn->ssa_temp_index()));
           range->AddUseInterval(entry->start_pos(), entry->start_pos() + 2);
           range->DefineAt(entry->start_pos());
-          ProcessInitialDefinition(defn, range, entry,
+          ProcessInitialDefinition(defn, range, entry, i,
                                    /*second_location_for_definition=*/true);
         }
         LiveRange* range = GetLiveRange(defn->ssa_temp_index());
         range->AddUseInterval(entry->start_pos(), entry->start_pos() + 2);
         range->DefineAt(entry->start_pos());
-        ProcessInitialDefinition(defn, range, entry);
+        ProcessInitialDefinition(defn, range, entry, i);
       }
     }
   }
@@ -679,13 +679,13 @@ void FlowGraphAllocator::BuildLiveRanges() {
       LiveRange* range = GetLiveRange(ToSecondPairVreg(defn->ssa_temp_index()));
       range->AddUseInterval(graph_entry->start_pos(), graph_entry->end_pos());
       range->DefineAt(graph_entry->start_pos());
-      ProcessInitialDefinition(defn, range, graph_entry,
+      ProcessInitialDefinition(defn, range, graph_entry, i,
                                /*second_location_for_definition=*/true);
     }
     LiveRange* range = GetLiveRange(defn->ssa_temp_index());
     range->AddUseInterval(graph_entry->start_pos(), graph_entry->end_pos());
     range->DefineAt(graph_entry->start_pos());
-    ProcessInitialDefinition(defn, range, graph_entry);
+    ProcessInitialDefinition(defn, range, graph_entry, i);
   }
 }
 
@@ -697,10 +697,45 @@ void FlowGraphAllocator::SplitInitialDefinitionAt(LiveRange* range,
   }
 }
 
+bool FlowGraphAllocator::IsSuspendStateParameter(Definition* defn) {
+  if (auto param = defn->AsParameter()) {
+    if ((param->GetBlock()->IsOsrEntry() ||
+         param->GetBlock()->IsCatchBlockEntry()) &&
+        flow_graph_.SuspendStateVar() != nullptr &&
+        param->index() == flow_graph_.SuspendStateEnvIndex()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void FlowGraphAllocator::AllocateSpillSlotForInitialDefinition(
+    intptr_t slot_index,
+    intptr_t range_end) {
+  if (slot_index < spill_slots_.length()) {
+    // Multiple initial definitions could exist for the same spill slot
+    // as function could have both OsrEntry and CatchBlockEntry.
+    spill_slots_[slot_index] =
+        Utils::Maximum(spill_slots_[slot_index], range_end);
+    ASSERT(!quad_spill_slots_[slot_index]);
+    ASSERT(!untagged_spill_slots_[slot_index]);
+  } else {
+    while (spill_slots_.length() < slot_index) {
+      spill_slots_.Add(kMaxPosition);
+      quad_spill_slots_.Add(false);
+      untagged_spill_slots_.Add(false);
+    }
+    spill_slots_.Add(range_end);
+    quad_spill_slots_.Add(false);
+    untagged_spill_slots_.Add(false);
+  }
+}
+
 void FlowGraphAllocator::ProcessInitialDefinition(
     Definition* defn,
     LiveRange* range,
     BlockEntryInstr* block,
+    intptr_t initial_definition_index,
     bool second_location_for_definition) {
   // Save the range end because it may change below.
   const intptr_t range_end = range->End();
@@ -779,21 +814,30 @@ void FlowGraphAllocator::ProcessInitialDefinition(
   Location spill_slot = range->spill_slot();
   if (spill_slot.IsStackSlot() && spill_slot.base_reg() == FPREG &&
       spill_slot.stack_index() <=
-          compiler::target::frame_layout.first_local_from_fp) {
+          compiler::target::frame_layout.first_local_from_fp &&
+      !IsSuspendStateParameter(defn)) {
     // On entry to the function, range is stored on the stack above the FP in
     // the same space which is used for spill slots. Update spill slot state to
     // reflect that and prevent register allocator from reusing this space as a
     // spill slot.
-    spill_slots_.Add(range_end);
-    quad_spill_slots_.Add(false);
-    untagged_spill_slots_.Add(false);
+    // Do not allocate spill slot for OSR parameter corresponding to
+    // a synthetic :suspend_state variable as it is already allocated
+    // in AllocateSpillSlotForSuspendState.
+    ASSERT(defn->IsParameter());
+    ASSERT(defn->AsParameter()->index() == initial_definition_index);
+    const intptr_t spill_slot_index =
+        -compiler::target::frame_layout.VariableIndexForFrameSlot(
+            spill_slot.stack_index());
+    AllocateSpillSlotForInitialDefinition(spill_slot_index, range_end);
     // Note, all incoming parameters are assumed to be tagged.
     MarkAsObjectAtSafepoints(range);
-  } else if (defn->IsConstant() && block->IsCatchBlockEntry()) {
+  } else if (defn->IsConstant() && block->IsCatchBlockEntry() &&
+             (initial_definition_index >=
+              flow_graph_.num_direct_parameters())) {
     // Constants at catch block entries consume spill slots.
-    spill_slots_.Add(range_end);
-    quad_spill_slots_.Add(false);
-    untagged_spill_slots_.Add(false);
+    AllocateSpillSlotForInitialDefinition(
+        initial_definition_index - flow_graph_.num_direct_parameters(),
+        range_end);
   }
 }
 
@@ -994,10 +1038,31 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
     for (intptr_t i = 0; i < env->Length(); ++i) {
       Value* value = env->ValueAt(i);
       Definition* def = value->definition();
+
       if (def->HasPairRepresentation()) {
         locations[i] = Location::Pair(Location::Any(), Location::Any());
       } else {
         locations[i] = Location::Any();
+      }
+
+      if (env->outer() == nullptr && flow_graph_.SuspendStateVar() != nullptr &&
+          i == flow_graph_.SuspendStateEnvIndex()) {
+        // Make sure synthetic :suspend_state variable gets a correct
+        // location on the stack frame. It is used by deoptimization.
+        const intptr_t slot_index =
+            compiler::target::frame_layout.FrameSlotForVariable(
+                flow_graph_.parsed_function().suspend_state_var());
+        locations[i] = Location::StackSlot(slot_index, FPREG);
+        if (!def->IsConstant()) {
+          // Update live intervals for Parameter/Phi definitions
+          // corresponding to :suspend_state in OSR and try/catch cases as
+          // they are still used when resolving control flow.
+          ASSERT(def->IsParameter() || def->IsPhi());
+          ASSERT(!def->HasPairRepresentation());
+          LiveRange* range = GetLiveRange(def->ssa_temp_index());
+          range->AddUseInterval(block_start_pos, use_pos);
+        }
+        continue;
       }
 
       if (def->IsPushArgument()) {
@@ -1006,14 +1071,12 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
         continue;
       }
 
-      ConstantInstr* constant = def->AsConstant();
-      if (constant != NULL) {
+      if (auto constant = def->AsConstant()) {
         locations[i] = Location::Constant(constant);
         continue;
       }
 
-      MaterializeObjectInstr* mat = def->AsMaterializeObject();
-      if (mat != NULL) {
+      if (auto mat = def->AsMaterializeObject()) {
         // MaterializeObject itself produces no value. But its uses
         // are treated as part of the environment: allocated locations
         // will be used when building deoptimization data.

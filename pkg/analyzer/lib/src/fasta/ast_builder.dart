@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         LocatedMessage,
         Message,
         MessageCode,
+        codeBuiltInIdentifierInDeclaration,
         messageAbstractClassMember,
         messageAbstractLateField,
         messageAbstractStaticField,
@@ -204,6 +205,9 @@ class AstBuilder extends StackListener {
       return enumDeclaration!.name;
     }
   }
+
+  @override
+  Uri get importUri => uri;
 
   @override
   void addProblem(Message message, int charOffset, int length,
@@ -1820,7 +1824,7 @@ class AstBuilder extends StackListener {
     var asKeyword = pop(NullValue.As) as Token?;
     var prefix = pop(NullValue.Prefix) as SimpleIdentifier?;
     var configurations = pop() as List<Configuration>?;
-    var uri = pop() as StringLiteral;
+    var uri = pop() as StringLiteralImpl;
     var metadata = pop() as List<Annotation>?;
     var comment = _findComment(metadata, importKeyword);
 
@@ -1835,18 +1839,33 @@ class AstBuilder extends StackListener {
       }
     }
 
-    directives.add(ast.importDirective(
-        comment,
-        metadata,
-        importKeyword,
-        uri,
-        configurations,
-        deferredKeyword,
-        asKeyword,
-        prefix,
-        combinators,
-        semicolon ?? Tokens.semicolon(),
-        augmentKeyword: augmentToken));
+    if (augmentToken != null) {
+      directives.add(
+        AugmentationImportDirectiveImpl(
+          comment: comment,
+          uri: uri,
+          importKeyword: importKeyword,
+          augmentKeyword: augmentToken,
+          metadata: metadata,
+          semicolon: semicolon ?? Tokens.semicolon(),
+        ),
+      );
+    } else {
+      directives.add(
+        ast.importDirective(
+          comment,
+          metadata,
+          importKeyword,
+          uri,
+          configurations,
+          deferredKeyword,
+          asKeyword,
+          prefix,
+          combinators,
+          semicolon ?? Tokens.semicolon(),
+        ),
+      );
+    }
   }
 
   @override
@@ -3782,6 +3801,10 @@ class AstBuilder extends StackListener {
     /// TODO(danrubel): Ignore this error until we deprecate `native` support.
     if (message == messageNativeClauseShouldBeAnnotation && allowNativeClause) {
       return;
+    } else if (message.code == codeBuiltInIdentifierInDeclaration) {
+      // Allow e.g. 'class Function' in sdk.
+      if (importUri.isScheme("dart")) return;
+      if (uri.isScheme("org-dartlang-sdk")) return;
     }
     debugEvent("Error: ${message.problemMessage}");
     if (message.code.analyzerCodes == null && startToken is ErrorToken) {

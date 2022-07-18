@@ -208,6 +208,7 @@ class ModifyParameters extends Change<_Data> {
           });
         }
         nextInsertionRange++;
+        insertionCount++;
       }
     }
     //

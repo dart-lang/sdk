@@ -68,7 +68,7 @@ class IrAnnotationData {
   }
 
   void forEachJsInteropClass(
-      void Function(ir.Class, String, {bool isAnonymous}) f) {
+      void Function(ir.Class, String, {required bool isAnonymous}) f) {
     _jsInteropClassNames.forEach((ir.Class node, String name) {
       f(node, name, isAnonymous: isAnonymousJsInteropClass(node));
     });

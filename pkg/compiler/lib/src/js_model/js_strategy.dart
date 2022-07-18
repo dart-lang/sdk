@@ -61,7 +61,7 @@ import 'closure.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
 import 'js_world.dart';
-import 'js_world_builder.dart';
+import 'js_world_builder.dart' show JsClosedWorldBuilder;
 import 'locals.dart';
 
 /// JS Strategy pattern that defines the element model used in type inference
@@ -321,12 +321,15 @@ class JsBackendStrategy {
     if (_compiler.options.testMode) {
       bool useDataKinds = true;
       List<Object> data = [];
-      DataSinkWriter sink =
-          DataSinkWriter(ObjectDataSink(data), useDataKinds: useDataKinds);
+      DataSinkWriter sink = DataSinkWriter(
+          ObjectDataSink(data), _compiler.options,
+          useDataKinds: useDataKinds);
       sink.registerCodegenWriter(CodegenWriterImpl(closedWorld));
       result.writeToDataSink(sink);
-      DataSourceReader source =
-          DataSourceReader(ObjectDataSource(data), useDataKinds: useDataKinds);
+      sink.close();
+      DataSourceReader source = DataSourceReader(
+          ObjectDataSource(data), _compiler.options,
+          useDataKinds: useDataKinds);
       List<ModularName> modularNames = [];
       List<ModularExpression> modularExpression = [];
       source.registerCodegenReader(

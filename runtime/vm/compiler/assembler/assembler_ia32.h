@@ -573,6 +573,13 @@ class Assembler : public AssemblerBase {
    */
 
   void Ret() { ret(); }
+
+  // Sets the return address to [value] as if there was a call.
+  // On IA32 pushes [value].
+  void SetReturnAddress(Register value) {
+    PushRegister(value);
+  }
+
   void CompareRegisters(Register a, Register b);
   void CompareObjectRegisters(Register a, Register b) {
     CompareRegisters(a, b);

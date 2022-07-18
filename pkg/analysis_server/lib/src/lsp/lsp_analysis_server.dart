@@ -374,6 +374,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
               await _handleRequestMessage(message, messageInfo);
             } else if (message is NotificationMessage) {
               await _handleNotificationMessage(message, messageInfo);
+              analyticsManager.handledNotificationMessage(
+                  notification: message,
+                  startTime: startTime,
+                  endTime: DateTime.now());
             } else {
               showErrorMessageToUser('Unknown incoming message type');
             }
@@ -738,9 +742,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       List<String> addedPaths, List<String> removedPaths) async {
     // TODO(dantup): This is currently case-sensitive!
 
+    // Normalise all potential workspace folder paths as these may contain
+    // trailing slashes (the LSP spec does not specify whether folders
+    // should/should not have them) and the analysis roots must be normalized.
+    final pathContext = resourceProvider.pathContext;
+    final addedNormalized = addedPaths.map(pathContext.normalize).toList();
+    final removedNormalized = removedPaths.map(pathContext.normalize).toList();
+
     _workspaceFolders
-      ..addAll(addedPaths)
-      ..removeAll(removedPaths);
+      ..addAll(addedNormalized)
+      ..removeAll(removedNormalized);
 
     await fetchClientConfigurationAndPerformDynamicRegistration();
 
@@ -876,21 +887,30 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
 class LspInitializationOptions {
   final bool onlyAnalyzeProjectsWithOpenFiles;
+  final bool previewNotImportedCompletions;
   final bool suggestFromUnimportedLibraries;
   final bool closingLabels;
   final bool outline;
   final bool flutterOutline;
+  final int? notImportedCompletionBudgetMilliseconds;
 
   LspInitializationOptions(dynamic options)
       : onlyAnalyzeProjectsWithOpenFiles = options != null &&
             options['onlyAnalyzeProjectsWithOpenFiles'] == true,
+        // Undocumented preview flag to allow easy testing of not imported
+        // completion contributor.
+        previewNotImportedCompletions =
+            options != null && options['previewNotImportedCompletions'] == true,
         // suggestFromUnimportedLibraries defaults to true, so must be
         // explicitly passed as false to disable.
         suggestFromUnimportedLibraries = options == null ||
             options['suggestFromUnimportedLibraries'] != false,
         closingLabels = options != null && options['closingLabels'] == true,
         outline = options != null && options['outline'] == true,
-        flutterOutline = options != null && options['flutterOutline'] == true;
+        flutterOutline = options != null && options['flutterOutline'] == true,
+        notImportedCompletionBudgetMilliseconds = options != null
+            ? options['notImportedCompletionBudgetMilliseconds'] as int?
+            : null;
 }
 
 class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
@@ -994,8 +1014,6 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   void _handleResolvedUnitResult(ResolvedUnitResult result) {
     var path = result.path;
-
-    analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
 
     final unit = result.unit;
     if (analysisServer.shouldSendClosingLabelsFor(path)) {

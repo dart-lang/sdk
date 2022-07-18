@@ -20,25 +20,10 @@ Invalid argument(s): Failed to load dynamic library (126)
 ## Building and Running this Sample
 
 Building and running this sample is done through pub.
-Running `pub get` and `pub run example/main` should produce the following output.
+Running `dart run example/main` should produce the following output.
 
 ```sh
-$ pub get
-Resolving dependencies... (6.8s)
-+ analyzer 0.35.4
-...
-+ yaml 2.1.15
-Downloading analyzer 0.35.4...
-Downloading kernel 0.3.14...
-Downloading front_end 0.1.14...
-Changed 47 dependencies!
-Precompiling executables... (18.0s)
-Precompiled test:test.
-
-```
-
-```
-$ pub run example/main
+$ dart run example/main
 1 Chocolade chip cookie Chocolade cookie foo
 2 Ginger cookie null 42
 3 Cinnamon roll null null

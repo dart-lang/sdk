@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 import 'infer_consts_transitively_2_a.dart';

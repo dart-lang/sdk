@@ -59,7 +59,7 @@ class FlowAnalysisDataForTesting {
 /// be extracted.
 class FlowAnalysisHelper {
   /// The reused instance for creating new [FlowAnalysis] instances.
-  final TypeSystemTypeOperations _typeOperations;
+  final TypeSystemOperations _typeOperations;
 
   /// Precomputed sets of potentially assigned variables.
   AssignedVariables<AstNode, PromotableElement>? assignedVariables;
@@ -82,7 +82,7 @@ class FlowAnalysisHelper {
 
   FlowAnalysisHelper(TypeSystemImpl typeSystem, bool retainDataForTesting,
       FeatureSet featureSet)
-      : this._(TypeSystemTypeOperations(typeSystem),
+      : this._(TypeSystemOperations(typeSystem),
             retainDataForTesting ? FlowAnalysisDataForTesting() : null,
             isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
             respectImplicitlyTypedVarInitializers:
@@ -375,11 +375,10 @@ class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
   }
 }
 
-class TypeSystemTypeOperations
-    extends TypeOperations<PromotableElement, DartType> {
+class TypeSystemOperations extends Operations<PromotableElement, DartType> {
   final TypeSystemImpl typeSystem;
 
-  TypeSystemTypeOperations(this.typeSystem);
+  TypeSystemOperations(this.typeSystem);
 
   @override
   TypeClassification classifyType(DartType type) {

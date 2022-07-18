@@ -383,7 +383,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       function.namedParameters.clear();
       function.requiredParameterCount = 1;
     }
-    if (returnType is! OmittedTypeBuilder) {
+    if (returnType is! InferableTypeBuilder) {
       function.returnType =
           returnType.build(libraryBuilder, TypeUse.returnType);
     }
@@ -473,8 +473,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       _hasBuiltOutlineExpressions = true;
     }
   }
-
-  Member build();
 
   @override
   void becomeNative(SourceLoader loader) {

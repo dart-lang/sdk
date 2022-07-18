@@ -67,7 +67,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _libraryElement.exports = _exports;
 
     if (!_hasCoreImport) {
-      var dartCore = _linker.elementFactory.libraryOfUri2('dart:core');
+      final dartCore = _linker.elementFactory.dartCoreElement;
       _imports.add(
         ImportElementImpl(-1)
           ..importedLibrary = dartCore
@@ -108,7 +108,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addClass(name, element);
-    _libraryBuilder.localScope.declare(name, reference);
+    _libraryBuilder.declare(name, reference);
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -142,7 +142,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addClass(name, element);
-    _libraryBuilder.localScope.declare(name, reference);
+    _libraryBuilder.declare(name, reference);
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -215,7 +215,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addEnum(name, element);
-    _libraryBuilder.localScope.declare(name, reference);
+    _libraryBuilder.declare(name, reference);
 
     var holder = _EnclosingContext(
       reference,
@@ -381,9 +381,15 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitExportDirective(covariant ExportDirectiveImpl node) {
-    var element = ExportElementImpl(node.keyword.offset);
+    var element = ExportElementImpl(node.exportKeyword.offset);
     element.combinators = _buildCombinators(node.combinators);
-    element.exportedLibrary = _selectLibrary(node);
+
+    try {
+      element.exportedLibrary = _selectLibrary(node);
+    } on ArgumentError {
+      // TODO(scheglov) Remove this when using `ExportDirectiveState`.
+    }
+
     element.metadata = _buildAnnotations(node.metadata);
     element.uri = node.uri.stringValue;
 
@@ -414,7 +420,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var reference = _enclosingContext.addExtension(refName, element);
 
     if (name != null) {
-      _libraryBuilder.localScope.declare(name, reference);
+      _libraryBuilder.declare(name, reference);
     }
 
     var holder = _EnclosingContext(reference, element);
@@ -595,11 +601,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       typeParameters: functionExpression.typeParameters,
     );
 
-    var localScope = _libraryBuilder.localScope;
     if (node.isSetter) {
-      localScope.declare('$name=', reference);
+      _libraryBuilder.declare('$name=', reference);
     } else {
-      localScope.declare(name, reference);
+      _libraryBuilder.declare(name, reference);
     }
 
     _buildType(node.returnType);
@@ -620,7 +625,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addTypeAlias(name, element);
-    _libraryBuilder.localScope.declare(name, reference);
+    _libraryBuilder.declare(name, reference);
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -728,7 +733,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addTypeAlias(name, element);
-    _libraryBuilder.localScope.declare(name, reference);
+    _libraryBuilder.declare(name, reference);
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -754,9 +759,15 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     var uriStr = node.uri.stringValue;
 
-    var element = ImportElementImpl(node.keyword.offset);
+    var element = ImportElementImpl(node.importKeyword.offset);
     element.combinators = _buildCombinators(node.combinators);
-    element.importedLibrary = _selectLibrary(node);
+
+    try {
+      element.importedLibrary = _selectLibrary(node);
+    } on ArgumentError {
+      // TODO(scheglov) Remove this when using `ImportDirectiveState`.
+    }
+
     element.isDeferred = node.deferredKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     element.uri = uriStr;
@@ -881,7 +892,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addMixin(name, element);
-    _libraryBuilder.localScope.declare(name, reference);
+    _libraryBuilder.declare(name, reference);
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -909,13 +920,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
-    var index = _partDirectiveIndex++;
-    // TODO(scheglov) With invalid URIs we will associate metadata incorrectly
-    if (index < _libraryElement.parts.length) {
-      var partElement = _libraryElement.parts[index];
-      partElement as CompilationUnitElementImpl;
-      partElement.metadata = _buildAnnotations(node.metadata);
-    }
+    final index = _partDirectiveIndex++;
+    final partElement = _libraryElement.parts2[index];
+    partElement as PartElementImpl;
+    partElement.metadata = _buildAnnotations(node.metadata);
   }
 
   @override
@@ -1058,15 +1066,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var getter = element.getter;
       if (getter is PropertyAccessorElementImpl) {
         _enclosingContext.addGetter(name, getter);
-        var localScope = _libraryBuilder.localScope;
-        localScope.declare(name, getter.reference!);
+        _libraryBuilder.declare(name, getter.reference!);
       }
 
       var setter = element.setter;
       if (setter is PropertyAccessorElementImpl) {
         _enclosingContext.addSetter(name, setter);
-        var localScope = _libraryBuilder.localScope;
-        localScope.declare('$name=', setter.reference!);
+        _libraryBuilder.declare('$name=', setter.reference!);
       }
     }
 
@@ -1234,7 +1240,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     if (uri == null) {
       return null;
     } else {
-      return _linker.elementFactory.libraryOfUri('$uri');
+      return _linker.elementFactory.libraryOfUri(uri);
     }
   }
 

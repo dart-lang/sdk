@@ -49,7 +49,7 @@ import 'package:vm/target/vm.dart' show VmTarget;
 final bool verbose = new bool.fromEnvironment('DFE_VERBOSE');
 final bool dumpKernel = new bool.fromEnvironment('DFE_DUMP_KERNEL');
 const String platformKernelFile = 'virtual_platform_kernel.dill';
-const String dotPackagesFile = '.packages';
+const String packageConfigFile = '.dart_tool/package_config.json';
 
 // NOTE: Any changes to these tags need to be reflected in kernel_isolate.cc
 // Tags used to indicate different requests to the dart frontend.
@@ -95,7 +95,8 @@ CompilerOptions setupCompilerOptions(
     List<String> errorsPlain,
     List<String> errorsColorized,
     String invocationModes,
-    String verbosityLevel) {
+    String verbosityLevel,
+    bool enableMirrors) {
   final expFlags = <String>[];
   if (experimentalFlags != null) {
     for (String flag in experimentalFlags) {
@@ -107,7 +108,8 @@ CompilerOptions setupCompilerOptions(
   return new CompilerOptions()
     ..fileSystem = fileSystem
     ..target = new VmTarget(new TargetFlags(
-        enableNullSafety: nullSafety == kNullSafetyOptionStrong))
+        enableNullSafety: nullSafety == kNullSafetyOptionStrong,
+        supportMirrors: enableMirrors))
     ..packagesFileUri = packagesUri
     ..sdkSummary = platformKernelPath
     ..verbose = verbose
@@ -165,6 +167,7 @@ abstract class Compiler {
   final String? packageConfig;
   final String invocationModes;
   final String verbosityLevel;
+  final bool enableMirrors;
 
   // Code coverage and hot reload are only supported by incremental compiler,
   // which is used if vm-service is enabled.
@@ -184,11 +187,12 @@ abstract class Compiler {
       this.supportHotReload: false,
       this.packageConfig: null,
       this.invocationModes: '',
-      this.verbosityLevel: Verbosity.defaultValue}) {
+      this.verbosityLevel: Verbosity.defaultValue,
+      required this.enableMirrors}) {
     Uri? packagesUri = null;
     final packageConfig = this.packageConfig ?? Platform.packageConfig;
     if (packageConfig != null) {
-      packagesUri = Uri.parse(packageConfig);
+      packagesUri = resolveInputUri(packageConfig);
     }
 
     if (verbose) {
@@ -208,7 +212,8 @@ abstract class Compiler {
         errorsPlain,
         errorsColorized,
         invocationModes,
-        verbosityLevel);
+        verbosityLevel,
+        enableMirrors);
   }
 
   Future<CompilerResult> compile(Uri script) {
@@ -295,7 +300,8 @@ class IncrementalCompilerWrapper extends Compiler {
       List<String>? experimentalFlags,
       String? packageConfig,
       String invocationModes: '',
-      String verbosityLevel: Verbosity.defaultValue})
+      String verbosityLevel: Verbosity.defaultValue,
+      required bool enableMirrors})
       : super(isolateGroupId, fileSystem, platformKernelPath,
             enableAsserts: enableAsserts,
             nullSafety: nullSafety,
@@ -304,7 +310,8 @@ class IncrementalCompilerWrapper extends Compiler {
             supportCodeCoverage: true,
             packageConfig: packageConfig,
             invocationModes: invocationModes,
-            verbosityLevel: verbosityLevel);
+            verbosityLevel: verbosityLevel,
+            enableMirrors: enableMirrors);
 
   factory IncrementalCompilerWrapper.forExpressionCompilationOnly(
       Component component,
@@ -314,13 +321,15 @@ class IncrementalCompilerWrapper extends Compiler {
       {bool enableAsserts: false,
       List<String>? experimentalFlags,
       String? packageConfig,
-      String invocationModes: ''}) {
+      String invocationModes: '',
+      required bool enableMirrors}) {
     IncrementalCompilerWrapper result = IncrementalCompilerWrapper(
         isolateGroupId, fileSystem, platformKernelPath,
         enableAsserts: enableAsserts,
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
-        invocationModes: invocationModes);
+        invocationModes: invocationModes,
+        enableMirrors: enableMirrors);
     result.generator = new IncrementalCompiler.forExpressionCompilationOnly(
         component,
         result.options,
@@ -349,7 +358,8 @@ class IncrementalCompilerWrapper extends Compiler {
         nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
-        invocationModes: invocationModes);
+        invocationModes: invocationModes,
+        enableMirrors: enableMirrors);
     final generator = this.generator!;
     // TODO(VM TEAM): This does not seem safe. What if cloning while having
     // pending deltas for instance?
@@ -384,14 +394,16 @@ class SingleShotCompilerWrapper extends Compiler {
       List<String>? experimentalFlags,
       String? packageConfig,
       String invocationModes: '',
-      String verbosityLevel: Verbosity.defaultValue})
+      String verbosityLevel: Verbosity.defaultValue,
+      required bool enableMirrors})
       : super(isolateGroupId, fileSystem, platformKernelPath,
             enableAsserts: enableAsserts,
             nullSafety: nullSafety,
             experimentalFlags: experimentalFlags,
             packageConfig: packageConfig,
             invocationModes: invocationModes,
-            verbosityLevel: verbosityLevel);
+            verbosityLevel: verbosityLevel,
+            enableMirrors: enableMirrors);
 
   @override
   Future<CompilerResult> compileInternal(Uri script) async {
@@ -428,7 +440,8 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateGroupId,
     String? multirootFilepaths,
     String? multirootScheme,
     String invocationModes: '',
-    String verbosityLevel: Verbosity.defaultValue}) async {
+    String verbosityLevel: Verbosity.defaultValue,
+    required bool enableMirrors}) async {
   IncrementalCompilerWrapper? compiler =
       lookupIncrementalCompiler(isolateGroupId);
   if (compiler != null) {
@@ -457,7 +470,8 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateGroupId,
           experimentalFlags: experimentalFlags,
           packageConfig: packageConfig,
           invocationModes: invocationModes,
-          verbosityLevel: verbosityLevel);
+          verbosityLevel: verbosityLevel,
+          enableMirrors: enableMirrors);
     }
     isolateCompilers[isolateGroupId] = compiler;
   }
@@ -497,7 +511,7 @@ void invalidateSources(IncrementalCompilerWrapper compiler, List sourceFiles) {
 Future _processExpressionCompilationRequest(request) async {
   final SendPort port = request[1];
   final int isolateGroupId = request[2];
-  final dynamic dart_platform_kernel = request[3];
+  final dynamic dartPlatformKernel = request[3];
   final String expression = request[4];
   final List<String> definitions = request[5].cast<String>();
   final List<String> definitionTypes = request[6].cast<String>();
@@ -513,6 +527,7 @@ Future _processExpressionCompilationRequest(request) async {
   final bool enableAsserts = request[16];
   final List<String>? experimentalFlags =
       request[17] != null ? request[17].cast<String>() : null;
+  final bool enableMirrors = request[18];
 
   IncrementalCompilerWrapper? compiler = isolateCompilers[isolateGroupId];
 
@@ -561,8 +576,8 @@ Future _processExpressionCompilationRequest(request) async {
       }
       if (!foundDartCore) {
         List<int> platformKernel;
-        if (dart_platform_kernel is List<int>) {
-          platformKernel = dart_platform_kernel;
+        if (dartPlatformKernel is List<int>) {
+          platformKernel = dartPlatformKernel;
         } else {
           final Uri platformUri = computePlatformBinariesLocation()
               .resolve('vm_platform_strong.dill');
@@ -584,7 +599,7 @@ Future _processExpressionCompilationRequest(request) async {
       }
 
       FileSystem fileSystem =
-          _buildFileSystem([dotPackagesFile, <int>[]], null, null, null);
+          _buildFileSystem([packageConfigFile, <int>[]], null, null, null);
 
       // TODO(aam): IncrementalCompilerWrapper instance created below have to be
       // destroyed when corresponding isolate is shut down. To achieve that
@@ -595,7 +610,8 @@ Future _processExpressionCompilationRequest(request) async {
             component, isolateGroupId, fileSystem, null,
             enableAsserts: enableAsserts,
             experimentalFlags: experimentalFlags,
-            packageConfig: dotPackagesFile);
+            packageConfig: packageConfigFile,
+            enableMirrors: enableMirrors);
         isolateCompilers[isolateGroupId] = compiler;
         await compiler.compile(
             component.mainMethod?.enclosingLibrary.importUri ??
@@ -776,6 +792,7 @@ Future _processLoadRequest(request) async {
   final String? multirootScheme = request[13];
   final String? workingDirectory = request[14];
   final String verbosityLevel = request[15];
+  final bool enableMirrors = request[16];
   Uri platformKernelPath;
   List<int>? platformKernel = null;
   if (request[3] is String) {
@@ -844,7 +861,8 @@ Future _processLoadRequest(request) async {
         errorsPlain,
         errorsColorized,
         invocationModes,
-        verbosityLevel);
+        verbosityLevel,
+        false);
 
     // script should only be null for kUpdateSourcesTag.
     await autoDetectNullSafetyMode(script!, options);
@@ -870,7 +888,8 @@ Future _processLoadRequest(request) async {
         multirootFilepaths: multirootFilepaths,
         multirootScheme: multirootScheme,
         invocationModes: invocationModes,
-        verbosityLevel: verbosityLevel);
+        verbosityLevel: verbosityLevel,
+        enableMirrors: enableMirrors);
   } else {
     FileSystem fileSystem = _buildFileSystem(
         sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
@@ -882,7 +901,8 @@ Future _processLoadRequest(request) async {
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
         invocationModes: invocationModes,
-        verbosityLevel: verbosityLevel);
+        verbosityLevel: verbosityLevel,
+        enableMirrors: enableMirrors);
   }
 
   CompilationResult result;
@@ -898,8 +918,8 @@ Future _processLoadRequest(request) async {
     // http://dartbug.com/45137
     // enableColors calls `stdout.supportsAnsiEscapes` which - on Windows -
     // does something with line endings. To avoid this when no error
-    // messages are do be printed anyway, we are carefull not to call it unless
-    // neccessary.
+    // messages are do be printed anyway, we are careful not to call it unless
+    // necessary.
     if (compiler.errorsColorized.isNotEmpty) {
       final List<String> errors =
           (enableColors) ? compiler.errorsColorized : compiler.errorsPlain;
@@ -963,7 +983,7 @@ FileSystem _buildFileSystem(List sourceFiles, List<int>? platformKernel,
     String? multirootFilepaths, String? multirootScheme) {
   FileSystem fileSystem = new HttpAwareFileSystem(StandardFileSystem.instance);
 
-  if (!sourceFiles.isEmpty || platformKernel != null) {
+  if (sourceFiles.isNotEmpty || platformKernel != null) {
     MemoryFileSystem memoryFileSystem =
         new MemoryFileSystem(Uri.parse('file:///'));
     for (int i = 0; i < sourceFiles.length ~/ 2; i++) {
@@ -1044,6 +1064,7 @@ Future trainInternal(String scriptUri, String? platformKernelPath) async {
     null /* multirootScheme */,
     null /* original working directory */,
     'all' /* CFE logging mode */,
+    true /* enableMirrors */,
   ];
   await _processLoadRequest(request);
 }
@@ -1122,17 +1143,17 @@ class _CompilationOk extends CompilationResult {
 }
 
 class _CompilationNullSafety extends CompilationResult {
-  final bool _null_safety;
+  final bool _nullSafety;
 
-  _CompilationNullSafety(this._null_safety) : super._() {}
+  _CompilationNullSafety(this._nullSafety) : super._() {}
 
   @override
   Status get status => Status.ok;
 
   @override
-  get payload => _null_safety;
+  get payload => _nullSafety;
 
-  String toString() => "_CompilationNullSafety($_null_safety)";
+  String toString() => "_CompilationNullSafety($_nullSafety)";
 }
 
 abstract class _CompilationFail extends CompilationResult {
@@ -1177,9 +1198,13 @@ class _CompilationCrash extends _CompilationFail {
 }
 
 Future<T> runWithPrintToStderr<T>(Future<T> f()) {
-  return runZoned(() => new Future<T>(f),
-      zoneSpecification: new ZoneSpecification(
-          print: (_1, _2, _3, String line) => stderr.writeln(line)));
+  return runZoned(
+    () => new Future<T>(f),
+    zoneSpecification: new ZoneSpecification(
+      // ignore: non_constant_identifier_names
+      print: (_1, _2, _3, String line) => stderr.writeln(line),
+    ),
+  );
 }
 
 int _debugDumpCounter = 0;

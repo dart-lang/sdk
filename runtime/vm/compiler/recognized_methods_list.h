@@ -88,18 +88,19 @@ namespace dart {
   V(_SuspendState, set:_functionData, SuspendState_setFunctionData,            \
     0x2b6668ab)                                                                \
   V(_SuspendState, get:_thenCallback, SuspendState_getThenCallback,            \
-    0xff1dccec)                                                                \
+    0x2b9efd21)                                                                \
   V(_SuspendState, set:_thenCallback, SuspendState_setThenCallback,            \
-    0x6446bde9)                                                                \
+    0x753cb4de)                                                                \
   V(_SuspendState, get:_errorCallback, SuspendState_getErrorCallback,          \
-    0x8a6eb3cf)                                                                \
+    0xaeca06ef)                                                                \
   V(_SuspendState, set:_errorCallback, SuspendState_setErrorCallback,          \
-    0x4935f88c)                                                                \
+    0xc40903ac)                                                                \
+  V(_SuspendState, _clone, SuspendState_clone, 0xae1a40a0)                     \
   V(_SuspendState, _createAsyncCallbacks, SuspendState_createAsyncCallbacks,   \
-    0x4add6c13)                                                                \
+    0x68be1bf3)                                                                \
   V(_SuspendState, _createAsyncStarCallback,                                   \
     SuspendState_createAsyncStarCallback, 0xfa7537e4)                          \
-  V(_SuspendState, _resume, SuspendState_resume, 0xc738e9d2)                   \
+  V(_SuspendState, _resume, SuspendState_resume, 0x5d7a8489)                   \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 0x97728b46)             \
   V(_Double, _add, DoubleAdd, 0xea666327)                                      \
   V(_Double, _sub, DoubleSub, 0x28474c2e)                                      \

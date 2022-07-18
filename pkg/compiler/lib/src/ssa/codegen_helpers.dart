@@ -404,10 +404,10 @@ class SsaTypeKnownRemover extends HBaseVisitor with CodegenPhase {
 
 /// Remove [HPrimitiveCheck] instructions from the graph in '--trust-primitives'
 /// mode.
-class SsaTrustedCheckRemover extends HBaseVisitor with CodegenPhase {
+class SsaTrustedPrimitiveCheckRemover extends HBaseVisitor with CodegenPhase {
   final CompilerOptions _options;
 
-  SsaTrustedCheckRemover(this._options);
+  SsaTrustedPrimitiveCheckRemover(this._options);
 
   @override
   void visitGraph(HGraph graph) {
@@ -435,6 +435,56 @@ class SsaTrustedCheckRemover extends HBaseVisitor with CodegenPhase {
   void visitBoolConversion(HBoolConversion instruction) {
     instruction.block.rewrite(instruction, instruction.checkedInput);
     instruction.block.remove(instruction);
+  }
+}
+
+/// Remove trusted late variable checks.
+class SsaTrustedLateCheckRemover extends HBaseVisitor with CodegenPhase {
+  final AbstractValueDomain _abstractValueDomain;
+
+  SsaTrustedLateCheckRemover(this._abstractValueDomain);
+
+  @override
+  void visitGraph(HGraph graph) {
+    visitDominatorTree(graph);
+  }
+
+  @override
+  void visitBasicBlock(HBasicBlock block) {
+    HInstruction instruction = block.first;
+    while (instruction != null) {
+      HInstruction next = instruction.next;
+      instruction.accept(this);
+      instruction = next;
+    }
+  }
+
+  @override
+  void visitLateCheck(HLateCheck instruction) {
+    if (!instruction.isTrusted) return;
+    final inputs = instruction.inputs.toList();
+    instruction.block.rewrite(instruction, instruction.checkedInput);
+    instruction.block.remove(instruction);
+    // TODO(sra): There might be a unused name.
+
+    // Remove pure unused inputs.
+    for (HInstruction input in inputs) {
+      if (input.usedBy.isNotEmpty) continue;
+      HBasicBlock block = input.block;
+      if (block == null) continue; // Already removed.
+      if (input.isPure(_abstractValueDomain)) {
+        // Special cases that are removed properly by other phases.
+        if (input is HParameterValue) continue;
+        if (input is HLocalValue) continue;
+        if (input is HPhi) continue;
+        block.remove(input);
+        continue;
+      }
+      if (input is HFieldGet) {
+        if (input.canThrow(_abstractValueDomain)) continue;
+        block.remove(input);
+      }
+    }
   }
 }
 

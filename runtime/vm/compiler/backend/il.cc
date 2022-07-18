@@ -5124,7 +5124,7 @@ Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
   // better optimized by the compiler.
   //
   // TODO(dartbug.com/37291): Allow this optimization, but accumulate affected
-  // InstanceCallInstrs and the corresponding reciever cids during compilation.
+  // InstanceCallInstrs and the corresponding receiver cids during compilation.
   // After compilation, add receiver checks to the ICData for those call sites.
   if (Targets().is_empty()) return this;
 
@@ -6850,6 +6850,10 @@ const Code& ReturnInstr::GetReturnStub(FlowGraphCompiler* compiler) const {
     return Code::ZoneHandle(
         compiler->zone(),
         compiler->isolate_group()->object_store()->return_async_star_stub());
+  } else if (function.IsCompactSyncStarFunction()) {
+    return Code::ZoneHandle(
+        compiler->zone(),
+        compiler->isolate_group()->object_store()->return_sync_star_stub());
   } else {
     UNREACHABLE();
   }
@@ -7293,14 +7297,15 @@ LocationSummary* Call1ArgStubInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   switch (stub_id_) {
+    case StubId::kCloneSuspendState:
+      locs->set_in(
+          0, Location::RegisterLocation(CloneSuspendStateStubABI::kSourceReg));
+      break;
     case StubId::kInitAsync:
     case StubId::kInitAsyncStar:
+    case StubId::kInitSyncStar:
       locs->set_in(0, Location::RegisterLocation(
                           InitSuspendableFunctionStubABI::kTypeArgsReg));
-      break;
-    case StubId::kAwait:
-    case StubId::kYieldAsyncStar:
-      locs->set_in(0, Location::RegisterLocation(SuspendStubABI::kArgumentReg));
       break;
   }
   locs->set_out(0, Location::RegisterLocation(CallingConventions::kReturnReg));
@@ -7311,35 +7316,66 @@ void Call1ArgStubInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ObjectStore* object_store = compiler->isolate_group()->object_store();
   Code& stub = Code::ZoneHandle(compiler->zone());
   switch (stub_id_) {
+    case StubId::kCloneSuspendState:
+      stub = object_store->clone_suspend_state_stub();
+      break;
     case StubId::kInitAsync:
       stub = object_store->init_async_stub();
-      break;
-    case StubId::kAwait:
-      stub = object_store->await_stub();
       break;
     case StubId::kInitAsyncStar:
       stub = object_store->init_async_star_stub();
       break;
+    case StubId::kInitSyncStar:
+      stub = object_store->init_sync_star_stub();
+      break;
+  }
+  compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
+                             locs(), deopt_id(), env());
+}
+
+LocationSummary* SuspendInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(SuspendStubABI::kArgumentReg));
+  locs->set_out(0, Location::RegisterLocation(CallingConventions::kReturnReg));
+  return locs;
+}
+
+void SuspendInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Use deopt_id as a yield index.
+  compiler->EmitYieldPositionMetadata(source(), deopt_id());
+
+  ObjectStore* object_store = compiler->isolate_group()->object_store();
+  Code& stub = Code::ZoneHandle(compiler->zone());
+  switch (stub_id_) {
+    case StubId::kAwait:
+      stub = object_store->await_stub();
+      break;
     case StubId::kYieldAsyncStar:
       stub = object_store->yield_async_star_stub();
+      break;
+    case StubId::kYieldSyncStar:
+      stub = object_store->yield_sync_star_stub();
       break;
   }
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
                              locs(), deopt_id(), env());
 
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
-  if ((stub_id_ == StubId::kAwait) || (stub_id_ == StubId::kYieldAsyncStar)) {
-    // On x86 (X64 and IA32) mismatch between calls and returns
-    // significantly regresses performance. So suspend stub
-    // does not return directly to the caller. Instead, a small
-    // epilogue is generated right after the call to suspend stub,
-    // and resume stub adjusts resume PC to skip this epilogue.
-    const intptr_t start = compiler->assembler()->CodeSize();
-    __ LeaveFrame();
-    __ ret();
-    RELEASE_ASSERT(compiler->assembler()->CodeSize() - start ==
-                   SuspendStubABI::kResumePcDistance);
-  }
+  // On x86 (X64 and IA32) mismatch between calls and returns
+  // significantly regresses performance. So suspend stub
+  // does not return directly to the caller. Instead, a small
+  // epilogue is generated right after the call to suspend stub,
+  // and resume stub adjusts resume PC to skip this epilogue.
+  const intptr_t start = compiler->assembler()->CodeSize();
+  __ LeaveFrame();
+  __ ret();
+  RELEASE_ASSERT(compiler->assembler()->CodeSize() - start ==
+                 SuspendStubABI::kResumePcDistance);
+  compiler->EmitCallsiteMetadata(source(), resume_deopt_id(),
+                                 UntaggedPcDescriptors::kOther, locs(), env());
 #endif
 }
 

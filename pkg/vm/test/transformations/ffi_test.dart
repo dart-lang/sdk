@@ -49,9 +49,9 @@ runTestCase(Uri source) async {
 }
 
 void main(List<String> args) {
-  assert(args.length == 0 || args.length == 1);
+  assert(args.isEmpty || args.length == 1);
   String? filter;
-  if (args.length > 0) {
+  if (args.isNotEmpty) {
     filter = args.first;
   }
 

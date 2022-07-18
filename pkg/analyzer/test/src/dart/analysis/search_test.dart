@@ -1292,8 +1292,10 @@ part 'unitA.dart';
 part 'unitB.dart';
 ''');
     LibraryElement element = result.libraryElement;
-    CompilationUnitElement unitElementA = element.parts[0];
-    CompilationUnitElement unitElementB = element.parts[1];
+    CompilationUnitElement unitElementA =
+        (element.parts2[0].uri as DirectiveUriWithUnit).unit;
+    CompilationUnitElement unitElementB =
+        (element.parts2[1].uri as DirectiveUriWithUnit).unit;
     var expected = [
       ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
           codeA.indexOf('lib; // A'), 'lib'.length),
@@ -1328,8 +1330,10 @@ part 'unitA.dart';
 part 'unitB.dart';
 ''');
     LibraryElement element = result.libraryElement;
-    CompilationUnitElement unitElementA = element.parts[0];
-    CompilationUnitElement unitElementB = element.parts[1];
+    CompilationUnitElement unitElementA =
+        (element.parts2[0].uri as DirectiveUriWithUnit).unit;
+    CompilationUnitElement unitElementB =
+        (element.parts2[1].uri as DirectiveUriWithUnit).unit;
     var expected = [
       ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
           codeA.indexOf('lib; // A'), 'lib'.length),
@@ -1843,7 +1847,7 @@ main() {
 ''');
     var element = findElement.prefix('ppp');
     var main = findElement.function('main');
-    var c = findElement.partFind('my_part.dart').topVar('c');
+    var c = findElement.partFind('package:test/my_part.dart').topVar('c');
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'ppp.Future'),
       _expectId(main, SearchResultKind.REFERENCE, 'ppp.Stream'),
@@ -1882,7 +1886,7 @@ main() {
 ''');
     var element = findElement.prefix('ppp');
     var main = findElement.function('main');
-    var c = findElement.partFind('my_part.dart').topVar('c');
+    var c = findElement.partFind('package:aaa/my_part.dart').topVar('c');
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'ppp.Future'),
       _expectId(main, SearchResultKind.REFERENCE, 'ppp.Stream'),
@@ -1912,8 +1916,8 @@ _C v;
 ''');
     var element = findElement.class_('_C');
     Element v = findElement.topVar('v');
-    Element v1 = findElement.partFind('part1.dart').topVar('v1');
-    Element v2 = findElement.partFind('part2.dart').topVar('v2');
+    Element v1 = findElement.partFind('package:test/part1.dart').topVar('v1');
+    Element v2 = findElement.partFind('package:test/part2.dart').topVar('v2');
     var expected = [
       _expectId(v, SearchResultKind.REFERENCE, '_C v;', length: 2),
       ExpectedResult(
@@ -1948,10 +1952,11 @@ _C v1;
 
     await resolveTestCode(code);
 
-    ClassElement element = findElement.partFind('part1.dart').class_('_C');
+    ClassElement element =
+        findElement.partFind('package:test/part1.dart').class_('_C');
     Element v = findElement.topVar('v');
-    Element v1 = findElement.partFind('part1.dart').topVar('v1');
-    Element v2 = findElement.partFind('part2.dart').topVar('v2');
+    Element v1 = findElement.partFind('package:test/part1.dart').topVar('v1');
+    Element v2 = findElement.partFind('package:test/part2.dart').topVar('v2');
     var expected = [
       ExpectedResult(v, SearchResultKind.REFERENCE, code.indexOf('_C v;'), 2),
       ExpectedResult(
@@ -1992,8 +1997,8 @@ _C v;
 
     ClassElement element = findElement.class_('_C');
     Element v = findElement.topVar('v');
-    Element v1 = findElement.partFind('part1.dart').topVar('v1');
-    Element v2 = findElement.partFind('part2.dart').topVar('v2');
+    Element v1 = findElement.partFind('package:aaa/part1.dart').topVar('v1');
+    Element v2 = findElement.partFind('package:aaa/part2.dart').topVar('v2');
     var expected = [
       ExpectedResult(
           v, SearchResultKind.REFERENCE, testCode.indexOf('_C v;'), 2),

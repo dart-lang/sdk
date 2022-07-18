@@ -63,6 +63,7 @@ OldPage* OldPage::Allocate(intptr_t size_in_words,
   result->used_in_bytes_ = 0;
   result->forwarding_page_ = NULL;
   result->card_table_ = NULL;
+  result->progress_bar_ = 0;
   result->type_ = type;
 
   LSAN_REGISTER_ROOT_REGION(result, sizeof(*result));
@@ -128,8 +129,6 @@ void OldPage::VisitRememberedCards(ObjectPointerVisitor* visitor) {
     return;
   }
 
-  bool table_is_empty = false;
-
   ArrayPtr obj =
       static_cast<ArrayPtr>(UntaggedObject::FromAddr(object_start()));
   ASSERT(obj->IsArray());
@@ -140,7 +139,10 @@ void OldPage::VisitRememberedCards(ObjectPointerVisitor* visitor) {
   uword heap_base = obj.heap_base();
 
   const intptr_t size = card_table_size();
-  for (intptr_t i = 0; i < size; i++) {
+  for (;;) {
+    intptr_t i = progress_bar_.fetch_add(1);
+    if (i >= size) break;
+
     if (card_table_[i] != 0) {
       CompressedObjectPtr* card_from =
           reinterpret_cast<CompressedObjectPtr*>(this) +
@@ -170,19 +172,15 @@ void OldPage::VisitRememberedCards(ObjectPointerVisitor* visitor) {
         }
       }
 
-      if (has_new_target) {
-        // Card remains remembered.
-        table_is_empty = false;
-      } else {
+      if (!has_new_target) {
         card_table_[i] = 0;
       }
     }
   }
+}
 
-  if (table_is_empty) {
-    free(card_table_);
-    card_table_ = NULL;
-  }
+void OldPage::ResetProgressBar() {
+  progress_bar_ = 0;
 }
 
 ObjectPtr OldPage::FindObject(FindObjectVisitor* visitor) const {
@@ -465,19 +463,6 @@ void PageSpace::FreePages(OldPage* pages) {
   }
 }
 
-void PageSpace::EvaluateConcurrentMarking(GrowthPolicy growth_policy) {
-  if (growth_policy != kForceGrowth) {
-    ASSERT(GrowthControlState());
-    if (heap_ != NULL) {  // Some unit tests.
-      Thread* thread = Thread::Current();
-      if (thread->CanCollectGarbage()) {
-        heap_->CheckFinishConcurrentMarking(thread);
-        heap_->CheckStartConcurrentMarking(thread, GCReason::kOldSpace);
-      }
-    }
-  }
-}
-
 uword PageSpace::TryAllocateInFreshPage(intptr_t size,
                                         FreeList* freelist,
                                         OldPage::PageType type,
@@ -485,7 +470,13 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
                                         bool is_locked) {
   ASSERT(Heap::IsAllocatableViaFreeLists(size));
 
-  EvaluateConcurrentMarking(growth_policy);
+  if (growth_policy != kForceGrowth) {
+    ASSERT(!Thread::Current()->force_growth());
+    if (heap_ != nullptr) {  // Some unit tests.
+      heap_->CheckConcurrentMarking(Thread::Current(), GCReason::kOldSpace,
+                                    kOldPageSize);
+    }
+  }
 
   uword result = 0;
   SpaceUsage after_allocation = GetCurrentUsage();
@@ -521,7 +512,13 @@ uword PageSpace::TryAllocateInFreshLargePage(intptr_t size,
                                              GrowthPolicy growth_policy) {
   ASSERT(!Heap::IsAllocatableViaFreeLists(size));
 
-  EvaluateConcurrentMarking(growth_policy);
+  if (growth_policy != kForceGrowth) {
+    ASSERT(!Thread::Current()->force_growth());
+    if (heap_ != nullptr) {  // Some unit tests.
+      heap_->CheckConcurrentMarking(Thread::Current(), GCReason::kOldSpace,
+                                    size);
+    }
+  }
 
   intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
   if ((page_size_in_words << kWordSizeLog2) < size) {
@@ -836,6 +833,12 @@ void PageSpace::VisitRememberedCards(ObjectPointerVisitor* visitor) const {
   }
 }
 
+void PageSpace::ResetProgressBars() const {
+  for (OldPage* page = large_pages_; page != NULL; page = page->next()) {
+    page->ResetProgressBar();
+  }
+}
+
 ObjectPtr PageSpace::FindObject(FindObjectVisitor* visitor,
                                 OldPage::PageType type) const {
   if (type == OldPage::kExecutable) {
@@ -1037,16 +1040,22 @@ bool PageSpace::ShouldPerformIdleMarkCompact(int64_t deadline) {
   return estimated_mark_compact_completion <= deadline;
 }
 
-void PageSpace::NotifyIdle(int64_t deadline) {
+void PageSpace::IncrementalMarkWithSizeBudget(intptr_t size) {
   if (marker_ != nullptr) {
-    marker_->NotifyIdle(deadline);
+    marker_->IncrementalMarkWithSizeBudget(this, size);
+  }
+}
+
+void PageSpace::IncrementalMarkWithTimeBudget(int64_t deadline) {
+  if (marker_ != nullptr) {
+    marker_->IncrementalMarkWithTimeBudget(this, deadline);
   }
 }
 
 void PageSpace::AssistTasks(MonitorLocker* ml) {
   if (phase() == PageSpace::kMarking) {
     ml->Exit();
-    marker_->AssistConcurrentMark();
+    marker_->IncrementalMarkWithUnlimitedBudget(this);
     ml->Enter();
   }
   if ((phase() == kSweepingLarge) || (phase() == kSweepingRegular)) {
@@ -1101,7 +1110,7 @@ void PageSpace::VisitRoots(ObjectPointerVisitor* visitor) {
 }
 
 void PageSpace::CollectGarbage(Thread* thread, bool compact, bool finalize) {
-  ASSERT(GrowthControlState());
+  ASSERT(!Thread::Current()->force_growth());
 
   if (!finalize) {
 #if defined(TARGET_ARCH_IA32)
@@ -1471,6 +1480,7 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   page->used_in_bytes_ = page->object_end_ - page->object_start();
   page->forwarding_page_ = NULL;
   page->card_table_ = NULL;
+  page->progress_bar_ = 0;
   if (is_executable) {
     page->type_ = OldPage::kExecutable;
   } else {
@@ -1499,7 +1509,6 @@ PageSpaceController::PageSpaceController(Heap* heap,
                                          int heap_growth_max,
                                          int garbage_collection_time_ratio)
     : heap_(heap),
-      is_enabled_(false),
       heap_growth_ratio_(heap_growth_ratio),
       desired_utilization_((100.0 - heap_growth_ratio) / 100.0),
       heap_growth_max_(heap_growth_max),
@@ -1512,9 +1521,6 @@ PageSpaceController::PageSpaceController(Heap* heap,
 PageSpaceController::~PageSpaceController() {}
 
 bool PageSpaceController::ReachedHardThreshold(SpaceUsage after) const {
-  if (!is_enabled_) {
-    return false;
-  }
   if (heap_growth_ratio_ == 100) {
     return false;
   }
@@ -1522,9 +1528,6 @@ bool PageSpaceController::ReachedHardThreshold(SpaceUsage after) const {
 }
 
 bool PageSpaceController::ReachedSoftThreshold(SpaceUsage after) const {
-  if (!is_enabled_) {
-    return false;
-  }
   if (heap_growth_ratio_ == 100) {
     return false;
   }
@@ -1532,9 +1535,6 @@ bool PageSpaceController::ReachedSoftThreshold(SpaceUsage after) const {
 }
 
 bool PageSpaceController::ReachedIdleThreshold(SpaceUsage current) const {
-  if (!is_enabled_) {
-    return false;
-  }
   if (heap_growth_ratio_ == 100) {
     return false;
   }
@@ -1671,19 +1671,17 @@ void PageSpaceController::RecordUpdate(SpaceUsage before,
       after.CombinedUsedInWords() + (kOldPageSizeInWords * growth_in_pages);
 
 #if defined(TARGET_ARCH_IA32)
-  // No concurrent marking.
-  soft_gc_threshold_in_words_ = threshold;
-  hard_gc_threshold_in_words_ = threshold;
+  bool concurrent_mark = false;
 #else
-  // Start concurrent marking when old-space has less than half of new-space
-  // available or less than 5% available.
-  // Note that heap_ can be null in some unit tests.
-  const intptr_t new_space =
-      heap_ == nullptr ? 0 : heap_->new_space()->CapacityInWords();
-  const intptr_t headroom = Utils::Maximum(new_space / 2, threshold / 20);
-  soft_gc_threshold_in_words_ = threshold;
-  hard_gc_threshold_in_words_ = threshold + headroom;
+  bool concurrent_mark = FLAG_concurrent_mark && (FLAG_marker_tasks != 0);
 #endif
+  if (concurrent_mark) {
+    soft_gc_threshold_in_words_ = threshold;
+    hard_gc_threshold_in_words_ = kIntptrMax / kWordSize;
+  } else {
+    soft_gc_threshold_in_words_ = kIntptrMax / kWordSize;
+    hard_gc_threshold_in_words_ = threshold;
+  }
 
   // Set a tight idle threshold.
   idle_gc_threshold_in_words_ =

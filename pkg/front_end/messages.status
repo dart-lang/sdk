@@ -392,7 +392,6 @@ FfiNativeUnexpectedNumberOfParametersWithReceiver/analyzerCode: Fail
 FfiNotStatic/analyzerCode: Fail
 FfiPackedAnnotation/analyzerCode: Fail
 FfiPackedAnnotationAlignment/analyzerCode: Fail
-FfiPackedNestingNonPacked/analyzerCode: Fail
 FfiSizeAnnotation/analyzerCode: Fail
 FfiSizeAnnotationDimensions/analyzerCode: Fail
 FfiStructAnnotation/analyzerCode: Fail
@@ -424,11 +423,9 @@ ForInLoopNotAssignable/part_wrapped_statement: Fail
 ForInLoopNotAssignable/statement: Fail
 ForInLoopTypeNotIterablePartNullability/example: Fail # Cannot occur but needed for symmetry with ForInLoopTypeNotIterableNullability
 ForInLoopWithConstVariable/example: Fail
-FunctionAsTypeParameter/analyzerCode: Fail
 FunctionTypeDefaultValue/example: Fail
 FunctionTypedParameterVar/part_wrapped_script1: Fail
 FunctionTypedParameterVar/script1: Fail
-FunctionUsedAsDec/analyzerCode: Fail
 GeneratorReturnsValue/example: Fail
 GenericFunctionTypeAsTypeArgumentThroughTypedef/example: Fail
 GetterNotFound/example: Fail
@@ -562,6 +559,8 @@ JsInteropExternalExtensionMemberOnTypeInvalid/analyzerCode: Fail # Web compiler 
 JsInteropExternalExtensionMemberOnTypeInvalid/example: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
+JsInteropInvalidStaticClassMemberName/analyzerCode: Fail
+JsInteropInvalidStaticClassMemberName/example: Fail
 JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific
 JsInteropJSClassExtendsDartClass/example: Fail # Web compiler specific
 JsInteropNamedParameters/analyzerCode: Fail # Web compiler specific
@@ -656,6 +655,12 @@ NeverValueError/example: Fail
 NeverValueWarning/analyzerCode: Fail
 NeverValueWarning/example: Fail
 NewAsSelector/analyzerCode: Fail
+NoAugmentSuperInvokeTarget/analyzerCode: Fail
+NoAugmentSuperInvokeTarget/example: Fail
+NoAugmentSuperReadTarget/analyzerCode: Fail
+NoAugmentSuperReadTarget/example: Fail
+NoAugmentSuperWriteTarget/analyzerCode: Fail
+NoAugmentSuperWriteTarget/example: Fail
 NoFormals/example: Fail
 NoSuchNamedParameter/example: Fail
 NoUnnamedConstructorInObject/analyzerCode: Fail

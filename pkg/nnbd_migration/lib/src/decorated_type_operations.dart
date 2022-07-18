@@ -11,9 +11,9 @@ import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/variables.dart';
 
-/// [TypeOperations] that works with [DecoratedType]s.
+/// [Operations] that works with [DecoratedType]s.
 class DecoratedTypeOperations
-    implements TypeOperations<PromotableElement, DecoratedType> {
+    implements Operations<PromotableElement, DecoratedType> {
   final TypeSystem _typeSystem;
   final Variables? _variableRepository;
   final NullabilityGraph _graph;

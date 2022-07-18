@@ -176,6 +176,7 @@ enum BenchmarkPhases {
   outline_installAllComponentProblems,
 
   body_buildBodies,
+  body_checkMixinSuperAccesses,
   body_finishSynthesizedParameters,
   body_finishDeferredLoadTearoffs,
   body_finishNoSuchMethodForwarders,
@@ -234,16 +235,13 @@ enum BenchmarkSubdivides {
   body_buildBody_benchmark_specific_diet_parser,
   body_buildBody_benchmark_specific_parser,
 
-  inferConstructorParameterTypes,
-  inferDeclarationType,
-  inferExpression,
+  inferImplicitFieldType,
   inferFieldInitializer,
   inferFunctionBody,
   inferInitializer,
   inferMetadata,
-  inferMetadataKeepingHelper,
   inferParameterInitializer,
-  inferInvocation,
+  inferRedirectingFactoryTypeArguments,
 
   buildOutlineExpressions,
   delayedActionPerformer,

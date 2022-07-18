@@ -1,12 +1,12 @@
 extension Foo<U> on List {
   static List<U> Function() foo8Prime() {}
-  static List<U> Function(List<U>) foo15Prime = null;
-  static List<U> foo14Prime = null;
   static List<U> foo1Prime() {}
   static U Function() foo8() {}
-  static U Function(U) foo15 = null;
   static U foo1() {}
-  static U foo14 = null;
+  static late List<U> Function(List<U>) foo15Prime;
+  static late List<U> foo14Prime;
+  static late U Function(U) foo15;
+  static late U foo14;
   static void Function(List<U>) foo9Prime() {}
   static void Function(U) foo9() {}
   static void foo10(U Function()) {}

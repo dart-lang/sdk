@@ -463,7 +463,10 @@ ProcessInfo b;
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
     );
 
-    final codeActions = await getCodeActions(otherFileUri.toString());
+    final codeActions = await getCodeActions(
+      otherFileUri.toString(),
+      position: startOfDocPos,
+    );
     expect(codeActions, isEmpty);
   }
 

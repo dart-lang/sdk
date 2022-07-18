@@ -23,7 +23,7 @@ class GetStatementCompletionTest extends AbstractAnalysisServerIntegrationTest {
 void bar() { foo() } // missing semi-colon
 void foo() { }''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isNotEmpty);

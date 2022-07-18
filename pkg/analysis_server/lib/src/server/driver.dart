@@ -11,7 +11,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
-import 'package:analysis_server/src/analytics/noop_analytics_manager.dart';
+import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/lsp/lsp_socket_server.dart';
 import 'package:analysis_server/src/server/crash_reporting.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
@@ -64,6 +64,9 @@ class Driver implements ServerStarter {
   /// The name of the option to disable the search feature.
   static const String DISABLE_SERVER_FEATURE_SEARCH =
       'disable-server-feature-search';
+
+  /// The name of the multi-option to enable one or more experiments.
+  static const String ENABLE_EXPERIMENT = 'enable-experiment';
 
   /// The name of the option used to print usage information.
   static const String HELP_OPTION = 'help';
@@ -170,6 +173,11 @@ class Driver implements ServerStarter {
     analysisServerOptions.reportProtocolVersion =
         results[REPORT_PROTOCOL_VERSION] as String?;
 
+    analysisServerOptions.enabledExperiments =
+        results.wasParsed(ENABLE_EXPERIMENT)
+            ? results[ENABLE_EXPERIMENT] as List<String>
+            : <String>[];
+
     // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
     var sdkConfig = SdkConfiguration.readFromSdk();
     analysisServerOptions.configurationOverrides = sdkConfig;
@@ -196,7 +204,7 @@ class Driver implements ServerStarter {
     if (analysisServerOptions.clientVersion != null) {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
-    var analyticsManager = NoopAnalyticsManager();
+    var analyticsManager = AnalyticsManager(NoopAnalytics());
 
     bool shouldSendCallback() {
       // Check sdkConfig to optionally force reporting on.
@@ -689,6 +697,13 @@ class Driver implements ServerStarter {
       help: 'The path to the package resolution configuration file, which '
           'supplies a mapping of package names\ninto paths.',
     );
+    parser.addMultiOption(
+      ENABLE_EXPERIMENT,
+      valueHelp: 'experiment',
+      help: 'Enable one or more experimental features '
+          '(see dart.dev/go/experiments).',
+      hide: true,
+    );
 
     parser.addOption(
       SERVER_PROTOCOL,
@@ -784,8 +799,6 @@ class Driver implements ServerStarter {
     parser.addFlag('dartpad', hide: true);
     // Removed 11/15/2020.
     parser.addFlag('enable-completion-model', hide: true);
-    // Removed 10/30/2020.
-    parser.addMultiOption('enable-experiment', hide: true);
     // Removed 9/23/2020.
     parser.addFlag('enable-instrumentation', hide: true);
     // Removed 11/12/2020.

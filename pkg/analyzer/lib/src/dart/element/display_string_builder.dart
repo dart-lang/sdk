@@ -162,6 +162,19 @@ class ElementDisplayStringBuilder {
     _writeNullability(type.nullabilitySuffix);
   }
 
+  void writePartElement(PartElementImpl element) {
+    _write('part ');
+
+    final uri = element.uri;
+    if (uri is DirectiveUriWithUnitImpl) {
+      _write('unit ${uri.unit.source.uri}');
+    } else if (uri is DirectiveUriWithSourceImpl) {
+      _write('source ${uri.source}');
+    } else {
+      _write('<unknown>');
+    }
+  }
+
   void writePrefixElement(PrefixElementImpl element) {
     _write('as ');
     _write(element.displayName);
@@ -238,7 +251,7 @@ class ElementDisplayStringBuilder {
     // version and know the length of the function name/return type.
     var multiline = allowMultiline && this.multiline && parameters.length >= 3;
 
-    // The prefix for open groups is included in seperator for single-line but
+    // The prefix for open groups is included in separator for single-line but
     // not for multline so must be added explicitly.
     var openGroupPrefix = multiline ? ' ' : '';
     var separator = multiline ? ',' : ', ';

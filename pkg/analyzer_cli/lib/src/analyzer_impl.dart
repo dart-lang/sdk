@@ -67,9 +67,8 @@ class AnalyzerImpl {
       return;
     }
     // Add compilation units.
-    addCompilationUnitSource(library.definingCompilationUnit, units);
-    for (var child in library.parts) {
-      addCompilationUnitSource(child, units);
+    for (final unitElement in library.units) {
+      addCompilationUnitSource(unitElement, units);
     }
     // Add referenced libraries.
     for (var child in library.importedLibraries) {
@@ -164,7 +163,7 @@ class AnalyzerImpl {
   bool _isAnalyzedLibrary(LibraryElement library) {
     var source = library.source;
     if (source.uri.isScheme('dart')) {
-      return options.showSdkWarnings;
+      return false;
     } else if (source.uri.isScheme('package')) {
       if (_isPathInPubCache(source.fullName)) {
         return false;
@@ -183,12 +182,8 @@ class AnalyzerImpl {
     var packageName = uri.pathSegments.first;
     if (packageName == _selfPackageName) {
       return true;
-    } else if (!options.showPackageWarnings) {
-      return false;
-    } else if (options.showPackageWarningsPrefix == null) {
-      return true;
     } else {
-      return packageName.startsWith(options.showPackageWarningsPrefix!);
+      return false;
     }
   }
 

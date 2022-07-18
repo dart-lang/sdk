@@ -15,7 +15,7 @@ import 'suite.dart' show Suite;
 import '../testing.dart' show FileBasedTestDescription, TestDescription;
 
 import 'test_dart/status_file_parser.dart'
-    show ReadTestExpectations, TestExpectations;
+    show readTestExpectations, TestExpectations;
 
 import 'zone_helper.dart' show runGuarded;
 
@@ -25,9 +25,9 @@ import 'log.dart' show Logger, StdoutLogger, splitLines;
 
 import 'multitest.dart' show MultitestTransformer, isError;
 
-import 'expectation.dart' show Expectation, ExpectationSet;
+import 'expectation.dart' show Expectation, ExpectationGroup, ExpectationSet;
 
-typedef Future<ChainContext> CreateContext(
+typedef CreateContext = Future<ChainContext> Function(
     Chain suite, Map<String, String> environment);
 
 /// A test suite for tool chains, for example, a compiler.
@@ -55,11 +55,11 @@ class Chain extends Suite {
     Uri uri = base.resolve(path);
     Uri statusFile = base.resolve(json["status"]);
     List<RegExp> pattern =
-        json["pattern"].map<RegExp>((p) => new RegExp(p)).toList();
+        json["pattern"].map<RegExp>((p) => RegExp(p)).toList();
     List<RegExp> exclude =
-        json["exclude"].map<RegExp>((p) => new RegExp(p)).toList();
+        json["exclude"].map<RegExp>((p) => RegExp(p)).toList();
     bool processMultitests = json["process-multitests"] ?? false;
-    return new Chain(name, kind, source, uri, statusFile, pattern, exclude,
+    return Chain(name, kind, source, uri, statusFile, pattern, exclude,
         processMultitests);
   }
 
@@ -77,7 +77,7 @@ class Chain extends Suite {
     sink.writeln(".createContext, environment, selectors, r'''");
     const String jsonExtraIndent = "    ";
     sink.write(jsonExtraIndent);
-    sink.writeAll(splitLines(new JsonEncoder.withIndent("  ").convert(this)),
+    sink.writeAll(splitLines(JsonEncoder.withIndent("  ").convert(this)),
         jsonExtraIndent);
     sink.writeln("''');");
   }
@@ -106,7 +106,7 @@ abstract class ChainContext {
   Future<Null> run(Chain suite, Set<String> selectors,
       {int shards = 1,
       int shard = 0,
-      Logger logger: const StdoutLogger()}) async {
+      Logger logger = const StdoutLogger()}) async {
     assert(shards >= 1, "Invalid shards count: $shards");
     assert(0 <= shard && shard < shards,
         "Invalid shard index: $shard, not in range [0,$shards[.");
@@ -114,11 +114,11 @@ abstract class ChainContext {
         .where((s) => s.endsWith('...'))
         .map((s) => s.substring(0, s.length - 3))
         .toList();
-    TestExpectations expectations = await ReadTestExpectations(
+    TestExpectations expectations = await readTestExpectations(
         <String>[suite.statusFile!.toFilePath()], {}, expectationSet);
     Stream<TestDescription> stream = list(suite);
     if (suite.processMultitests) {
-      stream = stream.transform(new MultitestTransformer());
+      stream = stream.transform(MultitestTransformer());
     }
     List<TestDescription> descriptions = await stream.toList();
     descriptions.sort();
@@ -148,7 +148,15 @@ abstract class ChainContext {
       }
       final Set<Expectation> expectedOutcomes = processExpectedOutcomes(
           expectations.expectations(description.shortName), description);
-      final StringBuffer sb = new StringBuffer();
+      bool shouldSkip = false;
+      for (Expectation expectation in expectedOutcomes) {
+        if (expectation.group == ExpectationGroup.Skip) {
+          shouldSkip = true;
+          break;
+        }
+      }
+      if (shouldSkip) continue;
+      final StringBuffer sb = StringBuffer();
       final Step? lastStep = steps.isNotEmpty ? steps.last : null;
       final Iterator<Step> iterator = steps.iterator;
 
@@ -191,7 +199,7 @@ abstract class ChainContext {
             }
           }, printLineOnStdout: sb.writeln);
         } else {
-          future = new Future.value(null);
+          future = Future.value(null);
         }
         future = future.then((_currentResult) async {
           Result? currentResult = _currentResult;
@@ -252,7 +260,7 @@ abstract class ChainContext {
   }
 
   Stream<TestDescription> list(Chain suite) async* {
-    Directory testRoot = new Directory.fromUri(suite.uri);
+    Directory testRoot = Directory.fromUri(suite.uri);
     if (await testRoot.exists()) {
       Stream<FileSystemEntity> files =
           testRoot.list(recursive: true, followLinks: false);
@@ -261,7 +269,7 @@ abstract class ChainContext {
         String path = entity.uri.path;
         if (suite.exclude.any((RegExp r) => path.contains(r))) continue;
         if (suite.pattern.any((RegExp r) => path.contains(r))) {
-          yield new FileBasedTestDescription(suite.uri, entity);
+          yield FileBasedTestDescription(suite.uri, entity);
         }
       }
     } else {
@@ -348,15 +356,15 @@ abstract class Step<I, O, C extends ChainContext> {
   Future<Result<O>> run(I input, C context);
 
   Result<O> unhandledError(error, StackTrace trace) {
-    return new Result<O>.crash(error, trace);
+    return Result<O>.crash(error, trace);
   }
 
-  Result<O> pass(O output) => new Result<O>.pass(output);
+  Result<O> pass(O output) => Result<O>.pass(output);
 
-  Result<O> crash(error, StackTrace trace) => new Result<O>.crash(error, trace);
+  Result<O> crash(error, StackTrace trace) => Result<O>.crash(error, trace);
 
   Result<O> fail(O output, [error, StackTrace? trace]) {
-    return new Result<O>.fail(output, error, trace);
+    return Result<O>.fail(output, error, trace);
   }
 }
 
@@ -365,7 +373,7 @@ class Result<O> {
 
   final Expectation outcome;
 
-  final error;
+  final Object? error;
 
   final StackTrace? trace;
 
@@ -381,10 +389,14 @@ class Result<O> {
   ///
   final bool canBeFixWithUpdateExpectations;
 
-  Result(this.output, this.outcome, this.error,
-      {this.trace,
-      this.autoFixCommand,
-      this.canBeFixWithUpdateExpectations: false});
+  Result(
+    this.output,
+    this.outcome,
+    this.error, {
+    this.trace,
+    this.autoFixCommand,
+    this.canBeFixWithUpdateExpectations = false,
+  });
 
   Result.pass(O output) : this(output, Expectation.Pass, null);
 
@@ -403,12 +415,11 @@ class Result<O> {
   }
 
   Result<O> copyWithOutcome(Expectation outcome) {
-    return new Result<O>(output, outcome, error, trace: trace)
-      ..logs.addAll(logs);
+    return Result<O>(output, outcome, error, trace: trace)..logs.addAll(logs);
   }
 
   Result<O2> copyWithOutput<O2>(O2 output) {
-    return new Result<O2>(output, outcome, error,
+    return Result<O2>(output, outcome, error,
         trace: trace,
         autoFixCommand: autoFixCommand,
         canBeFixWithUpdateExpectations: canBeFixWithUpdateExpectations)
@@ -420,8 +431,7 @@ class Result<O> {
 Future<Null> runChain(CreateContext f, Map<String, String> environment,
     Set<String> selectors, String jsonText) {
   return withErrorHandling(() async {
-    Chain suite =
-        new Suite.fromJsonMap(Uri.base, json.decode(jsonText)) as Chain;
+    Chain suite = Suite.fromJsonMap(Uri.base, json.decode(jsonText)) as Chain;
     print("Running ${suite.name}");
     ChainContext context = await f(suite, environment);
     return context.run(suite, selectors);

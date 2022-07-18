@@ -5,21 +5,17 @@
 library fasta.dill_class_builder;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import '../builder/class_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
-
-import '../scope.dart';
-
-import '../problems.dart' show unimplemented;
-
 import '../modifier.dart' show abstractMask, namedMixinApplicationMask;
-
+import '../problems.dart' show unimplemented;
+import '../scope.dart';
 import 'dill_library_builder.dart' show DillLibraryBuilder;
-
 import 'dill_member_builder.dart';
 
 class DillClassBuilder extends ClassBuilderImpl {
@@ -134,8 +130,8 @@ class DillClassBuilder extends ClassBuilderImpl {
   int get typeVariablesCount => cls.typeParameters.length;
 
   @override
-  List<DartType> buildAliasedTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments) {
+  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
+      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
     // For performance reasons, [typeVariables] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
@@ -147,8 +143,10 @@ class DillClassBuilder extends ClassBuilderImpl {
     }
 
     // [arguments] != null
-    return new List<DartType>.generate(arguments.length,
-        (int i) => arguments[i].buildAliased(library, TypeUse.typeArgument),
+    return new List<DartType>.generate(
+        arguments.length,
+        (int i) =>
+            arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
         growable: true);
   }
 

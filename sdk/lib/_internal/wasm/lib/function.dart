@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Base class for closure objects.
-@pragma("wasm:entry-point")
-class _Function {
+class _Function implements Function {
   @pragma("wasm:entry-point")
   WasmDataRef context;
 
+  @pragma("wasm:entry-point")
   _Function._(this.context);
 }

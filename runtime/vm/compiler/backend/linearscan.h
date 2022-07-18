@@ -147,6 +147,7 @@ class FlowGraphAllocator : public ValueObject {
   void ProcessInitialDefinition(Definition* defn,
                                 LiveRange* range,
                                 BlockEntryInstr* block,
+                                intptr_t initial_definition_index,
                                 bool second_location_for_definition = false);
   void ConnectIncomingPhiMoves(JoinEntryInstr* join);
   void BlockLocation(Location loc, intptr_t from, intptr_t to);
@@ -248,6 +249,15 @@ class FlowGraphAllocator : public ValueObject {
   // Mark synthetic :suspend_state variable as object in stackmaps
   // at all safepoints.
   void UpdateStackmapsForSuspendState();
+
+  // Returns true if [defn] is an OsrEntry or CatchBlockEntry parameter
+  // corresponding to a synthetic :suspend_state variable.
+  bool IsSuspendStateParameter(Definition* defn);
+
+  // Allocates spill slot [slot_index] for the initial definition of
+  // OsrEntry or CatchBlockEntry (Parameter or Constant).
+  void AllocateSpillSlotForInitialDefinition(intptr_t slot_index,
+                                             intptr_t range_end);
 
   // Allocate the given live range to a spill slot.
   void Spill(LiveRange* range);

@@ -32,7 +32,7 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ PushNativeCalleeSavedRegisters();
 
   __ mv(THR, A2);
-  __ lx(WRITE_BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
+  __ RestorePinnedRegisters();  // Setup WRITE_BARRIER_STATE.
 
   __ StoreIntoObject(A1, FieldAddress(A1, GrowableObjectArray::data_offset()),
                      A0);
@@ -3369,11 +3369,31 @@ ASSEMBLER_TEST_RUN(SingleMin, test) {
   EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, -3.0f));
   EXPECT_EQ(-5.0f, CallF(test->entry(), -3.0f, -5.0f));
 
+  EXPECT_EQ(bit_cast<uint32_t>(-0.0f),
+            bit_cast<uint32_t>(CallF(test->entry(), 0.0f, -0.0f)));
+  EXPECT_EQ(bit_cast<uint32_t>(-0.0f),
+            bit_cast<uint32_t>(CallF(test->entry(), -0.0f, 0.0f)));
+
   float qNAN = std::numeric_limits<float>::quiet_NaN();
   EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, qNAN));
   EXPECT_EQ(3.0f, CallF(test->entry(), qNAN, 3.0f));
   EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, qNAN));
   EXPECT_EQ(-3.0f, CallF(test->entry(), qNAN, -3.0f));
+
+  float sNAN = std::numeric_limits<float>::signaling_NaN();
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, sNAN));
+  EXPECT_EQ(3.0f, CallF(test->entry(), sNAN, 3.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, sNAN));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), sNAN, -3.0f));
+
+  EXPECT_EQ(bit_cast<uint32_t>(qNAN),
+            bit_cast<uint32_t>(CallF(test->entry(), qNAN, qNAN)));
+  EXPECT_EQ(bit_cast<uint32_t>(qNAN),
+            bit_cast<uint32_t>(CallF(test->entry(), sNAN, sNAN)));
+  EXPECT_EQ(bit_cast<uint32_t>(qNAN),
+            bit_cast<uint32_t>(CallF(test->entry(), qNAN, sNAN)));
+  EXPECT_EQ(bit_cast<uint32_t>(qNAN),
+            bit_cast<uint32_t>(CallF(test->entry(), sNAN, qNAN)));
 }
 
 ASSEMBLER_TEST_GENERATE(SingleMax, assembler) {
@@ -3399,11 +3419,31 @@ ASSEMBLER_TEST_RUN(SingleMax, test) {
   EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, -3.0f));
   EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, -5.0f));
 
+  EXPECT_EQ(bit_cast<uint32_t>(0.0f),
+            bit_cast<uint32_t>(CallF(test->entry(), 0.0f, -0.0f)));
+  EXPECT_EQ(bit_cast<uint32_t>(0.0f),
+            bit_cast<uint32_t>(CallF(test->entry(), -0.0f, 0.0f)));
+
   float qNAN = std::numeric_limits<float>::quiet_NaN();
   EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, qNAN));
   EXPECT_EQ(3.0f, CallF(test->entry(), qNAN, 3.0f));
   EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, qNAN));
   EXPECT_EQ(-3.0f, CallF(test->entry(), qNAN, -3.0f));
+
+  float sNAN = std::numeric_limits<float>::signaling_NaN();
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, sNAN));
+  EXPECT_EQ(3.0f, CallF(test->entry(), sNAN, 3.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, sNAN));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), sNAN, -3.0f));
+
+  EXPECT_EQ(bit_cast<uint32_t>(qNAN),
+            bit_cast<uint32_t>(CallF(test->entry(), qNAN, qNAN)));
+  EXPECT_EQ(bit_cast<uint32_t>(qNAN),
+            bit_cast<uint32_t>(CallF(test->entry(), sNAN, sNAN)));
+  EXPECT_EQ(bit_cast<uint32_t>(qNAN),
+            bit_cast<uint32_t>(CallF(test->entry(), qNAN, sNAN)));
+  EXPECT_EQ(bit_cast<uint32_t>(qNAN),
+            bit_cast<uint32_t>(CallF(test->entry(), sNAN, qNAN)));
 }
 
 ASSEMBLER_TEST_GENERATE(SingleEqual, assembler) {
@@ -4312,11 +4352,31 @@ ASSEMBLER_TEST_RUN(DoubleMin, test) {
   EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, -3.0));
   EXPECT_EQ(-5.0, CallD(test->entry(), -3.0, -5.0));
 
+  EXPECT_EQ(bit_cast<uint64_t>(-0.0),
+            bit_cast<uint64_t>(CallD(test->entry(), 0.0, -0.0)));
+  EXPECT_EQ(bit_cast<uint64_t>(-0.0),
+            bit_cast<uint64_t>(CallD(test->entry(), -0.0, 0.0)));
+
   double qNAN = std::numeric_limits<double>::quiet_NaN();
   EXPECT_EQ(3.0, CallD(test->entry(), 3.0, qNAN));
   EXPECT_EQ(3.0, CallD(test->entry(), qNAN, 3.0));
   EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, qNAN));
   EXPECT_EQ(-3.0, CallD(test->entry(), qNAN, -3.0));
+
+  double sNAN = std::numeric_limits<double>::signaling_NaN();
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, sNAN));
+  EXPECT_EQ(3.0, CallD(test->entry(), sNAN, 3.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, sNAN));
+  EXPECT_EQ(-3.0, CallD(test->entry(), sNAN, -3.0));
+
+  EXPECT_EQ(bit_cast<uint64_t>(qNAN),
+            bit_cast<uint64_t>(CallD(test->entry(), sNAN, sNAN)));
+  EXPECT_EQ(bit_cast<uint64_t>(qNAN),
+            bit_cast<uint64_t>(CallD(test->entry(), qNAN, qNAN)));
+  EXPECT_EQ(bit_cast<uint64_t>(qNAN),
+            bit_cast<uint64_t>(CallD(test->entry(), qNAN, sNAN)));
+  EXPECT_EQ(bit_cast<uint64_t>(qNAN),
+            bit_cast<uint64_t>(CallD(test->entry(), sNAN, qNAN)));
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleMax, assembler) {
@@ -4342,11 +4402,31 @@ ASSEMBLER_TEST_RUN(DoubleMax, test) {
   EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, -3.0));
   EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, -5.0));
 
+  EXPECT_EQ(bit_cast<uint64_t>(0.0),
+            bit_cast<uint64_t>(CallD(test->entry(), 0.0, -0.0)));
+  EXPECT_EQ(bit_cast<uint64_t>(0.0),
+            bit_cast<uint64_t>(CallD(test->entry(), -0.0, 0.0)));
+
   double qNAN = std::numeric_limits<double>::quiet_NaN();
   EXPECT_EQ(3.0, CallD(test->entry(), 3.0, qNAN));
   EXPECT_EQ(3.0, CallD(test->entry(), qNAN, 3.0));
   EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, qNAN));
   EXPECT_EQ(-3.0, CallD(test->entry(), qNAN, -3.0));
+
+  double sNAN = std::numeric_limits<double>::signaling_NaN();
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, sNAN));
+  EXPECT_EQ(3.0, CallD(test->entry(), sNAN, 3.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, sNAN));
+  EXPECT_EQ(-3.0, CallD(test->entry(), sNAN, -3.0));
+
+  EXPECT_EQ(bit_cast<uint64_t>(qNAN),
+            bit_cast<uint64_t>(CallD(test->entry(), sNAN, sNAN)));
+  EXPECT_EQ(bit_cast<uint64_t>(qNAN),
+            bit_cast<uint64_t>(CallD(test->entry(), qNAN, qNAN)));
+  EXPECT_EQ(bit_cast<uint64_t>(qNAN),
+            bit_cast<uint64_t>(CallD(test->entry(), qNAN, sNAN)));
+  EXPECT_EQ(bit_cast<uint64_t>(qNAN),
+            bit_cast<uint64_t>(CallD(test->entry(), sNAN, qNAN)));
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleToSingle, assembler) {

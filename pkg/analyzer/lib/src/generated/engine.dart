@@ -70,22 +70,12 @@ abstract class AnalysisContext {
   /// context. Clients should not modify the returned set of options.
   AnalysisOptions get analysisOptions;
 
-  /// Set the set of analysis options controlling the behavior of this context to
-  /// the given [options]. Clients can safely assume that all necessary analysis
-  /// results have been invalidated.
-  set analysisOptions(AnalysisOptions options);
-
   /// Return the set of declared variables used when computing constant values.
   DeclaredVariables get declaredVariables;
 
   /// Return the source factory used to create the sources that can be analyzed
   /// in this context.
   SourceFactory get sourceFactory;
-
-  /// Set the source factory used to create the sources that can be analyzed in
-  /// this context to the given source [factory]. Clients can safely assume that
-  /// all analysis results have been invalidated.
-  set sourceFactory(SourceFactory factory);
 }
 
 /// The entry point for the functionality provided by the analysis engine. There

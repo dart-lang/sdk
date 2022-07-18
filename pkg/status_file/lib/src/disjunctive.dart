@@ -5,8 +5,8 @@
 import 'expression.dart';
 import '../environment.dart';
 
-final Expression T = new LogicExpression.and([]);
-final Expression F = new LogicExpression.or([]);
+final Expression T = LogicExpression.and([]);
+final Expression F = LogicExpression.or([]);
 
 // Token to combine left and right value of a comparison expression in a
 // variable expression.
@@ -32,7 +32,7 @@ Expression toDisjunctiveNormalForm(Expression expression) {
   } else if (minTerms.isEmpty) {
     return F;
   }
-  var disjunctiveNormalForm = new LogicExpression.or(minTerms);
+  var disjunctiveNormalForm = LogicExpression.or(minTerms);
   disjunctiveNormalForm = _minimizeByComplementation(disjunctiveNormalForm);
   return _recoverComparisonExpressions(disjunctiveNormalForm);
 }
@@ -101,10 +101,10 @@ LogicExpression _minimizeByComplementation(LogicExpression expression) {
     return onesInA - onesInB;
   });
   var combinedMinSets = _combineMinSets(
-      clauses.map((e) => [new LogicExpression.and(e)]).toList(), []);
+      clauses.map((e) => [LogicExpression.and(e)]).toList(), []);
   List<List<LogicExpression>> minCover = _findMinCover(combinedMinSets, []);
   var finalOperands = minCover.map((minSet) => _reduceMinSet(minSet)).toList();
-  return new LogicExpression.or(finalOperands).normalize();
+  return LogicExpression.or(finalOperands).normalize();
 }
 
 /// Computes all assignments of literals that make the [expression] evaluate to
@@ -113,7 +113,7 @@ List<Expression>? _satisfiableMinTerms(Expression expression) {
   var variables = _getVariables(expression);
   bool hasNotSatisfiableAssignment = false;
   List<Expression> satisfiableTerms = <Expression>[];
-  var environment = new TruthTableEnvironment(variables);
+  var environment = TruthTableEnvironment(variables);
   for (int i = 0; i < 1 << variables.length; i++) {
     environment.setConfiguration(i);
     if (expression.evaluate(environment)) {
@@ -125,7 +125,7 @@ List<Expression>? _satisfiableMinTerms(Expression expression) {
           operands.add(variables[j]);
         }
       }
-      satisfiableTerms.add(new LogicExpression.and(operands));
+      satisfiableTerms.add(LogicExpression.and(operands));
     } else {
       hasNotSatisfiableAssignment = true;
     }
@@ -175,7 +175,7 @@ class TruthTableEnvironment extends Environment {
 List<List<LogicExpression>> _combineMinSets(List<List<LogicExpression>> minSets,
     List<List<LogicExpression>> primeImplicants) {
   List<List<LogicExpression>> combined = <List<LogicExpression>>[];
-  var addedInThisIteration = new Set<List<LogicExpression>>();
+  var addedInThisIteration = <List<LogicExpression>>{};
   for (var i = 0; i < minSets.length; i++) {
     var minSet = minSets[i];
     var combinedMinSet = false;
@@ -255,7 +255,7 @@ LogicExpression _reduceMinSet(List<LogicExpression> minSet) {
       negative.remove(neg);
     }
   }
-  return new LogicExpression.and(positive..addAll(negative));
+  return LogicExpression.and(positive..addAll(negative));
 }
 
 /// [_findMinCover] finds the minimum cover of [primaryImplicants]. Finding a
@@ -316,11 +316,12 @@ bool _isCover(List<List<Expression>> cover, List<List<Expression>> implicants) {
 }
 
 // Computes the difference between two sets of expressions in disjunctive normal
-// form. if the difference is a negation, the difference is only counted once.
-List<Expression> _difference(List<Expression> As, List<Expression> Bs) {
-  var difference = <Expression>[]
-    ..addAll(As.where((a) => _findFirst(a, Bs) == null))
-    ..addAll(Bs.where((b) => _findFirst(b, As) == null));
+// form. If the difference is a negation, the difference is only counted once.
+List<Expression> _difference(List<Expression> aList, List<Expression> bList) {
+  var difference = <Expression>[
+    ...aList.where((a) => _findFirst(a, bList) == null),
+    ...bList.where((b) => _findFirst(b, aList) == null),
+  ];
   for (var expression in difference.toList()) {
     if (_isNegatedExpression(expression)) {
       if (_findFirst(negate(expression), difference) != null) {
@@ -390,37 +391,37 @@ bool _isNegatedExpression(Expression expression) {
 List<Expression> _getVariables(Expression expression) {
   if (expression is LogicExpression) {
     var variables = <Expression>[];
-    expression.operands.forEach(
-        (e) => _getVariables(e).forEach((v) => _addIfNotPresent(v, variables)));
+    for (var e in expression.operands) {
+      _getVariables(e).forEach((v) => _addIfNotPresent(v, variables));
+    }
     return variables;
   }
   if (expression is VariableExpression) {
-    return [new VariableExpression(expression.variable)];
+    return [VariableExpression(expression.variable)];
   }
   if (expression is ComparisonExpression) {
-    throw new Exception("Cannot use ComparisonExpression for variables");
+    throw Exception("Cannot use ComparisonExpression for variables");
   }
   return [];
 }
 
-Expression negate(Expression expression, {bool positive: false}) {
+Expression negate(Expression expression, {bool positive = false}) {
   if (expression is LogicExpression && expression.isOr) {
-    return new LogicExpression.and(expression.operands
+    return LogicExpression.and(expression.operands
         .map((e) => negate(e, positive: !positive))
         .toList());
   }
   if (expression is LogicExpression && expression.isAnd) {
-    return new LogicExpression.or(expression.operands
+    return LogicExpression.or(expression.operands
         .map((e) => negate(e, positive: !positive))
         .toList());
   }
   if (expression is ComparisonExpression) {
-    return new ComparisonExpression(
+    return ComparisonExpression(
         expression.left, expression.right, !expression.negate);
   }
   if (expression is VariableExpression) {
-    return new VariableExpression(expression.variable,
-        negate: !expression.negate);
+    return VariableExpression(expression.variable, negate: !expression.negate);
   }
   return expression;
 }
@@ -429,16 +430,15 @@ Expression negate(Expression expression, {bool positive: false}) {
 // we can se individual variables truthiness in the [TruthTableEnvironment].
 Expression _comparisonExpressionsToVariableExpressions(Expression expression) {
   if (expression is LogicExpression) {
-    return new LogicExpression(
+    return LogicExpression(
         expression.op,
         expression.operands
             .map((exp) => _comparisonExpressionsToVariableExpressions(exp))
             .toList());
   }
   if (expression is ComparisonExpression) {
-    return new VariableExpression(
-        new Variable(
-            expression.left.name + _comparisonToken + expression.right),
+    return VariableExpression(
+        Variable(expression.left.name + _comparisonToken + expression.right),
         negate: expression.negate);
   }
   return expression;
@@ -446,7 +446,7 @@ Expression _comparisonExpressionsToVariableExpressions(Expression expression) {
 
 Expression _recoverComparisonExpressions(Expression expression) {
   if (expression is LogicExpression) {
-    return new LogicExpression(
+    return LogicExpression(
         expression.op,
         expression.operands
             .map((exp) => _recoverComparisonExpressions(exp))
@@ -455,8 +455,8 @@ Expression _recoverComparisonExpressions(Expression expression) {
   if (expression is VariableExpression &&
       expression.variable.name.contains(_comparisonToken)) {
     int tokenIndex = expression.variable.name.indexOf(_comparisonToken);
-    return new ComparisonExpression(
-        new Variable(expression.variable.name.substring(0, tokenIndex)),
+    return ComparisonExpression(
+        Variable(expression.variable.name.substring(0, tokenIndex)),
         expression.variable.name
             .substring(tokenIndex + _comparisonToken.length),
         expression.negate);

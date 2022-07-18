@@ -1900,12 +1900,12 @@ class CodeSerializationCluster : public SerializationCluster {
     // in the current loading unit).
     ObjectPoolPtr pool = code->untag()->object_pool_;
     if (s->kind() == Snapshot::kFullAOT) {
-      TracePool(s, pool, /*only_code=*/is_deferred);
+      TracePool(s, pool, /*only_call_targets=*/is_deferred);
     } else {
       if (s->InCurrentLoadingUnitOrRoot(pool)) {
         s->Push(pool);
       } else {
-        TracePool(s, pool, /*only_code=*/true);
+        TracePool(s, pool, /*only_call_targets=*/true);
       }
     }
 
@@ -1973,7 +1973,7 @@ class CodeSerializationCluster : public SerializationCluster {
 #endif
   }
 
-  void TracePool(Serializer* s, ObjectPoolPtr pool, bool only_code) {
+  void TracePool(Serializer* s, ObjectPoolPtr pool, bool only_call_targets) {
     if (pool == ObjectPool::null()) {
       return;
     }
@@ -1984,8 +1984,16 @@ class CodeSerializationCluster : public SerializationCluster {
       auto entry_type = ObjectPool::TypeBits::decode(entry_bits[i]);
       if (entry_type == ObjectPool::EntryType::kTaggedObject) {
         const ObjectPtr target = pool->untag()->data()[i].raw_obj_;
-        if (!only_code || target->IsCode()) {
+        // A field is a call target because its initializer may be called
+        // indirectly by passing the field to the runtime. A const closure
+        // is a call target because its function may be called indirectly
+        // via a closure call.
+        intptr_t cid = target->GetClassIdMayBeSmi();
+        if (!only_call_targets || (cid == kCodeCid) || (cid == kFunctionCid) ||
+            (cid == kFieldCid) || (cid == kClosureCid)) {
           s->Push(target);
+        } else if (cid >= kNumPredefinedCids) {
+          s->Push(s->isolate_group()->class_table()->At(cid));
         }
       }
     }
@@ -6906,10 +6914,8 @@ bool Serializer::InCurrentLoadingUnitOrRoot(ObjectPtr obj) {
 
   intptr_t unit_id = heap_->GetLoadingUnit(obj);
   if (unit_id == WeakTable::kNoValue) {
-    // Not found in early assignment. Conservatively choose the root.
-    // TODO(41974): Are these always type testing stubs?
-    unit_id = LoadingUnit::kRootId;
-    heap_->SetLoadingUnit(obj, unit_id);
+    FATAL("Missing loading unit assignment: %s\n",
+          Object::Handle(obj).ToCString());
   }
   return unit_id == LoadingUnit::kRootId || unit_id == current_loading_unit_id_;
 }

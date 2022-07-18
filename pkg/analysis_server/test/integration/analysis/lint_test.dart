@@ -22,7 +22,7 @@ class LintIntegrationTest extends AbstractAnalysisServerIntegrationTest {
     writeFile(source, '''
 class abc { // lint: not CamelCase (should get ignored though)
 }''');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     await analysisFinished;
     expect(currentAnalysisErrors[source], isList);
@@ -43,7 +43,7 @@ linter:
 class a { // lint: not CamelCase
 }''');
 
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     await analysisFinished;
 

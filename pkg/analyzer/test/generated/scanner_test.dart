@@ -286,7 +286,7 @@ class TokenStreamValidator {
     late Token previousToken;
     int previousEnd = -1;
     Token? currentToken = token;
-    while (currentToken != null && currentToken.type != TokenType.EOF) {
+    while (currentToken != null && !currentToken.isEof) {
       _validateStream(buffer, currentToken.precedingComments);
       TokenType type = currentToken.type;
       if (type == TokenType.OPEN_CURLY_BRACKET ||

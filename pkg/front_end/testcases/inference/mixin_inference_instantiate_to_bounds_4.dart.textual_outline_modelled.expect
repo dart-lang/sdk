@@ -1,10 +1,8 @@
-// @dart = 2.9
 class A extends M1 with M0 {}
 
 class I<X> {}
 
-class M0<X, Y extends void Function({String name})> extends I<X> {}
-
 class M1 implements I<int> {}
 
 main() {}
+mixin M0<X, Y extends void Function({String name})> on I<X> {}

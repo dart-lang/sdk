@@ -30,9 +30,9 @@ class TestDart extends Suite {
     String common = json["common"] ?? "";
     String processes = json["processes"] ?? "-j${Platform.numberOfProcessors}";
     List<String> commandLines = json["command-lines"] == null
-        ? new List<String>.from(json["command-lines"])
+        ? List<String>.from(json["command-lines"])
         : <String>[];
-    return new TestDart(name, common, processes, commandLines);
+    return TestDart(name, common, processes, commandLines);
   }
 
   void writeFirstImportOn(StringSink sink) {

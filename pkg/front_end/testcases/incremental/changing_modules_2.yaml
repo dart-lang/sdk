@@ -9,25 +9,50 @@ type: newworld
 modules:
   example_1:
     example_1/a.dart: |
-      // @dart=2.9
       a() {}
       var example = true;
-    example_1/.packages: |
-      example:.
+    example_1/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "example",
+            "rootUri": ".."
+          }
+        ]
+      }
   example_2:
     example_2/a.dart: |
-      // @dart=2.9
       a() {}
       var example = true;
-    example_2/.packages: |
-      example:.
+    example_2/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "example",
+            "rootUri": ".."
+          }
+        ]
+      }
   foo:
     foo/foo.dart: |
       export "package:example/a.dart";
       var foo = true;
-    foo/.packages: |
-      foo:.
-      example:../example_1
+    foo/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "foo",
+            "rootUri": ".."
+          },
+          {
+            "name": "example",
+            "rootUri": "../../example_1"
+          }
+        ]
+      }
 worlds:
   - entry: main.dart
     fromComponent: true
@@ -38,9 +63,20 @@ worlds:
           print("hello");
           a();
         }
-      .packages: |
-        foo:foo
-        example:example_1
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foo"
+            },
+            {
+              "name": "example",
+              "rootUri": "../../example_1"
+            }
+          ]
+        }
     modules:
       - foo
       - example_1
@@ -60,9 +96,20 @@ worlds:
     worldType: updated
     expectInitializeFromDill: false
     sources:
-      .packages: |
-        foo:foo
-        example:example_2
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foo"
+            },
+            {
+              "name": "example",
+              "rootUri": "../../example_2"
+            }
+          ]
+        }
     modules:
       - foo
       - example_2

@@ -1367,17 +1367,35 @@ void TailCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 void Call1ArgStubInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   const char* name = "";
   switch (stub_id_) {
+    case StubId::kCloneSuspendState:
+      name = "CloneSuspendState";
+      break;
     case StubId::kInitAsync:
       name = "InitAsync";
-      break;
-    case StubId::kAwait:
-      name = "Await";
       break;
     case StubId::kInitAsyncStar:
       name = "InitAsyncStar";
       break;
+    case StubId::kInitSyncStar:
+      name = "InitSyncStar";
+      break;
+  }
+  f->Printf("%s(", name);
+  operand()->PrintTo(f);
+  f->AddString(")");
+}
+
+void SuspendInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  const char* name = "";
+  switch (stub_id_) {
+    case StubId::kAwait:
+      name = "Await";
+      break;
     case StubId::kYieldAsyncStar:
       name = "YieldAsyncStar";
+      break;
+    case StubId::kYieldSyncStar:
+      name = "YieldSyncStar";
       break;
   }
   f->Printf("%s(", name);

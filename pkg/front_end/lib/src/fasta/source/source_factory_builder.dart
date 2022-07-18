@@ -16,15 +16,14 @@ import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../dill/dill_member_builder.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
-import '../kernel/forest.dart';
 import '../kernel/hierarchy/class_member.dart';
-import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/redirecting_factory_body.dart'
     show getRedirectingFactoryBody, RedirectingFactoryBody;
 import '../messages.dart'
     show messageConstFactoryRedirectionToNonConst, noLength;
 import '../problems.dart' show unexpected, unhandled;
+import '../type_inference/inference_helper.dart';
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart';
@@ -76,7 +75,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
             new FunctionNode(null),
             fileUri: libraryBuilder.fileUri,
             reference: procedureReference)
-          ..startFileOffset = startCharOffset
+          ..fileStartOffset = startCharOffset
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault,
@@ -133,16 +132,15 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   Iterable<Member> get exportedMembers => [_procedure];
 
   @override
-  void buildMembers(void Function(Member, BuiltMemberKind) f) {
-    Member member = build();
-    f(member, BuiltMemberKind.Method);
+  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+    _build();
+    f(_procedureInternal, BuiltMemberKind.Method);
     if (_factoryTearOff != null) {
       f(_factoryTearOff!, BuiltMemberKind.Method);
     }
   }
 
-  @override
-  Procedure build() {
+  void _build() {
     buildFunction();
     _procedureInternal.function.fileOffset = charOpenParenOffset;
     _procedureInternal.function.fileEndOffset =
@@ -161,7 +159,6 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
           enclosingClass: classBuilder!.cls,
           libraryBuilder: libraryBuilder);
     }
-    return _procedureInternal;
   }
 
   bool _hasBuiltOutlines = false;
@@ -239,7 +236,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   }
 
   @override
-  int finishPatch() {
+  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
     if (!isPatch) return 0;
     _finishPatch();
     return 1;
@@ -341,16 +338,16 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   }
 
   @override
-  void buildMembers(void Function(Member, BuiltMemberKind) f) {
-    Member member = build();
-    f(member, BuiltMemberKind.RedirectingFactory);
+  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+    _build();
+    f(_procedureInternal, BuiltMemberKind.RedirectingFactory);
     if (_factoryTearOff != null) {
       f(_factoryTearOff!, BuiltMemberKind.Method);
     }
   }
 
   @override
-  Procedure build() {
+  void _build() {
     buildFunction();
     _procedureInternal.function.fileOffset = charOpenParenOffset;
     _procedureInternal.function.fileEndOffset =
@@ -375,7 +372,6 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
               implementationConstructor: _procedureInternal,
               libraryBuilder: libraryBuilder);
     }
-    return _procedureInternal;
   }
 
   @override
@@ -401,7 +397,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       TypeInferrer inferrer = libraryBuilder.loader.typeInferenceEngine
           .createLocalTypeInferrer(
               fileUri, classBuilder!.thisType, libraryBuilder, null);
-      inferrer.helper = libraryBuilder.loader
+      InferenceHelper helper = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
               libraryBuilder, classBuilder, this, classBuilder!.scope, fileUri);
       Builder? targetBuilder = redirectionTarget.target;
@@ -418,37 +414,14 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         unhandled("${targetBuilder.runtimeType}", "buildOutlineExpressions",
             charOffset, fileUri);
       }
-      ArgumentsImpl targetInvocationArguments;
-      {
-        List<Expression> positionalArguments = <Expression>[];
-        for (VariableDeclaration parameter
-            in _procedure.function.positionalParameters) {
-          inferrer.flowAnalysis.declare(parameter, true);
-          positionalArguments
-              .add(new VariableGetImpl(parameter, forNullGuardedAccess: false));
-        }
-        List<NamedExpression> namedArguments = <NamedExpression>[];
-        for (VariableDeclaration parameter
-            in _procedure.function.namedParameters) {
-          inferrer.flowAnalysis.declare(parameter, true);
-          namedArguments.add(new NamedExpression(parameter.name!,
-              new VariableGetImpl(parameter, forNullGuardedAccess: false)));
-        }
-        // If arguments are created using [Forest.createArguments], and the
-        // type arguments are omitted, they are to be inferred.
-        targetInvocationArguments = const Forest().createArguments(
-            _procedure.fileOffset, positionalArguments,
-            named: namedArguments);
-      }
-      InvocationInferenceResult result = inferrer.inferInvocation(
+      typeArguments = inferrer.inferRedirectingFactoryTypeArguments(
+          helper,
           function.returnType,
+          _procedure.function,
           charOffset,
-          target.function!.computeFunctionType(Nullability.nonNullable),
-          targetInvocationArguments,
-          staticTarget: target);
-      if (result.inferredType is InterfaceType) {
-        typeArguments = (result.inferredType as InterfaceType).typeArguments;
-      } else {
+          target,
+          target.function!.computeFunctionType(Nullability.nonNullable));
+      if (typeArguments == null) {
         // Assume that the error is reported elsewhere, use 'dynamic' for
         // recovery.
         typeArguments = new List<DartType>.filled(

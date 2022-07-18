@@ -19,7 +19,6 @@ String platformPath() => computePlatformBinariesLocation()
 
 const String mainScript = 'pkg/vm/bin/gen_kernel.dart';
 const String mainScriptPackageUri = 'package:vm/kernel_front_end.dart';
-const String packagesFile = '.packages';
 const String packageConfigFile = '.dart_tool/package_config.json';
 
 Future<void> testCompile(List<String> args) async {
@@ -56,7 +55,7 @@ main() {
       '--platform',
       platformPath(),
       '--packages',
-      '$sdkDir/$packagesFile',
+      '$sdkDir/$packageConfigFile',
       '--output',
       outputDill(),
       '$sdkDir/$mainScript',
@@ -72,7 +71,7 @@ main() {
       '--filesystem-root',
       sdkDir,
       '--packages',
-      'test-filesystem-scheme:///$packagesFile',
+      'test-filesystem-scheme:///$packageConfigFile',
       '--output',
       outputDill(),
       'test-filesystem-scheme:///$mainScript',
@@ -88,7 +87,7 @@ main() {
       '--filesystem-root',
       sdkDir,
       '--packages',
-      'test-filesystem-scheme:///$packagesFile',
+      'test-filesystem-scheme:///$packageConfigFile',
       '--output',
       outputDill(),
       '$mainScriptPackageUri',
@@ -100,7 +99,7 @@ main() {
       '--platform',
       platformPath(),
       '--packages',
-      '$sdkDir/$packagesFile',
+      '$sdkDir/$packageConfigFile',
       '--output',
       outputDill(),
       '--split-output-by-packages',

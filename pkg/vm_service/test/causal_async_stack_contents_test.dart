@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--lazy-async-stacks --verbose_debug
+// VMOptions=--verbose_debug
 
 import 'dart:developer';
 import 'package:test/test.dart';
@@ -48,7 +48,7 @@ var tests = <IsolateTest>[
     // Has causal frames (we are inside an async function)
     expect(stack.asyncCausalFrames, isNotNull);
     expect(
-      stack.asyncCausalFrames![0].function!.owner.name,
+      stack.asyncCausalFrames![0].function!.name,
       contains('helper'),
     );
     // "helper" is not await'ed.
@@ -62,7 +62,7 @@ var tests = <IsolateTest>[
     expect(stack.asyncCausalFrames, isNotNull);
     final asyncStack = stack.asyncCausalFrames!;
     expect(asyncStack[0].function!.name, contains('foobar'));
-    expect(asyncStack[1].function!.owner.name, contains('helper'));
+    expect(asyncStack[1].function!.name, contains('helper'));
     // "helper" is not await'ed.
   },
 ];

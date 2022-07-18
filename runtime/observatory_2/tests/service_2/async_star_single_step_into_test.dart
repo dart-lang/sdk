@@ -2,18 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--async-debugger --verbose-debug --lazy-async-stacks
+// VMOptions=--async-debugger --verbose-debug
 
 import 'dart:developer';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_A = 19;
-const LINE_B = 20;
-const LINE_C = 24;
-const LINE_D = 27;
-const LINE_E = 33;
-const LINE_F = 34;
+const LINE_A = 20;
+const LINE_B = 21;
+const LINE_C = 25;
+const LINE_D = 28;
+const LINE_E = 34;
+const LINE_F = 35;
+const LINE_G = 26;
 
 foobar() async* {
   yield 1; // LINE_A.
@@ -22,7 +23,7 @@ foobar() async* {
 
 helper() async {
   print('helper'); // LINE_C.
-  await for (var i in foobar()) {
+  await for (var i in foobar()) /* LINE_G. */ {
     debugger();
     print('loop'); // LINE_D.
   }
@@ -49,6 +50,11 @@ var tests = <IsolateTest>[
   stepOver, // print.
 
   hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_G), // foobar()
+  stepInto,
+
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_G), // await for
   stepInto,
 
   hasStoppedAtBreakpoint,
@@ -62,6 +68,7 @@ var tests = <IsolateTest>[
   stepOver, // print.
 
   hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_G),
   stepInto,
 
   hasStoppedAtBreakpoint,

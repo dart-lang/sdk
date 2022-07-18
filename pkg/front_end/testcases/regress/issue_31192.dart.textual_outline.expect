@@ -1,6 +1,5 @@
 class Increment {
-  late
-  int x;
+  late int x;
   Increment() : =x++ {}
 }
 main() {}

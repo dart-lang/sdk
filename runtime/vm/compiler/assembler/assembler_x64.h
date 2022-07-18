@@ -711,6 +711,13 @@ class Assembler : public AssemblerBase {
 
   // Methods for High-level operations and implemented on all architectures.
   void Ret() { ret(); }
+
+  // Sets the return address to [value] as if there was a call.
+  // On X64 pushes [value].
+  void SetReturnAddress(Register value) {
+    PushRegister(value);
+  }
+
   void CompareRegisters(Register a, Register b);
   void CompareObjectRegisters(Register a, Register b) { OBJ(cmp)(a, b); }
   void BranchIf(Condition condition,

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.11
-
 /// Converters and codecs for converting between JSON and [Info] classes.
 import 'dart:collection';
 import 'dart:convert';
@@ -50,18 +48,17 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
         (elements['constant'] as Map).values.map((c) => parseConstant(c)));
 
     input['holding'].forEach((k, deps) {
-      CodeInfo src = registry[k];
-      assert(src != null);
+      final src = registry[k] as CodeInfo;
       for (var dep in deps) {
-        var target = registry[dep['id']];
-        assert(target != null);
+        final target = registry[dep['id']]!;
         src.uses.add(DependencyInfo(target, dep['mask']));
       }
     });
 
     input['dependencies']?.forEach((String k, dependencies) {
       List<String> deps = dependencies;
-      result.dependencies[registry[k]] = deps.map((d) => registry[d]).toList();
+      result.dependencies[registry[k]!] =
+          deps.map((d) => registry[d]!).toList();
     });
 
     result.outputUnits
@@ -91,24 +88,23 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   }
 
   OutputUnitInfo parseOutputUnit(Map json) {
-    OutputUnitInfo result = parseId(json['id']);
+    final result = parseId(json['id']) as OutputUnitInfo;
     result
       ..filename = json['filename']
       ..name = json['name']
       ..size = json['size'];
-    result.imports
-        .addAll((json['imports'] as List).map((s) => s as String) ?? const []);
+    result.imports.addAll((json['imports'] as List).map((s) => s as String));
     return result;
   }
 
   LibraryInfo parseLibrary(Map json) {
-    LibraryInfo result = parseId(json['id']);
+    final result = parseId(json['id']) as LibraryInfo;
     result
       ..name = json['name']
       ..uri = Uri.parse(json['canonicalUri'])
-      ..outputUnit = parseId(json['outputUnit'])
+      ..outputUnit = parseId(json['outputUnit']) as OutputUnitInfo?
       ..size = json['size'];
-    for (var child in json['children'].map(parseId)) {
+    for (var child in json['children'].map((id) => parseId(id))) {
       if (child is FunctionInfo) {
         result.topLevelFunctions.add(child);
       } else if (child is FieldInfo) {
@@ -126,15 +122,14 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   }
 
   ClassInfo parseClass(Map json) {
-    ClassInfo result = parseId(json['id']);
+    final result = parseId(json['id']) as ClassInfo;
     result
       ..name = json['name']
       ..parent = parseId(json['parent'])
-      ..outputUnit = parseId(json['outputUnit'])
+      ..outputUnit = parseId(json['outputUnit']) as OutputUnitInfo?
       ..size = json['size']
       ..isAbstract = json['modifiers']['abstract'] == true;
-    assert(result is ClassInfo);
-    for (var child in json['children'].map(parseId)) {
+    for (var child in json['children'].map((id) => parseId(id))) {
       if (child is FunctionInfo) {
         result.functions.add(child);
       } else {
@@ -146,44 +141,44 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   }
 
   ClassTypeInfo parseClassType(Map json) {
-    ClassTypeInfo result = parseId(json['id']);
+    final result = parseId(json['id']) as ClassTypeInfo;
     result
       ..name = json['name']
       ..parent = parseId(json['parent'])
-      ..outputUnit = parseId(json['outputUnit'])
+      ..outputUnit = parseId(json['outputUnit']) as OutputUnitInfo?
       ..size = json['size'];
     return result;
   }
 
   FieldInfo parseField(Map json) {
-    FieldInfo result = parseId(json['id']);
+    final result = parseId(json['id']) as FieldInfo;
     return result
       ..name = json['name']
       ..parent = parseId(json['parent'])
       ..coverageId = json['coverageId']
-      ..outputUnit = parseId(json['outputUnit'])
+      ..outputUnit = parseId(json['outputUnit']) as OutputUnitInfo?
       ..size = json['size']
       ..type = json['type']
       ..inferredType = json['inferredType']
       ..code = parseCode(json['code'])
       ..isConst = json['const'] ?? false
-      ..initializer = parseId(json['initializer'])
+      ..initializer = parseId(json['initializer']) as ConstantInfo?
       ..closures = (json['children'] as List)
-          .map<ClosureInfo>((c) => parseId(c))
+          .map<ClosureInfo>((c) => parseId(c) as ClosureInfo)
           .toList();
   }
 
   ConstantInfo parseConstant(Map json) {
-    ConstantInfo result = parseId(json['id']);
+    final result = parseId(json['id']) as ConstantInfo;
     return result
       ..name = json['name']
       ..code = parseCode(json['code'])
       ..size = json['size']
-      ..outputUnit = parseId(json['outputUnit']);
+      ..outputUnit = parseId(json['outputUnit']) as OutputUnitInfo?;
   }
 
   TypedefInfo parseTypedef(Map json) {
-    TypedefInfo result = parseId(json['id']);
+    final result = parseId(json['id']) as TypedefInfo;
     return result
       ..name = json['name']
       ..parent = parseId(json['parent'])
@@ -209,7 +204,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
         : Duration(microseconds: dumpInfoDuration as int);
 
     final programInfo = ProgramInfo(
-        entrypoint: parseId(json['entrypoint']),
+        entrypoint: parseId(json['entrypoint']) as FunctionInfo,
         size: json['size'],
         compilationMoment: DateTime.parse(json['compilationMoment']),
         dart2jsVersion: json['dart2jsVersion'],
@@ -245,12 +240,12 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   }
 
   FunctionInfo parseFunction(Map json) {
-    FunctionInfo result = parseId(json['id']);
+    final result = parseId(json['id']) as FunctionInfo;
     return result
       ..name = json['name']
       ..parent = parseId(json['parent'])
       ..coverageId = json['coverageId']
-      ..outputUnit = parseId(json['outputUnit'])
+      ..outputUnit = parseId(json['outputUnit']) as OutputUnitInfo?
       ..size = json['size']
       ..functionKind = json['functionKind']
       ..type = json['type']
@@ -263,7 +258,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
       ..inlinedCount = json['inlinedCount']
       ..modifiers = parseModifiers(Map<String, bool>.from(json['modifiers']))
       ..closures = (json['children'] as List)
-          .map<ClosureInfo>((c) => parseId(c))
+          .map<ClosureInfo>((c) => parseId(c) as ClosureInfo)
           .toList();
   }
 
@@ -279,17 +274,16 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   }
 
   ClosureInfo parseClosure(Map json) {
-    ClosureInfo result = parseId(json['id']);
+    final result = parseId(json['id']) as ClosureInfo;
     return result
       ..name = json['name']
       ..parent = parseId(json['parent'])
-      ..outputUnit = parseId(json['outputUnit'])
+      ..outputUnit = parseId(json['outputUnit']) as OutputUnitInfo?
       ..size = json['size']
-      ..function = parseId(json['function']);
+      ..function = parseId(json['function']) as FunctionInfo;
   }
 
-  Info parseId(id) {
-    String serializedId = id;
+  Info? parseId(String? serializedId) {
     if (serializedId == null) {
       return null;
     }
@@ -313,8 +307,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
       } else if (serializedId.startsWith('outputUnit/')) {
         return OutputUnitInfo.internal();
       }
-      assert(false);
-      return null;
+      throw StateError('Invalid serialized ID found: $serializedId');
     });
   }
 
@@ -343,13 +336,10 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   /// Whether to generate json compatible with format 5.1
   final bool isBackwardCompatible;
 
-  /// Whether to filter all treeshaken elements.
-  final bool filterTreeshaken;
   final Map<Info, Id> ids = HashMap<Info, Id>();
   final Set<String> usedIds = <String>{};
 
-  AllInfoToJsonConverter(
-      {this.isBackwardCompatible = false, this.filterTreeshaken = false});
+  AllInfoToJsonConverter({this.isBackwardCompatible = false});
 
   Id idFor(Info info) {
     var serializedId = ids[info];
@@ -367,7 +357,6 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       // No name and no parent, so `longName` isn't helpful
       assert(info.name.isEmpty);
       assert(info.parent == null);
-      assert(info.code != null);
       // Instead, use the content of the code.
       name = info.code.first.text ?? '';
     } else {
@@ -392,12 +381,6 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     // Using SplayTree to maintain a consistent order of keys
     var map = SplayTreeMap<String, Map>(compareNatural);
     for (var info in infos) {
-      if (info is BasicInfo) {
-        if (filterTreeshaken &&
-            info.treeShakenStatus != TreeShakenStatus.Live) {
-          continue;
-        }
-      }
       map[idFor(info).id] = info.accept(this);
     }
     return map;
@@ -463,7 +446,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       'dump_version': isBackwardCompatible ? 5 : info.version,
       'deferredFiles': info.deferredFiles,
       'dump_minor_version': isBackwardCompatible ? 1 : info.minorVersion,
-      'program': info.program.accept(this)
+      'program': info.program!.accept(this)
     };
   }
 
@@ -496,10 +479,10 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     // TODO(sigmund): Omit this also when outputUnit.id == 0 (most code is in
     // the main output unit by default).
     if (info.outputUnit != null) {
-      res['outputUnit'] = idFor(info.outputUnit).serializedId;
+      res['outputUnit'] = idFor(info.outputUnit!).serializedId;
     }
     if (info.coverageId != null) res['coverageId'] = info.coverageId;
-    if (info.parent != null) res['parent'] = idFor(info.parent).serializedId;
+    if (info.parent != null) res['parent'] = idFor(info.parent!).serializedId;
     return res;
   }
 
@@ -546,7 +529,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     if (info.isConst) {
       result['const'] = true;
       if (info.initializer != null) {
-        result['initializer'] = idFor(info.initializer).serializedId;
+        result['initializer'] = idFor(info.initializer!).serializedId;
       }
     }
     return result;
@@ -576,7 +559,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   @override
   Map visitFunction(FunctionInfo info) {
     return _visitBasicInfo(info)
-      ..addAll(<String, Object>{
+      ..addAll(<String, Object?>{
         'children': _toSortedSerializedIds(info.closures, idFor),
         'modifiers': _visitFunctionModifiers(info.modifiers),
         'returnType': info.returnType,
@@ -622,12 +605,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
 
   List<String> _toSortedSerializedIds(
           Iterable<Info> infos, Id Function(Info) getId) =>
-      infos
-          .where((i) =>
-              !filterTreeshaken || i.treeShakenStatus == TreeShakenStatus.Live)
-          .map((i) => getId(i).serializedId)
-          .toList()
-        ..sort(compareNatural);
+      infos.map((i) => getId(i).serializedId).toList()..sort(compareNatural);
 }
 
 class AllInfoJsonCodec extends Codec<AllInfo, Map> {
@@ -636,11 +614,9 @@ class AllInfoJsonCodec extends Codec<AllInfo, Map> {
   @override
   final Converter<Map, AllInfo> decoder = JsonToAllInfoConverter();
 
-  AllInfoJsonCodec(
-      {bool isBackwardCompatible = false, bool filterTreeshaken = false})
-      : encoder = AllInfoToJsonConverter(
-            isBackwardCompatible: isBackwardCompatible,
-            filterTreeshaken: filterTreeshaken);
+  AllInfoJsonCodec({bool isBackwardCompatible = false})
+      : encoder =
+            AllInfoToJsonConverter(isBackwardCompatible: isBackwardCompatible);
 }
 
 class Id {

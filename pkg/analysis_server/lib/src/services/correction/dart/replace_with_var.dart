@@ -64,6 +64,8 @@ class ReplaceWithVar extends CorrectionProducer {
                 typeArgumentsOffset = initializer.leftBracket.offset;
               } else if (initializer is SetOrMapLiteral) {
                 typeArgumentsOffset = initializer.leftBracket.offset;
+              } else {
+                throw StateError('Unhandled subclass of TypedLiteral');
               }
             }
           } else if (initializer is InstanceCreationExpression) {
@@ -77,9 +79,9 @@ class ReplaceWithVar extends CorrectionProducer {
       if (initializer is SetOrMapLiteral &&
           initializer.typeArguments == null &&
           typeArgumentsText == null) {
-        // TODO(brianwilkerson) This is to prevent the fix from converting a
-        //  valid map or set literal into an ambiguous literal. We could apply
-        //  this in more places by examining the elements of the collection.
+        // This is to prevent the fix from converting a valid map or set literal
+        // into an ambiguous literal. We could apply this in more places
+        // by examining the elements of the collection.
         return;
       }
       await builder.addDartFileEdit(file, (builder) {

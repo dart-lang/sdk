@@ -138,6 +138,13 @@ class Dart2jsTarget extends Target {
   bool get errorOnUnexactWebIntLiterals => true;
 
   @override
+  void performOutlineTransformations(ir.Component component,
+      CoreTypes coreTypes, ReferenceFromIndex? referenceFromIndex) {
+    component.accept(StaticInteropStubCreator(
+        StaticInteropClassEraser(coreTypes, referenceFromIndex)));
+  }
+
+  @override
   void performModularTransformationsOnLibraries(
       ir.Component component,
       CoreTypes coreTypes,
@@ -150,7 +157,8 @@ class Dart2jsTarget extends Target {
       ChangedStructureNotifier? changedStructureNotifier}) {
     var nativeClasses = JsInteropChecks.getNativeClasses(component);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
-    var staticInteropClassEraser = StaticInteropClassEraser(coreTypes);
+    var staticInteropClassEraser =
+        StaticInteropClassEraser(coreTypes, referenceFromIndex);
     for (var library in libraries) {
       JsInteropChecks(
               coreTypes,

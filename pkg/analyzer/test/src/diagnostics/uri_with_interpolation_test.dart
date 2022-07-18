@@ -15,21 +15,27 @@ main() {
 
 @reflectiveTest
 class UriWithInterpolationTest extends PubPackageResolutionTest {
-  test_constant() async {
-    await assertErrorsInCode('''
-import 'stuff_\$platform.dart';
+  test_export() async {
+    await assertErrorsInCode(r'''
+export '${'foo'}.dart';
 ''', [
-      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 22),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 8),
+      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 15),
     ]);
   }
 
-  test_nonConstant() async {
+  test_import() async {
     await assertErrorsInCode(r'''
-library lib;
-part '${'a'}.dart';
+import '${'foo'}.dart';
 ''', [
-      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 18, 13),
+      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 15),
+    ]);
+  }
+
+  test_part() async {
+    await assertErrorsInCode(r'''
+part '${'foo'}.dart';
+''', [
+      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 5, 15),
     ]);
   }
 }

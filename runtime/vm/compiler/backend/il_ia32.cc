@@ -6503,8 +6503,8 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
               EBP, compiler::target::frame_layout.code_from_fp * kWordSize));
   // Load instructions object (active_instructions and Code::entry_point() may
   // not point to this instruction object any more; see Code::DisableDartCode).
-  __ movl(target_reg, compiler::FieldAddress(
-                          target_reg, Code::saved_instructions_offset()));
+  __ movl(target_reg,
+          compiler::FieldAddress(target_reg, Code::instructions_offset()));
   __ addl(target_reg,
           compiler::Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ addl(target_reg, offset);

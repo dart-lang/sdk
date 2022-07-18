@@ -16,14 +16,16 @@ import 'log.dart' show StdoutLogger;
 Future runGuarded(Future f(),
     {void Function(String)? printLineOnStdout,
     void Function(dynamic, StackTrace)? handleLateError}) {
+  // ignore: prefer_typing_uninitialized_variables
   var printWrapper;
   if (printLineOnStdout != null) {
+    // ignore: non_constant_identifier_names
     printWrapper = (_1, _2, _3, String line) {
       printLineOnStdout(line);
     };
   }
 
-  Completer completer = new Completer();
+  Completer completer = Completer();
 
   handleUncaughtError(error, StackTrace stackTrace) {
     StdoutLogger().logUncaughtError(error, stackTrace);
@@ -46,9 +48,9 @@ Future runGuarded(Future f(),
     }
   }
 
-  ZoneSpecification specification = new ZoneSpecification(print: printWrapper);
+  ZoneSpecification specification = ZoneSpecification(print: printWrapper);
 
-  ReceivePort errorPort = new ReceivePort();
+  ReceivePort errorPort = ReceivePort();
   Future errorFuture = errorPort.listen((_errors) {
     List errors = _errors;
     Isolate.current.removeErrorListener(errorPort.sendPort);
@@ -56,7 +58,7 @@ Future runGuarded(Future f(),
     var error = errors[0];
     var stackTrace = errors[1];
     if (stackTrace != null) {
-      stackTrace = new StackTrace.fromString(stackTrace);
+      stackTrace = StackTrace.fromString(stackTrace);
     }
     handleUncaughtError(error, stackTrace);
   }).asFuture();
@@ -65,7 +67,7 @@ Future runGuarded(Future f(),
   Isolate.current.addErrorListener(errorPort.sendPort);
   return acknowledgeControlMessages(Isolate.current).then((_) {
     runZonedGuarded(
-      () => new Future(f).then(completer.complete),
+      () => Future(f).then(completer.complete),
       handleUncaughtError,
       zoneSpecification: specification,
     );
@@ -83,7 +85,7 @@ Future runGuarded(Future f(),
 /// messages are things like [Isolate.addErrorListener] and
 /// [Isolate.addOnExitListener].
 Future acknowledgeControlMessages(Isolate isolate, {Capability? resume}) {
-  ReceivePort ping = new ReceivePort();
+  ReceivePort ping = ReceivePort();
   Isolate.current.ping(ping.sendPort);
   if (resume == null) {
     return ping.first;

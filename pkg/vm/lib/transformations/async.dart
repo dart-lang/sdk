@@ -433,7 +433,8 @@ class ExpressionLifter extends Transformer {
         new EqualsCall(expr.right, new BoolLiteral(true),
             interfaceTarget: objectEquals,
             functionType: objectEquals.getterType as FunctionType))));
-    var then, otherwise;
+    Statement then;
+    Statement? otherwise;
     if (expr.operatorEnum == LogicalExpressionOperator.AND) {
       then = rightBody;
       otherwise = null;

@@ -10,6 +10,8 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/annotations.dart';
 import 'package:compiler/src/js_backend/native_data.dart';
+import 'package:compiler/src/kernel/element_map_interfaces.dart'
+    show memberIsIgnorable;
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:expect/expect.dart';

@@ -622,8 +622,9 @@ class Server {
 
     var dartBinary = path.join(dartSdkPath, 'bin', 'dart');
 
-    // Prevent flow analysis from marking code below as being dead.
-    const useSnapshot = 1 > 0;
+    // Setting the `TEST_SERVER_SNAPSHOT` env var to 'false' will disable the
+    // snapshot and run from source.
+    var useSnapshot = Platform.environment['TEST_SERVER_SNAPSHOT'] != 'false';
     String serverPath;
 
     if (useSnapshot) {
@@ -771,7 +772,7 @@ class _ListOf extends Matcher {
 }
 
 /// Matcher that matches a map of objects, where each key/value pair in the
-/// map satisies the given key and value matchers.
+/// map satisfies the given key and value matchers.
 class _MapOf extends _RecursiveMatcher {
   /// Matcher which every key in the map must satisfy.
   final Matcher keyMatcher;

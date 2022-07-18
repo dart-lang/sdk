@@ -365,6 +365,8 @@ abstract class AstVisitor<R> {
 
   R? visitAssignmentExpression(AssignmentExpression node);
 
+  R? visitAugmentationImportDirective(AugmentationImportDirective node);
+
   R? visitAwaitExpression(AwaitExpression node);
 
   R? visitBinaryExpression(BinaryExpression node);
@@ -615,6 +617,29 @@ abstract class AstVisitor<R> {
   R? visitWithClause(WithClause node);
 
   R? visitYieldStatement(YieldStatement node);
+}
+
+/// An augmentation import directive.
+///
+///    importDirective ::=
+///        [Annotation] 'import' 'augment' [StringLiteral] ';'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class AugmentationImportDirective implements UriBasedDirective {
+  /// The token representing the 'augment' keyword.
+  Token get augmentKeyword;
+
+  /// Return the element associated with this directive, or `null` if the AST
+  /// structure has not been resolved.
+  @override
+  AugmentationImportElement? get element;
+
+  /// The token representing the 'import' keyword.
+  Token get importKeyword;
+
+  /// Return the semicolon terminating the directive.
+  Token get semicolon;
 }
 
 /// An await expression.
@@ -1500,6 +1525,7 @@ abstract class Directive implements AnnotatedNode {
 
   /// Return the token representing the keyword that introduces this directive
   /// ('import', 'export', 'library' or 'part').
+  @Deprecated('Use specific xyzToken instead')
   Token get keyword;
 }
 
@@ -1679,6 +1705,9 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
 abstract class ExportDirective implements NamespaceDirective {
   @override
   ExportElement? get element;
+
+  /// The token representing the 'export' keyword.
+  Token get exportKeyword;
 }
 
 /// A node that represents an expression.
@@ -2850,6 +2879,9 @@ abstract class ImportDirective implements NamespaceDirective {
 
   @override
   ImportElement? get element;
+
+  /// The token representing the 'import' keyword.
+  Token get importKeyword;
 
   /// Return the prefix to be used with the imported names, or `null` if the
   /// imported names are not prefixed.
@@ -4507,6 +4539,7 @@ abstract class UriBasedDirective implements Directive {
 
   /// Return the content of the [uri], or `null` if the AST structure has not
   /// been resolved, or if the [uri] has a string interpolation.
+  /// TODO(scheglov) Deprecate and remove it.
   String? get uriContent;
 
   /// Return the element associated with the [uri] of this directive, or `null`
@@ -4515,9 +4548,11 @@ abstract class UriBasedDirective implements Directive {
   ///
   /// Examples of the latter case include a directive that contains an invalid
   /// URL or a URL that does not exist.
+  /// TODO(scheglov) Deprecate and remove it.
   Element? get uriElement;
 
   /// Return the source to which the [uri] was resolved.
+  /// TODO(scheglov) Deprecate and remove it.
   Source? get uriSource;
 }
 

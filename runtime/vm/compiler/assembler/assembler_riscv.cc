@@ -2727,6 +2727,9 @@ void Assembler::AddImmediate(Register rd,
                              Register rs1,
                              intx_t imm,
                              OperandSize sz) {
+  if ((imm == 0) && (rd == rs1)) {
+    return;
+  }
   if (IsITypeImm(imm)) {
     addi(rd, rs1, imm);
   } else {
@@ -3016,6 +3019,7 @@ void Assembler::StoreBarrier(Register object,
   //    in progress
   // If so, call the WriteBarrier stub, which will either add object to the
   // store buffer (case 1) or add value to the marking stack (case 2).
+  // See RestorePinnedRegisters for why this can be `ble`.
   // Compare UntaggedObject::StorePointer.
   Label done;
   if (can_value_be_smi == kValueCanBeSmi) {
@@ -3025,8 +3029,7 @@ void Assembler::StoreBarrier(Register object,
   lbu(TMP2, FieldAddress(value, target::Object::tags_offset()));
   srli(TMP, TMP, target::UntaggedObject::kBarrierOverlapShift);
   and_(TMP, TMP, TMP2);
-  and_(TMP, TMP, WRITE_BARRIER_MASK);
-  beqz(TMP, &done, kNearJump);
+  ble(TMP, WRITE_BARRIER_STATE, &done, kNearJump);
 
   Register objectForCall = object;
   if (value != kWriteBarrierValueReg) {
@@ -3088,6 +3091,7 @@ void Assembler::StoreIntoArrayBarrier(Register object,
   //    in progress
   // If so, call the WriteBarrier stub, which will either add object to the
   // store buffer (case 1) or add value to the marking stack (case 2).
+  // See RestorePinnedRegisters for why this can be `ble`.
   // Compare UntaggedObject::StorePointer.
   Label done;
   if (can_value_be_smi == kValueCanBeSmi) {
@@ -3097,8 +3101,7 @@ void Assembler::StoreIntoArrayBarrier(Register object,
   lbu(TMP2, FieldAddress(value, target::Object::tags_offset()));
   srli(TMP, TMP, target::UntaggedObject::kBarrierOverlapShift);
   and_(TMP, TMP, TMP2);
-  and_(TMP, TMP, WRITE_BARRIER_MASK);
-  beqz(TMP, &done, kNearJump);
+  ble(TMP, WRITE_BARRIER_STATE, &done, kNearJump);
   if (spill_lr) {
     PushRegister(RA);
   }
@@ -3646,7 +3649,7 @@ void Assembler::CheckCodePointer() {
   intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
   auipc(TMP, hi);
   addi(TMP, TMP, lo);
-  lx(TMP2, FieldAddress(CODE_REG, target::Code::saved_instructions_offset()));
+  lx(TMP2, FieldAddress(CODE_REG, target::Code::instructions_offset()));
   beq(TMP, TMP2, &instructions_ok, kNearJump);
   ebreak();
   Bind(&instructions_ok);
@@ -3669,12 +3672,46 @@ void Assembler::RestorePoolPointer() {
   subi(PP, PP, kHeapObjectTag);  // Pool in PP is untagged!
 }
 
-// Restores the values of the registers that are blocked to cache some values
-// e.g. BARRIER_MASK and NULL_REG.
 void Assembler::RestorePinnedRegisters() {
-  lx(WRITE_BARRIER_MASK,
+  lx(WRITE_BARRIER_STATE,
      Address(THR, target::Thread::write_barrier_mask_offset()));
   lx(NULL_REG, Address(THR, target::Thread::object_null_offset()));
+
+  // Our write barrier usually uses mask-and-test,
+  //   01b6f6b3  and tmp, tmp, mask
+  //       c689  beqz tmp, +10
+  // but on RISC-V compare-and-branch is shorter,
+  //   00ddd663  ble tmp, wbs, +12
+  //
+  // TMP bit 4+ = 0
+  // TMP bit 3  = object is old-and-not-remembered AND value is new (genr bit)
+  // TMP bit 2  = object is old AND value is old-and-not-marked     (incr bit)
+  // TMP bit 1  = garbage
+  // TMP bit 0  = garbage
+  //
+  // Thread::wbm | WRITE_BARRIER_STATE | TMP/combined headers | result
+  // generational only
+  // 0b1000        0b0111                0b11xx                 impossible
+  //                                     0b10xx                 call stub
+  //                                     0b01xx                 skip
+  //                                     0b00xx                 skip
+  // generational and incremental
+  // 0b1100        0b0011                0b11xx                 impossible
+  //                                     0b10xx                 call stub
+  //                                     0b01xx                 call stub
+  //                                     0b00xx                 skip
+  xori(WRITE_BARRIER_STATE, WRITE_BARRIER_STATE,
+       (target::UntaggedObject::kGenerationalBarrierMask << 1) - 1);
+
+  // Generational bit must be higher than incremental bit, with no other bits
+  // between.
+  ASSERT(target::UntaggedObject::kGenerationalBarrierMask ==
+         (target::UntaggedObject::kIncrementalBarrierMask << 1));
+  // Other header bits must be lower.
+  ASSERT(target::UntaggedObject::kIncrementalBarrierMask >
+         target::UntaggedObject::kCanonicalBit);
+  ASSERT(target::UntaggedObject::kIncrementalBarrierMask >
+         target::UntaggedObject::kCardRememberedBit);
 }
 
 void Assembler::SetupGlobalPoolAndDispatchTable() {
@@ -3813,7 +3850,7 @@ LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
     // Or would need to save above.
     COMPILE_ASSERT(IsCalleeSavedRegister(THR));
     COMPILE_ASSERT(IsCalleeSavedRegister(NULL_REG));
-    COMPILE_ASSERT(IsCalleeSavedRegister(WRITE_BARRIER_MASK));
+    COMPILE_ASSERT(IsCalleeSavedRegister(WRITE_BARRIER_STATE));
     COMPILE_ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
   }
 
@@ -3856,7 +3893,7 @@ void Assembler::EnterCFrame(intptr_t frame_space) {
   // Already saved.
   COMPILE_ASSERT(IsCalleeSavedRegister(THR));
   COMPILE_ASSERT(IsCalleeSavedRegister(NULL_REG));
-  COMPILE_ASSERT(IsCalleeSavedRegister(WRITE_BARRIER_MASK));
+  COMPILE_ASSERT(IsCalleeSavedRegister(WRITE_BARRIER_STATE));
   COMPILE_ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
   // Need to save.
   COMPILE_ASSERT(!IsCalleeSavedRegister(PP));
@@ -4299,28 +4336,17 @@ void Assembler::LoadObjectHelper(Register dst,
       return;
     }
     if (target::IsSmi(object)) {
-      intx_t raw_smi = target::ToRawSmi(object);
-      if (IsITypeImm(raw_smi)) {
-        li(dst, raw_smi);
-        return;
-      }
-      if (IsUTypeImm(raw_smi)) {
-        lui(dst, raw_smi);
-        return;
-      }
+      LoadImmediate(dst, target::ToRawSmi(object));
+      return;
     }
   }
-  if (CanLoadFromObjectPool(object)) {
-    const intptr_t index =
-        is_unique ? object_pool_builder().AddObject(
-                        object, ObjectPoolBuilderEntry::kPatchable)
-                  : object_pool_builder().FindObject(
-                        object, ObjectPoolBuilderEntry::kNotPatchable);
-    LoadWordFromPoolIndex(dst, index);
-    return;
-  }
-  ASSERT(target::IsSmi(object));
-  LoadImmediate(dst, target::ToRawSmi(object));
+  RELEASE_ASSERT(CanLoadFromObjectPool(object));
+  const intptr_t index =
+      is_unique ? object_pool_builder().AddObject(
+                      object, ObjectPoolBuilderEntry::kPatchable)
+                : object_pool_builder().FindObject(
+                      object, ObjectPoolBuilderEntry::kNotPatchable);
+  LoadWordFromPoolIndex(dst, index);
 }
 
 void Assembler::AddImmediateBranchOverflow(Register rd,

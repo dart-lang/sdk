@@ -108,8 +108,7 @@ TestSpecification parseTestSpecification(String contents) {
       _invalidSpecification("packages is not a map");
     }
   }
-  return new TestSpecification(
-      normalizedFlags, normalizedMap, normalizedPackages);
+  return TestSpecification(normalizedFlags, normalizedMap, normalizedPackages);
 }
 
 /// Data specifying details about a modular test including dependencies and
@@ -139,7 +138,7 @@ class TestSpecification {
 }
 
 _invalidSpecification(String message) {
-  throw new InvalidSpecificationError(message);
+  throw InvalidSpecificationError(message);
 }
 
 class InvalidSpecificationError extends Error {

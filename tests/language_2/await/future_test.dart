@@ -4,6 +4,7 @@
 
 // @dart = 2.9
 
+// VMOptions=
 // VMOptions=--optimization-counter-threshold=5
 
 import 'package:expect/expect.dart';

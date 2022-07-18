@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/gn.dart';
@@ -185,7 +186,7 @@ class ContextLocatorImpl implements ContextLocator {
     if (defaultOptionsFile != null) {
       optionsFile = defaultOptionsFile;
     } else {
-      optionsFile = _findOptionsFile(parent);
+      optionsFile = parent.findAnalysisOptionsYamlFile();
       optionsFolderToChooseRoot = optionsFile?.parent;
     }
 
@@ -271,7 +272,7 @@ class ContextLocatorImpl implements ContextLocator {
     //
     File? localOptionsFile;
     if (optionsFile == null) {
-      localOptionsFile = _getOptionsFile(folder);
+      localOptionsFile = folder.existingAnalysisOptionsYamlFile;
     }
     File? localPackagesFile;
     if (packagesFile == null) {
@@ -367,7 +368,7 @@ class ContextLocatorImpl implements ContextLocator {
   Workspace _createWorkspace(Folder folder, File? packagesFile) {
     Packages packages;
     if (packagesFile != null) {
-      packages = parsePackagesFile(resourceProvider, packagesFile);
+      packages = parsePackageConfigJsonFile(resourceProvider, packagesFile);
     } else {
       packages = Packages.empty;
     }
@@ -400,19 +401,6 @@ class ContextLocatorImpl implements ContextLocator {
     if (path != null) {
       var file = resourceProvider.getFile(path);
       if (file.exists) {
-        return file;
-      }
-    }
-    return null;
-  }
-
-  /// Return the analysis options file to be used to analyze files in the given
-  /// [folder], or `null` if there is no analysis options file in the given
-  /// folder or any parent folder.
-  File? _findOptionsFile(Folder folder) {
-    for (var current in folder.withAncestors) {
-      var file = _getOptionsFile(current);
-      if (file != null) {
         return file;
       }
     }
@@ -479,18 +467,6 @@ class ContextLocatorImpl implements ContextLocator {
     }
     return patterns;
   }
-
-  /// If the given [directory] contains a file with the given [name], then
-  /// return the file. Otherwise, return `null`.
-  File? _getFile(Folder directory, String name) {
-    var file = directory.getChildAssumingFile(name);
-    return file.exists ? file : null;
-  }
-
-  /// Return the analysis options file in the given [folder], or `null` if the
-  /// folder does not contain an analysis options file.
-  File? _getOptionsFile(Folder folder) =>
-      _getFile(folder, file_paths.analysisOptionsYaml);
 
   /// Return the packages file in the given [folder], or `null` if the folder
   /// does not contain a packages file.

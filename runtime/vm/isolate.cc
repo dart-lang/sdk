@@ -479,10 +479,10 @@ void IsolateGroup::CreateHeap(bool is_vm_isolate,
 
   is_vm_isolate_heap_ = is_vm_isolate;
 
-#define ISOLATE_METRIC_CONSTRUCTORS(type, variable, name, unit)                \
+#define ISOLATE_GROUP_METRIC_CONSTRUCTORS(type, variable, name, unit)          \
   metric_##variable##_.InitInstance(this, name, nullptr, Metric::unit);
-  ISOLATE_GROUP_METRIC_LIST(ISOLATE_METRIC_CONSTRUCTORS)
-#undef ISOLATE_METRIC_CONSTRUCTORS
+  ISOLATE_GROUP_METRIC_LIST(ISOLATE_GROUP_METRIC_CONSTRUCTORS)
+#undef ISOLATE_GROUP_METRIC_CONSTRUCTORS
 }
 
 void IsolateGroup::Shutdown() {
@@ -614,12 +614,14 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
     thread->isolate_ = nullptr;
     thread->isolate_group_ = this;
     thread->field_table_values_ = nullptr;
-    if (object_store() != nullptr) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    if (object_store() != nullptr && is_mutator) {
 #define INIT_ENTRY_POINT(name)                                                 \
   thread->name##_entry_point_ = Function::EntryPointOf(object_store()->name());
       CACHED_FUNCTION_ENTRY_POINTS_LIST(INIT_ENTRY_POINT)
 #undef INIT_ENTRY_POINT
     }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
     ASSERT(heap() != nullptr);
     thread->heap_ = heap();
     thread->set_os_thread(os_thread);
@@ -2823,6 +2825,11 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   visitor->VisitPointer(
       reinterpret_cast<ObjectPtr*>(&loaded_prefixes_set_storage_));
+
+  if (pointers_to_verify_at_exit_.length() != 0) {
+    visitor->VisitPointers(&pointers_to_verify_at_exit_[0],
+                           pointers_to_verify_at_exit_.length());
+  }
 }
 
 void IsolateGroup::ReleaseStoreBuffers() {

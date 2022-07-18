@@ -8,7 +8,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
 
-/// Helper for reading client dynamic registrations which may be ommitted by the
+/// Helper for reading client dynamic registrations which may be omitted by the
 /// client.
 class ClientDynamicRegistrations {
   /// All dynamic registrations supported by the Dart LSP server.
@@ -42,7 +42,7 @@ class ClientDynamicRegistrations {
     // workspace.fileOperations covers all file operation methods but we only
     // support this one.
     Method.workspace_willRenameFiles,
-    // Sematic tokens are all registered under a single "method" as the
+    // Semantic tokens are all registered under a single "method" as the
     // actual methods are controlled by the server capabilities.
     CustomMethods.semanticTokenDynamicRegistration,
   ];
@@ -127,6 +127,13 @@ class ServerCapabilitiesComputer {
           glob: '**/*.dart',
           matches: FileOperationPatternKind.file,
         ),
+      ),
+      FileOperationFilter(
+        scheme: 'file',
+        pattern: FileOperationPattern(
+          glob: '**/',
+          matches: FileOperationPatternKind.folder,
+        ),
       )
     ],
   );
@@ -161,7 +168,7 @@ class ServerCapabilitiesComputer {
 
     // When adding new capabilities to the server that may apply to specific file
     // types, it's important to update
-    // [IntializedMessageHandler._performDynamicRegistration()] to notify
+    // [InitializedMessageHandler._performDynamicRegistration()] to notify
     // supporting clients of this. This avoids clients needing to hard-code the
     // list of what files types we support (and allows them to avoid sending
     // requests where we have only partial support for some types).
@@ -325,7 +332,7 @@ class ServerCapabilitiesComputer {
 
     // Completion is supported for some synchronised files that we don't _fully_
     // support (eg. YAML). If these gain support for things like hover, we may
-    // wish to move them to fullySupprtedTypes but add an exclusion for formatting.
+    // wish to move them to fullySupportedTypes but add an exclusion for formatting.
     final completionSupportedTypesExcludingDart = {
       // Dart is excluded here at it's registered separately with trigger/commit
       // characters.
@@ -341,6 +348,8 @@ class ServerCapabilitiesComputer {
         _server.clientConfiguration.global.enableSdkFormatter;
     final previewCommitCharacters =
         _server.clientConfiguration.global.previewCommitCharacters;
+    final updateImportsOnRename =
+        _server.clientConfiguration.global.updateImportsOnRename;
 
     /// Helper for creating registrations with IDs.
     void register(bool condition, Method method, [ToJsonable? options]) {
@@ -486,7 +495,7 @@ class ServerCapabilitiesComputer {
       TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
-      dynamicRegistrations.fileOperations,
+      updateImportsOnRename && dynamicRegistrations.fileOperations,
       Method.workspace_willRenameFiles,
       fileOperationRegistrationOptions,
     );

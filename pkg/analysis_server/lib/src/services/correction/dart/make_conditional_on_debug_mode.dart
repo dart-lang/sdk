@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -26,22 +25,16 @@ class MakeConditionalOnDebugMode extends CorrectionProducer {
     if (resolvedResult.session.uriConverter.uriToPath(_foundationUri) == null) {
       return;
     }
-    final node = this.node;
-    var parent = node.parent;
-    var grandparent = parent?.parent;
-    if (node is SimpleIdentifier &&
-        parent is MethodInvocation &&
-        parent.methodName == node &&
-        node.name == 'print' &&
-        grandparent is ExpressionStatement) {
-      var indent = utils.getLinePrefix(grandparent.offset);
+    var printInvocation = utils.findSimplePrintInvocation(node);
+    if (printInvocation != null) {
+      var indent = utils.getLinePrefix(printInvocation.offset);
       await builder.addDartFileEdit(file, (builder) {
-        builder.addInsertion(grandparent.offset, (builder) {
+        builder.addInsertion(printInvocation.offset, (builder) {
           builder.writeln('if (kDebugMode) {');
           builder.write(indent);
           builder.write(utils.getIndent(1));
         });
-        builder.addInsertion(grandparent.end, (builder) {
+        builder.addInsertion(printInvocation.end, (builder) {
           builder.writeln();
           builder.write(indent);
           builder.write('}');

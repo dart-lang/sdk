@@ -26,10 +26,7 @@ DartFormatter formatter = DartFormatter();
 /// changes into account, this will also apply the edits to [oldContent].
 ErrorOr<Pair<String, List<plugin.SourceEdit>>> applyAndConvertEditsToServer(
   String oldContent,
-  List<
-          Either2<TextDocumentContentChangeEvent1,
-              TextDocumentContentChangeEvent2>>
-      changes, {
+  List<TextDocumentContentChangeEvent> changes, {
   bool failureIsCritical = false,
 }) {
   var newContent = oldContent;
@@ -270,7 +267,7 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
     final formattedToken = formattedTokens.current;
 
     if (unformattedToken.lexeme != formattedToken.lexeme) {
-      // If the token lexems do not match, there is a difference in the parsed
+      // If the token lexemes do not match, there is a difference in the parsed
       // token streams (this should not ordinarily happen) so fall back to a
       // full edit.
       return success(_generateFullEdit(lineInfo, unformatted, formatted));
@@ -312,7 +309,7 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
 
 /// Iterates over a token stream returning all tokens including comments.
 Iterable<Token> _iterateAllTokens(Token token) sync* {
-  while (token.type != TokenType.EOF) {
+  while (!token.isEof) {
     Token? commentToken = token.precedingComments;
     while (commentToken != null) {
       yield commentToken;

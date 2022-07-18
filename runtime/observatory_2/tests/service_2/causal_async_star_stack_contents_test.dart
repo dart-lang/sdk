@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--lazy-async-stacks --verbose_debug
+// VMOptions=--verbose_debug
 
 import 'dart:developer';
 import 'package:observatory_2/models.dart' as M;

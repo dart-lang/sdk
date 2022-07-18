@@ -1,2 +1,3 @@
 spec=pkg/compiler/test/dump_info/dump_info_test.dart
+canary=pkg/compiler/test/dump_info/dump_info_new_regression_test.dart
 

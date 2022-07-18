@@ -23,8 +23,6 @@ main() async {
       print('TEST spawnWithPackageConfig = $spawnWithPackageConfig ');
       final bool checkForResolveUri =
           runWithPackagesArg || !spawnWithPackageConfig;
-      futures.add(runDotPackagesTest(
-          runWithPackagesArg, spawnWithPackageConfig, checkForResolveUri));
       for (final optionalPackageUri in const [true, false]) {
         print('TEST optionalPackageUri = $optionalPackageUri');
         futures.add(runPackageConfigTest(runWithPackagesArg,
@@ -42,41 +40,6 @@ Future runPackageConfigTest(bool withPackagesArg, bool spawnWithArg,
     final args = [if (withPackagesArg) '--packages=$packageJson', mainFile];
     await run(executable, args);
   }, spawnWithArg, optionalPackageUri, checkForResolveUri);
-}
-
-Future runDotPackagesTest(
-    bool withPackagesArg, bool spawnWithArg, bool checkForResolveUri) async {
-  await withApplicationDirAndDotPackages(
-      (String tempDir, String dotPackagesFile, String mainFile) async {
-    final args = [
-      if (withPackagesArg) '--packages=$dotPackagesFile',
-      mainFile,
-    ];
-    await run(executable, args);
-  }, spawnWithArg, checkForResolveUri);
-}
-
-Future withApplicationDirAndDotPackages(
-    Future fn(String tempDir, String packagesDir, String mainFile),
-    bool spawnWithArg,
-    bool checkForResolveUri) async {
-  await withTempDir((String tempDir) async {
-    // Setup ".packages"
-    final dotPackagesFile =
-        path.join(tempDir, spawnWithArg ? 'baz.packages' : '.packages');
-    await File(dotPackagesFile).writeAsString(buildDotPackages('foo'));
-
-    final mainFile = path.join(tempDir, 'main.dart');
-    final childIsolateFile = path.join(tempDir, 'child_isolate.dart');
-    final importUri = 'package:foo/child_isolate.dart';
-    await File(childIsolateFile).writeAsString(buildChildIsolate());
-    await File(mainFile).writeAsString(buildMainIsolate(
-        importUri,
-        spawnWithArg ? dotPackagesFile : null,
-        checkForResolveUri ? childIsolateFile : null));
-
-    await fn(tempDir, dotPackagesFile, mainFile);
-  });
 }
 
 Future withApplicationDirAndDotDartToolPackageConfig(

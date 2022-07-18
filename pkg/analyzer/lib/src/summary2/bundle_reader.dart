@@ -22,6 +22,7 @@ import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/element_flags.dart';
+import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
@@ -33,7 +34,7 @@ class BundleReader {
   final SummaryDataReader _reader;
   final Map<Uri, Uint8List> _unitsInformativeBytes;
 
-  final Map<String, LibraryReader> libraryMap = {};
+  final Map<Uri, LibraryReader> libraryMap = {};
 
   BundleReader({
     required LinkedElementFactory elementFactory,
@@ -57,16 +58,16 @@ class BundleReader {
     _reader.offset = librariesOffset;
     var libraryHeaderList = _reader.readTypedList(() {
       return _LibraryHeader(
-        uriStr: _reader.readStringReference(),
+        uri: Uri.parse(_reader.readStringReference()),
         offset: _reader.readUInt30(),
         classMembersLengths: _reader.readUInt30List(),
       );
     });
 
     for (var libraryHeader in libraryHeaderList) {
-      var uriStr = libraryHeader.uriStr;
-      var reference = elementFactory.rootReference.getChild(uriStr);
-      libraryMap[uriStr] = LibraryReader._(
+      var uri = libraryHeader.uri;
+      var reference = elementFactory.rootReference.getChild('$uri');
+      libraryMap[uri] = LibraryReader._(
         elementFactory: elementFactory,
         reader: _reader,
         unitsInformativeBytes: _unitsInformativeBytes,
@@ -124,8 +125,6 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
 
 class CompilationUnitElementLinkedData
     extends ElementLinkedData<CompilationUnitElementImpl> {
-  ApplyConstantOffsets? applyConstantOffsets;
-
   CompilationUnitElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -134,12 +133,7 @@ class CompilationUnitElementLinkedData
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(
-      unitElement: unitElement,
-    );
-    applyConstantOffsets?.perform();
-  }
+  void _read(element, reader) {}
 }
 
 class ConstructorElementLinkedData
@@ -392,6 +386,13 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
       export.exportedLibrary = reader.readElement() as LibraryElementImpl?;
     }
 
+    for (final part in element.parts2) {
+      part as PartElementImpl;
+      part.metadata = reader._readAnnotationList(
+        unitElement: unitElement,
+      );
+    }
+
     element.entryPoint = reader.readElement() as FunctionElement?;
 
     applyConstantOffsets?.perform();
@@ -431,7 +432,6 @@ class LibraryReader {
   LibraryElementImpl readElement({required Source librarySource}) {
     var analysisContext = _elementFactory.analysisContext;
     var analysisSession = _elementFactory.analysisSession;
-    var sourceFactory = analysisContext.sourceFactory;
 
     _reader.offset = _offset;
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
@@ -450,30 +450,29 @@ class LibraryReader {
     LibraryElementFlags.read(_reader, libraryElement);
 
     var unitContainerRef = _reference.getChild('@unit');
-    var unitCount = _reader.readUInt30();
-    var units = <CompilationUnitElementImpl>[];
-    for (var i = 0; i < unitCount; i++) {
-      var unitElement = _readUnitElement(
-        sourceFactory: sourceFactory,
+
+    libraryElement.definingCompilationUnit = _readUnitElement(
+      unitContainerRef: unitContainerRef,
+      libraryElement: libraryElement,
+      librarySource: librarySource,
+      unitSource: librarySource,
+    );
+
+    libraryElement.parts2 = _reader.readTypedList(() {
+      return _readPartElement(
         unitContainerRef: unitContainerRef,
         libraryElement: libraryElement,
-        librarySource: librarySource,
       );
-      units.add(unitElement);
-    }
+    });
 
-    var exportsIndexList = _reader.readUInt30List();
-    libraryElement.exportedReferences = exportsIndexList
-        .map((index) => _referenceReader.referenceOfIndex(index))
-        .toList();
-
-    libraryElement.definingCompilationUnit = units[0];
-    libraryElement.parts = units.skip(1).toList();
+    libraryElement.exportedReferences = _reader.readTypedList(
+      _readExportedReference,
+    );
 
     libraryElement.linkedData = LibraryElementLinkedData(
       reference: _reference,
       libraryReader: this,
-      unitElement: units[0],
+      unitElement: libraryElement.definingCompilationUnit,
       offset: resolutionOffset,
     );
 
@@ -581,6 +580,73 @@ class LibraryReader {
     });
   }
 
+  DirectiveUri _readDirectiveUri({
+    required Reference unitContainerRef,
+    required LibraryElementImpl libraryElement,
+  }) {
+    DirectiveUriWithRelativeUriStringImpl readWithRelativeUriString() {
+      final relativeUriString = _reader.readStringReference();
+      return DirectiveUriWithRelativeUriStringImpl(
+        relativeUriString: relativeUriString,
+      );
+    }
+
+    DirectiveUriWithRelativeUriImpl readWithRelativeUri() {
+      final parent = readWithRelativeUriString();
+      final relativeUri = Uri.parse(_reader.readStringReference());
+      return DirectiveUriWithRelativeUriImpl(
+        relativeUriString: parent.relativeUriString,
+        relativeUri: relativeUri,
+      );
+    }
+
+    DirectiveUriWithSourceImpl readWithSource() {
+      final parent = readWithRelativeUri();
+
+      final analysisContext = _elementFactory.analysisContext;
+      final sourceFactory = analysisContext.sourceFactory;
+
+      final sourceUriStr = _reader.readStringReference();
+      final sourceUri = Uri.parse(sourceUriStr);
+      final source = sourceFactory.forUri2(sourceUri)!;
+
+      return DirectiveUriWithSourceImpl(
+        relativeUriString: parent.relativeUriString,
+        relativeUri: parent.relativeUri,
+        source: source,
+      );
+    }
+
+    final kindIndex = _reader.readByte();
+    final kind = DirectiveUriKind.values[kindIndex];
+    switch (kind) {
+      case DirectiveUriKind.withUnit:
+        final parent = readWithSource();
+        final unitElement = _readUnitElement(
+          unitContainerRef: unitContainerRef,
+          libraryElement: libraryElement,
+          librarySource: libraryElement.source,
+          unitSource: parent.source,
+        );
+        return DirectiveUriWithUnitImpl(
+          relativeUriString: parent.relativeUriString,
+          relativeUri: parent.relativeUri,
+          unit: unitElement,
+        );
+      case DirectiveUriKind.withLibrary:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case DirectiveUriKind.withSource:
+        return readWithSource();
+      case DirectiveUriKind.withRelativeUri:
+        return readWithRelativeUri();
+      case DirectiveUriKind.withRelativeUriString:
+        return readWithRelativeUriString();
+      case DirectiveUriKind.withNothing:
+        return DirectiveUriImpl();
+    }
+  }
+
   EnumElementImpl _readEnumElement(
     CompilationUnitElementImpl unitElement,
     Reference unitReference,
@@ -625,6 +691,26 @@ class LibraryReader {
     unitElement.enums = List.generate(count, (_) {
       return _readEnumElement(unitElement, unitReference);
     });
+  }
+
+  ExportedReference _readExportedReference() {
+    final kind = _reader.readByte();
+    if (kind == 0) {
+      final index = _reader.readUInt30();
+      final reference = _referenceReader.referenceOfIndex(index);
+      return ExportedReferenceDeclared(
+        reference: reference,
+      );
+    } else if (kind == 1) {
+      final index = _reader.readUInt30();
+      final reference = _referenceReader.referenceOfIndex(index);
+      return ExportedReferenceExported(
+        reference: reference,
+        indexes: _reader.readUInt30List(),
+      );
+    } else {
+      throw StateError('kind: $kind');
+    }
   }
 
   ExportElementImpl _readExportElement() {
@@ -957,6 +1043,20 @@ class LibraryReader {
     });
   }
 
+  PartElement _readPartElement({
+    required Reference unitContainerRef,
+    required LibraryElementImpl libraryElement,
+  }) {
+    final uri = _readDirectiveUri(
+      unitContainerRef: unitContainerRef,
+      libraryElement: libraryElement,
+    );
+
+    return PartElementImpl(
+      uri: uri,
+    );
+  }
+
   PropertyAccessorElementImpl _readPropertyAccessorElement(
     CompilationUnitElementImpl unitElement,
     ElementImpl classElement,
@@ -1172,15 +1272,12 @@ class LibraryReader {
   }
 
   CompilationUnitElementImpl _readUnitElement({
-    required SourceFactory sourceFactory,
     required Reference unitContainerRef,
     required LibraryElementImpl libraryElement,
     required Source librarySource,
+    required Source unitSource,
   }) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var unitUriStr = _reader.readStringReference();
-    var unitUri = Uri.parse(unitUriStr);
-    var unitSource = sourceFactory.forUri2(unitUri)!;
 
     var unitElement = CompilationUnitElementImpl(
       source: unitSource,
@@ -1188,7 +1285,7 @@ class LibraryReader {
       lineInfo: LineInfo([0]),
     );
 
-    var unitReference = unitContainerRef.getChild(unitUriStr);
+    var unitReference = unitContainerRef.getChild('${unitSource.uri}');
     unitElement.setLinkedData(
       unitReference,
       CompilationUnitElementLinkedData(
@@ -1800,7 +1897,7 @@ class TypeAliasElementLinkedData
 /// so that when we need to read this library, we know where it starts without
 /// reading previous libraries.
 class _LibraryHeader {
-  final String uriStr;
+  final Uri uri;
   final int offset;
 
   /// We don't read class members when reading libraries, by performance
@@ -1809,7 +1906,7 @@ class _LibraryHeader {
   final Uint32List classMembersLengths;
 
   _LibraryHeader({
-    required this.uriStr,
+    required this.uri,
     required this.offset,
     required this.classMembersLengths,
   });

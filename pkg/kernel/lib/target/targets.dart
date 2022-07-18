@@ -22,7 +22,7 @@ class TargetFlags {
       {this.trackWidgetCreation = false,
       this.enableNullSafety = false,
       this.supportMirrors = true,
-      this.compactAsync = false});
+      this.compactAsync = true});
 
   @override
   bool operator ==(other) {
@@ -318,7 +318,8 @@ abstract class Target {
   /// transformation is not applied when compiling full kernel programs to
   /// prevent affecting the internal invariants of the compiler and accidentally
   /// slowing down compilation.
-  void performOutlineTransformations(Component component) {}
+  void performOutlineTransformations(Component component, CoreTypes coreTypes,
+      ReferenceFromIndex? referenceFromIndex) {}
 
   /// Perform target-specific transformations on the given libraries that must
   /// run before constant evaluation.
@@ -552,6 +553,7 @@ abstract class Target {
   Class? concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
 
   Class? concreteAsyncResultClass(CoreTypes coreTypes) => null;
+  Class? concreteSyncStarResultClass(CoreTypes coreTypes) => null;
 
   ConstantsBackend get constantsBackend;
 
@@ -1010,8 +1012,10 @@ class TargetWrapper extends Target {
   }
 
   @override
-  void performOutlineTransformations(Component component) {
-    _target.performOutlineTransformations(component);
+  void performOutlineTransformations(Component component, CoreTypes coreTypes,
+      ReferenceFromIndex? referenceFromIndex) {
+    _target.performOutlineTransformations(
+        component, coreTypes, referenceFromIndex);
   }
 
   @override
@@ -1076,8 +1080,10 @@ mixin SummaryMixin on Target {
   bool get excludeNonSources;
 
   @override
-  void performOutlineTransformations(Component component) {
-    super.performOutlineTransformations(component);
+  void performOutlineTransformations(Component component, CoreTypes coreTypes,
+      ReferenceFromIndex? referenceFromIndex) {
+    super.performOutlineTransformations(
+        component, coreTypes, referenceFromIndex);
     if (!excludeNonSources) return;
 
     List<Library> libraries = new List.of(component.libraries);
@@ -1091,10 +1097,7 @@ mixin SummaryMixin on Target {
         // be computed as part of serialization, so we need to do that
         // preemptively here to avoid errors when serializing references to
         // elements of these libraries.
-        component.root
-            .getChildFromUri(library.importUri)
-            .bindTo(library.reference);
-        library.computeCanonicalNames();
+        library.bindCanonicalNames(component.root);
       }
     }
   }

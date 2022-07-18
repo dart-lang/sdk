@@ -24,33 +24,33 @@ main() {
 void normalizeCheck() {
   var files = getStatusFiles();
   for (var file in files) {
-    print("------- " + file.path + " -------");
-    var statusFile = new StatusFile.read(file.path);
-    var statusFileOther = normalizeStatusFile(new StatusFile.read(file.path));
+    print("------- ${file.path} -------");
+    var statusFile = StatusFile.read(file.path);
+    var statusFileOther = normalizeStatusFile(StatusFile.read(file.path));
     checkSemanticallyEqual(statusFile, statusFileOther,
         warnOnDuplicateHeader: true);
     checkFileHeaderIntact(statusFile, statusFileOther);
-    print("------- " + file.path + " -------");
+    print("------- ${file.path} -------");
   }
 }
 
 void sanityCheck() {
   var files = getStatusFiles();
   for (var file in files) {
-    print("------- " + file.path + " -------");
-    var statusFile = new StatusFile.read(file.path);
-    var statusFileOther = new StatusFile.read(file.path);
+    print("------- ${file.path} -------");
+    var statusFile = StatusFile.read(file.path);
+    var statusFileOther = StatusFile.read(file.path);
     checkSemanticallyEqual(statusFile, statusFileOther,
         warnOnDuplicateHeader: true);
     checkFileHeaderIntact(statusFile, statusFileOther);
-    print("------- " + file.path + " -------");
+    print("------- ${file.path} -------");
   }
 }
 
 List<FileSystemEntity> getStatusFiles() {
   var statusFiles = <FileSystemEntity>[];
   for (var entry
-      in new Directory.fromUri(statusFilePath).listSync(recursive: true)) {
+      in Directory.fromUri(statusFilePath).listSync(recursive: true)) {
     statusFiles.add(entry);
   }
   return statusFiles;
@@ -64,7 +64,7 @@ void checkSemanticallyEqual(StatusFile original, StatusFile normalized,
     print(original);
     print("==================");
     print(normalized);
-    throw new Exception("The count of entries in original is "
+    throw Exception("The count of entries in original is "
         "$entriesInOriginal and the count of entries in normalized is "
         "$entriesInNormalized. Those two numbers are not the same.");
   }
@@ -77,8 +77,7 @@ void checkSemanticallyEqual(StatusFile original, StatusFile normalized,
 
 int countEntries(StatusFile statusFile) {
   return statusFile.sections
-      .map((section) =>
-          section.entries.where((entry) => entry is StatusEntry).length)
+      .map((section) => section.entries.whereType<StatusEntry>().length)
       .fold(0, (count, sum) => count + sum);
 }
 
@@ -96,29 +95,29 @@ void findInStatusFile(
             entry.path.compareTo(entryToFind.path) == 0 &&
             listEqual(entry.expectations, entryToFind.expectations))
         .toList();
-    if (matchingEntries.length == 0) {
+    if (matchingEntries.isEmpty) {
       var message = "Could not find the entry even though the section "
           "header matched on line number ${section.lineNumber}. Sections "
           "should be unique.";
       if (warnOnDuplicateHeader) {
         print(message);
       } else {
-        throw new Exception(message);
+        throw Exception(message);
       }
     } else if (matchingEntries.length == 1 && foundEntryPosition >= 0) {
-      throw new Exception("The entry '$entryToFind' on line "
+      throw Exception("The entry '$entryToFind' on line "
           "${entryToFind.lineNumber} in section ${section.condition} was "
           "already found in a previous section on line $foundEntryPosition.");
     } else if (matchingEntries.length == 1) {
       foundEntryPosition = matchingEntries[0].lineNumber;
     } else {
-      throw new Exception("The entry '$entryToFind' on line "
+      throw Exception("The entry '$entryToFind' on line "
           "${entryToFind.lineNumber} in section ${section.condition} on line "
           "${section.lineNumber} had multiple matches in section.");
     }
   }
   if (foundEntryPosition < 0) {
-    throw new Exception("Could not find entry '$entryToFind' under the "
+    throw Exception("Could not find entry '$entryToFind' under the "
         "condition $condition in the status file.");
   }
 }
@@ -128,7 +127,7 @@ void checkFileHeaderIntact(StatusFile original, StatusFile normalized) {
   var normalizedHeader =
       normalized.sections.first.sectionHeaderComments.toString();
   if (originalHeader != normalizedHeader) {
-    throw new Exception(
+    throw Exception(
         "File headers changed.\nExpected:\n$originalHeader\n\nActual:\n$normalizedHeader");
   }
 }

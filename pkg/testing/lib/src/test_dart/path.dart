@@ -49,6 +49,12 @@ class Path {
   }
 
   int get hashCode => _path.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is Path && _path == other._path;
+  }
+
   bool get isEmpty => _path.isEmpty;
   bool get isAbsolute => _path.startsWith('/');
   bool get hasTrailingSeparator => _path.endsWith('/');
@@ -61,7 +67,7 @@ class Path {
     // Throws exception if an impossible case is reached.
     if (base.isAbsolute != isAbsolute ||
         base.isWindowsShare != isWindowsShare) {
-      throw new ArgumentError("Invalid case of Path.relativeTo(base):\n"
+      throw ArgumentError("Invalid case of Path.relativeTo(base):\n"
           "  Path and base must both be relative, or both absolute.\n"
           "  Arguments: $_path.relativeTo($base)");
     }
@@ -81,22 +87,22 @@ class Path {
           if (basePath[1] != _path[1]) {
             // Replace the drive letter in basePath with that from _path.
             basePath = '/${_path[1]}:/${basePath.substring(4)}';
-            base = new Path(basePath);
+            base = Path(basePath);
           }
         } else {
-          throw new ArgumentError("Invalid case of Path.relativeTo(base):\n"
+          throw ArgumentError("Invalid case of Path.relativeTo(base):\n"
               "  Base path and target path are on different Windows drives.\n"
               "  Arguments: $_path.relativeTo($base)");
         }
       } else if (baseHasDrive != pathHasDrive) {
-        throw new ArgumentError("Invalid case of Path.relativeTo(base):\n"
+        throw ArgumentError("Invalid case of Path.relativeTo(base):\n"
             "  Base path must start with a drive letter if and "
             "only if target path does.\n"
             "  Arguments: $_path.relativeTo($base)");
       }
     }
     if (_path.startsWith(basePath)) {
-      if (_path == basePath) return new Path('.');
+      if (_path == basePath) return Path('.');
       // There must be a '/' at the end of the match, or immediately after.
       int matchEnd = basePath.length;
       if (_path[matchEnd - 1] == '/' || _path[matchEnd] == '/') {
@@ -104,7 +110,7 @@ class Path {
         while (matchEnd < _path.length && _path[matchEnd] == '/') {
           matchEnd++;
         }
-        return new Path(_path.substring(matchEnd)).canonicalize();
+        return Path(_path.substring(matchEnd)).canonicalize();
       }
     }
 
@@ -124,7 +130,7 @@ class Path {
     final segments = <String>[];
 
     if (common < baseSegments.length && baseSegments[common] == '..') {
-      throw new ArgumentError("Invalid case of Path.relativeTo(base):\n"
+      throw ArgumentError("Invalid case of Path.relativeTo(base):\n"
           "  Base path has more '..'s than path does.\n"
           "  Arguments: $_path.relativeTo($base)");
     }
@@ -140,22 +146,21 @@ class Path {
     if (hasTrailingSeparator) {
       segments.add('');
     }
-    return new Path(segments.join('/'));
+    return Path(segments.join('/'));
   }
 
   Path join(Path further) {
     if (further.isAbsolute) {
-      throw new ArgumentError(
-          "Path.join called with absolute Path as argument.");
+      throw ArgumentError("Path.join called with absolute Path as argument.");
     }
     if (isEmpty) {
       return further.canonicalize();
     }
     if (hasTrailingSeparator) {
-      var joined = new Path._internal('$_path${further}', isWindowsShare);
+      var joined = Path._internal('$_path${further}', isWindowsShare);
       return joined.canonicalize();
     }
-    var joined = new Path._internal('$_path/${further}', isWindowsShare);
+    var joined = Path._internal('$_path/${further}', isWindowsShare);
     return joined.canonicalize();
   }
 
@@ -193,7 +198,7 @@ class Path {
     bool isAbs = isAbsolute;
     List segs = segments();
     String? drive;
-    if (isAbs && !segs.isEmpty && segs[0].length == 2 && segs[0][1] == ':') {
+    if (isAbs && segs.isNotEmpty && segs[0].length == 2 && segs[0][1] == ':') {
       drive = segs[0];
       segs.removeRange(0, 1);
     }
@@ -244,7 +249,7 @@ class Path {
         segmentsToJoin.add('');
       }
     }
-    return new Path._internal(segmentsToJoin.join('/'), isWindowsShare);
+    return Path._internal(segmentsToJoin.join('/'), isWindowsShare);
   }
 
   String toNativePath() {
@@ -275,11 +280,11 @@ class Path {
 
   Path append(String finalSegment) {
     if (isEmpty) {
-      return new Path._internal(finalSegment, isWindowsShare);
+      return Path._internal(finalSegment, isWindowsShare);
     } else if (hasTrailingSeparator) {
-      return new Path._internal('$_path$finalSegment', isWindowsShare);
+      return Path._internal('$_path$finalSegment', isWindowsShare);
     } else {
-      return new Path._internal('$_path/$finalSegment', isWindowsShare);
+      return Path._internal('$_path/$finalSegment', isWindowsShare);
     }
   }
 
@@ -298,10 +303,12 @@ class Path {
 
   Path get directoryPath {
     int pos = _path.lastIndexOf('/');
-    if (pos < 0) return new Path('');
-    while (pos > 0 && _path[pos - 1] == '/') --pos;
+    if (pos < 0) return Path('');
+    while (pos > 0 && _path[pos - 1] == '/') {
+      --pos;
+    }
     var dirPath = (pos > 0) ? _path.substring(0, pos) : '/';
-    return new Path._internal(dirPath, isWindowsShare);
+    return Path._internal(dirPath, isWindowsShare);
   }
 
   String get filename {

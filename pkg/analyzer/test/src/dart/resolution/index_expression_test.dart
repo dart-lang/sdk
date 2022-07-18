@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -71,8 +70,6 @@ void f(A a) {
 }
 ''');
 
-    var indexElement = findElement.method('[]');
-
     var indexExpression = findNode.index('a[0]');
     assertResolvedNodeText(indexExpression, r'''
 IndexExpression
@@ -89,10 +86,6 @@ IndexExpression
   staticElement: self::@class::A::@method::[]
   staticType: bool
 ''');
-    assertParameterElement(
-      indexExpression.index,
-      indexElement.parameters[0],
-    );
   }
 
   test_read_cascade_nullShorting() async {
@@ -146,8 +139,6 @@ void f(A<double> a) {
 }
 ''');
 
-    var indexElement = findElement.method('[]');
-
     var indexExpression = findNode.index('a[0]');
     assertResolvedNodeText(indexExpression, r'''
 IndexExpression
@@ -168,13 +159,6 @@ IndexExpression
     substitution: {T: double}
   staticType: double
 ''');
-    assertParameterElement(
-      indexExpression.index,
-      elementMatcher(
-        indexElement.parameters[0],
-        substitution: {'T': 'double'},
-      ),
-    );
   }
 
   test_read_nullable() async {
@@ -218,16 +202,7 @@ void f(A a) {
 }
 ''');
 
-    var indexEqElement = findElement.method('[]=');
-    var numPlusElement = numElement.getMethod('+')!;
-
-    var indexExpression = findNode.index('a[0]');
-    assertParameterElement(
-      indexExpression.index,
-      indexEqElement.parameters[0],
-    );
-
-    var assignment = indexExpression.parent as AssignmentExpression;
+    var assignment = findNode.assignment('a[0]');
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
@@ -255,11 +230,6 @@ AssignmentExpression
   staticElement: dart:core::@class::num::@method::+
   staticType: double
 ''');
-
-    assertParameterElement(
-      assignment.rightHandSide,
-      numPlusElement.parameters[0],
-    );
   }
 
   test_readWrite_assignment_generic() async {
@@ -274,19 +244,7 @@ void f(A<double> a) {
 }
 ''');
 
-    var indexEqElement = findElement.method('[]=');
-    var doublePlusElement = doubleElement.getMethod('+')!;
-
-    var indexExpression = findNode.index('a[0]');
-    assertParameterElement(
-      indexExpression.index,
-      elementMatcher(
-        indexEqElement.parameters[0],
-        substitution: {'T': 'double'},
-      ),
-    );
-
-    var assignment = indexExpression.parent as AssignmentExpression;
+    var assignment = findNode.assignment('a[0]');
 
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
@@ -321,11 +279,6 @@ AssignmentExpression
   staticElement: dart:core::@class::double::@method::+
   staticType: double
 ''');
-
-    assertParameterElement(
-      assignment.rightHandSide,
-      doublePlusElement.parameters[0],
-    );
   }
 
   test_readWrite_nullable() async {
@@ -340,16 +293,7 @@ void f(A? a) {
 }
 ''');
 
-    var indexEqElement = findElement.method('[]=');
-    var numPlusElement = numElement.getMethod('+')!;
-
-    var indexExpression = findNode.index('a?[0]');
-    assertParameterElement(
-      indexExpression.index,
-      indexEqElement.parameters[0],
-    );
-
-    var assignment = indexExpression.parent as AssignmentExpression;
+    var assignment = findNode.assignment('a?[0]');
 
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
@@ -378,11 +322,6 @@ AssignmentExpression
   staticElement: dart:core::@class::num::@method::+
   staticType: double?
 ''');
-
-    assertParameterElement(
-      assignment.rightHandSide,
-      numPlusElement.parameters[0],
-    );
   }
 
   test_write() async {
@@ -396,15 +335,7 @@ void f(A a) {
 }
 ''');
 
-    var indexEqElement = findElement.method('[]=');
-
-    var indexExpression = findNode.index('a[0]');
-    assertParameterElement(
-      indexExpression.index,
-      indexEqElement.parameters[0],
-    );
-
-    var assignment = indexExpression.parent as AssignmentExpression;
+    var assignment = findNode.assignment('a[0]');
 
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
@@ -433,11 +364,6 @@ AssignmentExpression
   staticElement: <null>
   staticType: double
 ''');
-
-    assertParameterElement(
-      assignment.rightHandSide,
-      indexEqElement.parameters[1],
-    );
   }
 
   test_write_cascade_nullShorting() async {
@@ -520,17 +446,6 @@ void f(A<double> a) {
 }
 ''');
 
-    var indexEqElement = findElement.method('[]=');
-
-    var indexExpression = findNode.index('a[0]');
-    assertParameterElement(
-      indexExpression.index,
-      elementMatcher(
-        indexEqElement.parameters[0],
-        substitution: {'T': 'double'},
-      ),
-    );
-
     var assignment = findNode.assignment('a[0]');
 
     assertResolvedNodeText(assignment, r'''
@@ -566,14 +481,6 @@ AssignmentExpression
   staticElement: <null>
   staticType: double
 ''');
-
-    assertParameterElement(
-      assignment.rightHandSide,
-      elementMatcher(
-        indexEqElement.parameters[1],
-        substitution: {'T': 'double'},
-      ),
-    );
   }
 
   test_write_nullable() async {
@@ -586,14 +493,6 @@ void f(A? a) {
   a?[0] = 1.2;
 }
 ''');
-
-    var indexEqElement = findElement.method('[]=');
-
-    var indexExpression = findNode.index('a?[0]');
-    assertParameterElement(
-      indexExpression.index,
-      indexEqElement.parameters[0],
-    );
 
     var assignment = findNode.assignment('a?[0]');
 
@@ -624,10 +523,5 @@ AssignmentExpression
   staticElement: <null>
   staticType: double?
 ''');
-
-    assertParameterElement(
-      assignment.rightHandSide,
-      indexEqElement.parameters[1],
-    );
   }
 }

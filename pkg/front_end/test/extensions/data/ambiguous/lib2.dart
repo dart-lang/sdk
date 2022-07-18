@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /*library: scope=[
   AmbiguousExtension1,
   AmbiguousExtension2,
@@ -18,7 +16,7 @@
  extension-members=[
   static ambiguousStaticMethod1=AmbiguousExtension1|ambiguousStaticMethod1],
  extension-name=AmbiguousExtension1,
- extension-onType=String
+ extension-onType=String!
 */
 extension AmbiguousExtension1 on String {
   /*member: AmbiguousExtension1|ambiguousStaticMethod1:
@@ -34,7 +32,7 @@ extension AmbiguousExtension1 on String {
  extension-members=[
   static unambiguousStaticMethod2=AmbiguousExtension2|unambiguousStaticMethod2],
  extension-name=AmbiguousExtension2,
- extension-onType=String
+ extension-onType=String!
 */
 extension AmbiguousExtension2 on String {
   /*member: AmbiguousExtension2|unambiguousStaticMethod2:
@@ -50,7 +48,7 @@ extension AmbiguousExtension2 on String {
  extension-members=[
   static ambiguousStaticMethod2=UnambiguousExtension2|ambiguousStaticMethod2],
  extension-name=UnambiguousExtension2,
- extension-onType=String
+ extension-onType=String!
 */
 extension UnambiguousExtension2 on String {
   /*member: UnambiguousExtension2|ambiguousStaticMethod2:

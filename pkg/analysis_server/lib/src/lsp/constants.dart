@@ -16,7 +16,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 ///     myLongFunctionName();
 ///     print(myLong^)
 ///
-/// The `.` is not included because it falsely triggers whenver typing a
+/// The `.` is not included because it falsely triggers whenever typing a
 /// cascade (`..`), inserting the very first completion instead of just a second
 /// period.
 const dartCompletionCommitCharacters = ['('];
@@ -44,8 +44,8 @@ const dartSignatureHelpTriggerCharacters = <String>['('];
 /// Characters to trigger formatting when format-on-type is enabled.
 const dartTypeFormattingCharacters = ['}', ';'];
 
-/// A [ProgressToken] used for reporting progress when the server is analyzing.
-final analyzingProgressToken = Either2<int, String>.t2('ANALYZING');
+/// A [ProgressToken] used for reporting progress while the server is analyzing.
+final analyzingProgressToken = ProgressToken.t2('ANALYZING');
 
 final emptyWorkspaceEdit = WorkspaceEdit();
 

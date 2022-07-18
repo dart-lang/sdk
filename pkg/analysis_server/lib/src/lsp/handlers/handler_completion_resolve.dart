@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
+import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -10,8 +11,6 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/util/comment.dart' as analyzer;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class CompletionResolveHandler
@@ -41,6 +40,8 @@ class CompletionResolveHandler
 
     if (resolutionInfo is DartSuggestionSetCompletionItemResolutionInfo) {
       return resolveDartSuggestionSetCompletion(params, resolutionInfo, token);
+    } else if (resolutionInfo is DartNotImportedCompletionResolutionInfo) {
+      return resolveDartNotImportedCompletion(params, resolutionInfo, token);
     } else if (resolutionInfo is PubPackageCompletionItemResolutionInfo) {
       return resolvePubPackageCompletion(params, resolutionInfo, token);
     } else {
@@ -51,12 +52,9 @@ class CompletionResolveHandler
   Future<ErrorOr<CompletionItem>> resolveDartCompletion(
     CompletionItem item,
     LspClientCapabilities clientCapabilities,
-    LineInfo lineInfo,
     CancellationToken token, {
     required String file,
     required Uri libraryUri,
-    required Range insertionRange,
-    required Range replacementRange,
   }) async {
     const timeout = Duration(milliseconds: 1000);
     var timer = Stopwatch()..start();
@@ -69,6 +67,11 @@ class CompletionResolveHandler
         // was removed from the analysis set so assume the request is no longer
         // valid.
         if (session == null || token.isCancellationRequested) {
+          return cancelled();
+        }
+
+        final result = await session.getResolvedUnit(file);
+        if (result is! ResolvedUnitResult) {
           return cancelled();
         }
 
@@ -85,13 +88,9 @@ class CompletionResolveHandler
           return cancelled();
         }
 
-        var newInsertText = item.insertText ?? item.label;
         final builder = ChangeBuilder(session: session);
         await builder.addDartFileEdit(file, (builder) {
-          final result = builder.importLibraryElement(libraryUri);
-          if (result.prefix != null) {
-            newInsertText = '${result.prefix}.$newInsertText';
-          }
+          builder.importLibraryElement(libraryUri);
         });
 
         if (token.isCancellationRequested) {
@@ -113,16 +112,20 @@ class CompletionResolveHandler
           command = Command(
               title: 'Add import',
               command: Commands.sendWorkspaceEdit,
-              arguments: [workspaceEdit]);
+              arguments: [
+                {'edit': workspaceEdit}
+              ]);
         }
 
         final formats = clientCapabilities.completionDocumentationFormats;
-        final dartDoc =
-            analyzer.getDartDocPlainText(element.documentationComment);
-        final documentation =
-            dartDoc != null ? asMarkupContentOrString(formats, dartDoc) : null;
-        final supportsInsertReplace =
-            clientCapabilities.insertReplaceCompletionRanges;
+        final dartDocInfo = server.getDartdocDirectiveInfoForSession(session);
+        final dartDocData =
+            DartUnitHoverComputer.computeDocumentation(dartDocInfo, element);
+        final dartDoc = dartDocData?.full;
+        // `dartDoc` can be both null or empty.
+        final documentation = dartDoc != null && dartDoc.isNotEmpty
+            ? asMarkupContentOrString(formats, dartDoc)
+            : null;
 
         // If the only URI we have is a file:// URI, display it as relative to
         // the file we're importing into, rather than the full URI.
@@ -140,7 +143,7 @@ class CompletionResolveHandler
           label: item.label,
           kind: item.kind,
           tags: item.tags,
-          detail: thisFilesChanges.isNotEmpty
+          detail: changes.edits.isNotEmpty
               ? "Auto import from '$autoImportDisplayUri'\n\n${item.detail ?? ''}"
                   .trim()
               : item.detail,
@@ -149,25 +152,12 @@ class CompletionResolveHandler
           preselect: item.preselect,
           sortText: item.sortText,
           filterText: item.filterText,
-          insertText: newInsertText,
           insertTextFormat: item.insertTextFormat,
-          textEdit: supportsInsertReplace && insertionRange != replacementRange
-              ? Either2<InsertReplaceEdit, TextEdit>.t1(
-                  InsertReplaceEdit(
-                    insert: insertionRange,
-                    replace: replacementRange,
-                    newText: newInsertText,
-                  ),
-                )
-              : Either2<InsertReplaceEdit, TextEdit>.t2(
-                  TextEdit(
-                    range: replacementRange,
-                    newText: newInsertText,
-                  ),
-                ),
+          insertTextMode: item.insertTextMode,
+          textEdit: item.textEdit,
           additionalTextEdits: thisFilesChanges
               .expand((change) =>
-                  change.edits.map((edit) => toTextEdit(lineInfo, edit)))
+                  change.edits.map((edit) => toTextEdit(result.lineInfo, edit)))
               .toList(),
           commitCharacters: item.commitCharacters,
           command: command ?? item.command,
@@ -187,6 +177,27 @@ class CompletionResolveHandler
     );
   }
 
+  Future<ErrorOr<CompletionItem>> resolveDartNotImportedCompletion(
+    CompletionItem item,
+    DartNotImportedCompletionResolutionInfo data,
+    CancellationToken token,
+  ) async {
+    final clientCapabilities = server.clientCapabilities;
+    if (clientCapabilities == null) {
+      // This should not happen unless a client misbehaves.
+      return error(ErrorCodes.ServerNotInitialized,
+          'Requests not before server is initilized');
+    }
+
+    return resolveDartCompletion(
+      item,
+      clientCapabilities,
+      token,
+      file: data.file,
+      libraryUri: Uri.parse(data.libraryUri),
+    );
+  }
+
   Future<ErrorOr<CompletionItem>> resolveDartSuggestionSetCompletion(
     CompletionItem item,
     DartSuggestionSetCompletionItemResolutionInfo data,
@@ -198,16 +209,6 @@ class CompletionResolveHandler
       return serverNotInitializedError;
     }
 
-    final file = data.file;
-    final lineInfo = server.getLineInfo(file);
-    if (lineInfo == null) {
-      return error(
-        ErrorCodes.InternalError,
-        'Line info not available for $file',
-        null,
-      );
-    }
-
     var library = server.declarationsTracker?.getLibrary(data.libId);
     if (library == null) {
       return error(
@@ -217,18 +218,12 @@ class CompletionResolveHandler
       );
     }
 
-    final insertionRange = toRange(lineInfo, data.rOffset, data.iLength);
-    final replacementRange = toRange(lineInfo, data.rOffset, data.rLength);
-
     return resolveDartCompletion(
       item,
       clientCapabilities,
-      lineInfo,
       token,
-      file: file,
+      file: data.file,
       libraryUri: library.uri,
-      insertionRange: insertionRange,
-      replacementRange: replacementRange,
     );
   }
 
@@ -259,7 +254,6 @@ class CompletionResolveHandler
       preselect: item.preselect,
       sortText: item.sortText,
       filterText: item.filterText,
-      insertText: item.insertText,
       insertTextFormat: item.insertTextFormat,
       textEdit: item.textEdit,
       additionalTextEdits: item.additionalTextEdits,

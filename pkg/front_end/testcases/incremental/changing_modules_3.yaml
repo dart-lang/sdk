@@ -9,29 +9,50 @@ type: newworld
 modules:
   foo:
     foo/foo.dart: |
-      // @dart=2.9
       var foo = true;
-    foo/.packages: |
-      foo:.
+    foo/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "foo",
+            "rootUri": ".."
+          }
+        ]
+      }
   foo2:
     foo2/foo.dart: |
-      // @dart=2.9
       var foo2 = true;
-    foo2/.packages: |
-      foo:.
+    foo2/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "foo",
+            "rootUri": ".."
+          }
+        ]
+      }
 worlds:
   - entry: main.dart
     fromComponent: true
     simulateTransformer: true
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:foo/foo.dart";
         main() {
           print(foo);
         }
-      .packages: |
-        foo:foo
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foo"
+            }
+          ]
+        }
     modules:
       - foo
     expectedLibraryCount: 2
@@ -50,13 +71,20 @@ worlds:
     simulateTransformer: true
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:foo/foo.dart";
         main() {
           print(foo2);
         }
-      .packages: |
-        foo:foo2
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foo2"
+            }
+          ]
+        }
     modules:
       - foo2
     expectedLibraryCount: 2

@@ -4069,7 +4069,7 @@ library
           synthetic get b @-1
             returnType: double
   parts
-    a.dart
+    package:test/a.dart
       topLevelVariables
         static final a @19
           type: int
@@ -7896,7 +7896,7 @@ library
   nameOffset: 8
   definingUnit
   parts
-    a.dart
+    package:test/a.dart
       topLevelVariables
         static final f @19
           type: double Function(int)
@@ -19983,7 +19983,9 @@ library
   exports
     package:test/a.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+  exportNamespace
     C: package:test/a.dart;C
 ''',
         withExportScope: true);
@@ -20003,7 +20005,9 @@ library
   exports
     package:test/a.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+  exportNamespace
     C: package:test/a.dart;C
 ''',
         withExportScope: true);
@@ -20028,7 +20032,9 @@ library
   exports
     package:test/foo.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/foo.dart::@unit::package:test/foo.dart::@class::A
+  exportNamespace
     A: package:test/foo.dart;A
 ''',
         withExportScope: true);
@@ -20055,7 +20061,9 @@ library
   exports
     package:test/foo_io.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/foo_io.dart::@unit::package:test/foo_io.dart::@class::A
+  exportNamespace
     A: package:test/foo_io.dart;A
 ''',
         withExportScope: true);
@@ -20082,12 +20090,45 @@ library
   exports
     package:test/foo_html.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/foo_html.dart::@unit::package:test/foo_html.dart::@class::A
+  exportNamespace
     A: package:test/foo_html.dart;A
 ''',
         withExportScope: true);
     ExportElement export = library.exports[0];
     expect(export.exportedLibrary!.source.shortName, 'foo_html.dart');
+  }
+
+  test_export_cycle() async {
+    addSource('$testPackageLibPath/a.dart', r'''
+export 'test.dart';
+class A {}
+''');
+
+    var library = await buildLibrary(r'''
+export 'a.dart';
+class X {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  exports
+    package:test/a.dart
+  definingUnit
+    classes
+      class X @23
+        constructors
+          synthetic @-1
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+  exportNamespace
+    A: package:test/a.dart;A
+    X: package:test/test.dart;X
+''',
+        withExportScope: true);
   }
 
   test_export_function() async {
@@ -20100,7 +20141,9 @@ library
   exports
     package:test/a.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@function::f
+  exportNamespace
     f: package:test/a.dart;f
 ''',
         withExportScope: true);
@@ -20136,7 +20179,10 @@ library
       combinators
         hide: A, C
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::B
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::D
+  exportNamespace
     B: package:test/a.dart;B
     D: package:test/a.dart;D
 ''',
@@ -20163,8 +20209,56 @@ library
         hide: A
         show: C
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+  exportNamespace
     C: package:test/a.dart;C
+''',
+        withExportScope: true);
+  }
+
+  test_export_reexport() async {
+    addSource('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    addSource('$testPackageLibPath/b.dart', r'''
+export 'a.dart';
+class B {}
+''');
+
+    addSource('$testPackageLibPath/c.dart', r'''
+export 'a.dart';
+class C {}
+''');
+
+    var library = await buildLibrary(r'''
+export 'b.dart';
+export 'c.dart';
+class X {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  exports
+    package:test/b.dart
+    package:test/c.dart
+  definingUnit
+    classes
+      class X @40
+        constructors
+          synthetic @-1
+  exportedReferences
+    exported[0, 1] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[0] root::package:test/b.dart::@unit::package:test/b.dart::@class::B
+    exported[1] root::package:test/c.dart::@unit::package:test/c.dart::@class::C
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+  exportNamespace
+    A: package:test/a.dart;A
+    B: package:test/b.dart;B
+    C: package:test/c.dart;C
+    X: package:test/test.dart;X
 ''',
         withExportScope: true);
   }
@@ -20179,7 +20273,9 @@ library
   exports
     package:test/a.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
+  exportNamespace
     f=: package:test/a.dart;f=
 ''',
         withExportScope: true);
@@ -20204,7 +20300,10 @@ library
       combinators
         show: A, C
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+  exportNamespace
     A: package:test/a.dart;A
     C: package:test/a.dart;C
 ''',
@@ -20226,7 +20325,10 @@ library
       combinators
         show: f
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::f
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
+  exportNamespace
     f: package:test/a.dart;f?
     f=: package:test/a.dart;f=
 ''',
@@ -20243,7 +20345,9 @@ library
   exports
     package:test/a.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@typeAlias::F
+  exportNamespace
     F: package:test/a.dart;F
 ''',
         withExportScope: true);
@@ -20266,7 +20370,10 @@ library
   exports
     package:test/a.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@setter::x
+  exportNamespace
     x: package:test/a.dart;x?
     x=: package:test/a.dart;x=
 ''',
@@ -20283,7 +20390,9 @@ library
   exports
     package:test/a.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
+  exportNamespace
     x: package:test/a.dart;x?
 ''',
         withExportScope: true);
@@ -20299,7 +20408,9 @@ library
   exports
     package:test/a.dart
   definingUnit
-  exportScope
+  exportedReferences
+    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
+  exportNamespace
     x: package:test/a.dart;x?
 ''',
         withExportScope: true);
@@ -20415,7 +20526,8 @@ library
     package:test/a.dart
     package:test/b.dart
   definingUnit
-  exportScope
+  exportedReferences
+  exportNamespace
 ''',
         withExportScope: true);
   }
@@ -20578,7 +20690,7 @@ library
   nameOffset: 8
   definingUnit
   parts
-    a.dart
+    package:test/a.dart
       functions
         main @16
           returnType: dynamic
@@ -25267,7 +25379,9 @@ library
     <unresolved>
   definingUnit
   parts
-    :[invaliduri]
+    relativeUriString ':[invaliduri]'
+    source 'package:test/a3.dart'
+    relativeUriString ':[invaliduri]'
 ''');
   }
 
@@ -25327,6 +25441,149 @@ library
   name: foo.bar
   nameOffset: 8
   definingUnit
+''');
+  }
+
+  test_library_parts() async {
+    addSource('$testPackageLibPath/a.dart', 'part of my.lib;');
+    addSource('$testPackageLibPath/b.dart', 'part of my.lib;');
+    var library =
+        await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
+    checkElementText(library, r'''
+library
+  name: my.lib
+  nameOffset: 8
+  definingUnit
+  parts
+    package:test/a.dart
+    package:test/b.dart
+''');
+  }
+
+  test_library_parts_noRelativeUriStr() async {
+    final library = await buildLibrary(r'''
+part '${'foo'}.dart';
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+  parts
+    noRelativeUriString
+''');
+  }
+
+  test_library_parts_withPart_partOfName() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of my.lib;
+class B {}
+''');
+    final library = await buildLibrary(r'''
+library my.lib;
+part 'a.dart';
+class A {}
+''');
+    checkElementText(library, r'''
+library
+  name: my.lib
+  nameOffset: 8
+  definingUnit
+    classes
+      class A @37
+        constructors
+          synthetic @-1
+  parts
+    package:test/a.dart
+      classes
+        class B @22
+          constructors
+            synthetic @-1
+''');
+  }
+
+  test_library_parts_withPart_partOfUri() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+class B {}
+''');
+    final library = await buildLibrary(r'''
+part 'a.dart';
+class A {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @21
+        constructors
+          synthetic @-1
+  parts
+    package:test/a.dart
+      classes
+        class B @27
+          constructors
+            synthetic @-1
+''');
+  }
+
+  test_library_parts_withRelativeUri_noSource() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    final library = await buildLibrary(r'''
+part 'foo:bar';
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+  parts
+    relativeUri 'foo:bar'
+''');
+  }
+
+  test_library_parts_withRelativeUri_notPart_emptyUriSelf() async {
+    final library = await buildLibrary(r'''
+part '';
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+  parts
+    source 'package:test/test.dart'
+''');
+  }
+
+  test_library_parts_withRelativeUri_notPart_library() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    final library = await buildLibrary(r'''
+part 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+  parts
+    source 'package:test/a.dart'
+''');
+  }
+
+  test_library_parts_withRelativeUri_notPart_notExists() async {
+    final library = await buildLibrary(r'''
+part 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+  parts
+    source 'package:test/a.dart'
+''');
+  }
+
+  test_library_parts_withRelativeUriString() async {
+    final library = await buildLibrary(r'''
+part ':';
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+  parts
+    relativeUriString ':'
 ''');
   }
 
@@ -29343,7 +29600,7 @@ library
       synthetic static get foo @-1
         returnType: int
   parts
-    a.dart
+    package:test/a.dart
       metadata
         Annotation
           atSign: @ @17
@@ -29352,7 +29609,7 @@ library
             staticElement: self::@getter::foo
             staticType: null
           element: self::@getter::foo
-    b.dart
+    package:test/b.dart
       metadata
         Annotation
           atSign: @ @38
@@ -29586,7 +29843,7 @@ library
       synthetic static get a @-1
         returnType: dynamic
   parts
-    foo.dart
+    package:test/foo.dart
       metadata
         Annotation
           atSign: @ @11
@@ -29612,7 +29869,7 @@ part 'b.dart';
 
     // The difference with the test above is that we ask the part first.
     // There was a bug that we were not loading library directives.
-    expect(library.parts[0].metadata, isEmpty);
+    expect(library.parts2[0].metadata, isEmpty);
   }
 
   test_metadata_prefixed_variable() async {
@@ -30571,6 +30828,129 @@ library
 ''');
   }
 
+  test_mixin_inference_classAlias_oneMixin() async {
+    // In the code below, B's superclass constraints don't include A, because
+    // superclass constraints are determined from the mixin's superclass, and
+    // B's superclass is Object.  So no mixin type inference is attempted, and
+    // "with B" is interpreted as "with B<dynamic>".
+    var library = await buildLibrary(r'''
+class A<T> {}
+class B<T> = Object with A<T>;
+class C = A<int> with B;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class alias B @20
+        typeParameters
+          covariant T @22
+            defaultType: dynamic
+        supertype: Object
+        mixins
+          A<T>
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::•
+      class alias C @51
+        supertype: A<int>
+        mixins
+          B<dynamic>
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::A::@constructor::•
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: int}
+''');
+  }
+
+  test_mixin_inference_classAlias_twoMixins() async {
+    // In the code below, `B` has a single superclass constraint, A1, because
+    // superclass constraints are determined from the mixin's superclass, and
+    // B's superclass is "Object with A1<T>".  So mixin type inference succeeds
+    // (since C's base class implements A1<int>), and "with B" is interpreted as
+    // "with B<int>".
+    var library = await buildLibrary(r'''
+class A1<T> {}
+class A2<T> {}
+class B<T> = Object with A1<T>, A2<T>;
+class Base implements A1<int> {}
+class C = Base with B;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A1 @6
+        typeParameters
+          covariant T @9
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class A2 @21
+        typeParameters
+          covariant T @24
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class alias B @36
+        typeParameters
+          covariant T @38
+            defaultType: dynamic
+        supertype: Object
+        mixins
+          A1<T>
+          A2<T>
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::•
+      class Base @75
+        interfaces
+          A1<int>
+        constructors
+          synthetic @-1
+      class alias C @108
+        supertype: Base
+        mixins
+          B<int>
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::Base::@constructor::•
+            superConstructor: self::@class::Base::@constructor::•
+''');
+  }
+
   test_mixin_inference_legacy() async {
     var library = await buildLibrary(r'''
 // @dart = 2.9
@@ -30604,6 +30984,78 @@ library
             defaultType: dynamic
         superclassConstraints
           A<U*>*
+''');
+  }
+
+  test_mixin_inference_nested_functionType() async {
+    var library = await buildLibrary(r'''
+class A<T> {}
+mixin M<T, U> on A<T Function(U)> {}
+class C extends A<int Function(String)> with M {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class C @57
+        supertype: A<int Function(String)>
+        mixins
+          M<int, String>
+        constructors
+          synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: int Function(String)}
+    mixins
+      mixin M @20
+        typeParameters
+          covariant T @22
+            defaultType: dynamic
+          covariant U @25
+            defaultType: dynamic
+        superclassConstraints
+          A<T Function(U)>
+''');
+  }
+
+  test_mixin_inference_nested_interfaceType() async {
+    var library = await buildLibrary(r'''
+abstract class A<T> {}
+mixin M<T> on A<List<T>> {}
+class C extends A<List<int>> with M {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      abstract class A @15
+        typeParameters
+          covariant T @17
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class C @57
+        supertype: A<List<int>>
+        mixins
+          M<int>
+        constructors
+          synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: List<int>}
+    mixins
+      mixin M @29
+        typeParameters
+          covariant T @31
+            defaultType: dynamic
+        superclassConstraints
+          A<List<T>>
 ''');
   }
 
@@ -30719,6 +31171,167 @@ import 'a.dart';
 class B extends A<int> with M<int> {
   synthetic B();
 }
+''');
+  }
+
+  test_mixin_inference_twoMixins() async {
+    // Both `M1` and `M2` have their type arguments inferred.
+    var library = await buildLibrary(r'''
+class I<X> {}
+mixin M1<T> on I<T> {}
+mixin M2<T> on I<T> {}
+class A = I<int> with M1, M2;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class I @6
+        typeParameters
+          covariant X @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class alias A @66
+        supertype: I<int>
+        mixins
+          M1<int>
+          M2<int>
+        constructors
+          synthetic @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: self::@class::I::@constructor::•
+            superConstructor: ConstructorMember
+              base: self::@class::I::@constructor::•
+              substitution: {X: int}
+    mixins
+      mixin M1 @20
+        typeParameters
+          covariant T @23
+            defaultType: dynamic
+        superclassConstraints
+          I<T>
+      mixin M2 @43
+        typeParameters
+          covariant T @46
+            defaultType: dynamic
+        superclassConstraints
+          I<T>
+''');
+  }
+
+  test_mixin_inference_viaTypeAlias() async {
+    var library = await buildLibrary(r'''
+mixin M<T, U> on S<T> {}
+
+typedef M2<T2> = M<T2, int>;
+
+class S<T3> {}
+
+class X extends S<String> with M2 {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class S @62
+        typeParameters
+          covariant T3 @64
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class X @78
+        supertype: S<String>
+        mixins
+          M<String, int>
+            alias: self::@typeAlias::M2
+              typeArguments
+                String
+        constructors
+          synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::S::@constructor::•
+              substitution: {T3: String}
+    mixins
+      mixin M @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+          covariant U @11
+            defaultType: dynamic
+        superclassConstraints
+          S<T>
+    typeAliases
+      M2 @34
+        typeParameters
+          covariant T2 @37
+            defaultType: dynamic
+        aliasedType: M<T2, int>
+''');
+  }
+
+  test_mixin_inference_viaTypeAlias2() async {
+    var library = await buildLibrary(r'''
+mixin M<T, U> on S<T> {}
+
+typedef M2<T2> = M<T2, int>;
+
+typedef M3<T3> = M2<T3>;
+
+class S<T4> {}
+
+class X extends S<String> with M3 {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class S @88
+        typeParameters
+          covariant T4 @90
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class X @104
+        supertype: S<String>
+        mixins
+          M<String, int>
+            alias: self::@typeAlias::M3
+              typeArguments
+                String
+        constructors
+          synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::S::@constructor::•
+              substitution: {T4: String}
+    mixins
+      mixin M @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+          covariant U @11
+            defaultType: dynamic
+        superclassConstraints
+          S<T>
+    typeAliases
+      M2 @34
+        typeParameters
+          covariant T2 @37
+            defaultType: dynamic
+        aliasedType: M<T2, int>
+      M3 @64
+        typeParameters
+          covariant T3 @67
+            defaultType: dynamic
+        aliasedType: M<T3, int>
+          alias: self::@typeAlias::M2
+            typeArguments
+              T3
 ''');
   }
 
@@ -32393,71 +33006,6 @@ library
 ''');
   }
 
-  test_part_emptyUri() async {
-    var library = await buildLibrary(r'''
-part '';
-class B extends A {}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      class B @15
-        constructors
-          synthetic @-1
-''');
-  }
-
-  test_part_uri() async {
-    var library = await buildLibrary('''
-part 'foo.dart';
-''');
-    expect(library.parts[0].uri, 'foo.dart');
-  }
-
-  test_parts() async {
-    addSource('$testPackageLibPath/a.dart', 'part of my.lib;');
-    addSource('$testPackageLibPath/b.dart', 'part of my.lib;');
-    var library =
-        await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
-    checkElementText(library, r'''
-library
-  name: my.lib
-  nameOffset: 8
-  definingUnit
-  parts
-    a.dart
-    b.dart
-''');
-  }
-
-  test_parts_invalidUri() async {
-    addSource('$testPackageLibPath/foo/bar.dart', 'part of my.lib;');
-    var library = await buildLibrary('library my.lib; part "foo/";');
-    checkElementText(library, r'''
-library
-  name: my.lib
-  nameOffset: 8
-  definingUnit
-  parts
-    foo/
-''');
-  }
-
-  test_parts_invalidUri_nullStringValue() async {
-    addSource('$testPackageLibPath/foo/bar.dart', 'part of my.lib;');
-    var library = await buildLibrary(r'''
-library my.lib;
-part "${foo}/bar.dart";
-''');
-    checkElementText(library, r'''
-library
-  name: my.lib
-  nameOffset: 8
-  definingUnit
-''');
-  }
-
   test_propagated_type_refers_to_closure() async {
     var library = await buildLibrary('''
 void f() {
@@ -33784,7 +34332,7 @@ library
               alias: self::@typeAlias::F
         returnType: void
   parts
-    a.dart
+    package:test/a.dart
       classes
         class C @17
           constructors
@@ -33894,7 +34442,7 @@ library
         aliasedElement: GenericFunctionTypeElement
           returnType: dynamic
   parts
-    a.dart
+    package:test/a.dart
       topLevelVariables
         static c @13
           type: C
@@ -33942,7 +34490,7 @@ library
   nameOffset: 8
   definingUnit
   parts
-    a.dart
+    package:test/a.dart
       classes
         class C @17
           constructors
@@ -33991,7 +34539,7 @@ library
           aliasedType: dynamic Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: dynamic
-    b.dart
+    package:test/b.dart
       topLevelVariables
         static c @13
           type: C
@@ -34037,7 +34585,7 @@ library
   nameOffset: 8
   definingUnit
   parts
-    a.dart
+    package:test/a.dart
       classes
         class C @17
           constructors
@@ -37411,16 +37959,6 @@ library
 ''');
   }
 
-  test_unresolved_part() async {
-    var library = await buildLibrary("part 'foo.dart';", allowErrors: true);
-    checkElementText(library, r'''
-library
-  definingUnit
-  parts
-    foo.dart
-''');
-  }
-
   test_unused_type_parameter() async {
     var library = await buildLibrary('''
 class C<T> {
@@ -37580,7 +38118,7 @@ library
       static get x @39
         returnType: int
   parts
-    a.dart
+    package:test/a.dart
       topLevelVariables
         synthetic static x @-1
           type: int
@@ -37618,7 +38156,7 @@ library
             type: int
         returnType: void
   parts
-    a.dart
+    package:test/a.dart
       topLevelVariables
         synthetic static x @-1
           type: int
@@ -37640,14 +38178,14 @@ library
   nameOffset: 8
   definingUnit
   parts
-    a.dart
+    package:test/a.dart
       topLevelVariables
         synthetic static x @-1
           type: int
       accessors
         static get x @24
           returnType: int
-    b.dart
+    package:test/b.dart
       topLevelVariables
         synthetic static x @-1
           type: int
@@ -37917,7 +38455,7 @@ library
       synthetic static get b @-1
         returnType: double
   parts
-    a.dart
+    package:test/a.dart
       topLevelVariables
         static final a @19
           type: int
@@ -37972,7 +38510,7 @@ library
   nameOffset: 8
   definingUnit
   parts
-    a.dart
+    package:test/a.dart
       topLevelVariables
         synthetic static x @-1
           type: int
@@ -37982,7 +38520,7 @@ library
             requiredPositional _ @31
               type: int
           returnType: void
-    b.dart
+    package:test/b.dart
       topLevelVariables
         synthetic static x @-1
           type: int

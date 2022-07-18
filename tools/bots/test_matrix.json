@@ -7,7 +7,6 @@
       ".dart_tool/package_config.json",
       "pkg/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "tools/",
       "out/ReleaseX64/dart-sdk/",
       "xcodebuild/ReleaseX64/dart-sdk/"
@@ -50,7 +49,6 @@
       "third_party/babel/babel.min.js",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseIA32/dart-sdk/",
@@ -87,7 +85,6 @@
       "third_party/babel/babel.min.js",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseIA32/dart-sdk/",
@@ -134,7 +131,6 @@
       "tests/ffi_2/",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseIA32/dart",
@@ -173,7 +169,6 @@
       "tests/ffi/",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseX64/dart",
@@ -212,7 +207,6 @@
       "tests/ffi/",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseX64/dart"
@@ -258,7 +252,6 @@
       "tests/ffi_2/",
       "third_party/d8/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseIA32/",
@@ -268,7 +261,6 @@
       "runtime/tools/dartfuzz/",
       "out/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "tools/sdks/dart-sdk/",
       "pkg/_fe_analyzer_shared/",
       "pkg/async_helper/",
@@ -299,7 +291,6 @@
       "third_party/devtools/",
       "third_party/webdriver/",
       "third_party/pkg/",
-      "third_party/pkg_tested/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
       "tests/co19/co19-analyzer.status",
@@ -925,6 +916,42 @@
         "enable-asserts": true
       }
     },
+    "dartdevc-checked-(linux|mac|win)-(debug|product|release)-(chrome|firefox)-arm64": {
+      "options": {
+        "checked": true,
+        "use-sdk": true
+      }
+    },
+    "dartdevc-strong-linux-release-chrome-arm64": {
+      "options": {
+        "checked": true,
+        "use-sdk": true,
+        "enable-asserts": true
+      }
+    },
+    "dartdevc-weak-linux-release-chrome-arm64": {
+      "options": {
+        "checked": true,
+        "use-sdk": true,
+        "enable-asserts": true
+      }
+    },
+    "dartdevc-canary-strong-(linux|mac|win)-release-(chrome|firefox)-(x64|arm64)": {
+      "options": {
+        "builder-tag": "canary",
+        "checked": true,
+        "use-sdk": true,
+        "enable-asserts": true
+      }
+    },
+    "dartdevc-canary-weak-(linux|mac|win)-release-(chrome|firefox)-(x64|arm64)": {
+      "options": {
+        "builder-tag": "canary",
+        "checked": true,
+        "use-sdk": true,
+        "enable-asserts": true
+      }
+    },
     "cfe-(linux|mac|win)": {
       "options": {
         "compiler": "fasta"
@@ -947,20 +974,6 @@
       }
     },
     "analyzer-asserts-(linux|mac|win)": {
-      "options": {
-        "compiler": "dart2analyzer",
-        "enable-asserts": true,
-        "use-sdk": true
-      }
-    },
-    "analyzer-asserts-strong-(linux|mac|win)": {
-      "options": {
-        "compiler": "dart2analyzer",
-        "enable-asserts": true,
-        "use-sdk": true
-      }
-    },
-    "analyzer-asserts-weak-(linux|mac|win)": {
       "options": {
         "compiler": "dart2analyzer",
         "enable-asserts": true,
@@ -1278,6 +1291,7 @@
           "arguments": [
             "--no-clang",
             "--use-qemu",
+            "--use-mallinfo2",
             "dart_precompiled_runtime",
             "runtime"
           ]
@@ -2369,6 +2383,77 @@
     },
     {
       "builders": [
+        "ddc-canary-linux-release-chrome"
+      ],
+      "meta": {
+        "description": "This configuration is used by the ddc canary builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "dartdevc_test",
+            "--gn-args=ddc_canary=true"
+          ]
+        },
+        {
+          "name": "ddc nnbd weak tests",
+          "arguments": [
+            "-ndartdevc-canary-weak-linux-release-chrome-x64",
+            "language",
+            "corelib",
+            "lib",
+            "dartdevc",
+            "web"
+          ],
+          "shards": 2,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc nnbd weak co19 tests",
+          "arguments": [
+            "-ndartdevc-canary-weak-linux-release-chrome-x64",
+            "co19"
+          ],
+          "shards": 2,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc nnbd strong co19 tests",
+          "arguments": [
+            "-ndartdevc-canary-strong-linux-release-chrome-x64",
+            "co19"
+          ],
+          "shards": 3,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc weak modular tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/modular_suite_nnbd.dart",
+            "-ndartdevc-canary-weak-linux-release-chrome-x64",
+            "--verbose",
+            "--use-sdk"
+          ]
+        },
+        {
+          "name": "ddc nnbd strong tests",
+          "arguments": [
+            "-ndartdevc-canary-strong-linux-release-chrome-x64",
+            "language",
+            "corelib",
+            "lib",
+            "dartdevc",
+            "web"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "ddc-mac-release-chrome"
       ],
       "meta": {
@@ -3178,7 +3263,8 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "create_sdk"
+            "create_sdk",
+            "utils/dartanalyzer"
           ]
         },
         {
@@ -3187,7 +3273,7 @@
             "-nanalyzer-unittest-asserts-${mode}-${system}",
             "pkg/analyzer"
           ],
-          "shards": 2,
+          "shards": 4,
           "fileset": "analyzer_unit_tests"
         },
         {
@@ -3196,13 +3282,33 @@
             "-nanalyzer-unittest-asserts-${mode}-${system}",
             "pkg/analysis_server"
           ],
-          "shards": 2,
+          "shards": 4,
+          "fileset": "analyzer_unit_tests"
+        },
+        {
+          "name": "nnbd_migration unit tests",
+          "arguments": [
+            "-nanalyzer-unittest-asserts-${mode}-${system}",
+            "pkg/nnbd_migration"
+          ],
+          "shards": 1,
           "fileset": "analyzer_unit_tests"
         },
         {
           "name": "analyze tests enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-${system}"
+          ]
+        },
+        {
+          "name": "analyze migrated tests enable-asserts",
+          "arguments": [
+            "-nanalyzer-asserts-${system}",
+            "corelib",
+            "ffi",
+            "language",
+            "lib",
+            "standalone"
           ]
         },
         {
@@ -3227,75 +3333,11 @@
           ]
         },
         {
-          "name": "nnbd_migration unit tests",
-          "arguments": [
-            "-nanalyzer-unittest-asserts-${mode}-${system}",
-            "pkg/nnbd_migration"
-          ],
-          "shards": 2,
-          "fileset": "analyzer_unit_tests"
-        },
-        {
-          "name": "analyze tests co19_2",
+          "name": "analyze co19 tests",
           "arguments": [
             "-nanalyzer-asserts-${system}",
+            "co19",
             "co19_2"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "analyzer-nnbd-linux-release",
-        "analyzer-nnbd-mac-release",
-        "analyzer-nnbd-win-release"
-      ],
-      "meta": {
-        "description": "This configuration is used by the nnbd analyzer builders."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "create_sdk"
-          ]
-        },
-        {
-          "name": "analyze nnbd strong tests enable-asserts",
-          "arguments": [
-            "-nanalyzer-asserts-strong-${system}",
-            "corelib",
-            "ffi",
-            "language",
-            "lib",
-            "standalone"
-          ]
-        },
-        {
-          "name": "analyze nnbd weak tests enable-asserts",
-          "arguments": [
-            "-nanalyzer-asserts-weak-${system}",
-            "corelib",
-            "ffi",
-            "language",
-            "lib",
-            "service",
-            "standalone"
-          ]
-        },
-        {
-          "name": "analyze nnbd strong co19 tests",
-          "arguments": [
-            "-nanalyzer-asserts-strong-${system}",
-            "co19"
-          ]
-        },
-        {
-          "name": "analyze nnbd weak co19 tests",
-          "arguments": [
-            "-nanalyzer-asserts-weak-${system}",
-            "co19"
           ]
         }
       ]
@@ -3312,7 +3354,8 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "create_sdk"
+            "create_sdk",
+            "utils/dartanalyzer"
           ]
         },
         {
@@ -3337,294 +3380,6 @@
           "arguments": [
             "analyze",
             "runtime/tests/concurrency/run_stress_test_shards.dart"
-          ]
-        },
-        {
-          "name": "analyze pkg/analysis_server",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/analysis_server"
-          ]
-        },
-        {
-          "name": "analyze pkg/analysis_server_client",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/analysis_server_client"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/analyzer"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer_cli",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/analyzer_cli"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer_plugin",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/analyzer_plugin"
-          ]
-        },
-        {
-          "name": "analyze pkg/async_helper",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/async_helper"
-          ]
-        },
-        {
-          "name": "analyze pkg/build_integration",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/build_integration"
-          ]
-        },
-        {
-          "name": "analyze pkg/compiler",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/compiler"
-          ]
-        },
-        {
-          "name": "analyze pkg/dart2native",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/dart2native"
-          ]
-        },
-        {
-          "name": "analyze pkg/dartdev",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/dartdev"
-          ]
-        },
-        {
-          "name": "analyze pkg/dart2js_info",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/dart2js_info"
-          ]
-        },
-        {
-          "name": "analyze pkg/dart2js_tools",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/dart2js_tools"
-          ]
-        },
-        {
-          "name": "analyze pkg/dart_internal",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/dart_internal"
-          ]
-        },
-        {
-          "name": "analyze pkg/dev_compiler",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/dev_compiler"
-          ]
-        },
-        {
-          "name": "analyze pkg/expect",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/expect"
-          ]
-        },
-        {
-          "name": "analyze pkg/front_end",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/front_end"
-          ]
-        },
-        {
-          "name": "analyze pkg/js",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/js"
-          ]
-        },
-        {
-          "name": "analyze pkg/js_ast",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/js_ast"
-          ]
-        },
-        {
-          "name": "analyze pkg/kernel",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "pkg/kernel"
-          ]
-        },
-        {
-          "name": "analyze pkg/meta",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/meta"
-          ]
-        },
-        {
-          "name": "analyze pkg/native_stack_traces",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/native_stack_traces"
-          ]
-        },
-        {
-          "name": "analyze pkg/nnbd_migration",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/nnbd_migration"
-          ]
-        },
-        {
-          "name": "analyze pkg/smith",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/smith"
-          ]
-        },
-        {
-          "name": "analyze pkg/sourcemap_testing",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/sourcemap_testing"
-          ]
-        },
-        {
-          "name": "analyze pkg/status_file",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/status_file"
-          ]
-        },
-        {
-          "name": "analyze pkg/telemetry",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/telemetry"
-          ]
-        },
-        {
-          "name": "analyze pkg/test_runner",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/test_runner"
-          ]
-        },
-        {
-          "name": "analyze pkg/testing",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/testing"
-          ]
-        },
-        {
-          "name": "analyze pkg/vm",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/vm"
-          ]
-        },
-        {
-          "name": "analyze pkg/vm_service",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/vm_service"
-          ]
-        },
-        {
-          "name": "analyze pkg/vm_snapshot_analysis",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/vm_snapshot_analysis"
-          ]
-        },
-        {
-          "name": "analyze pkg/dds",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/dds"
-          ]
-        },
-        {
-          "name": "analyze pkg/dds_service_extensions",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--fatal-infos",
-            "pkg/dds_service_extensions"
           ]
         },
         {
@@ -3714,6 +3469,15 @@
           ]
         },
         {
+          "name": "analyze pkg/",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "--fatal-infos",
+            "pkg"
+          ]
+        },
+        {
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
@@ -3721,10 +3485,11 @@
           ]
         },
         {
-          "name": "third_party pkg_tested unit tests",
+          "name": "third_party tested packages",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg_tested"
+            "dart_style",
+            "package_config"
           ]
         },
         {
@@ -3732,6 +3497,15 @@
           "script": "tools/bots/pub_integration_test.py",
           "arguments": [
             "--mode=release"
+          ]
+        },
+        {
+          "name": "analyze tools/",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "--fatal-infos",
+            "tools"
           ]
         }
       ]
@@ -3760,10 +3534,11 @@
           ]
         },
         {
-          "name": "third_party pkg_tested unit tests",
+          "name": "third_party tested packages",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-arm64",
-            "pkg_tested"
+            "dart_style",
+            "package_config"
           ]
         },
         {
@@ -3800,10 +3575,11 @@
           ]
         },
         {
-          "name": "third_party pkg_tested unit tests",
+          "name": "third_party tested packages",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg_tested"
+            "dart_style",
+            "package_config"
           ]
         },
         {

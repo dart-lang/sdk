@@ -2,12 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
+import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,11 +22,40 @@ void main() {
   defineReflectiveTests(ServerPluginTest);
 }
 
-@reflectiveTest
-class ServerPluginTest with ResourceProviderMixin {
-  late MockChannel channel;
-  late _TestServerPlugin plugin;
+abstract class AbstractPluginTest with ResourceProviderMixin {
+  final MockChannel channel = MockChannel();
+  late final ServerPlugin plugin;
 
+  Folder get byteStoreRoot => getFolder('/byteStore');
+
+  Version get pluginSpecificationVersion => Version(0, 1, 0);
+
+  Folder get sdkRoot => getFolder('/sdk');
+
+  ServerPlugin createPlugin();
+
+  @mustCallSuper
+  Future<void> setUp() async {
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
+
+    plugin = createPlugin();
+    plugin.start(channel);
+
+    await plugin.handlePluginVersionCheck(
+      PluginVersionCheckParams(
+        byteStoreRoot.path,
+        sdkRoot.path,
+        pluginSpecificationVersion.canonicalizedVersion,
+      ),
+    );
+  }
+}
+
+@reflectiveTest
+class ServerPluginTest extends AbstractPluginTest {
   late String packagePath1;
   late String filePath1;
   late ContextRoot contextRoot1;
@@ -30,7 +64,14 @@ class ServerPluginTest with ResourceProviderMixin {
   late String filePath2;
   late ContextRoot contextRoot2;
 
-  void setUp() {
+  @override
+  ServerPlugin createPlugin() {
+    return _TestServerPlugin(resourceProvider);
+  }
+
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
     packagePath1 = convertPath('/package1');
     filePath1 = join(packagePath1, 'lib', 'test.dart');
     newFile(filePath1, '');
@@ -40,28 +81,6 @@ class ServerPluginTest with ResourceProviderMixin {
     filePath2 = join(packagePath2, 'lib', 'test.dart');
     newFile(filePath2, '');
     contextRoot2 = ContextRoot(packagePath2, <String>[]);
-
-    channel = MockChannel();
-    plugin = _TestServerPlugin(resourceProvider);
-    plugin.start(channel);
-  }
-
-  Future<void> test_contextRootContaining_insideRoot() async {
-    await plugin.handleAnalysisSetContextRoots(
-        AnalysisSetContextRootsParams([contextRoot1]));
-
-    expect(plugin.contextRootContaining(filePath1), isNotNull);
-  }
-
-  void test_contextRootContaining_noRoots() {
-    expect(plugin.contextRootContaining(filePath1), isNull);
-  }
-
-  Future<void> test_contextRootContaining_outsideRoot() async {
-    await plugin.handleAnalysisSetContextRoots(
-        AnalysisSetContextRootsParams([contextRoot1]));
-
-    expect(plugin.contextRootContaining(filePath2), isNull);
   }
 
   Future<void> test_handleAnalysisGetNavigation() async {
@@ -74,15 +93,6 @@ class ServerPluginTest with ResourceProviderMixin {
     var result = await plugin
         .handleAnalysisHandleWatchEvents(AnalysisHandleWatchEventsParams([]));
     expect(result, isNotNull);
-  }
-
-  Future<void> test_handleAnalysisSetContextRoots() async {
-    var result = await plugin.handleAnalysisSetContextRoots(
-        AnalysisSetContextRootsParams([contextRoot1]));
-    expect(result, isNotNull);
-    var driver = _getDriver(contextRoot1);
-    expect(driver, isNotNull);
-    expect((driver as MockAnalysisDriver).addedFiles, hasLength(1));
   }
 
   Future<void> test_handleAnalysisSetPriorityFiles() async {
@@ -239,12 +249,22 @@ class ServerPluginTest with ResourceProviderMixin {
   }
 
   Future<void> test_onRequest_analysisSetContextRoots() async {
+    final plugin = this.plugin as _TestServerPlugin;
+
+    final analyzedPaths = <String>[];
+    plugin.analyzeFileHandler = ({
+      required AnalysisContext analysisContext,
+      required String path,
+    }) {
+      analyzedPaths.add(path);
+    };
+
     var result = await channel
         .sendRequest(AnalysisSetContextRootsParams([contextRoot1]));
     expect(result, isNotNull);
-    var driver = _getDriver(contextRoot1);
-    expect(driver, isNotNull);
-    expect((driver as MockAnalysisDriver).addedFiles, hasLength(1));
+
+    expect(plugin.invoked_afterNewContextCollection, isTrue);
+    expect(analyzedPaths, [getFile('/package1/lib/test.dart').path]);
   }
 
   Future<void> test_onRequest_analysisSetPriorityFiles() async {
@@ -346,7 +366,7 @@ class ServerPluginTest with ResourceProviderMixin {
       service3: [filePath2]
     });
     plugin.sendNotificationsForFile(filePath1);
-    var notifications = plugin.sentNotifications;
+    var notifications = (plugin as _TestServerPlugin).sentNotifications;
     expect(notifications, hasLength(1));
     var services = notifications[filePath1];
     expect(services, unorderedEquals([service1, service2]));
@@ -356,7 +376,7 @@ class ServerPluginTest with ResourceProviderMixin {
     var subscriptions = <String, List<AnalysisService>>{};
 
     plugin.sendNotificationsForSubscriptions(subscriptions);
-    var notifications = plugin.sentNotifications;
+    var notifications = (plugin as _TestServerPlugin).sentNotifications;
     expect(notifications, hasLength(subscriptions.length));
     for (var path in subscriptions.keys) {
       var subscribedServices = subscriptions[path];
@@ -367,23 +387,42 @@ class ServerPluginTest with ResourceProviderMixin {
           reason: 'Wrong notifications for file $path');
     }
   }
-
-  AnalysisDriverGeneric? _getDriver(ContextRoot targetRoot) {
-    for (var root in plugin.driverMap.keys) {
-      if (root.root == targetRoot.root) {
-        return plugin.driverMap[root];
-      }
-    }
-    return null;
-  }
 }
 
 class _TestServerPlugin extends MockServerPlugin {
   Map<String, List<AnalysisService>> sentNotifications =
       <String, List<AnalysisService>>{};
 
+  bool invoked_afterNewContextCollection = false;
+
+  void Function({
+    required AnalysisContext analysisContext,
+    required String path,
+  })? analyzeFileHandler;
+
   _TestServerPlugin(ResourceProvider resourceProvider)
       : super(resourceProvider);
+
+  @override
+  Future<void> afterNewContextCollection({
+    required AnalysisContextCollection contextCollection,
+  }) async {
+    invoked_afterNewContextCollection = true;
+    return super.afterNewContextCollection(
+      contextCollection: contextCollection,
+    );
+  }
+
+  @override
+  Future<void> analyzeFile({
+    required AnalysisContext analysisContext,
+    required String path,
+  }) async {
+    analyzeFileHandler?.call(
+      analysisContext: analysisContext,
+      path: path,
+    );
+  }
 
   @override
   Future<void> sendFoldingNotification(String path) {

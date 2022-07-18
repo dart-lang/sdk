@@ -740,7 +740,7 @@ import 'lib.dart';
 library my_lib;
 part 'my_unit.dart';
 ''');
-    var element = findElement.part('my_unit.dart');
+    var element = findElement.part('package:test/my_unit.dart');
     assertThat(element).isReferencedAt("'my_unit.dart';", true, length: 14);
   }
 

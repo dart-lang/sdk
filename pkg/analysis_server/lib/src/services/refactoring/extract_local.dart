@@ -230,7 +230,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     }
     if (selectionOffset + selectionLength >= resolveResult.content.length) {
       return RefactoringStatus.fatal(
-          'The selection end offset must be less then the length of the file.');
+          'The selection end offset must be less than the length of the file.');
     }
 
     var selectionStr = utils.getRangeText(selectionRange);

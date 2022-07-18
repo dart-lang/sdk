@@ -7,9 +7,7 @@ abstract class M extends core::Object {
   synthetic constructor •() → self::M
     ;
 }
-abstract class N extends self::M {
-  synthetic constructor •() → self::N
-    ;
+abstract class N extends self::M /*isMixinDeclaration*/  {
   set superM(dynamic value) → void
     ;
   get superM() → dynamic

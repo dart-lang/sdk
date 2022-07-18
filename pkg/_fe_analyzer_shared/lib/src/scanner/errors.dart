@@ -184,9 +184,8 @@ class ScannerErrorCode extends ErrorCode {
    * given [correctionMessage] template.
    */
   const ScannerErrorCode(String name, String problemMessage,
-      {String? correctionMessage})
+      {super.correctionMessage})
       : super(
-          correctionMessage: correctionMessage,
           problemMessage: problemMessage,
           name: name,
           uniqueName: 'ScannerErrorCode.$name',

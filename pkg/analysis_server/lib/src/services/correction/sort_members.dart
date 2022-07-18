@@ -325,6 +325,13 @@ class _PriorityItem {
   }
 
   @override
+  int get hashCode => Object.hash(
+        kind,
+        isPrivate,
+        isStatic,
+      );
+
+  @override
   bool operator ==(Object obj) {
     var other = obj as _PriorityItem;
     if (kind == _MemberKind.CLASS_FIELD) {

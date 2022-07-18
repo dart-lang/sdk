@@ -119,7 +119,10 @@ class KernelAnnotationProcessor {
           } else {
             FunctionEntity function = member;
             ir.Member memberNode = elementMap.getMemberNode(member);
-            String memberName =
+            // Members that are not annotated and not external will result in
+            // null here. For example, the default constructor which is not
+            // user-specified.
+            String /*?*/ memberName =
                 annotationData.getJsInteropMemberName(memberNode);
             if (function.isExternal) {
               memberName ??= function.name;

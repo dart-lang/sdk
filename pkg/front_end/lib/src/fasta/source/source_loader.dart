@@ -52,6 +52,7 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/modifier_builder.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
@@ -68,6 +69,7 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/delayed.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
+import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart'
     show DelayedDefaultValueCloner, TypeDependency;
@@ -1207,7 +1209,7 @@ severity: $severity
     ProcedureBuilder builder = new SourceProcedureBuilder(
         /* metadata = */ null,
         /* modifier flags = */ 0,
-        libraryBuilder.addInferableType(),
+        const ImplicitTypeBuilder(),
         "debugExpr",
         /* type variables = */ null,
         /* formals = */ null,
@@ -1791,10 +1793,10 @@ severity: $severity
     ticker.logMs("Finished $count native methods");
   }
 
-  void finishPatchMethods() {
+  void buildBodyNodes() {
     int count = 0;
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      count += library.finishPatchMethods();
+      count += library.buildBodyNodes();
     }
     ticker.logMs("Finished $count patch methods");
   }
@@ -2018,9 +2020,9 @@ severity: $severity
   }
 
   /// Builds the core AST structure needed for the outline of the component.
-  void buildComponent() {
+  void buildOutlineNodes() {
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      Library target = library.build(coreLibrary);
+      Library target = library.buildOutlineNodes(coreLibrary);
       if (library.referencesFrom != null) {
         referenceFromIndex ??= new ReferenceFromIndex();
         referenceFromIndex!
@@ -2098,6 +2100,18 @@ severity: $severity
 
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
 
+  /// Creates an [InterfaceType] for the `dart:core` type by the given [name].
+  ///
+  /// This method can be called before [coreTypes] has been computed and only
+  /// required [coreLibrary] to have been set.
+  InterfaceType createCoreType(String name, Nullability nullability,
+      [List<DartType>? typeArguments]) {
+    assert(_coreLibrary != null, "Core library has not been computed yet.");
+    ClassBuilder classBuilder =
+        coreLibrary.lookupLocalMember(name, required: true) as ClassBuilder;
+    return new InterfaceType(classBuilder.cls, nullability, typeArguments);
+  }
+
   void computeCoreTypes(Component component) {
     assert(_coreTypes == null, "CoreTypes has already been computed");
     _coreTypes = new CoreTypes(component);
@@ -2116,12 +2130,12 @@ severity: $severity
     ticker.logMs("Computed core types");
   }
 
-  void checkSupertypes(List<SourceClassBuilder> sourceClasses, Class enumClass,
-      Class underscoreEnumClass) {
+  void checkSupertypes(List<SourceClassBuilder> sourceClasses,
+      Class objectClass, Class enumClass, Class underscoreEnumClass) {
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.libraryBuilder.loader == this && !builder.isPatch) {
-        builder.checkSupertypes(coreTypes, hierarchyBuilder, enumClass,
-            underscoreEnumClass, _macroClassBuilder?.cls);
+        builder.checkSupertypes(coreTypes, hierarchyBuilder, objectClass,
+            enumClass, underscoreEnumClass, _macroClassBuilder?.cls);
       }
     }
     ticker.logMs("Checked supertypes");
@@ -2229,7 +2243,7 @@ severity: $severity
 
   void checkMixins(List<SourceClassBuilder> sourceClasses) {
     for (SourceClassBuilder builder in sourceClasses) {
-      if (builder.libraryBuilder.loader == this && !builder.isPatch) {
+      if (!builder.isPatch) {
         Class? mixedInClass = builder.cls.mixedInClass;
         if (mixedInClass != null && mixedInClass.isMixinDeclaration) {
           builder.checkMixinApplication(hierarchy, coreTypes);
@@ -2237,6 +2251,54 @@ severity: $severity
       }
     }
     ticker.logMs("Checked mixin declaration applications");
+  }
+
+  /// Checks that super member access from mixin declarations mixed into
+  /// the classes in the [sourceLibraryBuilders] have a concrete target
+  // TODO(johnniwinther): Make this work for when the mixin declaration is from
+  //  an outline library.
+  void checkMixinSuperAccesses() {
+    _SuperMemberCache superMemberCache = new _SuperMemberCache();
+    for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
+      Map<SourceClassBuilder, TypeBuilder> mixinApplications = {};
+      libraryBuilder.takeMixinApplications(mixinApplications);
+      for (MapEntry<SourceClassBuilder, TypeBuilder> entry
+          in mixinApplications.entries) {
+        SourceClassBuilder mixinApplication = entry.key;
+        if (!mixinApplication.isPatch) {
+          ClassHierarchyNode node =
+              hierarchyBuilder.getNodeFromClassBuilder(mixinApplication);
+          ClassHierarchyNode? mixedInNode = node.mixedInNode;
+          if (mixedInNode != null) {
+            Class mixedInClass = mixedInNode.classBuilder.cls;
+            List<Supertype> onClause = mixedInClass.onClause;
+            if (onClause.isNotEmpty) {
+              for (Procedure procedure in mixedInClass.procedures) {
+                if (procedure.containsSuperCalls) {
+                  procedure.function.body?.accept(new _CheckSuperAccess(
+                      libraryBuilder,
+                      mixinApplication.cls,
+                      entry.value,
+                      procedure,
+                      superMemberCache));
+                }
+              }
+              for (Field field in mixedInClass.fields) {
+                if (field.containsSuperCalls) {
+                  field.initializer?.accept(new _CheckSuperAccess(
+                      libraryBuilder,
+                      mixinApplication.cls,
+                      entry.value,
+                      field,
+                      superMemberCache));
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    ticker.logMs("Checked mixin application super-accesses");
   }
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
@@ -2287,16 +2349,13 @@ severity: $severity
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
     membersBuilder.computeTypes();
 
-    List<SourceFieldBuilder> allImplicitlyTypedFields = [];
-    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      library.collectImplicitlyTypedFields(allImplicitlyTypedFields);
+    List<InferableType> inferableTypes = [];
+    for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
+      libraryBuilder.collectInferableTypes(inferableTypes);
     }
 
-    for (int i = 0; i < allImplicitlyTypedFields.length; i++) {
-      // TODO(ahe): This can cause a crash for parts that failed to get
-      // included, see for example,
-      // tests/standalone_2/io/http_cookie_date_test.dart.
-      allImplicitlyTypedFields[i].inferType();
+    for (InferableType typeBuilder in inferableTypes) {
+      typeBuilder.inferType(typeInferenceEngine.hierarchyBuilder);
     }
 
     typeInferenceEngine.isTypeInferencePrepared = true;
@@ -2607,8 +2666,11 @@ class MapEntry<K, V> {
 
 abstract class Map<K, V> extends Iterable {
   factory Map.unmodifiable(other) => null;
+  factory Map.of(o) = Map<E>._of;
+  external factory Map._of(o);
   Iterable<MapEntry<K, V>> get entries;
   void operator []=(K key, V value) {}
+  void addAll(Map<K, V> other) {}
 }
 
 abstract class pragma {
@@ -2849,5 +2911,120 @@ class _SourceClassGraph implements Graph<SourceClassBuilder> {
   @override
   Iterable<SourceClassBuilder> neighborsOf(SourceClassBuilder vertex) {
     return _supertypeMap[vertex] ??= computeSuperClasses(vertex);
+  }
+}
+
+/// Visitor that checks that super accesses have a concrete target.
+// TODO(johnniwinther): Update this to perform member cloning when needed by
+// the backend.
+class _CheckSuperAccess extends RecursiveVisitor {
+  final SourceLibraryBuilder _sourceLibraryBuilder;
+  final Class _mixinApplicationClass;
+  final TypeBuilder _typeBuilder;
+  final Member _enclosingMember;
+  final _SuperMemberCache cache;
+
+  _CheckSuperAccess(this._sourceLibraryBuilder, this._mixinApplicationClass,
+      this._typeBuilder, this._enclosingMember, this.cache);
+
+  void _checkMember(Name name,
+      {required Template<Message Function(String name)> template,
+      required bool isSetter,
+      required int accessFileOffset}) {
+    Member? member = cache.findSuperMember(
+        _mixinApplicationClass.superclass, name,
+        isSetter: isSetter);
+    if (member == null) {
+      _sourceLibraryBuilder.addProblem(template.withArguments(name.text),
+          _typeBuilder.charOffset!, noLength, _typeBuilder.fileUri!,
+          context: [
+            messageMixinApplicationNoConcreteMemberContext.withLocation(
+                _enclosingMember.fileUri, accessFileOffset, noLength)
+          ]);
+    }
+  }
+
+  @override
+  void visitSuperMethodInvocation(SuperMethodInvocation node) {
+    super.visitSuperMethodInvocation(node);
+    _checkMember(node.interfaceTarget.name,
+        isSetter: false,
+        template: templateMixinApplicationNoConcreteMethod,
+        accessFileOffset: node.fileOffset);
+  }
+
+  @override
+  void visitSuperPropertyGet(SuperPropertyGet node) {
+    super.visitSuperPropertyGet(node);
+    _checkMember(node.interfaceTarget.name,
+        isSetter: false,
+        template: templateMixinApplicationNoConcreteGetter,
+        accessFileOffset: node.fileOffset);
+  }
+
+  @override
+  void visitSuperPropertySet(SuperPropertySet node) {
+    super.visitSuperPropertySet(node);
+    _checkMember(node.interfaceTarget.name,
+        isSetter: true,
+        template: templateMixinApplicationNoConcreteSetter,
+        accessFileOffset: node.fileOffset);
+  }
+}
+
+/// Cache of concrete members, used by [_CheckSuperAccess] to check that super
+/// accesses have a concrete target.
+class _SuperMemberCache {
+  Map<Class, Map<Name, Member>> _getterMaps = {};
+  Map<Class, Map<Name, Member>> _setterMaps = {};
+
+  Map<Name, Member> _computeGetters(Class cls) {
+    Map<Name, Member> cache = {};
+    for (Procedure procedure in cls.procedures) {
+      if (procedure.kind != ProcedureKind.Setter && !procedure.isAbstract) {
+        cache[procedure.name] = procedure;
+      }
+    }
+    for (Field field in cls.fields) {
+      cache[field.name] = field;
+    }
+    return cache;
+  }
+
+  Map<Name, Member> _computeSetters(Class cls) {
+    Map<Name, Member> cache = {};
+    for (Procedure procedure in cls.procedures) {
+      if (procedure.kind == ProcedureKind.Setter && !procedure.isAbstract) {
+        cache[procedure.name] = procedure;
+      }
+    }
+    for (Field field in cls.fields) {
+      if (field.hasSetter) {
+        cache[field.name] = field;
+      }
+    }
+    return cache;
+  }
+
+  Map<Name, Member> _getConcreteMembers(Class cls, {required bool isSetter}) {
+    if (isSetter) {
+      return _setterMaps[cls] ??= _computeSetters(cls);
+    } else {
+      return _getterMaps[cls] ??= _computeGetters(cls);
+    }
+  }
+
+  Member? findSuperMember(Class? superClass, Name name,
+      {required bool isSetter}) {
+    while (superClass != null) {
+      Map<Name, Member> cache =
+          _getConcreteMembers(superClass, isSetter: isSetter);
+      Member? member = cache[name];
+      if (member != null) {
+        return member;
+      }
+      superClass = superClass.superclass;
+    }
+    return null;
   }
 }

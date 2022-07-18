@@ -283,7 +283,15 @@ class Scavenger {
     if (LIKELY(addr != 0)) {
       return addr;
     }
-    TryAllocateNewTLAB(thread, size);
+    TryAllocateNewTLAB(thread, size, true);
+    return TryAllocateFromTLAB(thread, size);
+  }
+  uword TryAllocateNoSafepoint(Thread* thread, intptr_t size) {
+    uword addr = TryAllocateFromTLAB(thread, size);
+    if (LIKELY(addr != 0)) {
+      return addr;
+    }
+    TryAllocateNewTLAB(thread, size, false);
     return TryAllocateFromTLAB(thread, size);
   }
   void AbandonRemainingTLAB(Thread* thread);
@@ -341,16 +349,6 @@ class Scavenger {
   void MakeNewSpaceIterable();
   int64_t FreeSpaceInWords(Isolate* isolate) const;
 
-  void InitGrowthControl() {
-    growth_control_ = true;
-  }
-
-  void SetGrowthControlState(bool state) {
-    growth_control_ = state;
-  }
-
-  bool GrowthControlState() { return growth_control_; }
-
   bool scavenging() const { return scavenging_; }
 
   // The maximum number of Dart mutator threads we allow to execute at the same
@@ -393,7 +391,7 @@ class Scavenger {
     thread->set_top(result + size);
     return result;
   }
-  void TryAllocateNewTLAB(Thread* thread, intptr_t size);
+  void TryAllocateNewTLAB(Thread* thread, intptr_t size, bool can_safepoint);
 
   SemiSpace* Prologue(GCReason reason);
   intptr_t ParallelScavenge(SemiSpace* from);
@@ -448,10 +446,6 @@ class Scavenger {
 
   RelaxedAtomic<bool> failed_to_promote_;
   RelaxedAtomic<bool> abort_;
-
-  // When the isolate group is ready it will enable growth control via
-  // InitGrowthControl.
-  bool growth_control_ = false;
 
   // Protects new space during the allocation of new TLABs
   mutable Mutex space_lock_;

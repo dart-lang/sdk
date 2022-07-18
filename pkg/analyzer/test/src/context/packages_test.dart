@@ -115,8 +115,7 @@ class PackagesTest with ResourceProviderMixin {
   }
 
   test_parsePackagesFile_packageConfig() {
-    var path = convertPath('/test/.dart_tool/package_config.json');
-    newFile(path, '''
+    final file = newFile('/test/.dart_tool/package_config.json', '''
 {
   "configVersion": 2,
   "packages": [
@@ -130,7 +129,7 @@ class PackagesTest with ResourceProviderMixin {
 }
 ''');
 
-    var packages = parsePackagesFile(resourceProvider, getFile(path));
+    var packages = parsePackageConfigJsonFile(resourceProvider, file);
 
     _assertPackage(
       packages,

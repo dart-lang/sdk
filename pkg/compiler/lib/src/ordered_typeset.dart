@@ -10,7 +10,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart'
 import 'common.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
-import 'serialization/serialization_interfaces.dart';
+import 'serialization/serialization.dart';
 
 /// An ordered set of the supertypes of a class. The supertypes of a class are
 /// ordered by decreasing hierarchy depth and by the order they are extended,

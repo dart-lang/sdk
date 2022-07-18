@@ -43,6 +43,10 @@ import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types_resolution.dart';
 import '../js_model/locals.dart';
 import '../kernel/dart2js_target.dart';
+import '../kernel/transformations/late_lowering.dart' as late_lowering
+    show
+        isBackingFieldForLateInstanceField,
+        isBackingFieldForLateFinalInstanceField;
 import '../native/behavior.dart';
 import '../native/enqueue.dart';
 import '../options.dart';
@@ -52,13 +56,25 @@ import '../universe/selector.dart';
 import '../universe/world_impact.dart';
 
 import 'element_map.dart';
+import 'element_map_interfaces.dart' as interfaces
+    show
+        KernelElementEnvironment,
+        KernelToElementMapForClassHierarchy,
+        KernelToElementMapForImpactData,
+        KernelToElementMapForNativeData;
 import 'env.dart';
 import 'kelements.dart';
 import 'kernel_impact.dart';
 
 /// Implementation of [IrToElementMap] that only supports world
 /// impact computation.
-class KernelToElementMap implements IrToElementMap {
+class KernelToElementMap
+    implements
+        interfaces.KernelToElementMapForClassHierarchy,
+        interfaces.KernelToElementMapForImpactData,
+        interfaces.KernelToElementMapForNativeData,
+        IrToElementMap {
+  @override
   final CompilerOptions options;
   @override
   final DiagnosticReporter reporter;
@@ -122,8 +138,10 @@ class KernelToElementMap implements IrToElementMap {
   }
 
   /// Access to the [DartTypes] object.
+  @override
   DartTypes get types => _types;
 
+  @override
   KernelElementEnvironment get elementEnvironment => _elementEnvironment;
 
   /// Access to the commonly used elements and types.
@@ -272,6 +290,7 @@ class KernelToElementMap implements IrToElementMap {
   }
 
   /// Returns the superclass of [cls] if any.
+  @override
   ClassEntity getSuperClass(ClassEntity cls) {
     return getSuperType(cls)?.element;
   }
@@ -406,7 +425,7 @@ class KernelToElementMap implements IrToElementMap {
           //
           // so we need get the superclasses from the on-clause, A, B, and C,
           // through [superclassConstraints].
-          for (ir.Supertype constraint in node.superclassConstraints()) {
+          for (ir.Supertype constraint in node.onClause) {
             interfaces.add(processSupertype(constraint));
           }
           // Set superclass to `Object`.
@@ -700,6 +719,7 @@ class KernelToElementMap implements IrToElementMap {
   //     class A {}
   //     class B = Object with A;
   //     class C = Object with B;
+  @override
   ClassEntity getAppliedMixin(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
@@ -778,7 +798,7 @@ class KernelToElementMap implements IrToElementMap {
   InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
     assert(checkFamily(cls));
     OrderedTypeSet orderedTypeSet = getOrderedTypeSet(type.element);
-    InterfaceType supertype =
+    InterfaceType /*?*/ supertype =
         orderedTypeSet.asInstanceOf(cls, getHierarchyDepth(cls));
     if (supertype != null) {
       supertype = substByContext(supertype, type);
@@ -795,6 +815,7 @@ class KernelToElementMap implements IrToElementMap {
   }
 
   /// Returns all supertypes of [cls].
+  @override
   Iterable<InterfaceType> getSuperTypes(ClassEntity cls) {
     return getOrderedTypeSet(cls).supertypes;
   }
@@ -854,6 +875,7 @@ class KernelToElementMap implements IrToElementMap {
     return ir.StaticTypeContext(getMemberNode(member), typeEnvironment);
   }
 
+  @override
   Dart2jsConstantEvaluator get constantEvaluator {
     return _constantEvaluator ??=
         Dart2jsConstantEvaluator(env.mainComponent, typeEnvironment,
@@ -1009,7 +1031,7 @@ class KernelToElementMap implements IrToElementMap {
     return lookup;
   }
 
-  String _getStringArgument(ir.StaticInvocation node, int index) {
+  String /*?*/ _getStringArgument(ir.StaticInvocation node, int index) {
     return node.arguments.positional[index].accept(Stringifier());
   }
 
@@ -1341,13 +1363,13 @@ class KernelToElementMap implements IrToElementMap {
         constructor, KConstructorDataImpl(node, functionNode));
   }
 
-  FunctionEntity getMethodInternal(ir.Procedure node) {
+  FunctionEntity getMethodInternal(ir.Procedure /*!*/ node) {
     // [_getMethodCreate] inserts the created function in [methodMap] so we
     // don't need to use ??= here.
     return methodMap[node] ?? _getMethodCreate(node);
   }
 
-  FunctionEntity _getMethodCreate(ir.Procedure node) {
+  FunctionEntity /*!*/ _getMethodCreate(ir.Procedure node) {
     assert(
         !envIsClosed,
         "Environment of $this is closed. Trying to create "
@@ -1415,12 +1437,23 @@ class KernelToElementMap implements IrToElementMap {
     }
     Name name = getName(node.name);
     bool isStatic = node.isStatic;
+    bool isLateBackingField = false;
+    bool isLateFinalBackingField = false;
+    if (enclosingClass != null && !isStatic) {
+      isLateBackingField =
+          late_lowering.isBackingFieldForLateInstanceField(node);
+      isLateFinalBackingField =
+          late_lowering.isBackingFieldForLateFinalInstanceField(node);
+    }
     IndexedField field = createField(library, enclosingClass, name,
         isStatic: isStatic,
         isAssignable: node.hasSetter,
         isConst: node.isConst);
     return members.register<IndexedField, KFieldData>(
-        field, KFieldDataImpl(node));
+        field,
+        KFieldDataImpl(node,
+            isLateBackingField: isLateBackingField,
+            isLateFinalBackingField: isLateFinalBackingField));
   }
 
   bool checkFamily(Entity entity) {
@@ -1433,14 +1466,16 @@ class KernelToElementMap implements IrToElementMap {
 
   /// NativeBasicData is need for computation of the default super class.
   NativeBasicData get nativeBasicData {
-    if (_nativeBasicData == null) {
-      _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
+    var data = _nativeBasicData;
+    if (data == null) {
+      data =
+          _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
       assert(
           _nativeBasicData != null,
           failedAt(NO_LOCATION_SPANNABLE,
               "NativeBasicData has not been computed yet."));
     }
-    return _nativeBasicData;
+    return data;
   }
 
   /// Adds libraries in [component] to the set of libraries.
@@ -1566,6 +1601,7 @@ class KernelToElementMap implements IrToElementMap {
 
   /// Returns `true` if [cls] implements `Function` either explicitly or through
   /// a `call` method.
+  @override
   bool implementsFunction(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
@@ -1619,6 +1655,7 @@ class KernelToElementMap implements IrToElementMap {
 
   /// Computes the native behavior for reading the native [field].
   /// TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
       Iterable<String> createsAnnotations, Iterable<String> returnsAnnotations,
       {bool isJsInterop}) {
@@ -1630,6 +1667,7 @@ class KernelToElementMap implements IrToElementMap {
 
   /// Computes the native behavior for writing to the native [field].
   /// TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForFieldStore(ir.Field field) {
     DartType type = getDartType(field.type);
     return nativeBehaviorBuilder.buildFieldStoreBehavior(type);
@@ -1638,6 +1676,7 @@ class KernelToElementMap implements IrToElementMap {
   /// Computes the native behavior for calling the function or constructor
   /// [member].
   /// TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForMethod(ir.Member member,
       Iterable<String> createsAnnotations, Iterable<String> returnsAnnotations,
       {bool isJsInterop}) {
@@ -1732,7 +1771,7 @@ class KernelToElementMap implements IrToElementMap {
 }
 
 class KernelElementEnvironment extends ElementEnvironment
-    implements KElementEnvironment {
+    implements KElementEnvironment, interfaces.KernelElementEnvironment {
   final KernelToElementMap elementMap;
 
   KernelElementEnvironment(this.elementMap);
@@ -1964,6 +2003,20 @@ class KernelElementEnvironment extends ElementEnvironment
       cls = elementMap.getAppliedMixin(cls);
     } while (isMixinApplication(cls));
     return cls;
+  }
+
+  @override
+  bool isLateBackingField(covariant IndexedField field) {
+    assert(elementMap.checkFamily(field));
+    KFieldData fieldData = elementMap.members.getData(field);
+    return fieldData.isLateBackingField;
+  }
+
+  @override
+  bool isLateFinalBackingField(covariant IndexedField field) {
+    assert(elementMap.checkFamily(field));
+    KFieldData fieldData = elementMap.members.getData(field);
+    return fieldData.isLateFinalBackingField;
   }
 }
 

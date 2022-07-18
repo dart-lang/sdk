@@ -174,8 +174,8 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
     case kSuspendStateCid: {
       const SuspendStatePtr raw_suspend_state =
           static_cast<const SuspendStatePtr>(this);
-      intptr_t frame_size = raw_suspend_state->untag()->frame_size_;
-      instance_size = SuspendState::InstanceSize(frame_size);
+      intptr_t frame_capacity = raw_suspend_state->untag()->frame_capacity();
+      instance_size = SuspendState::InstanceSize(frame_capacity);
       break;
     }
     case kTypeArgumentsCid: {
@@ -658,7 +658,7 @@ intptr_t UntaggedSuspendState::VisitSuspendStatePointers(
     }
   }
 
-  return SuspendState::InstanceSize(raw_obj->untag()->frame_size_);
+  return SuspendState::InstanceSize(raw_obj->untag()->frame_capacity());
 }
 
 bool UntaggedCode::ContainsPC(const ObjectPtr raw_obj, uword pc) {

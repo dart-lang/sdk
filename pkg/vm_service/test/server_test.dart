@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 @TestOn('vm')
 import 'dart:async';
 import 'dart:convert';
@@ -14,15 +12,15 @@ import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
 void main() {
-  MockVmService serviceMock;
-  StreamController<Map<String, Object>> requestsController;
-  StreamController<Map<String, Object>> responsesController;
-  ServiceExtensionRegistry serviceRegistry;
+  late MockVmService serviceMock;
+  late StreamController<Map<String, Object>> requestsController;
+  late StreamController<Map<String, Object?>> responsesController;
+  late ServiceExtensionRegistry serviceRegistry;
 
   setUp(() {
     serviceMock = MockVmService();
     requestsController = StreamController<Map<String, Object>>();
-    responsesController = StreamController<Map<String, Object>>();
+    responsesController = StreamController<Map<String, Object?>>();
     serviceRegistry = ServiceExtensionRegistry();
     VmServerConnection(requestsController.stream, responsesController.sink,
         serviceRegistry, serviceMock);
@@ -41,7 +39,6 @@ void main() {
       expect(responsesController.stream, emits(rpcResponse(version)));
       requestsController.add(request);
     });
-
     test('works for methods with parameters', () {
       var isolate = Isolate(
         name: 'isolate',
@@ -61,8 +58,9 @@ void main() {
         breakpoints: [],
         isSystemIsolate: false,
       );
-      var request = rpcRequest("getIsolate", params: {'isolateId': isolate.id});
-      when(serviceMock.getIsolate(isolate.id))
+      var request =
+          rpcRequest("getIsolate", params: {'isolateId': isolate.id!});
+      when(serviceMock.getIsolate(isolate.id!))
           .thenAnswer((Invocation invocation) {
         expect(invocation.positionalArguments, equals([isolate.id]));
         return Future.value(isolate);
@@ -91,13 +89,13 @@ void main() {
         isSystemIsolate: false,
       );
       var request = rpcRequest("setVMTimelineFlags", params: {
-        'isolateId': isolate.id,
+        'isolateId': isolate.id!,
         // Note: the dynamic list below is intentional in order to exercise the
         // code under test.
         'recordedStreams': <dynamic>['GC', 'Dart', 'Embedder'],
       });
       var response = Success();
-      when(serviceMock.getIsolate(isolate.id))
+      when(serviceMock.getIsolate(isolate.id!))
           .thenAnswer((Invocation invocation) {
         expect(invocation.namedArguments,
             equals({Symbol('isolateId'): null, Symbol('args'): null}));
@@ -217,7 +215,7 @@ void main() {
         requestsController.add(request);
         await expectLater(responseQueue, emitsThrough(rpcResponse(response)));
 
-        eventController = serviceMock.streamControllers[streamId];
+        eventController = serviceMock.streamControllers[streamId]!;
 
         var events = [
           Event(
@@ -338,7 +336,7 @@ void main() {
         // Connect another client to get the previous register events and the
         // unregister event.
         var requestsController2 = StreamController<Map<String, Object>>();
-        var responsesController2 = StreamController<Map<String, Object>>();
+        var responsesController2 = StreamController<Map<String, Object?>>();
         addTearDown(() {
           requestsController2.close();
           responsesController2.close();
@@ -370,7 +368,7 @@ void main() {
         // Connect yet another client, it should get zero registration or
         // unregistration events.
         var requestsController3 = StreamController<Map<String, Object>>();
-        var responsesController3 = StreamController<Map<String, Object>>();
+        var responsesController3 = StreamController<Map<String, Object?>>();
 
         VmServerConnection(
           requestsController3.stream,
@@ -397,11 +395,13 @@ void main() {
       var responseQueue = StreamQueue(responsesController.stream);
 
       var clientInputController =
-          StreamController<Map<String, Object>>.broadcast();
+          StreamController<Map<String, Object?>>.broadcast();
       var clientOutputController =
           StreamController<Map<String, Object>>.broadcast();
-      var client = VmService(clientInputController.stream.map(jsonEncode),
-          (String message) => clientOutputController.add(jsonDecode(message)),
+      var client = VmService(
+          clientInputController.stream.map(jsonEncode),
+          (String message) => clientOutputController
+              .add(jsonDecode(message).cast<String, Object>()),
           disposeHandler: () async {
         await clientInputController.close();
         await clientOutputController.close();
@@ -446,11 +446,11 @@ void main() {
 }
 
 Map<String, Object> rpcRequest(String method,
-        {Map<String, Object> params = const {}, String id = "1"}) =>
+        {Map<String, Object>? params = const {}, String id = "1"}) =>
     {
       "jsonrpc": "2.0",
       "method": method,
-      "params": params,
+      if (params != null) "params": params,
       "id": id,
     };
 
@@ -468,7 +468,7 @@ Map<String, Object> rpcErrorResponse(Object error, {String id = "1"}) {
       'message': error.message,
     };
     if (error.data != null) {
-      errorJson['data'] = error.data;
+      errorJson['data'] = error.data!;
     }
   } else {
     errorJson = {
@@ -494,16 +494,59 @@ Map<String, Object> streamNotifyResponse(String streamId, Event event) {
   };
 }
 
-Map<String, Object> stripEventTimestamp(Map response) {
+Map<String, Object?> stripEventTimestamp(Map response) {
   if (response.containsKey('params') &&
       response['params'].containsKey('event')) {
     response['params']['event']['timestamp'] = 0;
   }
-  return response as Map<String, Object>;
+  return response as Map<String, Object?>;
 }
 
 class MockVmService extends Mock implements VmServiceInterface {
   final streamControllers = <String, StreamController<Event>>{};
+
+  @override
+  Future<Version> getVersion() {
+    return super.noSuchMethod(Invocation.method(#getVersion, []),
+        returnValue: Future.value(Version(major: 0, minor: 0)));
+  }
+
+  @override
+  Future<Isolate> getIsolate(String isolateId) {
+    return super.noSuchMethod(Invocation.method(#getIsolate, [isolateId]),
+        returnValue: Future.value(Isolate(
+            id: null,
+            number: null,
+            name: null,
+            isSystemIsolate: null,
+            isolateFlags: null,
+            startTime: null,
+            runnable: null,
+            livePorts: null,
+            pauseOnExit: null,
+            pauseEvent: null,
+            libraries: null,
+            breakpoints: null,
+            exceptionPauseMode: null)));
+  }
+
+  @override
+  Future<Response> callServiceExtension(
+    String method, {
+    String? isolateId,
+    Map<String, dynamic>? args,
+  }) {
+    return super.noSuchMethod(
+        Invocation.method(#callServiceExtension, [method],
+            {#isolateId: isolateId, #args: args}),
+        returnValue: Future.value(Response()));
+  }
+
+  @override
+  Future<Success> streamListen(String streamId) {
+    return super.noSuchMethod(Invocation.method(#streamListen, [streamId]),
+        returnValue: Future.value(Success()));
+  }
 
   @override
   Stream<Event> onEvent(String streamId) => streamControllers

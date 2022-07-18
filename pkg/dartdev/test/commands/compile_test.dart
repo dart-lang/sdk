@@ -1029,10 +1029,15 @@ void main() {}
         outFile,
         inFile,
         'foo',
+        // Ensure training args aren't parsed by the CLI.
+        // See https://github.com/dart-lang/sdk/issues/49302
+        '-e',
+        '--foobar=bar',
       ],
     );
 
-    expect(result.stdout, predicate((dynamic o) => '$o'.contains('[foo]')));
+    expect(result.stdout,
+        predicate((dynamic o) => '$o'.contains('[foo, -e, --foobar=bar]')));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,

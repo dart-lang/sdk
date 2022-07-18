@@ -162,6 +162,17 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitAugmentationImportDirective(AugmentationImportDirective node) {
+    final other = _other as AugmentationImportDirective;
+    return isEqualNodes(
+            node.documentationComment, other.documentationComment) &&
+        _isEqualNodeLists(node.metadata, other.metadata) &&
+        isEqualTokens(node.importKeyword, other.importKeyword) &&
+        isEqualNodes(node.uri, other.uri) &&
+        isEqualTokens(node.semicolon, other.semicolon);
+  }
+
+  @override
   bool visitAwaitExpression(AwaitExpression node) {
     AwaitExpression other = _other as AwaitExpression;
     return isEqualTokens(node.awaitKeyword, other.awaitKeyword) &&
@@ -457,7 +468,7 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualNodes(
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.keyword, other.keyword) &&
+        isEqualTokens(node.exportKeyword, other.exportKeyword) &&
         isEqualNodes(node.uri, other.uri) &&
         _isEqualNodeLists(node.combinators, other.combinators) &&
         isEqualTokens(node.semicolon, other.semicolon);
@@ -749,7 +760,7 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualNodes(
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.keyword, other.keyword) &&
+        isEqualTokens(node.importKeyword, other.importKeyword) &&
         isEqualNodes(node.uri, other.uri) &&
         _isEqualNodeLists(node.configurations, other.configurations) &&
         isEqualTokens(node.deferredKeyword, other.deferredKeyword) &&
@@ -1470,7 +1481,7 @@ class NodeLocator extends UnifyingAstVisitor<void> {
       // Fasta scanner reports unterminated string literal errors
       // and generates a synthetic string token with non-zero length.
       // Because of this, check for length > 0 rather than !isSynthetic.
-      if (endToken.type == TokenType.EOF || endToken.length > 0) {
+      if (endToken.isEof || endToken.length > 0) {
         break;
       }
       endToken = endToken.previous!;
@@ -1559,7 +1570,7 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
       // Fasta scanner reports unterminated string literal errors
       // and generates a synthetic string token with non-zero length.
       // Because of this, check for length > 0 rather than !isSynthetic.
-      if (endToken.type == TokenType.EOF || endToken.length > 0) {
+      if (endToken.isEof || endToken.length > 0) {
         break;
       }
       endToken = endToken.previous!;
@@ -1695,6 +1706,13 @@ class NodeReplacer implements AstVisitor<bool> {
       return true;
     }
     return visitNode(node);
+  }
+
+  @override
+  bool visitAugmentationImportDirective(
+    covariant AugmentationImportDirectiveImpl node,
+  ) {
+    return visitUriBasedDirective(node);
   }
 
   @override

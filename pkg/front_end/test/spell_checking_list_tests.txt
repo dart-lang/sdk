@@ -175,6 +175,7 @@ datatypes
 day
 days
 db
+dbenchmark
 ddart
 dds
 debugger
@@ -182,7 +183,6 @@ declarative
 decrease
 decrements
 dectcem
-defintions
 deleting
 denylist
 depended
@@ -463,6 +463,7 @@ operate
 ops
 optimal
 oracle
+ot
 outbound
 outliers
 overhead

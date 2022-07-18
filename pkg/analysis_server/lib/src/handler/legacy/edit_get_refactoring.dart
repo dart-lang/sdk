@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 
 /// The handler for the `edit.getRefactoring` request.
@@ -16,12 +17,16 @@ class EditGetRefactoringHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
+    var params = EditGetRefactoringParams.fromRequest(request);
+
+    server.analyticsManager.startedGetRefactoring(params);
+
     final refactoringManager = server.refactoringManager;
     if (refactoringManager == null) {
       sendResponse(
           Response.unsupportedFeature(request.id, 'Search is not enabled.'));
       return;
     }
-    refactoringManager.getRefactoring(request, cancellationToken);
+    refactoringManager.getRefactoring(request, params, cancellationToken);
   }
 }

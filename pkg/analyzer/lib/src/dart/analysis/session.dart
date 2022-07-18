@@ -13,9 +13,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 
 /// A concrete implementation of an analysis session.
 class AnalysisSessionImpl implements AnalysisSession {
@@ -36,6 +34,10 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   @override
   DeclaredVariables get declaredVariables => _driver.declaredVariables;
+
+  LinkedElementFactory get elementFactory {
+    return _driver.libraryContext.elementFactory;
+  }
 
   @override
   ResourceProvider get resourceProvider => _driver.resourceProvider;
@@ -132,94 +134,5 @@ class AnalysisSessionImpl implements AnalysisSession {
     if (_driver.hasPendingFileChanges || _driver.currentSession != this) {
       throw InconsistentAnalysisException();
     }
-  }
-}
-
-/// Data structure containing information about the analysis session that is
-/// available synchronously.
-class SynchronousSession {
-  AnalysisOptionsImpl _analysisOptions;
-
-  final DeclaredVariables declaredVariables;
-
-  TypeProviderImpl? _typeProviderLegacy;
-  TypeProviderImpl? _typeProviderNonNullableByDefault;
-
-  TypeSystemImpl? _typeSystemLegacy;
-  TypeSystemImpl? _typeSystemNonNullableByDefault;
-
-  SynchronousSession(this._analysisOptions, this.declaredVariables);
-
-  AnalysisOptionsImpl get analysisOptions => _analysisOptions;
-
-  set analysisOptions(AnalysisOptionsImpl analysisOptions) {
-    _analysisOptions = analysisOptions;
-
-    _typeSystemLegacy?.updateOptions(
-      implicitCasts: analysisOptions.implicitCasts,
-      strictCasts: analysisOptions.strictCasts,
-      strictInference: analysisOptions.strictInference,
-    );
-
-    _typeSystemNonNullableByDefault?.updateOptions(
-      implicitCasts: analysisOptions.implicitCasts,
-      strictCasts: analysisOptions.strictCasts,
-      strictInference: analysisOptions.strictInference,
-    );
-  }
-
-  bool get hasTypeProvider => _typeProviderNonNullableByDefault != null;
-
-  TypeProviderImpl get typeProviderLegacy {
-    return _typeProviderLegacy!;
-  }
-
-  TypeProviderImpl get typeProviderNonNullableByDefault {
-    return _typeProviderNonNullableByDefault!;
-  }
-
-  TypeSystemImpl get typeSystemLegacy {
-    return _typeSystemLegacy!;
-  }
-
-  TypeSystemImpl get typeSystemNonNullableByDefault {
-    return _typeSystemNonNullableByDefault!;
-  }
-
-  void clearTypeProvider() {
-    _typeProviderLegacy = null;
-    _typeProviderNonNullableByDefault = null;
-
-    _typeSystemLegacy = null;
-    _typeSystemNonNullableByDefault = null;
-  }
-
-  void setTypeProviders({
-    required TypeProviderImpl legacy,
-    required TypeProviderImpl nonNullableByDefault,
-  }) {
-    if (_typeProviderLegacy != null ||
-        _typeProviderNonNullableByDefault != null) {
-      throw StateError('TypeProvider(s) can be set only once.');
-    }
-
-    _typeSystemLegacy = TypeSystemImpl(
-      implicitCasts: _analysisOptions.implicitCasts,
-      isNonNullableByDefault: false,
-      strictCasts: _analysisOptions.strictCasts,
-      strictInference: _analysisOptions.strictInference,
-      typeProvider: legacy,
-    );
-
-    _typeSystemNonNullableByDefault = TypeSystemImpl(
-      implicitCasts: _analysisOptions.implicitCasts,
-      isNonNullableByDefault: true,
-      strictCasts: _analysisOptions.strictCasts,
-      strictInference: _analysisOptions.strictInference,
-      typeProvider: nonNullableByDefault,
-    );
-
-    _typeProviderLegacy = legacy;
-    _typeProviderNonNullableByDefault = nonNullableByDefault;
   }
 }

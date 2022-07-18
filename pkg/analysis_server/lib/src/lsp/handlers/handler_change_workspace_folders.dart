@@ -27,15 +27,20 @@ class WorkspaceFoldersHandler
       return success(null);
     }
 
-    final added =
-        params.event.added.map((wf) => Uri.parse(wf.uri).toFilePath()).toList();
+    final added = _convertWorkspaceFolders(params.event.added);
+    final removed = _convertWorkspaceFolders(params.event.removed);
 
-    final removed = params.event.removed
-        .map((wf) => Uri.parse(wf.uri).toFilePath())
-        .toList();
+    server.analyticsManager
+        .changedWorkspaceFolders(added: added, removed: removed);
 
     await server.updateWorkspaceFolders(added, removed);
 
     return success(null);
+  }
+
+  /// Return the result of converting the list of workspace [folders] to file
+  /// paths.
+  List<String> _convertWorkspaceFolders(List<WorkspaceFolder> folders) {
+    return folders.map((wf) => Uri.parse(wf.uri).toFilePath()).toList();
   }
 }

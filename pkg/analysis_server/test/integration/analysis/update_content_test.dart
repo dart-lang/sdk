@@ -25,7 +25,7 @@ void f() {
 
     var badText = goodText.replaceAll(';', '');
     writeFile(path, badText);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     // The contents on disk (badText) are missing a semicolon.
     await analysisFinished;
@@ -73,7 +73,7 @@ void f() {
   print(p);
 }
 ''');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isList);
     var errors1 = existingErrorsForFile(pathname);

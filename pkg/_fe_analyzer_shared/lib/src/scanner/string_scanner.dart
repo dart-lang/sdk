@@ -44,10 +44,10 @@ class StringScanner extends AbstractScanner {
       : string = ensureZeroTermination(string),
         super(configuration, includeComments, languageVersionChanged);
 
-  StringScanner.recoveryOptionScanner(StringScanner copyFrom)
+  StringScanner.recoveryOptionScanner(StringScanner super.copyFrom)
       : string = copyFrom.string,
         scanOffset = copyFrom.scanOffset,
-        super.recoveryOptionScanner(copyFrom);
+        super.recoveryOptionScanner();
 
   StringScanner createRecoveryOptionScanner() {
     return new StringScanner.recoveryOptionScanner(this);

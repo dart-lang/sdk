@@ -144,10 +144,6 @@ abstract class SharedCompiler<Library extends Object, Class extends Object,
   @protected
   Library get coreLibrary;
 
-  /// The import URI of current library.
-  @protected
-  Uri get currentLibraryUri;
-
   /// The current function being compiled, if any.
   @protected
   FunctionNode? get currentFunction;

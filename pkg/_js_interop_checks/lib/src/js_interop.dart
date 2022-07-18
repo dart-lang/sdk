@@ -60,12 +60,10 @@ List<String> getNativeNames(Annotatable a) {
 }
 
 final _packageJs = Uri.parse('package:js/js.dart');
-final _jsWasm = Uri.parse('dart:js_wasm');
 final _internalJs = Uri.parse('dart:_js_annotations');
 final _jsHelper = Uri.parse('dart:_js_helper');
 
-bool _isAnyInteropUri(Uri uri) =>
-    uri == _packageJs || uri == _internalJs || uri == _jsWasm;
+bool _isAnyInteropUri(Uri uri) => uri == _packageJs || uri == _internalJs;
 
 /// Returns true if [value] is the interop annotation whose class is
 /// [annotationClassName] from `package:js` or from `dart:_js_annotations`.

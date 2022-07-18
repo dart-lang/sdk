@@ -16,10 +16,11 @@ import 'package:kernel/ast.dart'
         NullType,
         Nullability,
         Supertype,
+        TreeNode,
         getAsTypeArguments;
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/src/unaliasing.dart';
-import 'package:kernel/text/text_serialization_verifier.dart';
 
 import '../fasta_codes.dart';
 import '../modifier.dart';
@@ -35,6 +36,8 @@ import 'metadata_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
+
+const Uri? noUri = null;
 
 abstract class ClassBuilder implements DeclarationBuilder {
   /// The type variables declared on a class, extension or mixin declaration.
@@ -99,8 +102,8 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   InterfaceType rawType(Nullability nullability);
 
-  List<DartType> buildAliasedTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments);
+  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
+      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy);
 
   Supertype buildMixedInType(
       LibraryBuilder library, List<TypeBuilder>? arguments);
@@ -303,7 +306,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         return nonNullableRawType;
       case Nullability.undetermined:
       default:
-        return unhandled("$nullability", "rawType", noOffset, noUri);
+        return unhandled("$nullability", "rawType", TreeNode.noOffset, noUri);
     }
   }
 
@@ -346,11 +349,12 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       TypeUse typeUse,
       Uri fileUri,
       int charOffset,
+      ClassHierarchyBase? hierarchy,
       {required bool hasExplicitTypeArguments}) {
     return buildAliasedTypeWithBuiltArguments(
         library,
         nullabilityBuilder.build(library),
-        buildAliasedTypeArguments(library, arguments),
+        buildAliasedTypeArguments(library, arguments, hierarchy),
         typeUse,
         fileUri,
         charOffset,
@@ -363,7 +367,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     Class cls = isPatch ? origin.cls : this.cls;
     if (arguments != null) {
       List<DartType> typeArguments =
-          buildAliasedTypeArguments(library, arguments);
+          buildAliasedTypeArguments(library, arguments, /* hierarchy = */ null);
       typeArguments = unaliasTypes(typeArguments,
           legacyEraseAliases: !library.isNonNullableByDefault)!;
       return new Supertype(cls, typeArguments);
@@ -415,9 +419,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         ? hierarchy.getDispatchTarget(instanceClass, name, setter: isSetter)
         : hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
     if (isSuper && target == null) {
-      if (cls.isMixinDeclaration ||
-          (libraryBuilder.loader.target.backendTarget.enableSuperMixins &&
-              this.isAbstract)) {
+      if (cls.isMixinDeclaration) {
         target =
             hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
       }

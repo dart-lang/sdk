@@ -219,8 +219,9 @@ void main() {
                     instanceId,
                     Fixtures.myFunction,
                     FakeIdentifierResolver(),
+                    Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
-                    Fixtures.testClassIntrospector);
+                    Fixtures.testTypeIntrospector);
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -233,8 +234,9 @@ void main() {
                     instanceId,
                     Fixtures.myMethod,
                     FakeIdentifierResolver(),
+                    Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
-                    Fixtures.testClassIntrospector);
+                    Fixtures.testTypeIntrospector);
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -247,8 +249,9 @@ void main() {
                     instanceId,
                     Fixtures.myConstructor,
                     FakeIdentifierResolver(),
+                    Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
-                    Fixtures.testClassIntrospector);
+                    Fixtures.testTypeIntrospector);
                 expect(result.classAugmentations, hasLength(1));
                 expect(
                     result.classAugmentations['MyClass']!.single
@@ -265,8 +268,9 @@ void main() {
                     instanceId,
                     Fixtures.myVariableGetter,
                     FakeIdentifierResolver(),
+                    Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
-                    Fixtures.testClassIntrospector);
+                    Fixtures.testTypeIntrospector);
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -279,8 +283,9 @@ void main() {
                     instanceId,
                     Fixtures.myVariableSetter,
                     FakeIdentifierResolver(),
+                    Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
-                    Fixtures.testClassIntrospector);
+                    Fixtures.testTypeIntrospector);
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -293,8 +298,9 @@ void main() {
                     instanceId,
                     Fixtures.myVariable,
                     FakeIdentifierResolver(),
+                    Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
-                    Fixtures.testClassIntrospector);
+                    Fixtures.testTypeIntrospector);
                 expect(result.classAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -307,8 +313,9 @@ void main() {
                     instanceId,
                     Fixtures.myField,
                     FakeIdentifierResolver(),
+                    Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
-                    Fixtures.testClassIntrospector);
+                    Fixtures.testTypeIntrospector);
                 expect(result.classAugmentations, hasLength(1));
                 expect(
                     result.classAugmentations['MyClass']!.single
@@ -325,8 +332,9 @@ void main() {
                     instanceId,
                     Fixtures.myClass,
                     FakeIdentifierResolver(),
+                    Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
-                    Fixtures.testClassIntrospector);
+                    Fixtures.testTypeIntrospector);
                 expect(result.classAugmentations, hasLength(1));
                 expect(
                     result.classAugmentations['MyClass']!.single
@@ -345,9 +353,9 @@ void main() {
                     instanceId,
                     Fixtures.myFunction,
                     FakeIdentifierResolver(),
-                    Fixtures.testTypeResolver,
-                    Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeResolver,
+                    Fixtures.testTypeIntrospector,
                     Fixtures.testTypeInferrer);
                 expect(result.classAugmentations, isEmpty);
                 expect(
@@ -368,9 +376,9 @@ void main() {
                     instanceId,
                     Fixtures.myMethod,
                     FakeIdentifierResolver(),
-                    Fixtures.testTypeResolver,
-                    Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeResolver,
+                    Fixtures.testTypeIntrospector,
                     Fixtures.testTypeInferrer);
                 expect(definitionResult.classAugmentations, hasLength(1));
                 var augmentationStrings = definitionResult
@@ -387,9 +395,9 @@ void main() {
                     instanceId,
                     Fixtures.myConstructor,
                     FakeIdentifierResolver(),
-                    Fixtures.testTypeResolver,
-                    Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeResolver,
+                    Fixtures.testTypeIntrospector,
                     Fixtures.testTypeInferrer);
                 expect(definitionResult.classAugmentations, hasLength(1));
                 expect(
@@ -405,9 +413,9 @@ void main() {
                     instanceId,
                     Fixtures.myVariableGetter,
                     FakeIdentifierResolver(),
-                    Fixtures.testTypeResolver,
-                    Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeResolver,
+                    Fixtures.testTypeIntrospector,
                     Fixtures.testTypeInferrer);
                 expect(result.classAugmentations, isEmpty);
                 expect(
@@ -428,9 +436,9 @@ void main() {
                     instanceId,
                     Fixtures.myVariableSetter,
                     FakeIdentifierResolver(),
-                    Fixtures.testTypeResolver,
-                    Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeResolver,
+                    Fixtures.testTypeIntrospector,
                     Fixtures.testTypeInferrer);
                 expect(result.classAugmentations, isEmpty);
                 expect(
@@ -452,9 +460,9 @@ void main() {
                     instanceId,
                     Fixtures.myVariable,
                     FakeIdentifierResolver(),
-                    Fixtures.testTypeResolver,
-                    Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeResolver,
+                    Fixtures.testTypeIntrospector,
                     Fixtures.testTypeInferrer);
                 expect(result.classAugmentations, isEmpty);
                 expect(
@@ -484,9 +492,9 @@ void main() {
                     instanceId,
                     Fixtures.myField,
                     FakeIdentifierResolver(),
-                    Fixtures.testTypeResolver,
-                    Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeResolver,
+                    Fixtures.testTypeIntrospector,
                     Fixtures.testTypeInferrer);
                 expect(definitionResult.classAugmentations, hasLength(1));
                 expect(
@@ -501,9 +509,9 @@ void main() {
                     instanceId,
                     Fixtures.myClass,
                     FakeIdentifierResolver(),
-                    Fixtures.testTypeResolver,
-                    Fixtures.testClassIntrospector,
                     Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeResolver,
+                    Fixtures.testTypeIntrospector,
                     Fixtures.testTypeInferrer);
                 expect(definitionResult.classAugmentations, hasLength(1));
                 var augmentationStrings = definitionResult

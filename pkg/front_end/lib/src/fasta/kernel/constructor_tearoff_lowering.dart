@@ -295,7 +295,7 @@ void buildTypedefTearOffProcedure(
 /// The [declarationConstructor] is the [Procedure] for the origin constructor
 /// and [implementationConstructorFunctionNode] is the [FunctionNode] for the
 /// implementation constructor. If the constructor is patched, these are not
-/// connected until [Builder.finishPatch].
+/// connected until [Builder.buildBodyNodes].
 FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters(
     {required Procedure tearOff,
     required Procedure implementationConstructor,
@@ -370,7 +370,7 @@ Procedure _createTearOffProcedure(SourceLibraryBuilder libraryBuilder,
     Name name, Uri fileUri, int fileOffset, Reference? reference) {
   return new Procedure(name, ProcedureKind.Method, new FunctionNode(null),
       fileUri: fileUri, isStatic: true, isSynthetic: true, reference: reference)
-    ..startFileOffset = fileOffset
+    ..fileStartOffset = fileOffset
     ..fileOffset = fileOffset
     ..fileEndOffset = fileOffset
     ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;

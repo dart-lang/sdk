@@ -133,7 +133,7 @@ bool shouldFilterType(String typName, {bool fp = true, bool flatTp = false}) {
   return false;
 }
 
-// Returns true if any of the paramters in the list fails the
+// Returns true if any of the parameters in the list fails the
 // filter criteria.
 bool shouldFilterParameterList(List<String> parameters,
     {bool fp = true, bool flatTp = false}) {
@@ -146,7 +146,7 @@ bool shouldFilterParameterList(List<String> parameters,
 }
 
 // Filter a set of a list of parameters according to their type.
-// A paramter list is only retained if all of the contained paramters
+// A parameter list is only retained if all of the contained parameters
 // pass the filter criteria.
 Set<List<String>> filterParameterList(Set<List<String>> parameterList,
     {bool fp = true, bool flatTp = false}) {

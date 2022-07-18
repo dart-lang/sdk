@@ -529,7 +529,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return new IncrementalCompilerResult(result,
           classHierarchy: currentKernelTarget.loader.hierarchy,
           coreTypes: currentKernelTarget.loader.coreTypes,
-          neededDillLibraries: neededDillLibraries);
+          neededDillLibraries: neededDillLibraries,
+          referenceFromIndex: currentKernelTarget.loader.referenceFromIndex);
     });
   }
 
@@ -1995,7 +1996,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
 
-      debugLibrary.build(lastGoodKernelTarget.loader.coreLibrary,
+      debugLibrary.buildOutlineNodes(lastGoodKernelTarget.loader.coreLibrary,
           modifyTarget: false);
       Expression compiledExpression = await lastGoodKernelTarget.loader
           .buildExpression(

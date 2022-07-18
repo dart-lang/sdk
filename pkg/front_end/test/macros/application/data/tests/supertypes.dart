@@ -13,7 +13,7 @@ import 'dart:core' as prefix0;
 
 augment class A {
 augment prefix0.String getSuperClass() {
-    return "Object";
+    return "null";
   }
 }
 augment class B {
@@ -23,7 +23,7 @@ augment prefix0.String getSuperClass() {
 }
 augment class M {
 augment prefix0.String getSuperClass() {
-    return "Object";
+    return "null";
   }
 }
 augment class C {
@@ -35,9 +35,10 @@ augment prefix0.String getSuperClass() {
 import 'package:macro/macro.dart';
 
 /*class: A:
+definitions:
 augment class A {
 augment String getSuperClass() {
-    return "Object";
+    return "null";
   }
 }*/
 @SupertypesMacro()
@@ -46,6 +47,7 @@ class A {
 }
 
 /*class: B:
+definitions:
 augment class B {
 augment String getSuperClass() {
     return "A";
@@ -57,9 +59,10 @@ class B extends A {
 }
 
 /*class: M:
+definitions:
 augment class M {
 augment String getSuperClass() {
-    return "Object";
+    return "null";
   }
 }*/
 @SupertypesMacro()
@@ -68,6 +71,7 @@ mixin M {
 }
 
 /*class: C:
+definitions:
 augment class C {
 augment String getSuperClass() {
     return "A";

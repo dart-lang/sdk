@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:test/test.dart';
 import 'package:vm/transformations/deferred_loading.dart'
@@ -24,7 +25,9 @@ runTestCase(Uri source) async {
   final reversed = component.libraries.reversed.toList();
   component.libraries.setAll(0, reversed);
 
-  component = transformComponent(component);
+  final coreTypes = CoreTypes(component);
+
+  component = transformComponent(component, coreTypes, target);
 
   // Remove core libraries so the expected output isn't enormous and broken by
   // core libraries changes.

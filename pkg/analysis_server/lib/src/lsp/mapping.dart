@@ -5,7 +5,7 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
@@ -269,7 +269,6 @@ lsp.SymbolKind declarationKindToSymbolKind(
 lsp.CompletionItem declarationToCompletionItem(
   LspClientCapabilities capabilities,
   String file,
-  int offset,
   server.IncludedSuggestionSet includedSuggestionSet,
   Library library,
   Map<String, int> tagBoosts,
@@ -299,6 +298,10 @@ lsp.CompletionItem declarationToCompletionItem(
     label += declaration.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
   }
 
+  final insertionRange = toRange(lineInfo, replacementOffset, insertLength);
+  final replacementRange =
+      toRange(lineInfo, replacementOffset, replacementLength);
+
   final insertTextInfo = _buildInsertText(
     supportsSnippets: supportsSnippets,
     includeCommitCharacters: includeCommitCharacters,
@@ -325,6 +328,7 @@ lsp.CompletionItem declarationToCompletionItem(
       .contains(lsp.CompletionItemTag.Deprecated);
   final supportsAsIsInsertMode =
       capabilities.completionInsertTextModes.contains(InsertTextMode.asIs);
+  final supportsInsertReplace = capabilities.insertReplaceCompletionRanges;
 
   final completionKind = declarationKindToCompletionItemKind(
       capabilities.completionItemKinds, declaration.kind);
@@ -355,24 +359,31 @@ lsp.CompletionItem declarationToCompletionItem(
     filterText: completion != label
         ? completion
         : null, // filterText uses label if not set
-    insertText: insertText != label
-        ? insertText
-        : null, // insertText uses label if not set
     insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
         ? insertTextFormat
         : null, // Defaults to PlainText if not supplied
     insertTextMode: supportsAsIsInsertMode && isMultilineCompletion
         ? InsertTextMode.asIs
         : null,
+    textEdit: supportsInsertReplace && insertionRange != replacementRange
+        ? Either2<InsertReplaceEdit, TextEdit>.t1(
+            InsertReplaceEdit(
+              insert: insertionRange,
+              replace: replacementRange,
+              newText: insertText,
+            ),
+          )
+        : Either2<InsertReplaceEdit, TextEdit>.t2(
+            TextEdit(
+              range: replacementRange,
+              newText: insertText,
+            ),
+          ),
     // data, used for completionItem/resolve.
     data: lsp.DartSuggestionSetCompletionItemResolutionInfo(
-        file: file,
-        offset: offset,
-        libId: includedSuggestionSet.id,
-        displayUri: includedSuggestionSet.displayUri ?? library.uri.toString(),
-        rOffset: replacementOffset,
-        iLength: insertLength,
-        rLength: replacementLength),
+      file: file,
+      libId: includedSuggestionSet.id,
+    ),
   );
 }
 
@@ -973,7 +984,9 @@ lsp.CompletionItem snippetToCompletionItem(
     command = Command(
         title: 'Add import',
         command: Commands.sendWorkspaceEdit,
-        arguments: [workspaceEdit]);
+        arguments: [
+          {'edit': workspaceEdit}
+        ]);
   }
 
   /// Convert the changes to TextEdits using snippet tokens for linked edit
@@ -1103,8 +1116,9 @@ lsp.CompletionItem toCompletionItem(
   LspClientCapabilities capabilities,
   server.LineInfo lineInfo,
   server.CompletionSuggestion suggestion, {
-  Range? replacementRange,
-  Range? insertionRange,
+  required Range replacementRange,
+  required Range insertionRange,
+  bool includeDocs = true,
   required bool includeCommitCharacters,
   required bool completeFunctionCalls,
   CompletionItemResolutionInfo? resolutionData,
@@ -1203,7 +1217,7 @@ lsp.CompletionItem toCompletionItem(
         includeCommitCharacters ? dartCompletionCommitCharacters : null,
     data: resolutionData,
     detail: detail,
-    documentation: cleanedDoc != null
+    documentation: cleanedDoc != null && includeDocs
         ? asMarkupContentOrString(formats, cleanedDoc)
         : null,
     deprecated: supportsCompletionDeprecatedFlag && suggestion.isDeprecated
@@ -1213,31 +1227,26 @@ lsp.CompletionItem toCompletionItem(
     filterText: filterText != label
         ? filterText
         : null, // filterText uses label if not set
-    insertText: insertText != label
-        ? insertText
-        : null, // insertText uses label if not set
     insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
         ? insertTextFormat
         : null, // Defaults to PlainText if not supplied
     insertTextMode: supportsAsIsInsertMode && isMultilineCompletion
         ? InsertTextMode.asIs
         : null,
-    textEdit: (insertionRange == null || replacementRange == null)
-        ? null
-        : supportsInsertReplace && insertionRange != replacementRange
-            ? Either2<InsertReplaceEdit, TextEdit>.t1(
-                InsertReplaceEdit(
-                  insert: insertionRange,
-                  replace: replacementRange,
-                  newText: insertText,
-                ),
-              )
-            : Either2<InsertReplaceEdit, TextEdit>.t2(
-                TextEdit(
-                  range: replacementRange,
-                  newText: insertText,
-                ),
-              ),
+    textEdit: supportsInsertReplace && insertionRange != replacementRange
+        ? Either2<InsertReplaceEdit, TextEdit>.t1(
+            InsertReplaceEdit(
+              insert: insertionRange,
+              replace: replacementRange,
+              newText: insertText,
+            ),
+          )
+        : Either2<InsertReplaceEdit, TextEdit>.t2(
+            TextEdit(
+              range: replacementRange,
+              newText: insertText,
+            ),
+          ),
   );
 }
 

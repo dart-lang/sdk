@@ -73,7 +73,17 @@ void PendingDeopts::ClearPendingDeoptsAtOrBelow(uword fp, ClearReason reason) {
 }
 
 uword PendingDeopts::RemapExceptionPCForDeopt(uword program_counter,
-                                              uword frame_pointer) {
+                                              uword frame_pointer,
+                                              bool* clear_deopt) {
+  *clear_deopt = false;
+  // Do not attempt to deopt at async exception handler as it doesn't
+  // belong to the function code. Async handler never continues execution
+  // in the same frame - it either rethrows exception to the caller or
+  // tail calls Dart handler, leaving the function frame before the call.
+  if (program_counter == StubCode::AsyncExceptionHandler().EntryPoint()) {
+    *clear_deopt = true;
+    return program_counter;
+  }
   // Check if the target frame is scheduled for lazy deopt.
   for (intptr_t i = 0; i < pending_deopts_->length(); i++) {
     if ((*pending_deopts_)[i].fp() == frame_pointer) {

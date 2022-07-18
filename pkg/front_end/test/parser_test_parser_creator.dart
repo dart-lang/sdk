@@ -50,6 +50,7 @@ import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/listener.dart' show Listener;
 import 'package:_fe_analyzer_shared/src/parser/member_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
+import 'package:_fe_analyzer_shared/src/parser/parser_impl.dart' show AwaitOrYieldContext;
 import 'package:_fe_analyzer_shared/src/parser/token_stream_rewriter.dart';
 import 'package:_fe_analyzer_shared/src/parser/type_info.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';

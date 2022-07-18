@@ -272,6 +272,46 @@ import 'package:ddd/ddd.dart';
 ''');
   }
 
+  Future<void> test_findSimplePrintInvocation() async {
+    await resolveTestCode('''
+void f() {
+  print('hi');
+}
+''');
+    var printIdentifier = findNode.simple('print');
+    var expected = findNode.expressionStatement('print');
+    var result = CorrectionUtils(testAnalysisResult)
+        .findSimplePrintInvocation(printIdentifier);
+    expect(result, expected);
+  }
+
+  Future<void> test_findSimplePrintInvocation_custom_print() async {
+    await resolveTestCode('''
+void print(String toPrint) {
+}
+
+void f() {
+  print('hi');
+}
+''');
+    var printIdentifier = findNode.simple('print(\'hi\'');
+    var result = CorrectionUtils(testAnalysisResult)
+        .findSimplePrintInvocation(printIdentifier);
+    expect(result, null);
+  }
+
+  Future<void> test_findSimplePrintInvocation_negative() async {
+    await resolveTestCode('''
+void f() {
+  true ? print('hi') : print('false');
+}
+''');
+    var printIdentifier = findNode.simple('print(\'false');
+    var result = CorrectionUtils(testAnalysisResult)
+        .findSimplePrintInvocation(printIdentifier);
+    expect(result, null);
+  }
+
   Future<void> test_invertCondition_binary_compare() async {
     await assert_invertCondition('0 < 1', '0 >= 1');
     await assert_invertCondition('0 > 1', '0 <= 1');

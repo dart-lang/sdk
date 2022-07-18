@@ -186,7 +186,7 @@ final simpleTestProgramExpectedOutput = [
 /// A simple Dart script that throws in user code.
 const simpleThrowingProgram = r'''
   void main(List<String> args) async {
-    throw 'error';
+    throw Exception('error text');
   }
 ''';
 

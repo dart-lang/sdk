@@ -344,7 +344,7 @@ class NativeEmitter {
           1, indexOfLastOptionalArgumentInParameters + 1);
     } else {
       // Native methods that are not intercepted must be static.
-      assert(member.isStatic, failedAt(member));
+      assert(member.isStatic || member.isTopLevel, failedAt(member));
       arguments = argumentsBuffer.sublist(
           0, indexOfLastOptionalArgumentInParameters + 1);
       if (_nativeData.isJsInteropMember(member)) {

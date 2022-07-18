@@ -409,9 +409,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       assert(graph.isValid(), 'Graph not valid after ${phase.name}');
     }
 
+    // Remove trusted late checks first to uncover read-modify-write patterns in
+    // instruction selection.
+    runPhase(SsaTrustedLateCheckRemover(_abstractValueDomain));
     runPhase(SsaInstructionSelection(_options, _closedWorld));
     runPhase(SsaTypeKnownRemover());
-    runPhase(SsaTrustedCheckRemover(_options));
+    runPhase(SsaTrustedPrimitiveCheckRemover(_options));
     runPhase(SsaAssignmentChaining(_closedWorld));
     runPhase(SsaInstructionMerger(_abstractValueDomain, generateAtUseSite));
     runPhase(SsaConditionMerger(generateAtUseSite, controlFlowOperators));
@@ -3042,10 +3045,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           _commonElements.throwUnnamedLateFieldNI, const [], sourceInformation);
     }
 
-    final lateError =
-        pop().toStatement().withSourceInformation(sourceInformation);
-    pushStatement(js.If.noElse(condition, lateError)
-        .withSourceInformation(sourceInformation));
+    // `condition && helper();` is smaller than `if (condition) helper();`.
+    pushStatement(js.js.statement('# && #;',
+        [condition, pop()]).withSourceInformation(sourceInformation));
   }
 
   @override
@@ -3070,10 +3072,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       _pushCallStatic(
           _commonElements.throwUnnamedLateFieldAI, [], sourceInformation);
     }
-    final lateError =
-        pop().toStatement().withSourceInformation(sourceInformation);
-    pushStatement(js.If.noElse(condition, lateError)
-        .withSourceInformation(sourceInformation));
+
+    // `condition && helper();` is smaller than `if (condition) helper();`.
+    pushStatement(js.js.statement('# && #;',
+        [condition, pop()]).withSourceInformation(sourceInformation));
   }
 
   @override
@@ -3099,10 +3101,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           _commonElements.throwUnnamedLateFieldADI, [], sourceInformation);
     }
 
-    final lateError =
-        pop().toStatement().withSourceInformation(sourceInformation);
-    pushStatement(js.If.noElse(condition, lateError)
-        .withSourceInformation(sourceInformation));
+    // `condition && helper();` is smaller than `if (condition) helper();`.
+    pushStatement(js.js.statement('# && #;',
+        [condition, pop()]).withSourceInformation(sourceInformation));
   }
 
   @override

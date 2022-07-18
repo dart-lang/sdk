@@ -375,7 +375,7 @@ Text
     expect(result.element!.name, MANIFEST_TAG);
     var sourceSpan = result.element!.sourceSpan!;
     expect(sourceSpan.start.offset, equals(0));
-    expect(sourceSpan.end.offset, equals(10));
+    expect(sourceSpan.end.offset, equals(11));
   }
 
   void test_relevantTag_emptyElement_whitespace_nameIsParsed() {
@@ -384,7 +384,7 @@ Text
     expect(result.element!.name, MANIFEST_TAG);
     var sourceSpan = result.element!.sourceSpan!;
     expect(sourceSpan.start.offset, equals(0));
-    expect(sourceSpan.end.offset, equals(11));
+    expect(sourceSpan.end.offset, equals(12));
   }
 
   void test_relevantTag_withAttributes_emptyElement_nameIsParsed() {
@@ -393,7 +393,7 @@ Text
     expect(result.element!.name, MANIFEST_TAG);
     var sourceSpan = result.element!.sourceSpan!;
     expect(sourceSpan.start.offset, equals(0));
-    expect(sourceSpan.end.offset, equals(21));
+    expect(sourceSpan.end.offset, equals(22));
   }
 
   void test_relevantTag_withAttributes_nameIsParsed() {
@@ -403,7 +403,7 @@ Text
     expect(result.element!.name, MANIFEST_TAG);
     var sourceSpan = result.element!.sourceSpan!;
     expect(sourceSpan.start.offset, equals(0));
-    expect(sourceSpan.end.offset, equals(30));
+    expect(sourceSpan.end.offset, equals(31));
   }
 
   void test_tagBeginningWithWhitespace_isError() {

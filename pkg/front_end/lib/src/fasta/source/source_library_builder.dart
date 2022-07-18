@@ -98,7 +98,6 @@ import '../names.dart' show indexSetName;
 import '../operator.dart';
 import '../problems.dart' show unexpected, unhandled;
 import '../scope.dart';
-import '../type_inference/type_inferrer.dart' show TypeInferrer;
 import '../util/helpers.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
@@ -219,8 +218,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// the error message is the corresponding value in the map.
   Map<String, String?>? unserializableExports;
 
-  List<SourceFieldBuilder>? _implicitlyTypedFields;
-
   /// The language version of this library as defined by the language version
   /// of the package it belongs to, if present, or the current language version
   /// otherwise.
@@ -249,6 +246,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// `true` if this is an augmentation library.
   final bool isAugmentation;
 
+  /// Map from synthesized names used for omitted types to their corresponding
+  /// synthesized type declarations.
+  ///
+  /// This is used in macro generated code to create type annotations from
+  /// inferred types in the original code.
+  final Map<String, Builder>? _omittedTypeDeclarationBuilders;
+
   SourceLibraryBuilder.internal(
       SourceLoader loader,
       Uri fileUri,
@@ -261,7 +265,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Library? referencesFrom,
       {bool? referenceIsPartOwner,
       required bool isUnsupported,
-      required bool isAugmentation})
+      required bool isAugmentation,
+      Map<String, Builder>? omittedTypes})
       : this.fromScopes(
             loader,
             fileUri,
@@ -274,7 +279,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             nameOrigin,
             referencesFrom,
             isUnsupported: isUnsupported,
-            isAugmentation: isAugmentation);
+            isAugmentation: isAugmentation,
+            omittedTypes: omittedTypes);
 
   SourceLibraryBuilder.fromScopes(
       this.loader,
@@ -288,13 +294,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       this._nameOrigin,
       this.referencesFrom,
       {required this.isUnsupported,
-      required this.isAugmentation})
+      required this.isAugmentation,
+      Map<String, Builder>? omittedTypes})
       : _languageVersion = packageLanguageVersion,
         currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
         referencesFromIndexed =
             referencesFrom == null ? null : new IndexedLibrary(referencesFrom),
         _origin = origin,
-        super(fileUri, _libraryTypeParameterScopeBuilder.toScope(importScope),
+        _omittedTypeDeclarationBuilders = omittedTypes,
+        super(
+            fileUri,
+            _libraryTypeParameterScopeBuilder.toScope(importScope,
+                omittedTypeDeclarationBuilders: omittedTypes),
             new Scope.top()) {
     assert(
         _packageUri == null ||
@@ -393,7 +404,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Library? referencesFrom,
       bool? referenceIsPartOwner,
       required bool isUnsupported,
-      required bool isAugmentation})
+      required bool isAugmentation,
+      Map<String, Builder>? omittedTypes})
       : this.internal(
             loader,
             fileUri,
@@ -413,7 +425,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             referencesFrom,
             referenceIsPartOwner: referenceIsPartOwner,
             isUnsupported: isUnsupported,
-            isAugmentation: isAugmentation);
+            isAugmentation: isAugmentation,
+            omittedTypes: omittedTypes);
 
   @override
   bool get isPart => partOfName != null || partOfUri != null;
@@ -434,10 +447,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   ///
   /// To support the parser of the [source], the library is registered as an
   /// unparsed library on the [loader].
-  SourceLibraryBuilder createAugmentationLibrary(String source) {
+  SourceLibraryBuilder createAugmentationLibrary(String source,
+      {Map<String, OmittedTypeBuilder>? omittedTypes}) {
     int index = _patchLibraries?.length ?? 0;
     Uri uri =
         new Uri(scheme: augmentationScheme, path: '${fileUri.path}-$index');
+    Map<String, Builder>? omittedTypeDeclarationBuilders;
+    if (omittedTypes != null && omittedTypes.isNotEmpty) {
+      omittedTypeDeclarationBuilders = {};
+      for (MapEntry<String, OmittedTypeBuilder> entry in omittedTypes.entries) {
+        omittedTypeDeclarationBuilders[entry.key] =
+            new OmittedTypeDeclarationBuilder(entry.key, entry.value, this);
+      }
+    }
     SourceLibraryBuilder augmentationLibrary = new SourceLibraryBuilder(
         fileUri: uri,
         importUri: uri,
@@ -447,7 +469,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         target: library,
         origin: this,
         isAugmentation: true,
-        referencesFrom: referencesFrom);
+        referencesFrom: referencesFrom,
+        omittedTypes: omittedTypeDeclarationBuilders);
     addPatchLibrary(augmentationLibrary);
     loader.registerUnparsedLibrarySource(augmentationLibrary, source);
     return augmentationLibrary;
@@ -524,9 +547,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   /// Set the language version to an explicit major and minor version.
   ///
-  /// The default language version specified by the .packages file is passed
-  /// to the constructor, but the library can have source code that specifies
-  /// another one which should be supported.
+  /// The default language version specified by the `package_config.json` file
+  /// is passed to the constructor, but the library can have source code that
+  /// specifies another one which should be supported.
   ///
   /// Only the first registered language version is used.
   ///
@@ -1015,7 +1038,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   /// Builds the core AST structure of this library as needed for the outline.
-  Library build(LibraryBuilder coreLibrary, {bool modifyTarget: true}) {
+  Library buildOutlineNodes(LibraryBuilder coreLibrary,
+      {bool modifyTarget: true}) {
     // TODO(johnniwinther): Avoid the need to process patch libraries before
     // the origin. Currently, settings performed by the patch are overridden
     // by the origin. For instance, the `Map` class is abstract in the origin
@@ -1025,7 +1049,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.build(coreLibrary, modifyTarget: modifyTarget);
+        patchLibrary.buildOutlineNodes(coreLibrary, modifyTarget: modifyTarget);
       }
     }
 
@@ -1035,7 +1059,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     Iterator<Builder> iterator = this.iterator;
     while (iterator.moveNext()) {
-      buildBuilder(iterator.current, coreLibrary);
+      _buildOutlineNodes(iterator.current, coreLibrary);
     }
 
     if (!modifyTarget) return library;
@@ -1276,15 +1300,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         (library.problemsAsJson ??= <String>[])
             .addAll(part.library.problemsAsJson!);
       }
-      List<SourceFieldBuilder> partImplicitlyTypedFields = [];
-      part.collectImplicitlyTypedFields(partImplicitlyTypedFields);
-      if (partImplicitlyTypedFields.isNotEmpty) {
-        if (_implicitlyTypedFields == null) {
-          _implicitlyTypedFields = partImplicitlyTypedFields;
-        } else {
-          _implicitlyTypedFields!.addAll(partImplicitlyTypedFields);
-        }
-      }
+      part.collectInferableTypes(_inferableTypes!);
+      part.takeMixinApplications(_mixinApplications!);
       if (library != part.library) {
         // Mark the part library as synthetic as it's not an actual library
         // (anymore).
@@ -1584,17 +1601,42 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     //addBuilder("Null", new NullTypeBuilder(const NullType(), this, -1), -1);
   }
 
-  OmittedTypeBuilder addInferableType() {
-    // TODO(johnniwinther): Register inferable types in a backlog.
-    return new OmittedTypeBuilder();
+  List<InferableType>? _inferableTypes = [];
+
+  InferableTypeBuilder addInferableType() {
+    InferableTypeBuilder typeBuilder = new InferableTypeBuilder();
+    registerInferableType(typeBuilder);
+    return typeBuilder;
   }
 
-  NamedTypeBuilder addNamedType(
-      Object name,
-      NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments,
-      int charOffset,
+  void registerInferableType(InferableType inferableType) {
+    assert(_inferableTypes != null,
+        "Late registration of inferable type $inferableType.");
+    _inferableTypes?.add(inferableType);
+  }
+
+  void collectInferableTypes(List<InferableType> inferableTypes) {
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        patchLibrary.collectInferableTypes(inferableTypes);
+      }
+    }
+    if (_inferableTypes != null) {
+      inferableTypes.addAll(_inferableTypes!);
+    }
+    _inferableTypes = null;
+  }
+
+  TypeBuilder addNamedType(Object name, NullabilityBuilder nullabilityBuilder,
+      List<TypeBuilder>? arguments, int charOffset,
       {required InstanceTypeVariableAccessState instanceTypeVariableAccess}) {
+    if (_omittedTypeDeclarationBuilders != null) {
+      Builder? builder = _omittedTypeDeclarationBuilders![name];
+      if (builder is OmittedTypeDeclarationBuilder) {
+        return new DependentTypeBuilder(builder.omittedTypeBuilder);
+      }
+    }
     return registerUnresolvedNamedType(new NamedTypeBuilder(
         name, nullabilityBuilder,
         arguments: arguments,
@@ -1610,53 +1652,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   TypeBuilder addVoidType(int charOffset) {
     // 'void' is always nullable.
-    return addNamedType(
-        "void", const NullabilityBuilder.inherent(), null, charOffset,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
-      ..bind(this,
-          new VoidTypeDeclarationBuilder(const VoidType(), this, charOffset));
-  }
-
-  void _checkBadFunctionParameter(List<TypeVariableBuilder>? typeVariables) {
-    if (typeVariables == null || typeVariables.isEmpty) {
-      return;
-    }
-
-    for (TypeVariableBuilder type in typeVariables) {
-      if (type.name == "Function") {
-        addProblem(messageFunctionAsTypeParameter, type.charOffset,
-            type.name.length, type.fileUri!);
-      }
-    }
-  }
-
-  void _checkBadFunctionDeclUse(
-      String className, TypeParameterScopeKind kind, int charOffset) {
-    String? decType;
-    switch (kind) {
-      case TypeParameterScopeKind.classDeclaration:
-        decType = "class";
-        break;
-      case TypeParameterScopeKind.mixinDeclaration:
-        decType = "mixin";
-        break;
-      case TypeParameterScopeKind.extensionDeclaration:
-        decType = "extension";
-        break;
-      default:
-        break;
-    }
-    if (className != "Function") {
-      return;
-    }
-    if (decType == "class" && importUri.isScheme("dart")) {
-      // Allow declaration of class Function in the sdk.
-      return;
-    }
-    if (decType != null) {
-      addProblem(templateFunctionUsedAsDec.withArguments(decType), charOffset,
-          className.length, fileUri);
-    }
+    return new NamedTypeBuilder.fromTypeDeclarationBuilder(
+        new VoidTypeDeclarationBuilder(const VoidType(), this, charOffset),
+        const NullabilityBuilder.inherent(),
+        charOffset: charOffset,
+        fileUri: fileUri,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
   }
 
   /// Add a problem that might not be reported immediately.
@@ -1792,8 +1793,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int supertypeOffset,
       {required bool isMacro,
       required bool isAugmentation}) {
-    _checkBadFunctionDeclUse(className, kind, nameOffset);
-    _checkBadFunctionParameter(typeVariables);
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(kind, className)
@@ -1822,12 +1821,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (declaration.declaresConstConstructor) {
       modifiers |= declaresConstConstructorMask;
     }
-    ClassBuilder classBuilder = new SourceClassBuilder(
+    SourceClassBuilder classBuilder = new SourceClassBuilder(
         metadata,
         modifiers,
         className,
         typeVariables,
-        applyMixins(supertype, mixins, startOffset, nameOffset, endOffset,
+        _applyMixins(supertype, mixins, startOffset, nameOffset, endOffset,
             className, isMixinDeclaration,
             typeVariables: typeVariables,
             isMacro: false,
@@ -2026,9 +2025,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int startOffset,
       int nameOffset,
       int endOffset) {
-    _checkBadFunctionDeclUse(
-        extensionName, TypeParameterScopeKind.extensionDeclaration, nameOffset);
-    _checkBadFunctionParameter(typeVariables);
     // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
     TypeParameterScopeBuilder declaration = endNestedDeclaration(
         TypeParameterScopeKind.extensionDeclaration, extensionName)
@@ -2096,7 +2092,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         getterReference: referenceFrom?.reference);
   }
 
-  TypeBuilder? applyMixins(
+  TypeBuilder? _applyMixins(
       TypeBuilder? supertype,
       MixinApplicationBuilder? mixinApplications,
       int startCharOffset,
@@ -2356,10 +2352,39 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             applicationTypeArguments, charOffset,
             instanceTypeVariableAccess:
                 InstanceTypeVariableAccessState.Allowed);
+        registerMixinApplication(application, mixin);
       }
       return supertype;
     } else {
       return supertype;
+    }
+  }
+
+  Map<SourceClassBuilder, TypeBuilder>? _mixinApplications = {};
+
+  /// Registers that [mixinApplication] is a mixin application introduced by
+  /// the [mixedInType] in a with-clause.
+  ///
+  /// This is used to check that super access in mixin declarations have a
+  /// concrete target.
+  void registerMixinApplication(
+      SourceClassBuilder mixinApplication, TypeBuilder mixedInType) {
+    assert(
+        _mixinApplications != null, "Late registration of mixin application.");
+    _mixinApplications![mixinApplication] = mixedInType;
+  }
+
+  void takeMixinApplications(
+      Map<SourceClassBuilder, TypeBuilder> mixinApplications) {
+    assert(_mixinApplications != null,
+        "Mixin applications have already been processed.");
+    mixinApplications.addAll(_mixinApplications!);
+    _mixinApplications = null;
+    Iterable<SourceLibraryBuilder>? patchLibraries = this.patchLibraries;
+    if (patchLibraries != null) {
+      for (SourceLibraryBuilder patchLibrary in patchLibraries) {
+        patchLibrary.takeMixinApplications(mixinApplications);
+      }
     }
   }
 
@@ -2379,7 +2404,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(TypeParameterScopeKind.namedMixinApplication, name)
         .resolveNamedTypes(typeVariables, this);
-    supertype = applyMixins(supertype, mixinApplication, startCharOffset,
+    supertype = _applyMixins(supertype, mixinApplication, startCharOffset,
         charOffset, charEndOffset, name, false,
         metadata: metadata,
         name: name,
@@ -2684,22 +2709,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charEndOffset,
       String? nativeMethodName,
       AsyncMarker asyncModifier) {
-    NamedTypeBuilder returnType = addNamedType(
-        currentTypeParameterScopeBuilder.parent!.name,
-        const NullabilityBuilder.omitted(),
-        <TypeBuilder>[],
-        charOffset,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed);
+    TypeBuilder returnType;
     if (currentTypeParameterScopeBuilder.parent?.kind ==
         TypeParameterScopeKind.extensionDeclaration) {
       // Make the synthesized return type invalid for extensions.
       String name = currentTypeParameterScopeBuilder.parent!.name;
-      returnType.bind(
-          this,
-          new InvalidTypeDeclarationBuilder(
-              name,
-              messageExtensionDeclaresConstructor.withLocation(
-                  fileUri, charOffset, name.length)));
+      returnType = new NamedTypeBuilder.forInvalidType(
+          currentTypeParameterScopeBuilder.parent!.name,
+          const NullabilityBuilder.omitted(),
+          messageExtensionDeclaresConstructor.withLocation(
+              fileUri, charOffset, name.length));
+    } else {
+      returnType = addNamedType(currentTypeParameterScopeBuilder.parent!.name,
+          const NullabilityBuilder.omitted(), <TypeBuilder>[], charOffset,
+          instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed);
     }
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
     TypeParameterScopeBuilder factoryDeclaration = endNestedDeclaration(
@@ -2738,13 +2761,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     SourceFactoryBuilder procedureBuilder;
+    List<TypeVariableBuilder> typeVariables;
     if (redirectionTarget != null) {
       procedureBuilder = new RedirectingFactoryBuilder(
           metadata,
           staticMask | modifiers,
           returnType,
           procedureName,
-          copyTypeVariables(
+          typeVariables = copyTypeVariables(
               currentTypeParameterScopeBuilder.typeVariables ??
                   const <TypeVariableBuilder>[],
               factoryDeclaration,
@@ -2766,7 +2790,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           staticMask | modifiers,
           returnType,
           procedureName,
-          copyTypeVariables(
+          typeVariables = copyTypeVariables(
               currentTypeParameterScopeBuilder.typeVariables ??
                   const <TypeVariableBuilder>[],
               factoryDeclaration,
@@ -2787,11 +2811,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     TypeParameterScopeBuilder savedDeclaration =
         currentTypeParameterScopeBuilder;
     currentTypeParameterScopeBuilder = factoryDeclaration;
-    for (TypeVariableBuilder tv in procedureBuilder.typeVariables!) {
-      NamedTypeBuilder t = procedureBuilder.returnType as NamedTypeBuilder;
-      t.arguments!.add(addNamedType(tv.name, const NullabilityBuilder.omitted(),
-          null, procedureBuilder.charOffset,
-          instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed));
+    if (returnType is NamedTypeBuilder && !typeVariables.isEmpty) {
+      returnType.arguments =
+          new List<TypeBuilder>.generate(typeVariables.length, (int index) {
+        return addNamedType(
+            typeVariables[index].name,
+            const NullabilityBuilder.omitted(),
+            null,
+            procedureBuilder.charOffset,
+            instanceTypeVariableAccess:
+                InstanceTypeVariableAccessState.Allowed);
+      });
     }
     currentTypeParameterScopeBuilder = savedDeclaration;
 
@@ -2830,7 +2860,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         metadata,
         name,
         typeVariables,
-        applyMixins(
+        _applyMixins(
             loader.target.underscoreEnumType,
             supertypeBuilder,
             startCharOffset,
@@ -3021,7 +3051,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   /// Builds the core AST structures for [declaration] needed for the outline.
-  void buildBuilder(Builder declaration, LibraryBuilder coreLibrary) {
+  void _buildOutlineNodes(Builder declaration, LibraryBuilder coreLibrary) {
     String findDuplicateSuffix(Builder declaration) {
       if (declaration.next != null) {
         int count = 0;
@@ -3048,34 +3078,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         library.addExtension(extension);
       }
     } else if (declaration is SourceMemberBuilder) {
-      declaration.buildMembers((Member member, BuiltMemberKind memberKind) {
-        if (member is Field) {
-          member.isStatic = true;
-          if (!declaration.isPatch && !declaration.isDuplicate) {
-            library.addField(member);
-          }
-        } else if (member is Procedure) {
-          member.isStatic = true;
-          if (!declaration.isPatch &&
-              !declaration.isDuplicate &&
-              !declaration.isConflictingSetter) {
-            library.addProcedure(member);
-          }
-        } else {
-          unhandled("${member.runtimeType}:${memberKind}", "buildBuilder",
-              declaration.charOffset, declaration.fileUri);
-        }
+      declaration
+          .buildOutlineNodes((Member member, BuiltMemberKind memberKind) {
+        _addMemberToLibrary(declaration, member, memberKind);
       });
     } else if (declaration is SourceTypeAliasBuilder) {
       Typedef typedef = declaration.build();
       if (!declaration.isPatch && !declaration.isDuplicate) {
         library.addTypedef(typedef);
-      }
-    } else if (declaration is SourceEnumBuilder) {
-      Class cls = declaration.build(coreLibrary);
-      if (!declaration.isPatch) {
-        cls.name += findDuplicateSuffix(declaration);
-        library.addClass(cls);
       }
     } else if (declaration is PrefixBuilder) {
       // Ignored. Kernel doesn't represent prefixes.
@@ -3085,6 +3095,26 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       return;
     } else {
       unhandled("${declaration.runtimeType}", "buildBuilder",
+          declaration.charOffset, declaration.fileUri);
+    }
+  }
+
+  void _addMemberToLibrary(SourceMemberBuilder declaration, Member member,
+      BuiltMemberKind memberKind) {
+    if (member is Field) {
+      member.isStatic = true;
+      if (!declaration.isPatch && !declaration.isDuplicate) {
+        library.addField(member);
+      }
+    } else if (member is Procedure) {
+      member.isStatic = true;
+      if (!declaration.isPatch &&
+          !declaration.isDuplicate &&
+          !declaration.isConflictingSetter) {
+        library.addProcedure(member);
+      }
+    } else {
+      unhandled("${member.runtimeType}:${memberKind}", "_buildMember",
           declaration.charOffset, declaration.fileUri);
     }
   }
@@ -3905,20 +3935,43 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  int finishPatchMethods() {
+  /// Builds the AST nodes needed for the full compilation.
+  ///
+  /// This includes patching member bodies and adding augmented members.
+  int buildBodyNodes() {
     int count = 0;
 
     Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
-        count += patchLibrary.finishPatchMethods();
+        count += patchLibrary.buildBodyNodes();
       }
     }
 
-    if (isPatch) {
-      Iterator<Builder> iterator = this.iterator;
-      while (iterator.moveNext()) {
-        count += iterator.current.finishPatch();
+    Iterator<Builder> iterator = this.iterator;
+    while (iterator.moveNext()) {
+      Builder builder = iterator.current;
+      if (builder is SourceMemberBuilder) {
+        count +=
+            builder.buildBodyNodes((Member member, BuiltMemberKind memberKind) {
+          _addMemberToLibrary(builder, member, memberKind);
+        });
+      } else if (builder is SourceClassBuilder) {
+        count += builder.buildBodyNodes();
+      } else if (builder is SourceExtensionBuilder) {
+        count +=
+            builder.buildBodyNodes(addMembersToLibrary: !builder.isDuplicate);
+      } else if (builder is SourceClassBuilder) {
+        count += builder.buildBodyNodes();
+      } else if (builder is SourceTypeAliasBuilder) {
+        // Do nothing.
+      } else if (builder is PrefixBuilder) {
+        // Ignored. Kernel doesn't represent prefixes.
+      } else if (builder is BuiltinTypeDeclarationBuilder) {
+        // Nothing needed.
+      } else {
+        unhandled("${builder.runtimeType}", "buildBodyNodes",
+            builder.charOffset, builder.fileUri);
       }
     }
     return count;
@@ -3926,10 +3979,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void injectMemberFromPatch(String name, Builder member) {
     if (member.isSetter) {
-      assert(scope.lookupLocalMember(name, setter: true) == null);
+      assert(
+          scope.lookupLocalMember(name, setter: true) == null,
+          "Setter $name already bound to "
+          "${scope.lookupLocalMember(name, setter: true)}, "
+          "trying to add $member.");
       scope.addLocalMember(name, member as MemberBuilder, setter: true);
     } else {
-      assert(scope.lookupLocalMember(name, setter: false) == null);
+      assert(
+          scope.lookupLocalMember(name, setter: false) == null,
+          "Member $name already bound to "
+          "${scope.lookupLocalMember(name, setter: false)}, "
+          "trying to add $member.");
       scope.addLocalMember(name, member, setter: false);
     }
   }
@@ -4237,7 +4298,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       DartType receiverType,
       TypeEnvironment typeEnvironment,
       ClassHierarchy hierarchy,
-      TypeInferrer typeInferrer,
       Name name,
       Member? interfaceTarget,
       Arguments arguments,
@@ -4314,7 +4374,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkBoundsInFunctionInvocation(
       TypeEnvironment typeEnvironment,
       ClassHierarchy hierarchy,
-      TypeInferrer typeInferrer,
       FunctionType functionType,
       String? localName,
       Arguments arguments,
@@ -4349,7 +4408,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkBoundsInInstantiation(
       TypeEnvironment typeEnvironment,
       ClassHierarchy hierarchy,
-      TypeInferrer typeInferrer,
       FunctionType functionType,
       List<DartType> typeArguments,
       Uri fileUri,
@@ -4636,25 +4694,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
         extensionBuilder.extension.showHideClause ??= showHideClause;
       }
-    }
-  }
-
-  void registerImplicitlyTypedField(SourceFieldBuilder fieldBuilder) {
-    (_implicitlyTypedFields ??= <SourceFieldBuilder>[]).add(fieldBuilder);
-  }
-
-  void collectImplicitlyTypedFields(
-      List<FieldBuilder> implicitlyTypedFieldBuilders) {
-    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
-    if (patches != null) {
-      for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.collectImplicitlyTypedFields(implicitlyTypedFieldBuilders);
-      }
-    }
-
-    if (_implicitlyTypedFields != null) {
-      implicitlyTypedFieldBuilders.addAll(_implicitlyTypedFields!);
-      _implicitlyTypedFields = null;
     }
   }
 
@@ -5132,7 +5171,16 @@ class TypeParameterScopeBuilder {
     unresolvedNamedTypes.clear();
   }
 
-  Scope toScope(Scope? parent) {
+  Scope toScope(Scope? parent,
+      {Map<String, Builder>? omittedTypeDeclarationBuilders}) {
+    if (omittedTypeDeclarationBuilders != null &&
+        omittedTypeDeclarationBuilders.isNotEmpty) {
+      parent = new Scope(
+          local: omittedTypeDeclarationBuilders,
+          parent: parent,
+          debugName: 'omitted-types',
+          isModifiable: false);
+    }
     return new Scope(
         local: members ?? const {},
         setters: setters,

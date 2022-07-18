@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--async-debugger --verbose-debug --lazy-async-stacks
+// VMOptions=--async-debugger --verbose-debug
 
 import 'dart:developer';
 import 'package:test/test.dart';
@@ -49,9 +49,9 @@ var tests = <IsolateTest>[
     List<Frame> awaiterFrames = stack.awaiterFrames!;
     expect(awaiterFrames.length, greaterThanOrEqualTo(2));
     // Awaiter frame.
-    expect(awaiterFrames[0].function!.owner.name, 'foobar');
+    expect(awaiterFrames[0].function!.name, 'foobar');
     // Awaiter frame.
-    expect(awaiterFrames[1].function!.owner.name, 'helper');
+    expect(awaiterFrames[1].function!.name, 'helper');
   },
 ];
 

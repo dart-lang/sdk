@@ -47,6 +47,7 @@ import '../messages.dart'
         noLength;
 import '../scope.dart';
 import '../source/source_class_builder.dart';
+import '../source/source_enum_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 import '../source/source_member_builder.dart';
@@ -59,14 +60,14 @@ import 'source_function_builder.dart';
 abstract class SourceConstructorBuilder
     implements ConstructorBuilder, SourceMemberBuilder {
   /// Infers the types of any untyped initializing formals.
-  void inferFormalTypes(TypeEnvironment typeEnvironment);
+  void inferFormalTypes(ClassHierarchyBase hierarchy);
 
   void addSuperParameterDefaultValueCloners(
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
 }
 
 class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
-    implements SourceConstructorBuilder {
+    implements SourceConstructorBuilder, Inferable {
   @override
   final OmittedTypeBuilder returnType;
 
@@ -92,6 +93,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   List<DeclaredSourceConstructorBuilder>? _patches;
 
   bool _hasFormalsInferred = false;
+
+  bool _hasDefaultValueCloner = false;
 
   final bool _hasSuperInitializingFormals;
 
@@ -141,7 +144,15 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
         _hasSuperInitializingFormals =
             formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
         super(metadata, modifiers, name, typeVariables, formals,
-            compilationUnit, charOffset, nativeMethodName);
+            compilationUnit, charOffset, nativeMethodName) {
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals!) {
+        if (formal.isInitializingFormal || formal.isSuperInitializingFormal) {
+          formal.type.registerInferable(this);
+        }
+      }
+    }
+  }
 
   @override
   SourceClassBuilder get classBuilder =>
@@ -188,9 +199,9 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
-  void buildMembers(void Function(Member, BuiltMemberKind) f) {
-    Member member = build();
-    f(member, BuiltMemberKind.Constructor);
+  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+    _build();
+    f(_constructor, BuiltMemberKind.Constructor);
     if (_constructorTearOff != null) {
       f(_constructorTearOff!, BuiltMemberKind.Method);
     }
@@ -198,8 +209,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
 
   bool _hasBeenBuilt = false;
 
-  @override
-  Constructor build() {
+  void _build() {
     if (!_hasBeenBuilt) {
       buildFunction();
       _constructor.function.fileOffset = charOpenParenOffset;
@@ -223,7 +233,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     if (formals != null) {
       bool needsInference = false;
       for (FormalParameterBuilder formal in formals!) {
-        if (formal.type is OmittedTypeBuilder &&
+        if (formal.type is InferableTypeBuilder &&
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
           formal.variable!.type = const UnknownType();
           needsInference = true;
@@ -237,17 +247,30 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
             .registerConstructorToBeInferred(_constructor, this);
       }
     }
-    return _constructor;
   }
 
   @override
-  void inferFormalTypes(TypeEnvironment typeEnvironment) {
+  VariableDeclaration getFormalParameter(int index) {
+    if (parent is SourceEnumBuilder) {
+      return formals![index + 2].variable!;
+    } else {
+      return super.getFormalParameter(index);
+    }
+  }
+
+  @override
+  void inferTypes(ClassHierarchyBase hierarchy) {
+    inferFormalTypes(hierarchy);
+  }
+
+  @override
+  void inferFormalTypes(ClassHierarchyBase hierarchy) {
     if (_hasFormalsInferred) return;
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
-        if (formal.type is OmittedTypeBuilder) {
+        if (formal.type is InferableTypeBuilder) {
           if (formal.isInitializingFormal) {
-            formal.finalizeInitializingFormal(classBuilder);
+            formal.finalizeInitializingFormal(classBuilder, hierarchy);
           }
         }
       }
@@ -265,7 +288,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
               doFinishConstructor: false);
         }
         finalizeSuperInitializingFormals(
-            typeEnvironment, _superParameterDefaultValueCloners, initializers);
+            hierarchy, _superParameterDefaultValueCloners, initializers);
       }
     }
     _hasFormalsInferred = true;
@@ -320,7 +343,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   }
 
   void finalizeSuperInitializingFormals(
-      TypeEnvironment typeEnvironment,
+      ClassHierarchyBase hierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
       List<Initializer>? initializers) {
     if (formals == null) return;
@@ -338,7 +361,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
         _computeSuperTargetBuilder(initializers);
 
     if (superTargetBuilder is SourceConstructorBuilder) {
-      superTargetBuilder.inferFormalTypes(typeEnvironment);
+      superTargetBuilder.inferFormalTypes(hierarchy);
     }
 
     Constructor superTarget;
@@ -373,8 +396,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     List<int?>? positionalSuperParameters;
     List<String>? namedSuperParameters;
 
-    Supertype? supertype = typeEnvironment.hierarchy
-        .getClassAsInstanceOf(classBuilder.cls, superTarget.enclosingClass);
+    Supertype? supertype = hierarchy.getClassAsInstanceOf(
+        classBuilder.cls, superTarget.enclosingClass);
     assert(supertype != null);
     Map<TypeParameter, DartType> substitution =
         new Map<TypeParameter, DartType>.fromIterables(
@@ -425,7 +448,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
           }
         }
 
-        if (formal.type is OmittedTypeBuilder) {
+        if (formal.type is InferableTypeBuilder) {
           DartType? type = correspondingSuperFormalType;
           if (substitution.isNotEmpty && type != null) {
             type = substitute(type, substitution);
@@ -437,12 +460,18 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     }
 
     if (positionalSuperParameters != null || namedSuperParameters != null) {
-      delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
-          superTarget, constructor, substitution,
-          positionalSuperParameters: positionalSuperParameters ?? const <int>[],
-          namedSuperParameters: namedSuperParameters ?? const <String>[],
-          isOutlineNode: true,
-          libraryBuilder: libraryBuilder));
+      if (!_hasDefaultValueCloner) {
+        // If this constructor formals are part of a cyclic dependency this
+        // might be called more than once.
+        delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
+            superTarget, constructor, substitution,
+            positionalSuperParameters:
+                positionalSuperParameters ?? const <int>[],
+            namedSuperParameters: namedSuperParameters ?? const <String>[],
+            isOutlineNode: true,
+            libraryBuilder: libraryBuilder));
+        _hasDefaultValueCloner = true;
+      }
     }
   }
 
@@ -571,11 +600,10 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
         if (message != null) {
           initializers.add(helper.buildInvalidInitializer(
               helper.buildUnresolvedError(
-                  helper.forest.createNullLiteral(initializer.fileOffset),
                   helper.constructorNameForDiagnostics(
                       initializer.target.name.text),
-                  initializer.arguments,
                   initializer.fileOffset,
+                  arguments: initializer.arguments,
                   isSuper: true,
                   message: message,
                   kind: UnresolvedKind.Constructor))
@@ -626,12 +654,11 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
         if (message != null) {
           initializers.add(helper.buildInvalidInitializer(
               helper.buildUnresolvedError(
-                  helper.forest.createNullLiteral(initializer.fileOffset),
                   helper.constructorNameForDiagnostics(
                       initializer.target.name.text,
                       isSuper: false),
-                  initializer.arguments,
                   initializer.fileOffset,
+                  arguments: initializer.arguments,
                   isSuper: false,
                   message: message,
                   kind: UnresolvedKind.Constructor))
@@ -681,7 +708,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
-  int finishPatch() {
+  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
     if (!isPatch) return 0;
     _finishPatch();
     return 1;
@@ -805,10 +832,10 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
       super.libraryBuilder as SourceLibraryBuilder;
 
   @override
-  void inferFormalTypes(TypeEnvironment typeEnvironment) {
+  void inferFormalTypes(ClassHierarchyBase hierarchy) {
     if (_immediatelyDefiningConstructor is SourceConstructorBuilder) {
       (_immediatelyDefiningConstructor as SourceConstructorBuilder)
-          .inferFormalTypes(typeEnvironment);
+          .inferFormalTypes(hierarchy);
     }
     if (_typeDependency != null) {
       _typeDependency!.copyInferred();
@@ -856,6 +883,12 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
       origin.addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
     }
     if (_delayedDefaultValueCloner != null) {
+      // For constant constructors default values are computed and cloned part
+      // of the outline expression and we there set `isOutlineNode` to `true`
+      // below.
+      //
+      // For non-constant constructors default values are cloned as part of the
+      // full compilation using `KernelTarget._delayedDefaultValueCloners`.
       delayedDefaultValueCloners
           .add(_delayedDefaultValueCloner!..isOutlineNode = true);
       _delayedDefaultValueCloner = null;

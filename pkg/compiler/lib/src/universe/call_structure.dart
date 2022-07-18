@@ -6,7 +6,7 @@ library dart2js.call_structure;
 
 import '../common/names.dart' show Names;
 import '../elements/entities.dart' show ParameterStructure;
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../util/util.dart';
 import 'selector.dart' show Selector;
 

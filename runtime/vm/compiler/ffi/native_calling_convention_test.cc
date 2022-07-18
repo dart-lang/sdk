@@ -121,6 +121,40 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_doublex20) {
   RunSignatureTest(Z, "doublex20", arguments, doubleType);
 }
 
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_mixedx20) {
+#if defined(TARGET_ARCH_IS_32_BIT)
+  const auto& intptrType = *new (Z) NativePrimitiveType(kInt32);
+#elif defined(TARGET_ARCH_IS_64_BIT)
+  const auto& intptrType = *new (Z) NativePrimitiveType(kInt64);
+#endif
+  const auto& floatType = *new (Z) NativePrimitiveType(kFloat);
+  const auto& doubleType = *new (Z) NativePrimitiveType(kDouble);
+
+  auto& arguments = *new (Z) NativeTypes(Z, 20);
+  arguments.Add(&intptrType);
+  arguments.Add(&floatType);
+  arguments.Add(&intptrType);
+  arguments.Add(&doubleType);
+  arguments.Add(&intptrType);
+  arguments.Add(&floatType);
+  arguments.Add(&intptrType);
+  arguments.Add(&doubleType);
+  arguments.Add(&intptrType);
+  arguments.Add(&floatType);
+  arguments.Add(&intptrType);
+  arguments.Add(&doubleType);
+  arguments.Add(&intptrType);
+  arguments.Add(&floatType);
+  arguments.Add(&intptrType);
+  arguments.Add(&doubleType);
+  arguments.Add(&intptrType);
+  arguments.Add(&floatType);
+  arguments.Add(&intptrType);
+  arguments.Add(&doubleType);
+
+  RunSignatureTest(Z, "mixedx20", arguments, doubleType);
+}
+
 // Test with 3-byte struct.
 //
 // On ia32, result pointer is passed on stack and passed back in eax.

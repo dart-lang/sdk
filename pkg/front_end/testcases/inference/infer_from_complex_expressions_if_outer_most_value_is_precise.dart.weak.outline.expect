@@ -1,4 +1,4 @@
-library test;
+library test /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -14,37 +14,27 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  field core::int* x;
-  synthetic constructor •() → self::A*
+  field core::int x;
+  synthetic constructor •() → self::A
     ;
-  operator +(dynamic other) → self::B*
+  operator +(dynamic other) → self::B
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class B extends self::A {
-  constructor •(dynamic ignore) → self::B*
+  constructor •(dynamic ignore) → self::B
     ;
 }
-static field self::A* a;
-static field self::B* b;
-static field core::List<invalid-type>* c1;
-static field core::List<dynamic>* c2;
-static field core::Map<dynamic, dynamic>* d;
-static field self::A* e;
-static field core::int* f;
-static field core::int* g;
-static field self::B* h;
+static field self::A a;
+static field self::B b;
+static field core::List<dynamic> c1;
+static field core::List<dynamic> c2;
+static field core::Map<dynamic, dynamic> d;
+static field self::A e;
+static field core::int f;
+static field core::int g;
+static field self::B h;
 static field dynamic i;
-static field self::B* j;
+static field self::B j;
 static method test1() → dynamic
   ;
 static method main() → dynamic

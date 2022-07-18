@@ -25,7 +25,15 @@ class RemoveUnusedParameter extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var parameter = node;
+    // To work for the unused_parameter hint as well as the lint, we must
+    // allow for passing in `SimpleIdentifier`s.
+    var maybeParameter = node;
+    var maybeParameterParent = maybeParameter.parent;
+    if (maybeParameter is SimpleIdentifier && maybeParameterParent != null) {
+      maybeParameter = maybeParameterParent;
+    }
+
+    var parameter = maybeParameter;
     if (parameter is! FormalParameter) {
       return;
     }

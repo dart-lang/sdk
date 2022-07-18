@@ -25,7 +25,7 @@ class ColorComputerTest extends AbstractContextTest {
   /// Values are the color that should be discovered (in 0xAARRGGBB format).
   ///
   /// Color values may not match the actual Flutter framework but are
-  /// values that are more identifyable for ease of testing. They are
+  /// values that are more identifiable for ease of testing. They are
   /// defined in:
   ///  - test/mock_packages/flutter/lib/src/material/colors.dart.
   ///  - test/mock_packages/flutter/lib/src/cupertino/colors.dart.
@@ -38,6 +38,7 @@ class ColorComputerTest extends AbstractContextTest {
     'Color(0xFF0000FF)': 0xFF0000FF,
     'Color.fromARGB(255, 0, 0, 255)': 0xFF0000FF,
     'Color.fromRGBO(0, 0, 255, 1)': 0xFF0000FF,
+    'Color.fromRGBO(0, 0, 255, 1.0)': 0xFF0000FF,
     // Flutter Painting
     'ColorSwatch(0xFF89ABCD, {})': 0xFF89ABCD,
     // Flutter Material

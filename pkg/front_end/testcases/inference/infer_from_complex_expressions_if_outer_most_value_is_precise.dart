@@ -1,13 +1,13 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 /*@testedFeatures=inference*/
 library test;
 
 class A {
-  int x;
-  B operator +(other) => null;
+  int x = 0;
+  B operator +(other) => throw '';
 }
 
 class B extends A {
@@ -17,7 +17,7 @@ class B extends A {
 var a = new A();
 // Note: it doesn't matter that some of these refer to 'x'.
 var b = new B(/*error:UNDEFINED_IDENTIFIER*/ x); // allocations
-var c1 = /*@typeArgs=invalid-type*/ [
+var c1 = /*@typeArgs=dynamic*/ [
   /*error:UNDEFINED_IDENTIFIER*/ x
 ]; // list literals
 var c2 = /*@typeArgs=dynamic*/ const [];
@@ -37,7 +37,7 @@ test1() {
   a = new B(3);
   b = /*error:INVALID_ASSIGNMENT*/ "hi";
   b = new B(3);
-  c1 = /*@typeArgs=invalid-type*/ [];
+  c1 = /*@typeArgs=dynamic*/ [];
   c1 = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ {};
   c2 = /*@typeArgs=dynamic*/ [];
   c2 = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ {};

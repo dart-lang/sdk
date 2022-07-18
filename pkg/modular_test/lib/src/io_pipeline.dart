@@ -58,9 +58,9 @@ class IOPipeline extends Pipeline<IOModularStep> {
   final bool saveIntermediateResultsForTesting;
 
   IOPipeline(List<IOModularStep> steps,
-      {this.saveIntermediateResultsForTesting: false,
-      bool cacheSharedModules: false})
-      : _registry = cacheSharedModules ? new ConfigurationRegistry() : null,
+      {this.saveIntermediateResultsForTesting = false,
+      bool cacheSharedModules = false})
+      : _registry = cacheSharedModules ? ConfigurationRegistry() : null,
         super(steps, cacheSharedModules);
 
   @override
@@ -156,7 +156,7 @@ class IOPipeline extends Pipeline<IOModularStep> {
   }
 
   String _toFileName(Module module, DataId dataId,
-      {bool configSpecific: false}) {
+      {bool configSpecific = false}) {
     var prefix =
         cacheSharedModules && configSpecific && _currentConfiguration != null
             ? _currentConfiguration

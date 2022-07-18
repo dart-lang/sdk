@@ -10,16 +10,17 @@ nnbd_mixed/mixed_mixin: SemiFuzzFailure
 no_such_method_forwarders/abstract_override_abstract_different_type: SemiFuzzFailure
 no_such_method_forwarders/abstract_override_with_different_signature: SemiFuzzFailure
 
+dart2js/mixin_super/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49339
+dart2js/late_fields_with_annotation: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49415
+macros/augment_concrete: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49414
+
 dart2js/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/constants/with_unevaluated_agnostic/various_2: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
-general/flutter_issue64155: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242443
 general/no_such_method_forwarder: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242444
 general/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/with_dependencies/issue_43084/issue_43084: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242543
+inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForceRebuildBodies # Errors on split
 inference_update_1/horizontal_inference_extension_method: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/245004
-late_lowering/issue41436b: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242445
-late_lowering/issue41436c/issue41436c: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242445
-late_lowering/late_override: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242445
 late_lowering/private_members: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242285
 macros/multiple_imports: SemiFuzzFailure # probably augment imports that isn't split correctly.
 nnbd_mixed/hierarchy/in_dill_out_in/in_out_in: SemiFuzzFailure # lots of stuff --- not digging in for now
@@ -29,7 +30,6 @@ nnbd_mixed/issue43988/main: SemiFuzzFailure # https://dart-review.googlesource.c
 nnbd_mixed/issue43988/main.no_link: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242540 and https://dart-review.googlesource.com/c/sdk/+/242446
 nnbd_mixed/member_inheritance_from_opt_in: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242446
 nnbd/constants: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
-nnbd/flutter_issue64155: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242443
 no_such_method_forwarders/abstract_accessors_from_field_one_defined: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
 no_such_method_forwarders/abstract_accessors_from_field_with_substitution: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
 no_such_method_forwarders/abstract_accessors_from_field: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
@@ -133,7 +133,6 @@ general/covariant_generic2: RuntimeError
 general/covariant_generic: RuntimeError
 general/crashes/crash_02/main: Crash
 general/crashes/crash_06/main: Crash
-general/duplicated_declarations: TypeCheckError
 general/duplicated_field_initializer: RuntimeError
 general/error_locations/error_location_01: RuntimeError
 general/error_locations/error_location_02: RuntimeError
@@ -143,7 +142,6 @@ general/error_recovery/empty_for: RuntimeError
 general/expressions: RuntimeError
 general/getter_vs_setter_type: TypeCheckError
 general/implement_semi_stub: TypeCheckError
-general/implicit_super_call: TypeCheckError
 general/infer_field_from_multiple2: TypeCheckError
 general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError
@@ -153,7 +151,6 @@ general/issue37776: RuntimeError
 general/issue41210a: TypeCheckError
 general/issue41210b/issue41210.no_link: TypeCheckError
 general/issue41210b/issue41210: TypeCheckError
-general/issue44733: TypeCheckError
 general/issue47994b: RuntimeError # Assertions are not enabled
 general/issue_46886: RuntimeError
 general/micro: RuntimeError
@@ -171,7 +168,6 @@ general/override_check_basic: TypeCheckError # Issue #31620
 general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general/override_setter_with_field: TypeCheckError
 general/redirecting_factory: RuntimeError
-general/redirecting_factory_invocation_in_invalid: TypeCheckError
 general/spread_collection: RuntimeError
 general/super_semi_stub: TypeCheckError
 general/type_variable_as_super: RuntimeError
@@ -182,8 +178,6 @@ inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckEr
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
 inference/downwards_inference_for_each: RuntimeError # Issue #36382
 inference/downwards_inference_on_list_literals_infer_downwards: RuntimeError
-inference/future_then_upwards: RuntimeError
-inference/future_then_upwards_2: RuntimeError
 inference/generic_methods_correctly_recognize_generic_upper_bound: TypeCheckError
 inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeCheckError
 inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
@@ -191,7 +185,7 @@ inference/infer_method_missing_params: TypeCheckError
 inference/infer_type_regardless_of_declaration_order_or_cycles: RuntimeError
 inference/infer_types_on_generic_instantiations_4: RuntimeError
 inference/infer_types_on_generic_instantiations_infer: TypeCheckError
-inference/instantiate_to_bounds_generic_has_bound_defined_after transform: RuntimeError
+inference/instantiate_tearoff_of_call2: TypeCheckError
 inference/mixin_inference_outwards_3: TypeCheckError
 inference/mixin_inference_outwards_4: TypeCheckError
 inference/mixin_inference_unification_1: TypeCheckError
@@ -243,18 +237,15 @@ rasta/issue_000042: RuntimeError
 rasta/issue_000044: RuntimeError
 rasta/malformed_const_constructor: RuntimeError
 rasta/malformed_function: RuntimeError
-rasta/mixin_library: TypeCheckError
 rasta/parser_error: RuntimeError
 rasta/static: RuntimeError
-rasta/super: TypeCheckError
-rasta/super_mixin: TypeCheckError
-rasta/super_operator: TypeCheckError
+rasta/super: RuntimeError
+rasta/super_mixin: RuntimeError
 rasta/type_literals: RuntimeError
 rasta/typedef: RuntimeError
 rasta/unresolved: RuntimeError
 rasta/unresolved_constructor: RuntimeError
 rasta/unresolved_for_in: RuntimeError
-rasta/unresolved_recovery: TypeCheckError
 regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_31180: TypeCheckError

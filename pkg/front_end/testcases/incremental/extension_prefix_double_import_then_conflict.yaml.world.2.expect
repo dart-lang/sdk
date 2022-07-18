@@ -1,10 +1,10 @@
 main = main::main;
 library from "org-dartlang-test:///lib1.dart" as lib1 {
 
-  extension OnObject on dart.core::Object* {
+  extension OnObject on dart.core::Object {
     get onObject = lib1::OnObject|get#onObject;
   }
-  static method OnObject|get#onObject(lowered final dart.core::Object* #this) → dart.core::String*
+  static method OnObject|get#onObject(lowered final dart.core::Object #this) → dart.core::String
     return "object #1";
 }
 library from "org-dartlang-test:///main.dart" as main {
@@ -13,7 +13,7 @@ library from "org-dartlang-test:///main.dart" as main {
   import "org-dartlang-test:///lib1.dart" as p;
 
   static method main() → dynamic {
-    dart.core::Object* o = 1;
+    dart.core::Object o = 1;
     lib1::OnObject|get#onObject(o);
   }
 }

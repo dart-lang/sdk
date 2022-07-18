@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 class A implements B {
@@ -6,7 +5,8 @@ class A implements B {
 }
 
 class B {
-  var x = 0;
+  var x = nullableInt;
 }
 
+int? nullableInt = 0;
 main() {}

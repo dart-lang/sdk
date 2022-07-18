@@ -9,7 +9,6 @@ bin/               Binaries/scripts to compile, run, and manage Dart apps.
   dartaotruntime   Minimal Dart runtime for running AOT modules
   dart2js          Dart to JavaScript production compiler
   dartdevc         Dart to Javascript development compiler
-  dartanalyzer     Dart static analyzer
   dartdoc          Dart documentation generator
 
 include/           header files that define the Dart embedding API for use by

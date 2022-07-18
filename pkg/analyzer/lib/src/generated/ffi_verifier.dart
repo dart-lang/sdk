@@ -631,8 +631,32 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
 
+    var annotation = ffiPackedAnnotations.first;
+
+    final arguments = annotation.arguments?.arguments;
+    if (arguments == null) {
+      return;
+    }
+
+    for (final argument in arguments) {
+      if (argument is SetOrMapLiteral) {
+        for (final element in argument.elements) {
+          if (element is MapLiteralEntry) {
+            final name = element.value.staticType?.element?.name;
+            if (name != null &&
+                !_primitiveIntegerNativeTypesFixedSize.contains(name)) {
+              _errorReporter.reportErrorForNode(
+                  FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
+                  element.value,
+                  [name]);
+            }
+          }
+        }
+        return;
+      }
+    }
     final annotationConstant =
-        ffiPackedAnnotations.first.elementAnnotation?.computeConstantValue();
+        annotation.elementAnnotation?.computeConstantValue();
     final mappingValues = annotationConstant?.getField('mapping')?.toMapValue();
     if (mappingValues == null) {
       return;
@@ -643,7 +667,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           !_primitiveIntegerNativeTypesFixedSize.contains(nativeTypeName)) {
         _errorReporter.reportErrorForNode(
             FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
-            ffiPackedAnnotations.first.name);
+            arguments.first,
+            [nativeTypeName]);
       }
     }
   }
@@ -918,12 +943,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         }
         final arrayDimensions = declaredType.arrayDimensions;
         _validateSizeOfAnnotation(fieldType, annotations, arrayDimensions);
-        final arrayElement = declaredType.arrayElementType;
-        if (arrayElement.isCompoundSubtype) {
-          final elementClass = (arrayElement as InterfaceType).element;
-          _validatePackingNesting(compound!.declaredElement!, elementClass,
-              errorNode: fieldType);
-        }
       } else if (declaredType.isCompoundSubtype) {
         final clazz = (declaredType as InterfaceType).element;
         if (clazz.isEmptyStruct) {
@@ -932,8 +951,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             clazz.supertype!.getDisplayString(withNullability: false)
           ]);
         }
-        _validatePackingNesting(compound!.declaredElement!, clazz,
-            errorNode: fieldType);
       } else {
         _errorReporter.reportErrorForNode(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT,
             fieldType, [fieldType.toSource()]);
@@ -1096,28 +1113,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
       _errorReporter.reportErrorForNode(
           FfiCode.PACKED_ANNOTATION_ALIGNMENT, errorNode);
-    }
-  }
-
-  void _validatePackingNesting(ClassElement outer, ClassElement nested,
-      {required TypeAnnotation errorNode}) {
-    final outerPacking = outer.structPacking;
-    if (outerPacking == null) {
-      // No packing for outer class, so we're done.
-      return;
-    }
-    bool error = false;
-    final nestedPacking = nested.structPacking;
-    if (nestedPacking == null) {
-      // The outer struct packs, but the nested struct does not.
-      error = true;
-    } else if (outerPacking < nestedPacking) {
-      // The outer struct packs tighter than the nested struct.
-      error = true;
-    }
-    if (error) {
-      _errorReporter.reportErrorForNode(FfiCode.PACKED_NESTING_NON_PACKED,
-          errorNode, [nested.name, outer.name]);
     }
   }
 
@@ -1459,17 +1454,6 @@ extension on ClassElement {
   bool get isFfiClass {
     return library.name == FfiVerifier._dartFfiLibraryName;
   }
-
-  int? get structPacking {
-    final packedAnnotations =
-        metadata.where((annotation) => annotation.isPacked);
-
-    if (packedAnnotations.isEmpty) {
-      return null;
-    }
-
-    return packedAnnotations.first.packedMemberAlignment;
-  }
 }
 
 extension on ExtensionElement {
@@ -1506,16 +1490,6 @@ extension on DartType {
       iterator = iterator.typeArguments.single;
     }
     return dimensions;
-  }
-
-  DartType get arrayElementType {
-    DartType iterator = this;
-    while (iterator is InterfaceType &&
-        iterator.element.name == FfiVerifier._arrayClassName &&
-        iterator.element.isFfiClass) {
-      iterator = iterator.typeArguments.single;
-    }
-    return iterator;
   }
 
   bool get isAbiSpecificInteger {

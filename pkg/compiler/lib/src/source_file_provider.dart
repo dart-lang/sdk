@@ -8,7 +8,6 @@ library source_file_provider;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
@@ -385,9 +384,22 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
 
       int offset = 0;
       while (offset < data.length) {
-        output.writeStringSync(
-            data.substring(offset, math.min(offset + chunkSize, data.length)));
-        offset += chunkSize;
+        String chunk;
+        int cut = offset + chunkSize;
+        if (cut < data.length) {
+          // Don't break the string in the middle of a code point encoded as two
+          // surrogate pairs since `writeStringSync` will encode the unpaired
+          // surrogates as U+FFFD REPLACEMENT CHARACTER.
+          int lastCodeUnit = data.codeUnitAt(cut - 1);
+          if (_isLeadSurrogate(lastCodeUnit)) {
+            cut -= 1;
+          }
+          chunk = data.substring(offset, cut);
+        } else {
+          chunk = offset == 0 ? data : data.substring(offset);
+        }
+        output.writeStringSync(chunk);
+        offset += chunk.length;
       }
       charactersWritten += data.length;
     }
@@ -405,6 +417,8 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
 
     return _OutputSinkWrapper(writeStringSync, onDone);
   }
+
+  static bool _isLeadSurrogate(int codeUnit) => (codeUnit & 0xFC00) == 0xD800;
 
   @override
   api.BinaryOutputSink createBinarySink(Uri uri) {
@@ -488,8 +502,9 @@ class _BinaryOutputSinkWrapper extends api.BinaryOutputSink {
 ///
 /// To handle bazel's special layout:
 ///
-///  * We specify a .packages configuration file that expands packages to their
-///    corresponding bazel location. This way there is no need to create a pub
+///  * We specify a .dart_tool/package_config.json configuration file that
+///    expands packages to their corresponding bazel location.
+///    This way there is no need to create a pub
 ///    cache prior to invoking dart2js.
 ///
 ///  * We provide an implicit mapping that can make all urls relative to the

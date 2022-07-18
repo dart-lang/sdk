@@ -445,6 +445,25 @@ bool CallerClosureFinder::IsRunningAsync(const Closure& receiver_closure) {
   return Bool::Cast(is_sync).value();
 }
 
+bool CallerClosureFinder::WasPreviouslySuspended(
+    const Function& function,
+    const Object& suspend_state_var) {
+  if (!suspend_state_var.IsSuspendState()) {
+    return false;
+  }
+  if (function.IsCompactAsyncFunction()) {
+    // Error callback is set after both 'then' and 'error' callbacks are
+    // registered with the Zone. Callback registration may query
+    // stack trace and should still collect the synchronous stack trace.
+    return SuspendState::Cast(suspend_state_var).error_callback() !=
+           Object::null();
+  } else if (function.IsCompactAsyncStarFunction()) {
+    return true;
+  } else {
+    UNREACHABLE();
+  }
+}
+
 ClosurePtr StackTraceUtils::FindClosureInFrame(ObjectPtr* last_object_in_caller,
                                                const Function& function) {
   NoSafepointScope nsp;
@@ -488,7 +507,8 @@ ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
         zone, *reinterpret_cast<ObjectPtr*>(LocalVarAddress(
                   frame->fp(), runtime_frame_layout.FrameSlotForVariableIndex(
                                    SuspendState::kSuspendStateVarIndex))));
-    if (suspend_state.IsSuspendState()) {
+    if (caller_closure_finder->WasPreviouslySuspended(function,
+                                                      suspend_state)) {
       *is_async = true;
       return caller_closure_finder->FindCallerFromSuspendState(
           SuspendState::Cast(suspend_state));
@@ -607,7 +627,7 @@ void StackTraceUtils::UnwindAwaiterChain(
   }
 }
 
-void StackTraceUtils::CollectFramesLazy(
+void StackTraceUtils::CollectFrames(
     Thread* thread,
     const GrowableObjectArray& code_array,
     GrowableArray<uword>* pc_offset_array,
@@ -674,87 +694,6 @@ void StackTraceUtils::CollectFramesLazy(
   }
 
   return;
-}
-
-intptr_t StackTraceUtils::CountFrames(Thread* thread,
-                                      int skip_frames,
-                                      const Function& async_function,
-                                      bool* sync_async_end) {
-  Zone* zone = thread->zone();
-  intptr_t frame_count = 0;
-  DartFrameIterator frames(thread, StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = frames.NextFrame();
-  ASSERT(frame != nullptr);  // We expect to find a dart invocation frame.
-  Function& function = Function::Handle(zone);
-  Code& code = Code::Handle(zone);
-  Closure& closure = Closure::Handle(zone);
-  const bool async_function_is_null = async_function.IsNull();
-
-  ASSERT(async_function_is_null || sync_async_end != nullptr);
-
-  for (; frame != nullptr; frame = frames.NextFrame()) {
-    if (skip_frames > 0) {
-      skip_frames--;
-      continue;
-    }
-    code = frame->LookupDartCode();
-    function = code.function();
-
-    frame_count++;
-
-    const bool function_is_null = function.IsNull();
-
-    if (!async_function_is_null && !function_is_null &&
-        function.parent_function() != Function::null()) {
-      if (async_function.ptr() == function.parent_function()) {
-        if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-          ObjectPtr* last_caller_obj =
-              reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());
-          closure = FindClosureInFrame(last_caller_obj, function);
-          if (!closure.IsNull() &&
-              CallerClosureFinder::IsRunningAsync(closure)) {
-            *sync_async_end = false;
-            return frame_count;
-          }
-        }
-        break;
-      }
-    }
-  }
-
-  if (!async_function_is_null) {
-    *sync_async_end = true;
-  }
-
-  return frame_count;
-}
-
-intptr_t StackTraceUtils::CollectFrames(Thread* thread,
-                                        const Array& code_array,
-                                        const TypedData& pc_offset_array,
-                                        intptr_t array_offset,
-                                        intptr_t count,
-                                        int skip_frames) {
-  Zone* zone = thread->zone();
-  DartFrameIterator frames(thread, StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = frames.NextFrame();
-  ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
-  Code& code = Code::Handle(zone);
-  intptr_t collected_frames_count = 0;
-  for (; (frame != NULL) && (collected_frames_count < count);
-       frame = frames.NextFrame()) {
-    if (skip_frames > 0) {
-      skip_frames--;
-      continue;
-    }
-    code = frame->LookupDartCode();
-    const intptr_t pc_offset = frame->pc() - code.PayloadStart();
-    code_array.SetAt(array_offset, code);
-    pc_offset_array.SetUintPtr(array_offset * kWordSize, pc_offset);
-    array_offset++;
-    collected_frames_count++;
-  }
-  return collected_frames_count;
 }
 
 }  // namespace dart

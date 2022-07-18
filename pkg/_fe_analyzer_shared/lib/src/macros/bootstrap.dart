@@ -263,9 +263,13 @@ Future<SerializableResponse> _executeDeclarationsPhase(
         sendRequest,
         remoteInstance: request.identifierResolver,
         serializationZoneId: request.serializationZoneId);
-    var classIntrospector = ClientClassIntrospector(
+    var typeIntrospector = ClientTypeIntrospector(
         sendRequest,
-        remoteInstance: request.classIntrospector,
+        remoteInstance: request.typeIntrospector,
+        serializationZoneId: request.serializationZoneId);
+    var typeDeclarationResolver = ClientTypeDeclarationResolver(
+        sendRequest,
+        remoteInstance: request.typeDeclarationResolver,
         serializationZoneId: request.serializationZoneId);
     var typeResolver = ClientTypeResolver(
         sendRequest,
@@ -273,8 +277,8 @@ Future<SerializableResponse> _executeDeclarationsPhase(
         serializationZoneId: request.serializationZoneId);
 
     var result = await executeDeclarationsMacro(
-        instance, request.declaration, identifierResolver, classIntrospector,
-        typeResolver);
+        instance, request.declaration, identifierResolver, typeIntrospector,
+        typeDeclarationResolver, typeResolver);
     return new SerializableResponse(
         responseType: MessageType.macroExecutionResult,
         response: result,
@@ -311,9 +315,9 @@ Future<SerializableResponse> _executeDefinitionsPhase(
         sendRequest,
         remoteInstance: request.typeDeclarationResolver,
         serializationZoneId: request.serializationZoneId);
-    var classIntrospector = ClientClassIntrospector(
+    var typeIntrospector = ClientTypeIntrospector(
         sendRequest,
-        remoteInstance: request.classIntrospector,
+        remoteInstance: request.typeIntrospector,
         serializationZoneId: request.serializationZoneId);
     var typeInferrer = ClientTypeInferrer(
         sendRequest,
@@ -321,7 +325,7 @@ Future<SerializableResponse> _executeDefinitionsPhase(
         serializationZoneId: request.serializationZoneId);
 
     var result = await executeDefinitionMacro(
-        instance, request.declaration, identifierResolver, classIntrospector,
+        instance, request.declaration, identifierResolver, typeIntrospector,
         typeResolver, typeDeclarationResolver, typeInferrer);
     return new SerializableResponse(
         responseType: MessageType.macroExecutionResult,

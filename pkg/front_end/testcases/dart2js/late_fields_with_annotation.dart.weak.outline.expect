@@ -1,0 +1,41 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  @core::pragma::_("dart2js:late:trust")
+  late field core::int a;
+  @core::pragma::_("dart2js:late:check")
+  late final [setter] field core::int b;
+  @core::pragma::_("dart2js:late:trust")
+  @core::pragma::_("dart2js:tryInline")
+  late field core::int c;
+  @core::pragma::_("dart2js:late:check")
+  @core::pragma::_("dart2js:noInline")
+  late final field core::int d;
+  synthetic constructor •() → self::C
+    ;
+  static method _#new#tearOff() → self::C
+    return new self::C::•();
+}
+static field self::C c;
+static method main() → void
+  ;
+static method testUninitializedNonFinalInstanceField() → void
+  ;
+static method testUninitializedFinalInstanceField() → void
+  ;
+static method testInitializedNonFinalInstanceField() → void
+  ;
+static method testInitializedFinalInstanceField() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_fields_with_annotation.dart:13:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:late:trust", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_fields_with_annotation.dart:16:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:late:check", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_fields_with_annotation.dart:19:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:late:trust", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_fields_with_annotation.dart:20:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:tryInline", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_fields_with_annotation.dart:23:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:late:check", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_fields_with_annotation.dart:24:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Extra constant evaluation: evaluated: 7, effectively constant: 6

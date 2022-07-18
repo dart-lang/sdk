@@ -1300,6 +1300,11 @@ class Assembler : public AssemblerBase {
   void EnterFrame(RegList regs, intptr_t frame_space);
   void LeaveFrame(RegList regs, bool allow_pop_pc = false);
   void Ret(Condition cond = AL);
+
+  // Sets the return address to [value] as if there was a call.
+  // On ARM sets LR.
+  void SetReturnAddress(Register value);
+
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
   // In debug mode, this generates code to check that:
@@ -1453,7 +1458,7 @@ class Assembler : public AssemblerBase {
   // offset is not yet known and needs therefore relocation to the right place
   // before the code can be used.
   //
-  // The neccessary information for the "linker" (i.e. the relocation
+  // The necessary information for the "linker" (i.e. the relocation
   // information) is stored in [UntaggedCode::static_calls_target_table_]: an
   // entry of the form
   //

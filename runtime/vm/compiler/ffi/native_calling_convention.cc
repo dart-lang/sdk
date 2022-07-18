@@ -121,8 +121,14 @@ class ArgumentAllocator : public ValueObject {
           NativeRegistersLocation(zone_, payload_type, container_type, reg);
     }
 #elif defined(TARGET_ARCH_RISCV32)
-    // After using up F registers, start bitcasting to X register pairs.
-    if (HasAvailableCpuRegisters(2)) {
+    // After using up F registers, start bitcasting to X register (pairs).
+    if ((payload_type.SizeInBytes() == 4) && HasAvailableCpuRegisters(1)) {
+      const Register reg = AllocateCpuRegister();
+      const auto& container_type = *new (zone_) NativePrimitiveType(kInt32);
+      return *new (zone_)
+          NativeRegistersLocation(zone_, payload_type, container_type, reg);
+    }
+    if ((payload_type.SizeInBytes() == 8) && HasAvailableCpuRegisters(2)) {
       const Register reg1 = AllocateCpuRegister();
       const Register reg2 = AllocateCpuRegister();
       const auto& container_type = *new (zone_) NativePrimitiveType(kInt64);
@@ -149,7 +155,7 @@ class ArgumentAllocator : public ValueObject {
             : payload_type_converted;
     if (target::kWordSize == 4 && payload_type.SizeInBytes() == 8) {
       if (CallingConventions::kArgumentRegisterAlignment ==
-          kAlignedToWordSizeBut8AlignedTo8) {
+          kAlignedToWordSizeAndValueSize) {
         cpu_regs_used += cpu_regs_used % 2;
       }
       if (cpu_regs_used + 2 <= CallingConventions::kNumArgRegs) {

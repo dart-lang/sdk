@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /*library: scope=[
   A2,
   B2,
@@ -26,7 +24,7 @@ class A1 {}
   tearoff method3=A2|get#method3,
   tearoff method4=A2|get#method4],
  extension-name=A2,
- extension-onType=A1
+ extension-onType=A1!
 */
 extension A2 on A1 {
   /*member: A2|method1:
@@ -77,7 +75,7 @@ extension A2 on A1 {
      member-pos-params=[o],
      member-type-params=[T]
   */
-  A1 method3<T>([T o]) {
+  A1 method3<T>([T? o]) {
     print(o);
     return this;
   }
@@ -101,7 +99,7 @@ extension A2 on A1 {
      member-named-params=[o],
      member-type-params=[T]
   */
-  A1 method4<T>({T o}) {
+  A1 method4<T>({T? o}) {
     print(o);
     return this;
   }
@@ -128,7 +126,7 @@ class B1<T> {}
   tearoff method1=B2|get#method1,
   tearoff method2=B2|get#method2],
  extension-name=B2,
- extension-onType=B1<T>,
+ extension-onType=B1<T%>!,
  extension-type-params=[T]
 */
 extension B2<T> on B1<T> {

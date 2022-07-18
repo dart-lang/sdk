@@ -8,8 +8,8 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
-import '../js_backend/native_data_interfaces.dart' show NativeBasicData;
-import '../js_model/locals_interfaces.dart';
+import '../js_backend/native_data.dart' show NativeBasicData;
+import '../js_model/locals.dart';
 import '../universe/selector.dart' show Selector;
 
 import 'names.dart' show Identifiers, Uris;
@@ -1399,6 +1399,14 @@ abstract class KElementEnvironment extends ElementEnvironment {
   /// Returns the metadata constants declared on [member].
   Iterable<ConstantValue> getMemberMetadata(MemberEntity member,
       {bool includeParameterMetadata = false});
+
+  /// `true` if field is the backing field for a `late` or `late final` instance
+  /// field.
+  bool isLateBackingField(FieldEntity field);
+
+  /// `true` if field is the backing field for a `late final` instance field. If
+  /// this is true, so is [isLateBackingField].
+  bool isLateFinalBackingField(FieldEntity field);
 }
 
 abstract class JElementEnvironment extends ElementEnvironment {
@@ -1458,6 +1466,6 @@ abstract class JElementEnvironment extends ElementEnvironment {
       void f(DartType type, String name, ConstantValue defaultValue));
 
   /// Calls [f] for each parameter - given as a [Local] - of [function].
-  void forEachParameterAsLocal(covariant GlobalLocalsMap globalLocalsMap,
+  void forEachParameterAsLocal(GlobalLocalsMap globalLocalsMap,
       FunctionEntity function, void f(Local parameter));
 }

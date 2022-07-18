@@ -193,6 +193,19 @@ void f (List<String>? args) {
 ''');
   }
 
+  Future<void> test_indexExpression_nonNullableTarget() async {
+    await resolveTestCode('''
+void f(Map<String, String> map) {
+  print('' + map['']);
+}
+''');
+    await assertHasFix('''
+void f(Map<String, String> map) {
+  print('' + map['']!);
+}
+''');
+  }
+
   Future<void> test_initializer() async {
     await resolveTestCode('''
 void f(int? x) {

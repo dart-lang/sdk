@@ -13,15 +13,34 @@ modules:
   moduleC:
     moduleC/lib.dart: |
       const constC = true;
-    moduleC/.packages: |
-      moduleC:.
+    moduleC/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "moduleC",
+            "rootUri": ".."
+          }
+        ]
+      }
   moduleB:
     moduleB/lib.dart: |
       import "package:moduleC/lib.dart";
       const constB = false || constC;
-    moduleB/.packages: |
-      moduleB:.
-      moduleC:../moduleC
+    moduleB/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "moduleB",
+            "rootUri": ".."
+          },
+          {
+            "name": "moduleC",
+            "rootUri": "../../moduleC"
+          }
+        ]
+      }
 worlds:
   - entry: main.dart
     fromComponent: true
@@ -29,9 +48,20 @@ worlds:
       main.dart: |
         import 'package:moduleB/lib.dart';
         const constA = true && constB;
-      .packages: |
-        moduleB:moduleB
-        moduleC:moduleC
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "moduleB",
+              "rootUri": "../moduleB"
+            },
+            {
+              "name": "moduleC",
+              "rootUri": "../moduleC"
+            }
+          ]
+        }
     modules:
       - moduleB
       - moduleC

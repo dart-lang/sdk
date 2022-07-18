@@ -19,4 +19,5 @@ dependencies:
 dev_dependencies:
   async_helper: any
   expect: any
+  lints: any
   test: any

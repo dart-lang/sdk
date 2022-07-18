@@ -29,8 +29,10 @@ class DartSnippetManager {
       FlutterStatefulWidgetWithAnimationControllerSnippetProducer.newInstance,
       FlutterStatelessWidgetSnippetProducer.newInstance,
       DartClassSnippetProducer.newInstance,
+      DartFunctionSnippetProducer.newInstance,
     ],
     SnippetContext.inBlock: [
+      DartFunctionSnippetProducer.newInstance,
       DartDoWhileLoopSnippetProducer.newInstance,
       DartForInLoopSnippetProducer.newInstance,
       DartForLoopSnippetProducer.newInstance,
@@ -42,6 +44,9 @@ class DartSnippetManager {
       DartTestBlockSnippetProducer.newInstance,
       DartTestGroupBlockSnippetProducer.newInstance,
     ],
+    SnippetContext.inClass: [
+      DartFunctionSnippetProducer.newInstance,
+    ]
   };
 
   Future<List<Snippet>> computeSnippets(

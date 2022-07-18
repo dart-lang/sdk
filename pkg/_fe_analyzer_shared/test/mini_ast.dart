@@ -247,9 +247,9 @@ abstract class Expression extends Node {
 }
 
 /// Test harness for creating flow analysis tests.  This class implements all
-/// the [TypeOperations] needed by flow analysis, as well as other methods
-/// needed for testing.
-class Harness extends TypeOperations<Var, Type> {
+/// the [Operations] needed by flow analysis, as well as other methods needed
+/// for testing.
+class Harness extends Operations<Var, Type> {
   static const Map<String, bool> _coreSubtypes = const {
     'bool <: int': false,
     'bool <: Object': true,
@@ -1486,7 +1486,7 @@ class _MiniAstTypeAnalyzer {
     var rightType = analyzeExpression(rhs);
     flow.ifNullExpression_end();
     return leastUpperBound(
-        flow.typeOperations.promoteToNonNull(leftType), rightType);
+        flow.operations.promoteToNonNull(leftType), rightType);
   }
 
   void analyzeIfStatement(Statement node, Expression condition,
@@ -1520,7 +1520,7 @@ class _MiniAstTypeAnalyzer {
   Type analyzeNonNullAssert(Expression node, Expression expression) {
     var type = analyzeExpression(expression);
     flow.nonNullAssert_end(expression);
-    return flow.typeOperations.promoteToNonNull(type);
+    return flow.operations.promoteToNonNull(type);
   }
 
   Type analyzeNullLiteral(Expression node) {

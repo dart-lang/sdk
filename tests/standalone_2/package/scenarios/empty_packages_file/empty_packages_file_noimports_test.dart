@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// Packages=.packages
+// Packages=.dart_tool/package_config.json
 
 // We expect this to not cause any errors. An empty packages file is valid,
 // you should only run into problems if you try to resolve a package import.

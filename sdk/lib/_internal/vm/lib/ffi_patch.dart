@@ -80,8 +80,8 @@ int sizeOf<T extends NativeType>() {
 external Pointer<T> _fromAddress<T extends NativeType>(int ptr);
 
 // The real implementation of this function (for interface calls) lives in
-// BuildFfiAsFunctionCall in the Kernel frontend. No calls can actually reach
-// this function.
+// BuildFfiAsFunctionInternal in the Kernel frontend. No calls can actually
+// reach this function.
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_asFunctionInternal")
 external DS _asFunctionInternal<DS extends Function, NS extends Function>(

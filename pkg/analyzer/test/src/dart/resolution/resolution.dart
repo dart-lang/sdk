@@ -214,15 +214,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(element.enclosingElement, expectedEnclosing);
   }
 
-  void assertEnumConstant(
-    EnumConstantDeclaration node, {
-    required FieldElement element,
-    required Object? constructorElement,
-  }) {
-    assertElement(node.declaredElement, element);
-    assertElement(node.constructorElement, constructorElement);
-  }
-
   Future<void> assertErrorsInCode(
       String code, List<ExpectedError> expectedErrors) async {
     addTestFile(code);
@@ -386,12 +377,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertSubstitution(actual.substitution, expectedSubstitution);
   }
 
-  void assertNamedParameterRef(String search, String name) {
-    var ref = findNode.simple(search);
-    assertElement(ref, findElement.parameter(name));
-    assertTypeNull(ref);
-  }
-
   void assertNamedType(
       NamedType node, Element? expectedElement, String? expectedType,
       {Element? expectedPrefix}) {
@@ -433,13 +418,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertNoErrorsInResult() {
     assertErrorsInResult(const []);
-  }
-
-  void assertParameterElement(
-    Expression expression,
-    Object? elementOrMatcher,
-  ) {
-    assertElement(expression.staticParameterElement, elementOrMatcher);
   }
 
   void assertParameterElementType(FormalParameter node, String expected) {

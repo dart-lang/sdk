@@ -132,12 +132,14 @@ import 'package:analysis_server/src/services/correction/dart/remove_non_null_ass
 import 'package:analysis_server/src/services/correction/dart/remove_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_parameters_in_getter_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_parentheses_in_getter_invocation.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_print.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_question_mark.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_returned_value.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_arguments.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_cast.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_final.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_late.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_parentheses.dart';
@@ -152,6 +154,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unused_label
 import 'package:analysis_server/src/services/correction/dart/remove_unused_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_var.dart';
+import 'package:analysis_server/src/services/correction/dart/rename_method_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_Null_with_void.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_boolean_with_bool.dart';
@@ -193,6 +196,7 @@ import 'package:analysis_server/src/services/correction/dart/use_not_eq_null.dar
 import 'package:analysis_server/src/services/correction/dart/use_rethrow.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_future.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
+import 'package:analysis_server/src/services/correction/dart/wrap_in_unawaited.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
@@ -388,6 +392,7 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.avoid_print: [
       MakeConditionalOnDebugMode.new,
+      RemovePrint.new,
     ],
     LintNames.avoid_private_typedef_functions: [
       InlineTypedef.new,
@@ -397,6 +402,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.avoid_relative_lib_imports: [
       ConvertToPackageImport.new,
+    ],
+    LintNames.avoid_renaming_method_parameters: [
+      RenameMethodParameter.new,
     ],
     LintNames.avoid_return_types_on_setters: [
       RemoveTypeAnnotation.new,
@@ -444,6 +452,10 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.directives_ordering: [
       OrganizeImports.new,
+    ],
+    LintNames.discarded_futures: [
+      AddAsync.new,
+      WrapInUnawaited.new,
     ],
     LintNames.empty_catches: [
       RemoveEmptyCatch.new,
@@ -619,7 +631,8 @@ class FixProcessor extends BaseProcessor {
       RemoveTypeAnnotation.new,
     ],
     LintNames.unawaited_futures: [
-      AddAwait.new,
+      AddAwait.unawaited,
+      WrapInUnawaited.new,
     ],
     LintNames.unnecessary_brace_in_string_interps: [
       RemoveInterpolationBraces.new,
@@ -775,6 +788,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT: [
       AddSuperConstructorInvocation.new,
     ],
+    CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [
+      DataDriven.new,
+    ],
     CompileTimeErrorCode.UNDEFINED_FUNCTION: [
       DataDriven.new,
       ImportLibrary.forExtension,
@@ -892,6 +908,9 @@ class FixProcessor extends BaseProcessor {
       ConvertToListLiteral.new,
       ReplaceWithFilled.new,
     ],
+    CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER: [
+      ConvertIntoBlockBody.new,
+    ],
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
       ChangeTo.classOrMixin,
       CreateClass.new,
@@ -1005,6 +1024,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.NON_BOOL_CONDITION: [
       AddNeNull.new,
+      AddAwait.nonBool,
     ],
     CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR: [
       AddConst.new,
@@ -1040,6 +1060,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD: [
       MakeReturnTypeNullable.new,
       ReplaceReturnType.new,
+    ],
+    CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED: [
+      ChangeTo.formalParameter,
     ],
     CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY: [
       AddSwitchCaseBreak.new,
@@ -1307,6 +1330,9 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNNECESSARY_CAST: [
       RemoveUnnecessaryCast.new,
     ],
+    HintCode.UNNECESSARY_FINAL: [
+      RemoveUnnecessaryFinal.new,
+    ],
     HintCode.UNNECESSARY_IMPORT: [
       RemoveUnusedImport.new,
     ],
@@ -1333,6 +1359,9 @@ class FixProcessor extends BaseProcessor {
     ],
     HintCode.UNUSED_ELEMENT: [
       RemoveUnusedElement.new,
+    ],
+    HintCode.UNUSED_ELEMENT_PARAMETER: [
+      RemoveUnusedParameter.new,
     ],
     HintCode.UNUSED_FIELD: [
       RemoveUnusedField.new,
@@ -1404,7 +1433,7 @@ class FixProcessor extends BaseProcessor {
 
   Future<Fix?> computeFix() async {
     await _addFromProducers();
-    fixes.sort(Fix.SORT_BY_RELEVANCE);
+    fixes.sort(Fix.compareFixes);
     return fixes.isNotEmpty ? fixes.first : null;
   }
 

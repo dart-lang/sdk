@@ -22,6 +22,8 @@ class FileTracker {
   /// The current file system state.
   final FileSystemState _fsState;
 
+  final StoredFileContentStrategy _fileContentStrategy;
+
   /// The set of added files.
   final addedFiles = <String>{};
 
@@ -45,7 +47,7 @@ class FileTracker {
   /// have any special relation with changed files.
   var _pendingFiles = <String>{};
 
-  FileTracker(this._logger, this._fsState);
+  FileTracker(this._logger, this._fsState, this._fileContentStrategy);
 
   /// Returns the path to exactly one that needs analysis.  Throws a
   /// [StateError] if no files need analysis.
@@ -108,7 +110,7 @@ class FileTracker {
 
   /// Adds the given [path] to the set of "changed files".
   void changeFile(String path) {
-    _fsState.markFileForReading(path);
+    _fileContentStrategy.markFileForReading(path);
     _changedFiles.add(path);
 
     if (addedFiles.contains(path)) {
@@ -137,6 +139,7 @@ class FileTracker {
 
   /// Removes the given [path] from the set of "added files".
   void removeFile(String path) {
+    _fileContentStrategy.markFileForReading(path);
     addedFiles.remove(path);
     _pendingChangedFiles.remove(path);
     _pendingImportFiles.remove(path);

@@ -9,18 +9,15 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import 'package:flutter/src/widgets/framework.dart';
         import 'package:flutter/src/widgets/widget_inspector.dart';
 
         class Foo extends Widget {}
       flutter/lib/src/widgets/framework.dart: |
-        // @dart=2.9
         abstract class Bar {}
 
         abstract class Widget extends Bar {}
       flutter/lib/src/widgets/widget_inspector.dart: |
-        // @dart=2.9
         abstract class _HasCreationLocation {
           _Location get _location;
         }
@@ -29,11 +26,11 @@ worlds:
         /// file locations.
         class _Location {
           const _Location({
-            this.file,
-            this.line,
-            this.column,
-            this.name,
-            this.parameterLocations,
+            required this.file,
+            required this.line,
+            required this.column,
+            required this.name,
+            required this.parameterLocations,
           });
 
           /// File path of the location.
@@ -51,8 +48,16 @@ worlds:
           /// Optional locations of the parameters of the member at this location.
           final List<_Location> parameterLocations;
         }
-      .packages: |
-        flutter:flutter/lib
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "flutter",
+              "rootUri": "../flutter/lib"
+            }
+          ]
+        }
     expectedLibraryCount: 3
   - entry: main.dart
     worldType: updated
@@ -61,7 +66,6 @@ worlds:
     expectInitializeFromDill: false
     sources:
       main.dart: |
-        // @dart=2.9
         import 'package:flutter/src/widgets/framework.dart';
         import 'package:flutter/src/widgets/widget_inspector.dart';
 

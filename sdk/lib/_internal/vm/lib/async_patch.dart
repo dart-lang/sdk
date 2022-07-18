@@ -110,6 +110,7 @@ void _asyncStarMoveNextHelper(var stream) {
 class _AsyncStarStreamController<T> {
   @pragma("vm:entry-point")
   StreamController<T> controller;
+  @pragma("vm:entry-point")
   Function? asyncStarBody;
   bool isAdding = false;
   bool onListenReceived = false;
@@ -344,7 +345,7 @@ class _SuspendState {
     }
 
     @pragma("vm:invisible")
-    errorCallback(exception, stackTrace) {
+    errorCallback(Object exception, StackTrace stackTrace) {
       if (_trace) {
         print('errorCallback (this=$this, '
             'exception=$exception, stackTrace=$stackTrace)');
@@ -371,15 +372,93 @@ class _SuspendState {
     }
   }
 
+  @pragma("vm:invisible")
+  @pragma("vm:prefer-inline")
+  void _awaitCompletedFuture(_Future future) {
+    assert(future._isComplete);
+    final zone = Zone._current;
+    if (future._hasError) {
+      @pragma("vm:invisible")
+      void run() {
+        final AsyncError asyncError =
+            unsafeCast<AsyncError>(future._resultOrListeners);
+        if (!future._zone.inSameErrorZone(zone)) {
+          // Don't cross zone boundaries with errors.
+          future._zone
+              .handleUncaughtError(asyncError.error, asyncError.stackTrace);
+        } else {
+          zone.runBinary(
+              unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback),
+              asyncError.error,
+              asyncError.stackTrace);
+        }
+      }
+
+      future._zone.scheduleMicrotask(run);
+    } else {
+      @pragma("vm:invisible")
+      void run() {
+        zone.runUnary(unsafeCast<dynamic Function(dynamic)>(_thenCallback),
+            future._resultOrListeners);
+      }
+
+      future._zone.scheduleMicrotask(run);
+    }
+  }
+
+  @pragma("vm:invisible")
+  @pragma("vm:prefer-inline")
+  void _awaitNotFuture(Object? object) {
+    final zone = Zone._current;
+    @pragma("vm:invisible")
+    void run() {
+      zone.runUnary(
+          unsafeCast<dynamic Function(dynamic)>(_thenCallback), object);
+    }
+
+    zone.scheduleMicrotask(run);
+  }
+
+  @pragma("vm:invisible")
+  @pragma("vm:prefer-inline")
+  void _awaitUserDefinedFuture(Future future) {
+    // Create a generic callback closure and instantiate it
+    // using the type argument of Future.
+    // This is needed to avoid unsoundness which may happen if user-defined
+    // Future.then casts callback to Function(dynamic) passes a value of
+    // incorrect type.
+    @pragma("vm:invisible")
+    dynamic typedCallback<T>(T value) {
+      return unsafeCast<dynamic Function(dynamic)>(_thenCallback)(value);
+    }
+
+    future.then(
+        unsafeCast<dynamic Function(dynamic)>(
+            _instantiateClosureWithFutureTypeArgument(typedCallback, future)),
+        onError:
+            unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback));
+  }
+
   @pragma("vm:entry-point", "call")
   @pragma("vm:invisible")
   Object? _await(Object? object) {
-    if (_trace) print('_awaitAsync (object=$object)');
+    if (_trace) print('_await (object=$object)');
     if (_thenCallback == null) {
       _createAsyncCallbacks();
     }
-    _awaitHelper(object, unsafeCast<dynamic Function(dynamic)>(_thenCallback),
-        unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback));
+    if (object is _Future) {
+      if (object._isComplete) {
+        _awaitCompletedFuture(object);
+      } else {
+        object._thenAwait<dynamic>(
+            unsafeCast<dynamic Function(dynamic)>(_thenCallback),
+            unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback));
+      }
+    } else if (object is! Future) {
+      _awaitNotFuture(object);
+    } else {
+      _awaitUserDefinedFuture(object);
+    }
     return _functionData;
   }
 
@@ -391,14 +470,16 @@ class _SuspendState {
           'returnValue=$returnValue)');
     }
     _Future future;
-    bool isSync = true;
     if (suspendState is _SuspendState) {
       future = unsafeCast<_Future>(suspendState._functionData);
     } else {
       future = unsafeCast<_Future>(suspendState);
-      isSync = false;
     }
-    _completeOnAsyncReturn(future, returnValue, isSync);
+    if (returnValue is Future) {
+      future._asyncCompleteUnchecked(returnValue);
+    } else {
+      future._completeWithValue(returnValue);
+    }
     return future;
   }
 
@@ -411,14 +492,12 @@ class _SuspendState {
           'returnValue=$returnValue)');
     }
     _Future future;
-    bool isSync = true;
     if (suspendState is _SuspendState) {
       future = unsafeCast<_Future>(suspendState._functionData);
     } else {
       future = unsafeCast<_Future>(suspendState);
-      isSync = false;
     }
-    _completeWithNoFutureOnAsyncReturn(future, returnValue, isSync);
+    future._completeWithValue(returnValue);
     return future;
   }
 
@@ -490,6 +569,35 @@ class _SuspendState {
     return functionData;
   }
 
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  static Object? _initSyncStar<T>() {
+    if (_trace) print('_initSyncStar<$T>');
+    return _SyncStarIterable<T>();
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  Object? _yieldSyncStar(Object? object) {
+    if (_trace) print('_yieldSyncStar($object)');
+    final data = _functionData;
+    if (data is _SyncStarIterable) {
+      data._stateAtStart = this;
+      return data;
+    } else {
+      // Update state in the iterator in case SuspendState was reallocated.
+      unsafeCast<_SyncStarIterator>(data)._state = this;
+    }
+    return true;
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
+  static bool _returnSyncStar(Object suspendState, Object? returnValue) {
+    if (_trace) print('_returnSyncStar');
+    return false;
+  }
+
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   external set _functionData(Object value);
@@ -500,22 +608,146 @@ class _SuspendState {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  external set _thenCallback(Function? value);
+  external set _thenCallback(void Function(dynamic)? value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  external Function? get _thenCallback;
+  external void Function(dynamic)? get _thenCallback;
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  external set _errorCallback(Function value);
+  external set _errorCallback(dynamic Function(Object, StackTrace)? value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  external Function get _errorCallback;
+  external dynamic Function(Object, StackTrace)? get _errorCallback;
 
   @pragma("vm:recognized", "other")
   @pragma("vm:never-inline")
-  external void _resume(
+  external Object? _resume(
       Object? value, Object? exception, StackTrace? stackTrace);
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external _SuspendState _clone();
+
+  @pragma("vm:external-name",
+      "SuspendState_instantiateClosureWithFutureTypeArgument")
+  external static Function _instantiateClosureWithFutureTypeArgument(
+      dynamic Function<T>(T) closure, Future future);
+}
+
+class _SyncStarIterable<T> extends Iterable<T> {
+  _SuspendState? _stateAtStart;
+
+  _SyncStarIterable();
+
+  Iterator<T> get iterator {
+    return _SyncStarIterator<T>(_stateAtStart!._clone());
+  }
+}
+
+class _SyncStarIterator<T> implements Iterator<T> {
+  _SuspendState? _state;
+  Iterator<T>? _yieldStarIterator;
+
+  // Stack of suspended sync* methods.
+  List<_SuspendState>? _stack;
+
+  // sync* method sets either _yieldStarIterable
+  // or _current before suspending.
+  @pragma("vm:entry-point")
+  T? _current;
+  @pragma("vm:entry-point")
+  Iterable<T>? _yieldStarIterable;
+
+  @override
+  T get current => _current as T;
+
+  _SyncStarIterator(_SuspendState state) : _state = state {
+    state._functionData = this;
+  }
+
+  @pragma('vm:prefer-inline')
+  bool _handleSyncStarMethodCompletion() {
+    _current = null;
+    _state = null;
+    final stack = _stack;
+    if (stack != null && stack.isNotEmpty) {
+      _state = stack.removeLast();
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool moveNext() {
+    if (_state == null) {
+      return false;
+    }
+
+    Object? pendingException;
+    StackTrace? pendingStackTrace;
+    while (true) {
+      // First delegate to an active nested iterator (if any).
+      final iterator = _yieldStarIterator;
+      if (iterator != null) {
+        try {
+          if (iterator.moveNext()) {
+            _current = iterator.current;
+            return true;
+          }
+        } catch (exception, stackTrace) {
+          pendingException = exception;
+          pendingStackTrace = stackTrace;
+        }
+        _yieldStarIterator = null;
+      }
+
+      try {
+        // Resume current sync* method in order to move to the next value.
+        final bool hasMore =
+            _state!._resume(null, pendingException, pendingStackTrace) as bool;
+        pendingException = null;
+        pendingStackTrace = null;
+        if (!hasMore) {
+          if (_handleSyncStarMethodCompletion()) {
+            continue;
+          }
+          return false;
+        }
+      } catch (exception, stackTrace) {
+        pendingException = exception;
+        pendingStackTrace = stackTrace;
+        if (_handleSyncStarMethodCompletion()) {
+          continue;
+        }
+        rethrow;
+      }
+
+      // Case: yield* some_iterator.
+      final iterable = _yieldStarIterable;
+      if (iterable != null) {
+        if (iterable is _SyncStarIterable) {
+          // We got a recursive yield* of sync* function. Instead of creating
+          // a new iterator we replace our current _state (remembering the
+          // current _state for later resumption).
+          final stack = (_stack ??= []);
+          stack.add(_state!);
+          final nestedState =
+              unsafeCast<_SyncStarIterable>(iterable)._stateAtStart!._clone();
+          nestedState._functionData = this;
+          _state = nestedState;
+        } else {
+          _yieldStarIterator = iterable.iterator;
+        }
+        _yieldStarIterable = null;
+        _current = null;
+        // Fetch the next item.
+        continue;
+      }
+
+      return true;
+    }
+  }
 }

@@ -13,7 +13,6 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:package1/p1.dart";
         import "package:package2/p2.dart";
         main() {
@@ -21,7 +20,6 @@ worlds:
           p2();
         }
       package1/p1.dart: |
-        // @dart=2.9
         p1() {
           print("Package 1");
           p1_v1_Only();
@@ -30,7 +28,6 @@ worlds:
           print("Package 1 v1 only!");
         }
       package1v2/p1.dart: |
-        // @dart=2.9
         p1() {
           print("Package 1 v2");
           p1_v2_Only();
@@ -39,22 +36,31 @@ worlds:
           print("Package 1 v2 only!");
         }
       package2/p2.dart: |
-        // @dart=2.9
         import "package:package1/p1.dart";
         p2() {
           p1();
           print("Package 2");
         }
-      .packages: |
-        package1:package1
-        package2:package2
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "package1",
+              "rootUri": "../package1"
+            },
+            {
+              "name": "package2",
+              "rootUri": "../package2"
+            }
+          ]
+        }
     expectedLibraryCount: 3
     incrementalSerializationDoesWork: true
   - entry: main.dart
     expectInitializeFromDill: false # .packages changed
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:package1/p1.dart";
         import "package:package2/p2.dart";
         main() {
@@ -62,7 +68,6 @@ worlds:
           p2();
         }
       package1/p1.dart: |
-        // @dart=2.9
         p1() {
           print("Package 1");
           p1_v1_Only();
@@ -71,7 +76,6 @@ worlds:
           print("Package 1 v1 only!");
         }
       package1v2/p1.dart: |
-        // @dart=2.9
         p1() {
           print("Package 1 v2");
           p1_v2_Only();
@@ -80,14 +84,24 @@ worlds:
           print("Package 1 v2 only!");
         }
       package2/p2.dart: |
-        // @dart=2.9
         import "package:package1/p1.dart";
         p2() {
           p1();
           print("Package 2");
         }
-      .packages: |
-        package1:package1v2
-        package2:package2
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "package1",
+              "rootUri": "../package1v2"
+            },
+            {
+              "name": "package2",
+              "rootUri": "../package2"
+            }
+          ]
+        }
     expectedLibraryCount: 3
     incrementalSerializationDoesWork: true

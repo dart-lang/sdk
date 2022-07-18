@@ -162,7 +162,7 @@ void throwInvalidReflectionError(String memberName) {
 /// `--experiment-call-instrumentation`.
 ///
 /// By default, whenever a method is invoked for the first time, it prints an id
-/// and the method name to the console. This can be overriden by adding a top
+/// and the method name to the console. This can be overridden by adding a top
 /// level `dartCallInstrumentation` hook in JavaScript.
 @pragma('dart2js:noInline')
 void traceHelper(dynamic /*int*/ id, dynamic /*String*/ qualifiedName) {
@@ -2693,7 +2693,7 @@ Future<Null> loadDeferredLibrary(String loadId) {
 
   void initializeSomeLoadedHunks() {
     for (int i = nextHunkToInitialize; i < total; ++i) {
-      // A hunk is initialized only if all the preceeding hunks have been
+      // A hunk is initialized only if all the preceding hunks have been
       // initialized.
       if (waitingForLoad[i]) return;
       nextHunkToInitialize++;

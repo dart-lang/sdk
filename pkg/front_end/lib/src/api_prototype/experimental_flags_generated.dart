@@ -596,9 +596,6 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
       "characters": {
         ExperimentalFlag.nonNullable,
       },
-      "charcode": {
-        ExperimentalFlag.nonNullable,
-      },
       "clock": {
         ExperimentalFlag.nonNullable,
       },

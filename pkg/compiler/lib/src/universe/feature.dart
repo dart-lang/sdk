@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 // TODO(sigmund): rename universe => world
 /// Describes individual features that may be seen in a program. Most features
 /// can be described only by name using the [Feature] enum, some features are
@@ -16,7 +14,7 @@ library compiler.universe.feature;
 
 import '../elements/types.dart';
 import '../ir/runtime_type_analysis.dart';
-import '../serialization/serialization_interfaces.dart';
+import '../serialization/serialization.dart';
 import '../util/util.dart';
 
 /// A language feature that may be seen in the program.
@@ -188,9 +186,12 @@ class RuntimeTypeUse {
   final DartType receiverType;
 
   /// The static type of the argument if [kind] is `RuntimeTypeUseKind.equals`.
-  final DartType argumentType;
+  final DartType? argumentType;
 
-  RuntimeTypeUse(this.kind, this.receiverType, this.argumentType);
+  RuntimeTypeUse(this.kind, this.receiverType, this.argumentType) {
+    // TODO(48820): Remove assertions when sound.
+    (receiverType as dynamic)!;
+  }
 
   @override
   int get hashCode =>
@@ -249,7 +250,7 @@ class GenericInstantiation {
 
   factory GenericInstantiation.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    DartType functionType = source.readDartType();
+    final functionType = source.readDartType() as FunctionType;
     List<DartType> typeArguments = source.readDartTypes();
     source.end(tag);
     return GenericInstantiation(functionType, typeArguments);

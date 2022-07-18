@@ -74,7 +74,7 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
   if (LIKELY(addr != 0)) {
     return addr;
   }
-  if (!assume_scavenge_will_fail_ && new_space_.GrowthControlState()) {
+  if (!assume_scavenge_will_fail_ && !thread->force_growth()) {
     // This call to CollectGarbage might end up "reusing" a collection spawned
     // from a different thread and will be racing to allocate the requested
     // memory with other threads being released after the collection.
@@ -93,7 +93,7 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
 
 uword Heap::AllocateOld(Thread* thread, intptr_t size, OldPage::PageType type) {
   ASSERT(thread->no_safepoint_scope_depth() == 0);
-  if (old_space_.GrowthControlState()) {
+  if (!thread->force_growth()) {
     CollectForDebugging(thread);
     uword addr = old_space_.TryAllocate(size, type);
     if (addr != 0) {
@@ -132,7 +132,7 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, OldPage::PageType type) {
     return addr;
   }
 
-  if (old_space_.GrowthControlState()) {
+  if (!thread->force_growth()) {
     WaitForSweeperTasks(thread);
     old_space_.TryReleaseReservation();
   } else {
@@ -155,10 +155,10 @@ void Heap::AllocatedExternal(intptr_t size, Space space) {
   }
 
   Thread* thread = Thread::Current();
-  if (thread->no_callback_scope_depth() == 0) {
+  if ((thread->no_callback_scope_depth() == 0) && !thread->force_growth()) {
     CheckExternalGC(thread);
   } else {
-    // Check delayed until Dart_TypedDataRelease.
+    // Check delayed until Dart_TypedDataRelease/~ForceGrowthScope.
   }
 }
 
@@ -179,6 +179,7 @@ void Heap::PromotedExternal(intptr_t size) {
 void Heap::CheckExternalGC(Thread* thread) {
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   ASSERT(thread->no_callback_scope_depth() == 0);
+  ASSERT(!thread->force_growth());
   if (new_space_.ExternalInWords() >= (4 * new_space_.CapacityInWords())) {
     // Attempt to free some external allocation by a scavenge. (If the total
     // remains above the limit, next external alloc will trigger another.)
@@ -193,7 +194,7 @@ void Heap::CheckExternalGC(Thread* thread) {
     }
     CollectGarbage(thread, GCType::kMarkSweep, GCReason::kExternal);
   } else {
-    CheckStartConcurrentMarking(thread, GCReason::kExternal);
+    CheckConcurrentMarking(thread, GCReason::kExternal, 0);
   }
 }
 
@@ -416,7 +417,9 @@ void Heap::NotifyIdle(int64_t deadline) {
     }
   }
 
-  old_space_.NotifyIdle(deadline);
+  if (FLAG_mark_when_idle) {
+    old_space_.IncrementalMarkWithTimeBudget(deadline);
+  }
 
   if (OS::GetCurrentMonotonicMicros() < deadline) {
     SemiSpace::ClearCache();
@@ -457,7 +460,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
         CollectOldSpaceGarbage(thread, GCType::kMarkSweep,
                                GCReason::kPromotion);
       } else {
-        CheckStartConcurrentMarking(thread, GCReason::kPromotion);
+        CheckConcurrentMarking(thread, GCReason::kPromotion, 0);
       }
     }
   }
@@ -483,6 +486,13 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
   }
   {
     GcSafepointOperationScope safepoint_operation(thread);
+    if (reason == GCReason::kFinalize) {
+      MonitorLocker ml(old_space_.tasks_lock());
+      if (old_space_.phase() != PageSpace::kAwaitingFinalization) {
+        return;  // Lost race.
+      }
+    }
+
     thread->isolate_group()->ForEachIsolate(
         [&](Isolate* isolate) {
           // Discard regexp backtracking stacks to further reduce memory usage.
@@ -554,29 +564,49 @@ void Heap::CollectAllGarbage(GCReason reason, bool compact) {
   WaitForSweeperTasks(thread);
 }
 
-void Heap::CheckStartConcurrentMarking(Thread* thread, GCReason reason) {
+void Heap::CheckConcurrentMarking(Thread* thread,
+                                  GCReason reason,
+                                  intptr_t size) {
+  ASSERT(!thread->force_growth());
+
+  PageSpace::Phase phase;
   {
     MonitorLocker ml(old_space_.tasks_lock());
-    if (old_space_.phase() != PageSpace::kDone) {
-      return;  // Busy.
-    }
+    phase = old_space_.phase();
   }
 
-  if (old_space_.ReachedSoftThreshold()) {
-    // New-space objects are roots during old-space GC. This means that even
-    // unreachable new-space objects prevent old-space objects they reference
-    // from being collected during an old-space GC. Normally this is not an
-    // issue because new-space GCs run much more frequently than old-space GCs.
-    // If new-space allocation is low and direct old-space allocation is high,
-    // which can happen in a program that allocates large objects and little
-    // else, old-space can fill up with unreachable objects until the next
-    // new-space GC. This check is the concurrent-marking equivalent to the
-    // new-space GC before synchronous-marking in CollectMostGarbage.
-    if (last_gc_was_old_space_) {
-      CollectNewSpaceGarbage(thread, GCType::kScavenge, GCReason::kFull);
-    }
-
-    StartConcurrentMarking(thread, reason);
+  switch (phase) {
+    case PageSpace::kMarking:
+      if (size != 0) {
+        old_space_.IncrementalMarkWithSizeBudget(size);
+      }
+      return;
+    case PageSpace::kSweepingLarge:
+    case PageSpace::kSweepingRegular:
+      return;  // Busy.
+    case PageSpace::kAwaitingFinalization:
+      CollectOldSpaceGarbage(thread, GCType::kMarkSweep, GCReason::kFinalize);
+      return;
+    case PageSpace::kDone:
+      if (old_space_.ReachedSoftThreshold()) {
+        // New-space objects are roots during old-space GC. This means that even
+        // unreachable new-space objects prevent old-space objects they
+        // reference from being collected during an old-space GC. Normally this
+        // is not an issue because new-space GCs run much more frequently than
+        // old-space GCs. If new-space allocation is low and direct old-space
+        // allocation is high, which can happen in a program that allocates
+        // large objects and little else, old-space can fill up with unreachable
+        // objects until the next new-space GC. This check is the
+        // concurrent-marking equivalent to the new-space GC before
+        // synchronous-marking in CollectMostGarbage.
+        if (last_gc_was_old_space_) {
+          CollectNewSpaceGarbage(thread, GCType::kScavenge, GCReason::kFull);
+        }
+        StartConcurrentMarking(thread, reason);
+      }
+      return;
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -593,17 +623,6 @@ void Heap::StartConcurrentMarking(Thread* thread, GCReason reason) {
 #if defined(SUPPORT_TIMELINE)
   PrintStatsToTimeline(&tbes, reason);
 #endif
-}
-
-void Heap::CheckFinishConcurrentMarking(Thread* thread) {
-  bool ready;
-  {
-    MonitorLocker ml(old_space_.tasks_lock());
-    ready = old_space_.phase() == PageSpace::kAwaitingFinalization;
-  }
-  if (ready) {
-    CollectOldSpaceGarbage(thread, GCType::kMarkSweep, GCReason::kFinalize);
-  }
 }
 
 void Heap::WaitForMarkerTasks(Thread* thread) {
@@ -644,21 +663,6 @@ void Heap::UpdateGlobalMaxUsed() {
   isolate_group_->GetHeapGlobalUsedMaxMetric()->SetValue(
       (UsedInWords(Heap::kNew) * kWordSize) +
       (UsedInWords(Heap::kOld) * kWordSize));
-}
-
-void Heap::InitGrowthControl() {
-  new_space_.InitGrowthControl();
-  old_space_.InitGrowthControl();
-}
-
-void Heap::SetGrowthControlState(bool state) {
-  new_space_.SetGrowthControlState(state);
-  old_space_.SetGrowthControlState(state);
-}
-
-bool Heap::GrowthControlState() {
-  ASSERT(new_space_.GrowthControlState() == old_space_.GrowthControlState());
-  return old_space_.GrowthControlState();
 }
 
 void Heap::WriteProtect(bool read_only) {
@@ -1024,58 +1028,43 @@ void Heap::RecordAfterGC(GCType type) {
   }
 #endif  // !PRODUCT
   if (Dart::gc_event_callback() != nullptr) {
-    isolate_group_->ForEachIsolate(
-        [&](Isolate* isolate) {
-          if (!Isolate::IsSystemIsolate(isolate)) {
-            Dart_GCEvent event;
-            auto isolate_id = Utils::CStringUniquePtr(
-                OS::SCreate(nullptr, ISOLATE_SERVICE_ID_FORMAT_STRING,
-                            isolate->main_port()),
-                std::free);
-            int64_t isolate_uptime_micros = isolate->UptimeMicros();
+    Dart_GCEvent event;
+    int64_t isolate_group_uptime_micros = isolate_group_->UptimeMicros();
+    event.isolate_group_id = isolate_group_->id();
+    event.type = GCTypeToString(stats_.type_);
+    event.reason = GCReasonToString(stats_.reason_);
 
-            event.isolate_id = isolate_id.get();
-            event.type = GCTypeToString(stats_.type_);
-            event.reason = GCReasonToString(stats_.reason_);
+    // New space - Scavenger.
+    {
+      intptr_t new_space_collections = new_space_.collections();
 
-            // New space - Scavenger.
-            {
-              intptr_t new_space_collections = new_space_.collections();
+      event.new_space.collections = new_space_collections;
+      event.new_space.used = stats_.after_.new_.used_in_words * kWordSize;
+      event.new_space.capacity =
+          stats_.after_.new_.capacity_in_words * kWordSize;
+      event.new_space.external =
+          stats_.after_.new_.external_in_words * kWordSize;
+      event.new_space.time = MicrosecondsToSeconds(new_space_.gc_time_micros());
+      event.new_space.avg_collection_period = AvgCollectionPeriod(
+          isolate_group_uptime_micros, new_space_collections);
+    }
 
-              event.new_space.collections = new_space_collections;
-              event.new_space.used =
-                  stats_.after_.new_.used_in_words * kWordSize;
-              event.new_space.capacity =
-                  stats_.after_.new_.capacity_in_words * kWordSize;
-              event.new_space.external =
-                  stats_.after_.new_.external_in_words * kWordSize;
-              event.new_space.time =
-                  MicrosecondsToSeconds(new_space_.gc_time_micros());
-              event.new_space.avg_collection_period = AvgCollectionPeriod(
-                  isolate_uptime_micros, new_space_collections);
-            }
+    // Old space - Page.
+    {
+      intptr_t old_space_collections = old_space_.collections();
 
-            // Old space - Page.
-            {
-              intptr_t old_space_collections = old_space_.collections();
+      event.old_space.collections = old_space_collections;
+      event.old_space.used = stats_.after_.old_.used_in_words * kWordSize;
+      event.old_space.capacity =
+          stats_.after_.old_.capacity_in_words * kWordSize;
+      event.old_space.external =
+          stats_.after_.old_.external_in_words * kWordSize;
+      event.old_space.time = MicrosecondsToSeconds(old_space_.gc_time_micros());
+      event.old_space.avg_collection_period = AvgCollectionPeriod(
+          isolate_group_uptime_micros, old_space_collections);
+    }
 
-              event.old_space.collections = old_space_collections;
-              event.old_space.used =
-                  stats_.after_.old_.used_in_words * kWordSize;
-              event.old_space.capacity =
-                  stats_.after_.old_.capacity_in_words * kWordSize;
-              event.old_space.external =
-                  stats_.after_.old_.external_in_words * kWordSize;
-              event.old_space.time =
-                  MicrosecondsToSeconds(old_space_.gc_time_micros());
-              event.old_space.avg_collection_period = AvgCollectionPeriod(
-                  isolate_uptime_micros, old_space_collections);
-            }
-
-            (*Dart::gc_event_callback())(&event);
-          }
-        },
-        /*at_safepoint=*/true);
+    (*Dart::gc_event_callback())(&event);
   }
 }
 
@@ -1186,16 +1175,13 @@ Heap::Space Heap::SpaceForExternal(intptr_t size) const {
   }
 }
 
-NoHeapGrowthControlScope::NoHeapGrowthControlScope()
-    : ThreadStackResource(Thread::Current()) {
-  Heap* heap = isolate_group()->heap();
-  current_growth_controller_state_ = heap->GrowthControlState();
-  heap->DisableGrowthControl();
+ForceGrowthScope::ForceGrowthScope(Thread* thread)
+    : ThreadStackResource(thread) {
+  thread->IncrementForceGrowthScopeDepth();
 }
 
-NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
-  Heap* heap = isolate_group()->heap();
-  heap->SetGrowthControlState(current_growth_controller_state_);
+ForceGrowthScope::~ForceGrowthScope() {
+  thread()->DecrementForceGrowthScopeDepth();
 }
 
 WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread)

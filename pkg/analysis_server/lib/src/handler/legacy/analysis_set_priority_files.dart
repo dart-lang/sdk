@@ -20,6 +20,8 @@ class AnalysisSetPriorityFilesHandler extends LegacyHandler {
   Future<void> handle() async {
     var params = AnalysisSetPriorityFilesParams.fromRequest(request);
 
+    server.analyticsManager.startedSetPriorityFiles(params);
+
     for (var file in params.files) {
       if (!server.isAbsoluteAndNormalized(file)) {
         sendResponse(Response.invalidFilePathFormat(request, file));

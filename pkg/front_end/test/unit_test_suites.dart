@@ -23,8 +23,6 @@ import 'fasta/messages_suite.dart' as messages show createContext;
 import 'fasta/modular_suite.dart' as modular show createContext;
 import 'fasta/outline_suite.dart' as outline show createContext;
 import 'fasta/strong_suite.dart' as strong show createContext;
-import 'fasta/text_serialization_suite.dart' as text_serialization
-    show createContext;
 import 'fasta/textual_outline_suite.dart' as textual_outline show createContext;
 import 'fasta/weak_suite.dart' as weak show createContext;
 import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
@@ -384,13 +382,6 @@ const List<Suite> suites = [
     "../../testing.json",
     shardCount: 1,
     requiresGit: true,
-  ),
-  const Suite(
-    "fasta/text_serialization",
-    text_serialization.createContext,
-    "../../testing.json",
-    path: "fasta/text_serialization_suite.dart",
-    shardCount: 10,
   ),
   const Suite(
     "fasta/strong",

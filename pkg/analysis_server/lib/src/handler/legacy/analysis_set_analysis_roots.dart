@@ -23,6 +23,7 @@ class AnalysisSetAnalysisRootsHandler extends LegacyHandler {
 
     server.options.analytics?.sendEvent('analysis', 'setAnalysisRoots',
         value: includedPathList.length);
+    server.analyticsManager.startedSetAnalysisRoots(params);
 
     // validate
     for (var path in includedPathList) {

@@ -11,12 +11,10 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import "b.dart";
 
         class A extends B {}
       b.dart: |
-        // @dart=2.9
         import "nonexisting.dart";
 
         class B extends A {}
@@ -30,12 +28,10 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import "b.dart";
 
         class A extends B {}
       b.dart: |
-        // @dart=2.9
         import "nonexisting.dart";
 
         class B extends A {}
@@ -54,7 +50,6 @@ worlds:
       - b.dart
     sources:
       b.dart: |
-        // @dart=2.9
         import "main.dart";
 
         class B extends A {}
@@ -66,6 +61,5 @@ worlds:
       - b.dart
     sources:
       b.dart: |
-        // @dart=2.9
         class B extends Object {}
     expectedLibraryCount: 2

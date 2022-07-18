@@ -18,9 +18,9 @@ DEFINE_FLAG(bool,
 #endif
 
 const char* const cpu_reg_names[kNumberOfCpuRegisters] = {
-    "zero", "ra", "sp",  "gp",   "tp",   "t0",   "t1", "t2", "fp", "thr", "a0",
-    "a1",   "a2", "tmp", "tmp2", "pp",   "a6",   "a7", "s2", "s3", "s4",  "s5",
-    "s6",   "s7", "s8",  "s9",   "null", "mask", "t3", "t4", "t5", "t6",
+    "zero", "ra", "sp",  "gp",   "tp",   "t0",  "t1", "t2", "fp", "thr", "a0",
+    "a1",   "a2", "tmp", "tmp2", "pp",   "a6",  "a7", "s2", "s3", "s4",  "s5",
+    "s6",   "s7", "s8",  "s9",   "null", "wbs", "t3", "t4", "t5", "t6",
 };
 
 const char* const cpu_reg_abi_names[kNumberOfCpuRegisters] = {

@@ -25,8 +25,9 @@ import 'universe/class_hierarchy.dart';
 import 'universe/member_usage.dart';
 import 'universe/selector.dart' show Selector;
 
-/// Common superinterface for [OpenWorld] and [JClosedWorld].
-abstract class World {}
+import 'world_interfaces.dart' as interfaces;
+
+export 'world_interfaces.dart' show World;
 
 /// The [JClosedWorld] represents the information known about a program when
 /// compiling with closed-world semantics.
@@ -37,7 +38,7 @@ abstract class World {}
 /// This precise knowledge about what's live in the program is later used in
 /// optimizations and other compiler decisions during code generation.
 // TODO(johnniwinther): Maybe this should just be called the JWorld.
-abstract class JClosedWorld implements World {
+abstract class JClosedWorld implements interfaces.JClosedWorld {
   JFieldAnalysis get fieldAnalysis;
 
   BackendUsage get backendUsage;
@@ -165,6 +166,7 @@ abstract class JClosedWorld implements World {
   bool hasElementIn(ClassEntity cls, Name name, MemberEntity element);
 
   /// Returns `true` if the field [element] is known to be effectively final.
+  @override
   bool fieldNeverChanges(MemberEntity element);
 
   /// Returns `true` if [selector] on [receiver] can hit a `call` method on a
@@ -182,6 +184,7 @@ abstract class JClosedWorld implements World {
   /// Every implementation of `Closure` has a 'call' method with its own
   /// signature so it cannot be modelled by a [FunctionEntity]. Also,
   /// call-methods for tear-off are not part of the element model.
+  @override
   bool includesClosureCall(Selector selector, AbstractValue receiver);
 
   /// Returns the mask for the potential receivers of a dynamic call to
@@ -204,6 +207,7 @@ abstract class JClosedWorld implements World {
   /// on the given [receiver]. The returned elements may include noSuchMethod
   /// handlers that are potential targets indirectly through the noSuchMethod
   /// mechanism.
+  @override
   Iterable<MemberEntity> locateMembers(
       Selector selector, AbstractValue receiver);
 

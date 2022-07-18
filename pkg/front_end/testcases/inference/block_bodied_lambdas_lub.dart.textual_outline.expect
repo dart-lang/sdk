@@ -3,5 +3,5 @@ library test;
 
 import 'dart:math' show Random;
 
-test2() {}
+test2(List<num> o) {}
 main() {}

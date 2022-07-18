@@ -16,7 +16,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -43,10 +42,12 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
+import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart';
 
 /// A concrete implementation of a [ClassElement].
@@ -96,8 +97,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
 
   @override
   List<InterfaceType> get allSupertypes {
-    var sessionImpl = library.session as AnalysisSessionImpl;
-    return sessionImpl.classHierarchy.implementedInterfaces(this);
+    return library.session.classHierarchy.implementedInterfaces(this);
   }
 
   @override
@@ -138,6 +138,12 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   /// dart:core library.
   bool get isDartCoreEnumImpl {
     return name == '_Enum' && library.isDartCore;
+  }
+
+  /// Return `true` if this class represents the class 'Function' defined in the
+  /// dart:core library.
+  bool get isDartCoreFunctionImpl {
+    return name == 'Function' && library.isDartCore;
   }
 
   @override
@@ -1654,6 +1660,72 @@ class DefaultSuperFormalParameterElementImpl
 
     return _superConstructorParameterDefaultValue;
   }
+}
+
+class DirectiveUriImpl implements DirectiveUri {}
+
+class DirectiveUriWithLibraryImpl extends DirectiveUriWithRelativeUriImpl
+    implements DirectiveUriWithLibrary {
+  @override
+  final LibraryElementImpl library;
+
+  DirectiveUriWithLibraryImpl({
+    required super.relativeUriString,
+    required super.relativeUri,
+    required this.library,
+  });
+
+  @override
+  Source get source => library.source;
+}
+
+class DirectiveUriWithRelativeUriImpl
+    extends DirectiveUriWithRelativeUriStringImpl
+    implements DirectiveUriWithRelativeUri {
+  @override
+  final Uri relativeUri;
+
+  DirectiveUriWithRelativeUriImpl({
+    required super.relativeUriString,
+    required this.relativeUri,
+  });
+}
+
+class DirectiveUriWithRelativeUriStringImpl
+    implements DirectiveUriWithRelativeUriString {
+  @override
+  final String relativeUriString;
+
+  DirectiveUriWithRelativeUriStringImpl({
+    required this.relativeUriString,
+  });
+}
+
+class DirectiveUriWithSourceImpl extends DirectiveUriWithRelativeUriImpl
+    implements DirectiveUriWithSource {
+  @override
+  final Source source;
+
+  DirectiveUriWithSourceImpl({
+    required super.relativeUriString,
+    required super.relativeUri,
+    required this.source,
+  });
+}
+
+class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
+    implements DirectiveUriWithUnit {
+  @override
+  final CompilationUnitElementImpl unit;
+
+  DirectiveUriWithUnitImpl({
+    required super.relativeUriString,
+    required super.relativeUri,
+    required this.unit,
+  });
+
+  @override
+  Source get source => unit.source;
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
@@ -3649,7 +3721,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
 class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
     implements LibraryAugmentationElement {
   @override
-  final LibraryOrAugmentationElement augmented;
+  final LibraryOrAugmentationElementImpl augmented;
 
   LibraryAugmentationElementImpl({
     required this.augmented,
@@ -3677,7 +3749,7 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   Scope get scope => throw UnimplementedError();
 
   @override
-  AnalysisSession get session => augmented.session;
+  AnalysisSessionImpl get session => augmented.session;
 
   @override
   TypeProvider get typeProvider => augmented.typeProvider;
@@ -3700,7 +3772,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   final AnalysisContext context;
 
   @override
-  AnalysisSession session;
+  AnalysisSessionImpl session;
 
   /// The language version for the library.
   LibraryLanguageVersion? _languageVersion;
@@ -3713,7 +3785,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   late TypeSystemImpl typeSystem;
 
-  late final List<Reference> exportedReferences;
+  late final List<ExportedReference> exportedReferences;
 
   LibraryElementLinkedData? linkedData;
 
@@ -3724,9 +3796,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   /// an entry point.
   FunctionElement? _entryPoint;
 
-  /// A list containing all of the compilation units that are included in this
-  /// library using a `part` directive.
-  List<CompilationUnitElement> _parts = const <CompilationUnitElement>[];
+  /// The list of `part` directives of this library.
+  List<PartElement> _parts2 = const <PartElement>[];
 
   /// The element representing the synthetic function `loadLibrary` that is
   /// defined for this library, or `null` if the element has not yet been
@@ -3924,18 +3995,25 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   String get name => super.name!;
 
+  @Deprecated('Use parts2 instead')
   @override
-  List<CompilationUnitElement> get parts => _parts;
+  List<CompilationUnitElement> get parts {
+    return _partUnits;
+  }
 
-  /// Set the compilation units that are included in this library using a `part`
-  /// directive to the given list of [parts].
-  set parts(List<CompilationUnitElement> parts) {
-    for (CompilationUnitElement compilationUnit in parts) {
-      assert((compilationUnit as CompilationUnitElementImpl).librarySource ==
-          source);
-      (compilationUnit as CompilationUnitElementImpl).enclosingElement = this;
+  @override
+  List<PartElement> get parts2 => _parts2;
+
+  set parts2(List<PartElement> parts) {
+    for (final part in parts) {
+      part as PartElementImpl;
+      part.enclosingElement = this;
+      final uri = part.uri;
+      if (uri is DirectiveUriWithUnitImpl) {
+        uri.unit.enclosingElement = this;
+      }
     }
-    _parts = parts;
+    _parts2 = parts;
   }
 
   @override
@@ -3978,10 +4056,18 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   List<CompilationUnitElement> get units {
-    List<CompilationUnitElement> units = <CompilationUnitElement>[];
-    units.add(_definingCompilationUnit);
-    units.addAll(_parts);
-    return units;
+    return [
+      _definingCompilationUnit,
+      ..._partUnits,
+    ];
+  }
+
+  List<CompilationUnitElement> get _partUnits {
+    return parts2
+        .map((e) => e.uri)
+        .whereType<DirectiveUriWithUnit>()
+        .map((e) => e.unit)
+        .toList();
   }
 
   @override
@@ -3998,12 +4084,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   ClassElement? getEnum(String name) {
-    var element = _definingCompilationUnit.getEnum(name);
-    if (element != null) {
-      return element;
-    }
-    for (CompilationUnitElement part in _parts) {
-      element = part.getEnum(name);
+    for (final unitElement in units) {
+      final element = unitElement.getEnum(name);
       if (element != null) {
         return element;
       }
@@ -4018,8 +4100,14 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   @override
-  ClassElement? getType(String className) {
-    return getTypeFromParts(className, _definingCompilationUnit, _parts);
+  ClassElement? getType(String name) {
+    for (final unitElement in units) {
+      final element = unitElement.getType(name);
+      if (element != null) {
+        return element;
+      }
+    }
+    return null;
   }
 
   /// Indicates whether it is unnecessary to report an undefined identifier
@@ -4054,8 +4142,11 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     }
 
     if (prefix == null && name.startsWith(r'_$')) {
-      for (var partElement in parts) {
-        if (partElement.isSynthetic && isGeneratedSource(partElement.source)) {
+      for (var partElement in parts2) {
+        final uri = partElement.uri;
+        if (uri is DirectiveUriWithSource &&
+            uri is! DirectiveUriWithUnit &&
+            file_paths.isGenerated(uri.relativeUriString)) {
           return true;
         }
       }
@@ -4095,7 +4186,10 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChildren(_parts, visitor);
+    safelyVisitChildren(parts2, visitor);
+    for (final partUnit in _partUnits) {
+      partUnit.accept(visitor);
+    }
   }
 
   static List<PrefixElement> buildPrefixesFromImports(
@@ -4229,6 +4323,9 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   @override
   List<PrefixElement> get prefixes =>
       _prefixes ??= buildPrefixesFromImports(imports);
+
+  @override
+  AnalysisSessionImpl get session;
 
   @override
   Source get source {
@@ -5080,6 +5177,35 @@ mixin ParameterElementMixin implements ParameterElement {
   }
 }
 
+class PartElementImpl extends _ExistingElementImpl implements PartElement {
+  @override
+  final DirectiveUri uri;
+
+  PartElementImpl({
+    required this.uri,
+  }) : super(null, -1);
+
+  @override
+  CompilationUnitElementImpl get enclosingUnit {
+    var enclosingLibrary = enclosingElement as LibraryElementImpl;
+    return enclosingLibrary._definingCompilationUnit;
+  }
+
+  @override
+  String get identifier => 'part';
+
+  @override
+  ElementKind get kind => ElementKind.PART;
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) => visitor.visitPartElement(this);
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writePartElement(this);
+  }
+}
+
 /// A concrete implementation of a [PrefixElement].
 class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   /// The scope of this prefix, `null` if it has not been created yet.
@@ -5098,8 +5224,8 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
       super.enclosingElement as LibraryElement;
 
   @override
-  LibraryOrAugmentationElement get enclosingElement2 =>
-      super.enclosingElement as LibraryOrAugmentationElement;
+  LibraryOrAugmentationElementImpl get enclosingElement2 =>
+      super.enclosingElement as LibraryOrAugmentationElementImpl;
 
   @override
   List<ImportElement> get imports {
@@ -5725,6 +5851,22 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   @override
   String get name {
     return super.name!;
+  }
+
+  /// Instantiates this type alias with its type parameters as arguments.
+  DartType get rawType {
+    final List<DartType> typeArguments;
+    if (typeParameters.isNotEmpty) {
+      typeArguments = typeParameters.map<DartType>((t) {
+        return t.instantiate(nullabilitySuffix: _noneOrStarSuffix);
+      }).toList();
+    } else {
+      typeArguments = const <DartType>[];
+    }
+    return instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: _noneOrStarSuffix,
+    );
   }
 
   @override

@@ -65,6 +65,65 @@ void useAddAll() {
   };
 
   expect(new List<num>.generate(24, (int i) => i).toSet(), set4);
+
+  Set<int> set5 = {
+    ...dynamicSet1,
+    ...dynamicSet2,
+    ...iterableIntSet,
+    ...iterableNumSet1,
+    ...iterableNumSet2,
+    ...intSet,
+    ...numSet1,
+    ...numSet2
+  };
+
+  expect(new List<int>.generate(24, (int i) => i).toSet(), set5);
+
+  var set6 = {
+    ...dynamicSet1,
+    ...dynamicSet2,
+    ...iterableIntSet,
+    ...iterableNumSet1,
+    ...iterableNumSet2,
+    ...intSet,
+    ...numSet1,
+    ...numSet2
+  };
+
+  expect(new List<dynamic>.generate(24, (int i) => i).toSet(), set6);
+
+  Set<int> set7 = {
+    ...?dynamicSet1,
+    ...?dynamicSet2,
+    ...?iterableIntSet,
+    ...?iterableNumSet1,
+    ...?iterableNumSet2,
+    ...?intSet,
+    ...?numSet1,
+    ...?numSet2
+  };
+
+  expect(new List<int>.generate(24, (int i) => i).toSet(), set7);
+
+  var set8 = {
+    ...?dynamicSet1,
+    ...?dynamicSet2,
+    ...?iterableIntSet,
+    ...?iterableNumSet1,
+    ...?iterableNumSet2,
+    ...?intSet,
+    ...?numSet1,
+    ...?numSet2
+  };
+
+  expect(new List<dynamic>.generate(24, (int i) => i).toSet(), set8);
+
+  {
+    Set<int> intSet1 = {0, 1, 2};
+    Set<int> intSet2 = {3, 4, 5};
+    var set = {...intSet1, ...intSet2};
+    expect(new List<int>.generate(6, (int i) => i).toSet(), set);
+  }
 }
 
 main() {
@@ -79,5 +138,9 @@ void expect(Set set1, Set set2) {
     if (!set2.contains(element)) {
       throw 'Element $element not found. Expected $set1, actual $set2.';
     }
+  }
+  if (set1.runtimeType.toString() != set2.runtimeType.toString()) {
+    throw "Runtime time difference: "
+        "${set1.runtimeType.toString()} vs ${set2.runtimeType.toString()}";
   }
 }

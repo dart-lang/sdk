@@ -60,6 +60,7 @@ enum ByteRegister {
   R13B = 13,
   R14B = 14,
   R15B = 15,
+  kNumberOfByteRegisters = 16,
   kNoByteRegister = -1  // Signals an illegal register.
 };
 
@@ -102,6 +103,7 @@ const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
 extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
 extern const char* const cpu_reg_abi_names[kNumberOfCpuRegisters];
+extern const char* const cpu_reg_byte_names[kNumberOfByteRegisters];
 extern const char* const fpu_reg_names[kNumberOfXmmRegisters];
 
 enum RexBits {
@@ -336,7 +338,7 @@ struct DoubleToIntegerStubABI {
   static const Register kResultReg = RAX;
 };
 
-// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub).
+// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub, YieldSyncStarStub).
 struct SuspendStubABI {
   static const Register kArgumentReg = RAX;
   static const Register kTempReg = RDX;
@@ -352,7 +354,8 @@ struct SuspendStubABI {
   static const intptr_t kResumePcDistance = 5;
 };
 
-// ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub).
+// ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub,
+// InitSyncStarStub).
 struct InitSuspendableFunctionStubABI {
   static const Register kTypeArgsReg = RAX;
 };
@@ -368,12 +371,13 @@ struct ResumeStubABI {
   // Registers for control transfer.
   // (the 2nd part, can reuse registers from the 1st part)
   static const Register kResumePcReg = RCX;
+  // Can also reuse kSuspendStateReg but should not conflict with CODE_REG/PP.
   static const Register kExceptionReg = RSI;
   static const Register kStackTraceReg = RDI;
 };
 
 // ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub,
-// ReturnAsyncStarStub).
+// ReturnAsyncStarStub, ReturnSyncStarStub).
 struct ReturnStubABI {
   static const Register kSuspendStateReg = RBX;
 };
@@ -381,6 +385,16 @@ struct ReturnStubABI {
 // ABI for AsyncExceptionHandlerStub.
 struct AsyncExceptionHandlerStubABI {
   static const Register kSuspendStateReg = RBX;
+};
+
+// ABI for CloneSuspendStateStub.
+struct CloneSuspendStateStubABI {
+  static const Register kSourceReg = RAX;
+  static const Register kDestinationReg = RBX;
+  static const Register kTempReg = RDX;
+  static const Register kFrameSizeReg = RCX;
+  static const Register kSrcFrameReg = RSI;
+  static const Register kDstFrameReg = RDI;
 };
 
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch

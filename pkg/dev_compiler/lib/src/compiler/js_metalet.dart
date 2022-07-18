@@ -11,7 +11,7 @@ import 'shared_compiler.dart' show YieldFinder;
 ///
 /// For example, postfix increment can be desugared as:
 ///
-///     // psuedocode mix of Scheme and JS:
+///     // pseudocode mix of Scheme and JS:
 ///     (let* (x1=expr1, x2=expr2, t=x1[x2]) { x1[x2] = t + 1; t })
 ///
 /// [MetaLet] will simplify itself automatically when [toExpression],

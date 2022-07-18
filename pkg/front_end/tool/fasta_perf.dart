@@ -90,7 +90,7 @@ Future setup(Uri entryUri) async {
     // allowlisting of error messages in the error handler.
     ..onDiagnostic = onDiagnosticMessageHandler()
     ..compileSdk = true
-    ..packagesFileUri = Uri.base.resolve('.packages')
+    ..packagesFileUri = Uri.base.resolve('.dart_tool/package_config.json')
     ..target = createTarget(isFlutter: false);
   uriResolver = await new ProcessedOptions(options: options).getUriTranslator();
 }
@@ -231,7 +231,7 @@ Future<CompilerResult> generateKernel(Uri entryUri,
     ..sdkRoot = sdkRoot
     ..onDiagnostic = onDiagnosticMessageHandler()
     ..target = createTarget(isFlutter: false)
-    ..packagesFileUri = Uri.base.resolve('.packages')
+    ..packagesFileUri = Uri.base.resolve('.dart_tool/package_config.json')
     ..compileSdk = compileSdk
     ..environmentDefines = const {};
   if (!compileSdk) {

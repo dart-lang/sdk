@@ -1,9 +1,9 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static field dynamic x;
-static method f<T extends core::Object* = dynamic>() → self::f::T*
+static field Never x;
+static method f<T extends core::Object? = dynamic>() → self::f::T%
   ;
 static method g() → void
   ;

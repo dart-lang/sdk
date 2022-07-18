@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// .packages specifies 2.5, this library tries to go above that, which is fine,
-// except it still has to be within the range of the sdk. The library stays on
-// the .packages specified one (2.5) and an error is issued.
+// .dart_tool/package_config.json specifies 2.5, this library tries to go above
+// that, which is fine, except it still has to be within the range of the sdk.
+// The library stays on the .dart_tool/package_config.json specified one (2.5)
+// and an error is issued.
 
 /*error: errors=LanguageVersionTooHigh*/
 // @dart = 2.9

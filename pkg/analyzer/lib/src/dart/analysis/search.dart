@@ -414,10 +414,13 @@ class Search {
     if (name.startsWith('_')) {
       String libraryPath = element.library!.source.fullName;
       if (searchedFiles.add(libraryPath, this)) {
-        FileState library = _driver.fsState.getFileForPath(libraryPath);
-        for (FileState file in library.libraryFiles) {
-          if (file.path == path || file.referencedNames.contains(name)) {
-            files.add(file.path);
+        final libraryFile = _driver.fsState.getFileForPath(libraryPath);
+        final libraryKind = libraryFile.kind;
+        if (libraryKind is LibraryFileStateKind) {
+          for (final file in libraryKind.files) {
+            if (file.path == path || file.referencedNames.contains(name)) {
+              files.add(file.path);
+            }
           }
         }
       }
@@ -471,26 +474,25 @@ class Search {
       CompilationUnitElement element) async {
     String path = element.source.fullName;
 
-    // If the path is not known, then the file is not referenced.
-    if (!_driver.fsState.knownFilePaths.contains(path)) {
+    final file = _driver.resourceProvider.getFile(path);
+    final fileState = _driver.fsState.getExisting(file);
+
+    // If the file is not known, then it is not referenced.
+    if (fileState == null) {
       return const <SearchResult>[];
     }
 
-    // Check every file that references the given path.
+    // Check files that reference the given file.
     List<SearchResult> results = <SearchResult>[];
-    List<FileState> knownFiles = _driver.fsState.knownFiles.toList();
-    for (FileState file in knownFiles) {
-      for (FileState referencedFile in file.directReferencedFiles) {
-        if (referencedFile.path == path) {
-          await _addResultsInFile(
-              results,
-              element,
-              const {
-                IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE
-              },
-              file.path);
-        }
-      }
+    for (final reference in fileState.referencingFiles) {
+      await _addResultsInFile(
+        results,
+        element,
+        const {
+          IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
+        },
+        reference.path,
+      );
     }
     return results;
   }

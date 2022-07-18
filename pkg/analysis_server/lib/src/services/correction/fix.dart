@@ -1063,6 +1063,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Remove parentheses in getter invocation',
   );
+  static const REMOVE_PRINT = FixKind(
+    'dart.fix.remove.removePrint',
+    DartFixKindPriority.DEFAULT,
+    'Remove print statement',
+  );
+  static const REMOVE_PRINT_MULTI = FixKind(
+    'dart.fix.remove.removePrint.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove print statements in file',
+  );
   static const REMOVE_QUESTION_MARK = FixKind(
     'dart.fix.remove.questionMark',
     DartFixKindPriority.DEFAULT,
@@ -1117,6 +1127,16 @@ class DartFixKind {
     'dart.fix.remove.unnecessaryCast.multi',
     DartFixKindPriority.IN_FILE,
     'Remove all unnecessary casts in file',
+  );
+  static const REMOVE_UNNECESSARY_FINAL = FixKind(
+    'dart.fix.remove.unnecessaryFinal',
+    DartFixKindPriority.DEFAULT,
+    "Remove unnecessary 'final'",
+  );
+  static const REMOVE_UNNECESSARY_FINAL_MULTI = FixKind(
+    'dart.fix.remove.unnecessaryFinal.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove all unnecessary 'final's in file",
   );
   static const REMOVE_UNNECESSARY_CONST = FixKind(
     'dart.fix.remove.unnecessaryConst',
@@ -1262,6 +1282,11 @@ class DartFixKind {
     'dart.fix.remove.var',
     DartFixKindPriority.DEFAULT,
     "Remove 'var'",
+  );
+  static const RENAME_METHOD_PARAMETER = FixKind(
+    'dart.fix.rename.methodParameter',
+    DartFixKindPriority.DEFAULT,
+    "Rename '{0}' to '{1}'",
   );
   static const RENAME_TO_CAMEL_CASE = FixKind(
     'dart.fix.rename.toCamelCase',
@@ -1619,6 +1644,11 @@ class DartFixKind {
     'dart.fix.flutter.wrap.text',
     DartFixKindPriority.DEFAULT,
     "Wrap in a 'Text' widget",
+  );
+  static const WRAP_IN_UNAWAITED = FixKind(
+    'dart.fix.wrap.unawaited',
+    DartFixKindPriority.DEFAULT,
+    "Wrap in 'unawaited'",
   );
 }
 

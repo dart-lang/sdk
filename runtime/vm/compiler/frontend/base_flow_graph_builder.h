@@ -125,7 +125,7 @@ class TestFragment {
 // kSharedWithVariable:
 //
 //   A temporary variable is allocated and initialized to 0 on normal entry
-//   and 2 on unchecked entry. Code which should be ommitted on the unchecked
+//   and 2 on unchecked entry. Code which should be omitted on the unchecked
 //   entrypoint is made conditional on this variable being equal to 0.
 //
 enum class UncheckedEntryPointStyle {

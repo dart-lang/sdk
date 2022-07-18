@@ -16,6 +16,7 @@ import '../universe/resolution_world_builder.dart' show ResolutionWorldBuilder;
 import '../world.dart' show World;
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, StaticUse;
+import 'strong_mode_constraint.dart' show StrongModeConstraintInterface;
 
 /// The combined constraints on receivers all the dynamic call sites of the same
 /// selector.
@@ -167,7 +168,7 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
   }
 }
 
-class StrongModeConstraint {
+class StrongModeConstraint implements StrongModeConstraintInterface {
   final ClassEntity cls;
   final ClassRelation relation;
 
@@ -191,9 +192,14 @@ class StrongModeConstraint {
     return world.isInheritedIn(element, cls, relation);
   }
 
+  @override
   bool get isExact => relation == ClassRelation.exact;
 
+  @override
   bool get isThis => relation == ClassRelation.thisExpression;
+
+  @override
+  String get className => cls.name;
 
   @override
   bool operator ==(Object other) {

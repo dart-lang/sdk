@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 81;
+  UInt32 formatVersion = 82;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -437,7 +437,7 @@ type Procedure extends Member {
   Byte stubKind; // Index into the ProcedureStubKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst,
               isRedirectingFactory, isExtensionMember,
-              isNonNullableByDefault, isSynthetic);
+              isNonNullableByDefault, isSynthetic, isInternalImplementation);
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.
@@ -602,8 +602,8 @@ type AbstractSuperPropertyGet extends Expression {
   Byte tag = 22;
   FileOffset fileOffset;
   Name name;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
 }
 
 type AbstractSuperPropertySet extends Expression {
@@ -611,16 +611,16 @@ type AbstractSuperPropertySet extends Expression {
   FileOffset fileOffset;
   Name name;
   Expression value;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
 }
 
 type SuperPropertyGet extends Expression {
   Byte tag = 24;
   FileOffset fileOffset;
   Name name;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
 }
 
 type SuperPropertySet extends Expression {
@@ -628,8 +628,8 @@ type SuperPropertySet extends Expression {
   FileOffset fileOffset;
   Name name;
   Expression value;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
 }
 
 /*
@@ -842,8 +842,8 @@ type AbstractSuperMethodInvocation extends Expression {
   FileOffset fileOffset;
   Name name;
   Arguments arguments;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
 }
 
 type SuperMethodInvocation extends Expression {
@@ -851,8 +851,8 @@ type SuperMethodInvocation extends Expression {
   FileOffset fileOffset;
   Name name;
   Arguments arguments;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
 }
 
 type StaticInvocation extends Expression {
@@ -1331,6 +1331,7 @@ type AsyncForInStatement extends Statement {
 type SwitchStatement extends Statement {
   Byte tag = 71;
   FileOffset fileOffset;
+  Byte isExplicitlyExhaustive; // 1 if exhaustive, 0 if not.
   Expression expression;
   List<SwitchCase> cases;
 }

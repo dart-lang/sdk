@@ -15,7 +15,7 @@ void main() {
 
 @reflectiveTest
 class FormatTest extends AbstractAnalysisServerIntegrationTest {
-  String formatTestSetup({bool withErrors = false}) {
+  Future<String> formatTestSetup({bool withErrors = false}) async {
     var pathname = sourcePath('test.dart');
 
     if (withErrors) {
@@ -41,12 +41,12 @@ class Class1 {
 ''';
       writeFile(pathname, text);
     }
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     return pathname;
   }
 
   Future<void> test_format() async {
-    var pathname = formatTestSetup();
+    var pathname = await formatTestSetup();
 
     var result = await sendEditFormat(pathname, 0, 0);
     expect(result.edits, isNotEmpty);
@@ -55,7 +55,7 @@ class Class1 {
   }
 
   Future<void> test_format_preserve_selection() async {
-    var pathname = formatTestSetup();
+    var pathname = await formatTestSetup();
 
     // format with 'bar' selected
     var initialPosition = readFile(pathname).indexOf('bar()');
@@ -66,7 +66,7 @@ class Class1 {
   }
 
   Future<void> test_format_with_errors() async {
-    var pathname = formatTestSetup(withErrors: true);
+    var pathname = await formatTestSetup(withErrors: true);
 
     try {
       await sendEditFormat(pathname, 0, 0);

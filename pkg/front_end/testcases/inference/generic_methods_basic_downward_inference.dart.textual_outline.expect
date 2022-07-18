@@ -1,5 +1,4 @@
-// @dart = 2.9
 library test;
 
-T f<S, T>(S s) => null;
-main() {}
+T f<S, T>(S s) => throw '';
+test() {}

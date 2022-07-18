@@ -47,20 +47,22 @@ class WasmTarget extends Target {
         'dart:async',
         'dart:ffi',
         'dart:_internal',
+        'dart:_js_helper',
         'dart:typed_data',
         'dart:nativewrappers',
-        'dart:js_util_wasm',
-        'dart:js_wasm',
+        'dart:js',
+        'dart:js_util',
         'dart:wasm',
         'dart:developer',
       ];
 
   @override
   List<String> get extraIndexedLibraries => const <String>[
+        'dart:_js_helper',
         'dart:collection',
         'dart:typed_data',
-        'dart:js_util_wasm',
-        'dart:js_wasm',
+        'dart:js',
+        'dart:js_util',
         'dart:wasm',
       ];
 
@@ -79,6 +81,26 @@ class WasmTarget extends Target {
       ..parent = host;
   }
 
+  StaticInteropClassEraser _staticInteropClassEraser(
+          CoreTypes coreTypes, ReferenceFromIndex? referenceFromIndex) =>
+      StaticInteropClassEraser(coreTypes, referenceFromIndex,
+          libraryForJavaScriptObject: 'dart:_js_helper',
+          classNameOfJavaScriptObject: 'JSValue');
+
+  void _performJSInteropTransformations(
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      List<Library> interopDependentLibraries,
+      ReferenceFromIndex? referenceFromIndex) {
+    final jsUtilOptimizer = JsUtilWasmOptimizer(coreTypes, hierarchy);
+    final staticInteropClassEraser =
+        _staticInteropClassEraser(coreTypes, referenceFromIndex);
+    for (Library library in interopDependentLibraries) {
+      jsUtilOptimizer.visitLibrary(library);
+      staticInteropClassEraser.visitLibrary(library);
+    }
+  }
+
   @override
   void performPreConstantEvaluationTransformations(
       Component component,
@@ -88,6 +110,13 @@ class WasmTarget extends Target {
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
     _patchHostEndian(coreTypes);
+  }
+
+  @override
+  void performOutlineTransformations(Component component, CoreTypes coreTypes,
+      ReferenceFromIndex? referenceFromIndex) {
+    component.accept(StaticInteropStubCreator(
+        _staticInteropClassEraser(coreTypes, referenceFromIndex)));
   }
 
   @override
@@ -103,12 +132,12 @@ class WasmTarget extends Target {
       ChangedStructureNotifier? changedStructureNotifier}) {
     List<Library>? transitiveImportingJSInterop =
         jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-            component, Uri.parse("dart:js_wasm"));
+            component, Uri.parse("package:js/js.dart"));
     if (transitiveImportingJSInterop == null) {
       logger?.call("Skipped JS interop transformations");
     } else {
-      performJSInteropTransformations(
-          coreTypes, hierarchy, transitiveImportingJSInterop);
+      _performJSInteropTransformations(coreTypes, hierarchy,
+          transitiveImportingJSInterop, referenceFromIndex);
       logger?.call("Transformed JS interop classes");
     }
     transformMixins.transformLibraries(
@@ -239,16 +268,4 @@ class WasmTarget extends Target {
 
   @override
   bool isSupportedPragma(String pragmaName) => pragmaName.startsWith("wasm:");
-}
-
-void performJSInteropTransformations(CoreTypes coreTypes,
-    ClassHierarchy hierarchy, List<Library> interopDependentLibraries) {
-  final jsUtilOptimizer = JsUtilWasmOptimizer(coreTypes, hierarchy);
-  final staticInteropClassEraser = StaticInteropClassEraser(coreTypes,
-      libraryForJavaScriptObject: 'dart:js_util_wasm',
-      classNameOfJavaScriptObject: 'JSValue');
-  for (Library library in interopDependentLibraries) {
-    jsUtilOptimizer.visitLibrary(library);
-    staticInteropClassEraser.visitLibrary(library);
-  }
 }

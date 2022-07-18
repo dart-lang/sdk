@@ -508,7 +508,7 @@ class Intrinsifier {
         code(b);
         return outType;
       }
-    } else if (node.arguments.positional.length == 0) {
+    } else if (node.arguments.positional.isEmpty) {
       // Unary operator
       Expression operand = node.receiver;
       w.ValueType opType = translator.translateType(receiverType);
@@ -581,6 +581,14 @@ class Intrinsifier {
     return null;
   }
 
+  w.ValueType getID(Expression node) {
+    ClassInfo info = translator.topInfo;
+    codeGen.wrap(node, info.nullableType);
+    b.struct_get(info.struct, FieldIndex.classId);
+    b.i64_extend_i32_u();
+    return w.NumType.i64;
+  }
+
   w.ValueType? generateStaticIntrinsic(StaticInvocation node) {
     String name = node.name.text;
     Class? cls = node.target.enclosingClass;
@@ -639,8 +647,22 @@ class Intrinsifier {
           codeGen.wrap(stackTrace, stackTraceType);
           b.throw_(translator.exceptionTag);
           return codeGen.voidMarker;
-        case "_getSubtypeMap":
-          return translator.types.makeSubtypeMap(b);
+        case "_getTypeRulesSupers":
+          return translator.types.makeTypeRulesSupers(b);
+        case "_getTypeRulesSubstitutions":
+          return translator.types.makeTypeRulesSubstitutions(b);
+        case "_getInterfaceTypeRuntimeType":
+          Expression object = node.arguments.positional[0];
+          Expression typeArguments = node.arguments.positional[1];
+          ClassInfo info = translator.classInfo[translator.interfaceTypeClass]!;
+          b.i32_const(info.classId);
+          b.i32_const(initialIdentityHash);
+          // Runtime types are never nullable.
+          b.i32_const(0);
+          getID(object);
+          codeGen.wrap(typeArguments, translator.types.typeListExpectedType);
+          translator.struct_new(b, info);
+          return info.nonNullableType;
       }
     }
 
@@ -739,12 +761,7 @@ class Intrinsifier {
           b.f64_reinterpret_i64();
           return w.NumType.f64;
         case "getID":
-          assert(cls?.name == "ClassID");
-          ClassInfo info = translator.topInfo;
-          codeGen.wrap(node.arguments.positional.single, info.nullableType);
-          b.struct_get(info.struct, FieldIndex.classId);
-          b.i64_extend_i32_u();
-          return w.NumType.i64;
+          return getID(node.arguments.positional.single);
       }
     }
 
@@ -973,29 +990,15 @@ class Intrinsifier {
     }
 
     // Object.runtimeType
-    // TODO(joshualitt): Implement this correctly for [FunctionType] and
-    // [InterfaceType].
     if (member.enclosingClass == translator.coreTypes.objectClass &&
         name == "runtimeType") {
+      // Simple redirect to `_runtimeType`. This is done to keep
+      // `Object.runtimeType` external, which seems to be necessary for the TFA.
+      // If we don't do this, then the TFA assumes things like
+      // `null.runtimeType` are impossible and inserts a throw.
       w.Local receiver = paramLocals[0];
-      ClassInfo info = translator.classInfo[translator.interfaceTypeClass]!;
-      translator.functions.allocateClass(info.classId);
-      w.ValueType typeListExpectedType = info
-          .struct.fields[FieldIndex.interfaceTypeTypeArguments].type.unpacked;
-
-      b.i32_const(info.classId);
-      b.i32_const(initialIdentityHash);
-      // Runtime types are never nullable.
-      b.i32_const(0);
       b.local_get(receiver);
-      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-      b.i64_extend_i32_u();
-      // TODO(askesc): Type arguments
-      b.global_get(translator.constants.emptyTypeList);
-      translator.convertType(function,
-          translator.constants.emptyTypeList.type.type, typeListExpectedType);
-      translator.struct_new(b, info);
-
+      codeGen.call(translator.objectRuntimeType.reference);
       return true;
     }
 
@@ -1007,9 +1010,9 @@ class Intrinsifier {
       ClassInfo intInfo = translator.classInfo[translator.boxedIntClass]!;
       ClassInfo doubleInfo = translator.classInfo[translator.boxedDoubleClass]!;
       w.Local cid = function.addLocal(w.NumType.i32);
-      w.Label ref_eq = b.block();
+      w.Label refEq = b.block();
       b.local_get(first);
-      b.br_on_null(ref_eq);
+      b.br_on_null(refEq);
       b.struct_get(translator.topInfo.struct, FieldIndex.classId);
       b.local_tee(cid);
 
@@ -1077,6 +1080,22 @@ class Intrinsifier {
       b.local_get(second);
       b.ref_eq();
 
+      return true;
+    }
+
+    // _typeArguments
+    if (member.name.text == "_typeArguments") {
+      Class cls = member.enclosingClass!;
+      ClassInfo classInfo = translator.classInfo[cls]!;
+      w.Local object = paramLocals[0];
+      codeGen.makeList(translator.types.typeType, cls.typeParameters.length,
+          (w.ValueType elementType, int i) {
+        TypeParameter typeParameter = cls.typeParameters[i];
+        int typeParameterIndex = translator.typeParameterIndex[typeParameter]!;
+        b.local_get(object);
+        translator.ref_cast(b, classInfo);
+        b.struct_get(classInfo.struct, typeParameterIndex);
+      });
       return true;
     }
 

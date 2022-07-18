@@ -22,12 +22,12 @@ class PercentileCalculatorTest {
     }
     calculator.clear();
     expect(calculator.toAnalyticsString(),
-        '0[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]');
+        '{"count":0,"percentiles":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}');
   }
 
   void test_toAnalyticsString_empty() {
     expect(calculator.toAnalyticsString(),
-        '0[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]');
+        '{"count":0,"percentiles":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}');
   }
 
   void test_toAnalyticsString_evenDistribution() {
@@ -35,6 +35,6 @@ class PercentileCalculatorTest {
       calculator.addValue(i);
     }
     expect(calculator.toAnalyticsString(),
-        '100[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]');
+        '{"count":100,"percentiles":[5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]}');
   }
 }

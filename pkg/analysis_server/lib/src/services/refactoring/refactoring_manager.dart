@@ -91,15 +91,15 @@ class RefactoringManager {
     _reset();
   }
 
-  void getRefactoring(Request request, CancellationToken cancellationToken) {
+  void getRefactoring(Request request, EditGetRefactoringParams params,
+      CancellationToken cancellationToken) {
     // prepare for processing the request
     this.request = request;
     final result = this.result = EditGetRefactoringResult(
         EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST);
-    // process the request
-    var params = EditGetRefactoringParams.fromRequest(request);
-    var file = params.file;
 
+    // process the request
+    var file = params.file;
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
     }

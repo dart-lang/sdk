@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--async-debugger --verbose-debug --lazy-async-stacks
+// VMOptions=--async-debugger --verbose-debug
 
 import 'dart:developer';
 import 'service_test_common.dart';
@@ -44,11 +44,7 @@ var tests = <IsolateTest>[
   stepInto, // exit helper via a single step.
 
   hasStoppedAtBreakpoint,
-  stoppedAtLine(20), // return null (weird dispatching)
-  stepInto, // exit helper via a single step.
-
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(25), // await helper (weird dispatching)
+  stoppedAtLine(LINE_D), // await helper
   smartNext,
 
   hasStoppedAtBreakpoint,

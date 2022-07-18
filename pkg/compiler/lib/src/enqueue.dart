@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.enqueue;
 
 import 'common/elements.dart' show ElementEnvironment;
@@ -82,7 +80,8 @@ abstract class Enqueuer {
   // side-effects.
   static bool skipEnqueuerCheckForTesting = false;
 
-  bool queueIsClosed;
+  bool get queueIsClosed;
+  set queueIsClosed(bool closed);
 
   bool get queueIsEmpty;
 
@@ -110,8 +109,8 @@ abstract class Enqueuer {
 
   CompilerTask get task;
   void checkClass(ClassEntity cls);
-  void processStaticUse(MemberEntity member, StaticUse staticUse);
-  void processTypeUse(MemberEntity member, TypeUse typeUse);
+  void processStaticUse(MemberEntity? member, StaticUse staticUse);
+  void processTypeUse(MemberEntity? member, TypeUse typeUse);
   void processDynamicUse(DynamicUse dynamicUse);
   void processConstantUse(ConstantUse constantUse);
   EnqueuerListener get listener;
@@ -129,7 +128,7 @@ abstract class Enqueuer {
     task.measureSubtask('resolution.check', () {
       // Run through the classes and see if we need to enqueue more methods.
       for (ClassEntity classElement in directlyInstantiatedClasses) {
-        for (ClassEntity currentClass = classElement;
+        for (ClassEntity? currentClass = classElement;
             currentClass != null;
             currentClass = elementEnvironment.getSuperClass(currentClass)) {
           checkClass(currentClass);

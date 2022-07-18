@@ -192,32 +192,12 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
     String? uriString = classDetails.location?.script?.uri;
     if (uriString == null) return true;
     if (uriString.startsWith("package:front_end/")) {
-      // Classes used for lazy initialization will naturally fluctuate.
-      if (classDetails.name == "DillClassBuilder") return true;
-      if (classDetails.name == "DillExtensionBuilder") return true;
-      if (classDetails.name == "DillExtensionMemberBuilder") return true;
-      if (classDetails.name == "DillMemberBuilder") return true;
-      if (classDetails.name == "DillTypeAliasBuilder") return true;
-
-      // These classes have proved to fluctuate, although the reason is less
-      // clear.
-      if (classDetails.name == "InheritedImplementationInterfaceConflict") {
-        return true;
-      }
-      if (classDetails.name == "AbstractMemberOverridingImplementation") {
-        return true;
-      }
-      if (classDetails.name == "VoidTypeBuilder") return true;
-      if (classDetails.name == "NamedTypeBuilder") return true;
-      if (classDetails.name == "DillClassMember") return true;
-      if (classDetails.name == "Scope") return true;
-      if (classDetails.name == "ConstructorScope") return true;
-      if (classDetails.name == "ScopeBuilder") return true;
-      if (classDetails.name == "ConstructorScopeBuilder") return true;
-      if (classDetails.name == "NullTypeDeclarationBuilder") return true;
-      if (classDetails.name == "NullabilityBuilder") return true;
-
-      return false;
+      // Because of lazy loading many things naturally fluctuate.
+      // We'll therefore restrict this to Source* stuff and
+      // DillLibraryBuilder for front_end stuff.
+      if (classDetails.name?.startsWith("Source") ?? false) return false;
+      if (classDetails.name == "DillLibraryBuilder") return false;
+      return true;
     } else if (uriString.startsWith("package:kernel/")) {
       // DirtifyingList is used for lazy stuff and naturally change in numbers.
       if (classDetails.name == "DirtifyingList") return true;

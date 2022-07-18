@@ -40,7 +40,7 @@ void main() {
           .then((request) => request.close())
           .then((response) {
         print(
-            'reponse: status code: ${response.statusCode}, reason: ${response.reasonPhrase}');
+            'response: status code: ${response.statusCode}, reason: ${response.reasonPhrase}');
         int bytes = 0;
         response.listen((data) {
           bytes += data.length;

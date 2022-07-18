@@ -1,7 +1,9 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 // @dart=2.9
+
 /*@testedFeatures=inference*/
 library test;
 
@@ -15,14 +17,13 @@ class Test1 {
   void test() {
     var /*@ type=int* */ v1 = /*@target=Test1.t*/ t = getInt();
 
-    var /*@ type=int* */ v4 = /*@target=Test1.t*/ /*@target=Test1.t*/ t
-         ??= getInt();
+    var /*@ type=int* */ v4 = /*@target=Test1.t*/ /*@target=Test1.t*/ t ??=
+        getInt();
 
-    var /*@ type=int* */ v7 = /*@target=Test1.t*/ /*@target=Test1.t*/ t
-        /*@target=num.+*/ += getInt();
+    var /*@ type=int* */ v7 = /*@target=Test1.t*/ /*@target=Test1.t*/ t /*@target=num.+*/ +=
+        getInt();
 
-    var /*@ type=int* */ v10 = /*@target=num.+*/ ++
-        /*@target=Test1.t*/ /*@target=Test1.t*/ t;
+    var /*@ type=int* */ v10 = /*@target=num.+*/ ++ /*@target=Test1.t*/ /*@target=Test1.t*/ t;
 
     var /*@ type=int* */ v11 =
         /*@ type=int* */ /*@target=Test1.t*/ /*@target=Test1.t*/
@@ -40,26 +41,25 @@ class Test2 {
 
     var /*@ type=double* */ v3 = /*@target=Test2.t*/ t = getDouble();
 
-    var /*@ type=num* */ v4 = /*@target=Test2.t*/ /*@target=Test2.t*/ t
-         ??= getInt();
+    var /*@ type=num* */ v4 = /*@target=Test2.t*/ /*@target=Test2.t*/ t ??=
+        getInt();
 
-    var /*@ type=num* */ v5 = /*@target=Test2.t*/ /*@target=Test2.t*/ t
-         ??= getNum();
+    var /*@ type=num* */ v5 = /*@target=Test2.t*/ /*@target=Test2.t*/ t ??=
+        getNum();
 
-    var /*@ type=num* */ v6 = /*@target=Test2.t*/ /*@target=Test2.t*/ t
-         ??= getDouble();
+    var /*@ type=num* */ v6 = /*@target=Test2.t*/ /*@target=Test2.t*/ t ??=
+        getDouble();
 
-    var /*@ type=num* */ v7 = /*@target=Test2.t*/ /*@target=Test2.t*/ t
-        /*@target=num.+*/ += getInt();
+    var /*@ type=num* */ v7 = /*@target=Test2.t*/ /*@target=Test2.t*/ t /*@target=num.+*/ +=
+        getInt();
 
-    var /*@ type=num* */ v8 = /*@target=Test2.t*/ /*@target=Test2.t*/ t
-        /*@target=num.+*/ += getNum();
+    var /*@ type=num* */ v8 = /*@target=Test2.t*/ /*@target=Test2.t*/ t /*@target=num.+*/ +=
+        getNum();
 
-    var /*@ type=num* */ v9 = /*@target=Test2.t*/ /*@target=Test2.t*/ t
-        /*@target=num.+*/ += getDouble();
+    var /*@ type=num* */ v9 = /*@target=Test2.t*/ /*@target=Test2.t*/ t /*@target=num.+*/ +=
+        getDouble();
 
-    var /*@ type=num* */ v10 = /*@target=num.+*/ ++
-        /*@target=Test2.t*/ /*@target=Test2.t*/ t;
+    var /*@ type=num* */ v10 = /*@target=num.+*/ ++ /*@target=Test2.t*/ /*@target=Test2.t*/ t;
 
     var /*@ type=num* */ v11 =
         /*@ type=num* */ /*@target=Test2.t*/ /*@target=Test2.t*/
@@ -73,20 +73,19 @@ class Test3 {
   void test3() {
     var /*@ type=double* */ v3 = /*@target=Test3.t*/ t = getDouble();
 
-    var /*@ type=double* */ v6 = /*@target=Test3.t*/ /*@target=Test3.t*/ t
-         ??= getDouble();
+    var /*@ type=double* */ v6 = /*@target=Test3.t*/ /*@target=Test3.t*/ t ??=
+        getDouble();
 
-    var /*@ type=double* */ v7 = /*@target=Test3.t*/ /*@target=Test3.t*/ t
-        /*@target=double.+*/ += getInt();
+    var /*@ type=double* */ v7 = /*@target=Test3.t*/ /*@target=Test3.t*/ t /*@target=double.+*/ +=
+        getInt();
 
-    var /*@ type=double* */ v8 = /*@target=Test3.t*/ /*@target=Test3.t*/ t
-        /*@target=double.+*/ += getNum();
+    var /*@ type=double* */ v8 = /*@target=Test3.t*/ /*@target=Test3.t*/ t /*@target=double.+*/ +=
+        getNum();
 
-    var /*@ type=double* */ v9 = /*@target=Test3.t*/ /*@target=Test3.t*/ t
-        /*@target=double.+*/ += getDouble();
+    var /*@ type=double* */ v9 = /*@target=Test3.t*/ /*@target=Test3.t*/ t /*@target=double.+*/ +=
+        getDouble();
 
-    var /*@ type=double* */ v10 = /*@target=double.+*/ ++
-        /*@target=Test3.t*/ /*@target=Test3.t*/ t;
+    var /*@ type=double* */ v10 = /*@target=double.+*/ ++ /*@target=Test3.t*/ /*@target=Test3.t*/ t;
 
     var /*@ type=double* */ v11 =
         /*@ type=double* */ /*@target=Test3.t*/ /*@target=Test3.t*/

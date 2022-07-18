@@ -102,7 +102,7 @@ class Request {
   ///     'id': String,
   ///     'method': methodName,
   ///     'params': {
-  ///       paramter_name: value
+  ///       parameter_name: value
   ///     }
   ///   }
   ///

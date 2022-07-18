@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart'
     show DartType, DynamicType, Expression, NullLiteral, VariableDeclaration;
+import 'package:kernel/class_hierarchy.dart';
 
 import '../constant_context.dart' show ConstantContext;
 import '../kernel/body_builder.dart' show BodyBuilder;
@@ -147,14 +148,13 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   VariableDeclaration build(SourceLibraryBuilder library) {
     if (variable == null) {
-      DartType? builtType = type is OmittedTypeBuilder
-          // `null` is used in [VariableDeclarationImpl] to signal an omitted
-          // type.
-          ? null
-          : type.build(library, TypeUse.parameterType);
+      bool isTypeOmitted = type is OmittedTypeBuilder;
+      DartType? builtType = type.build(library, TypeUse.parameterType);
       variable = new VariableDeclarationImpl(
           name == noNameSentinel ? null : name,
-          type: builtType,
+          // `null` is used in [VariableDeclarationImpl] to signal an omitted
+          // type.
+          type: isTypeOmitted ? null : builtType,
           isFinal: isFinal,
           isConst: false,
           isInitializingFormal: isInitializingFormal,
@@ -219,10 +219,11 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     }
   }
 
-  void finalizeInitializingFormal(ClassBuilder classBuilder) {
+  void finalizeInitializingFormal(
+      ClassBuilder classBuilder, ClassHierarchyBase hierarchy) {
     Builder? fieldBuilder = classBuilder.lookupLocalMember(name);
     if (fieldBuilder is SourceFieldBuilder) {
-      type.registerInferredType(fieldBuilder.inferType());
+      type.registerInferredType(fieldBuilder.inferType(hierarchy));
     } else {
       type.registerInferredType(const DynamicType());
     }

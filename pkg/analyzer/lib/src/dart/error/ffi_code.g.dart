@@ -42,11 +42,12 @@ class FfiCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the value of the invalid mapping
   static const FfiCode ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED = FfiCode(
     'ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED',
-    "Only mappings to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', "
-        "'UInt32', and 'Uint64' are supported.",
+    "Invalid mapping to '{0}'; only mappings to 'Int8', 'Int16', 'Int32', "
+        "'Int64', 'Uint8', 'Uint16', 'UInt32', and 'Uint64' are supported.",
     correctionMessage:
         "Try changing the value to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', "
         "'Uint16', 'UInt32', or 'Uint64'.",
@@ -365,19 +366,6 @@ class FfiCode extends AnalyzerErrorCode {
     "Only packing to 1, 2, 4, 8, and 16 bytes is supported.",
     correctionMessage:
         "Try changing the 'Packed' annotation alignment to 1, 2, 4, 8, or 16.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the outer struct
-  ///  1: the name of the struct being nested
-  static const FfiCode PACKED_NESTING_NON_PACKED = FfiCode(
-    'PACKED_NESTING_NON_PACKED',
-    "Nesting the non-packed or less tightly packed struct '{0}' in a packed "
-        "struct '{1}' isn't supported.",
-    correctionMessage:
-        "Try packing the nested struct or packing the nested struct more "
-        "tightly.",
     hasPublishedDocs: true,
   );
 

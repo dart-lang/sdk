@@ -1231,6 +1231,12 @@ class Assembler : public MicroAssembler {
   void LeaveFrame();
   void Ret() { ret(); }
 
+  // Sets the return address to [value] as if there was a call.
+  // On RISC-V sets RA.
+  void SetReturnAddress(Register value) {
+    mv(RA, value);
+  }
+
   // Emit code to transition between generated mode and native mode.
   //
   // These require and ensure that CSP and SP are equal and aligned and require
@@ -1251,7 +1257,7 @@ class Assembler : public MicroAssembler {
   void RestorePoolPointer();
 
   // Restores the values of the registers that are blocked to cache some values
-  // e.g. BARRIER_MASK and NULL_REG.
+  // e.g. WRITE_BARRIER_STATE and NULL_REG.
   void RestorePinnedRegisters();
 
   void SetupGlobalPoolAndDispatchTable();
@@ -1314,7 +1320,7 @@ class Assembler : public MicroAssembler {
   // is not yet known and needs therefore relocation to the right place before
   // the code can be used.
   //
-  // The neccessary information for the "linker" (i.e. the relocation
+  // The necessary information for the "linker" (i.e. the relocation
   // information) is stored in [UntaggedCode::static_calls_target_table_]: an
   // entry of the form
   //

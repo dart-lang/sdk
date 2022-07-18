@@ -289,7 +289,8 @@ check its output for a fresh URL, and use that URL to perform your migration.
 Uri getGitHubErrorUri(
         String description, Object? exception, Object? stackTrace) =>
     Uri.https('github.com', 'dart-lang/sdk/issues/new', {
-      'title': 'Customer-reported issue with NNBD migration tool: $description',
+      'title': 'Customer-reported issue with null safety migration tool: '
+          '$description',
       'labels': 'area-analyzer,analyzer-nnbd-migration,type-bug',
       'body': '''
 $description
@@ -319,7 +320,7 @@ $stackTrace
 /// pre-populating some labels and a body template.
 Uri getGitHubProblemUri() =>
     Uri.https('github.com', 'dart-lang/sdk/issues/new', {
-      'title': 'Customer-reported issue with NNBD migration tool',
+      'title': 'Customer-reported issue with null safety migration tool',
       'labels': 'area-analyzer,analyzer-nnbd-migration,type-bug',
       'body': '''
 #### Steps to reproduce

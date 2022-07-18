@@ -42,7 +42,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_workspace_symbols.dart'
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
-/// The server moves to this state when a critical unrecoverrable error (for
+/// The server moves to this state when a critical unrecoverable error (for
 /// example, inconsistent document state between server/client) occurs and will
 /// reject all messages.
 class FailureStateMessageHandler extends ServerStateMessageHandler {
@@ -118,7 +118,7 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
         'Server already initialized');
     registerHandler(ShutdownMessageHandler(server));
     registerHandler(ExitMessageHandler(server));
-    registerHandler(IntializedMessageHandler(
+    registerHandler(InitializedMessageHandler(
       server,
       openWorkspacePaths,
     ));

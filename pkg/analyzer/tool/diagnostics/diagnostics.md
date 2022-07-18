@@ -468,8 +468,8 @@ class C extends AbiSpecificInteger {
 
 ### abi_specific_integer_mapping_unsupported
 
-_Only mappings to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16',
-'UInt32', and 'Uint64' are supported._
+_Invalid mapping to '{0}'; only mappings to 'Int8', 'Int16', 'Int32', 'Int64',
+'Uint8', 'Uint16', 'UInt32', and 'Uint64' are supported._
 
 #### Description
 
@@ -493,7 +493,7 @@ entry is `Array<Uint8>`, which isn't a valid integer type:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-@[!AbiSpecificIntegerMapping!]({Abi.macosX64 : Array<Uint8>(4)})
+@AbiSpecificIntegerMapping({Abi.macosX64 : [!Array<Uint8>(4)!]})
 class C extends AbiSpecificInteger {
   const C();
 }
@@ -7310,8 +7310,6 @@ Given a [part file][] named `part.dart` containing the following:
 
 {% prettify dart tag=pre+code %}
 part of lib;
-
-class C{}
 {% endprettify %}
 
 The following code produces this diagnostic because imported files can't
@@ -7321,8 +7319,6 @@ have a part-of directive:
 library lib;
 
 import [!'part.dart'!];
-
-C c = C();
 {% endprettify %}
 
 #### Common fixes
@@ -14116,88 +14112,6 @@ class C extends Struct {
   external Pointer<Uint8> notEmpty;
 }
 {% endprettify %}
-
-### packed_nesting_non_packed
-
-_Nesting the non-packed or less tightly packed struct '{0}' in a packed struct
-'{1}' isn't supported._
-
-#### Description
-
-The analyzer produces this diagnostic when a subclass of `Struct` that is
-annotated as being `Packed` declares a field whose type is also a subclass
-of `Struct` and the field's type is either not packed or is packed less
-tightly.
-
-For more information about FFI, see [C interop using dart:ffi][ffi].
-
-#### Example
-
-The following code produces this diagnostic because the class `Outer`,
-which is a subclass of `Struct` and is packed on 1-byte boundaries,
-declared a field whose type (`Inner`) is packed on 8-byte boundaries:
-
-{% prettify dart tag=pre+code %}
-import 'dart:ffi';
-
-@Packed(8)
-class Inner extends Struct {
-  external Pointer<Uint8> notEmpty;
-}
-
-@Packed(1)
-class Outer extends Struct {
-  external Pointer<Uint8> notEmpty;
-
-  external [!Inner!] nestedLooselyPacked;
-}
-{% endprettify %}
-
-#### Common fixes
-
-If the inner struct should be packed more tightly, then change the
-argument to the inner struct's `Packed` annotation:
-
-{% prettify dart tag=pre+code %}
-import 'dart:ffi';
-
-@Packed(1)
-class Inner extends Struct {
-  external Pointer<Uint8> notEmpty;
-}
-
-@Packed(1)
-class Outer extends Struct {
-  external Pointer<Uint8> notEmpty;
-
-  external Inner nestedLooselyPacked;
-}
-{% endprettify %}
-
-If the outer struct should be packed less tightly, then change the
-argument to the outer struct's `Packed` annotation:
-
-{% prettify dart tag=pre+code %}
-import 'dart:ffi';
-
-@Packed(8)
-class Inner extends Struct {
-  external Pointer<Uint8> notEmpty;
-}
-
-@Packed(8)
-class Outer extends Struct {
-  external Pointer<Uint8> notEmpty;
-
-  external Inner nestedLooselyPacked;
-}
-{% endprettify %}
-
-If the inner struct doesn't have an annotation and should be packed, then
-add an annotation.
-
-If the inner struct doesn't have an annotation and the outer struct
-shouldn't be packed, then remove its annotation.
 
 ### part_of_different_library
 

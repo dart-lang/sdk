@@ -107,7 +107,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_completionRegistrations_withDartPlugin() async {
     // This tests for a bug that occurred with an analysis server plugin
     // that works on Dart files. When computing completion registrations we
-    // usually have seperate registrations for Dart + non-Dart to account for
+    // usually have separate registrations for Dart + non-Dart to account for
     // different trigger characters. However, the plugin types were all being
     // included in the non-Dart registration even if they included Dart.
     //
@@ -384,7 +384,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         InitializeResult.fromJson(initResponse.result as Map<String, Object?>);
     expect(initResult.capabilities, isNotNull);
 
-    // Ensure no static registrations. This list should include all server equivilents
+    // Ensure no static registrations. This list should include all server equivalents
     // of the dynamic registrations listed in `ClientDynamicRegistrations.supported`.
     expect(initResult.capabilities.textDocumentSync, isNull);
     expect(initResult.capabilities.completionProvider, isNull);
@@ -964,17 +964,6 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(response.result, isNull);
     expect(response.error, isNotNull);
     expect(response.error!.code, ErrorCodes.ServerNotInitialized);
-  }
-
-  String withTrailingSlash(String path) {
-    expect(path, isNot(endsWith('/')));
-    final pathSeparator = server.resourceProvider.pathContext.separator;
-    return '$path$pathSeparator';
-  }
-
-  Uri withTrailingSlashUri(Uri uri) {
-    expect(uri.path, isNot(endsWith('/')));
-    return uri.replace(path: '${uri.path}/');
   }
 }
 

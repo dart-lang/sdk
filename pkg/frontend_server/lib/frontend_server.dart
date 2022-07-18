@@ -7,7 +7,8 @@ library frontend_server;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' hide FileSystemEntity;
+import 'dart:io' show Directory, File, IOSink, stdin, stdout;
+import 'dart:typed_data' show BytesBuilder;
 
 import 'package:args/args.dart';
 import 'package:dev_compiler/dev_compiler.dart'
@@ -58,7 +59,7 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
           'supported when --aot and --minimal-kernel are not used.',
       defaultsTo: null)
   ..addFlag('compact-async',
-      help: 'Enable new compact async/await implementation.', defaultsTo: null)
+      help: 'Enable new compact async/await implementation.', defaultsTo: true)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
@@ -92,7 +93,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('depfile',
       help: 'Path to output Ninja depfile. Only used in batch mode.')
   ..addOption('packages',
-      help: '.packages file to use for compilation', defaultsTo: null)
+      help: '.dart_tool/package_config.json file to use for compilation',
+      defaultsTo: null)
   ..addMultiOption('source',
       help: 'List additional source files to include into compilation.',
       defaultsTo: const <String>[])
@@ -541,7 +543,7 @@ class FrontendCompiler implements CompilerInterface {
       nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
       supportMirrors: options['support-mirrors'] ??
           !(options['aot'] || options['minimal-kernel']),
-      compactAsync: options['compact-async'] ?? options['aot'],
+      compactAsync: options['compact-async'],
     );
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');
@@ -632,7 +634,7 @@ class FrontendCompiler implements CompilerInterface {
     return errors.isEmpty;
   }
 
-  void _outputDependenciesDelta(Iterable<Uri> compiledSources) async {
+  Future<void> _outputDependenciesDelta(Iterable<Uri> compiledSources) async {
     if (!_printIncrementalDependencies) {
       return;
     }
@@ -669,7 +671,8 @@ class FrontendCompiler implements CompilerInterface {
   Future<void> writeJavascriptBundle(KernelCompilationResults results,
       String filename, String fileSystemScheme, String moduleFormat) async {
     var packageConfig = await loadPackageConfigUri(
-        _compilerOptions.packagesFileUri ?? File('.packages').absolute.uri);
+        _compilerOptions.packagesFileUri ??
+            File('.dart_tool/package_config.json').absolute.uri);
     var soundNullSafety = _compilerOptions.nnbdMode == NnbdMode.Strong;
     final Component component = results.component;
     // Compute strongly connected components.
@@ -945,7 +948,7 @@ class FrontendCompiler implements CompilerInterface {
     final procedure = await expressionCompiler.compileExpressionToJs(
         libraryUri, line, column, jsFrameValues, expression);
 
-    final result = errors.length > 0 ? errors[0] : procedure;
+    final result = errors.isNotEmpty ? errors[0] : procedure;
 
     // TODO(annagrin): kernelBinaryFilename is too specific
     // rename to _outputFileName?
@@ -1242,7 +1245,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
           // definitions (one per line)
           // ...
           // <boundarykey>
-          // type-defintions (one per line)
+          // type-definitions (one per line)
           // ...
           // <boundarykey>
           // <libraryUri: String>
@@ -1268,8 +1271,9 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
         if (string == boundaryKey) {
           compiler.recompileDelta(entryPoint: recompileEntryPoint);
           state = _State.READY_FOR_INSTRUCTION;
-        } else
+        } else {
           compiler.invalidate(Uri.base.resolve(string));
+        }
         break;
       case _State.COMPILE_EXPRESSION_EXPRESSION:
         compileExpressionRequest.expression = string;

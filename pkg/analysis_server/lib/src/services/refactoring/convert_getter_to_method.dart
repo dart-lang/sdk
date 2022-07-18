@@ -70,12 +70,22 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     return change;
   }
 
-  RefactoringStatus _checkInitialConditions() {
+  @override
+  bool isAvailable() {
+    return !_checkElement().hasFatalError;
+  }
+
+  /// Checks if [element] is valid to perform this refactor.
+  RefactoringStatus _checkElement() {
     if (!element.isGetter || element.isSynthetic) {
       return RefactoringStatus.fatal(
           'Only explicit getters can be converted to methods.');
     }
     return RefactoringStatus();
+  }
+
+  RefactoringStatus _checkInitialConditions() {
+    return _checkElement();
   }
 
   Future<void> _updateElementDeclaration(

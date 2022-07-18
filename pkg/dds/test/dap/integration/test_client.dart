@@ -176,7 +176,7 @@ class DapTestClient {
       'Event "$event"',
       _eventController.stream.firstWhere((e) => e.event == event,
           orElse: () =>
-              throw 'Did not recieve $event event before stream closed'));
+              throw 'Did not receive $event event before stream closed'));
 
   /// Returns a stream for [event] events.
   Stream<Event> events(String event) {
@@ -261,10 +261,14 @@ class DapTestClient {
 
   /// Sends a next (step over) request for the given thread.
   ///
+  /// [granularity] is always ignored because the Dart debugger does not support
+  /// it (indicated in its capabilities), but it is used by tests to ensure the
+  /// adapter does not crash on the presence of it.
+  ///
   /// Returns a Future that completes when the server returns a corresponding
   /// response.
-  Future<Response> next(int threadId) =>
-      sendRequest(NextArguments(threadId: threadId));
+  Future<Response> next(int threadId, {SteppingGranularity? granularity}) =>
+      sendRequest(NextArguments(threadId: threadId, granularity: granularity));
 
   /// Sends a request to the server for variables scopes available for a given
   /// stack frame.
@@ -490,18 +494,24 @@ extension DapTestClientExtension on DapTestClient {
   Future<StoppedEventBody> hitBreakpoint(
     File file,
     int line, {
+    List<int>? additionalBreakpoints,
     File? entryFile,
     String? condition,
     String? cwd,
     List<String>? args,
     Future<Response> Function()? launch,
   }) async {
+    assert(condition == null || additionalBreakpoints == null,
+        'Only one of condition/additionalBreakpoints can be sent');
     entryFile ??= file;
     final stop = expectStop('breakpoint', file: file, line: line);
 
     await Future.wait([
       initialize(),
-      setBreakpoint(file, line, condition: condition),
+      if (additionalBreakpoints != null)
+        setBreakpoints(file, [line, ...additionalBreakpoints])
+      else
+        setBreakpoint(file, line, condition: condition),
       launch?.call() ?? this.launch(entryFile.path, cwd: cwd, args: args),
     ], eagerError: true);
 
@@ -518,6 +528,16 @@ extension DapTestClientExtension on DapTestClient {
     );
   }
 
+  /// Sets breakpoints at [lines] in [file].
+  Future<void> setBreakpoints(File file, List<int> lines) async {
+    await sendRequest(
+      SetBreakpointsArguments(
+        source: Source(path: file.path),
+        breakpoints: lines.map((line) => SourceBreakpoint(line: line)).toList(),
+      ),
+    );
+  }
+
   /// Sets the exception pause mode to [pauseMode] and expects to pause after
   /// running the script.
   ///
@@ -526,9 +546,10 @@ extension DapTestClientExtension on DapTestClient {
   Future<StoppedEventBody> pauseOnException(
     File file, {
     String? exceptionPauseMode, // All, Unhandled, None
+    String? expectText,
     Future<Response> Function()? launch,
   }) async {
-    final stop = expectStop('exception', file: file);
+    final stopFuture = expectStop('exception', file: file);
 
     await Future.wait([
       initialize(),
@@ -540,6 +561,10 @@ extension DapTestClientExtension on DapTestClient {
       launch?.call() ?? this.launch(file.path),
     ], eagerError: true);
 
+    final stop = await stopFuture;
+    if (expectText != null) {
+      expect(stop.text, expectText);
+    }
     return stop;
   }
 
@@ -673,7 +698,7 @@ extension DapTestClientExtension on DapTestClient {
 
   /// Collects all output events until the program terminates.
   ///
-  /// These results include all events in the order they are recieved, including
+  /// These results include all events in the order they are received, including
   /// console, stdout and stderr.
   ///
   /// Only one of [start] or [launch] may be provided. Use [start] to customise
@@ -701,7 +726,7 @@ extension DapTestClientExtension on DapTestClient {
 
   /// Collects all output and test events until the program terminates.
   ///
-  /// These results include all events in the order they are recieved, including
+  /// These results include all events in the order they are received, including
   /// console, stdout, stderr and test notifications from the test JSON reporter.
   ///
   /// Only one of [start] or [launch] may be provided. Use [start] to customise

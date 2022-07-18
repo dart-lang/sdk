@@ -77,7 +77,6 @@ Future<bool> buildConfigurations(List<TestConfiguration> configurations) async {
 }
 
 List<String> _selectBuildTargets(Configuration inner) {
-  final result = <String>[];
   final compiler = inner.compiler;
   const targetsForCompilers = {
     Compiler.dartk: ['runtime'],
@@ -86,10 +85,10 @@ List<String> _selectBuildTargets(Configuration inner) {
     Compiler.fasta: ['create_sdk', 'dartdevc_test', 'kernel_platform_files'],
     Compiler.dartdevk: ['dartdevc_test'],
     Compiler.dart2js: ['create_sdk'],
-    Compiler.dart2analyzer: ['create_sdk'],
+    Compiler.dart2analyzer: ['create_sdk', 'utils/dartanalyzer'],
     Compiler.specParser: <String>[],
   };
-  result.addAll(targetsForCompilers[compiler]);
+  final result = [...targetsForCompilers[compiler]!];
 
   if (compiler == Compiler.dartkp &&
       [Architecture.arm, Architecture.arm64, Architecture.arm_x64]

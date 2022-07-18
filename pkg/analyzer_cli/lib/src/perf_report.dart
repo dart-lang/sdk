@@ -35,9 +35,6 @@ String makePerfReport(int startTime, int endTime, CommandLineOptions options,
 
   var optionsJson = <String, dynamic>{
     'dartSdkPath': options.dartSdkPath,
-    'showPackageWarnings': options.showPackageWarnings,
-    'showPackageWarningsPrefix': options.showPackageWarningsPrefix,
-    'showSdkWarnings': options.showSdkWarnings,
     'definedVariables': options.declaredVariables,
     'packageConfigPath': options.defaultPackagesPath,
     'sourceFiles': options.sourceFiles,

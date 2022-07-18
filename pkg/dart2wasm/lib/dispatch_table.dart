@@ -282,7 +282,9 @@ class DispatchTable {
       selector.offset = offset;
       for (int classId in selector.classIds) {
         int entry = offset + classId;
-        while (table.length <= entry) table.add(null);
+        while (table.length <= entry) {
+          table.add(null);
+        }
         assert(table[entry] == null);
         table[entry] = selector.targets[classId];
       }
@@ -294,7 +296,7 @@ class DispatchTable {
 
   void output() {
     w.Module m = translator.m;
-    w.Table wasmTable = m.addTable(table.length);
+    w.DefinedTable wasmTable = m.addTable(w.RefType.func(), table.length);
     for (int i = 0; i < table.length; i++) {
       Reference? target = table[i];
       if (target != null) {

@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 
 import '../common.dart';
 import '../common/elements.dart';
 import '../elements/entities.dart';
-import '../elements/indexed.dart';
 import '../elements/types.dart';
 import '../ordered_typeset.dart';
 import '../universe/call_structure.dart';
@@ -54,17 +51,17 @@ abstract class IrToElementMap {
   /// [node].
   TypeVariableEntity getTypeVariable(ir.TypeParameter node);
 
-  CommonElements /*!*/ get commonElements;
+  CommonElements get commonElements;
   DiagnosticReporter get reporter;
   ir.CoreTypes get coreTypes;
-  InterfaceType /*!*/ getThisType(covariant ClassEntity cls);
-  InterfaceType getSuperType(covariant ClassEntity cls);
+  InterfaceType getThisType(covariant ClassEntity cls);
+  InterfaceType? getSuperType(covariant ClassEntity cls);
   OrderedTypeSet getOrderedTypeSet(covariant ClassEntity cls);
   Iterable<InterfaceType> getInterfaces(covariant ClassEntity cls);
-  InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls);
+  InterfaceType? asInstanceOf(InterfaceType type, ClassEntity cls);
   DartType substByContext(DartType type, InterfaceType context);
-  FunctionType getCallType(InterfaceType type);
+  FunctionType? getCallType(InterfaceType type);
   int getHierarchyDepth(covariant ClassEntity cls);
-  DartType getTypeVariableBound(IndexedTypeVariable typeVariable);
+  DartType getTypeVariableBound(covariant TypeVariableEntity typeVariable);
   List<Variance> getTypeVariableVariances(covariant ClassEntity cls);
 }

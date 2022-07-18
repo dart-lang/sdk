@@ -60,11 +60,11 @@ abstract class ClassMember {
   /// source code.
   bool get isSynthesized;
 
-  // If `true` this member is not part of the interface but only part of the
-  // class members.
-  //
-  // This is `true` for instance for synthesized fields added for the late
-  // lowering.
+  /// If `true` this member is not part of the interface but only part of the
+  /// class members.
+  ///
+  /// This is `true` for instance for synthesized fields added for the late
+  /// lowering.
   bool get isInternalImplementation;
 
   /// Returns `true` if this member is composed from a list of class members

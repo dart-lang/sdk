@@ -523,7 +523,7 @@ static method callReturningNever(() → Never f) → dynamic {
   let final Never #t75 = f(){() → Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
 }
 static method switchOnEnum(uns::E e) → dynamic {
-  switch(e) {
+  switch(e) /*isExplicitlyExhaustive*/ {
     #L1:
     case #C3:
       {
@@ -541,7 +541,7 @@ static method switchOnEnum(uns::E e) → dynamic {
 }
 static method switchOnEnumWithBreak(uns::E e) → dynamic {
   #L4:
-  switch(e) {
+  switch(e) /*isExplicitlyExhaustive*/ {
     #L5:
     case #C3:
       {
@@ -559,7 +559,7 @@ static method switchOnEnumWithBreak(uns::E e) → dynamic {
 }
 static method switchOnEnumWithFallThrough1(uns::E e) → dynamic {
   #L8:
-  switch(e) {
+  switch(e) /*isExplicitlyExhaustive*/ {
     #L9:
     case #C3:
       {
@@ -577,7 +577,7 @@ static method switchOnEnumWithFallThrough1(uns::E e) → dynamic {
 }
 static method switchOnEnumWithFallThrough2(uns::E e) → dynamic {
   #L12:
-  switch(e) {
+  switch(e) /*isExplicitlyExhaustive*/ {
     #L13:
     case #C3:
     case #C6:

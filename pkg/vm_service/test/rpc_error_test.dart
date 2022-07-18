@@ -17,9 +17,9 @@ var tests = <VMTest>[
       // Ensure stack trace contains actual invocation path.
       final stack = st.toString().split('\n');
       expect(stack.where((e) => e.contains('VmService.callMethod')).length, 1);
-      // Call to vm.callMethod('foo') and the invocation of the test closure.
+      // Call to vm.callMethod('foo').
       expect(
-          stack.where((e) => e.contains('test/rpc_error_test.dart')).length, 2);
+          stack.where((e) => e.contains('test/rpc_error_test.dart')).length, 1);
     } catch (e) {
       fail('Expected RPCError, got $e');
     }

@@ -138,7 +138,10 @@ library
         class MyClass @-1
           constructors
             synthetic @-1
-  exportScope
+  exportedReferences
+    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+  exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
 ''',
@@ -199,7 +202,10 @@ library
         class MyClass @-1
           constructors
             synthetic @-1
-  exportScope
+  exportedReferences
+    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+  exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
 ''',
@@ -268,7 +274,10 @@ library
         class MyClass @-1
           constructors
             synthetic @-1
-  exportScope
+  exportedReferences
+    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+  exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
 ''',
@@ -337,7 +346,10 @@ library
         class MyClass @-1
           constructors
             synthetic @-1
-  exportScope
+  exportedReferences
+    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+  exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
 ''',
@@ -399,7 +411,10 @@ library
         class MyClass @-1
           constructors
             synthetic @-1
-  exportScope
+  exportedReferences
+    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+  exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
 ''',
@@ -469,7 +484,10 @@ library
         class MyClass @-1
           constructors
             synthetic @-1
-  exportScope
+  exportedReferences
+    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+  exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
 ''',
@@ -538,7 +556,10 @@ library
         class MyClass @-1
           constructors
             synthetic @-1
-  exportScope
+  exportedReferences
+    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+  exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
 ''',
@@ -612,7 +633,10 @@ library
         class MyClass @-1
           constructors
             synthetic @-1
-  exportScope
+  exportedReferences
+    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+  exportNamespace
     A: package:test/test.dart;A
     MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
 ''',
@@ -1319,8 +1343,6 @@ class X
 class X {}
 ''', r'''
 class X
-  superclass
-    class Object
 ''');
   }
 
@@ -1331,7 +1353,7 @@ class X extends A {}
 ''', r'''
 class X
   superclass
-    class Object
+    notType A
 ''');
   }
 
@@ -1344,8 +1366,6 @@ class X {
 }
 ''', r'''
 class X
-  superclass
-    class Object
   fields
     external a
       type: int
@@ -1363,8 +1383,6 @@ class X {
 }
 ''', r'''
 class X
-  superclass
-    class Object
   fields
     final a
       type: int
@@ -1382,8 +1400,6 @@ class X {
 }
 ''', r'''
 class X
-  superclass
-    class Object
   fields
     late final a
       type: int
@@ -1401,8 +1417,6 @@ class X {
 }
 ''', r'''
 class X
-  superclass
-    class Object
   fields
     static a
       type: int
@@ -1420,8 +1434,6 @@ class X {
 }
 ''', r'''
 class X
-  superclass
-    class Object
   fields
     a
       type: int
@@ -1794,7 +1806,8 @@ class A {}
     }
 
     if (expected != null) {
-      final x = library.parts.single.topLevelVariables.single;
+      final partUri = library.parts2.single.uri as DirectiveUriWithUnit;
+      final x = partUri.unit.topLevelVariables.single;
       expect(x.name, 'x');
       x as ConstTopLevelVariableElementImpl;
       final actual = (x.constantInitializer as SimpleStringLiteral).value;
@@ -1856,7 +1869,8 @@ $declarationCode
       library.definingCompilationUnit.getType('A'),
     );
 
-    var x = library.parts.single.topLevelVariables.single;
+    final partUri = library.parts2.single.uri as DirectiveUriWithUnit;
+    final x = partUri.unit.topLevelVariables.single;
     expect(x.name, 'x');
     x as ConstTopLevelVariableElementImpl;
     var x_literal = x.constantInitializer as SimpleStringLiteral;

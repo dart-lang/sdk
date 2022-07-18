@@ -1,16 +1,15 @@
-// @dart = 2.9
 library test;
 
-T f<T>() => null;
+T f<T>() => throw '';
 
 class A {
-  C operator +(int value) => null;
-  C operator *(D value) => null;
+  C operator +(int value) => throw '';
+  C operator *(D value) => throw '';
 }
 
 class B {
-  E operator +(int value) => null;
-  E operator *(F value) => null;
+  E operator +(int value) => throw '';
+  E operator *(F value) => throw '';
 }
 
 class C extends B {}
@@ -22,7 +21,7 @@ class E {}
 class F {}
 
 class G {
-  A operator [](int i) => null;
+  A operator [](int i) => throw '';
   void operator []=(int i, B value) {}
 }
 

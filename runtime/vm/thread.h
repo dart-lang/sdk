@@ -84,6 +84,7 @@ class Thread;
   V(GrowableObjectArray)                                                       \
   V(Instance)                                                                  \
   V(Library)                                                                   \
+  V(LoadingUnit)                                                               \
   V(Object)                                                                    \
   V(PcDescriptors)                                                             \
   V(Smi)                                                                       \
@@ -128,6 +129,16 @@ class Thread;
   V(CodePtr, allocate_object_parameterized_stub_,                              \
     StubCode::AllocateObjectParameterized().ptr(), nullptr)                    \
   V(CodePtr, allocate_object_slow_stub_, StubCode::AllocateObjectSlow().ptr(), \
+    nullptr)                                                                   \
+  V(CodePtr, async_exception_handler_stub_,                                    \
+    StubCode::AsyncExceptionHandler().ptr(), nullptr)                          \
+  V(CodePtr, resume_stub_, StubCode::Resume().ptr(), nullptr)                  \
+  V(CodePtr, return_async_stub_, StubCode::ReturnAsync().ptr(), nullptr)       \
+  V(CodePtr, return_async_not_future_stub_,                                    \
+    StubCode::ReturnAsyncNotFuture().ptr(), nullptr)                           \
+  V(CodePtr, return_async_star_stub_, StubCode::ReturnAsyncStar().ptr(),       \
+    nullptr)                                                                   \
+  V(CodePtr, return_sync_star_stub_, StubCode::ReturnSyncStar().ptr(),         \
     nullptr)                                                                   \
   V(CodePtr, stack_overflow_shared_without_fpu_regs_stub_,                     \
     StubCode::StackOverflowSharedWithoutFPURegs().ptr(), nullptr)              \
@@ -174,6 +185,9 @@ class Thread;
   V(suspend_state_init_async_star)                                             \
   V(suspend_state_yield_async_star)                                            \
   V(suspend_state_return_async_star)                                           \
+  V(suspend_state_init_sync_star)                                              \
+  V(suspend_state_yield_sync_star)                                             \
+  V(suspend_state_return_sync_star)                                            \
   V(suspend_state_handle_exception)
 
 // This assertion marks places which assume that boolean false immediate
@@ -573,15 +587,23 @@ class Thread : public ThreadState {
   }
 
   int32_t no_callback_scope_depth() const { return no_callback_scope_depth_; }
-
   void IncrementNoCallbackScopeDepth() {
     ASSERT(no_callback_scope_depth_ < INT_MAX);
     no_callback_scope_depth_ += 1;
   }
-
   void DecrementNoCallbackScopeDepth() {
     ASSERT(no_callback_scope_depth_ > 0);
     no_callback_scope_depth_ -= 1;
+  }
+
+  bool force_growth() const { return force_growth_scope_depth_ != 0; }
+  void IncrementForceGrowthScopeDepth() {
+    ASSERT(force_growth_scope_depth_ < INT_MAX);
+    force_growth_scope_depth_ += 1;
+  }
+  void DecrementForceGrowthScopeDepth() {
+    ASSERT(force_growth_scope_depth_ > 0);
+    force_growth_scope_depth_ -= 1;
   }
 
   bool is_unwind_in_progress() const { return is_unwind_in_progress_; }
@@ -1206,6 +1228,7 @@ class Thread : public ThreadState {
   mutable Monitor thread_lock_;
   ApiLocalScope* api_reusable_scope_;
   int32_t no_callback_scope_depth_;
+  int32_t force_growth_scope_depth_ = 0;
   intptr_t no_reload_scope_depth_ = 0;
   intptr_t stopped_mutators_scope_depth_ = 0;
 #if defined(DEBUG)

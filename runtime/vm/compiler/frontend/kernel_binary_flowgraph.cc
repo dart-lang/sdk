@@ -699,9 +699,33 @@ Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
                             Call1ArgStubInstr::StubId::kInitAsyncStar);
     body += Drop();
     body += NullConstant();
-    body += B->Call1ArgStub(TokenPosition::kNoSource,
-                            Call1ArgStubInstr::StubId::kYieldAsyncStar);
+    body += B->Suspend(TokenPosition::kNoSource,
+                       SuspendInstr::StubId::kYieldAsyncStar);
     body += Drop();
+  } else if (dart_function.IsCompactSyncStarFunction()) {
+    const auto& result_type =
+        AbstractType::Handle(Z, dart_function.result_type());
+    auto& type_args = TypeArguments::ZoneHandle(Z);
+    if (result_type.IsType() &&
+        (result_type.type_class() == IG->object_store()->iterable_class())) {
+      ASSERT(result_type.IsFinalized());
+      type_args = result_type.arguments();
+    }
+
+    body += TranslateInstantiatedTypeArguments(type_args);
+    body += B->Call1ArgStub(TokenPosition::kNoSource,
+                            Call1ArgStubInstr::StubId::kInitSyncStar);
+    body += Drop();
+    body += NullConstant();
+    body += B->Suspend(TokenPosition::kNoSource,
+                       SuspendInstr::StubId::kYieldSyncStar);
+    body += Drop();
+    // Clone context if there are any captured parameter variables, so
+    // each invocation of .iterator would get its own copy of parameters.
+    const LocalScope* scope = parsed_function()->scope();
+    if (scope->num_context_variables() > 0) {
+      body += CloneContext(scope->context_slots());
+    }
   }
   return body;
 }
@@ -1145,7 +1169,9 @@ Fragment StreamingFlowGraphBuilder::BuildStatementAt(intptr_t kernel_offset) {
   return BuildStatement();  // read statement.
 }
 
-Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
+Fragment StreamingFlowGraphBuilder::BuildExpression(
+    TokenPosition* position,
+    bool allow_late_uninitialized) {
   ++num_ast_nodes_;
   uint8_t payload = 0;
   Tag tag = ReadTag(&payload);  // read tag.
@@ -1153,9 +1179,9 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
     case kInvalidExpression:
       return BuildInvalidExpression(position);
     case kVariableGet:
-      return BuildVariableGet(position);
+      return BuildVariableGet(position, allow_late_uninitialized);
     case kSpecializedVariableGet:
-      return BuildVariableGet(payload, position);
+      return BuildVariableGet(payload, position, allow_late_uninitialized);
     case kVariableSet:
       return BuildVariableSet(position);
     case kSpecializedVariableSet:
@@ -4373,7 +4399,10 @@ Fragment StreamingFlowGraphBuilder::BuildAwaitExpression(
 
   instructions += BuildExpression();  // read operand.
 
-  instructions += B->Call1ArgStub(pos, Call1ArgStubInstr::StubId::kAwait);
+  if (NeedsDebugStepCheck(parsed_function()->function(), pos)) {
+    instructions += DebugStepCheck(pos);
+  }
+  instructions += B->Suspend(pos, SuspendInstr::StubId::kAwait);
   return instructions;
 }
 
@@ -4757,6 +4786,7 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement(
     TokenPosition* position) {
   const TokenPosition pos = ReadPosition();  // read position.
   if (position != nullptr) *position = pos;
+  ReadBool();  // read exhaustive flag.
 
   // We need the number of cases. So start by getting that, then go back.
   intptr_t offset = ReaderOffset();
@@ -5275,22 +5305,7 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement(
 
   if ((flags & kYieldStatementFlagNative) == 0) {
     Fragment instructions;
-    // Generate the following code for yield <expr>:
-    //
-    // _AsyncStarStreamController controller = :suspend_state._functionData;
-    // if (controller.add(<expr>)) {
-    //   return;
-    // }
-    // suspend();
-    //
-    // Generate the following code for yield* <expr>:
-    //
-    // _AsyncStarStreamController controller = :suspend_state._functionData;
-    // controller.addStream(<expr>);
-    // if (suspend()) {
-    //   return;
-    // }
-    //
+    const bool is_yield_star = (flags & kYieldStatementFlagYieldStar) != 0;
 
     // Load :suspend_state variable using low-level FP-relative load
     // in order to avoid confusing SSA construction (which cannot
@@ -5305,43 +5320,89 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement(
     instructions += LoadNativeField(Slot::SuspendState_function_data());
 
     instructions += BuildExpression();  // read expression.
-
-    auto& add_method = Function::ZoneHandle(Z);
-    const bool is_yield_star = (flags & kYieldStatementFlagYieldStar) != 0;
-    if (is_yield_star) {
-      add_method =
-          IG->object_store()->async_star_stream_controller_add_stream();
-    } else {
-      add_method = IG->object_store()->async_star_stream_controller_add();
-    }
-    instructions += StaticCall(pos, add_method, 2, ICData::kNoRebind);
-
-    if (is_yield_star) {
-      // Discard result of _AsyncStarStreamController.addStream().
-      instructions += Drop();
-      // Suspend and test value passed to the resumed async* body.
-      instructions += NullConstant();
-      instructions +=
-          B->Call1ArgStub(pos, Call1ArgStubInstr::StubId::kYieldAsyncStar);
-    } else {
-      // Test value returned by _AsyncStarStreamController.add().
+    if (NeedsDebugStepCheck(parsed_function()->function(), pos)) {
+      instructions += DebugStepCheck(pos);
     }
 
-    TargetEntryInstr* exit;
-    TargetEntryInstr* continue_execution;
-    instructions += BranchIfTrue(&exit, &continue_execution, false);
+    if (parsed_function()->function().IsCompactAsyncStarFunction()) {
+      // In the async* functions, generate the following code for yield <expr>:
+      //
+      // _AsyncStarStreamController controller = :suspend_state._functionData;
+      // if (controller.add(<expr>)) {
+      //   return;
+      // }
+      // suspend();
+      //
+      // Generate the following code for yield* <expr>:
+      //
+      // _AsyncStarStreamController controller = :suspend_state._functionData;
+      // controller.addStream(<expr>);
+      // if (suspend()) {
+      //   return;
+      // }
+      //
 
-    Fragment do_exit(exit);
-    do_exit += TranslateFinallyFinalizers(nullptr, -1);
-    do_exit += NullConstant();
-    do_exit += Return(TokenPosition::kNoSource);
+      auto& add_method = Function::ZoneHandle(Z);
+      if (is_yield_star) {
+        add_method =
+            IG->object_store()->async_star_stream_controller_add_stream();
+      } else {
+        add_method = IG->object_store()->async_star_stream_controller_add();
+      }
+      instructions += StaticCall(TokenPosition::kNoSource, add_method, 2,
+                                 ICData::kNoRebind);
 
-    instructions = Fragment(instructions.entry, continue_execution);
-    if (!is_yield_star) {
+      if (is_yield_star) {
+        // Discard result of _AsyncStarStreamController.addStream().
+        instructions += Drop();
+        // Suspend and test value passed to the resumed async* body.
+        instructions += NullConstant();
+        instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldAsyncStar);
+      } else {
+        // Test value returned by _AsyncStarStreamController.add().
+      }
+
+      TargetEntryInstr* exit;
+      TargetEntryInstr* continue_execution;
+      instructions += BranchIfTrue(&exit, &continue_execution, false);
+
+      Fragment do_exit(exit);
+      do_exit += TranslateFinallyFinalizers(nullptr, -1);
+      do_exit += NullConstant();
+      do_exit += Return(TokenPosition::kNoSource);
+
+      instructions = Fragment(instructions.entry, continue_execution);
+      if (!is_yield_star) {
+        instructions += NullConstant();
+        instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldAsyncStar);
+        instructions += Drop();
+      }
+
+    } else if (parsed_function()->function().IsCompactSyncStarFunction()) {
+      // In the sync* functions, generate the following code for yield <expr>:
+      //
+      // _SyncStarIterator iterator = :suspend_state._functionData;
+      // iterator._current = <expr>;
+      // suspend();
+      //
+      // Generate the following code for yield* <expr>:
+      //
+      // _SyncStarIterator iterator = :suspend_state._functionData;
+      // iterator._yieldStarIterable = <expr>;
+      // suspend();
+      //
+      auto& field = Field::ZoneHandle(Z);
+      if (is_yield_star) {
+        field = IG->object_store()->sync_star_iterator_yield_star_iterable();
+      } else {
+        field = IG->object_store()->sync_star_iterator_current();
+      }
+      instructions += B->StoreInstanceFieldGuarded(field);
       instructions += NullConstant();
-      instructions +=
-          B->Call1ArgStub(pos, Call1ArgStubInstr::StubId::kYieldAsyncStar);
+      instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldSyncStar);
       instructions += Drop();
+    } else {
+      UNREACHABLE();
     }
 
     return instructions;
@@ -5586,9 +5647,6 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         }
 
         if (function_node_helper.async_marker_ == FunctionNodeHelper::kAsync) {
-          if (!FLAG_precompiled_mode) {
-            FATAL("Compact async functions are only supported in AOT mode.");
-          }
           function.set_modifier(UntaggedFunction::kAsync);
           function.set_is_debuggable(true);
           function.set_is_inlinable(false);
@@ -5596,14 +5654,18 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           ASSERT(function.IsCompactAsyncFunction());
         } else if (function_node_helper.async_marker_ ==
                    FunctionNodeHelper::kAsyncStar) {
-          if (!FLAG_precompiled_mode) {
-            FATAL("Compact async* functions are only supported in AOT mode.");
-          }
           function.set_modifier(UntaggedFunction::kAsyncGen);
           function.set_is_debuggable(true);
           function.set_is_inlinable(false);
           function.set_is_visible(true);
           ASSERT(function.IsCompactAsyncStarFunction());
+        } else if (function_node_helper.async_marker_ ==
+                   FunctionNodeHelper::kSyncStar) {
+          function.set_modifier(UntaggedFunction::kSyncGen);
+          function.set_is_debuggable(true);
+          function.set_is_inlinable(false);
+          function.set_is_visible(true);
+          ASSERT(function.IsCompactSyncStarFunction());
         } else {
           ASSERT((function_node_helper.async_marker_ ==
                   FunctionNodeHelper::kSync) ||
@@ -5632,17 +5694,19 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           // need to manually label it generated:
           if (function.parent_function() != Function::null()) {
             const auto& parent = Function::Handle(function.parent_function());
-            if (parent.IsSyncGenerator()) {
+            if (parent.IsSyncGenerator() &&
+                !parent.IsCompactSyncStarFunction()) {
               function.set_is_generated_body(true);
             }
           }
           // Note: Is..() methods use the modifiers set above, so order
           // matters.
           if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-            function.set_is_inlinable(!FLAG_lazy_async_stacks);
+            function.set_is_inlinable(false);
           }
           ASSERT(!function.IsCompactAsyncFunction());
           ASSERT(!function.IsCompactAsyncStarFunction());
+          ASSERT(!function.IsCompactSyncStarFunction());
         }
 
         // If the start token position is synthetic, the end token position
@@ -5756,26 +5820,12 @@ Fragment StreamingFlowGraphBuilder::BuildReachabilityFence() {
   ASSERT(positional_count == 1);
 
   // The CFE transform only generates a subset of argument expressions:
-  // either variable get or `this`.
-  uint8_t payload = 0;
-  Tag tag = ReadTag(&payload);
+  // either variable get or `this`. However, subsequent transforms can
+  // generate different expressions, including: constant expressions.
+  // So, build an arbitrary expression here instead.
   TokenPosition* position = nullptr;
   const bool allow_late_uninitialized = true;
-  Fragment code;
-  switch (tag) {
-    case kVariableGet:
-      code = BuildVariableGet(position, allow_late_uninitialized);
-      break;
-    case kSpecializedVariableGet:
-      code = BuildVariableGet(payload, position, allow_late_uninitialized);
-      break;
-    case kThisExpression:
-      code = BuildThisExpression(position);
-      break;
-    default:
-      // The transformation should not be generating anything else.
-      FATAL1("Unexpected tag %i", tag);
-  }
+  Fragment code = BuildExpression(position, allow_late_uninitialized);
 
   const intptr_t named_args_len = ReadListLength();
   ASSERT(named_args_len == 0);

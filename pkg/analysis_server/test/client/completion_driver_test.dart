@@ -71,6 +71,7 @@ abstract class AbstractCompletionDriverTest
     ElementKind? element,
     CompletionSuggestionKind? kind,
     String? file,
+    String? libraryUri,
   }) {
     expect(
         suggestionWith(
@@ -78,22 +79,7 @@ abstract class AbstractCompletionDriverTest
           element: element,
           kind: kind,
           file: file,
-        ),
-        isNotNull);
-  }
-
-  void assertSuggestions({
-    required String completion,
-    ElementKind? element,
-    CompletionSuggestionKind? kind,
-    String? file,
-  }) {
-    expect(
-        suggestionWith(
-          completion: completion,
-          element: element,
-          kind: kind,
-          file: file,
+          libraryUri: libraryUri,
         ),
         isNotNull);
   }
@@ -161,6 +147,7 @@ name: test
     ElementKind? element,
     CompletionSuggestionKind? kind,
     String? file,
+    String? libraryUri,
   }) =>
       (CompletionSuggestion s) {
         if (s.completion != completion) {
@@ -176,6 +163,13 @@ name: test
         if (file != null && s.element?.location?.file != convertPath(file)) {
           return false;
         }
+        // Library URIs are not available in protocol v1 so skip the check to
+        // allow the the same test to verify for v2.
+        if (!isProtocolVersion1 &&
+            libraryUri != null &&
+            s.libraryUri != libraryUri) {
+          return false;
+        }
         return true;
       };
 
@@ -184,18 +178,28 @@ name: test
     ElementKind? element,
     CompletionSuggestionKind? kind,
     String? file,
+    String? libraryUri,
   }) =>
       suggestions.where(suggestionHas(
-          completion: completion, element: element, kind: kind, file: file));
+          completion: completion,
+          element: element,
+          kind: kind,
+          file: file,
+          libraryUri: libraryUri));
 
   CompletionSuggestion suggestionWith({
     required String completion,
     ElementKind? element,
     CompletionSuggestionKind? kind,
     String? file,
+    String? libraryUri,
   }) {
     final matches = suggestionsWith(
-        completion: completion, element: element, kind: kind, file: file);
+        completion: completion,
+        element: element,
+        kind: kind,
+        file: file,
+        libraryUri: libraryUri);
     expect(matches, hasLength(1));
     return matches.first;
   }
@@ -271,6 +275,14 @@ class CompletionWithSuggestionsTest1 extends AbstractCompletionDriverTest
   @override
   Future<void> test_project_lib_multipleExports() async {
     return super.test_project_lib_multipleExports();
+  }
+
+  @FailingTest(
+      reason:
+          'This test fails with available suggestions because it checks libraryUri')
+  @override
+  Future<void> test_project_lib_multipleExports_filteredByLocal() async {
+    return super.test_project_lib_multipleExports_filteredByLocal();
   }
 }
 
@@ -575,11 +587,71 @@ void f() {
 }
 ''');
 
-    // Should only have one suggestion.
+    // Should be suggested from both libraries.
     assertSuggestion(
         completion: 'A',
+        libraryUri: 'package:test/a.dart',
         element: ElementKind.CONSTRUCTOR,
         kind: CompletionSuggestionKind.INVOCATION);
+    assertSuggestion(
+        completion: 'A',
+        libraryUri: 'package:test/b.dart',
+        element: ElementKind.CONSTRUCTOR,
+        kind: CompletionSuggestionKind.INVOCATION);
+  }
+
+  Future<void> test_project_lib_multipleExports_filteredByImport() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+export 'a.dart';
+''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+      await waitForSetWithUri('package:test/b.dart');
+    }
+
+    await addTestFile('''
+import 'b.dart';
+void f() {
+  ^
+}
+''');
+
+    // Should be only one suggestion, which comes from the import of 'b.dart'.
+    assertSuggestion(
+      completion: 'A',
+      element: ElementKind.CLASS,
+      libraryUri: 'package:test/b.dart',
+    );
+  }
+
+  Future<void> test_project_lib_multipleExports_filteredByLocal() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
+
+    await addTestFile('''
+class A {}
+void f() {
+  ^
+}
+''');
+
+    // Should be only one suggestion, which comes from local declaration.
+    var suggestion = suggestionWith(
+      completion: 'A',
+      element: ElementKind.CLASS,
+    );
+    expect(suggestion, isNotNull);
+    expect(suggestion.libraryUri, isNull);
   }
 
   Future<void> test_project_lib_setters_class() async {

@@ -34,13 +34,13 @@ import 'package:source_span/source_span.dart';
 /// (https://www.w3.org/TR/xml/#sec-references).
 class ManifestParser {
   /// Elements which are relevant to manifest validation.
-  static const List<String> _relevantElements = [
+  static const Set<String> _manifestValidationElements = {
     ACTIVITY_TAG,
     APPLICATION_TAG,
     MANIFEST_TAG,
     USES_FEATURE_TAG,
     USES_PERMISSION_TAG
-  ];
+  };
 
   /// The text of the Android Manifest file.
   final String content;
@@ -49,12 +49,23 @@ class ManifestParser {
   /// purposes.
   final SourceFile sourceFile;
 
+  /// The set of element types to return.
+  final Set<String>? restrictElements;
+
   /// The current offset in the source file.
   int _pos;
 
   ManifestParser(this.content, Uri uri)
       : sourceFile = SourceFile.fromString(content, url: uri),
-        _pos = 0;
+        _pos = 0,
+        restrictElements = _manifestValidationElements;
+
+  ManifestParser.general(
+    this.content, {
+    required Uri uri,
+  })  : sourceFile = SourceFile.fromString(content, url: uri),
+        _pos = 0,
+        restrictElements = null;
 
   /// Whether the current character is a tag-closing character (">").
   bool get _isClosing =>
@@ -115,7 +126,8 @@ class ManifestParser {
 
   /// Returns whether [name] represents an element that is relevant to manifest
   /// validation.
-  bool _isRelevantElement(String name) => _relevantElements.contains(name);
+  bool _isRelevantElement(String name) =>
+      restrictElements?.contains(name) ?? true;
 
   /// Parses any whitespace, returning `null` when non-whitespace is parsed.
   ParseResult? _parseAnyWhitespace() {
@@ -134,7 +146,7 @@ class ManifestParser {
 
   /// Parses an attribute.
   ParseAttributeResult _parseAttribute(bool isRelevant) {
-    var attributes = <String, _XmlAttribute>{};
+    var attributes = <String, XmlAttribute>{};
     bool isEmptyElement;
 
     while (true) {
@@ -221,7 +233,7 @@ class ManifestParser {
         var attributeValue = content.substring(attributeValuePos, _pos);
         var sourceSpan = sourceFile.span(attributeNamePos, _pos);
         attributes[attributeName] =
-            _XmlAttribute(attributeName, attributeValue, sourceSpan);
+            XmlAttribute(attributeName, attributeValue, sourceSpan);
       }
       _pos++;
     }
@@ -323,7 +335,7 @@ class ManifestParser {
       if (_isClosing) {
         // End tags cannot have attributes.
         return ParseTagResult(
-            ParseResult.endTag, _XmlElement(name, {}, [], null));
+            ParseResult.endTag, XmlElement(name, {}, [], null));
       } else {
         return ParseTagResult.error;
       }
@@ -331,7 +343,7 @@ class ManifestParser {
 
     var isRelevant = _isRelevantElement(name);
 
-    Map<String, _XmlAttribute> attributes;
+    Map<String, XmlAttribute> attributes;
     bool isEmptyElement;
     if (tagClosingState == _TagClosingState.notClosed) {
       // Have not parsed the tag close yet; parse attributes.
@@ -352,7 +364,7 @@ class ManifestParser {
       isEmptyElement = true;
     }
 
-    var children = <_XmlElement>[];
+    var children = <XmlElement>[];
     if (!isEmptyElement) {
       ParseTagResult child;
       _pos++;
@@ -372,9 +384,9 @@ class ManifestParser {
 
     // Finished parsing start tag.
     if (isRelevant) {
-      var sourceSpan = sourceFile.span(startPos, _pos);
+      var sourceSpan = sourceFile.span(startPos, _pos + 1);
       return ParseTagResult(ParseResult.relevantElement,
-          _XmlElement(name, attributes, children, sourceSpan));
+          XmlElement(name, attributes, children, sourceSpan));
     } else {
       // Discard all parsed children. This requires the notion that all relevant
       // tags are direct children of other relevant tags.
@@ -439,17 +451,17 @@ class ManifestValidator {
     }
   }
 
-  bool _hasFeatureCamera(Iterable<_XmlElement> features) => features
+  bool _hasFeatureCamera(Iterable<XmlElement> features) => features
       .any((f) => f.attributes[ANDROID_NAME]?.value == HARDWARE_FEATURE_CAMERA);
 
-  bool _hasFeatureCameraAutoFocus(Iterable<_XmlElement> features) =>
+  bool _hasFeatureCameraAutoFocus(Iterable<XmlElement> features) =>
       features.any((f) =>
           f.attributes[ANDROID_NAME]?.value ==
           HARDWARE_FEATURE_CAMERA_AUTOFOCUS);
 
   /// Report an error for the given node.
-  void _reportErrorForNode(ErrorReporter reporter, _XmlElement node,
-      String? key, ErrorCode errorCode,
+  void _reportErrorForNode(
+      ErrorReporter reporter, XmlElement node, String? key, ErrorCode errorCode,
       [List<Object>? arguments]) {
     var span =
         key == null ? node.sourceSpan! : node.attributes[key]!.sourceSpan;
@@ -458,7 +470,7 @@ class ManifestValidator {
   }
 
   /// Validate the 'activity' tags.
-  void _validateActivity(_XmlElement activity, ErrorReporter reporter) {
+  void _validateActivity(XmlElement activity, ErrorReporter reporter) {
     var attributes = activity.attributes;
     if (attributes.containsKey(ATTRIBUTE_SCREEN_ORIENTATION)) {
       if (UNSUPPORTED_ORIENTATIONS
@@ -477,7 +489,7 @@ class ManifestValidator {
 
   /// Validate the `uses-feature` tags.
   void _validateFeatures(
-      Iterable<_XmlElement> features, ErrorReporter reporter) {
+      Iterable<XmlElement> features, ErrorReporter reporter) {
     var unsupported = features.where((element) => UNSUPPORTED_HARDWARE_FEATURES
         .contains(element.attributes[ANDROID_NAME]?.value));
     for (var element in unsupported) {
@@ -510,8 +522,8 @@ class ManifestValidator {
   }
 
   /// Validate the `uses-permission` tags.
-  void _validatePermissions(Iterable<_XmlElement> permissions,
-      Iterable<_XmlElement> features, ErrorReporter reporter) {
+  void _validatePermissions(Iterable<XmlElement> permissions,
+      Iterable<XmlElement> features, ErrorReporter reporter) {
     for (var permission in permissions) {
       if (permission.attributes[ANDROID_NAME]?.value ==
           ANDROID_PERMISSION_CAMERA) {
@@ -536,8 +548,8 @@ class ManifestValidator {
   }
 
   /// Validate the presence/absence of the touchscreen feature tag.
-  void _validateTouchScreenFeature(Iterable<_XmlElement> features,
-      _XmlElement manifest, ErrorReporter reporter) {
+  void _validateTouchScreenFeature(Iterable<XmlElement> features,
+      XmlElement manifest, ErrorReporter reporter) {
     var feature = features.firstWhereOrNull((element) =>
         element.attributes[ANDROID_NAME]?.value ==
         HARDWARE_FEATURE_TOUCHSCREEN);
@@ -571,7 +583,7 @@ class ParseAttributeResult {
 
   final ParseResult parseResult;
 
-  final Map<String, _XmlAttribute>? attributes;
+  final Map<String, XmlAttribute>? attributes;
 
   ParseAttributeResult(this.parseResult, this.attributes);
 }
@@ -596,16 +608,32 @@ enum ParseResult {
   relevantElement,
 }
 
-@visibleForTesting
 class ParseTagResult {
   static ParseTagResult eof = ParseTagResult(ParseResult.eof, null);
   static ParseTagResult error = ParseTagResult(ParseResult.error, null);
 
   final ParseResult parseResult;
 
-  final _XmlElement? element;
+  final XmlElement? element;
 
   ParseTagResult(this.parseResult, this.element);
+}
+
+class XmlAttribute {
+  final String name;
+  final String value;
+  final SourceSpan sourceSpan;
+
+  XmlAttribute(this.name, this.value, this.sourceSpan);
+}
+
+class XmlElement {
+  final String name;
+  final Map<String, XmlAttribute> attributes;
+  final List<XmlElement> children;
+  final SourceSpan? sourceSpan;
+
+  XmlElement(this.name, this.attributes, this.children, this.sourceSpan);
 }
 
 enum _TagClosingState {
@@ -616,21 +644,4 @@ enum _TagClosingState {
   // Represents that the tag's close has been parsed as "/>", "?>", indicating
   // an empty element, as per https://www.w3.org/TR/xml/#sec-starttags.
   closedEmptyElement,
-}
-
-class _XmlAttribute {
-  final String name;
-  final String value;
-  final SourceSpan sourceSpan;
-
-  _XmlAttribute(this.name, this.value, this.sourceSpan);
-}
-
-class _XmlElement {
-  final String name;
-  final Map<String, _XmlAttribute> attributes;
-  final List<_XmlElement> children;
-  final SourceSpan? sourceSpan;
-
-  _XmlElement(this.name, this.attributes, this.children, this.sourceSpan);
 }

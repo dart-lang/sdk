@@ -3,15 +3,6 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-// These packages are effectively pinned - they often require manual work when
-// rolling.
-// TODO(devoncarew): Keep this metadata in the DEPS file.
-const Set<String> pinned = {
-  'dart_style',
-  'linter',
-  'pub',
-};
-
 void main(List<String> args) async {
   // Validate we're running from the repo root.
   if (!File('README.dart-sdk').existsSync() || !File('DEPS').existsSync()) {
@@ -22,7 +13,14 @@ void main(List<String> args) async {
   final gclient = GClientHelper();
 
   final deps = await gclient.getPackageDependencies();
-  print('${deps.length} non-pinned package dependencies found.');
+  print('${deps.length} package dependencies found.');
+
+  // Remove pinned deps.
+  final pinnedDeps = calculatePinnedDeps();
+  deps.removeWhere((dep) => pinnedDeps.contains(dep.name));
+
+  print('Not attempting to move forward the revisions for: '
+      '${pinnedDeps.toList().join(', ')}.');
   print('');
 
   deps.sort((a, b) => a.name.compareTo(b.name));
@@ -49,6 +47,19 @@ void main(List<String> args) async {
       print('');
     }
   }
+}
+
+// By convention, pinned deps are deps with an eol comment.
+Set<String> calculatePinnedDeps() {
+  final packageRevision = RegExp(r'"(\w+)_rev":');
+
+  // "markdown_rev": "e3f4bd28c9...cfeccd83ee", # b/236358256
+  var depsFile = File('DEPS');
+  return depsFile
+      .readAsLinesSync()
+      .where((line) => packageRevision.hasMatch(line) && line.contains('", #'))
+      .map((line) => packageRevision.firstMatch(line)!.group(1)!)
+      .toSet();
 }
 
 class GitHelper {
@@ -114,10 +125,7 @@ class GClientHelper {
         rev: (entry.value as Map)['rev'],
       );
     }).where((PackageDependency deps) {
-      return deps.entry.startsWith('sdk/third_party/pkg/') ||
-          deps.entry.startsWith('sdk/third_party/pkg_tested/');
-    }).where((PackageDependency deps) {
-      return !pinned.contains(deps.name);
+      return deps.entry.startsWith('sdk/third_party/pkg/');
     }).toList();
   }
 

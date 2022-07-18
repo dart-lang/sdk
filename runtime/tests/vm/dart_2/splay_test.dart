@@ -101,7 +101,14 @@ class Splay extends BenchmarkBase {
 
   static void main() {
     mysetup();
-    new Splay().report();
+    // Don't use benchmark_harness - exercise runtime is not stable (so
+    // benchmark_harness measuring approach is meaningless for such benchmark
+    // anyway).
+    final sw = Stopwatch()..start();
+    final benchmark = new Splay();
+    while (sw.elapsedMilliseconds < 2000) {
+      benchmark.exercise();
+    }
     tearDown();
   }
 }

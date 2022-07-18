@@ -1,8 +1,7 @@
-// @dart = 2.9
 library test;
 
-A v = null;
+A v = throw '';
 
 class A<T extends int> {}
 
-main() {}
+test() {}

@@ -16,7 +16,7 @@ abstract class ProgressReporter {
   /// Creates a reporter for a token that was supplied by the client and does
   /// not need creating prior to use.
   factory ProgressReporter.clientProvided(
-          LspAnalysisServer server, Either2<int, String> token) =>
+          LspAnalysisServer server, ProgressToken token) =>
       _TokenProgressReporter(server, token);
 
   /// Creates a reporter for a new token that must be created prior to being
@@ -24,7 +24,7 @@ abstract class ProgressReporter {
   ///
   /// If [token] is not supplied, a random identifier will be used.
   factory ProgressReporter.serverCreated(LspAnalysisServer server,
-          [Either2<int, String>? token]) =>
+          [ProgressToken? token]) =>
       _ServerCreatedProgressReporter(server, token);
 
   ProgressReporter._();
@@ -49,10 +49,10 @@ class _ServerCreatedProgressReporter extends _TokenProgressReporter {
 
   _ServerCreatedProgressReporter(
     LspAnalysisServer server,
-    Either2<int, String>? token,
+    ProgressToken? token,
   ) : super(
           server,
-          token ?? Either2<int, String>.t2(_randomTokenIdentifier()),
+          token ?? ProgressToken.t2(_randomTokenIdentifier()),
         );
 
   @override
@@ -101,7 +101,7 @@ class _ServerCreatedProgressReporter extends _TokenProgressReporter {
 
 class _TokenProgressReporter extends ProgressReporter {
   final LspAnalysisServer _server;
-  final Either2<int, String> _token;
+  final ProgressToken _token;
   bool _needsEnd = false;
 
   _TokenProgressReporter(this._server, this._token) : super._();

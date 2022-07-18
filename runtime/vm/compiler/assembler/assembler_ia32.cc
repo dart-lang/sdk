@@ -2462,10 +2462,6 @@ static const intptr_t kNumberOfVolatileCpuRegisters = 3;
 static const Register volatile_cpu_registers[kNumberOfVolatileCpuRegisters] = {
     EAX, ECX, EDX};
 
-// XMM0 is used only as a scratch register in the optimized code. No need to
-// save it.
-static const intptr_t kNumberOfVolatileXmmRegisters = kNumberOfXmmRegisters - 1;
-
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
   ASSERT(!entry.is_leaf());
@@ -2491,12 +2487,12 @@ LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
       __ pushl(volatile_cpu_registers[i]);
     }
 
-    // Preserve all XMM registers except XMM0
-    __ subl(ESP, Immediate((kNumberOfXmmRegisters - 1) * kFpuRegisterSize));
+    // Preserve all XMM registers.
+    __ subl(ESP, Immediate(kNumberOfXmmRegisters * kFpuRegisterSize));
     // Store XMM registers with the lowest register number at the lowest
     // address.
     intptr_t offset = 0;
-    for (intptr_t reg_idx = 1; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
+    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
       XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
       __ movups(Address(ESP, offset), xmm_reg);
       offset += kFpuRegisterSize;
@@ -2526,13 +2522,13 @@ LeafRuntimeScope::~LeafRuntimeScope() {
     // We need to restore it before restoring registers.
     const intptr_t kPushedRegistersSize =
         kNumberOfVolatileCpuRegisters * target::kWordSize +
-        kNumberOfVolatileXmmRegisters * kFpuRegisterSize;
+        kNumberOfXmmRegisters * kFpuRegisterSize;
     __ leal(ESP, Address(EBP, -kPushedRegistersSize));
 
-    // Restore all XMM registers except XMM0
+    // Restore all XMM registers.
     // XMM registers have the lowest register number at the lowest address.
     intptr_t offset = 0;
-    for (intptr_t reg_idx = 1; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
+    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
       XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
       __ movups(xmm_reg, Address(ESP, offset));
       offset += kFpuRegisterSize;
@@ -2719,11 +2715,21 @@ void Assembler::CopyMemoryWords(Register src,
                                 Register dst,
                                 Register size,
                                 Register temp) {
-  RELEASE_ASSERT(src == ESI);
-  RELEASE_ASSERT(dst == EDI);
-  RELEASE_ASSERT(size == ECX);
-  shrl(size, Immediate(target::kWordSizeLog2));
-  rep_movsd();
+  // This loop is equivalent to
+  //   shrl(size, Immediate(target::kWordSizeLog2));
+  //   rep_movsd();
+  // but shows better performance on certain micro-benchmarks.
+  Label loop, done;
+  cmpl(size, Immediate(0));
+  j(EQUAL, &done, kNearJump);
+  Bind(&loop);
+  movl(temp, Address(src, 0));
+  addl(src, Immediate(target::kWordSize));
+  movl(Address(dst, 0), temp);
+  addl(dst, Immediate(target::kWordSize));
+  subl(size, Immediate(target::kWordSize));
+  j(NOT_ZERO, &loop, kNearJump);
+  Bind(&done);
 }
 
 void Assembler::PushCodeObject() {

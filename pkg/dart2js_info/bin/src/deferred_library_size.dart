@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.11
-
 /// This tool gives a breakdown of code size by deferred part in the program.
 library dart2js_info.bin.deferred_library_size;
 
@@ -25,14 +23,14 @@ class DeferredLibrarySize extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    var args = argResults.rest;
+    final args = argResults!.rest;
     if (args.isEmpty) {
       usageException('Missing argument: info.data');
     }
     // TODO(het): Would be faster to only parse the 'outputUnits' part
-    var info = await infoFromFile(args.first);
-    var sizeByImport = getSizeByImport(info);
-    printSizes(sizeByImport, info.program.size);
+    final info = await infoFromFile(args.first);
+    final sizeByImport = getSizeByImport(info);
+    printSizes(sizeByImport, info.program!.size);
   }
 }
 
@@ -49,7 +47,7 @@ class ImportSize {
 }
 
 void printSizes(Map<String, int> sizeByImport, int programSize) {
-  var importSizes = <ImportSize>[];
+  final importSizes = <ImportSize>[];
   sizeByImport.forEach((import, size) {
     importSizes.add(ImportSize(import, size));
   });
@@ -72,9 +70,9 @@ void printSizes(Map<String, int> sizeByImport, int programSize) {
   }
   print('-' * (longest + 16));
 
-  var mainChunkSize = sizeByImport['main'];
-  var deferredSize = programSize - mainChunkSize;
-  var percentDeferred = (deferredSize * 100 / programSize).toStringAsFixed(2);
+  final mainChunkSize = sizeByImport['main']!;
+  final deferredSize = programSize - mainChunkSize;
+  final percentDeferred = (deferredSize * 100 / programSize).toStringAsFixed(2);
   printRow('Main chunk size', mainChunkSize);
   printRow('Deferred code size', deferredSize);
   printRow('Percent of code deferred', '$percentDeferred%');
@@ -82,13 +80,13 @@ void printSizes(Map<String, int> sizeByImport, int programSize) {
 
 Map<String, int> getSizeByImport(AllInfo info) {
   var sizeByImport = <String, int>{};
-  for (var outputUnit in info.outputUnits) {
-    if (outputUnit.name == 'main' || outputUnit.name == null) {
+  for (final outputUnit in info.outputUnits) {
+    if (outputUnit.name == 'main') {
       sizeByImport['main'] = outputUnit.size;
     } else {
-      for (var import in outputUnit.imports) {
-        sizeByImport.putIfAbsent(import, () => 0);
-        sizeByImport[import] += outputUnit.size;
+      for (final import in outputUnit.imports) {
+        sizeByImport.update(import, (value) => value + outputUnit.size,
+            ifAbsent: () => outputUnit.size);
       }
     }
   }

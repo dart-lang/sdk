@@ -78,6 +78,9 @@ class BulkFixProcessor {
     CompileTimeErrorCode.UNDEFINED_CLASS: [
       DataDriven.new,
     ],
+    CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [
+      DataDriven.new,
+    ],
     CompileTimeErrorCode.UNDEFINED_FUNCTION: [
       DataDriven.new,
     ],

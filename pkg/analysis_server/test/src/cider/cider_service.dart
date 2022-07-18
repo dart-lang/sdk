@@ -4,8 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -15,6 +15,8 @@ import 'package:crypto/crypto.dart';
 import 'package:linter/src/rules.dart';
 
 class CiderServiceTest with ResourceProviderMixin {
+  final FileResolverTestData testData = FileResolverTestData();
+
   final StringBuffer logBuffer = StringBuffer();
   late PerformanceLog logger;
 
@@ -43,9 +45,10 @@ class CiderServiceTest with ResourceProviderMixin {
       getFileDigest: (String path) => _getDigest(path),
       prefetchFiles: null,
       workspace: workspace,
-      byteStore: CiderCachedByteStore(20 * 1024 * 1024 /* 20 MB */),
+      byteStore: MemoryByteStore(),
+      isGenerated: (_) => false,
+      testData: testData,
     );
-    fileResolver.testView = FileResolverTestView();
   }
 
   void setUp() {

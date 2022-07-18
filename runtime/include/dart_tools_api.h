@@ -169,7 +169,7 @@ DART_EXPORT void Dart_SetEmbedderInformationCallback(
  * \param response_json_length The length of the returned json response.
  * \param error An optional error, must be free()ed by caller.
  *
- * \return Whether the call was sucessfully performed.
+ * \return Whether the call was successfully performed.
  *
  * NOTE: This method does not need a current isolate and must not have the
  * vm-isolate being the current isolate. It must be called after
@@ -290,7 +290,8 @@ typedef struct {
 typedef struct {
   const char* type;
   const char* reason;
-  const char* isolate_id;
+
+  Dart_IsolateGroupId isolate_group_id;
 
   Dart_GCStats new_space;
   Dart_GCStats old_space;
@@ -347,7 +348,7 @@ DART_EXPORT bool Dart_IsReloading();
  * Enable tracking of specified timeline category. This is operational
  * only when systrace timeline functionality is turned on.
  *
- * \param categories A comma seperated list of categories that need to
+ * \param categories A comma separated list of categories that need to
  *   be enabled, the categories are
  *   "all" : All categories
  *   "API" - Execution of Dart C API functions
@@ -362,7 +363,7 @@ DART_EXPORT bool Dart_IsReloading();
  *   "" - None
  *
  *  When "all" is specified all the categories are enabled.
- *  When a comma seperated list of categories is specified, the categories
+ *  When a comma separated list of categories is specified, the categories
  *   that are specified will be enabled and the rest will be disabled. 
  *  When "" is specified all the categories are disabled.
  *  The category names are case sensitive.
@@ -458,29 +459,29 @@ DART_EXPORT int64_t Dart_VMIsolateCountMetric();  // Counter
 DART_EXPORT int64_t Dart_VMCurrentRSSMetric();    // Byte
 DART_EXPORT int64_t Dart_VMPeakRSSMetric();       // Byte
 DART_EXPORT int64_t
-Dart_IsolateHeapOldUsedMetric(Dart_Isolate isolate);  // Byte
+Dart_IsolateGroupHeapOldUsedMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
-Dart_IsolateHeapOldUsedMaxMetric(Dart_Isolate isolate);  // Byte
+Dart_IsolateGroupHeapOldUsedMaxMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
-Dart_IsolateHeapOldCapacityMetric(Dart_Isolate isolate);  // Byte
+Dart_IsolateGroupHeapOldCapacityMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
-Dart_IsolateHeapOldCapacityMaxMetric(Dart_Isolate isolate);  // Byte
+Dart_IsolateGroupHeapOldCapacityMaxMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
-Dart_IsolateHeapOldExternalMetric(Dart_Isolate isolate);  // Byte
+Dart_IsolateGroupHeapOldExternalMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
-Dart_IsolateHeapNewUsedMetric(Dart_Isolate isolate);  // Byte
+Dart_IsolateGroupHeapNewUsedMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
-Dart_IsolateHeapNewUsedMaxMetric(Dart_Isolate isolate);  // Byte
+Dart_IsolateGroupHeapNewUsedMaxMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
-Dart_IsolateHeapNewCapacityMetric(Dart_Isolate isolate);  // Byte
+Dart_IsolateGroupHeapNewCapacityMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
-Dart_IsolateHeapNewCapacityMaxMetric(Dart_Isolate isolate);  // Byte
+Dart_IsolateGroupHeapNewCapacityMaxMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
-Dart_IsolateHeapNewExternalMetric(Dart_Isolate isolate);  // Byte
+Dart_IsolateGroupHeapNewExternalMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
-Dart_IsolateHeapGlobalUsedMetric(Dart_Isolate isolate);  // Byte
+Dart_IsolateGroupHeapGlobalUsedMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
-Dart_IsolateHeapGlobalUsedMaxMetric(Dart_Isolate isolate);  // Byte
+Dart_IsolateGroupHeapGlobalUsedMaxMetric(Dart_IsolateGroup group);  // Byte
 DART_EXPORT int64_t
 Dart_IsolateRunnableLatencyMetric(Dart_Isolate isolate);  // Microsecond
 DART_EXPORT int64_t

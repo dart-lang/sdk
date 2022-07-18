@@ -303,8 +303,9 @@ class TestMacroExecutor extends MultiMacroExecutor {
       MacroInstanceIdentifier macro,
       Declaration declaration,
       IdentifierResolver identifierResolver,
+      TypeDeclarationResolver typeDeclarationResolver,
       TypeResolver typeResolver,
-      ClassIntrospector classIntrospector) async {
+      TypeIntrospector typeIntrospector) async {
     return new _MacroExecutionResult();
   }
 
@@ -313,9 +314,9 @@ class TestMacroExecutor extends MultiMacroExecutor {
       MacroInstanceIdentifier macro,
       Declaration declaration,
       IdentifierResolver identifierResolver,
-      TypeResolver typeResolver,
-      ClassIntrospector classIntrospector,
       TypeDeclarationResolver typeDeclarationResolver,
+      TypeResolver typeResolver,
+      TypeIntrospector typeIntrospector,
       TypeInferrer typeInferrer) async {
     return new _MacroExecutionResult();
   }

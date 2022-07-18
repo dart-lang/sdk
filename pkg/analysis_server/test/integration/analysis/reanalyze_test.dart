@@ -16,24 +16,24 @@ void main() {
 
 @reflectiveTest
 class ReanalyzeTest extends AbstractAnalysisServerIntegrationTest {
-  Future<void> test_reanalyze() {
+  Future<void> test_reanalyze() async {
     var pathname = sourcePath('test.dart');
     var text = 'void f() {}';
     writeFile(pathname, text);
-    standardAnalysisSetup();
-    return analysisFinished.then((_) {
-      // Make sure that reanalyze causes analysis to restart.
-      var analysisRestarted = false;
-      onServerStatus.listen((ServerStatusParams data) {
-        var analysisStatus = data.analysis;
-        if (analysisStatus != null && analysisStatus.isAnalyzing) {
-          analysisRestarted = true;
-        }
-      });
-      sendAnalysisReanalyze();
-      return analysisFinished.then((_) {
-        expect(analysisRestarted, isTrue);
-      });
+    await standardAnalysisSetup();
+    await analysisFinished;
+
+    // Make sure that reanalyze causes analysis to restart.
+    var analysisRestarted = false;
+    onServerStatus.listen((ServerStatusParams data) {
+      var analysisStatus = data.analysis;
+      if (analysisStatus != null && analysisStatus.isAnalyzing) {
+        analysisRestarted = true;
+      }
     });
+
+    await sendAnalysisReanalyze();
+    await analysisFinished;
+    expect(analysisRestarted, isTrue);
   }
 }

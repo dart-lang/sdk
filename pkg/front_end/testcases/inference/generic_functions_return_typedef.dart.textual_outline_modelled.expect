@@ -1,5 +1,4 @@
-// @dart = 2.9
 library test;
 
-main() {}
+test() {}
 typedef void ToValue<T>(T value);

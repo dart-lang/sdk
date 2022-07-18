@@ -26,7 +26,14 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   late AnalysisDriver driver;
   late AnalysisSession _session;
 
+  /// The path provided by the client to be renamed from.
+  ///
+  /// May be a file or folder path.
   late String oldFile;
+
+  /// The path provided by the client to be renamed to.
+  ///
+  /// May be a file or folder path.
   late String newFile;
 
   final packagePrefixedStringPattern = RegExp(r'''^r?['"]+package:''');
@@ -144,6 +151,19 @@ class MoveFileRefactoringImpl extends RefactoringImpl
         await changeBuilder.addDartFileEdit(definingUnitResult.path, (builder) {
           for (var directive in definingUnitResult.unit.directives) {
             if (directive is UriBasedDirective) {
+              // If the import is relative and the referenced file is also in
+              // the moved folder, no update is necessary.
+              var uriContent = directive.uriContent;
+              var uriFullPath = directive.uriSource?.fullName;
+              if (uriContent != null &&
+                  uriFullPath != null &&
+                  pathContext.isRelative(uriContent) &&
+                  // `oldFile` is used here and not `oldDir` because we care
+                  // about whether this is within the folder being renamed, not
+                  // the folder for this specific resource.
+                  pathContext.isWithin(oldFile, uriFullPath)) {
+                continue;
+              }
               _updateUriReference(builder, directive, oldDir, newDir);
             }
           }
@@ -174,6 +194,16 @@ class MoveFileRefactoringImpl extends RefactoringImpl
         await refactoringWorkspace.searchEngine.searchReferences(element);
     var references = getSourceReferences(matches);
     for (var reference in references) {
+      // If the import is relative and the referencing file is also in
+      // the moved folder, no update is necessary.
+      var uriFullPath = reference.file;
+      if (!_isPackageReference(reference) &&
+          // `oldFile` is used here and not `oldDir` because we care
+          // about whether this is within the folder being renamed, not
+          // the folder for this specific resource.
+          pathContext.isWithin(oldFile, uriFullPath)) {
+        continue;
+      }
       await changeBuilder.addDartFileEdit(reference.file, (builder) {
         var newUri = _computeNewUri(reference, newPath);
         builder.addSimpleReplacement(reference.range, "'$newUri'");

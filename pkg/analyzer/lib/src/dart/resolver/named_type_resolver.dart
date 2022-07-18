@@ -18,15 +18,18 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/scope_helpers.dart';
 
 /// Helper for resolving types.
 ///
 /// The client must set [nameScope] before calling [resolve].
-class NamedTypeResolver {
+class NamedTypeResolver with ScopeHelpers {
   final LibraryElementImpl _libraryElement;
   final TypeSystemImpl typeSystem;
   final DartType dynamicType;
   final bool isNonNullableByDefault;
+
+  @override
   final ErrorReporter errorReporter;
 
   late Scope nameScope;
@@ -96,10 +99,8 @@ class NamedTypeResolver {
       }
 
       if (prefixElement is PrefixElement) {
-        var nameNode = typeIdentifier.identifier;
-        var name = nameNode.name;
-
-        var element = prefixElement.scope.lookup(name).getter;
+        final nameNode = typeIdentifier.identifier;
+        final element = _lookupGetter(prefixElement.scope, nameNode);
         nameNode.staticElement = element;
         _resolveToElement(node, element);
         return;
@@ -113,14 +114,13 @@ class NamedTypeResolver {
       node.type = dynamicType;
     } else {
       var nameNode = typeIdentifier as SimpleIdentifierImpl;
-      var name = nameNode.name;
 
-      if (name == 'void') {
+      if (nameNode.name == 'void') {
         node.type = VoidTypeImpl.instance;
         return;
       }
 
-      var element = nameScope.lookup(name).getter;
+      final element = _lookupGetter(nameScope, nameNode);
       nameNode.staticElement = element;
       _resolveToElement(node, element);
     }
@@ -280,6 +280,15 @@ class NamedTypeResolver {
     } else {
       return typeSystem.typeProvider.nullType;
     }
+  }
+
+  Element? _lookupGetter(Scope scope, SimpleIdentifier node) {
+    final scopeLookupResult = scope.lookup(node.name);
+    reportDeprecatedExportUseGetter(
+      scopeLookupResult: scopeLookupResult,
+      node: node,
+    );
+    return scopeLookupResult.getter;
   }
 
   void _resolveToElement(NamedTypeImpl node, Element? element) {

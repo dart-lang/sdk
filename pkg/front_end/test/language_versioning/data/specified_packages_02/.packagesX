@@ -1,1 +1,1 @@
-foo:foo1/
+/*error: errors=PackagesFileFormat*/foo:foo1/

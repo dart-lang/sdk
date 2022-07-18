@@ -21,11 +21,10 @@ class WillRenameFilesHandler
   Future<ErrorOr<WorkspaceEdit?>> handle(RenameFilesParams params,
       MessageInfo message, CancellationToken token) async {
     final files = params.files;
-    // Only single-file rename/moves are currently supported.
-    // TODO(dantup): Tweak this when VS Code can correctly pass us cancellation
-    // requests to not check for .dart to also support folders (although we
-    // may still only support a single entry initially).
-    if (files.length > 1 || files.any((f) => !f.oldUri.endsWith('.dart'))) {
+    // Although we support folders, currently only a single item in the list
+    // is supported (eg. although you can rename a folder, you can't drag
+    // multiple files between folders).
+    if (files.length > 1) {
       return success(null);
     }
 

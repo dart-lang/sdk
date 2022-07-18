@@ -5685,10 +5685,10 @@ CompileTimeErrorCode:
 
       The following code produces this diagnostic because the class `A` is used
       in both the `extends` and `with` clauses for the class `B`:
-  
+
       ```dart
       class A {}
-  
+
       class B extends A with [!A!] {}
       ```
 
@@ -5896,8 +5896,6 @@ CompileTimeErrorCode:
       ```dart
       %uri="lib/part.dart"
       part of lib;
-
-      class C{}
       ```
 
       The following code produces this diagnostic because imported files can't
@@ -5907,8 +5905,6 @@ CompileTimeErrorCode:
       library lib;
 
       import [!'part.dart'!];
-
-      C c = C();
       ```
 
       #### Common fixes
@@ -15809,10 +15805,12 @@ FfiCode:
       }
       ```
   ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED:
-    problemMessage: "Only mappings to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', 'UInt32', and 'Uint64' are supported."
+    problemMessage: "Invalid mapping to '{0}'; only mappings to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', 'UInt32', and 'Uint64' are supported."
     correctionMessage: Try changing the value to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', 'UInt32', or 'Uint64'.
     hasPublishedDocs: true
-    comment: No parameters.
+    comment: |-
+      Parameters:
+      0: the value of the invalid mapping
     documentation: |-
       #### Description
 
@@ -15836,7 +15834,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      @[!AbiSpecificIntegerMapping!]({Abi.macosX64 : Array<Uint8>(4)})
+      @AbiSpecificIntegerMapping({Abi.macosX64 : [!Array<Uint8>(4)!]})
       class C extends AbiSpecificInteger {
         const C();
       }
@@ -17170,91 +17168,6 @@ FfiCode:
         external Pointer<Uint8> notEmpty;
       }
       ```
-  PACKED_NESTING_NON_PACKED:
-    problemMessage: "Nesting the non-packed or less tightly packed struct '{0}' in a packed struct '{1}' isn't supported."
-    correctionMessage: Try packing the nested struct or packing the nested struct more tightly.
-    comment: |-
-      Parameters:
-      0: the name of the outer struct
-      1: the name of the struct being nested
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a subclass of `Struct` that is
-      annotated as being `Packed` declares a field whose type is also a subclass
-      of `Struct` and the field's type is either not packed or is packed less
-      tightly.
-
-      For more information about FFI, see [C interop using dart:ffi][ffi].
-
-      #### Example
-
-      The following code produces this diagnostic because the class `Outer`,
-      which is a subclass of `Struct` and is packed on 1-byte boundaries,
-      declared a field whose type (`Inner`) is packed on 8-byte boundaries:
-
-      ```dart
-      import 'dart:ffi';
-
-      @Packed(8)
-      class Inner extends Struct {
-        external Pointer<Uint8> notEmpty;
-      }
-
-      @Packed(1)
-      class Outer extends Struct {
-        external Pointer<Uint8> notEmpty;
-
-        external [!Inner!] nestedLooselyPacked;
-      }
-      ```
-
-      #### Common fixes
-
-      If the inner struct should be packed more tightly, then change the
-      argument to the inner struct's `Packed` annotation:
-
-      ```dart
-      import 'dart:ffi';
-
-      @Packed(1)
-      class Inner extends Struct {
-        external Pointer<Uint8> notEmpty;
-      }
-
-      @Packed(1)
-      class Outer extends Struct {
-        external Pointer<Uint8> notEmpty;
-
-        external Inner nestedLooselyPacked;
-      }
-      ```
-
-      If the outer struct should be packed less tightly, then change the
-      argument to the outer struct's `Packed` annotation:
-
-      ```dart
-      import 'dart:ffi';
-
-      @Packed(8)
-      class Inner extends Struct {
-        external Pointer<Uint8> notEmpty;
-      }
-
-      @Packed(8)
-      class Outer extends Struct {
-        external Pointer<Uint8> notEmpty;
-
-        external Inner nestedLooselyPacked;
-      }
-      ```
-
-      If the inner struct doesn't have an annotation and should be packed, then
-      add an annotation.
-
-      If the inner struct doesn't have an annotation and the outer struct
-      shouldn't be packed, then remove its annotation.
   SIZE_ANNOTATION_DIMENSIONS:
     problemMessage: "'Array's must have an 'Array' annotation that matches the dimensions."
     correctionMessage: "Try adjusting the arguments in the 'Array' annotation."
@@ -17756,10 +17669,12 @@ HintCode:
         }
       }
       ```
-  DEPRECATED_FUNCTION_CLASS_DECLARATION:
-    problemMessage: "Declaring a class named 'Function' is deprecated."
-    correctionMessage: Try renaming the class.
-    comment: Users should not create a class named `Function` anymore.
+  DEPRECATED_EXPORT_USE:
+    problemMessage: "The ability to import '{0}' indirectly has been deprecated."
+    correctionMessage: "Try importing '{0}' directly."
+    comment: |-
+      Parameters:
+      0: the name of the element
   DEPRECATED_MEMBER_USE:
     problemMessage: "'{0}' is deprecated and shouldn't be used."
     correctionMessage: Try replacing the use of the deprecated member with the replacement.

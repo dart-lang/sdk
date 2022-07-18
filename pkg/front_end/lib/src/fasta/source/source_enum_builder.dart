@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
+import 'package:kernel/transformations/flags.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -560,7 +561,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
   @override
   Class build(LibraryBuilder coreLibrary) {
-    cls.isEnum = true;
     intType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
     stringType.resolveIn(
         coreLibrary.scope, charOffset, fileUri, libraryBuilder);
@@ -571,6 +571,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
     listType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
 
+    Class cls = super.build(coreLibrary);
+    cls.isEnum = true;
+
     List<Expression> values = <Expression>[];
     if (enumConstantInfos != null) {
       for (EnumConstantInfo? enumConstantInfo in enumConstantInfos!) {
@@ -578,15 +581,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
           Builder declaration = firstMemberNamed(enumConstantInfo.name)!;
           if (declaration.isField) {
             SourceFieldBuilder fieldBuilder = declaration as SourceFieldBuilder;
-            fieldBuilder.build();
             values.add(new StaticGet(fieldBuilder.field));
           }
         }
       }
     }
-    SourceFieldBuilder valuesBuilder =
-        firstMemberNamed("values") as SourceFieldBuilder;
-    valuesBuilder.build();
 
     // The super initializer for the synthesized default constructor is
     // inserted here if the enum's supertype is _Enum to preserve the legacy
@@ -596,7 +595,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
     // building.
     if (identical(this.supertypeBuilder, enumType)) {
       if (synthesizedDefaultConstructorBuilder != null) {
-        Constructor constructor = synthesizedDefaultConstructorBuilder!.build();
+        Constructor constructor =
+            synthesizedDefaultConstructorBuilder!.constructor;
         ClassBuilder objectClass = objectType.declaration as ClassBuilder;
         ClassBuilder enumClass = enumType.declaration as ClassBuilder;
         MemberBuilder? superConstructor = enumClass.findConstructorOrFactory(
@@ -624,7 +624,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       }
     }
 
-    return super.build(coreLibrary);
+    return cls;
   }
 
   DartType buildElement(SourceFieldBuilder fieldBuilder, CoreTypes coreTypes) {
@@ -713,9 +713,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
         if (!fieldBuilder.hasBodyBeenBuilt) {
           fieldBuilder.buildBody(
               coreTypes,
-              bodyBuilder.buildUnresolvedError(new NullLiteral(),
-                  fullConstructorNameForErrors, arguments, fileOffset,
-                  kind: UnresolvedKind.Constructor));
+              bodyBuilder.buildUnresolvedError(
+                  fullConstructorNameForErrors, fileOffset,
+                  arguments: arguments, kind: UnresolvedKind.Constructor));
         }
       } else {
         Expression initializer = bodyBuilder.buildStaticInvocation(
@@ -777,7 +777,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
           Builder declaration = firstMemberNamed(enumConstantInfo.name)!;
           if (declaration.isField) {
             SourceFieldBuilder fieldBuilder = declaration as SourceFieldBuilder;
-            fieldBuilder.build();
             values.add(new StaticGet(fieldBuilder.field));
           }
         }
@@ -800,20 +799,35 @@ class SourceEnumBuilder extends SourceClassBuilder {
     SourceProcedureBuilder toStringBuilder =
         firstMemberNamed("toString") as SourceProcedureBuilder;
 
-    ClassBuilder enumClass =
-        _computeEnumSupertype()!.declaration as ClassBuilder;
-    MemberBuilder? nameFieldBuilder =
-        enumClass.lookupLocalMember("_name") as MemberBuilder?;
-    assert(nameFieldBuilder != null);
-    Field nameField = nameFieldBuilder!.member as Field;
+    Name toStringName = new Name("toString");
+    Member? superToString = cls.superclass != null
+        ? classHierarchy.getDispatchTarget(cls.superclass!, toStringName)
+        : null;
+    Procedure? toStringSuperTarget = superToString is Procedure &&
+            superToString.enclosingClass != classHierarchy.coreTypes.objectClass
+        ? superToString
+        : null;
 
-    toStringBuilder.body = new ReturnStatement(new StringConcatenation([
-      new StringLiteral("${cls.demangledName}."),
-      new InstanceGet.byReference(
-          InstanceAccessKind.Instance, new ThisExpression(), nameField.name,
-          interfaceTargetReference: nameField.getterReference,
-          resultType: nameField.getterType),
-    ]));
+    if (toStringSuperTarget != null) {
+      toStringBuilder.member.transformerFlags |= TransformerFlag.superCalls;
+      toStringBuilder.body = new ReturnStatement(new SuperMethodInvocation(
+          toStringName, new Arguments([]), toStringSuperTarget));
+    } else {
+      ClassBuilder enumClass =
+          _computeEnumSupertype()!.declaration as ClassBuilder;
+      MemberBuilder? nameFieldBuilder =
+          enumClass.lookupLocalMember("_name") as MemberBuilder?;
+      assert(nameFieldBuilder != null);
+      Field nameField = nameFieldBuilder!.member as Field;
+
+      toStringBuilder.body = new ReturnStatement(new StringConcatenation([
+        new StringLiteral("${cls.demangledName}."),
+        new InstanceGet.byReference(
+            InstanceAccessKind.Instance, new ThisExpression(), nameField.name,
+            interfaceTargetReference: nameField.getterReference,
+            resultType: nameField.getterType),
+      ]));
+    }
 
     super.buildOutlineExpressions(
         classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);

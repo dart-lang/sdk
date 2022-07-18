@@ -39,10 +39,11 @@ import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types_resolution.dart';
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
-import '../js_model/locals.dart' show GlobalLocalsMap, JumpVisitor;
-import '../js_model/elements.dart' show JGeneratorBody;
+import '../js_model/class_type_variable_access.dart';
 import '../js_model/element_map.dart';
+import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/js_strategy.dart';
+import '../js_model/locals.dart' show GlobalLocalsMap, JumpVisitor;
 import '../js_model/type_recipe.dart';
 import '../kernel/invocation_mirror_constants.dart';
 import '../native/behavior.dart';
@@ -668,10 +669,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   /// Extend current method parameters with parameters for the function type
   /// variables.
-  ///
-  /// TODO(johnniwinther): Do we need this?
-  /// If the method has type variables but does not need them, bind to `dynamic`
-  /// (represented as `null`).
   void _addFunctionTypeVariablesIfNeeded(MemberEntity member) {
     if (member is! FunctionEntity) return;
 
@@ -683,8 +680,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
     bool needsTypeArguments = _rtiNeed.methodNeedsTypeArguments(function);
     bool elideTypeParameters = function.parameterStructure.typeParameters == 0;
-    for (TypeVariableType typeVariable
-        in _elementEnvironment.getFunctionTypeVariables(function)) {
+    for (TypeVariableType typeVariable in typeVariables) {
       HInstruction param;
       bool erased = false;
       if (elideTypeParameters) {
@@ -848,7 +844,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         ConstructorBodyEntity constructorBody =
             _elementMap.getConstructorBody(body);
 
-        void handleParameter(ir.VariableDeclaration node, {bool isElided}) {
+        void handleParameter(ir.VariableDeclaration node,
+            {/*required*/ bool isElided}) {
           if (isElided) return;
 
           Local parameter = _localsMap.getLocalVariable(node);
@@ -2360,7 +2357,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         // to the body.
         SubGraph bodyGraph = SubGraph(bodyEntryBlock, bodyExitBlock);
         JumpTarget target = _localsMap.getJumpTargetForDo(node);
-        LabelDefinition label = target.addLabel('loop', isBreakTarget: true);
+        final label = target.addLabel('loop', isBreakTarget: true);
         HLabeledBlockInformation info = HLabeledBlockInformation(
             HSubGraphBlockInformation(bodyGraph), <LabelDefinition>[label]);
         loopEntryBlock.setBlockFlow(info, current);
@@ -4082,16 +4079,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
             canThrow ? NativeThrowBehavior.MAY : NativeThrowBehavior.NEVER)
       ..sourceInformation = sourceInformation;
     push(foreign);
-    // TODO(redemption): Global type analysis tracing may have determined that
-    // the fixed-length property is never checked. If so, we can avoid marking
-    // the array.
-    {
-      js.Template code = js.js.parseForeignJS(r'#.fixed$length = Array');
-      // We set the instruction as [canThrow] to avoid it being dead code.
-      // We need a finer grained side effect.
-      add(HForeignCode(code, _abstractValueDomain.nullType, [stack.last],
-          throwBehavior: NativeThrowBehavior.MAY));
-    }
+    js.Template fixedLengthMarker =
+        js.js.parseForeignJS(r'#.fixed$length = Array');
+    // We set the instruction as [canThrow] to avoid it being dead code.
+    // We need a finer grained side effect.
+    add(HForeignCode(
+        fixedLengthMarker, _abstractValueDomain.nullType, [stack.last],
+        throwBehavior: NativeThrowBehavior.MAY));
 
     HInstruction newInstance = stack.last;
 
@@ -4964,7 +4958,10 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HInstruction value = arguments[0];
     HInstruction name = options.omitLateNames ? null : arguments[1];
 
-    push(HLateReadCheck(value, name,
+    CheckPolicy policy = closedWorld.annotationsData
+        .getLateVariableCheckPolicy(_currentFrame.member);
+
+    push(HLateReadCheck(value, name, policy.isTrusted,
         _abstractValueDomain.excludeLateSentinel(value.instructionType))
       ..sourceInformation = sourceInformation);
   }
@@ -4986,7 +4983,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HInstruction value = arguments[0];
     HInstruction name = options.omitLateNames ? null : arguments[1];
 
-    push(HLateWriteOnceCheck(value, name, _abstractValueDomain.dynamicType)
+    CheckPolicy policy = closedWorld.annotationsData
+        .getLateVariableCheckPolicy(_currentFrame.member);
+
+    push(HLateWriteOnceCheck(
+        value, name, policy.isTrusted, _abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation);
   }
 
@@ -5007,7 +5008,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HInstruction value = arguments[0];
     HInstruction name = options.omitLateNames ? null : arguments[1];
 
-    push(HLateInitializeOnceCheck(value, name, _abstractValueDomain.dynamicType)
+    CheckPolicy policy = closedWorld.annotationsData
+        .getLateVariableCheckPolicy(_currentFrame.member);
+
+    push(HLateInitializeOnceCheck(
+        value, name, policy.isTrusted, _abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation);
   }
 
@@ -5832,6 +5837,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       return false;
     }
 
+    // Check if inlining is disabled for the current element (includes globally)
+    // before making decsions on the basis of the callee so that cached callee
+    // decisions are not a function of the call site's method.
+    if (closedWorld.annotationsData.hasDisableInlining(_currentFrame.member)) {
+      return false;
+    }
+
     bool insideLoop = loopDepth > 0 || graph.calledInLoop;
 
     // Bail out early if the inlining decision is in the cache and we can't
@@ -5842,8 +5854,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     if (cachedCanBeInlined == false) return false;
 
     bool meetsHardConstraints() {
-      if (options.disableInlining) return false;
-
       assert(
           selector != null ||
               function.isStatic ||
@@ -6237,7 +6247,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     ir.Member memberContextNode = _elementMap.getMemberContextNode(function);
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
     forEachOrderedParameter(_elementMap, function,
-        (ir.VariableDeclaration variable, {bool isElided}) {
+        (ir.VariableDeclaration variable, {/*required*/ bool isElided}) {
       Local local = localsMap.getLocalVariable(variable);
       if (isElided) {
         localsHandler.updateLocal(
@@ -6253,6 +6263,20 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       HInstruction argument = compiledArguments[argumentIndex++];
       localsHandler.updateLocal(local, argument);
     });
+
+    bool hasTypeParameters = function.parameterStructure.typeParameters > 0;
+    bool needsTypeArguments = _rtiNeed.methodNeedsTypeArguments(function);
+    for (TypeVariableType typeVariable
+        in _elementEnvironment.getFunctionTypeVariables(function)) {
+      HInstruction argument;
+      if (hasTypeParameters && needsTypeArguments) {
+        argument = compiledArguments[argumentIndex++];
+      } else {
+        argument = _computeTypeArgumentDefaultValue(function, typeVariable);
+      }
+      localsHandler.updateLocal(
+          localsHandler.getTypeVariableAsLocal(typeVariable), argument);
+    }
 
     if (forGenerativeConstructorBody && scopeData.requiresContextBox) {
       HInstruction box = compiledArguments[argumentIndex++];
@@ -6275,22 +6299,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
             localsHandler.getTypeVariableAsLocal(typeVariable), argument);
       });
     }
-    if (_rtiNeed.methodNeedsTypeArguments(function)) {
-      bool inlineTypeParameters =
-          function.parameterStructure.typeParameters == 0;
-      for (TypeVariableType typeVariable
-          in _elementEnvironment.getFunctionTypeVariables(function)) {
-        HInstruction argument;
-        if (inlineTypeParameters) {
-          // Add inlined type parameters.
-          argument = _computeTypeArgumentDefaultValue(function, typeVariable);
-        } else {
-          argument = compiledArguments[argumentIndex++];
-        }
-        localsHandler.updateLocal(
-            localsHandler.getTypeVariableAsLocal(typeVariable), argument);
-      }
-    }
+
     assert(
         argumentIndex == compiledArguments.length ||
             !_rtiNeed.methodNeedsTypeArguments(function) &&
@@ -6403,7 +6412,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
     forEachOrderedParameter(_elementMap, function,
-        (ir.VariableDeclaration variable, {bool isElided}) {
+        (ir.VariableDeclaration variable, {/*required*/ bool isElided}) {
       Local parameter = localsMap.getLocalVariable(variable);
       HInstruction argument = localsHandler.readLocal(parameter);
       DartType type = localsMap.getLocalType(_elementMap, parameter);

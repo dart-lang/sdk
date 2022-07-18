@@ -197,7 +197,7 @@ class InvocationVisitor extends RecursiveVisitor {
   @override
   void visitSuperMethodInvocation(SuperMethodInvocation node) {
     super.visitSuperMethodInvocation(node);
-    note(node.interfaceTargetReference!.node!, node.arguments, node);
+    note(node.interfaceTargetReference.node!, node.arguments, node);
   }
 
   @override

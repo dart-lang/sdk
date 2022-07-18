@@ -36,11 +36,11 @@ class DeclarationBuilder {
   /// corresponding elements. So, we can access them uniformly via interfaces,
   /// mixins, etc.
   void transferToElements() {
+    // TODO(scheglov) Make sure that these are only declarations?
     for (final entry in fromNode._identifierMap.entries) {
       final element = entry.key.staticElement;
       if (element != null) {
         final declaration = entry.value;
-        declaration.element = element;
         fromElement._identifierMap[element] = declaration;
       }
     }
@@ -57,15 +57,16 @@ class DeclarationBuilder {
 class DeclarationBuilderFromElement {
   final Map<Element, IdentifierImpl> _identifierMap = Map.identity();
 
-  final Map<ClassElement, ClassDeclarationImpl> _classMap = Map.identity();
+  final Map<ClassElement, IntrospectableClassDeclarationImpl> _classMap =
+      Map.identity();
 
   final Map<FieldElement, FieldDeclarationImpl> _fieldMap = Map.identity();
 
   final Map<TypeParameterElement, macro.TypeParameterDeclarationImpl>
       _typeParameterMap = Map.identity();
 
-  macro.ClassDeclarationImpl classElement(ClassElement element) {
-    return _classMap[element] ??= _classElement(element);
+  macro.IntrospectableClassDeclarationImpl classElement(ClassElement element) {
+    return _classMap[element] ??= _introspectableClassElement(element);
   }
 
   macro.FieldDeclarationImpl fieldElement(FieldElement element) {
@@ -73,30 +74,17 @@ class DeclarationBuilderFromElement {
   }
 
   macro.IdentifierImpl identifier(Element element) {
-    return _identifierMap[element] ??= IdentifierImpl(
+    return _identifierMap[element] ??= IdentifierImplFromElement(
       id: macro.RemoteInstance.uniqueId,
       name: element.name!,
-    )..element = element;
+      element: element,
+    );
   }
 
   macro.TypeParameterDeclarationImpl typeParameter(
     TypeParameterElement element,
   ) {
     return _typeParameterMap[element] ??= _typeParameter(element);
-  }
-
-  ClassDeclarationImpl _classElement(ClassElement element) {
-    assert(!_classMap.containsKey(element));
-    return ClassDeclarationImpl._(
-      id: macro.RemoteInstance.uniqueId,
-      identifier: identifier(element),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
-      interfaces: element.interfaces.map(_dartType).toList(),
-      isAbstract: element.isAbstract,
-      isExternal: false,
-      mixins: element.mixins.map(_dartType).toList(),
-      superclass: element.supertype.mapOrNull(_dartType),
-    )..element = element;
   }
 
   macro.TypeAnnotationImpl _dartType(DartType type) {
@@ -135,6 +123,28 @@ class DeclarationBuilderFromElement {
     );
   }
 
+  IntrospectableClassDeclarationImpl _introspectableClassElement(
+      ClassElement element) {
+    assert(!_classMap.containsKey(element));
+    return IntrospectableClassDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: identifier(element),
+      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      interfaces: element.interfaces
+          .map(_dartType)
+          .cast<macro.NamedTypeAnnotationImpl>()
+          .toList(),
+      isAbstract: element.isAbstract,
+      isExternal: false,
+      mixins: element.mixins
+          .map(_dartType)
+          .cast<macro.NamedTypeAnnotationImpl>()
+          .toList(),
+      superclass: element.supertype.mapOrNull(_dartType)
+          as macro.NamedTypeAnnotationImpl?,
+    )..element = element;
+  }
+
   macro.TypeParameterDeclarationImpl _typeParameter(
     TypeParameterElement element,
   ) {
@@ -150,31 +160,13 @@ class DeclarationBuilderFromNode {
   final Map<ast.SimpleIdentifier, IdentifierImpl> _identifierMap =
       Map.identity();
 
-  final Map<ast.ClassDeclaration, ClassDeclarationImpl> _classMap =
-      Map.identity();
+  final Map<ast.ClassDeclaration, IntrospectableClassDeclarationImpl>
+      _classMap = Map.identity();
 
   macro.ClassDeclarationImpl classDeclaration(
     ast.ClassDeclaration node,
   ) {
-    return _classMap[node] ??= _classDeclaration(node);
-  }
-
-  ClassDeclarationImpl _classDeclaration(
-    ast.ClassDeclaration node,
-  ) {
-    assert(!_classMap.containsKey(node));
-    return ClassDeclarationImpl._(
-      id: macro.RemoteInstance.uniqueId,
-      identifier: _identifier(node.name),
-      typeParameters: _typeParameters(node.typeParameters),
-      interfaces: _typeAnnotations(node.implementsClause?.interfaces),
-      isAbstract: node.abstractKeyword != null,
-      isExternal: false,
-      mixins: _typeAnnotations(node.withClause?.mixinTypes),
-      superclass: node.extendsClause?.superclass.mapOrNull(
-        _typeAnnotation,
-      ),
-    );
+    return _classMap[node] ??= _introspectableClassDeclaration(node);
   }
 
   macro.FunctionTypeParameterImpl _formalParameter(
@@ -207,17 +199,37 @@ class DeclarationBuilderFromNode {
     } else {
       simpleIdentifier = (node as ast.PrefixedIdentifier).identifier;
     }
-    return _identifierMap[simpleIdentifier] ??= IdentifierImpl(
+    return _identifierMap[simpleIdentifier] ??= IdentifierImplFromNode(
       id: macro.RemoteInstance.uniqueId,
       name: simpleIdentifier.name,
+      node: simpleIdentifier,
     );
   }
 
-  macro.TypeAnnotationImpl _typeAnnotation(ast.TypeAnnotation? node) {
+  IntrospectableClassDeclarationImpl _introspectableClassDeclaration(
+    ast.ClassDeclaration node,
+  ) {
+    assert(!_classMap.containsKey(node));
+    return IntrospectableClassDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _identifier(node.name),
+      typeParameters: _typeParameters(node.typeParameters),
+      interfaces: _typeAnnotations(node.implementsClause?.interfaces),
+      isAbstract: node.abstractKeyword != null,
+      isExternal: false,
+      mixins: _typeAnnotations(node.withClause?.mixinTypes),
+      superclass: node.extendsClause?.superclass.mapOrNull(
+        _typeAnnotation,
+      ),
+    );
+  }
+
+  T _typeAnnotation<T extends macro.TypeAnnotationImpl>(
+      ast.TypeAnnotation? node) {
     if (node == null) {
       return macro.OmittedTypeAnnotationImpl(
         id: macro.RemoteInstance.uniqueId,
-      );
+      ) as T;
     } else if (node is ast.GenericFunctionType) {
       return macro.FunctionTypeAnnotationImpl(
         id: macro.RemoteInstance.uniqueId,
@@ -232,24 +244,25 @@ class DeclarationBuilderFromNode {
             .toList(),
         returnType: _typeAnnotation(node.returnType),
         typeParameters: _typeParameters(node.typeParameters),
-      );
+      ) as T;
     } else if (node is ast.NamedType) {
       return macro.NamedTypeAnnotationImpl(
         id: macro.RemoteInstance.uniqueId,
         identifier: _identifier(node.name),
         isNullable: node.question != null,
         typeArguments: _typeAnnotations(node.typeArguments?.arguments),
-      );
+      ) as T;
     } else {
       throw UnimplementedError('(${node.runtimeType}) $node');
     }
   }
 
-  List<macro.TypeAnnotationImpl> _typeAnnotations(
+  List<T> _typeAnnotations<T extends macro.TypeAnnotationImpl>(
     List<ast.TypeAnnotation>? elements,
   ) {
     if (elements != null) {
-      return elements.map(_typeAnnotation).toList();
+      return List.generate(
+          elements.length, (i) => _typeAnnotation(elements[i]));
     } else {
       return const [];
     }
@@ -289,10 +302,53 @@ class FieldDeclarationImpl extends macro.FieldDeclarationImpl {
   });
 }
 
-class IdentifierImpl extends macro.IdentifierImpl {
-  late final Element? element;
+abstract class IdentifierImpl extends macro.IdentifierImpl {
+  IdentifierImpl({
+    required super.id,
+    required super.name,
+  });
 
-  IdentifierImpl({required super.id, required super.name});
+  Element? get element;
+}
+
+class IdentifierImplFromElement extends IdentifierImpl {
+  @override
+  final Element element;
+
+  IdentifierImplFromElement({
+    required super.id,
+    required super.name,
+    required this.element,
+  });
+}
+
+class IdentifierImplFromNode extends IdentifierImpl {
+  final ast.SimpleIdentifier node;
+
+  IdentifierImplFromNode({
+    required super.id,
+    required super.name,
+    required this.node,
+  });
+
+  @override
+  Element? get element => node.staticElement;
+}
+
+class IntrospectableClassDeclarationImpl
+    extends macro.IntrospectableClassDeclarationImpl {
+  late final ClassElement element;
+
+  IntrospectableClassDeclarationImpl._({
+    required super.id,
+    required super.identifier,
+    required super.typeParameters,
+    required super.interfaces,
+    required super.isAbstract,
+    required super.isExternal,
+    required super.mixins,
+    required super.superclass,
+  });
 }
 
 extension<T> on T? {

@@ -15,8 +15,9 @@ import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scope_helpers.dart';
 
-class SimpleIdentifierResolver {
+class SimpleIdentifierResolver with ScopeHelpers {
   final ResolverVisitor _resolver;
 
   final InvocationInferenceHelper _inferenceHelper;
@@ -24,7 +25,8 @@ class SimpleIdentifierResolver {
   SimpleIdentifierResolver(this._resolver)
       : _inferenceHelper = _resolver.inferenceHelper;
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  @override
+  ErrorReporter get errorReporter => _resolver.errorReporter;
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
@@ -36,6 +38,8 @@ class SimpleIdentifierResolver {
     _resolver.checkUnreachableNode(node);
 
     _resolver.checkReadOfNotAssignedLocalVariable(node, node.staticElement);
+
+    _reportDeprecatedExportUse(node);
 
     _resolve1(node);
     _resolve2(node, contextType: contextType);
@@ -103,6 +107,16 @@ class SimpleIdentifierResolver {
     return false;
   }
 
+  void _reportDeprecatedExportUse(SimpleIdentifierImpl node) {
+    final scopeLookupResult = node.scopeLookupResult;
+    if (scopeLookupResult != null) {
+      reportDeprecatedExportUseGetter(
+        scopeLookupResult: scopeLookupResult,
+        node: node,
+      );
+    }
+  }
+
   void _resolve1(SimpleIdentifierImpl node) {
     //
     // Synthetic identifiers have been already reported during parsing.
@@ -158,14 +172,14 @@ class SimpleIdentifierResolver {
     var enclosingClass = _resolver.enclosingClass;
     if (_isFactoryConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
-      _errorReporter.reportErrorForNode(
+      errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node);
     } else if (_isConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
       // This error is now reported by the parser.
       element = null;
     } else if (element is PrefixElement && !_isValidAsPrefix(node)) {
-      _errorReporter.reportErrorForNode(
+      errorReporter.reportErrorForNode(
         CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
         node,
         [element.name],
@@ -173,13 +187,13 @@ class SimpleIdentifierResolver {
     } else if (element == null) {
       // TODO(brianwilkerson) Recover from this error.
       if (node.name == "await" && _resolver.enclosingFunction != null) {
-        _errorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
           node,
         );
       } else if (!_resolver.definingLibrary
           .shouldIgnoreUndefinedIdentifier(node)) {
-        _errorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
           node,
           [node.name],

@@ -23,6 +23,7 @@ namespace dart {
   V(BreakpointRuntimeHandler)                                                  \
   V(SingleStepHandler)                                                         \
   V(CloneContext)                                                              \
+  V(CloneSuspendState)                                                         \
   V(DoubleToInteger)                                                           \
   V(FixCallersTarget)                                                          \
   V(FixCallersTargetMonomorphic)                                               \
@@ -62,6 +63,7 @@ namespace dart {
   V(LateFieldAssignedDuringInitializationError)                                \
   V(LateFieldNotInitializedError)                                              \
   V(CompileFunction)                                                           \
+  V(ResumeFrame)                                                               \
   V(SwitchableCallMiss)                                                        \
   V(NotLoaded)
 

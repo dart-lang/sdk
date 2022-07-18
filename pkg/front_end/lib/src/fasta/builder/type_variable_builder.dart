@@ -12,12 +12,10 @@ import '../fasta_codes.dart'
     show
         templateInternalProblemUnfinishedTypeVariable,
         templateTypeArgumentsOnTypeVariable;
-
 import '../scope.dart';
 import '../source/source_library_builder.dart';
 import '../uris.dart';
 import '../util/helpers.dart';
-
 import 'builder.dart';
 import 'class_builder.dart';
 import 'declaration_builder.dart';
@@ -127,6 +125,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
       TypeUse typeUse,
       Uri fileUri,
       int charOffset,
+      ClassHierarchyBase? hierarchy,
       {required bool hasExplicitTypeArguments}) {
     if (arguments != null) {
       library.addProblem(
@@ -199,10 +198,11 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     DartType objectType = object.buildAliasedType(
         library,
         library.nullableBuilder,
-        null,
+        /* arguments = */ null,
         TypeUse.typeParameterBound,
         fileUri ?? missingUri,
         charOffset,
+        /* hierarchy = */ null,
         hasExplicitTypeArguments: false);
     if (identical(parameter.bound, TypeParameter.unsetBoundSentinel)) {
       parameter.bound =

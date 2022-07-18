@@ -735,22 +735,21 @@ class AstFactoryImpl {
           typeArgumentTypes: typeArgumentTypes);
 
   ImportDirectiveImpl importDirective(
-          Comment? comment,
-          List<Annotation>? metadata,
-          Token keyword,
-          StringLiteral libraryUri,
-          List<Configuration>? configurations,
-          Token? deferredKeyword,
-          Token? asKeyword,
-          SimpleIdentifier? prefix,
-          List<Combinator>? combinators,
-          Token semicolon,
-          {Token? augmentKeyword}) =>
+    Comment? comment,
+    List<Annotation>? metadata,
+    Token keyword,
+    StringLiteral libraryUri,
+    List<Configuration>? configurations,
+    Token? deferredKeyword,
+    Token? asKeyword,
+    SimpleIdentifier? prefix,
+    List<Combinator>? combinators,
+    Token semicolon,
+  ) =>
       ImportDirectiveImpl(
           comment as CommentImpl?,
           metadata,
           keyword,
-          augmentKeyword,
           libraryUri as StringLiteralImpl,
           configurations,
           deferredKeyword,

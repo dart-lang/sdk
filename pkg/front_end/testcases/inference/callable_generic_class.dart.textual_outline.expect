@@ -1,8 +1,7 @@
-// @dart = 2.9
 library test;
 
 class ActionDispatcher<P> {
-  void call([P value]) {}
+  void call([P? value]) {}
 }
 
 class Bar {}

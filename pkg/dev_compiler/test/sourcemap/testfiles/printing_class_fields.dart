@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /*Debugger:stepOver*/
 void main() {
   /*bl*/
@@ -19,7 +17,7 @@ void main() {
 }
 
 class Foo {
-  int x, y, z;
+  int? x, y, z;
 
   Foo(int a, int b)
       : x = a,

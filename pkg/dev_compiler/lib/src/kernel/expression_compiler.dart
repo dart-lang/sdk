@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
@@ -32,10 +30,10 @@ import 'package:kernel/ast.dart'
         VisitorNullMixin,
         VisitorVoidMixin;
 
-import '../../dev_compiler.dart';
 import '../compiler/js_names.dart' as js_ast;
 import '../compiler/module_builder.dart';
 import '../js_ast/js_ast.dart' as js_ast;
+import 'compiler.dart' show ProgramCompiler;
 
 DiagnosticMessage _createInternalError(Uri uri, int line, int col, String msg) {
   return Message(Code<String>('Expression Compiler Internal error'),
@@ -50,8 +48,8 @@ DiagnosticMessage _createInternalError(Uri uri, int line, int col, String msg) {
 /// Provides information about symbols available inside a dart scope.
 class DartScope {
   final Library library;
-  final Class cls;
-  final Member member;
+  final Class? cls;
+  final Member? member;
   final bool isStatic;
   final Map<String, DartType> definitions;
   final List<TypeParameter> typeParameters;
@@ -88,12 +86,12 @@ class DartScopeBuilder extends Visitor<void> with VisitorVoidMixin {
   final int _line;
   final int _column;
 
-  Library _library;
-  Class _cls;
-  Member _member;
-  int _offset;
+  Library? _library;
+  Class? _cls;
+  Member? _member;
+  int _offset = -1;
 
-  DiagnosticMessageHandler onDiagnostic;
+  DiagnosticMessageHandler? onDiagnostic;
 
   final List<FunctionNode> _functions = [];
   final Map<String, DartType> _definitions = {};
@@ -101,7 +99,7 @@ class DartScopeBuilder extends Visitor<void> with VisitorVoidMixin {
 
   DartScopeBuilder._(this._component, this._line, this._column);
 
-  static DartScope findScope(Component component, Library library, int line,
+  static DartScope? findScope(Component component, Library library, int line,
       int column, DiagnosticMessageHandler onDiagnostic) {
     var builder = DartScopeBuilder._(component, line, column)
       ..onDiagnostic = onDiagnostic;
@@ -109,10 +107,10 @@ class DartScopeBuilder extends Visitor<void> with VisitorVoidMixin {
     return builder.build();
   }
 
-  DartScope build() {
-    if (_offset == null || _library == null) return null;
+  DartScope? build() {
+    if (_offset < 0 || _library == null) return null;
 
-    return DartScope(_library, _cls, _member, _definitions, _typeParameters);
+    return DartScope(_library!, _cls, _member, _definitions, _typeParameters);
   }
 
   @override
@@ -125,7 +123,7 @@ class DartScopeBuilder extends Visitor<void> with VisitorVoidMixin {
     _library = library;
     _offset = 0;
     if (_line > 0) {
-      _offset = _component.getOffset(_library.fileUri, _line, _column);
+      _offset = _component.getOffset(_library!.fileUri, _line, _column);
     }
 
     // Exit early if the evaluation offset is not found.
@@ -165,13 +163,17 @@ class DartScopeBuilder extends Visitor<void> with VisitorVoidMixin {
 
   @override
   void visitVariableDeclaration(VariableDeclaration decl) {
+    var name = decl.name;
     // Collect locals and formals appearing before current breakpoint.
     // Note that we include variables with no offset because the offset
     // is not set in many cases in generated code, so omitting them would
     // make expression evaluation fail in too many cases.
     // Issue: https://github.com/dart-lang/sdk/issues/43966
-    if (decl.fileOffset < 0 || decl.fileOffset < _offset) {
-      _definitions[decl.name] = decl.type;
+    //
+    // A null name signals that the variable was synthetically introduced by the
+    // compiler so they are skipped.
+    if ((decl.fileOffset < 0 || decl.fileOffset < _offset) && name != null) {
+      _definitions[name] = decl.type;
     }
     super.visitVariableDeclaration(decl);
   }
@@ -198,7 +200,7 @@ class DartScopeBuilder extends Visitor<void> with VisitorVoidMixin {
 /// that do not have .fileEndOffset field.
 ///
 /// For example - [Block]
-class FileEndOffsetCalculator extends Visitor<int> with VisitorNullMixin<int> {
+class FileEndOffsetCalculator extends Visitor<int?> with VisitorNullMixin<int> {
   static const int noOffset = -1;
 
   final int _startOffset;
@@ -231,7 +233,7 @@ class FileEndOffsetCalculator extends Visitor<int> with VisitorNullMixin<int> {
     for (var n = node.parent; n != null; n = n.parent) {
       var calculator = FileEndOffsetCalculator._(n, node.fileOffset);
       var offset = n.accept(calculator);
-      if (offset != noOffset) return offset;
+      if (offset != noOffset) return offset!;
     }
     return noOffset;
   }
@@ -286,7 +288,7 @@ class ExpressionCompiler {
     this._compiler,
     this._kernel2jsCompiler,
     this._component,
-  )   : onDiagnostic = _options.onDiagnostic,
+  )   : onDiagnostic = _options.onDiagnostic!,
         _context = _compiler.context;
 
   /// Compiles [expression] in [libraryUri] at [line]:[column] to JavaScript
@@ -303,7 +305,7 @@ class ExpressionCompiler {
   /// [jsFrameValues] is a map from js variable name to its primitive value
   /// or another variable name, for example
   /// { 'x': '1', 'y': 'y', 'o': 'null' }
-  Future<String> compileExpressionToJs(String libraryUri, int line, int column,
+  Future<String?> compileExpressionToJs(String libraryUri, int line, int column,
       Map<String, String> jsScope, String expression) async {
     try {
       // 1. find dart scope where debugger is paused
@@ -389,7 +391,7 @@ class ExpressionCompiler {
     }
   }
 
-  DartScope _findScopeAt(Uri libraryUri, int line, int column) {
+  DartScope? _findScopeAt(Uri libraryUri, int line, int column) {
     if (line < 0) {
       onDiagnostic(_createInternalError(
           libraryUri, line, column, 'Invalid source location'));
@@ -415,7 +417,7 @@ class ExpressionCompiler {
     return scope;
   }
 
-  Library _getLibrary(Uri libraryUri) {
+  Library? _getLibrary(Uri libraryUri) {
     return _compiler.lookupLibrary(libraryUri);
   }
 
@@ -423,7 +425,7 @@ class ExpressionCompiler {
   ///
   /// [scope] current dart scope information.
   /// [expression] expression to compile in given [scope].
-  Future<String> _compileExpression(DartScope scope, String expression) async {
+  Future<String?> _compileExpression(DartScope scope, String expression) async {
     var procedure = await _compiler.compileExpression(
         expression,
         scope.definitions,
@@ -443,7 +445,7 @@ class ExpressionCompiler {
 
     var imports = <js_ast.ModuleItem>[];
     var jsFun = _kernel2jsCompiler.emitFunctionIncremental(imports,
-        scope.library, scope.cls, procedure.function, debugProcedureName);
+        scope.library, scope.cls, procedure!.function, debugProcedureName);
 
     _log('Generated JavaScript for expression');
 

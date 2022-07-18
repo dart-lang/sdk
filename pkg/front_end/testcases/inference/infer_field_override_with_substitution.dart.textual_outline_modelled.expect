@@ -1,10 +1,9 @@
-// @dart = 2.9
 library test;
 
 abstract class A<T> {
-  List<T> get x;
-  List<T> z;
-  void set y(List<T> value);
+  List<T>? get x;
+  List<T>? z;
+  void set y(List<T>? value);
 }
 
 class B extends A<int> {

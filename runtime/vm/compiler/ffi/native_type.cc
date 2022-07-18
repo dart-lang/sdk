@@ -58,6 +58,11 @@ const NativeCompoundType& NativeType::AsCompound() const {
   return static_cast<const NativeCompoundType&>(*this);
 }
 
+const NativeStructType& NativeType::AsStruct() const {
+  ASSERT(IsStruct());
+  return static_cast<const NativeStructType&>(*this);
+}
+
 bool NativePrimitiveType::IsInt() const {
   switch (representation_) {
     case kInt8:
@@ -127,13 +132,10 @@ intptr_t NativePrimitiveType::AlignmentInBytesStack() const {
     case kAlignedToWordSize:
       // The default is to align stack arguments to word size.
       return compiler::target::kWordSize;
-    case kAlignedToWordSizeBut8AlignedTo8: {
-      // However, arm32 deviates slightly.
-      if (SizeInBytes() == 8) {
-        return 8;
-      }
-      return compiler::target::kWordSize;
-    }
+    case kAlignedToWordSizeAndValueSize:
+      // However, arm32+riscv32 align to the greater of word size or value size.
+      return Utils::Maximum(SizeInBytes(),
+                            static_cast<intptr_t>(compiler::target::kWordSize));
     case kAlignedToValueSize:
       // iOS on arm64 only aligns to size.
       return SizeInBytes();

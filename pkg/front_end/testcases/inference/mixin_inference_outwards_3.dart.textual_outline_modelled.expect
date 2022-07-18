@@ -1,10 +1,8 @@
-// @dart = 2.9
 class A extends Object with M0, M1<int> {}
 
 class I<X> {}
 
 class M0<T> extends Object implements I<T> {}
 
-class M1<T> extends I<T> {}
-
 main() {}
+mixin M1<T> on I<T> {}

@@ -13,7 +13,7 @@ import 'dart:isolate' show ReceivePort;
 import 'log.dart';
 
 Future<T?> withErrorHandling<T>(Future<T> f(), {Logger? logger}) async {
-  final ReceivePort port = new ReceivePort();
+  final ReceivePort port = ReceivePort();
   try {
     return await f();
   } catch (e, trace) {

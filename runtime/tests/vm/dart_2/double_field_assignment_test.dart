@@ -39,7 +39,7 @@ void testGetter() {
     a.val = 99.0;
   }
 
-  // Ensure value (aka valueAlias) was not overriden with 99.0
+  // Ensure value (aka valueAlias) was not overridden with 99.0
   Expect.equals(4.2, valueAlias);
 }
 
@@ -57,7 +57,7 @@ void testSetter() {
     a.val = 99.0;
   }
 
-  // Ensure value (aka valueAlias) was not overriden with 99.0
+  // Ensure value (aka valueAlias) was not overridden with 99.0
   Expect.equals(4.2, valueAlias);
 }
 

@@ -15,11 +15,7 @@ main() {
 
 @reflectiveTest
 class AwaitInWrongContextTest extends PubPackageResolutionTest {
-  @failingTest
   test_sync() async {
-    // This test requires better error recovery than we currently have. In
-    // particular, we need to be able to distinguish between an await expression
-    // in the wrong context, and the use of 'await' as an identifier.
     await assertErrorsInCode(r'''
 f(x) {
   return await x;
@@ -30,9 +26,6 @@ f(x) {
   }
 
   test_syncStar() async {
-    // This test requires better error recovery than we currently have. In
-    // particular, we need to be able to distinguish between an await expression
-    // in the wrong context, and the use of 'await' as an identifier.
     await assertErrorsInCode(r'''
 f(x) sync* {
   yield await x;

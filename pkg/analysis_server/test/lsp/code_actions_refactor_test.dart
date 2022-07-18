@@ -57,11 +57,44 @@ void f() {
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent);
   }
+
+  Future<void> test_setter_notAvailable() async {
+    const content = '''
+set ^a(String value) {}
+
+''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, refactorTitle);
+
+    expect(codeAction, isNull);
+  }
 }
 
 @reflectiveTest
 class ConvertMethodToGetterCodeActionsTest extends AbstractCodeActionsTest {
   final refactorTitle = 'Convert Method to Getter';
+
+  Future<void> test_constructor_notAvailable() async {
+    const content = '''
+class A {
+  ^A();
+}
+''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, refactorTitle);
+
+    expect(codeAction, isNull);
+  }
 
   Future<void> test_refactor() async {
     const content = '''
@@ -321,10 +354,27 @@ import 'dart:convert';
 ^
 void f() {}
     ''';
-    newFile(mainFilePath, content);
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString());
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
+    expect(codeAction, isNull);
+  }
+
+  Future<void> test_invalidLocation_importPrefix() async {
+    const content = '''
+import 'dart:io' as io;
+
+i^o.File a;
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
     expect(codeAction, isNull);
@@ -710,10 +760,11 @@ import 'dart:convert';
 ^
 void f() {}
     ''';
-    newFile(mainFilePath, content);
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString());
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractWidgetTitle);
     expect(codeAction, isNull);

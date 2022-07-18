@@ -23,32 +23,17 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:collection/collection.dart' show groupBy;
+import 'package:collection/collection.dart'
+    show IterableNullableExtension, groupBy;
 
-class CodeActionHandler extends MessageHandler<CodeActionParams,
-    List<Either2<Command, CodeAction>>> {
+class CodeActionHandler
+    extends MessageHandler<CodeActionParams, TextDocumentCodeActionResult> {
   // Because server+plugin results are different types and we lose
-  // priorites when converting them to CodeActions, store the priorities
+  // priorities when converting them to CodeActions, store the priorities
   // against each action in an expando. This avoids wrapping CodeActions in
   // another wrapper class (since we can't modify the LSP-spec-generated
   // CodeAction class).
   final codeActionPriorities = Expando<int>();
-
-  /// A comparator that can be used to sort [CodeActions]s using priorities
-  /// in [codeActionPriorities].
-  ///
-  /// The highest number priority will be sorted before lower number priorities.
-  /// Items with the same priority are sorted alphabetically by their title.
-  late final Comparator<CodeAction> _codeActionComparator =
-      (CodeAction a, CodeAction b) {
-    // We should never be sorting actions without priorities.
-    final aPriority = codeActionPriorities[a] ?? 0;
-    final bPriority = codeActionPriorities[b] ?? 0;
-    if (aPriority != bPriority) {
-      return bPriority - aPriority;
-    }
-    return a.title.compareTo(b.title);
-  };
 
   CodeActionHandler(super.server);
 
@@ -60,10 +45,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       CodeActionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<Either2<Command, CodeAction>>>> handle(
-      CodeActionParams params,
-      MessageInfo message,
-      CancellationToken token) async {
+  Future<ErrorOr<TextDocumentCodeActionResult>> handle(CodeActionParams params,
+      MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(const []);
     }
@@ -161,6 +144,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
               offset,
               length,
               unit,
+              params.context.triggerKind,
             ),
           );
         });
@@ -188,16 +172,31 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
   /// Wraps a command in a CodeAction if the client supports it so that a
   /// CodeActionKind can be supplied.
-  Either2<Command, CodeAction> _commandOrCodeAction(
+  Either2<CodeAction, Command> _commandOrCodeAction(
     bool supportsLiteralCodeActions,
     CodeActionKind kind,
     Command command,
   ) {
     return supportsLiteralCodeActions
-        ? Either2<Command, CodeAction>.t2(
+        ? Either2<CodeAction, Command>.t1(
             CodeAction(title: command.title, kind: kind, command: command),
           )
-        : Either2<Command, CodeAction>.t1(command);
+        : Either2<CodeAction, Command>.t2(command);
+  }
+
+  /// A function that can be used to sort [CodeActions]s using priorities
+  /// in [codeActionPriorities].
+  ///
+  /// The highest number priority will be sorted before lower number priorities.
+  /// Items with the same priority are sorted alphabetically by their title.
+  int _compareCodeActions(CodeAction a, CodeAction b) {
+    // We should never be sorting actions without priorities.
+    final aPriority = codeActionPriorities[a] ?? 0;
+    final bPriority = codeActionPriorities[b] ?? 0;
+    if (aPriority != bPriority) {
+      return bPriority - aPriority;
+    }
+    return a.title.compareTo(b.title);
   }
 
   /// Creates a CodeAction to apply this assist. Note: This code will fetch the
@@ -279,7 +278,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     }).toList();
   }
 
-  Future<List<Either2<Command, CodeAction>>> _getAssistActions(
+  Future<TextDocumentCodeActionResult> _getAssistActions(
     bool Function(CodeActionKind?) shouldIncludeKind,
     bool supportsLiteralCodeActions,
     String path,
@@ -318,11 +317,11 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       }));
 
       final dedupedCodeActions = _dedupeActions(codeActions, range.start);
-      dedupedCodeActions.sort(_codeActionComparator);
+      dedupedCodeActions.sort(_compareCodeActions);
 
       return dedupedCodeActions
           .where((action) => shouldIncludeKind(action.kind))
-          .map((action) => Either2<Command, CodeAction>.t2(action))
+          .map((action) => Either2<CodeAction, Command>.t1(action))
           .toList();
     } on InconsistentAnalysisException {
       // If an InconsistentAnalysisException occurs, it's likely the user modified
@@ -332,7 +331,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     }
   }
 
-  Future<ErrorOr<List<Either2<Command, CodeAction>>>> _getCodeActions(
+  Future<ErrorOr<TextDocumentCodeActionResult>> _getCodeActions(
     OperationPerformanceImpl performance,
     bool Function(CodeActionKind?) shouldIncludeKind,
     bool Function(CodeActionKind?) shouldIncludeAnyOfKind,
@@ -344,13 +343,16 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     int offset,
     int length,
     ResolvedUnitResult unit,
+    CodeActionTriggerKind? triggerKind,
   ) async {
+    final docIdentifier = server.getVersionedDocumentIdentifier(path);
+
     final results = await Future.wait([
       if (shouldIncludeAnyOfKind(CodeActionKind.Source))
         performance.runAsync(
           '_getSourceActions',
           (_) => _getSourceActions(shouldIncludeKind, supportsLiterals,
-              supportsWorkspaceApplyEdit, path),
+              supportsWorkspaceApplyEdit, path, triggerKind),
         ),
       // Assists go under the Refactor CodeActionKind so check that here.
       if (shouldIncludeAnyOfKind(CodeActionKind.Refactor))
@@ -362,8 +364,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       if (shouldIncludeAnyOfKind(CodeActionKind.Refactor))
         performance.runAsync(
           '_getRefactorActions',
-          (_) => _getRefactorActions(
-              shouldIncludeKind, supportsLiterals, path, offset, length, unit),
+          (_) => _getRefactorActions(shouldIncludeKind, supportsLiterals, path,
+              docIdentifier, offset, length, unit),
         ),
       if (shouldIncludeAnyOfKind(CodeActionKind.QuickFix))
         performance.runAsync(
@@ -372,12 +374,12 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
               offset, supportedDiagnosticTags, range, unit),
         ),
     ]);
-    final flatResults = results.expand((x) => x).toList();
+    final flatResults = results.whereNotNull().expand((x) => x).toList();
 
     return success(flatResults);
   }
 
-  Future<List<Either2<Command, CodeAction>>> _getFixActions(
+  Future<TextDocumentCodeActionResult> _getFixActions(
     bool Function(CodeActionKind?) shouldIncludeKind,
     bool supportsLiteralCodeActions,
     String path,
@@ -388,8 +390,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   ) async {
     final clientSupportsCodeDescription =
         server.clientCapabilities?.diagnosticCodeDescription ?? false;
-    // TODO(dantup): We may be missing fixes for pubspec, analysis_options,
-    //   android manifests (see _computeServerErrorFixes in EditDomainHandler).
+    // TODO(dantup): We may be missing fixes for pubspec and analysis_options
+    // (see _computeServerErrorFixes in EditDomainHandler).
     final lineInfo = unit.lineInfo;
     final codeActions = <CodeAction>[];
     final fixContributor = DartFixContributor();
@@ -447,11 +449,11 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       codeActions.addAll(pluginFixActions);
 
       final dedupedActions = _dedupeActions(codeActions, range.start);
-      dedupedActions.sort(_codeActionComparator);
+      dedupedActions.sort(_compareCodeActions);
 
       return dedupedActions
           .where((action) => shouldIncludeKind(action.kind))
-          .map((action) => Either2<Command, CodeAction>.t2(action))
+          .map((action) => Either2<CodeAction, Command>.t1(action))
           .toList();
     } on InconsistentAnalysisException {
       // If an InconsistentAnalysisException occurs, it's likely the user modified
@@ -516,10 +518,11 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     return pluginFixes;
   }
 
-  Future<List<Either2<Command, CodeAction>>> _getRefactorActions(
+  Future<TextDocumentCodeActionResult> _getRefactorActions(
     bool Function(CodeActionKind) shouldIncludeKind,
     bool supportsLiteralCodeActions,
     String path,
+    OptionalVersionedTextDocumentIdentifier docIdentifier,
     int offset,
     int length,
     ResolvedUnitResult unit,
@@ -532,7 +535,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
     /// Helper to create refactors that execute commands provided with
     /// the current file, location and document version.
-    Either2<Command, CodeAction> createRefactor(
+    Either2<CodeAction, Command> createRefactor(
       CodeActionKind actionKind,
       String name,
       RefactoringKind refactorKind, [
@@ -545,6 +548,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
             title: name,
             command: Commands.performRefactor,
             arguments: [
+              // TODO(dantup): Change this to a Map once Dart-Code is updated
+              //   to handle both Maps and Lists (and some reasonable time has
+              //   passed to not worry about old versions).
               refactorKind.toJson(),
               path,
               server.getVersionedDocumentIdentifier(path).version,
@@ -556,7 +562,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     }
 
     try {
-      final refactorActions = <Either2<Command, CodeAction>>[];
+      final refactorActions = <Either2<CodeAction, Command>>[];
 
       // Extracts
       if (shouldIncludeKind(CodeActionKind.RefactorExtract)) {
@@ -605,7 +611,10 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         final node = NodeLocator(offset).searchWithin(unit.unit);
         final element = server.getElementOfNode(node);
         // Getter to Method
-        if (element is PropertyAccessorElement) {
+        if (element is PropertyAccessorElement &&
+            ConvertGetterToMethodRefactoring(
+                    server.searchEngine, unit.session, element)
+                .isAvailable()) {
           refactorActions.add(createRefactor(
               CodeActionKind.RefactorRewrite,
               'Convert Getter to Method',
@@ -614,7 +623,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
         // Method to Getter
         if (element is ExecutableElement &&
-            element is! PropertyAccessorElement) {
+            ConvertMethodToGetterRefactoring(
+                    server.searchEngine, unit.session, element)
+                .isAvailable()) {
           refactorActions.add(createRefactor(
               CodeActionKind.RefactorRewrite,
               'Convert Method to Getter',
@@ -633,11 +644,12 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
   /// Gets "Source" CodeActions, which are actions that apply to whole files of
   /// source such as Sort Members and Organise Imports.
-  Future<List<Either2<Command, CodeAction>>> _getSourceActions(
+  Future<TextDocumentCodeActionResult> _getSourceActions(
     bool Function(CodeActionKind) shouldIncludeKind,
     bool supportsLiteralCodeActions,
     bool supportsApplyEdit,
     String path,
+    CodeActionTriggerKind? triggerKind,
   ) async {
     // The source actions supported are only valid for Dart files.
     var pathContext = server.resourceProvider.pathContext;
@@ -651,6 +663,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       return const [];
     }
 
+    final autoTriggered = triggerKind == CodeActionTriggerKind.Automatic;
+
     return [
       if (shouldIncludeKind(DartCodeActionKind.SortMembers))
         _commandOrCodeAction(
@@ -659,7 +673,12 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           Command(
               title: 'Sort Members',
               command: Commands.sortMembers,
-              arguments: [path]),
+              arguments: [
+                {
+                  'path': path,
+                  if (autoTriggered) 'autoTriggered': true,
+                }
+              ]),
         ),
       if (shouldIncludeKind(CodeActionKind.SourceOrganizeImports))
         _commandOrCodeAction(
@@ -668,14 +687,27 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           Command(
               title: 'Organize Imports',
               command: Commands.organizeImports,
-              arguments: [path]),
+              arguments: [
+                {
+                  'path': path,
+                  if (autoTriggered) 'autoTriggered': true,
+                }
+              ]),
         ),
       if (shouldIncludeKind(DartCodeActionKind.FixAll))
         _commandOrCodeAction(
           supportsLiteralCodeActions,
           DartCodeActionKind.FixAll,
           Command(
-              title: 'Fix All', command: Commands.fixAll, arguments: [path]),
+            title: 'Fix All',
+            command: Commands.fixAll,
+            arguments: [
+              {
+                'path': path,
+                if (autoTriggered) 'autoTriggered': true,
+              }
+            ],
+          ),
         ),
     ];
   }

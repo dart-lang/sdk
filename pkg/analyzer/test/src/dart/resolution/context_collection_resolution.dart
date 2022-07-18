@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
@@ -12,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -28,7 +30,9 @@ import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
 import '../../summary/macros_environment.dart';
+import '../analysis/analyzer_state_printer.dart';
 import 'context_collection_resolution_caching.dart';
+import 'node_text_expectations.dart';
 import 'resolution.dart';
 
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -120,7 +124,7 @@ abstract class ContextResolutionTest
     with ResourceProviderMixin, ResolutionTest {
   static bool _lintRulesAreRegistered = false;
 
-  ByteStore _byteStore = getContextResolutionTestByteStore();
+  MemoryByteStore _byteStore = getContextResolutionTestByteStore();
 
   Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
@@ -134,6 +138,8 @@ abstract class ContextResolutionTest
 
   /// Optional summaries to provide for the collection.
   List<File>? librarySummaryFiles;
+
+  final IdProvider _idProvider = IdProvider();
 
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
@@ -159,6 +165,32 @@ abstract class ContextResolutionTest
   void assertBazelWorkspaceFor(String path) {
     var workspace = contextFor(path).contextRoot.workspace;
     expect(workspace, TypeMatcher<BazelWorkspace>());
+  }
+
+  void assertDriverStateString(
+    File file,
+    String expected, {
+    bool omitSdkFiles = true,
+  }) {
+    final analysisDriver = driverFor(file.path);
+
+    final buffer = StringBuffer();
+    AnalyzerStatePrinter(
+      byteStore: _byteStore,
+      idProvider: _idProvider,
+      libraryContext: analysisDriver.libraryContext,
+      omitSdkFiles: omitSdkFiles,
+      resourceProvider: resourceProvider,
+      sink: buffer,
+      withKeysGetPut: false,
+    ).writeAnalysisDriver(analysisDriver.testView!);
+    final actual = buffer.toString();
+
+    if (actual != expected) {
+      print(actual);
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
   }
 
   void assertGnWorkspaceFor(String path) {
@@ -234,7 +266,11 @@ abstract class ContextResolutionTest
 
   /// Override this method to update [analysisOptions] for every context root,
   /// the default or already updated with `analysis_options.yaml` file.
-  void updateAnalysisOptions(AnalysisOptionsImpl analysisOptions) {}
+  void updateAnalysisOptions({
+    required AnalysisOptionsImpl analysisOptions,
+    required ContextRoot contextRoot,
+    required DartSdk sdk,
+  }) {}
 
   /// Call this method if the test needs to use the empty byte store, without
   /// any information cached.
@@ -267,7 +303,7 @@ abstract class ContextResolutionTest
       sdkPath: sdkRoot.path,
       sdkSummaryPath: sdkSummaryFile?.path,
       librarySummaryPaths: librarySummaryFiles?.map((e) => e.path).toList(),
-      updateAnalysisOptions: updateAnalysisOptions,
+      updateAnalysisOptions2: updateAnalysisOptions,
     );
 
     verifyCreatedCollection();

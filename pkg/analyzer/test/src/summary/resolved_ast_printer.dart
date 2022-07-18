@@ -376,6 +376,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
+        _writeElement('constructorElement', node.constructorElement);
         _writeElement('declaredElement', node.declaredElement);
       }
     });
@@ -830,6 +831,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('NamedExpression');
     _withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
     });
   }
 
@@ -877,7 +879,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNamedChildEntities(node);
       _writeElement('element', node.element);
       _writeRaw('uriContent', node.uriContent);
-      _writeElement('uriElement', node.uriElement);
+      _writePartUnitElement('uriElement', node.uriElement);
       _writeSource('uriSource', node.uriSource);
     });
   }
@@ -1328,6 +1330,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     return '${_referenceToString(parent)}::$name';
   }
 
+  String _stringOfSource(Source source) {
+    return '${source.uri}';
+  }
+
   String _substitutionMapStr(Map<TypeParameterElement, DartType> map) {
     var entriesStr = map.entries.map((entry) {
       return '${entry.key.name}: ${_typeStr(entry.value)}';
@@ -1344,6 +1350,34 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _indent = '$_indent  ';
     f();
     _indent = indent;
+  }
+
+  void _writeDirectiveUri(DirectiveUri uri) {
+    if (uri is DirectiveUriWithUnit) {
+      _writeln('DirectiveUriWithUnit');
+      _withIndent(() {
+        final uriStr = _stringOfSource(uri.unit.source);
+        _writelnWithIndent('uri: $uriStr');
+      });
+    } else if (uri is DirectiveUriWithSource) {
+      _writeln('DirectiveUriWithSource');
+      _withIndent(() {
+        final uriStr = _stringOfSource(uri.source);
+        _writelnWithIndent('source: $uriStr');
+      });
+    } else if (uri is DirectiveUriWithRelativeUri) {
+      _writeln('DirectiveUriWithRelativeUri');
+      _withIndent(() {
+        _writelnWithIndent('relativeUri: ${uri.relativeUri}');
+      });
+    } else if (uri is DirectiveUriWithRelativeUriString) {
+      _writeln('DirectiveUriWithRelativeUriString');
+      _withIndent(() {
+        _writelnWithIndent('relativeUriString: ${uri.relativeUriString}');
+      });
+    } else {
+      _writeln('DirectiveUri');
+    }
   }
 
   void _writeElement(String name, Element? element) {
@@ -1375,6 +1409,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       });
     } else if (element is MultiplyDefinedElement) {
       _sink.writeln('<null>');
+    } else if (element is PartElement) {
+      _writePartElement(element);
     } else {
       final referenceStr = _elementToReferenceString(element);
       _sink.writeln(referenceStr);
@@ -1461,8 +1497,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       if (parent is ArgumentList ||
           parent is AssignmentExpression && parent.rightHandSide == node ||
           parent is BinaryExpression && parent.rightOperand == node ||
-          parent is IndexExpression && parent.index == node ||
-          parent is NamedExpression && parent.expression == node) {
+          parent is IndexExpression && parent.index == node) {
         _writeElement('parameter', node.staticParameterElement);
       }
     }
@@ -1493,6 +1528,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writelnWithIndent('kind: required positional');
     } else {
       throw StateError('Unknown kind: $parameter');
+    }
+  }
+
+  void _writePartElement(PartElement element) {
+    _writeDirectiveUri(element.uri);
+  }
+
+  void _writePartUnitElement(String name, Element? element) {
+    if (_withResolution) {
+      _sink.write(_indent);
+      _sink.write('$name: ');
+      if (element is CompilationUnitElement) {
+        _sink.writeln('unitElement ${_stringOfSource(element.source)}');
+      } else {
+        _sink.writeln('notUnitElement');
+      }
     }
   }
 

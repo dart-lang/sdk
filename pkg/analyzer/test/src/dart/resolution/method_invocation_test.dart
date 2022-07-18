@@ -702,11 +702,11 @@ MethodInvocation
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          parameter: <null>
           staticInvokeType: C? Function()
           staticType: C?
           typeArgumentTypes
             C?
+        parameter: self::@function::foo::@parameter::c
       MethodInvocation
         methodName: SimpleIdentifier
           token: g2
@@ -735,27 +735,15 @@ MethodInvocation
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          parameter: <null>
           staticInvokeType: D? Function()
           staticType: D?
           typeArgumentTypes
             D?
+        parameter: self::@function::foo::@parameter::d
     rightParenthesis: )
   staticInvokeType: void Function(A, B, {C? c, D? d})
   staticType: void
 ''');
-
-    var g1 = findNode.methodInvocation('g1()');
-    assertParameterElement(g1, findElement.parameter('a'));
-
-    var g2 = findNode.methodInvocation('g2()');
-    assertParameterElement(g2, findElement.parameter('b'));
-
-    var named_g3 = findNode.namedExpression('c: g3()');
-    assertParameterElement(named_g3, findElement.parameter('c'));
-
-    var named_g4 = findNode.namedExpression('d: g4()');
-    assertParameterElement(named_g4, findElement.parameter('d'));
   }
 
   test_nullShorting_cascade_firstMethodInvocation() async {
@@ -7388,8 +7376,8 @@ MethodInvocation
           colon: :
         expression: BooleanLiteral
           literal: false
-          parameter: <null>
           staticType: bool
+        parameter: self::@function::foo::@parameter::b
       NamedExpression
         name: Label
           label: SimpleIdentifier
@@ -7399,8 +7387,8 @@ MethodInvocation
           colon: :
         expression: IntegerLiteral
           literal: 0
-          parameter: <null>
           staticType: int
+        parameter: self::@function::foo::@parameter::a
     rightParenthesis: )
   staticInvokeType: void Function({int? a, bool? b})
   staticType: void
@@ -7424,8 +7412,8 @@ MethodInvocation
           colon: :
         expression: BooleanLiteral
           literal: false
-          parameter: <null>
           staticType: bool*
+        parameter: self::@function::foo::@parameter::b
       NamedExpression
         name: Label
           label: SimpleIdentifier
@@ -7435,8 +7423,8 @@ MethodInvocation
           colon: :
         expression: IntegerLiteral
           literal: 0
-          parameter: <null>
           staticType: int*
+        parameter: self::@function::foo::@parameter::a
     rightParenthesis: )
   staticInvokeType: void Function({int* a, bool* b})*
   staticType: void

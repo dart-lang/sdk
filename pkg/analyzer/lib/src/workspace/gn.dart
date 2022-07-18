@@ -120,7 +120,7 @@ class GnWorkspace extends Workspace {
 
         var packageMap = <String, Package>{};
         for (var packagesFile in packagesFiles) {
-          var packages = parsePackagesFile(provider, packagesFile);
+          var packages = parsePackageConfigJsonFile(provider, packagesFile);
           for (var package in packages.packages) {
             packageMap[package.name] = package;
           }

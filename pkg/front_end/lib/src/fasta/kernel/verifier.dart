@@ -9,8 +9,6 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
 
-import 'package:kernel/transformations/flags.dart' show TransformerFlag;
-
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import 'package:kernel/verifier.dart'
@@ -170,7 +168,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     if (containingMember == null) {
       problem(node, 'Super call outside of any member');
     } else {
-      if (containingMember.transformerFlags & TransformerFlag.superCalls == 0) {
+      if (!containingMember.containsSuperCalls) {
         problem(
             node, 'Super call in a member lacking TransformerFlag.superCalls');
       }

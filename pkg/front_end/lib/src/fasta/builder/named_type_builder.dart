@@ -5,6 +5,7 @@
 library fasta.named_type_builder;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/unaliasing.dart';
 
@@ -28,6 +29,7 @@ import '../fasta_codes.dart'
         templateTypeArgumentsOnTypeVariable,
         templateTypeNotFound;
 import '../identifiers.dart' show Identifier, QualifiedName, flattenName;
+import '../kernel/implicit_field_type.dart';
 import '../problems.dart' show unhandled;
 import '../scope.dart';
 import '../source/source_library_builder.dart';
@@ -89,7 +91,7 @@ enum InstanceTypeVariableAccessState {
   Unexpected,
 }
 
-class NamedTypeBuilder extends TypeBuilder {
+abstract class NamedTypeBuilder extends TypeBuilder {
   @override
   final Object name;
 
@@ -108,59 +110,72 @@ class NamedTypeBuilder extends TypeBuilder {
 
   final InstanceTypeVariableAccessState _instanceTypeVariableAccess;
 
-  final bool _forTypeLiteral;
-
-  DartType? _type;
+  final bool _performTypeCanonicalization;
 
   final bool hasExplicitTypeArguments;
 
-  NamedTypeBuilder(this.name, this.nullabilityBuilder,
-      {this.arguments,
+  factory NamedTypeBuilder(Object name, NullabilityBuilder nullabilityBuilder,
+      {List<TypeBuilder>? arguments,
+      Uri? fileUri,
+      int? charOffset,
+      required InstanceTypeVariableAccessState instanceTypeVariableAccess,
+      bool performTypeCanonicalization: false}) {
+    bool isExplicit = true;
+    if (arguments != null) {
+      for (TypeBuilder argument in arguments) {
+        if (!argument.isExplicit) {
+          isExplicit = false;
+        }
+      }
+    }
+    return isExplicit
+        ? new _ExplicitNamedTypeBuilder(name, nullabilityBuilder,
+            arguments: arguments,
+            fileUri: fileUri,
+            charOffset: charOffset,
+            instanceTypeVariableAccess: instanceTypeVariableAccess,
+            performTypeCanonicalization: performTypeCanonicalization)
+        : new _InferredNamedTypeBuilder(name, nullabilityBuilder,
+            arguments: arguments,
+            fileUri: fileUri,
+            charOffset: charOffset,
+            instanceTypeVariableAccess: instanceTypeVariableAccess,
+            performTypeCanonicalization: performTypeCanonicalization);
+  }
+
+  NamedTypeBuilder._(
+      {required this.name,
+      required this.nullabilityBuilder,
+      this.arguments,
       this.fileUri,
       this.charOffset,
       required InstanceTypeVariableAccessState instanceTypeVariableAccess,
-      bool forTypeLiteral: false})
+      bool performTypeCanonicalization: false,
+      TypeDeclarationBuilder? declaration})
       : assert(name is String || name is QualifiedName),
         this._instanceTypeVariableAccess = instanceTypeVariableAccess,
-        this._forTypeLiteral = forTypeLiteral,
-        this.hasExplicitTypeArguments = arguments != null;
+        this._performTypeCanonicalization = performTypeCanonicalization,
+        this.hasExplicitTypeArguments = arguments != null,
+        this._declaration = declaration;
 
-  NamedTypeBuilder.forDartType(DartType this._type,
-      TypeDeclarationBuilder this._declaration, this.nullabilityBuilder,
-      {this.arguments})
-      : this.name = _declaration.name,
-        this._instanceTypeVariableAccess =
-            InstanceTypeVariableAccessState.Unexpected,
-        this.fileUri = null,
-        this.charOffset = null,
-        this._forTypeLiteral = false,
-        this.hasExplicitTypeArguments = arguments != null;
+  factory NamedTypeBuilder.forDartType(
+      DartType type,
+      TypeDeclarationBuilder _declaration,
+      NullabilityBuilder nullabilityBuilder,
+      {List<TypeBuilder>? arguments}) = _ExplicitNamedTypeBuilder.forDartType;
 
-  NamedTypeBuilder.fromTypeDeclarationBuilder(
-      TypeDeclarationBuilder this._declaration, this.nullabilityBuilder,
-      {this.arguments,
-      this.fileUri,
-      this.charOffset,
+  factory NamedTypeBuilder.fromTypeDeclarationBuilder(
+      TypeDeclarationBuilder declaration, NullabilityBuilder nullabilityBuilder,
+      {List<TypeBuilder>? arguments,
+      Uri? fileUri,
+      int? charOffset,
       required InstanceTypeVariableAccessState instanceTypeVariableAccess,
-      DartType? type})
-      : this.name = _declaration.name,
-        this._forTypeLiteral = false,
-        this._instanceTypeVariableAccess = instanceTypeVariableAccess,
-        this._type = type,
-        this.hasExplicitTypeArguments = arguments != null;
+      DartType? type}) = _ExplicitNamedTypeBuilder.fromTypeDeclarationBuilder;
 
-  NamedTypeBuilder.forInvalidType(
-      String this.name, this.nullabilityBuilder, LocatedMessage message,
-      {List<LocatedMessage>? context})
-      : _declaration =
-            new InvalidTypeDeclarationBuilder(name, message, context: context),
-        this.fileUri = message.uri,
-        this.charOffset = message.charOffset,
-        this._instanceTypeVariableAccess =
-            InstanceTypeVariableAccessState.Unexpected,
-        this._forTypeLiteral = false,
-        this._type = const InvalidType(),
-        this.hasExplicitTypeArguments = false;
+  factory NamedTypeBuilder.forInvalidType(String name,
+          NullabilityBuilder nullabilityBuilder, LocatedMessage message,
+          {List<LocatedMessage>? context}) =
+      _ExplicitNamedTypeBuilder.forInvalidType;
 
   @override
   TypeDeclarationBuilder? get declaration => _declaration;
@@ -381,27 +396,32 @@ class NamedTypeBuilder extends TypeBuilder {
     return null;
   }
 
-  @override
-  DartType build(LibraryBuilder library, TypeUse typeUse) {
-    return _type ??= _buildInternal(library, typeUse);
-  }
-
-  DartType _buildInternal(LibraryBuilder library, TypeUse typeUse) {
-    DartType aliasedType = _buildAliasedInternal(library, typeUse);
+  DartType _buildInternal(
+      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
+    DartType aliasedType = _buildAliasedInternal(library, typeUse, hierarchy);
     return unalias(aliasedType,
         legacyEraseAliases:
-            !_forTypeLiteral && !library.isNonNullableByDefault);
+            !_performTypeCanonicalization && !library.isNonNullableByDefault);
   }
 
   @override
-  DartType buildAliased(LibraryBuilder library, TypeUse typeUse) {
-    return _buildAliasedInternal(library, typeUse);
+  DartType buildAliased(
+      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
+    assert(hierarchy != null || isExplicit, "Cannot build $this.");
+    return _buildAliasedInternal(library, typeUse, hierarchy);
   }
 
-  DartType _buildAliasedInternal(LibraryBuilder library, TypeUse typeUse) {
+  DartType _buildAliasedInternal(
+      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
     assert(declaration != null, "Declaration has not been resolved on $this.");
-    return declaration!.buildAliasedType(library, nullabilityBuilder, arguments,
-        typeUse, fileUri ?? missingUri, charOffset ?? TreeNode.noOffset,
+    return declaration!.buildAliasedType(
+        library,
+        nullabilityBuilder,
+        arguments,
+        typeUse,
+        fileUri ?? missingUri,
+        charOffset ?? TreeNode.noOffset,
+        hierarchy,
         hasExplicitTypeArguments: hasExplicitTypeArguments);
   }
 
@@ -595,6 +615,126 @@ class NamedTypeBuilder extends TypeBuilder {
           fileUri: fileUri,
           charOffset: charOffset,
           instanceTypeVariableAccess: _instanceTypeVariableAccess);
+    }
+  }
+}
+
+/// A named type that is defined without the need for type inference.
+///
+/// This is the normal function type whose type arguments are either explicit or
+/// omitted.
+class _ExplicitNamedTypeBuilder extends NamedTypeBuilder {
+  DartType? _type;
+
+  _ExplicitNamedTypeBuilder(Object name, NullabilityBuilder nullabilityBuilder,
+      {List<TypeBuilder>? arguments,
+      Uri? fileUri,
+      int? charOffset,
+      required InstanceTypeVariableAccessState instanceTypeVariableAccess,
+      bool performTypeCanonicalization: false})
+      : super._(
+            name: name,
+            nullabilityBuilder: nullabilityBuilder,
+            arguments: arguments,
+            fileUri: fileUri,
+            charOffset: charOffset,
+            instanceTypeVariableAccess: instanceTypeVariableAccess,
+            performTypeCanonicalization: performTypeCanonicalization);
+
+  _ExplicitNamedTypeBuilder.forDartType(DartType type,
+      TypeDeclarationBuilder declaration, NullabilityBuilder nullabilityBuilder,
+      {List<TypeBuilder>? arguments})
+      : _type = type,
+        super._(
+            declaration: declaration,
+            name: declaration.name,
+            nullabilityBuilder: nullabilityBuilder,
+            arguments: arguments,
+            instanceTypeVariableAccess:
+                InstanceTypeVariableAccessState.Unexpected,
+            fileUri: null,
+            charOffset: null,
+            performTypeCanonicalization: false);
+
+  _ExplicitNamedTypeBuilder.fromTypeDeclarationBuilder(
+      TypeDeclarationBuilder declaration, NullabilityBuilder nullabilityBuilder,
+      {List<TypeBuilder>? arguments,
+      Uri? fileUri,
+      int? charOffset,
+      required InstanceTypeVariableAccessState instanceTypeVariableAccess,
+      DartType? type})
+      : this._type = type,
+        super._(
+            name: declaration.name,
+            declaration: declaration,
+            nullabilityBuilder: nullabilityBuilder,
+            arguments: arguments,
+            fileUri: fileUri,
+            charOffset: charOffset,
+            performTypeCanonicalization: false,
+            instanceTypeVariableAccess: instanceTypeVariableAccess);
+
+  _ExplicitNamedTypeBuilder.forInvalidType(String name,
+      NullabilityBuilder nullabilityBuilder, LocatedMessage message,
+      {List<LocatedMessage>? context})
+      : _type = const InvalidType(),
+        super._(
+            name: name,
+            nullabilityBuilder: nullabilityBuilder,
+            declaration: new InvalidTypeDeclarationBuilder(name, message,
+                context: context),
+            fileUri: message.uri,
+            charOffset: message.charOffset,
+            instanceTypeVariableAccess:
+                InstanceTypeVariableAccessState.Unexpected,
+            performTypeCanonicalization: false);
+
+  @override
+  bool get isExplicit => true;
+
+  @override
+  DartType build(LibraryBuilder library, TypeUse typeUse,
+      {ClassHierarchyBase? hierarchy}) {
+    return _type ??= _buildInternal(library, typeUse, hierarchy);
+  }
+}
+
+/// A named type that needs type inference to be fully defined.
+///
+/// This occurs through macros where type arguments can be defined in terms of
+/// inferred types, making this type indirectly depend on type inference.
+class _InferredNamedTypeBuilder extends NamedTypeBuilder
+    with InferableTypeBuilderMixin {
+  _InferredNamedTypeBuilder(Object name, NullabilityBuilder nullabilityBuilder,
+      {List<TypeBuilder>? arguments,
+      Uri? fileUri,
+      int? charOffset,
+      required InstanceTypeVariableAccessState instanceTypeVariableAccess,
+      bool performTypeCanonicalization: false})
+      : super._(
+            name: name,
+            nullabilityBuilder: nullabilityBuilder,
+            arguments: arguments,
+            fileUri: fileUri,
+            charOffset: charOffset,
+            instanceTypeVariableAccess: instanceTypeVariableAccess,
+            performTypeCanonicalization: performTypeCanonicalization);
+
+  @override
+  bool get isExplicit => false;
+
+  @override
+  DartType build(LibraryBuilder library, TypeUse typeUse,
+      {ClassHierarchyBase? hierarchy}) {
+    if (hasType) {
+      return type;
+    } else if (hierarchy != null) {
+      return registerType(_buildInternal(library, typeUse, hierarchy));
+    } else {
+      InferableTypeUse inferableTypeUse =
+          new InferableTypeUse(library as SourceLibraryBuilder, this, typeUse);
+      library.registerInferableType(inferableTypeUse);
+      return new InferredType.fromInferableTypeUse(inferableTypeUse);
     }
   }
 }

@@ -382,9 +382,8 @@ CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE:
     would be more likely that the user needed to restructure the mixin so that
     part of it could be included here.
 CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER:
-  status: needsFix
+  status: hasFix
   since: 2.17
-  issue: https://github.com/dart-lang/sdk/issues/48478
 CompileTimeErrorCode.ENUM_WITH_NAME_VALUES:
   status: noFix
   since: 2.17
@@ -921,9 +920,7 @@ CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
   status: needsFix
   since: 2.17
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED:
-  status: needsFix
-  since: 2.17
-  issue: https://github.com/dart-lang/sdk/issues/48480
+  status: hasFix
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL:
   status: needsFix
   issue: https://github.com/dart-lang/sdk/issues/48359
@@ -1193,8 +1190,6 @@ FfiCode.PACKED_ANNOTATION:
   status: needsEvaluation
 FfiCode.PACKED_ANNOTATION_ALIGNMENT:
   status: needsEvaluation
-FfiCode.PACKED_NESTING_NON_PACKED:
-  status: needsEvaluation
 FfiCode.SIZE_ANNOTATION_DIMENSIONS:
   status: needsEvaluation
 FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS:
@@ -1227,14 +1222,12 @@ HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH:
   status: hasFix
 HintCode.DEAD_CODE_ON_CATCH_SUBTYPE:
   status: hasFix
+HintCode.DEPRECATED_EXPORT_USE:
+  status: needsEvaluation
 HintCode.DEPRECATED_EXTENDS_FUNCTION:
   status: needsFix
   notes: |-
     The fix is to remove `Function` from where it's referenced.
-HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION:
-  status: noFix
-  notes: |-
-    The fix is to rename the class, which can't be done as a fix.
 HintCode.DEPRECATED_IMPLEMENTS_FUNCTION:
   status: needsFix
   notes: |-
@@ -1458,7 +1451,7 @@ HintCode.UNIGNORABLE_IGNORE:
 HintCode.UNNECESSARY_CAST:
   status: hasFix
 HintCode.UNNECESSARY_FINAL:
-  status: needsEvaluation
+  status: hasFix
 HintCode.UNNECESSARY_IGNORE:
   status: needsEvaluation
 HintCode.UNNECESSARY_IMPORT:
@@ -1490,7 +1483,7 @@ HintCode.UNUSED_CATCH_STACK:
 HintCode.UNUSED_ELEMENT:
   status: hasFix
 HintCode.UNUSED_ELEMENT_PARAMETER:
-  status: needsEvaluation
+  status: hasFix
 HintCode.UNUSED_FIELD:
   status: hasFix
 HintCode.UNUSED_IMPORT:
@@ -1588,7 +1581,7 @@ LintCode.avoid_redundant_argument_values:
 LintCode.avoid_relative_lib_imports:
   status: hasFix
 LintCode.avoid_renaming_method_parameters:
-  status: needsEvaluation
+  status: hasFix
 LintCode.avoid_return_types_on_setters:
   status: hasFix
 LintCode.avoid_returning_null:
@@ -1652,6 +1645,8 @@ LintCode.deprecated_consistency:
 LintCode.diagnostic_describe_all_properties:
   status: hasFix
 LintCode.directives_ordering:
+  status: hasFix
+LintCode.discarded_futures:
   status: hasFix
 LintCode.do_not_use_environment:
   status: needsEvaluation

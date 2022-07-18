@@ -51,6 +51,31 @@ class ObjectDataSource implements DataSource {
   int readInt() => _read();
 
   @override
+  E readAtOffset<E>(int offset, E reader()) {
+    final indexBefore = _index;
+    _index = offset;
+    final value = reader();
+    _index = indexBefore;
+    return value;
+  }
+
+  @override
+  int readDeferred() {
+    final dataOffset = _index;
+    _index += readInt();
+    return dataOffset;
+  }
+
+  @override
+  E readDeferredAsEager<E>(E reader()) {
+    readInt(); // Read and throw away the length.
+    return reader();
+  }
+
+  @override
+  int get length => _data.length;
+
+  @override
   String get errorContext {
     StringBuffer sb = StringBuffer();
     for (int i = _index - 50; i < _index + 10; i++) {

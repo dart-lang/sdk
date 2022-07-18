@@ -23,9 +23,9 @@ final JsonEncoder encoder = const JsonEncoder();
 final JsonEncoder indentedEncoder = const JsonEncoder.withIndent('  ');
 
 String jsonEncode(Map object, {bool indent = true}) {
-  var jsonEncoder = indent ? indentedEncoder : encoder;
+  final jsonEncoder = indent ? indentedEncoder : encoder;
   // Filter block comments since they interfere with ID test comments.
-  var json =
+  final json =
       jsonEncoder.convert(object).replaceAll('/*', '').replaceAll('*/', '');
   return json;
 }
@@ -73,8 +73,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
   void computeLibraryData(Compiler compiler, LibraryEntity library,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose}) {
-    final converter = info.AllInfoToJsonConverter(
-        isBackwardCompatible: true, filterTreeshaken: false);
+    final converter = info.AllInfoToJsonConverter(isBackwardCompatible: true);
     DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
 
     final features = Features();
@@ -85,7 +84,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
         Tags.library, jsonEncode(libraryInfo.accept(converter)));
 
     // Store program-wide information on the main library.
-    var name = '${library.canonicalUri.pathSegments.last}';
+    final name = '${library.canonicalUri.pathSegments.last}';
     if (name.startsWith('main')) {
       for (final constantInfo in dumpInfoState.info.constants) {
         features.addElement(
@@ -115,8 +114,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
   void computeClassData(Compiler compiler, ClassEntity cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
-    final converter = info.AllInfoToJsonConverter(
-        isBackwardCompatible: true, filterTreeshaken: false);
+    final converter = info.AllInfoToJsonConverter(isBackwardCompatible: true);
     DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
 
     final features = Features();
@@ -148,8 +146,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
-    final converter = info.AllInfoToJsonConverter(
-        isBackwardCompatible: true, filterTreeshaken: false);
+    final converter = info.AllInfoToJsonConverter(isBackwardCompatible: true);
     DumpInfoStateData dumpInfoState = compiler.dumpInfoStateForTesting;
 
     final features = Features();
@@ -163,9 +160,11 @@ class DumpInfoDataComputer extends DataComputer<Features> {
         features.addElement(Tags.holding,
             jsonEncode(converter.visitDependencyInfo(use), indent: false));
       }
-      for (var closure in functionInfo.closures) {
+      for (final closure in functionInfo.closures) {
         features.addElement(
             Tags.closure, jsonEncode(closure.accept(converter)));
+        features.addElement(
+            Tags.function, jsonEncode(closure.function.accept(converter)));
       }
     }
 
@@ -176,9 +175,11 @@ class DumpInfoDataComputer extends DataComputer<Features> {
         features.addElement(Tags.holding,
             jsonEncode(converter.visitDependencyInfo(use), indent: false));
       }
-      for (var closure in functionInfo.closures) {
+      for (final closure in functionInfo.closures) {
         features.addElement(
             Tags.closure, jsonEncode(closure.accept(converter)));
+        features.addElement(
+            Tags.function, jsonEncode(closure.function.accept(converter)));
       }
     }
 

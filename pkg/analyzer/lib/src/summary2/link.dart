@@ -10,9 +10,9 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/detach_nodes.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
@@ -27,26 +27,10 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/summary2/variance_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
-/// Note that AST units and tokens of [inputLibraries] will be damaged.
-@Deprecated('Use link2() instead')
-Future<LinkResult> link(
-  LinkedElementFactory elementFactory,
-  List<LinkInputLibrary> inputLibraries, {
-  macro.MultiMacroExecutor? macroExecutor,
-  OperationPerformanceImpl? performance,
-}) async {
-  return await link2(
-    elementFactory: elementFactory,
-    inputLibraries: inputLibraries,
-    performance: OperationPerformanceImpl('<root>'),
-  );
-}
-
-/// Note that AST units and tokens of [inputLibraries] will be damaged.
-Future<LinkResult> link2({
+Future<LinkResult> link({
   required LinkedElementFactory elementFactory,
   required OperationPerformanceImpl performance,
-  required List<LinkInputLibrary> inputLibraries,
+  required List<LibraryFileStateKind> inputLibraries,
   macro.MultiMacroExecutor? macroExecutor,
 }) async {
   final linker = Linker(elementFactory, macroExecutor);
@@ -101,7 +85,7 @@ class Linker {
 
   Future<void> link({
     required OperationPerformanceImpl performance,
-    required List<LinkInputLibrary> inputLibraries,
+    required List<LibraryFileStateKind> inputLibraries,
   }) async {
     for (var inputLibrary in inputLibraries) {
       LibraryBuilder.build(this, inputLibrary);
@@ -185,28 +169,28 @@ class Linker {
       library.buildInitialExportScope();
     }
 
-    var exporters = <LibraryBuilder>{};
-    var exportees = <LibraryBuilder>{};
+    var exportingBuilders = <LibraryBuilder>{};
+    var exportedBuilders = <LibraryBuilder>{};
 
     for (var library in builders.values) {
       library.addExporters();
     }
 
     for (var library in builders.values) {
-      if (library.exporters.isNotEmpty) {
-        exportees.add(library);
-        for (var exporter in library.exporters) {
-          exporters.add(exporter.exporter);
+      if (library.exports.isNotEmpty) {
+        exportedBuilders.add(library);
+        for (var export in library.exports) {
+          exportingBuilders.add(export.exporter);
         }
       }
     }
 
     var both = <LibraryBuilder>{};
-    for (var exported in exportees) {
-      if (exporters.contains(exported)) {
+    for (var exported in exportedBuilders) {
+      if (exportingBuilders.contains(exported)) {
         both.add(exported);
       }
-      for (var export in exported.exporters) {
+      for (var export in exported.exports) {
         exported.exportScope.forEach(export.addToExportScope);
       }
     }
@@ -214,9 +198,9 @@ class Linker {
     while (true) {
       var hasChanges = false;
       for (var exported in both) {
-        for (var export in exported.exporters) {
-          exported.exportScope.forEach((name, member) {
-            if (export.addToExportScope(name, member)) {
+        for (var export in exported.exports) {
+          exported.exportScope.forEach((name, reference) {
+            if (export.addToExportScope(name, reference)) {
               hasChanges = true;
             }
           });
@@ -231,9 +215,10 @@ class Linker {
   }
 
   void _createTypeSystem() {
-    var coreLib = elementFactory.libraryOfUri2('dart:core');
-    var asyncLib = elementFactory.libraryOfUri2('dart:async');
-    elementFactory.createTypeProviders(coreLib, asyncLib);
+    elementFactory.createTypeProviders(
+      elementFactory.dartCoreElement,
+      elementFactory.dartAsyncElement,
+    );
 
     inheritance = InheritanceManager3();
   }
@@ -308,42 +293,6 @@ class Linker {
     var writeWriterResult = bundleWriter.finish();
     resolutionBytes = writeWriterResult.resolutionBytes;
   }
-}
-
-class LinkInputLibrary {
-  final Source source;
-  final List<LinkInputUnit> units;
-
-  LinkInputLibrary({
-    required this.source,
-    required this.units,
-  });
-
-  Uri get uri => source.uri;
-
-  String get uriStr => '$uri';
-}
-
-class LinkInputUnit {
-  final int? partDirectiveIndex;
-  final String? partUriStr;
-  final Source source;
-  final String? sourceContent;
-  final bool isSynthetic;
-  final ast.CompilationUnit unit;
-
-  LinkInputUnit({
-    required this.partDirectiveIndex,
-    this.partUriStr,
-    required this.source,
-    this.sourceContent,
-    required this.isSynthetic,
-    required this.unit,
-  });
-
-  Uri get uri => source.uri;
-
-  String get uriStr => '$uri';
 }
 
 class LinkMacroGeneratedUnit {

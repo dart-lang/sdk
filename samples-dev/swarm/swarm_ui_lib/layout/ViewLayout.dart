@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of layout;
 
 /** The interface that the layout algorithms use to talk to the view. */
@@ -30,9 +28,9 @@ abstract class Positionable {
 class LayoutParams {
   // TODO(jmesserly): should be const, but there's a bug in DartC preventing us
   // from calling "window." in an initializer. See b/5332777
-  CssStyleDeclaration style;
+  CssStyleDeclaration? style;
 
-  int get layer => 0;
+  int? get layer => 0;
 
   LayoutParams(Element node) {
     style = node.getComputedStyle();
@@ -73,9 +71,9 @@ class ViewLayout {
    * The layout parameters associated with this view and used by the parent
    * to determine how this view should be laid out.
    */
-  LayoutParams layoutParams;
-  int _offsetWidth;
-  int _offsetHeight;
+  LayoutParams? layoutParams;
+  int? _offsetWidth;
+  int? _offsetHeight;
 
   /** The view that this layout belongs to. */
   final Positionable view;
@@ -85,7 +83,7 @@ class ViewLayout {
    * properties in the first pass while computing positions. Then we have a
    * second pass that actually moves everything.
    */
-  int _measuredLeft, _measuredTop, _measuredWidth, _measuredHeight;
+  int? _measuredLeft, _measuredTop, _measuredWidth, _measuredHeight;
 
   ViewLayout(this.view);
 
@@ -96,9 +94,9 @@ class ViewLayout {
   // registered with a LayoutProvider.
   factory ViewLayout.fromView(Positionable view) {
     if (hasCustomLayout(view)) {
-      return new GridLayout(view);
+      return GridLayout(view);
     } else {
-      return new ViewLayout(view);
+      return ViewLayout(view);
     }
   }
 
@@ -106,36 +104,36 @@ class ViewLayout {
     return view.customStyle['display'] == "-dart-grid";
   }
 
-  CssStyleDeclaration get _style => layoutParams.style;
+  CssStyleDeclaration? get _style => layoutParams!.style;
 
   void cacheExistingBrowserLayout() {
-    _offsetWidth = view.node.offset.width;
-    _offsetHeight = view.node.offset.height;
+    _offsetWidth = view.node.offset.width as int?;
+    _offsetHeight = view.node.offset.height as int?;
   }
 
-  int get currentWidth {
+  int? get currentWidth {
     return _offsetWidth;
   }
 
-  int get currentHeight {
+  int? get currentHeight {
     return _offsetHeight;
   }
 
-  int get borderLeftWidth => _toPixels(_style.borderLeftWidth);
-  int get borderTopWidth => _toPixels(_style.borderTopWidth);
-  int get borderRightWidth => _toPixels(_style.borderRightWidth);
-  int get borderBottomWidth => _toPixels(_style.borderBottomWidth);
+  int get borderLeftWidth => _toPixels(_style!.borderLeftWidth);
+  int get borderTopWidth => _toPixels(_style!.borderTopWidth);
+  int get borderRightWidth => _toPixels(_style!.borderRightWidth);
+  int get borderBottomWidth => _toPixels(_style!.borderBottomWidth);
   int get borderWidth => borderLeftWidth + borderRightWidth;
   int get borderHeight => borderTopWidth + borderBottomWidth;
 
   /** Implements the custom layout computation. */
-  void measureLayout(Future<Size> size, Completer<bool> changed) {}
+  void measureLayout(Future<Size> size, Completer<bool>? changed) {}
 
   /**
    * Positions the view within its parent container.
    * Also performs a layout of its children.
    */
-  void setBounds(int left, int top, int width, int height) {
+  void setBounds(int? left, int? top, int width, int height) {
     assert(width >= 0 && height >= 0);
 
     _measuredLeft = left;
@@ -144,8 +142,8 @@ class ViewLayout {
     // Note: we need to save the client height
     _measuredWidth = width - borderWidth;
     _measuredHeight = height - borderHeight;
-    final completer = new Completer<Size>();
-    completer.complete(new Size(_measuredWidth, _measuredHeight));
+    final completer = Completer<Size>();
+    completer.complete(Size(_measuredWidth!, _measuredHeight!));
     measureLayout(completer.future, null);
   }
 
@@ -159,7 +157,7 @@ class ViewLayout {
       style.top = '${_measuredTop}px';
       style.width = '${_measuredWidth}px';
       style.height = '${_measuredHeight}px';
-      style.zIndex = '${layoutParams.layer}';
+      style.zIndex = '${layoutParams!.layer}';
 
       _measuredLeft = null;
       _measuredTop = null;
@@ -181,8 +179,8 @@ class ViewLayout {
     }
   }
 
-  int measureContent(ViewLayout parent, Dimension dimension,
-      [ContentSizeMode mode = null]) {
+  int? measureContent(ViewLayout parent, Dimension? dimension,
+      [ContentSizeMode? mode = null]) {
     if (dimension == Dimension.WIDTH) {
       return measureWidth(parent, mode);
     } else if (dimension == Dimension.HEIGHT) {
@@ -190,23 +188,23 @@ class ViewLayout {
     }
   }
 
-  int measureWidth(ViewLayout parent, ContentSizeMode mode) {
-    final style = layoutParams.style;
+  int? measureWidth(ViewLayout parent, ContentSizeMode? mode) {
+    final style = layoutParams!.style;
     if (mode == ContentSizeMode.MIN) {
-      return _styleToPixels(style.minWidth, currentWidth, parent.currentWidth);
+      return _styleToPixels(style!.minWidth, currentWidth, parent.currentWidth);
     } else if (mode == ContentSizeMode.MAX) {
-      return _styleToPixels(style.maxWidth, currentWidth, parent.currentWidth);
+      return _styleToPixels(style!.maxWidth, currentWidth, parent.currentWidth);
     }
   }
 
-  int measureHeight(ViewLayout parent, ContentSizeMode mode) {
-    final style = layoutParams.style;
+  int? measureHeight(ViewLayout parent, ContentSizeMode? mode) {
+    final style = layoutParams!.style;
     if (mode == ContentSizeMode.MIN) {
       return _styleToPixels(
-          style.minHeight, currentHeight, parent.currentHeight);
+          style!.minHeight, currentHeight, parent.currentHeight);
     } else if (mode == ContentSizeMode.MAX) {
       return _styleToPixels(
-          style.maxHeight, currentHeight, parent.currentHeight);
+          style!.maxHeight, currentHeight, parent.currentHeight);
     }
   }
 
@@ -215,19 +213,18 @@ class ViewLayout {
       return int.parse(style.substring(0, style.length - 2));
     } else {
       // TODO(jmesserly): other size units
-      throw new UnsupportedError(
-          'Unknown min/max content size format: "$style"');
+      throw UnsupportedError('Unknown min/max content size format: "$style"');
     }
   }
 
-  static int _styleToPixels(String style, num size, num parentSize) {
+  static int? _styleToPixels(String style, num? size, num? parentSize) {
     if (style == 'none') {
       // For an unset max-content size, use the actual size
-      return size;
+      return size as int?;
     }
     if (style.endsWith('%')) {
       num percent = double.parse(style.substring(0, style.length - 1));
-      return ((percent / 100) * parentSize).toInt();
+      return ((percent / 100) * parentSize!).toInt();
     }
     return _toPixels(style);
   }

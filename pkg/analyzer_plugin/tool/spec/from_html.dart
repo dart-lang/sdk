@@ -5,9 +5,8 @@
 /// Code for reading an HTML API description.
 import 'dart:io';
 
-import 'package:analyzer_utilities/html.dart';
-import 'package:html/dom.dart' as dom;
-import 'package:html/parser.dart' as parser;
+import 'package:analyzer_utilities/html_dom.dart' as dom;
+import 'package:analyzer_utilities/html_generator.dart';
 import 'package:path/path.dart';
 
 import 'api.dart';
@@ -112,24 +111,24 @@ class ApiReader {
       if (!requiredAttributes.contains(name) &&
           !optionalAttributes.contains(name)) {
         throw Exception(
-            '$context: Unexpected attribute in ${element.localName}: $name');
+            '$context: Unexpected attribute in ${element.name}: $name');
       }
-      attributesFound.add(name as String);
+      attributesFound.add(name);
     });
     for (var expectedAttribute in requiredAttributes) {
       if (!attributesFound.contains(expectedAttribute)) {
         throw Exception(
-            '$context: ${element.localName} must contain attribute $expectedAttribute');
+            '$context: ${element.name} must contain attribute $expectedAttribute');
       }
     }
   }
 
   /// Check that the given [element] has the given [expectedName].
   void checkName(dom.Element element, String expectedName, [String? context]) {
-    if (element.localName != expectedName) {
-      context ??= element.localName;
+    if (element.name != expectedName) {
+      context ??= element.name;
       throw Exception(
-          '$context: Expected $expectedName, found ${element.localName}');
+          '$context: Expected $expectedName, found ${element.name}');
     }
   }
 
@@ -165,13 +164,12 @@ class ApiReader {
   dom.Element getAncestor(dom.Element html, String name, String context) {
     var ancestor = html.parent;
     while (ancestor != null) {
-      if (ancestor.localName == name) {
+      if (ancestor.name == name) {
         return ancestor;
       }
       ancestor = ancestor.parent;
     }
-    throw Exception(
-        '$context: <${html.localName}> must be nested within <$name>');
+    throw Exception('$context: <${html.name}> must be nested within <$name>');
   }
 
   /// Create a [Notification] object from an HTML representation such as:
@@ -292,10 +290,11 @@ class ApiReader {
 
   /// Read the API description from file with the given [filePath].
   Api readApi() {
-    var htmlContents = File(filePath).readAsStringSync();
-    var document = parser.parse(htmlContents);
+    var file = File(filePath);
+    var htmlContents = file.readAsStringSync();
+    var document = dom.parse(htmlContents, file.uri);
     var htmlElement = document.children
-        .singleWhere((element) => element.localName?.toLowerCase() == 'html');
+        .singleWhere((element) => element.name.toLowerCase() == 'html');
     return apiFromHtml(htmlElement);
   }
 
@@ -308,10 +307,10 @@ class ApiReader {
     }
     for (var node in parent.nodes) {
       if (node is dom.Element) {
-        if (elementProcessors.containsKey(node.localName)) {
-          elementProcessors[node.localName]!(node);
-        } else if (specialElements.contains(node.localName)) {
-          throw Exception('$context: Unexpected use of <${node.localName}>');
+        if (elementProcessors.containsKey(node.name)) {
+          elementProcessors[node.name]!(node);
+        } else if (specialElements.contains(node.name)) {
+          throw Exception('$context: Unexpected use of <${node.name}>');
         } else {
           recurse(node, context, elementProcessors);
         }

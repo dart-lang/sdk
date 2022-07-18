@@ -60,8 +60,10 @@ class _CloneMixinMethodsWithSuper {
         ensureExistingProcedureMaps();
         Procedure? existingGetter = existingNonSetters[field.name];
         Procedure? existingSetter = existingSetters[field.name];
-        cls.addField(cloneVisitor.cloneField(
-            field, null, existingGetter?.reference, existingSetter?.reference));
+        Field clone = cloneVisitor.cloneField(
+            field, null, existingGetter?.reference, existingSetter?.reference);
+        cls.addField(clone);
+        clone.transformerFlags = field.transformerFlags;
         if (existingGetter != null) {
           cls.procedures.remove(existingGetter);
         }
@@ -84,8 +86,10 @@ class _CloneMixinMethodsWithSuper {
         if (existingProcedure != null) {
           cls.procedures.remove(existingProcedure);
         }
-        cls.addProcedure(cloneVisitor.cloneProcedure(
-            procedure, existingProcedure?.reference));
+        Procedure clone = cloneVisitor.cloneProcedure(
+            procedure, existingProcedure?.reference);
+        cls.addProcedure(clone);
+        clone.transformerFlags = procedure.transformerFlags;
         continue;
       }
     }

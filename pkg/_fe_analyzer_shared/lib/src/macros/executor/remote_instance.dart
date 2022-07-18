@@ -90,7 +90,6 @@ class RemoteInstanceImpl extends RemoteInstance {
 // The kinds of instances.
 enum RemoteInstanceKind {
   classDeclaration,
-  classIntrospector,
   constructorDeclaration,
   fieldDeclaration,
   functionDeclaration,
@@ -98,6 +97,8 @@ enum RemoteInstanceKind {
   functionTypeParameter,
   identifier,
   identifierResolver,
+  typeIntrospector,
+  introspectableClassDeclaration,
   namedStaticType,
   methodDeclaration,
   namedTypeAnnotation,

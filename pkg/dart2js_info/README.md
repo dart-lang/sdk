@@ -35,15 +35,9 @@ of this package and update when needed.
 
 ## Tools
 
-All tools are provided as commands of a single command-line interface. To
-install:
+All tools are provided as commands of a single command-line interface. To run:
 ```console
-pub global activate dart2js_info
-```
-
-To run a tool, then run:
-```console
-dart2js_info <command> [arguments]
+$ dart bin/tools.dart <command> [arguments]
 ```
 
 There is a short help available on the tool, and more details are provided
@@ -152,9 +146,7 @@ for how one function depends on another.
 
 Run this tool as follows:
 ```console
-# activate is only needed once to install the dart2js_info tool
-$ pub global activate dart2js_info
-$ dart2js_info code_deps some_path out.js.info.data main foo
+$ dart bin/tools.dart code_deps some_path out.js.info.data main foo
 ```
 
 The arguments to the query are regular expressions that can be used to
@@ -175,8 +167,7 @@ This command-line tool shows common elements between two info files. It can be
 run as follows:
 
 ```console
-$ pub global activate dart2js_info # only needed once
-$ dart2js_info common old.js.info.data new.js.info.data
+$ dart bin/tools.dart common old.js.info.data new.js.info.data
 ```
 
 The tool gives a breakdown of the common elements between the two info files,
@@ -213,8 +204,7 @@ This command-line tool shows a diff between two info files. It can be run
 as follows:
 
 ```console
-$ pub global activate dart2js_info # only needed once
-$ dart2js_info diff old.js.info.data new.js.info.data [--summary]
+$ dart bin/tools.dart diff old.js.info.data new.js.info.data [--summary]
 ```
 
 The tool gives a breakdown of the difference between the two info files.
@@ -285,8 +275,7 @@ This command-line tool shows the size distribution of generated code among
 libraries. It can be run as follows:
 
 ```console
-$ pub global activate dart2js_info # only needed once
-$ dart2js_info library_size out.js.info.data
+$ dart bin/tools.dart library_size out.js.info.data
 ```
 
 
@@ -295,7 +284,7 @@ specify what regular expressions to use by providing a `grouping.yaml` file
 with the `--grouping` flag:
 
 ```console
-$ dart2js_info library_size out.js.info.data --grouping grouping.yaml
+$ dart bin/tools.dart library_size out.js.info.data --grouping grouping.yaml
 ```
 
 The format of the `grouping.yaml` file is as follows:
@@ -366,8 +355,7 @@ This tool checks that the output from dart2js meets a given specification,
 given in a YAML file. It can be run as follows:
 
 ```console
-$ pub global activate dart2js_info # only needed once
-$ dart2js_info deferred_check out.js.info.data manifest.yaml
+$ dart bin/tools.dart deferred_check out.js.info.data manifest.yaml
 ```
 
 The format of the YAML file is:
@@ -414,8 +402,7 @@ It can show how much of the total code size is deferred. It can be run as
 follows:
 
 ```console
-pub global activate dart2js_info # only needed once
-dart2js_info deferred_size out.js.info.data
+$ dart bin/tools.dart deferred_size out.js.info.data
 ```
 
 The tool will output a table listing all of the deferred imports in the program
@@ -439,8 +426,7 @@ This tool reports which code is included in each output unit.  It can be run as
 follows:
 
 ```console
-$ pub global activate dart2js_info # only needed once
-$ dart2js_info deferred_layout out.js.info.data
+$ dart bin/tools.dart deferred_layout out.js.info.data
 ```
 
 The tool will output a table listing all of the deferred output units or chunks,
@@ -483,8 +469,7 @@ and reachability data as well.
 
 When you run:
 ```console
-$ pub global activate dart2js_info # only needed once
-$ dart2js_info function_size out.js.info.data
+$ dart bin/tools.dart function_size out.js.info.data
 ```
 
 the tool produces a table output with lots of entries. Here is an example entry
@@ -524,7 +509,7 @@ $ dart2js --dump-info --experiment-call-instrumentation main.dart
   * Launch the coverage server tool to serve up the JS code of your app:
 
 ```console
-$ dart2js_info coverage_server main.dart.js
+$ dart bin/tools.dart coverage_server main.dart.js
 ```
 
   * (optional) If you have a complex application setup, you may need to serve an
@@ -541,7 +526,7 @@ $ dart2js_info coverage_server main.dart.js
     coverage json files:
 
 ```console
-$ dart2js_info coverage_analysis main.dart.info.data main.dart.coverage.json
+$ dart bin/tools.dart coverage_analysis main.dart.info.data main.dart.coverage.json
 ```
 
 ### Runtime Code Analysis
@@ -571,13 +556,13 @@ JSON.stringify($__dart_deferred_initializers__.allocations)
 Finally run this tool:
 
 ```console
-$ dart2js_info runtime_coverage main.dart.info.data main.runtime.data.txt
+$ dart bin/tools.dart runtime_coverage main.dart.info.data main.runtime.data.txt
 ```
 
 And with the following to view package-level information:
 
 ```console
-$ dart2js_info runtime_coverage --show-packages main.dart.info.data main.runtime.data.txt
+$ dart bin/tools.dart runtime_coverage --show-packages main.dart.info.data main.runtime.data.txt
 ```
 
 Here's an example output snippet:
@@ -619,7 +604,7 @@ A `M`/`D` indicates whether or not the element was in the main or deferred outpu
 This package is developed in [github][repo].  Please file feature requests and
 bugs at the [issue tracker][tracker].
 
-[AllInfo]: https://pub.dev/documentation/dart2js_info/latest/dart2js_info.info/AllInfo-class.html
+[AllInfo]: https://github.com/dart-lang/sdk/blob/801bbb551bd4b8c2a875f8f2c6ddb337e102e0f7/pkg/dart2js_info/lib/info.dart#L77
 [code_deps]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/code_deps.dart
 [common]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/common_command.dart
 [convert]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/convert.dart

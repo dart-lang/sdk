@@ -4,7 +4,8 @@
 
 import 'dart:async';
 import 'dart:convert' show HtmlEscape;
-import 'dart:io';
+import 'dart:io' hide BytesBuilder;
+import 'dart:typed_data' show BytesBuilder;
 
 import 'package:package_config/package_config.dart';
 import 'package:test_runner/src/configuration.dart';
@@ -29,7 +30,7 @@ class DispatchingServer {
     // handler.  Otherwise, run the notFound handler.
     for (var prefix in _handlers.keys) {
       if (request.uri.path.startsWith(prefix)) {
-        _handlers[prefix](request);
+        _handlers[prefix]!(request);
         return;
       }
     }
@@ -47,7 +48,7 @@ class DispatchingServer {
 ///                directory (i.e. '$BuildDirectory/X').
 /// /FOO/packages/PAZ/BAR: This will serve files from the packages listed in
 ///      the package spec .packages.  Supports a package
-///      root or custom package spec, and uses [dart_dir]/.packages
+///      root or custom package spec, and uses $dart_dir/.packages
 ///      as the default. This will serve file lib/BAR from the package PAZ.
 /// /ws: This will upgrade the connection to a WebSocket connection and echo
 ///      all data back to the client.
@@ -76,16 +77,18 @@ class TestingServers {
   final Uri _buildDirectory;
   final Uri _dartDirectory;
   final Uri _packages;
-  PackageConfig _packageConfig;
+  late PackageConfig _packageConfig;
   final bool useContentSecurityPolicy;
   final Runtime runtime;
-  DispatchingServer _server;
+  DispatchingServer? _server;
 
   TestingServers._(this.useContentSecurityPolicy, this._buildDirectory,
       this._dartDirectory, this._packages, this.runtime);
 
   factory TestingServers(String buildDirectory, bool useContentSecurityPolicy,
-      [Runtime runtime = Runtime.none, String dartDirectory, String packages]) {
+      [Runtime runtime = Runtime.none,
+      String? dartDirectory,
+      String? packages]) {
     var buildDirectoryUri = Uri.base.resolveUri(Uri.directory(buildDirectory));
     var dartDirectoryUri = dartDirectory == null
         ? Repository.uri
@@ -103,7 +106,7 @@ class TestingServers {
 
   int get crossOriginPort => _serverList[1].port;
 
-  DispatchingServer get server => _server;
+  DispatchingServer? get server => _server;
 
   /// [startServers] will start two Http servers.
   ///
@@ -240,7 +243,7 @@ class TestingServers {
 
   void _handleUploadRequest(HttpRequest request) async {
     try {
-      var builder = await request.fold(BytesBuilder(), (var b, var d) {
+      var builder = await request.fold(BytesBuilder(), (dynamic b, var d) {
         b.add(d);
         return b;
       });
@@ -255,7 +258,7 @@ class TestingServers {
     }
   }
 
-  Uri _getFileUriFromRequestUri(Uri request) {
+  Uri? _getFileUriFromRequestUri(Uri request) {
     // Go to the top of the file to see an explanation of the URL path scheme.
     var pathSegments = request.normalizePath().pathSegments;
     if (pathSegments.isEmpty) return null;

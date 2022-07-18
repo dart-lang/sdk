@@ -138,6 +138,7 @@ bool isValidTypeReference(Token token) {
     return type.isPseudo ||
         (type.isBuiltIn && optional('.', token.next!)) ||
         (identical(value, 'dynamic')) ||
+        (identical(value, 'Function')) ||
         (identical(value, 'void'));
   }
   return false;

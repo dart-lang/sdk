@@ -13,10 +13,13 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     Uri uri,
     String command,
     String title, {
+    Range? range,
+    Position? position,
     bool asCodeActionLiteral = false,
     bool asCommand = false,
   }) async {
-    final codeActions = await getCodeActions(uri.toString());
+    final codeActions =
+        await getCodeActions(uri.toString(), range: range, position: position);
     final codeAction = findCommand(codeActions, command)!;
 
     codeAction.map(
@@ -25,7 +28,12 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
           throw 'Got Command but expected CodeAction literal';
         }
         expect(command.title, equals(title));
-        expect(command.arguments, equals([uri.toFilePath()]));
+        expect(
+          command.arguments,
+          equals([
+            {'path': uri.toFilePath()}
+          ]),
+        );
       },
       (codeAction) {
         if (!asCodeActionLiteral) {
@@ -33,7 +41,12 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
         }
         expect(codeAction.title, equals(title));
         expect(codeAction.command!.title, equals(title));
-        expect(codeAction.command!.arguments, equals([uri.toFilePath()]));
+        expect(
+          codeAction.command!.arguments,
+          equals([
+            {'path': uri.toFilePath()}
+          ]),
+        );
       },
     );
   }
@@ -79,7 +92,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   Future verifyCodeActionEdits(Either2<Command, CodeAction> codeAction,
       String content, String expectedContent,
       {bool expectDocumentChanges = false,
-      Either2<int, String>? workDoneToken}) async {
+      ProgressToken? workDoneToken}) async {
     final command = codeAction.map(
       (command) => command,
       (codeAction) => codeAction.command!,
@@ -96,7 +109,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   Future<void> verifyCommandEdits(
       Command command, String content, String expectedContent,
       {bool expectDocumentChanges = false,
-      Either2<int, String>? workDoneToken}) async {
+      ProgressToken? workDoneToken}) async {
     ApplyWorkspaceEditParams? editParams;
 
     final commandResponse = await handleExpectedRequest<Object?,

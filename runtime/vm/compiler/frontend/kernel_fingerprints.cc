@@ -714,6 +714,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       return;
     case kSwitchStatement: {
       ReadPosition();                     // read position.
+      ReadBool();                         // read exhaustive flag.
       CalculateExpressionFingerprint();   // read condition.
       int case_count = ReadListLength();  // read number of cases.
       for (intptr_t i = 0; i < case_count; ++i) {

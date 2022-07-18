@@ -1,7 +1,6 @@
-// @dart = 2.9
 library test;
 
-C c;
+C c = throw '';
 
 abstract class C implements I {}
 
@@ -9,5 +8,5 @@ class I {
   bool operator *(C other) => true;
 }
 
-main() {}
+test() {}
 var x = c * c;

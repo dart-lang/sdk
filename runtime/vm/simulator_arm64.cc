@@ -1711,9 +1711,7 @@ void Simulator::DoRedirectedCall(Instr* instr) {
       SimulatorRuntimeCall target =
           reinterpret_cast<SimulatorRuntimeCall>(external);
       target(*arguments);
-      // Zap result register from void function.
-      set_register(instr, R0, icount_);
-      set_register(instr, R1, icount_);
+      ClobberVolatileRegisters();
     } else if (redirection->call_kind() == kLeafRuntimeCall) {
       ASSERT((0 <= redirection->argument_count()) &&
              (redirection->argument_count() <= 8));
@@ -1729,8 +1727,8 @@ void Simulator::DoRedirectedCall(Instr* instr) {
       const int64_t r7 = get_register(R7);
       const int64_t res =
           InvokeLeafRuntime(target, r0, r1, r2, r3, r4, r5, r6, r7);
+      ClobberVolatileRegisters();
       set_register(instr, R0, res);      // Set returned result from function.
-      set_register(instr, R1, icount_);  // Zap unused result register.
     } else if (redirection->call_kind() == kLeafFloatRuntimeCall) {
       ASSERT((0 <= redirection->argument_count()) &&
              (redirection->argument_count() <= 8));
@@ -1746,6 +1744,7 @@ void Simulator::DoRedirectedCall(Instr* instr) {
       const double d7 = bit_cast<double, int64_t>(get_vregisterd(V7, 0));
       const double res =
           InvokeFloatLeafRuntime(target, d0, d1, d2, d3, d4, d5, d6, d7);
+      ClobberVolatileRegisters();
       set_vregisterd(V0, 0, bit_cast<int64_t, double>(res));
       set_vregisterd(V0, 1, 0);
     } else {
@@ -1757,38 +1756,31 @@ void Simulator::DoRedirectedCall(Instr* instr) {
       Dart_NativeFunction target =
           reinterpret_cast<Dart_NativeFunction>(get_register(R1));
       wrapper(arguments, target);
-      // Zap result register from void function.
-      set_register(instr, R0, icount_);
-      set_register(instr, R1, icount_);
+      ClobberVolatileRegisters();
     }
-
-    // Zap caller-saved registers, since the actual runtime call could have
-    // used them.
-    set_register(NULL, R2, icount_);
-    set_register(NULL, R3, icount_);
-    set_register(NULL, R4, icount_);
-    set_register(NULL, R5, icount_);
-    set_register(NULL, R6, icount_);
-    set_register(NULL, R7, icount_);
-    set_register(NULL, R8, icount_);
-    set_register(NULL, R9, icount_);
-    set_register(NULL, R10, icount_);
-    set_register(NULL, R11, icount_);
-    set_register(NULL, R12, icount_);
-    set_register(NULL, R13, icount_);
-    set_register(NULL, R14, icount_);
-    set_register(NULL, R15, icount_);
-    set_register(NULL, IP0, icount_);
-    set_register(NULL, IP1, icount_);
-    set_register(NULL, R18, icount_);
-    set_register(NULL, LR, icount_);
-
-    // TODO(zra): Zap caller-saved fpu registers.
 
     // Return.
     set_pc(saved_lr);
   } else {
     // Coming via long jump from a throw. Continue to exception handler.
+  }
+}
+
+void Simulator::ClobberVolatileRegisters() {
+  // Clear atomic reservation.
+  exclusive_access_addr_ = exclusive_access_value_ = 0;
+
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+    if ((kAbiVolatileCpuRegs & (1 << i)) != 0) {
+      registers_[i] = icount_;
+    }
+  }
+
+  for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
+    if ((kAbiVolatileFpuRegs & (1 << i)) != 0) {
+      vregisters_[i].bits.i64[0] = icount_;
+      vregisters_[i].bits.i64[1] = icount_;
+    }
   }
 }
 

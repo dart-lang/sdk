@@ -31,19 +31,15 @@ void main(List<String> arguments) async {
   // Parse the command line arguments to a configuration.
   final parser = OptionsParser();
 
-  List<TestConfiguration> configurations;
+  late List<TestConfiguration> configurations;
   try {
     configurations = parser.parse(arguments);
   } on OptionParseException catch (exception) {
     print(exception.message);
     exit(1);
   }
-  if (configurations == null) {
-    return;
-  }
-
-  final build_success = await buildConfigurations(configurations);
-  if (!build_success) {
+  final buildSuccess = await buildConfigurations(configurations);
+  if (!buildSuccess) {
     print("ERROR: Build failed.");
     exit(1);
   }

@@ -1671,9 +1671,9 @@ class BinaryBuilder {
     assert(tag == Tag.Procedure);
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.reference;
-    Procedure? node = reference.node as Procedure?;
-    if (alwaysCreateNewNamedNodes) {
-      node = null;
+    Procedure? node;
+    if (!alwaysCreateNewNamedNodes) {
+      node = reference.node as Procedure?;
     }
     Uri fileUri = readUriReference();
     int startFileOffset = readOffset();
@@ -1706,7 +1706,7 @@ class BinaryBuilder {
     }
     int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
-    node.startFileOffset = startFileOffset;
+    node.fileStartOffset = startFileOffset;
     node.fileOffset = fileOffset;
     node.fileEndOffset = fileEndOffset;
     node.flags = flags;
@@ -2219,7 +2219,7 @@ class BinaryBuilder {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new AbstractSuperPropertyGet.byReference(
-        readName(), readNullableInstanceMemberReference())
+        readName(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2227,7 +2227,7 @@ class BinaryBuilder {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new AbstractSuperPropertySet.byReference(
-        readName(), readExpression(), readNullableInstanceMemberReference())
+        readName(), readExpression(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2235,7 +2235,7 @@ class BinaryBuilder {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new SuperPropertyGet.byReference(
-        readName(), readNullableInstanceMemberReference())
+        readName(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2243,7 +2243,7 @@ class BinaryBuilder {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new SuperPropertySet.byReference(
-        readName(), readExpression(), readNullableInstanceMemberReference())
+        readName(), readExpression(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2373,7 +2373,7 @@ class BinaryBuilder {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new AbstractSuperMethodInvocation.byReference(
-        readName(), readArguments(), readNullableInstanceMemberReference())
+        readName(), readArguments(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2381,7 +2381,7 @@ class BinaryBuilder {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new SuperMethodInvocation.byReference(
-        readName(), readArguments(), readNullableInstanceMemberReference())
+        readName(), readArguments(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2836,6 +2836,7 @@ class BinaryBuilder {
 
   Statement _readSwitchStatement() {
     int offset = readOffset();
+    bool isExplicitlyExhaustive = readByte() == 1;
     Expression expression = readExpression();
     int count = readUInt30();
     List<SwitchCase> cases;
@@ -2855,7 +2856,9 @@ class BinaryBuilder {
       _readSwitchCaseInto(cases[i]);
     }
     switchCaseStack.length -= count;
-    return new SwitchStatement(expression, cases)..fileOffset = offset;
+    return new SwitchStatement(expression, cases,
+        isExplicitlyExhaustive: isExplicitlyExhaustive)
+      ..fileOffset = offset;
   }
 
   Statement _readContinueSwitchStatement() {

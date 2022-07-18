@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
@@ -1292,23 +1292,6 @@ class LibraryElementImplTest {
     }
   }
 
-  void test_getUnits() {
-    AnalysisContext context = TestAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "test");
-    CompilationUnitElement unitLib = library.definingCompilationUnit;
-    CompilationUnitElementImpl unitA = ElementFactory.compilationUnit(
-      source: TestSource("unit_a.dart"),
-      librarySource: unitLib.source,
-    );
-    CompilationUnitElementImpl unitB = ElementFactory.compilationUnit(
-      source: TestSource("unit_b.dart"),
-      librarySource: unitLib.source,
-    );
-    library.parts = <CompilationUnitElement>[unitA, unitB];
-    expect(library.units,
-        unorderedEquals(<CompilationUnitElement>[unitLib, unitA, unitB]));
-  }
-
   void test_setImports() {
     AnalysisContext context = TestAnalysisContext();
     LibraryElementImpl library = LibraryElementImpl(
@@ -1618,7 +1601,7 @@ class VoidTypeImplTest extends AbstractTypeSystemTest {
   }
 }
 
-class _AnalysisSessionMock implements AnalysisSession {
+class _AnalysisSessionMock implements AnalysisSessionImpl {
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

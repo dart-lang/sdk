@@ -1,3 +1,2 @@
-// @dart = 2.9
 m3(String a, String b, [a1, a2]) {}
 main() {}

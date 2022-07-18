@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A<X> {}
 
 class B<X, Y> {}
@@ -7,32 +6,32 @@ class C<X, Y> {}
 
 class D<X extends A<X>, Y extends A<Y>> {}
 
-D d;
+D d = throw '';
 
 class E<W extends B<W, X>, X extends C<W, X>, Y extends B<Y, Z>,
     Z extends C<Y, Z>> {}
 
-E e;
+E e = throw '';
 
 class F<V extends num, W extends B<W, X>, X extends C<W, X>, Y extends B<W, X>,
     Z extends C<Y, Z>> {}
 
-F f;
+F f = throw '';
 
 class G<V extends num, W extends B<V, X>, X extends C<W, V>, Y extends B<W, X>,
     Z extends C<Y, Z>> {}
 
-G g;
+G g = throw '';
 
 class H<S extends A<S>, T extends B<T, U>, U extends C<T, U>, V extends A<V>,
     W extends S, X extends T, Y extends U, Z extends V> {}
 
-H h;
+H h = throw '';
 
 class I<T extends U, U extends Y, V extends Function(W), W extends Function(X),
     X extends Function(V), Y extends Z, Z extends T> {}
 
-I i;
+I i = throw '';
 
 class J<
     S extends T Function(U),
@@ -44,5 +43,5 @@ class J<
     Y extends Z,
     Z extends X> {}
 
-J j;
+J j = throw '';
 main() {}

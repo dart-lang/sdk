@@ -11,7 +11,7 @@ import 'dart:async';
 
 child(msg) {
   var i = msg[0];
-  var reponsePort = msg[1];
+  var responsePort = msg[1];
   print("Starting child $i");
 
   // Keep this isolate running to prevent its shutdown from touching the event
@@ -21,7 +21,7 @@ child(msg) {
   // Try to get separate wakeups for each isolate.
   new Timer(new Duration(milliseconds: 100 * (i + 1)), () {
     print("Timer fired $i");
-    reponsePort.send(null);
+    responsePort.send(null);
   });
 }
 

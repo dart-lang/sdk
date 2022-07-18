@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'block_test.dart' as block;
 import 'class_body_test.dart' as class_body;
 import 'compilation_unit_test.dart' as compilation_unit;
 import 'directive_uri_test.dart' as directive_uri;
@@ -16,6 +17,7 @@ import 'super_formal_parameter_test.dart' as super_formal_parameter;
 /// Tests suggestions produced at specific locations.
 void main() {
   defineReflectiveSuite(() {
+    block.main();
     class_body.main();
     compilation_unit.main();
     directive_uri.main();

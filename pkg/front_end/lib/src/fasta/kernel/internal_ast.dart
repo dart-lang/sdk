@@ -17,26 +17,17 @@
 /// This means that in some cases multiple shadow classes may extend the same
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
 import 'package:kernel/type_environment.dart';
 
 import '../builder/type_alias_builder.dart';
-
-import '../fasta_codes.dart'
-    show noLength, templateWebLiteralCannotBeRepresentedExactly;
-
 import '../names.dart';
-
 import '../problems.dart' show unsupported;
-
+import '../type_inference/inference_visitor.dart';
 import '../type_inference/type_inferrer.dart';
-
 import '../type_inference/type_schema.dart' show UnknownType;
-
-import 'inference_visitor.dart';
 
 int getExtensionTypeParameterCount(Arguments arguments) {
   if (arguments is ArgumentsImpl) {
@@ -181,7 +172,7 @@ abstract class InternalStatement extends Statement {
   R accept1<R, A>(StatementVisitor1<R, A> visitor, A arg) =>
       unsupported("${runtimeType}.accept1", -1, null);
 
-  StatementInferenceResult acceptInference(InferenceVisitor visitor);
+  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor);
 }
 
 class ForInStatementWithSynthesizedVariable extends InternalStatement {
@@ -209,7 +200,7 @@ class ForInStatementWithSynthesizedVariable extends InternalStatement {
   }
 
   @override
-  StatementInferenceResult acceptInference(InferenceVisitor visitor) {
+  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
     return visitor.visitForInStatementWithSynthesizedVariable(this);
   }
 
@@ -301,7 +292,7 @@ class TryStatement extends InternalStatement {
   }
 
   @override
-  StatementInferenceResult acceptInference(InferenceVisitor visitor) {
+  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
     return visitor.visitTryStatement(this);
   }
 
@@ -403,6 +394,9 @@ class BreakStatementImpl extends BreakStatement {
 }
 
 enum InternalExpressionKind {
+  AugmentSuperInvocation,
+  AugmentSuperGet,
+  AugmentSuperSet,
   Binary,
   Cascade,
   CompoundExtensionIndexSet,
@@ -472,7 +466,7 @@ abstract class InternalExpression extends Expression {
       unsupported("${runtimeType}.getStaticType", -1, null);
 
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext);
+      InferenceVisitorImpl visitor, DartType typeContext);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -631,7 +625,7 @@ class Cascade extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitCascade(this, typeContext);
   }
 
@@ -713,7 +707,7 @@ class DeferredCheck extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitDeferredCheck(this, typeContext);
   }
 
@@ -774,7 +768,7 @@ abstract class ExpressionJudgment extends Expression {
   /// Calls back to [inferrer] to perform type inference for whatever concrete
   /// type of [Expression] this is.
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext);
+      InferenceVisitorImpl visitor, DartType typeContext);
 }
 
 /// Shadow object for [StaticInvocation] when the procedure being invoked is a
@@ -789,7 +783,7 @@ class FactoryConstructorInvocation extends StaticInvocation
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitFactoryConstructorInvocation(this, typeContext);
   }
 
@@ -829,7 +823,7 @@ class TypeAliasedConstructorInvocation extends ConstructorInvocation
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitTypeAliasedConstructorInvocation(this, typeContext);
   }
 
@@ -869,7 +863,7 @@ class TypeAliasedFactoryInvocation extends StaticInvocation
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitTypeAliasedFactoryInvocation(this, typeContext);
   }
 
@@ -924,7 +918,7 @@ class InvalidSuperInitializerJudgment extends LocalInitializer
       : super(variable);
 
   @override
-  InitializerInferenceResult acceptInference(InferenceVisitor visitor) {
+  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
     return visitor.visitInvalidSuperInitializerJudgment(this);
   }
 
@@ -955,7 +949,7 @@ class IfNullExpression extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitIfNullExpression(this, typeContext);
   }
 
@@ -1015,27 +1009,7 @@ class IfNullExpression extends InternalExpression {
 abstract class InitializerJudgment implements Initializer {
   /// Performs type inference for whatever concrete type of
   /// [InitializerJudgment] this is.
-  InitializerInferenceResult acceptInference(InferenceVisitor visitor);
-}
-
-Expression? checkWebIntLiteralsErrorIfUnexact(
-    TypeInferrerImpl inferrer, int value, String? literal, int charOffset) {
-  if (value >= 0 && value <= (1 << 53)) return null;
-  if (inferrer.isTopLevel) return null;
-  if (!inferrer.libraryBuilder.loader.target.backendTarget
-      .errorOnUnexactWebIntLiterals) return null;
-  BigInt asInt = new BigInt.from(value).toUnsigned(64);
-  BigInt asDouble = new BigInt.from(asInt.toDouble());
-  if (asInt == asDouble) return null;
-  String text = literal ?? value.toString();
-  String nearest = text.startsWith('0x') || text.startsWith('0X')
-      ? '0x${asDouble.toRadixString(16)}'
-      : asDouble.toString();
-  int length = literal?.length ?? noLength;
-  return inferrer.helper!.buildProblem(
-      templateWebLiteralCannotBeRepresentedExactly.withArguments(text, nearest),
-      charOffset,
-      length);
+  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor);
 }
 
 /// Concrete shadow object representing an integer literal in kernel form.
@@ -1055,7 +1029,7 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitIntJudgment(this, typeContext);
   }
 
@@ -1101,7 +1075,7 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitShadowLargeIntLiteral(this, typeContext);
   }
 
@@ -1122,7 +1096,7 @@ class ShadowInvalidInitializer extends LocalInitializer
   ShadowInvalidInitializer(VariableDeclaration variable) : super(variable);
 
   @override
-  InitializerInferenceResult acceptInference(InferenceVisitor visitor) {
+  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
     return visitor.visitShadowInvalidInitializer(this);
   }
 
@@ -1147,7 +1121,7 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
   }
 
   @override
-  InitializerInferenceResult acceptInference(InferenceVisitor visitor) {
+  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
     return visitor.visitShadowInvalidFieldInitializer(this);
   }
 
@@ -1172,7 +1146,7 @@ class ExpressionInvocation extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitExpressionInvocation(this, typeContext);
   }
 
@@ -1250,7 +1224,7 @@ class NullAwareMethodInvocation extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitNullAwareMethodInvocation(this, typeContext);
   }
 
@@ -1353,7 +1327,7 @@ class NullAwarePropertyGet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitNullAwarePropertyGet(this, typeContext);
   }
 
@@ -1444,7 +1418,7 @@ class NullAwarePropertySet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitNullAwarePropertySet(this, typeContext);
   }
 
@@ -1727,7 +1701,7 @@ class LoadLibraryTearOff extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitLoadLibraryTearOff(this, typeContext);
   }
 
@@ -1807,7 +1781,7 @@ class IfNullPropertySet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitIfNullPropertySet(this, typeContext);
   }
 
@@ -1897,7 +1871,7 @@ class IfNullSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitIfNullSet(this, typeContext);
   }
 
@@ -2043,7 +2017,7 @@ class CompoundExtensionSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitCompoundExtensionSet(this, typeContext);
   }
 
@@ -2151,7 +2125,7 @@ class CompoundPropertySet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitCompoundPropertySet(this, typeContext);
   }
 
@@ -2246,7 +2220,7 @@ class PropertyPostIncDec extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitPropertyPostIncDec(this, typeContext);
   }
 
@@ -2321,7 +2295,7 @@ class LocalPostIncDec extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitLocalPostIncDec(this, typeContext);
   }
 
@@ -2394,7 +2368,7 @@ class StaticPostIncDec extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitStaticPostIncDec(this, typeContext);
   }
 
@@ -2467,7 +2441,7 @@ class SuperPostIncDec extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitSuperPostIncDec(this, typeContext);
   }
 
@@ -2533,7 +2507,7 @@ class IndexGet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitIndexGet(this, typeContext);
   }
 
@@ -2629,7 +2603,7 @@ class IndexSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitIndexSet(this, typeContext);
   }
 
@@ -2711,7 +2685,7 @@ class IndexSet extends InternalExpression {
 ///
 class SuperIndexSet extends InternalExpression {
   /// The []= member.
-  Member? setter;
+  Member setter;
 
   /// The index expression of the operation.
   Expression index;
@@ -2730,7 +2704,7 @@ class SuperIndexSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitSuperIndexSet(this, typeContext);
   }
 
@@ -2832,7 +2806,7 @@ class ExtensionIndexSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitExtensionIndexSet(this, typeContext);
   }
 
@@ -2975,7 +2949,7 @@ class IfNullIndexSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitIfNullIndexSet(this, typeContext);
   }
 
@@ -3100,7 +3074,7 @@ class IfNullSuperIndexSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitIfNullSuperIndexSet(this, typeContext);
   }
 
@@ -3227,7 +3201,7 @@ class IfNullExtensionIndexSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitIfNullExtensionIndexSet(this, typeContext);
   }
 
@@ -3358,7 +3332,7 @@ class CompoundIndexSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitCompoundIndexSet(this, typeContext);
   }
 
@@ -3528,7 +3502,7 @@ class NullAwareCompoundSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitNullAwareCompoundSet(this, typeContext);
   }
 
@@ -3665,7 +3639,7 @@ class NullAwareIfNullSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitNullAwareIfNullSet(this, typeContext);
   }
 
@@ -3736,10 +3710,10 @@ class NullAwareIfNullSet extends InternalExpression {
 ///
 class CompoundSuperIndexSet extends InternalExpression {
   /// The [] member.
-  Member? getter;
+  Member getter;
 
   /// The []= member.
-  Member? setter;
+  Member setter;
 
   /// The index expression of the operation.
   Expression index;
@@ -3793,7 +3767,7 @@ class CompoundSuperIndexSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitCompoundSuperIndexSet(this, typeContext);
   }
 
@@ -3937,7 +3911,7 @@ class CompoundExtensionIndexSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitCompoundExtensionIndexSet(this, typeContext);
   }
 
@@ -4052,7 +4026,7 @@ class ExtensionSet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitExtensionSet(this, typeContext);
   }
 
@@ -4123,7 +4097,7 @@ class NullAwareExtension extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitNullAwareExtension(this, typeContext);
   }
 
@@ -4197,7 +4171,7 @@ class ExtensionTearOff extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitExtensionTearOff(this, typeContext);
   }
 
@@ -4252,7 +4226,7 @@ class EqualsExpression extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitEquals(this, typeContext);
   }
 
@@ -4327,7 +4301,7 @@ class BinaryExpression extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitBinary(this, typeContext);
   }
 
@@ -4397,7 +4371,7 @@ class UnaryExpression extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitUnary(this, typeContext);
   }
 
@@ -4458,7 +4432,7 @@ class ParenthesizedExpression extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitParenthesized(this, typeContext);
   }
 
@@ -4599,7 +4573,7 @@ class MethodInvocation extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitMethodInvocation(this, typeContext);
   }
 
@@ -4675,7 +4649,7 @@ class PropertyGet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitPropertyGet(this, typeContext);
   }
 
@@ -4754,7 +4728,7 @@ class PropertySet extends InternalExpression {
 
   @override
   ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
+      InferenceVisitorImpl visitor, DartType typeContext) {
     return visitor.visitPropertySet(this, typeContext);
   }
 
@@ -4807,6 +4781,163 @@ class PropertySet extends InternalExpression {
     printer.write('.');
     printer.writeName(name);
     printer.write(' = ');
+    printer.writeExpression(value);
+  }
+}
+
+/// An augment super invocation of the form `augment super()`.
+///
+/// This will be transformed into an [InstanceInvocation], [InstanceGet] plus
+/// [FunctionInvocation], or [StaticInvocation] after type inference.
+class AugmentSuperInvocation extends InternalExpression {
+  final Member target;
+
+  Arguments arguments;
+
+  AugmentSuperInvocation(this.target, this.arguments,
+      {required int fileOffset}) {
+    arguments.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    return visitor.visitAugmentSuperInvocation(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.AugmentSuperInvocation;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    arguments.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    arguments = v.transform(arguments);
+    arguments.parent = this;
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    arguments = v.transform(arguments);
+    arguments.parent = this;
+  }
+
+  @override
+  String toString() {
+    return "AugmentSuperInvocation(${toStringInternal()})";
+  }
+
+  @override
+  int get precedence => Precedence.PRIMARY;
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('augment super');
+    printer.writeArguments(arguments);
+  }
+}
+
+/// An augment super read of the form `augment super`.
+///
+/// This will be transformed into an [InstanceGet], [InstanceTearOff],
+/// [DynamicGet], [FunctionTearOff] or [StaticInvocation] (for implicit
+/// extension member access) after type inference.
+class AugmentSuperGet extends InternalExpression {
+  final Member target;
+
+  AugmentSuperGet(this.target, {required int fileOffset}) {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    return visitor.visitAugmentSuperGet(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.AugmentSuperGet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {}
+
+  @override
+  void transformChildren(Transformer v) {}
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {}
+
+  @override
+  String toString() {
+    return "AugmentSuperGet(${toStringInternal()})";
+  }
+
+  @override
+  int get precedence => Precedence.PRIMARY;
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('augment super');
+  }
+}
+
+/// An augment super write of the form `augment super = e`.
+///
+/// This will be transformed into an [InstanceSet], or [StaticSet] after type
+/// inference.
+class AugmentSuperSet extends InternalExpression {
+  final Member target;
+
+  Expression value;
+
+  /// If `true` the assignment is need for its effect and not for its value.
+  final bool forEffect;
+
+  AugmentSuperSet(this.target, this.value,
+      {required this.forEffect, required int fileOffset}) {
+    value.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    return visitor.visitAugmentSuperSet(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.AugmentSuperSet;
+
+  @override
+  void visitChildren(Visitor v) {
+    value.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    value = v.transform(value);
+    value.parent = this;
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    value = v.transform(value);
+    value.parent = this;
+  }
+
+  @override
+  String toString() {
+    return "AugmentSuperSet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('augment super = ');
     printer.writeExpression(value);
   }
 }

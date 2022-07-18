@@ -4,13 +4,9 @@
 
 import 'package:kernel/ast.dart';
 
-import 'package:kernel/core_types.dart' show CoreTypes;
-
 import '../fasta_codes.dart' show LocatedMessage, Message;
 
 abstract class InferenceHelper {
-  CoreTypes get coreTypes;
-
   Uri get uri;
 
   set transformSetLiterals(bool value);

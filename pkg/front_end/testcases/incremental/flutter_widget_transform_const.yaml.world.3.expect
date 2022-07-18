@@ -157,3 +157,22 @@ constants  {
   #C47 = 20.0
   #C48 = wid::_Location {file:#C38, line:#C11, column:#C47, name:#C32, parameterLocations:#C1}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-test:///foo.dart:
+- _Location. (from org-dartlang-test:///flutter/lib/src/widgets/widget_inspector.dart:7:9)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart:-1:-1)
+- Foo._ (from org-dartlang-test:///foo.dart:3:7)
+- Widget. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:5:9)
+- Bar. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:2:9)
+- Baz.__ (from org-dartlang-test:///foo.dart:8:7)
+- Boz._ (from org-dartlang-test:///foo.dart:10:7)
+
+org-dartlang-test:///main.dart:
+- _Location. (from org-dartlang-test:///flutter/lib/src/widgets/widget_inspector.dart:7:9)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart:-1:-1)
+- Bar._ (from org-dartlang-test:///foo.dart:5:7)
+- Widget. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:5:9)
+- Bar. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:2:9)
+

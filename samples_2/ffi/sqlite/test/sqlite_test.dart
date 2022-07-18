@@ -49,8 +49,7 @@ void main() {
       expect(true, 1 <= id && id <= 3);
       String name = r.readColumnByIndex(1);
       expect(true, name is String);
-      String alternativeName = r.readColumn("alternative_name");
-      expect(true, alternativeName is String || alternativeName == null);
+      final alternativeName = r.readColumn("alternative_name") as String;
       dynamic multiTypedValue = r.readColumn("multi_typed_column");
       expect(
           true,
@@ -76,8 +75,7 @@ void main() {
       expect(true, 1 <= id && id <= 3);
       String name = r.readColumnByIndex(1);
       expect(true, name is String);
-      String alternativeName = r.readColumn("alternative_name");
-      expect(true, alternativeName is String || alternativeName == null);
+      final alternativeName = r.readColumn("alternative_name") as String;
       dynamic multiTypedValue = r.readColumn("multi_typed_column");
       expect(
           true,

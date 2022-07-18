@@ -1405,10 +1405,14 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         if (i == errorEvent) {
           if (!isClosing) {
             final osError = nativeGetError();
-            if (osError == null) {
-              _nativeFatal("Reporting error with OSError code of 0");
-            } else {
+            if (osError != null) {
               reportError(osError, null, osError.message);
+            } else {
+              reportError(
+                  Error(),
+                  StackTrace.current,
+                  "Error event raised in event handler : "
+                  "error condition has been reset");
             }
           }
         } else if (!isClosed) {
@@ -2543,6 +2547,7 @@ Datagram _makeDatagram(
 }
 
 @patch
+@pragma("vm:entry-point")
 class ResourceHandle {
   factory ResourceHandle.fromFile(RandomAccessFile file) {
     int fd = (file as _RandomAccessFile).fd;

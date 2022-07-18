@@ -5,15 +5,14 @@
 library fasta.dill_typedef_builder;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
-
 import '../problems.dart' show unimplemented;
-
 import 'dill_class_builder.dart' show computeTypeVariableBuilders;
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
@@ -69,8 +68,8 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   @override
-  List<DartType> buildAliasedTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments) {
+  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
+      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
     // For performance reasons, [typeVariables] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
@@ -86,7 +85,8 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
     // [arguments] != null
     List<DartType> result =
         new List<DartType>.generate(arguments.length, (int i) {
-      return arguments[i].buildAliased(library, TypeUse.typeArgument);
+      return arguments[i]
+          .buildAliased(library, TypeUse.typeArgument, hierarchy);
     }, growable: true);
     return result;
   }

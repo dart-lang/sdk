@@ -34,15 +34,14 @@ class DictionaryTypeMask extends MapTypeMask {
       DataSourceReader source, CommonMasks domain) {
     source.begin(tag);
     TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
-    ir.TreeNode allocationNode = source.readTreeNodeOrNull();
     MemberEntity allocationElement = source.readMemberOrNull();
     TypeMask keyType = TypeMask.readFromDataSource(source, domain);
     TypeMask valueType = TypeMask.readFromDataSource(source, domain);
     Map<String, TypeMask> typeMap =
         source.readStringMap(() => TypeMask.readFromDataSource(source, domain));
     source.end(tag);
-    return DictionaryTypeMask(forwardTo, allocationNode, allocationElement,
-        keyType, valueType, typeMap);
+    return DictionaryTypeMask(
+        forwardTo, null, allocationElement, keyType, valueType, typeMap);
   }
 
   /// Serializes this [DictionaryTypeMask] to [sink].
@@ -51,7 +50,6 @@ class DictionaryTypeMask extends MapTypeMask {
     sink.writeEnum(TypeMaskKind.dictionary);
     sink.begin(tag);
     forwardTo.writeToDataSink(sink);
-    sink.writeTreeNodeOrNull(allocationNode);
     sink.writeMemberOrNull(allocationElement);
     keyType.writeToDataSink(sink);
     valueType.writeToDataSink(sink);

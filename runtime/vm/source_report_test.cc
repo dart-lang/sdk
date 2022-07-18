@@ -58,6 +58,72 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NoCalls) {
       buffer);
 }
 
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Filters_single) {
+  // WARNING: This MUST be big enough for the serialized JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
+  const char* kScript =
+      "main() {\n"
+      "}";
+
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
+
+  GrowableObjectArray& filters =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  filters.Add(String::Handle(String::New(RESOLVED_USER_TEST_URI)));
+  SourceReport report(SourceReport::kCoverage, filters);
+  JSONStream js;
+  report.PrintJSON(&js, Script::Handle(Script::null()));
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("libraries", json_str, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":"
+
+      // One compiled range, one hit at function declaration.
+      "[{\"scriptIndex\":0,\"startPos\":0,\"endPos\":9,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[0],\"misses\":[]}}],"
+
+      // One script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+      buffer);
+}
+
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Filters_empty) {
+  // WARNING: This MUST be big enough for the serialized JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
+  const char* kScript =
+      "main() {\n"
+      "}";
+
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
+
+  GrowableObjectArray& filters =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  filters.Add(String::Handle(String::New("foo:bar/")));
+  SourceReport report(SourceReport::kCoverage, filters);
+  JSONStream js;
+  report.PrintJSON(&js, Script::Handle(Script::null()));
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("libraries", json_str, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":"
+
+      // No compiled range.
+      "[],"
+
+      // No script.
+      "\"scripts\":[]}",
+      buffer);
+}
+
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_SimpleCall) {
   // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;

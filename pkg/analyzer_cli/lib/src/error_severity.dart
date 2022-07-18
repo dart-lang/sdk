@@ -4,7 +4,6 @@
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_cli/src/options.dart';
 
@@ -21,10 +20,6 @@ ErrorSeverity? computeSeverity(
   // If there is a processor for this error, defer to it.
   if (processor != null) {
     return processor.severity;
-  }
-
-  if (commandLineOptions.lintsAreFatal && error.errorCode is LintCode) {
-    return ErrorSeverity.ERROR;
   }
 
   return error.errorCode.errorSeverity;

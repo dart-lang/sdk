@@ -1226,7 +1226,8 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
         var enclosingElement = element.enclosingElement;
         if (enclosingElement is ConstructorElement &&
             enclosingElement.isFactory &&
-            enclosingElement.redirectedConstructor != null) {
+            enclosingElement.redirectedConstructor != null &&
+            !node.declaredElement!.hasRequired) {
           // Redirecting factory constructors inherit their parameters' default
           // values from the constructors they redirect to, so the lack of a
           // default value doesn't mean the parameter has to be nullable.

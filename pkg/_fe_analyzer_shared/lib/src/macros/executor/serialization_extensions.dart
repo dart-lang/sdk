@@ -16,7 +16,7 @@ extension DeserializerExtensions on Deserializer {
     moveNext();
     RemoteInstanceKind kind = RemoteInstanceKind.values[expectInt()];
     switch (kind) {
-      case RemoteInstanceKind.classIntrospector:
+      case RemoteInstanceKind.typeIntrospector:
       case RemoteInstanceKind.identifierResolver:
       case RemoteInstanceKind.namedStaticType:
       case RemoteInstanceKind.staticType:
@@ -46,6 +46,9 @@ extension DeserializerExtensions on Deserializer {
       case RemoteInstanceKind.identifier:
         moveNext();
         return _expectIdentifier(id) as T;
+      case RemoteInstanceKind.introspectableClassDeclaration:
+        moveNext();
+        return _expectIntrospectableClassDeclaration(id) as T;
       case RemoteInstanceKind.methodDeclaration:
         moveNext();
         return _expectMethodDeclaration(id) as T;
@@ -213,6 +216,20 @@ extension DeserializerExtensions on Deserializer {
       );
 
   ClassDeclaration _expectClassDeclaration(int id) => new ClassDeclarationImpl(
+        id: id,
+        identifier: expectRemoteInstance(),
+        typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+        interfaces: (this..moveNext())._expectRemoteInstanceList(),
+        isAbstract: (this..moveNext()).expectBool(),
+        isExternal: (this..moveNext()).expectBool(),
+        mixins: (this..moveNext())._expectRemoteInstanceList(),
+        superclass:
+            (this..moveNext()).checkNull() ? null : expectRemoteInstance(),
+      );
+
+  IntrospectableClassDeclaration _expectIntrospectableClassDeclaration(
+          int id) =>
+      new IntrospectableClassDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),

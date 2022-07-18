@@ -1,6 +1,5 @@
-// @dart = 2.9
 library test;
 
-T f<T>() => null;
+T f<T>() => throw '';
 void test() {}
 main() {}

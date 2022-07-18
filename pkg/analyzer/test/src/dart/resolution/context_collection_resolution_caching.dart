@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 final _sharedByteStore = MemoryByteStore();
 final _useSharedByteStore = false;
 
-ByteStore getContextResolutionTestByteStore() {
+MemoryByteStore getContextResolutionTestByteStore() {
   if (_useSharedByteStore) {
     return _sharedByteStore;
   } else {

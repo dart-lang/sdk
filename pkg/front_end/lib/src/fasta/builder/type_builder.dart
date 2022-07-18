@@ -5,6 +5,7 @@
 library fasta.type_builder;
 
 import 'package:kernel/ast.dart' show DartType, Supertype;
+import 'package:kernel/class_hierarchy.dart';
 
 import '../source/source_library_builder.dart';
 import 'library_builder.dart';
@@ -301,13 +302,24 @@ abstract class TypeBuilder {
 
   String get fullNameForErrors => "${printOn(new StringBuffer())}";
 
+  /// Returns `true` if [build] can create the type for this type builder
+  /// without the need for inference, i.e without the [hierarchy] argument.
+  ///
+  /// This is false if the type directly or indirectly depends on inferred
+  /// types.
+  bool get isExplicit;
+
   /// Creates the [DartType] from this [TypeBuilder] that doesn't contain
   /// [TypedefType].
   ///
   /// [library] is used to determine nullabilities and for registering well-
   /// boundedness checks on the created type. [typeUse] describes how the
   /// type is used which determine which well-boundedness checks are applied.
-  DartType build(LibraryBuilder library, TypeUse typeUse);
+  ///
+  /// If [hierarchy] is provided, inference is triggered on inferable types.
+  /// Otherwise, [isExplicit] must be true.
+  DartType build(LibraryBuilder library, TypeUse typeUse,
+      {ClassHierarchyBase? hierarchy});
 
   /// Creates the [DartType] from this [TypeBuilder] that contains
   /// [TypedefType]. This is used to create types internal on which well-
@@ -317,7 +329,11 @@ abstract class TypeBuilder {
   /// [library] is used to determine nullabilities and for registering well-
   /// boundedness checks on the created type. [typeUse] describes how the
   /// type is used which determine which well-boundedness checks are applied.
-  DartType buildAliased(LibraryBuilder library, TypeUse typeUse);
+  ///
+  /// If [hierarchy] is non-null, inference is triggered on inferable types.
+  /// Otherwise, [isExplicit] must be true.
+  DartType buildAliased(
+      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy);
 
   Supertype? buildSupertype(LibraryBuilder library);
 
@@ -327,9 +343,79 @@ abstract class TypeBuilder {
 
   bool get isVoidType;
 
+  /// Register [type] as the inferred type of this type builder.
+  ///
+  /// If this is not an [InferableTypeBuilder] this method will throw.
   void registerInferredType(DartType type) {
     throw new UnsupportedError("${runtimeType}.registerInferredType");
   }
 
+  /// Registers a [listener] that is called when this type has been inferred.
+  // TODO(johnniwinther): Should we handle this for all types or just those
+  // that are inferred or aliases of inferred types?
   void registerInferredTypeListener(InferredTypeListener listener) {}
+
+  /// Registers the [Inferable] object to be called when this type needs to be
+  /// inferred.
+  ///
+  /// If this type is not an [InferableTypeBuilder], this call is a no-op.
+  void registerInferable(Inferable inferable) {}
+}
+
+abstract class InferableType {
+  /// Triggers inference of this type.
+  ///
+  /// If an [Inferable] has been register, this is called to infer the type of
+  /// this builder. Otherwise the type is inferred to be `dynamic`.
+  DartType inferType(ClassHierarchyBase hierarchy);
+}
+
+class InferableTypeUse implements InferableType {
+  final SourceLibraryBuilder sourceLibraryBuilder;
+  final TypeBuilder typeBuilder;
+  final TypeUse typeUse;
+
+  InferableTypeUse(this.sourceLibraryBuilder, this.typeBuilder, this.typeUse);
+
+  @override
+  DartType inferType(ClassHierarchyBase hierarchy) {
+    return typeBuilder.build(sourceLibraryBuilder, typeUse,
+        hierarchy: hierarchy);
+  }
+}
+
+mixin InferableTypeBuilderMixin implements TypeBuilder {
+  bool get hasType => _type != null;
+
+  DartType? _type;
+
+  DartType get type => _type!;
+
+  List<InferredTypeListener>? _listeners;
+
+  @override
+  void registerInferredTypeListener(InferredTypeListener onType) {
+    if (isExplicit) return;
+    if (hasType) {
+      onType.onInferredType(type);
+    } else {
+      (_listeners ??= []).add(onType);
+    }
+  }
+
+  DartType registerType(DartType type) {
+    // TODO(johnniwinther): Avoid multiple registration from enums and
+    //  duplicated fields.
+    if (_type == null) {
+      _type = type;
+      List<InferredTypeListener>? listeners = _listeners;
+      if (listeners != null) {
+        _listeners = null;
+        for (InferredTypeListener listener in listeners) {
+          listener.onInferredType(type);
+        }
+      }
+    }
+    return _type!;
+  }
 }

@@ -9,9 +9,6 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-// TODO(dacoharkes): Migrate script to be nullsafe and generate nullsafe
-// Flutter app.
-
 main(List<String> args) async {
   if (args.length != 1) {
     print('Usage ${Platform.executable} ${Platform.script} <output-dir>');
@@ -82,7 +79,6 @@ After copying modify the test application:
     * Add the cpp files to Pods/Development Pods/<deep nesting>/ios/Classes
       to ensure they are statically linked to the app.
 ''');
-  // TODO(dacoharkes): Automate these steps. How to automate the XCode step?
 }
 
 void dumpTestList(List<String> testFiles, String message) {

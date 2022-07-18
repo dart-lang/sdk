@@ -37,6 +37,7 @@ import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
 import 'interceptor_simplifier.dart';
 import 'interceptor_finalizer.dart';
+import 'late_field_optimizer.dart';
 import 'logging.dart';
 import 'nodes.dart';
 import 'types.dart';
@@ -122,6 +123,7 @@ class SsaOptimizerTask extends CompilerTask {
         loadElimination = SsaLoadElimination(closedWorld),
         SsaRedundantPhiEliminator(),
         SsaDeadPhiEliminator(),
+        SsaLateFieldOptimizer(closedWorld, log),
         // After GVN and load elimination the same value may be used in code
         // controlled by a test on the value, so redo 'conversion insertion' to
         // learn from the refined type.
@@ -1416,7 +1418,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitTypeKnown(HTypeKnown node) {
-    return node.isRedundant(_closedWorld) ? node.checkedInput : node;
+    if (node.isRedundant(_closedWorld)) return node.checkedInput;
+    return node;
   }
 
   @override
@@ -2094,7 +2097,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     IsTestSpecialization specialization =
         SpecializedChecks.findIsTestSpecialization(
-            node.dartType, _graph, _closedWorld);
+            node.dartType, _graph.element, _closedWorld);
 
     if (specialization == IsTestSpecialization.isNull ||
         specialization == IsTestSpecialization.notNull) {
@@ -2419,7 +2422,6 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   final JClosedWorld closedWorld;
   final SsaOptimizerTask optimizer;
   HGraph _graph;
-  SsaLiveBlockAnalyzer analyzer;
   Map<HInstruction, bool> trivialDeadStoreReceivers = Maplet();
   bool eliminatedSideEffects = false;
   bool newGvnCandidates = false;
@@ -2429,14 +2431,10 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   AbstractValueDomain get _abstractValueDomain =>
       closedWorld.abstractValueDomain;
 
-  HInstruction zapInstructionCache;
-  HInstruction get zapInstruction {
-    if (zapInstructionCache == null) {
-      // A constant with no type does not pollute types at phi nodes.
-      zapInstructionCache = analyzer.graph.addConstantUnreachable(closedWorld);
-    }
-    return zapInstructionCache;
-  }
+  // A constant with no type does not pollute types at phi nodes.
+  HInstruction _zapInstruction;
+  HInstruction get zapInstruction =>
+      _zapInstruction ??= _graph.addConstantUnreachable(closedWorld);
 
   /// Determines whether we can delete [instruction] because the only thing it
   /// does is throw the same exception as the next instruction that throws or
@@ -2476,7 +2474,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
             successor = condition.constant is TrueConstantValue
                 ? current.thenBlock
                 : current.elseBlock;
-            assert(!analyzer.isDeadBlock(successor));
+            assert(successor.isLive);
           }
         }
         if (successor != null && successor.id > current.block.id) {
@@ -2535,10 +2533,17 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   @override
   void visitGraph(HGraph graph) {
     _graph = graph;
-    analyzer = SsaLiveBlockAnalyzer(graph, closedWorld, optimizer);
-    analyzer.analyze();
+    _zapInstruction = null;
+    _computeLiveness();
     visitPostDominatorTree(graph);
-    cleanPhis();
+  }
+
+  void _computeLiveness() {
+    var analyzer = SsaLiveBlockAnalyzer(_graph, closedWorld, optimizer);
+    analyzer.analyze();
+    for (HBasicBlock block in _graph.blocks) {
+      block.isLive = analyzer.isLiveBlock(block);
+    }
   }
 
   @override
@@ -2548,14 +2553,12 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
   @override
   void visitBasicBlock(HBasicBlock block) {
-    bool isDeadBlock = analyzer.isDeadBlock(block);
-    block.isLive = !isDeadBlock;
     simplifyControlFlow(block);
     // Start from the last non-control flow instruction in the block.
     HInstruction instruction = block.last.previous;
     while (instruction != null) {
       var previous = instruction.previous;
-      if (isDeadBlock) {
+      if (!block.isLive) {
         eliminatedSideEffects =
             eliminatedSideEffects || instruction.sideEffects.hasSideEffects();
         removeUsers(instruction);
@@ -2571,10 +2574,48 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
   void simplifyPhi(HPhi phi) {
     // Remove an unused HPhi so that the inputs can become potentially dead.
+    if (!phi.block.isLive) {
+      removeUsers(phi);
+    }
+
     if (phi.usedBy.isEmpty) {
       phi.block.removePhi(phi);
       return;
     }
+
+    // Run through the phis of the block and replace them with their input that
+    // comes from the only live predecessor if that dominates the phi.
+    //
+    // TODO(sra): If the input is directly in the only live predecessor, it
+    // might be possible to move it into [block] (e.g. all its inputs are
+    // dominating.)
+    // Find the index of the single live predecessor if it exists.
+    List<HBasicBlock> predecessors = phi.block.predecessors;
+    int indexOfLive = -1;
+    for (int i = 0; i < predecessors.length; i++) {
+      if (predecessors[i].isLive) {
+        if (indexOfLive >= 0) {
+          indexOfLive = -1;
+          break;
+        }
+        indexOfLive = i;
+      }
+    }
+
+    if (indexOfLive >= 0) {
+      HInstruction replacement = phi.inputs[indexOfLive];
+      if (replacement.dominates(phi)) {
+        phi.block.rewrite(phi, replacement);
+        phi.block.removePhi(phi);
+        if (replacement.sourceElement == null &&
+            phi.sourceElement != null &&
+            replacement is! HThis) {
+          replacement.sourceElement = phi.sourceElement;
+        }
+        return;
+      }
+    }
+
     // If the phi is of the form `phi(x, HTypeKnown(x))`, it does not strengthen
     // `x`.  We can replace the phi with `x` to potentially make the HTypeKnown
     // refinement node dead and potentially make a HIf control no HPhis.
@@ -2678,49 +2719,6 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     }
   }
 
-  void cleanPhis() {
-    L:
-    for (HBasicBlock block in _graph.blocks) {
-      List<HBasicBlock> predecessors = block.predecessors;
-      // Zap all inputs to phis that correspond to dead blocks.
-      block.forEachPhi((HPhi phi) {
-        for (int i = 0; i < phi.inputs.length; ++i) {
-          if (!predecessors[i].isLive && phi.inputs[i] != zapInstruction) {
-            phi.replaceInput(i, zapInstruction);
-          }
-        }
-      });
-      if (predecessors.length < 2) continue L;
-      // Find the index of the single live predecessor if it exists.
-      int indexOfLive = -1;
-      for (int i = 0; i < predecessors.length; i++) {
-        if (predecessors[i].isLive) {
-          if (indexOfLive >= 0) continue L;
-          indexOfLive = i;
-        }
-      }
-      // Run through the phis of the block and replace them with their input
-      // that comes from the only live predecessor if that dominates the phi.
-      //
-      // TODO(sra): If the input is directly in the only live predecessor, it
-      // might be possible to move it into [block] (e.g. all its inputs are
-      // dominating.)
-      block.forEachPhi((HPhi phi) {
-        HInstruction replacement =
-            (indexOfLive >= 0) ? phi.inputs[indexOfLive] : zapInstruction;
-        if (replacement.dominates(phi)) {
-          block.rewrite(phi, replacement);
-          block.removePhi(phi);
-          if (replacement.sourceElement == null &&
-              phi.sourceElement != null &&
-              replacement is! HThis) {
-            replacement.sourceElement = phi.sourceElement;
-          }
-        }
-      });
-    }
-  }
-
   void removeUsers(HInstruction instruction) {
     instruction.usedBy.forEach((user) {
       removeInput(user, instruction);
@@ -2753,7 +2751,7 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor {
 
   Map<HInstruction, Range> get ranges => optimizer.ranges;
 
-  bool isDeadBlock(HBasicBlock block) => !live.contains(block);
+  bool isLiveBlock(HBasicBlock block) => live.contains(block);
 
   void analyze() {
     markBlockLive(graph.entry);

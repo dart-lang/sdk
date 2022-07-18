@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of layout;
 
 /**
@@ -56,7 +54,7 @@ class _Parser {
   }
 
   void _error(String msg) {
-    throw new SyntaxErrorException(msg, _src, _offset);
+    throw SyntaxErrorException(msg, _src, _offset);
   }
 
   int get length => _src.length;
@@ -132,7 +130,7 @@ class _Parser {
     }
   }
 
-  String _maybeEatString() {
+  String? _maybeEatString() {
     // TODO(jmesserly): make this match CSS string parsing
     String quote = "'";
     if (!_maybeEat(quote)) {
@@ -171,7 +169,7 @@ class _Parser {
   }
 
   /** Eats an integer. */
-  int _maybeEatInt() {
+  int? _maybeEatInt() {
     int start = _offset;
     bool dot = false;
     while (_offset < length && _isDigit(_peekChar())) {
@@ -186,8 +184,8 @@ class _Parser {
   }
 
   /** Eats an integer. */
-  int _eatInt() {
-    int result = _maybeEatInt();
+  int? _eatInt() {
+    int? result = _maybeEatInt();
     if (result == null) {
       _error('expected positive integer');
     }
@@ -204,7 +202,7 @@ class _Parser {
         if (c == DOT && !dot) {
           dot = true;
         } else {
-          // Not a digit or decimal seperator
+          // Not a digit or decimal separator
           break;
         }
       }
@@ -224,37 +222,37 @@ class _GridTemplateParser extends _Parser {
   _GridTemplateParser._internal(String src) : super(src);
 
   /** Parses the grid-rows and grid-columns CSS properties into object form. */
-  static GridTemplate parse(String str) {
+  static GridTemplate? parse(String? str) {
     if (str == null) return null;
-    final p = new _GridTemplateParser._internal(str);
+    final p = _GridTemplateParser._internal(str);
     final result = p._parseTemplate();
     p._eatEnd();
     return result;
   }
 
   /** Parses a grid-cell value. */
-  static String parseCell(String str) {
+  static String? parseCell(String? str) {
     if (str == null) return null;
-    final p = new _GridTemplateParser._internal(str);
+    final p = _GridTemplateParser._internal(str);
     final result = p._maybeEatString();
     p._eatEnd();
     return result;
   }
 
   // => <string>+ | 'none'
-  GridTemplate _parseTemplate() {
+  GridTemplate? _parseTemplate() {
     if (_maybeEat('none')) {
       return null;
     }
-    final rows = new List<String>();
-    String row;
+    final rows = <String?>[];
+    String? row;
     while ((row = _maybeEatString()) != null) {
       rows.add(row);
     }
     if (rows.length == 0) {
       _error('expected at least one cell, or "none"');
     }
-    return new GridTemplate(rows);
+    return GridTemplate(rows);
   }
 }
 
@@ -263,9 +261,9 @@ class _GridItemParser extends _Parser {
   _GridItemParser._internal(String src) : super(src);
 
   /** Parses the grid-rows and grid-columns CSS properties into object form. */
-  static _GridLocation parse(String cell, GridTrackList list) {
+  static _GridLocation? parse(String? cell, GridTrackList? list) {
     if (cell == null) return null;
-    final p = new _GridItemParser._internal(cell);
+    final p = _GridItemParser._internal(cell);
     final result = p._parseTrack(list);
     p._eatEnd();
     return result;
@@ -274,27 +272,27 @@ class _GridItemParser extends _Parser {
   // [ [ <integer> | <string> | 'start' | 'end' ]
   //   [ <integer> | <string> | 'start' | 'end' ]? ]
   // | 'auto'
-  _GridLocation _parseTrack(GridTrackList list) {
+  _GridLocation? _parseTrack(GridTrackList? list) {
     if (_maybeEat('auto')) {
       return null;
     }
-    int start = _maybeParseLine(list);
+    int? start = _maybeParseLine(list);
     if (start == null) {
       _error('expected row/column number or name');
     }
-    int end = _maybeParseLine(list);
-    int span = null;
+    int? end = _maybeParseLine(list);
+    int? span = null;
     if (end != null) {
-      span = end - start;
+      span = end - start!;
       if (span <= 0) {
         _error('expected row/column span to be a positive integer');
       }
     }
-    return new _GridLocation(start, span);
+    return _GridLocation(start, span);
   }
 
   // [ <integer> | <string> | 'start' | 'end' ]
-  int _maybeParseLine(GridTrackList list) {
+  int? _maybeParseLine(GridTrackList? list) {
     if (_maybeEat('start')) {
       return 1;
     } else if (_maybeEat('end')) {
@@ -303,14 +301,14 @@ class _GridItemParser extends _Parser {
       // TODO(jmesserly): this won't interact properly with implicit
       // rows/columns. Instead it will snap to the number of tracks at the point
       // where it is evaluated.
-      return list.tracks.length + 1;
+      return list!.tracks.length + 1;
     }
 
-    String name = _maybeEatString();
+    String? name = _maybeEatString();
     if (name == null) {
       return _maybeEatInt();
     } else {
-      int edge = list.lineNames[name];
+      int? edge = list!.lineNames[name];
       if (edge == null) {
         _error('row/column name "$name" not found in the parent\'s '
             ' grid-row/grid-columns properties');
@@ -329,17 +327,17 @@ class _GridItemParser extends _Parser {
 // CSS units, support for all escape sequences, etc.
 class _GridTrackParser extends _Parser {
   final List<GridTrack> _tracks;
-  final Map<String, int> _lineNames;
+  final Map<String?, int> _lineNames;
 
   _GridTrackParser._internal(String src)
-      : _tracks = new List<GridTrack>(),
-        _lineNames = new Map<String, int>(),
+      : _tracks = <GridTrack>[],
+        _lineNames = Map<String?, int>(),
         super(src);
 
   /** Parses the grid-rows and grid-columns CSS properties into object form. */
-  static GridTrackList parse(String str) {
+  static GridTrackList? parse(String? str) {
     if (str == null) return null;
-    final p = new _GridTrackParser._internal(str);
+    final p = _GridTrackParser._internal(str);
     final result = p._parseTrackList();
     p._eatEnd();
     return result;
@@ -349,28 +347,28 @@ class _GridTrackParser extends _Parser {
    * Parses the grid-row-sizing and grid-column-sizing CSS properties into
    * object form.
    */
-  static TrackSizing parseTrackSizing(String str) {
+  static TrackSizing parseTrackSizing(String? str) {
     if (str == null) str = 'auto';
-    final p = new _GridTrackParser._internal(str);
+    final p = _GridTrackParser._internal(str);
     final result = p._parseTrackMinmax();
     p._eatEnd();
     return result;
   }
 
   // <track-list> => [ [ <string> ]* <track-group> [ <string> ]* ]+ | 'none'
-  GridTrackList _parseTrackList() {
+  GridTrackList? _parseTrackList() {
     if (_maybeEat('none')) {
       return null;
     }
     _parseTrackListHelper();
-    return new GridTrackList(_tracks, _lineNames);
+    return GridTrackList(_tracks, _lineNames);
   }
 
   /** Code shared by _parseTrackList and _parseTrackGroup */
-  void _parseTrackListHelper([List<GridTrack> resultTracks = null]) {
+  void _parseTrackListHelper([List<GridTrack>? resultTracks = null]) {
     _maybeEatWhitespace();
     while (!endOfInput) {
-      String name;
+      String? name;
       while ((name = _maybeEatString()) != null) {
         _lineNames[name] = _tracks.length + 1; // should be 1-based
       }
@@ -384,7 +382,7 @@ class _GridTrackParser extends _Parser {
         if (_peekChar() == _Parser.R_PAREN) {
           return;
         }
-        resultTracks.add(new GridTrack(_parseTrackMinmax()));
+        resultTracks.add(GridTrack(_parseTrackMinmax()));
       } else {
         _parseTrackGroup();
       }
@@ -398,11 +396,11 @@ class _GridTrackParser extends _Parser {
   //                  | <track-minmax>
   void _parseTrackGroup() {
     if (_maybeEat('(')) {
-      final tracks = new List<GridTrack>();
+      final tracks = <GridTrack>[];
       _parseTrackListHelper(tracks);
       _eat(')');
       if (_maybeEat('[')) {
-        num expand = _eatInt();
+        num expand = _eatInt()!;
         _eat(']');
 
         if (expand <= 0) {
@@ -419,7 +417,7 @@ class _GridTrackParser extends _Parser {
         }
       }
     } else {
-      _tracks.add(new GridTrack(_parseTrackMinmax()));
+      _tracks.add(GridTrack(_parseTrackMinmax()));
     }
   }
 
@@ -434,10 +432,10 @@ class _GridTrackParser extends _Parser {
       _eat(',');
       final max = _parseTrackBreadth();
       _eat(')');
-      return new TrackSizing(min, max);
+      return TrackSizing(min, max);
     } else {
       final breadth = _parseTrackBreadth();
-      return new TrackSizing(breadth, breadth);
+      return TrackSizing(breadth, breadth);
     }
   }
 
@@ -460,9 +458,9 @@ class _GridTrackParser extends _Parser {
     }
 
     if (units == 'fr') {
-      return new FractionSizing(value);
+      return FractionSizing(value);
     } else {
-      return new FixedSizing(value, units);
+      return FixedSizing(value, units);
     }
   }
 }

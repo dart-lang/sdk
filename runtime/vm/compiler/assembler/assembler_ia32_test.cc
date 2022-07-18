@@ -1801,7 +1801,7 @@ ASSEMBLER_TEST_RUN(PackedNegate, test) {
       "mov eax,0x4144cccd\n"
       "movd xmm0,eax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "xorps xmm0,[0x.......]\n"
+      "xorps xmm0,[0x........]\n"
       "shufps xmm0,xmm0 [aa]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
@@ -1832,7 +1832,7 @@ ASSEMBLER_TEST_RUN(PackedAbsolute, test) {
       "mov eax,0xc174cccd\n"
       "movd xmm0,eax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "andps xmm0,[0x.......]\n"
+      "andps xmm0,[0x........]\n"
       "shufps xmm0,xmm0 [aa]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
@@ -1861,7 +1861,7 @@ ASSEMBLER_TEST_RUN(PackedSetWZero, test) {
       "mov eax,0x4144cccd\n"
       "movd xmm0,eax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "andps xmm0,[0x.......]\n"
+      "andps xmm0,[0x........]\n"
       "shufps xmm0,xmm0 [ff]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
@@ -1961,8 +1961,8 @@ ASSEMBLER_TEST_RUN(PackedLogicalOr, test) {
   uint32_t res = reinterpret_cast<PackedLogicalOrCode>(test->entry())();
   EXPECT_EQ(0xFFFFFFFF, res);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
-      "movups xmm1,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
+      "movups xmm1,[0x........]\n"
       "orps xmm0,xmm1\n"
       "push eax\n"
       "movss [esp],xmm0\n"
@@ -1999,8 +1999,8 @@ ASSEMBLER_TEST_RUN(PackedLogicalAnd, test) {
   uint32_t res = reinterpret_cast<PackedLogicalAndCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x0000F000), res);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
-      "andps xmm0,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
+      "andps xmm0,[0x........]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
       "fld_s [esp]\n"
@@ -2030,8 +2030,8 @@ ASSEMBLER_TEST_RUN(PackedLogicalNot, test) {
   uint32_t res = reinterpret_cast<PackedLogicalNotCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x0), res);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
-      "xorps xmm0,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
+      "xorps xmm0,[0x........]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
       "fld_s [esp]\n"
@@ -2076,8 +2076,8 @@ ASSEMBLER_TEST_RUN(PackedMoveHighLow, test) {
   float res = reinterpret_cast<PackedMoveHighLow>(test->entry())();
   EXPECT_FLOAT_EQ(15.0f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
-      "movups xmm1,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
+      "movups xmm1,[0x........]\n"
       "movhlps xmm0,xmm1\n"
       "xorps xmm1,xmm1\n"
       "movaps xmm1,xmm0\n"
@@ -2128,8 +2128,8 @@ ASSEMBLER_TEST_RUN(PackedMoveLowHigh, test) {
   float res = reinterpret_cast<PackedMoveLowHigh>(test->entry())();
   EXPECT_FLOAT_EQ(11.0f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
-      "movups xmm1,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
+      "movups xmm1,[0x........]\n"
       "movlhps xmm0,xmm1\n"
       "xorps xmm1,xmm1\n"
       "movaps xmm1,xmm0\n"
@@ -2179,8 +2179,8 @@ ASSEMBLER_TEST_RUN(PackedUnpackLow, test) {
   float res = reinterpret_cast<PackedUnpackLow>(test->entry())();
   EXPECT_FLOAT_EQ(11.0f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
-      "movups xmm1,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
+      "movups xmm1,[0x........]\n"
       "unpcklps xmm0,xmm1\n"
       "movaps xmm1,xmm0\n"
       "shufps xmm0,xmm0 [55]\n"
@@ -2229,8 +2229,8 @@ ASSEMBLER_TEST_RUN(PackedUnpackHigh, test) {
   float res = reinterpret_cast<PackedUnpackHigh>(test->entry())();
   EXPECT_FLOAT_EQ(7.0f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
-      "movups xmm1,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
+      "movups xmm1,[0x........]\n"
       "unpckhps xmm0,xmm1\n"
       "movaps xmm1,xmm0\n"
       "shufps xmm0,xmm0 [0]\n"
@@ -2279,8 +2279,8 @@ ASSEMBLER_TEST_RUN(PackedUnpackLowPair, test) {
   float res = reinterpret_cast<PackedUnpackLowPair>(test->entry())();
   EXPECT_FLOAT_EQ(6.0f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
-      "movups xmm1,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
+      "movups xmm1,[0x........]\n"
       "unpcklpd xmm0,xmm1\n"
       "movaps xmm1,xmm0\n"
       "shufps xmm0,xmm0 [0]\n"
@@ -2329,8 +2329,8 @@ ASSEMBLER_TEST_RUN(PackedUnpackHighPair, test) {
   float res = reinterpret_cast<PackedUnpackHighPair>(test->entry())();
   EXPECT_FLOAT_EQ(12.0f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
-      "movups xmm1,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
+      "movups xmm1,[0x........]\n"
       "unpckhpd xmm0,xmm1\n"
       "movaps xmm1,xmm0\n"
       "shufps xmm0,xmm0 [55]\n"
@@ -2369,8 +2369,8 @@ ASSEMBLER_TEST_RUN(PackedDoubleAdd, test) {
   double res = reinterpret_cast<PackedDoubleAdd>(test->entry())();
   EXPECT_FLOAT_EQ(4.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
-      "movups xmm1,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
+      "movups xmm1,[0x........]\n"
       "addpd xmm0,xmm1\n"
       "push eax\n"
       "push eax\n"
@@ -2407,8 +2407,8 @@ ASSEMBLER_TEST_RUN(PackedDoubleSub, test) {
   double res = reinterpret_cast<PackedDoubleSub>(test->entry())();
   EXPECT_FLOAT_EQ(-2.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
-      "movups xmm1,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
+      "movups xmm1,[0x........]\n"
       "subpd xmm0,xmm1\n"
       "push eax\n"
       "push eax\n"
@@ -2440,8 +2440,8 @@ ASSEMBLER_TEST_RUN(PackedDoubleNegate, test) {
   double res = reinterpret_cast<PackedDoubleNegate>(test->entry())();
   EXPECT_FLOAT_EQ(-1.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
-      "xorpd xmm0,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
+      "xorpd xmm0,[0x........]\n"
       "push eax\n"
       "push eax\n"
       "movsd [esp],xmm0\n"
@@ -2472,8 +2472,8 @@ ASSEMBLER_TEST_RUN(PackedDoubleAbsolute, test) {
   double res = reinterpret_cast<PackedDoubleAbsolute>(test->entry())();
   EXPECT_FLOAT_EQ(1.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
-      "andpd xmm0,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
+      "andpd xmm0,[0x........]\n"
       "push eax\n"
       "push eax\n"
       "movsd [esp],xmm0\n"
@@ -2509,8 +2509,8 @@ ASSEMBLER_TEST_RUN(PackedDoubleMul, test) {
   double res = reinterpret_cast<PackedDoubleMul>(test->entry())();
   EXPECT_FLOAT_EQ(9.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
-      "movups xmm1,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
+      "movups xmm1,[0x........]\n"
       "mulpd xmm0,xmm1\n"
       "push eax\n"
       "push eax\n"
@@ -2547,8 +2547,8 @@ ASSEMBLER_TEST_RUN(PackedDoubleDiv, test) {
   double res = reinterpret_cast<PackedDoubleDiv>(test->entry())();
   EXPECT_FLOAT_EQ(3.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
-      "movups xmm1,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
+      "movups xmm1,[0x........]\n"
       "divpd xmm0,xmm1\n"
       "push eax\n"
       "push eax\n"
@@ -2580,7 +2580,7 @@ ASSEMBLER_TEST_RUN(PackedDoubleSqrt, test) {
   double res = reinterpret_cast<PackedDoubleSqrt>(test->entry())();
   EXPECT_FLOAT_EQ(4.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
       "sqrtpd xmm0,xmm0\n"
       "push eax\n"
       "push eax\n"
@@ -2617,8 +2617,8 @@ ASSEMBLER_TEST_RUN(PackedDoubleMin, test) {
   double res = reinterpret_cast<PackedDoubleMin>(test->entry())();
   EXPECT_FLOAT_EQ(3.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
-      "movups xmm1,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
+      "movups xmm1,[0x........]\n"
       "minpd xmm0,xmm1\n"
       "push eax\n"
       "push eax\n"
@@ -2655,8 +2655,8 @@ ASSEMBLER_TEST_RUN(PackedDoubleMax, test) {
   double res = reinterpret_cast<PackedDoubleMax>(test->entry())();
   EXPECT_FLOAT_EQ(9.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
-      "movups xmm1,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
+      "movups xmm1,[0x........]\n"
       "maxpd xmm0,xmm1\n"
       "push eax\n"
       "push eax\n"
@@ -2692,7 +2692,7 @@ ASSEMBLER_TEST_RUN(PackedDoubleShuffle, test) {
   double res = reinterpret_cast<PackedDoubleShuffle>(test->entry())();
   EXPECT_FLOAT_EQ(9.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[0x.......]\n"
+      "movups xmm0,[0x........]\n"
       "shufpd xmm0, xmm0 [33]\n"
       "shufpd xmm0, xmm0 [0]\n"
       "push eax\n"
@@ -2723,7 +2723,7 @@ ASSEMBLER_TEST_RUN(PackedDoubleToSingle, test) {
   float res = reinterpret_cast<PackedDoubleToSingle>(test->entry())();
   EXPECT_FLOAT_EQ(9.0f, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm1,[0x.......]\n"
+      "movups xmm1,[0x........]\n"
       "cvtpd2ps xmm0,xmm1\n"
       "push eax\n"
       "movss [esp],xmm0\n"
@@ -2755,7 +2755,7 @@ ASSEMBLER_TEST_RUN(PackedSingleToDouble, test) {
   double res = reinterpret_cast<PackedSingleToDouble>(test->entry())();
   EXPECT_FLOAT_EQ(9.0f, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm1,[0x.......]\n"
+      "movups xmm1,[0x........]\n"
       "cvtps2pd xmm0,xmm1\n"
       "push eax\n"
       "push eax\n"
@@ -3499,7 +3499,7 @@ ASSEMBLER_TEST_RUN(GlobalAddress, test) {
   double res = reinterpret_cast<GlobalAddressCode>(test->entry())();
   EXPECT_FLOAT_EQ(kDoubleConst, res, 0.000001);
   EXPECT_DISASSEMBLY(
-      "movsd xmm0,[0x.......]\n"
+      "movsd xmm0,[0x........]\n"
       "push eax\n"
       "push eax\n"
       "movsd [esp],xmm0\n"
@@ -3703,7 +3703,7 @@ ASSEMBLER_TEST_RUN(FloatNegate, test) {
   EXPECT_FLOAT_EQ(-kFloatConst, res, 0.0001);
   EXPECT_DISASSEMBLY(
       "movss xmm0,[esp+0x4]\n"
-      "xorps xmm0,[0x.......]\n"
+      "xorps xmm0,[0x........]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
       "fld_s [esp]\n"
@@ -3730,7 +3730,7 @@ ASSEMBLER_TEST_RUN(DoubleNegate, test) {
   EXPECT_FLOAT_EQ(-kDoubleConst, res, 0.0001);
   EXPECT_DISASSEMBLY(
       "movsd xmm0,[esp+0x4]\n"
-      "xorpd xmm0,[0x.......]\n"
+      "xorpd xmm0,[0x........]\n"
       "push eax\n"
       "push eax\n"
       "movsd [esp],xmm0\n"
@@ -4214,7 +4214,7 @@ ASSEMBLER_TEST_RUN(Orpd, test) {
   EXPECT_DISASSEMBLY(
       "movsd xmm0,[esp+0x4]\n"
       "xorpd xmm1,xmm1\n"
-      "xorpd xmm1,[0x.......]\n"
+      "xorpd xmm1,[0x........]\n"
       "orpd xmm0,xmm1\n"
       "push eax\n"
       "push eax\n"
@@ -4383,7 +4383,7 @@ ASSEMBLER_TEST_RUN(DoubleAbs, test) {
   EXPECT_FLOAT_EQ(val, res, 0.001);
   EXPECT_DISASSEMBLY(
       "movsd xmm0,[esp+0x4]\n"
-      "andpd xmm0,[0x.......]\n"
+      "andpd xmm0,[0x........]\n"
       "push eax\n"
       "push eax\n"
       "movsd [esp],xmm0\n"
@@ -4625,7 +4625,7 @@ ASSEMBLER_TEST_RUN(TestSetCC, test) {
   EXPECT_DISASSEMBLY(
       "mov eax,0xffffffff\n"
       "cmp eax,eax\n"
-      "setnz eax\n"
+      "setnz al\n"
       "ret\n");
 }
 

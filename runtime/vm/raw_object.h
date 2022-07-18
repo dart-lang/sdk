@@ -158,11 +158,11 @@ class UntaggedObject {
   // bit fields for storing tags.
   enum TagBits {
     kCardRememberedBit = 0,
-    kOldAndNotMarkedBit = 1,      // Incremental barrier target.
-    kNewBit = 2,                  // Generational barrier target.
-    kOldBit = 3,                  // Incremental barrier source.
-    kOldAndNotRememberedBit = 4,  // Generational barrier source.
-    kCanonicalBit = 5,
+    kCanonicalBit = 1,
+    kOldAndNotMarkedBit = 2,      // Incremental barrier target.
+    kNewBit = 3,                  // Generational barrier target.
+    kOldBit = 4,                  // Incremental barrier source.
+    kOldAndNotRememberedBit = 5,  // Generational barrier source.
     kReservedTagPos = 6,
     kReservedTagSize = 2,
 
@@ -1174,6 +1174,7 @@ class UntaggedFunction : public UntaggedObject {
   /* a forwarder which performs type checks for arguments of a dynamic call */ \
   /* (i.e., those checks omitted by the caller for interface calls). */        \
   V(DynamicInvocationForwarder)                                                \
+  /* A `dart:ffi` call or callback trampoline. */                              \
   V(FfiTrampoline)
 
   enum Kind {
@@ -3307,6 +3308,7 @@ class UntaggedStackTrace : public UntaggedInstance {
 class UntaggedSuspendState : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SuspendState);
 
+  NOT_IN_PRECOMPILED(intptr_t frame_capacity_);
   intptr_t frame_size_;
   uword pc_;
 
@@ -3323,6 +3325,14 @@ class UntaggedSuspendState : public UntaggedInstance {
 
  public:
   uword pc() const { return pc_; }
+
+  intptr_t frame_capacity() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return frame_size_;
+#else
+    return frame_capacity_;
+#endif
+  }
 
   static intptr_t payload_offset() {
     return OFFSET_OF_RETURNED_VALUE(UntaggedSuspendState, payload);

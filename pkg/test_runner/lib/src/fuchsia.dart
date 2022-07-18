@@ -24,18 +24,18 @@ class FuchsiaEmulator {
       RegExp(r'([0-9]+) .* qemu-system-x86');
   static final String serverReadyPattern = '[pm serve] serving';
 
-  static FuchsiaEmulator _inst;
+  static FuchsiaEmulator? _inst;
 
-  Process _emu;
-  Process _server;
-  String _deviceName;
+  Process? _emu;
+  Process? _server;
+  late String _deviceName;
 
   static Future<void> publishPackage(String buildDir, String mode) async {
     if (_inst == null) {
       _inst = FuchsiaEmulator();
-      await _inst._start();
+      await _inst!._start();
     }
-    await _inst._publishPackage(buildDir, mode);
+    await _inst!._publishPackage(buildDir, mode);
   }
 
   static void stop() {
@@ -43,7 +43,7 @@ class FuchsiaEmulator {
   }
 
   static List<String> getTestArgs(String mode, List<String> arguments) {
-    return _inst._getSshArgs(
+    return _inst!._getSshArgs(
         mode,
         arguments.map((arg) =>
             arg.replaceAll(Repository.uri.toFilePath(), '/pkg/data/')));
@@ -59,7 +59,7 @@ class FuchsiaEmulator {
     var deviceNameFuture = Completer<String>();
     var emuStdout = StringBuffer();
     var emuStderr = StringBuffer();
-    _emu.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen(
+    _emu!.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen(
         (String line) {
       if (!deviceNameFuture.isCompleted) {
         emuStdout.write(line);
@@ -77,7 +77,7 @@ class FuchsiaEmulator {
       }
       _stop();
     });
-    _emu.stderr
+    _emu!.stderr
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((String line) {
@@ -101,10 +101,10 @@ class FuchsiaEmulator {
     ]);
 
     // Wait until the server is ready to serve packages.
-    var serverReadyFuture = Completer<String>();
+    var serverReadyFuture = Completer<void>();
     var serverStdout = StringBuffer();
     var serverStderr = StringBuffer();
-    _server.stdout
+    _server!.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((String line) {
@@ -124,7 +124,7 @@ class FuchsiaEmulator {
       }
       _stop();
     });
-    _server.stderr
+    _server!.stderr
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((String line) {
@@ -177,7 +177,7 @@ class FuchsiaEmulator {
   void _stop() {
     if (_emu != null) {
       DebugLogger.info('Stopping Fuchsia emulator');
-      _emu.kill(ProcessSignal.sigint);
+      _emu!.kill(ProcessSignal.sigint);
       _emu = null;
 
       // Killing femu.sh seems to leave the underlying emulator running. So
@@ -197,7 +197,7 @@ class FuchsiaEmulator {
 
     if (_server != null) {
       DebugLogger.info('Stopping Fuchsia package server');
-      _server.kill();
+      _server!.kill();
       _server = null;
 
       // fserve.sh starts a package manager process in the background. We need

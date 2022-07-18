@@ -424,6 +424,7 @@ Precompiler::Precompiler(Thread* thread)
       typeparams_to_retain_(),
       consts_to_retain_(),
       seen_table_selectors_(),
+      api_uses_(),
       error_(Error::Handle()),
       get_runtime_type_is_unique_(false) {
   ASSERT(Precompiler::singleton_ == NULL);
@@ -662,6 +663,8 @@ void Precompiler::DoCompileAll() {
       ProgramVisitor::Dedup(T);
     }
 
+    PruneDictionaries();
+
     if (retained_reasons_writer_ != nullptr) {
       reasons_writer.Write();
       retained_reasons_writer_ = nullptr;
@@ -752,6 +755,7 @@ void Precompiler::AddRoots() {
     }
   }
   if (!main.IsNull()) {
+    AddApiUse(main);
     if (lib.LookupLocalFunction(name) == Function::null()) {
       retain_root_library_caches_ = true;
     }
@@ -1464,6 +1468,14 @@ bool Precompiler::IsHitByTableSelector(const Function& function) {
   return seen_table_selectors_.HasKey(selector_id);
 }
 
+void Precompiler::AddApiUse(const Object& obj) {
+  api_uses_.Insert(&Object::ZoneHandle(Z, obj.ptr()));
+}
+
+bool Precompiler::HasApiUse(const Object& obj) {
+  return api_uses_.HasKey(&obj);
+}
+
 void Precompiler::AddInstantiatedClass(const Class& cls) {
   if (is_tracing()) {
     tracer_->WriteClassInstantiationRef(cls);
@@ -1523,6 +1535,7 @@ void Precompiler::AddAnnotatedRoots() {
                                  &reusable_object_handle) ==
             EntryPointPragma::kAlways) {
           AddInstantiatedClass(cls);
+          AddApiUse(cls);
         }
       }
 
@@ -1541,6 +1554,7 @@ void Precompiler::AddAnnotatedRoots() {
           if (pragma == EntryPointPragma::kNever) continue;
 
           AddField(field);
+          AddApiUse(field);
 
           if (!field.is_static()) {
             if (pragma != EntryPointPragma::kSetterOnly) {
@@ -1569,6 +1583,7 @@ void Precompiler::AddAnnotatedRoots() {
               type == EntryPointPragma::kCallOnly) {
             functions_with_entry_point_pragmas_.Insert(function);
             AddFunction(function, RetainReasons::kEntryPointPragma);
+            AddApiUse(function);
           }
 
           if ((type == EntryPointPragma::kAlways ||
@@ -1578,10 +1593,16 @@ void Precompiler::AddAnnotatedRoots() {
             function2 = function.ImplicitClosureFunction();
             functions_with_entry_point_pragmas_.Insert(function2);
             AddFunction(function2, RetainReasons::kEntryPointPragma);
+
+            // Not `function2`: Dart_GetField will lookup the regular function
+            // and get the implicit closure function from that.
+            AddApiUse(function);
           }
 
           if (function.IsGenerativeConstructor()) {
             AddInstantiatedClass(cls);
+            AddApiUse(function);
+            AddApiUse(cls);
           }
         }
         if (function.kind() == UntaggedFunction::kImplicitGetter &&
@@ -1591,6 +1612,7 @@ void Precompiler::AddAnnotatedRoots() {
             if (function.accessor_field() == field.ptr()) {
               functions_with_entry_point_pragmas_.Insert(function);
               AddFunction(function, RetainReasons::kImplicitGetter);
+              AddApiUse(function);
             }
           }
         }
@@ -1601,6 +1623,7 @@ void Precompiler::AddAnnotatedRoots() {
             if (function.accessor_field() == field.ptr()) {
               functions_with_entry_point_pragmas_.Insert(function);
               AddFunction(function, RetainReasons::kImplicitSetter);
+              AddApiUse(function);
             }
           }
         }
@@ -1611,8 +1634,14 @@ void Precompiler::AddAnnotatedRoots() {
             if (function.accessor_field() == field.ptr()) {
               functions_with_entry_point_pragmas_.Insert(function);
               AddFunction(function, RetainReasons::kImplicitStaticGetter);
+              AddApiUse(function);
             }
           }
+        }
+        if (function.is_native()) {
+          // The embedder will need to lookup this library to provide the native
+          // resolver, even if there are no embedder calls into the library.
+          AddApiUse(lib);
         }
       }
 
@@ -3067,6 +3096,166 @@ void Precompiler::DiscardCodeObjects() {
   if (FLAG_trace_precompiler) {
     visitor.PrintStatistics();
   }
+}
+
+void Precompiler::PruneDictionaries() {
+  // PRODUCT-only: pruning interferes with various uses of the service protocol,
+  // including heap analysis tools.
+#if defined(PRODUCT)
+  class PruneDictionariesVisitor {
+   public:
+    GrowableObjectArrayPtr PruneLibraries(
+        const GrowableObjectArray& libraries) {
+      for (intptr_t i = 0; i < libraries.Length(); i++) {
+        lib_ ^= libraries.At(i);
+        bool retain = PruneLibrary(lib_);
+        if (retain) {
+          lib_.set_index(retained_libraries_.Length());
+          retained_libraries_.Add(lib_);
+        } else {
+          lib_.set_index(-1);
+          lib_.set_private_key(null_string_);
+        }
+      }
+
+      Library::RegisterLibraries(Thread::Current(), retained_libraries_);
+      return retained_libraries_.ptr();
+    }
+
+    bool PruneLibrary(const Library& lib) {
+      dict_ = lib.dictionary();
+      intptr_t dict_size = dict_.Length() - 1;
+      intptr_t used = 0;
+      for (intptr_t i = 0; i < dict_size; i++) {
+        entry_ = dict_.At(i);
+        if (entry_.IsNull()) continue;
+
+        bool retain = false;
+        if (entry_.IsClass()) {
+          // dart:async: Fix async stack trace lookups in dart:async to annotate
+          // entry points or fail gracefully.
+          // dart:core, dart:collection, dart:typed_data: Isolate messaging
+          // between groups allows any class in these libraries.
+          retain = PruneClass(Class::Cast(entry_)) ||
+                   (lib.url() == Symbols::DartAsync().ptr()) ||
+                   (lib.url() == Symbols::DartCore().ptr()) ||
+                   (lib.url() == Symbols::DartCollection().ptr()) ||
+                   (lib.url() == Symbols::DartTypedData().ptr());
+        } else if (entry_.IsFunction() || entry_.IsField()) {
+          retain = precompiler_->HasApiUse(entry_);
+        } else {
+          FATAL("Unexpected library entry: %s", entry_.ToCString());
+        }
+        if (retain) {
+          used++;
+        } else {
+          dict_.SetAt(i, Object::null_object());
+        }
+      }
+      lib.RehashDictionary(dict_, used * 4 / 3 + 1);
+
+      bool retain = used > 0;
+      cls_ = lib.toplevel_class();
+      if (PruneClass(cls_)) {
+        retain = true;
+      }
+      if (lib.is_dart_scheme()) {
+        retain = true;
+      }
+      if (lib.ptr() == root_lib_.ptr()) {
+        retain = true;
+      }
+      if (precompiler_->HasApiUse(lib)) {
+        retain = true;
+      }
+      return retain;
+    }
+
+    bool PruneClass(const Class& cls) {
+      bool retain = precompiler_->HasApiUse(cls);
+
+      functions_ = cls.functions();
+      retained_functions_ = GrowableObjectArray::New();
+      for (intptr_t i = 0; i < functions_.Length(); i++) {
+        function_ ^= functions_.At(i);
+        if (precompiler_->HasApiUse(function_)) {
+          retained_functions_.Add(function_);
+          retain = true;
+        } else if (precompiler_->functions_called_dynamically_.ContainsKey(
+                       function_)) {
+          retained_functions_.Add(function_);
+          // No `retain = true`: the function must appear in the method
+          // dictionary for lookup, but the class may still be removed from the
+          // library.
+        }
+      }
+      if (retained_functions_.Length() > 0) {
+        functions_ = Array::MakeFixedLength(retained_functions_);
+        cls.SetFunctions(functions_);
+      } else {
+        cls.SetFunctions(Object::empty_array());
+      }
+
+      fields_ = cls.fields();
+      retained_fields_ = GrowableObjectArray::New();
+      for (intptr_t i = 0; i < fields_.Length(); i++) {
+        field_ ^= fields_.At(i);
+        if (precompiler_->HasApiUse(field_)) {
+          retained_fields_.Add(field_);
+          retain = true;
+        }
+      }
+      if (retained_fields_.Length() > 0) {
+        fields_ = Array::MakeFixedLength(retained_fields_);
+        cls.SetFields(fields_);
+      } else {
+        cls.SetFields(Object::empty_array());
+      }
+
+      return retain;
+    }
+
+    explicit PruneDictionariesVisitor(Precompiler* precompiler, Zone* zone)
+        : precompiler_(precompiler),
+          lib_(Library::Handle(zone)),
+          dict_(Array::Handle(zone)),
+          entry_(Object::Handle(zone)),
+          cls_(Class::Handle(zone)),
+          functions_(Array::Handle(zone)),
+          fields_(Array::Handle(zone)),
+          function_(Function::Handle(zone)),
+          field_(Field::Handle(zone)),
+          retained_functions_(GrowableObjectArray::Handle(zone)),
+          retained_fields_(GrowableObjectArray::Handle(zone)),
+          retained_libraries_(
+              GrowableObjectArray::Handle(zone, GrowableObjectArray::New())),
+          root_lib_(Library::Handle(
+              zone,
+              precompiler->isolate_group()->object_store()->root_library())),
+          null_string_(String::Handle(zone)) {}
+
+   private:
+    Precompiler* const precompiler_;
+    Library& lib_;
+    Array& dict_;
+    Object& entry_;
+    Class& cls_;
+    Array& functions_;
+    Array& fields_;
+    Function& function_;
+    Field& field_;
+    GrowableObjectArray& retained_functions_;
+    GrowableObjectArray& retained_fields_;
+    const GrowableObjectArray& retained_libraries_;
+    const Library& root_lib_;
+    const String& null_string_;
+  };
+
+  HANDLESCOPE(T);
+  SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
+  PruneDictionariesVisitor visitor(this, Z);
+  libraries_ = visitor.PruneLibraries(libraries_);
+#endif  // defined(PRODUCT)
 }
 
 // Traits for the HashTable template.

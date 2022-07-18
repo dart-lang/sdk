@@ -60,6 +60,35 @@ class RangeFactory {
     }
   }
 
+  /// Return the deletion range of the [node], considering the spaces and
+  /// comments before and after it.
+  SourceRange deletionRange(AstNode node) {
+    var begin = node.beginToken;
+    begin = begin.precedingComments ?? begin;
+
+    var end = node.endToken.next!;
+    end = end.precedingComments ?? end;
+
+    int startOffset;
+    int endOffset;
+    if (end.isEof) {
+      var type = begin.type;
+      if (node is AnnotatedNode &&
+          (type == TokenType.SINGLE_LINE_COMMENT ||
+              type == TokenType.MULTI_LINE_COMMENT)) {
+        var firstToken = node.firstTokenAfterCommentAndMetadata;
+        startOffset = firstToken.previous!.end;
+      } else {
+        startOffset = begin.previous!.end;
+      }
+      endOffset = node.endToken.end;
+    } else {
+      startOffset = begin.offset;
+      endOffset = end.offset;
+    }
+    return startOffsetEndOffset(startOffset, endOffset);
+  }
+
   /// Return a source range that covers the name of the given [element].
   SourceRange elementName(Element element) {
     return SourceRange(element.nameOffset, element.nameLength);

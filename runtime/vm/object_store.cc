@@ -250,6 +250,7 @@ void ObjectStore::InitKnownObjects() {
 
   String& function_name = String::Handle(zone);
   Function& function = Function::Handle(zone);
+  Field& field = Field::Handle(zone);
 
   function_name = async_lib.PrivateName(Symbols::AsyncStarMoveNextHelper());
   ASSERT(!function_name.IsNull());
@@ -296,6 +297,10 @@ void ObjectStore::InitKnownObjects() {
   function = cls.LookupFunctionAllowPrivate(Symbols::addStream());
   ASSERT(!function.IsNull());
   set_async_star_stream_controller_add_stream(function);
+
+  field = cls.LookupFieldAllowPrivate(Symbols::asyncStarBody());
+  ASSERT(!field.IsNull());
+  set_async_star_stream_controller_async_star_body(field);
 
   if (FLAG_async_debugger) {
     // Disable debugging and inlining of all functions on the
@@ -347,9 +352,33 @@ void ObjectStore::InitKnownObjects() {
   ASSERT(!function.IsNull());
   set_suspend_state_return_async_star(function);
 
+  function = cls.LookupFunctionAllowPrivate(Symbols::_initSyncStar());
+  ASSERT(!function.IsNull());
+  set_suspend_state_init_sync_star(function);
+
+  function = cls.LookupFunctionAllowPrivate(Symbols::_yieldSyncStar());
+  ASSERT(!function.IsNull());
+  set_suspend_state_yield_sync_star(function);
+
+  function = cls.LookupFunctionAllowPrivate(Symbols::_returnSyncStar());
+  ASSERT(!function.IsNull());
+  set_suspend_state_return_sync_star(function);
+
   function = cls.LookupFunctionAllowPrivate(Symbols::_handleException());
   ASSERT(!function.IsNull());
   set_suspend_state_handle_exception(function);
+
+  cls = async_lib.LookupClassAllowPrivate(Symbols::_SyncStarIterator());
+  ASSERT(!cls.IsNull());
+  RELEASE_ASSERT(cls.EnsureIsFinalized(thread) == Error::null());
+
+  field = cls.LookupFieldAllowPrivate(Symbols::_current());
+  ASSERT(!field.IsNull());
+  set_sync_star_iterator_current(field);
+
+  field = cls.LookupFieldAllowPrivate(Symbols::_yieldStarIterable());
+  ASSERT(!field.IsNull());
+  set_sync_star_iterator_yield_star_iterable(field);
 
   const Library& core_lib = Library::Handle(zone, core_library());
   cls = core_lib.LookupClassAllowPrivate(Symbols::_CompileTimeError());
@@ -377,6 +406,10 @@ void ObjectStore::InitKnownObjects() {
   cls = core_lib.LookupClassAllowPrivate(Symbols::Expando());
   ASSERT(!cls.IsNull());
   set_expando_class(cls);
+
+  cls = core_lib.LookupClassAllowPrivate(Symbols::Iterable());
+  ASSERT(!cls.IsNull());
+  set_iterable_class(cls);
 
   // Cache the core private functions used for fast instance of checks.
   simple_instance_of_function_ =

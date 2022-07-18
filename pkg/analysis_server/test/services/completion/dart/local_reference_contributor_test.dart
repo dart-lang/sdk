@@ -1258,7 +1258,7 @@ class Z { }''');
     assertNotSuggested('r');
     assertNotSuggested('x');
 
-    // imported elements are portially filtered
+    // imported elements are partially filtered
     //assertNotSuggested('A');
     assertNotSuggested('_B');
     //assertNotSuggested('C');
@@ -2769,42 +2769,6 @@ class A {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 3);
     assertNoSuggestions();
-  }
-
-  Future<void> test_flutter_setState_hasPrefix() async {
-    var spaces_4 = ' ' * 4;
-    var spaces_6 = ' ' * 6;
-    await _check_flutter_setState(
-        '    setSt',
-        '''
-setState(() {
-$spaces_6
-$spaces_4});''',
-        20);
-  }
-
-  Future<void> test_flutter_setState_longPrefix() async {
-    var spaces_6 = ' ' * 6;
-    var spaces_8 = ' ' * 8;
-    await _check_flutter_setState(
-        '      setSt',
-        '''
-setState(() {
-$spaces_8
-$spaces_6});''',
-        22);
-  }
-
-  Future<void> test_flutter_setState_noPrefix() async {
-    var spaces_4 = ' ' * 4;
-    var spaces_6 = ' ' * 6;
-    await _check_flutter_setState(
-        '    ',
-        '''
-setState(() {
-$spaces_6
-$spaces_4});''',
-        20);
   }
 
   Future<void> test_forEachPartsWithIdentifier_class() async {
@@ -6365,37 +6329,5 @@ void f() async* {
     await computeSuggestions();
 
     assertSuggestLocalVariable('value', null);
-  }
-
-  Future<void> _check_flutter_setState(
-      String line, String completion, int selectionOffset) async {
-    writeTestPackageConfig(flutter: true);
-    addTestSource('''
-import 'package:flutter/widgets.dart';
-
-class TestWidget extends StatefulWidget {
-  @override
-  State<TestWidget> createState() {
-    return new TestWidgetState();
-  }
-}
-
-class TestWidgetState extends State<TestWidget> {
-  @override
-  Widget build(BuildContext context) {
-$line^
-  }
-}
-''');
-    await computeSuggestions();
-    var cs = assertSuggest(completion, selectionOffset: selectionOffset);
-    expect(cs.selectionLength, 0);
-
-    // It is an invocation, but we don't need any additional info for it.
-    // So, all parameter information is absent.
-    expect(cs.parameterNames, isNull);
-    expect(cs.parameterTypes, isNull);
-    expect(cs.requiredParameterCount, isNull);
-    expect(cs.hasNamedParameters, isNull);
   }
 }

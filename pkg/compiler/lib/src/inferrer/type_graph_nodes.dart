@@ -1757,10 +1757,6 @@ class ListTypeInformation extends TypeInformation with TracedTypeInformation {
   /// The length after the container has been traced.
   int inferredLength;
 
-  /// Whether this list goes through a growable check.
-  /// We conservatively assume it does.
-  bool checksGrowable = true;
-
   ListTypeInformation(
       AbstractValueDomain abstractValueDomain,
       MemberTypeInformation context,

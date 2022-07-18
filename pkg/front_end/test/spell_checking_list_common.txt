@@ -2266,7 +2266,6 @@ preceded
 precedence
 precedes
 preceding
-preceeding
 precise
 precisely
 precision
@@ -2973,6 +2972,7 @@ survives
 suspect
 swap
 switch
+switches
 symbol
 symbols
 symmetric

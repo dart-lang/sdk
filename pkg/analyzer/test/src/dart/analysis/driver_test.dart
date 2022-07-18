@@ -23,6 +23,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -104,6 +105,12 @@ import '$innerUri';
 
 @reflectiveTest
 class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    registerLintRules();
+  }
+
   test_getLibraryByUri_cannotResolveUri() async {
     final driver = driverFor(testFile.path);
     expect(
@@ -228,6 +235,76 @@ part of 'b.dart';
       await driver.getResolvedLibraryByUri(uri),
       isA<NotLibraryButPartResult>(),
     );
+  }
+
+  test_getResult_part_doesNotExist_lints() async {
+    newFile('$testPackageRootPath/analysis_options.yaml', r'''
+linter:
+  rules:
+    - omit_local_variable_types
+''');
+
+    await assertErrorsInCode(r'''
+library my.lib;
+part 'a.dart';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 21, 8),
+    ]);
+  }
+
+  test_getResult_part_empty_lints() async {
+    newFile('$testPackageRootPath/analysis_options.yaml', r'''
+linter:
+  rules:
+    - omit_local_variable_types
+''');
+
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertErrorsInCode(r'''
+library my.lib;
+part 'a.dart';
+''', [
+      error(CompileTimeErrorCode.PART_OF_NON_PART, 21, 8),
+    ]);
+  }
+
+  test_getResult_part_hasPartOfName_notThisLibrary_lints() async {
+    newFile('$testPackageRootPath/analysis_options.yaml', r'''
+linter:
+  rules:
+    - omit_local_variable_types
+''');
+
+    newFile('$testPackageLibPath/a.dart', r'''
+part of other.lib;
+''');
+
+    await assertErrorsInCode(r'''
+library my.lib;
+part 'a.dart';
+''', [
+      error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 21, 8),
+    ]);
+  }
+
+  test_getResult_part_hasPartOfUri_notThisLibrary_lints() async {
+    newFile('$testPackageRootPath/analysis_options.yaml', r'''
+linter:
+  rules:
+    - omit_local_variable_types
+''');
+
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'not_test.dart';
+''');
+
+    await assertErrorsInCode(r'''
+library my.lib;
+part 'a.dart';
+''', [
+      error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 21, 8),
+    ]);
   }
 }
 
@@ -615,57 +692,6 @@ import 'a.dart';
     expect(allResults.pathList, [b]);
   }
 
-  test_analyze_resolveDirectives() async {
-    var lib = convertPath('/test/lib.dart');
-    var part1 = convertPath('/test/part1.dart');
-    var part2 = convertPath('/test/part2.dart');
-    newFile(lib, '''
-library lib;
-part 'part1.dart';
-part 'part2.dart';
-''');
-    newFile(part1, '''
-part of lib;
-''');
-    newFile(part2, '''
-part of 'lib.dart';
-''');
-
-    ResolvedUnitResult libResult = await driver.getResultValid(lib);
-    ResolvedUnitResult partResult1 = await driver.getResultValid(part1);
-    ResolvedUnitResult partResult2 = await driver.getResultValid(part2);
-
-    CompilationUnit libUnit = libResult.unit;
-    CompilationUnit partUnit1 = partResult1.unit;
-    CompilationUnit partUnit2 = partResult2.unit;
-
-    CompilationUnitElement unitElement = libUnit.declaredElement!;
-    CompilationUnitElement partElement1 = partUnit1.declaredElement!;
-    CompilationUnitElement partElement2 = partUnit2.declaredElement!;
-
-    LibraryElement libraryElement = unitElement.library;
-    {
-      expect(libraryElement.entryPoint, isNull);
-      expect(libraryElement.source, unitElement.source);
-      expect(libraryElement.definingCompilationUnit, unitElement);
-      expect(libraryElement.parts, hasLength(2));
-    }
-
-    expect((libUnit.directives[0] as LibraryDirective).element, libraryElement);
-    expect((libUnit.directives[1] as PartDirective).element, partElement1);
-    expect((libUnit.directives[2] as PartDirective).element, partElement2);
-
-    {
-      var partOf = partUnit1.directives.single as PartOfDirective;
-      expect(partOf.element, libraryElement);
-    }
-
-    {
-      var partOf = partUnit2.directives.single as PartOfDirective;
-      expect(partOf.element, libraryElement);
-    }
-  }
-
   test_analyze_resolveDirectives_error_missingLibraryDirective() async {
     var lib = convertPath('/test/lib.dart');
     var part = convertPath('/test/part.dart');
@@ -748,7 +774,7 @@ part 'part.dart';
     driver.priorityFiles = [a];
 
     ResolvedUnitResult result1 = await driver.getResultValid(a);
-    expect(driver.test.priorityResults, containsPair(a, result1));
+    expect(driver.testView!.priorityResults, containsPair(a, result1));
 
     await waitForIdleWithoutExceptions();
     allResults.clear();
@@ -779,26 +805,26 @@ part 'part.dart';
     driver.priorityFiles = [a];
 
     ResolvedUnitResult result1 = await driver.getResultValid(a);
-    expect(driver.test.priorityResults, containsPair(a, result1));
+    expect(driver.testView!.priorityResults, containsPair(a, result1));
 
     // Change a file.
     // The cache is flushed.
     driver.changeFile(a);
-    expect(driver.test.priorityResults, isEmpty);
+    expect(driver.testView!.priorityResults, isEmpty);
     ResolvedUnitResult result2 = await driver.getResultValid(a);
-    expect(driver.test.priorityResults, containsPair(a, result2));
+    expect(driver.testView!.priorityResults, containsPair(a, result2));
 
     // Add a file.
     // The cache is flushed.
     driver.addFile(b);
-    expect(driver.test.priorityResults, isEmpty);
+    expect(driver.testView!.priorityResults, isEmpty);
     ResolvedUnitResult result3 = await driver.getResultValid(a);
-    expect(driver.test.priorityResults, containsPair(a, result3));
+    expect(driver.testView!.priorityResults, containsPair(a, result3));
 
     // Remove a file.
     // The cache is flushed.
     driver.removeFile(b);
-    expect(driver.test.priorityResults, isEmpty);
+    expect(driver.testView!.priorityResults, isEmpty);
   }
 
   test_cachedPriorityResults_flush_onPrioritySetChange() async {
@@ -810,26 +836,26 @@ part 'part.dart';
     driver.priorityFiles = [a];
 
     ResolvedUnitResult result1 = await driver.getResultValid(a);
-    expect(driver.test.priorityResults, hasLength(1));
-    expect(driver.test.priorityResults, containsPair(a, result1));
+    expect(driver.testView!.priorityResults, hasLength(1));
+    expect(driver.testView!.priorityResults, containsPair(a, result1));
 
     // Make "a" and "b" priority.
     // We still have the result for "a" cached.
     driver.priorityFiles = [a, b];
-    expect(driver.test.priorityResults, hasLength(1));
-    expect(driver.test.priorityResults, containsPair(a, result1));
+    expect(driver.testView!.priorityResults, hasLength(1));
+    expect(driver.testView!.priorityResults, containsPair(a, result1));
 
     // Get the result for "b".
     ResolvedUnitResult result2 = await driver.getResultValid(b);
-    expect(driver.test.priorityResults, hasLength(2));
-    expect(driver.test.priorityResults, containsPair(a, result1));
-    expect(driver.test.priorityResults, containsPair(b, result2));
+    expect(driver.testView!.priorityResults, hasLength(2));
+    expect(driver.testView!.priorityResults, containsPair(a, result1));
+    expect(driver.testView!.priorityResults, containsPair(b, result2));
 
     // Only "b" is priority.
     // The result for "a" is flushed.
     driver.priorityFiles = [b];
-    expect(driver.test.priorityResults, hasLength(1));
-    expect(driver.test.priorityResults, containsPair(b, result2));
+    expect(driver.testView!.priorityResults, hasLength(1));
+    expect(driver.testView!.priorityResults, containsPair(b, result2));
   }
 
   test_cachedPriorityResults_notPriority() async {
@@ -837,7 +863,7 @@ part 'part.dart';
     newFile(a, 'var a = 1;');
 
     ResolvedUnitResult result1 = await driver.getResultValid(a);
-    expect(driver.test.priorityResults, isEmpty);
+    expect(driver.testView!.priorityResults, isEmpty);
 
     // The file is not priority, so its result is not cached.
     ResolvedUnitResult result2 = await driver.getResultValid(a);
@@ -872,7 +898,7 @@ var A = B;
     driver.changeFile(b);
 
     // "b" is not an added file, so it is not scheduled for analysis.
-    expect(driver.test.fileTracker.hasPendingFiles, isFalse);
+    expect(driver.testView!.fileTracker.hasPendingFiles, isFalse);
 
     // While "b" is not analyzed explicitly, it is analyzed implicitly.
     // The change causes "a" to be reanalyzed.
@@ -3585,7 +3611,7 @@ extension on AnalysisDriver {
     Iterable<String>? included,
     Iterable<String>? excluded,
   }) {
-    var uriSet = this.test.loadedLibraryUriSet;
+    var uriSet = testView!.loadedLibraryUriSet;
     if (included != null) {
       expect(uriSet, containsAll(included));
     }

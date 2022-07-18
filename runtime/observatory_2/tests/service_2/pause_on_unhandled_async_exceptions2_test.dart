@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--async_debugger --lazy-async-stacks
-// VMOptions=--async_debugger --lazy-async-stacks --optimization-counter-threshold=5
+// VMOptions=--async_debugger
+// VMOptions=--async_debugger --optimization-counter-threshold=5
 
 import 'package:observatory_2/service_io.dart';
 import 'package:observatory_2/models.dart' as M;

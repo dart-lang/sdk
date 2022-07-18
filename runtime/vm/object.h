@@ -3596,11 +3596,18 @@ class Function : public Object {
     return IsAsyncGenerator() && is_debuggable();
   }
 
+  // TODO(dartbug.com/48378): replace this predicate with IsSyncGenerator()
+  // after old sync* functions are removed.
+  bool IsCompactSyncStarFunction() const {
+    return IsSyncGenerator() && is_debuggable();
+  }
+
   // Returns true for functions which execution can be suspended
   // using Suspend/Resume stubs. Such functions have an artificial
   // :suspend_state local variable at the fixed location of the frame.
   bool IsSuspendableFunction() const {
-    return IsCompactAsyncFunction() || IsCompactAsyncStarFunction();
+    return IsCompactAsyncFunction() || IsCompactAsyncStarFunction() ||
+           IsCompactSyncStarFunction();
   }
 
   // Recognise synthetic sync-yielding functions like the inner-most:
@@ -5120,6 +5127,7 @@ class Library : public Object {
   // the name and url.
   void set_name(const String& name) const;
   void set_url(const String& url) const;
+  void set_private_key(const String& key) const;
 
   void set_num_imports(intptr_t value) const;
   void set_flags(uint8_t flags) const;
@@ -6404,9 +6412,14 @@ class Code : public Object {
     return code->untag()->instructions();
   }
 
-  static intptr_t saved_instructions_offset() {
+  static intptr_t instructions_offset() {
     return OFFSET_OF(UntaggedCode, instructions_);
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  static intptr_t active_instructions_offset() {
+    return OFFSET_OF(UntaggedCode, active_instructions_);
+  }
+#endif
 
   using EntryKind = CodeEntryKind;
 
@@ -7418,6 +7431,9 @@ class LoadingUnit : public Object {
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedLoadingUnit));
   }
+
+  static intptr_t LoadingUnitOf(const Function& function);
+  static intptr_t LoadingUnitOf(const Code& code);
 
   LoadingUnitPtr parent() const;
   void set_parent(const LoadingUnit& value) const;
@@ -11813,20 +11829,31 @@ class SuspendState : public Instance {
 
   static intptr_t HeaderSize() { return sizeof(UntaggedSuspendState); }
   static intptr_t UnroundedSize(SuspendStatePtr ptr) {
-    return UnroundedSize(ptr->untag()->frame_size_);
+    return UnroundedSize(ptr->untag()->frame_capacity());
   }
-  static intptr_t UnroundedSize(intptr_t frame_size) {
-    return HeaderSize() + frame_size;
+  static intptr_t UnroundedSize(intptr_t frame_capacity) {
+    return HeaderSize() + frame_capacity;
   }
   static intptr_t InstanceSize() {
     ASSERT_EQUAL(sizeof(UntaggedSuspendState),
                  OFFSET_OF_RETURNED_VALUE(UntaggedSuspendState, payload));
     return 0;
   }
-  static intptr_t InstanceSize(intptr_t frame_size) {
-    return RoundedAllocationSize(UnroundedSize(frame_size));
+  static intptr_t InstanceSize(intptr_t frame_capacity) {
+    return RoundedAllocationSize(UnroundedSize(frame_capacity));
   }
 
+  // Number of extra words reserved for growth of frame size
+  // during SuspendState allocation. Frames do not grow in AOT.
+  static intptr_t FrameSizeGrowthGap() {
+    return ONLY_IN_PRECOMPILED(0) NOT_IN_PRECOMPILED(2);
+  }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  static intptr_t frame_capacity_offset() {
+    return OFFSET_OF(UntaggedSuspendState, frame_capacity_);
+  }
+#endif
   static intptr_t frame_size_offset() {
     return OFFSET_OF(UntaggedSuspendState, frame_size_);
   }
@@ -11848,16 +11875,40 @@ class SuspendState : public Instance {
                              const Instance& function_data,
                              Heap::Space space = Heap::kNew);
 
-  InstancePtr function_data() const { return untag()->function_data(); }
+  // Makes a copy of [src] object.
+  // The object should be holding a suspended frame.
+  static SuspendStatePtr Clone(Thread* thread,
+                               const SuspendState& src,
+                               Heap::Space space = Heap::kNew);
+
   uword pc() const { return untag()->pc_; }
+
+  intptr_t frame_size() const { return untag()->frame_size_; }
+
+  InstancePtr function_data() const {
+    return untag()->function_data();
+  }
+
+  ClosurePtr then_callback() const { return untag()->then_callback(); }
+
+  ClosurePtr error_callback() const {
+    return untag()->error_callback();
+  }
 
   // Returns Code object corresponding to the suspended function.
   CodePtr GetCodeObject() const;
 
  private:
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  void set_frame_capacity(intptr_t frame_capcity) const;
+#endif
   void set_frame_size(intptr_t frame_size) const;
   void set_pc(uword pc) const;
   void set_function_data(const Instance& function_data) const;
+  void set_then_callback(const Closure& then_callback) const;
+  void set_error_callback(const Closure& error_callback) const;
+
+  uint8_t* payload() const { return untag()->payload(); }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SuspendState, Instance);
   friend class Class;
@@ -12639,7 +12690,7 @@ inline uint16_t String::CharAt(StringPtr str, intptr_t index) {
 //
 // This helper class can then be used via
 //
-//     using CallTableView = ArrayOfTuplesVied<
+//     using CallTableView = ArrayOfTuplesView<
 //         Code::Kind, std::tuple<Smi, Function, Code>>;
 //
 //     auto& array = Array::Handle(code.static_calls_targets_table());

@@ -36,7 +36,7 @@ abstract class CommandHandler<P, R> with Handler<P, R> {
 
   CommandHandler(this.server);
 
-  Future<ErrorOr<Object?>> handle(List<Object?>? arguments,
+  Future<ErrorOr<Object?>> handle(Map<String, Object?> parameters,
       ProgressReporter progress, CancellationToken cancellationToken);
 }
 
@@ -197,6 +197,15 @@ class MessageInfo {
   OperationPerformanceImpl performance;
 
   MessageInfo({required this.performance, this.timeSinceRequest});
+}
+
+mixin PositionalArgCommandHandler {
+  /// Parses "legacy" arguments passed a list, rather than in a map as a single
+  /// argument.
+  ///
+  /// This is provided for backwards compatibility and may not be provided by
+  /// all command handlers.
+  Map<String, Object?> parseArgList(List<Object?> arguments);
 }
 
 /// A message handler that handles all messages for a given server state.
