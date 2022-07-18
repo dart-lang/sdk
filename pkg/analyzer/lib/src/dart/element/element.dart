@@ -4042,6 +4042,10 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   /// The macro executor for the bundle to which this library belongs.
   BundleMacroExecutor? bundleMacroExecutor;
 
+  /// All augmentations of this library, in the depth-first pre-order order.
+  late final List<LibraryAugmentationElementImpl> augmentations =
+      _computeAugmentations();
+
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
   LibraryElementImpl(this.context, this.session, String name, int offset,
@@ -4296,28 +4300,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     return [
       _definingCompilationUnit,
       ..._partUnits,
-      ..._augmentationUnits,
+      ...augmentations.map((e) => e.definingCompilationUnit),
     ];
-  }
-
-  List<CompilationUnitElementImpl> get _augmentationUnits {
-    final result = <CompilationUnitElementImpl>[];
-
-    void visitAugmentations(LibraryOrAugmentationElementImpl container) {
-      if (container is LibraryAugmentationElementImpl) {
-        result.add(container.definingCompilationUnit);
-      }
-      for (final import in container.augmentationImports) {
-        import as AugmentationImportElementImpl;
-        final augmentation = import.importedAugmentation;
-        if (augmentation != null) {
-          visitAugmentations(augmentation);
-        }
-      }
-    }
-
-    visitAugmentations(this);
-    return result;
   }
 
   List<CompilationUnitElement> get _partUnits {
@@ -4450,6 +4434,26 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     }
   }
 
+  List<LibraryAugmentationElementImpl> _computeAugmentations() {
+    final result = <LibraryAugmentationElementImpl>[];
+
+    void visitAugmentations(LibraryOrAugmentationElementImpl container) {
+      if (container is LibraryAugmentationElementImpl) {
+        result.add(container);
+      }
+      for (final import in container.augmentationImports) {
+        import as AugmentationImportElementImpl;
+        final augmentation = import.importedAugmentation;
+        if (augmentation != null) {
+          visitAugmentations(augmentation);
+        }
+      }
+    }
+
+    visitAugmentations(this);
+    return result;
+  }
+
   @override
   void _readLinkedData() {
     linkedData?.read(this);
@@ -4547,6 +4551,12 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
     return exports2
         .map((e) => ExportElementImpl(e as ExportElement2Impl))
         .toList();
+  }
+
+  @override
+  List<ExportElement2> get exports2 {
+    _readLinkedData();
+    return _exports2;
   }
 
   /// Set the specifications of all of the exports defined in this library to

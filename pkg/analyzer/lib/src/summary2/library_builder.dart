@@ -99,40 +99,55 @@ class LibraryBuilder {
   }
 
   void addExporters() {
-    final exportElements = element.exports2;
-    for (var i = 0; i < exportElements.length; i++) {
-      final exportElement = exportElements[i];
+    final containers = [element, ...element.augmentations];
+    for (var containerIndex = 0;
+        containerIndex < containers.length;
+        containerIndex++) {
+      final container = containers[containerIndex];
+      final exportElements = container.exports2;
+      for (var exportIndex = 0;
+          exportIndex < exportElements.length;
+          exportIndex++) {
+        final exportElement = exportElements[exportIndex];
 
-      final exportedLibrary = exportElement.exportedLibrary;
-      if (exportedLibrary is! LibraryElementImpl) {
-        continue;
-      }
-
-      final combinators = exportElement.combinators.map((combinator) {
-        if (combinator is ShowElementCombinator) {
-          return Combinator.show(combinator.shownNames);
-        } else if (combinator is HideElementCombinator) {
-          return Combinator.hide(combinator.hiddenNames);
-        } else {
-          throw UnimplementedError();
+        final exportedLibrary = exportElement.exportedLibrary;
+        if (exportedLibrary is! LibraryElementImpl) {
+          continue;
         }
-      }).toList();
 
-      final exportedUri = exportedLibrary.source.uri;
-      final exportedBuilder = linker.builders[exportedUri];
-
-      final export = Export(this, i, combinators);
-      if (exportedBuilder != null) {
-        exportedBuilder.exports.add(export);
-      } else {
-        final exportedReferences = exportedLibrary.exportedReferences;
-        for (final exported in exportedReferences) {
-          final reference = exported.reference;
-          final name = reference.name;
-          if (reference.isSetter) {
-            export.addToExportScope('$name=', exported);
+        final combinators = exportElement.combinators.map((combinator) {
+          if (combinator is ShowElementCombinator) {
+            return Combinator.show(combinator.shownNames);
+          } else if (combinator is HideElementCombinator) {
+            return Combinator.hide(combinator.hiddenNames);
           } else {
-            export.addToExportScope(name, exported);
+            throw UnimplementedError();
+          }
+        }).toList();
+
+        final exportedUri = exportedLibrary.source.uri;
+        final exportedBuilder = linker.builders[exportedUri];
+
+        final export = Export(
+          exporter: this,
+          location: ExportLocation(
+            containerIndex: containerIndex,
+            exportIndex: exportIndex,
+          ),
+          combinators: combinators,
+        );
+        if (exportedBuilder != null) {
+          exportedBuilder.exports.add(export);
+        } else {
+          final exportedReferences = exportedLibrary.exportedReferences;
+          for (final exported in exportedReferences) {
+            final reference = exported.reference;
+            final name = reference.name;
+            if (reference.isSetter) {
+              export.addToExportScope('$name=', exported);
+            } else {
+              export.addToExportScope(name, exported);
+            }
           }
         }
       }

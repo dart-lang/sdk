@@ -495,7 +495,7 @@ class _ElementWriter {
         if (exported is ExportedReferenceDeclared) {
           buffer.write('declared ');
         } else if (exported is ExportedReferenceExported) {
-          buffer.write('exported${exported.indexes} ');
+          buffer.write('exported${exported.locations} ');
         }
         // TODO(scheglov) Use the same writer as for resolved AST.
         buffer.write(exported.reference);

@@ -508,6 +508,7 @@ class LibraryReader {
     libraryElement.definingCompilationUnit = _readUnitElement(
       containerSource: librarySource,
       unitSource: librarySource,
+      unitContainerRef: _reference.getChild('@unit'),
     );
 
     libraryElement.parts2 = _reader.readTypedList(() {
@@ -550,6 +551,7 @@ class LibraryReader {
     final definingUnit = _readUnitElement(
       containerSource: unitSource,
       unitSource: unitSource,
+      unitContainerRef: _reference.getChild('@augmentation'),
     );
 
     final augmentation = LibraryAugmentationElementImpl(
@@ -734,6 +736,7 @@ class LibraryReader {
         final unitElement = _readUnitElement(
           containerSource: container.source,
           unitSource: parent.source,
+          unitContainerRef: _reference.getChild('@unit'),
         );
         return DirectiveUriWithUnitImpl(
           relativeUriString: parent.relativeUriString,
@@ -810,7 +813,7 @@ class LibraryReader {
       final reference = _referenceReader.referenceOfIndex(index);
       return ExportedReferenceExported(
         reference: reference,
-        indexes: _reader.readUInt30List(),
+        locations: _reader.readTypedList(_readExportLocation),
       );
     } else {
       throw StateError('kind: $kind');
@@ -831,6 +834,13 @@ class LibraryReader {
       uri: uri,
     )..combinators = combinators;
     return element;
+  }
+
+  ExportLocation _readExportLocation() {
+    return ExportLocation(
+      containerIndex: _reader.readUInt30(),
+      exportIndex: _reader.readUInt30(),
+    );
   }
 
   ExtensionElementImpl _readExtensionElement(
@@ -1446,6 +1456,7 @@ class LibraryReader {
   CompilationUnitElementImpl _readUnitElement({
     required Source containerSource,
     required Source unitSource,
+    required Reference unitContainerRef,
   }) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
@@ -1455,7 +1466,6 @@ class LibraryReader {
       lineInfo: LineInfo([0]),
     );
 
-    final unitContainerRef = _reference.getChild('@unit');
     final unitReference = unitContainerRef.getChild('${unitSource.uri}');
     unitElement.setLinkedData(
       unitReference,

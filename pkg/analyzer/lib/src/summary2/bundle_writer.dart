@@ -264,7 +264,7 @@ class BundleWriter {
       } else if (exported is ExportedReferenceExported) {
         _sink.writeByte(1);
         _sink.writeUInt30(index);
-        _sink.writeUint30List(exported.indexes);
+        _sink.writeList(exported.locations, _writeExportLocation);
       } else {
         throw UnimplementedError('(${exported.runtimeType}) $exported');
       }
@@ -276,6 +276,11 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
     _writeDirectiveUri(element.uri);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
+  }
+
+  void _writeExportLocation(ExportLocation location) {
+    _sink.writeUInt30(location.containerIndex);
+    _sink.writeUInt30(location.exportIndex);
   }
 
   void _writeExtensionElement(ExtensionElement element) {
