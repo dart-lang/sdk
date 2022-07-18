@@ -569,6 +569,7 @@ secondary
 secondtest
 segment
 selection
+selects
 semifuzz
 sensitive
 series

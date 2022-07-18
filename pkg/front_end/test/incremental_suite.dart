@@ -93,7 +93,7 @@ import "package:testing/testing.dart"
 
 import "package:vm/target/vm.dart" show VmTarget;
 
-import "package:yaml/yaml.dart" show YamlList, YamlMap, loadYamlNode;
+import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
 
 import 'binary_md_dill_reader.dart' show DillComparer;
 
@@ -103,9 +103,238 @@ import 'test_utils.dart';
 import 'testing_utils.dart' show checkEnvironment;
 
 import 'utils/io_utils.dart' show computeRepoDir;
+import 'utils/values.dart';
 
 void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
+
+/// Top level yaml properties for an incremental test.
+class TestProperties {
+  /// Value of [type] for selecting a [basicTest].
+  static const String type_basic = 'basic';
+
+  /// Value of [type] for selecting a [NewWorldTest].
+  static const String type_newworld = 'newworld';
+
+  /// This selects the type of test.
+  ///
+  /// [type_basic] runs a [basicTest] with additional properties defined in
+  /// [BasicTestProperties].
+  ///
+  /// [type_newworld] runs a [NewWorldTest] with additional properties defined
+  /// in [NewWorldTestProperties].
+  static const Property<String> type = Property.required(
+      'type', StringValue(options: {type_basic, type_newworld}));
+}
+
+/// Additional yaml properties for a [basicTest].
+// TODO(johnniwinther,jensj): Document all properties.
+class BasicTestProperties {
+  static const Property<Map<String, String>> sources =
+      Property.required('sources', MapValue(StringValue()));
+
+  static const Property<String> entry =
+      Property.required('entry', StringValue());
+
+  static const Property<List<String>?> invalidate =
+      Property.optional('invalidate', ListValue(StringValue()));
+}
+
+/// Additional yaml properties for a [NewWorldTest].
+// TODO(johnniwinther,jensj): Document all properties.
+class NewWorldTestProperties {
+  static const Property<List<World>> worlds =
+      Property.required('worlds', ListValue(CustomValue(World.create)));
+
+  static const Property<Map<String, Map<String, String>>?> modules =
+      Property.optional('modules', MapValue(MapValue(StringValue())));
+
+  static const Property<bool> omitPlatform =
+      Property.optional('omitPlatform', BoolValue(), defaultValue: true);
+
+  static const Property<bool> forceLateLoweringForTesting = Property.optional(
+      'forceLateLoweringForTesting', BoolValue(),
+      defaultValue: false);
+
+  static const Property<bool> trackWidgetCreation = Property.optional(
+      'trackWidgetCreation', BoolValue(),
+      defaultValue: false);
+
+  static const Property<bool> incrementalSerialization = Property.optional(
+      'incrementalSerialization', BoolValue(),
+      defaultValue: false);
+
+  static const String nnbdMode_strong = 'strong';
+
+  static const Property<String?> nnbdMode =
+      Property.optional('nnbdMode', StringValue(options: {nnbdMode_strong}));
+
+  static const String target_none = 'None';
+  static const String target_ddc = 'DDC';
+  static const String target_dart2js = 'dart2js';
+  static const String target_vm = 'VM';
+
+  static const Property<String?> target = Property.optional(
+      'target',
+      StringValue(
+          options: {target_none, target_ddc, target_dart2js, target_vm}));
+}
+
+/// Yaml properties for a [World] within a [NewWorldTest].
+// TODO(johnniwinther,jensj): Document all properties.
+class WorldProperties {
+  static const Property<List<String>?> modules =
+      Property.optional('modules', ListValue(StringValue()));
+
+  static const String worldType_updated = 'updated';
+
+  static const Property<String?> worldType =
+      Property.optional('worldType', StringValue(options: {worldType_updated}));
+
+  static const Property<bool> noFullComponent =
+      Property.optional('noFullComponent', BoolValue(), defaultValue: false);
+
+  static const Property<bool?> expectInitializeFromDill =
+      Property.optional('expectInitializeFromDill', BoolValue());
+
+  static const Property<Map<String, String>> sources = Property.optional(
+      'sources', MapValue(StringValue()),
+      defaultValue: const {});
+
+  static const Property<bool> badSdk =
+      Property.optional('badSdk', BoolValue(), defaultValue: false);
+
+  static const Property<bool> enableStringReplacement = Property.optional(
+      'enableStringReplacement', BoolValue(),
+      defaultValue: false);
+
+  static const Property<String?> packageConfigFile =
+      Property.optional('packageConfigFile', StringValue());
+
+  static const Property<String?> experiments =
+      Property.optional("experiments", StringValue());
+
+  static const String nnbdMode_strong = 'strong';
+
+  static const Property<String?> nnbdMode =
+      Property.optional("nnbdMode", StringValue(options: {nnbdMode_strong}));
+
+  static const Property<List<String>> entry = Property.required(
+      'entry', ListValue(StringValue(), supportSingleton: true));
+
+  static const Property<bool> outlineOnly =
+      Property.optional("outlineOnly", BoolValue(), defaultValue: false);
+
+  static const Property<bool> skipOutlineBodyCheck = Property.optional(
+      "skipOutlineBodyCheck", BoolValue(),
+      defaultValue: false);
+
+  static const Property<bool> fromComponent =
+      Property.optional("fromComponent", BoolValue(), defaultValue: false);
+
+  static const Property<List<String>?> invalidate =
+      Property.optional("invalidate", ListValue(StringValue()));
+
+  static const Property<bool> simulateTransformer = Property.optional(
+      "simulateTransformer", BoolValue(),
+      defaultValue: false);
+
+  static const Property<bool?> expectInitializationError =
+      Property.optional("expectInitializationError", BoolValue());
+
+  static const Property<bool> compareToPrevious =
+      Property.optional("compareToPrevious", BoolValue(), defaultValue: false);
+
+  static const Property<List<String>?> uriToSourcesDoesntInclude =
+      Property.optional("uriToSourcesDoesntInclude", ListValue(StringValue()));
+
+  static const Property<List<String>?> uriToSourcesOnlyIncludes =
+      Property.optional("uriToSourcesOnlyIncludes", ListValue(StringValue()));
+
+  static const Property<bool> skipClassHierarchyTest = Property.optional(
+      "skipClassHierarchyTest", BoolValue(),
+      defaultValue: false);
+
+  static const Property<bool> expectsPlatform =
+      Property.optional("expectsPlatform", BoolValue(), defaultValue: false);
+
+  static const Property<int?> expectedLibraryCount =
+      const Property.optional("expectedLibraryCount", IntValue());
+
+  static const Property<int?> expectedSyntheticLibraryCount =
+      Property.optional("expectedSyntheticLibraryCount", IntValue());
+
+  /// The expected result of the advanced invalidation.
+  static const Property<AdvancedInvalidationResult?> advancedInvalidation =
+      Property.optional(
+          "advancedInvalidation", EnumValue(AdvancedInvalidationResult.values));
+
+  static const Property<bool> checkEntries =
+      Property.optional("checkEntries", BoolValue(), defaultValue: false);
+
+  static const Property<bool> checkInvalidatedFiles = Property.optional(
+      "checkInvalidatedFiles", BoolValue(),
+      defaultValue: true);
+
+  static const Property<List<String>?> expectedInvalidatedUri =
+      Property.optional('expectedInvalidatedUri', ListValue(StringValue()));
+
+  static const Property<int?> expectSameErrorsAsWorld =
+      Property.optional('expectSameErrorsAsWorld', IntValue());
+
+  static const Property<List<ExpressionCompilation>?> expressionCompilation =
+      Property.optional(
+          'expressionCompilation',
+          ListValue(CustomValue(ExpressionCompilation.create),
+              supportSingleton: true));
+
+  static const Property<bool> compareWithFromScratch = Property.optional(
+      'compareWithFromScratch', BoolValue(),
+      defaultValue: false);
+
+  static const Property<bool> brandNewIncrementalSerializationAllowDifferent =
+      Property.optional(
+          'brandNewIncrementalSerializationAllowDifferent', BoolValue(),
+          defaultValue: false);
+
+  /// Whether the compilation of the world is expected to result in warnings.
+  static const Property<bool> warnings =
+      Property.optional('warnings', BoolValue(), defaultValue: false);
+
+  /// Whether the compilation of the world is expected to result in compile-time
+  /// errors.
+  static const Property<bool> errors =
+      Property.optional('errors', BoolValue(), defaultValue: false);
+
+  static const Property<List<String>?> neededDillLibraries =
+      Property.optional('neededDillLibraries', ListValue(StringValue()));
+
+  static const Property<Map<String, List<String>>?> expectedContent =
+      Property.optional('expectedContent', MapValue(ListValue(StringValue())));
+
+  static const Property<bool> incrementalSerializationDoesWork =
+      Property.optional('incrementalSerializationDoesWork', BoolValue(),
+          defaultValue: false);
+
+  static const Property<List<String>?> serializationShouldNotInclude =
+      Property.optional(
+          'serializationShouldNotInclude', ListValue(StringValue()));
+}
+
+/// Yaml properties for an [ExpressionCompilation] with a [World].
+// TODO(johnniwinther,jensj): Document all properties.
+class ExpressionCompilationProperties {
+  static const Property<bool> errors =
+      Property.optional('errors', BoolValue(), defaultValue: false);
+
+  static const Property<bool> warnings =
+      Property.optional('warnings', BoolValue(), defaultValue: false);
+
+  static const Property<String> uri = Property.required('uri', StringValue());
+
+  static const Property<String> expression =
+      Property.required('expression', StringValue());
+}
 
 final ExpectationSet staticExpectationSet =
     new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
@@ -343,43 +572,39 @@ class RunCompilations extends Step<TestData, TestData, Context> {
     Result<TestData>? result;
     YamlMap map = data.map;
     Set<String> keys = new Set<String>.from(map.keys.cast<String>());
-    keys.remove("type");
-    switch (map["type"]) {
-      case "basic":
-        keys.removeAll(["sources", "entry", "invalidate"]);
+    String type = TestProperties.type.read(map, keys);
+    switch (type) {
+      case TestProperties.type_basic:
         await basicTest(
-          map["sources"],
-          map["entry"],
-          map["invalidate"],
+          BasicTestProperties.sources.read(map, keys),
+          BasicTestProperties.entry.read(map, keys),
+          BasicTestProperties.invalidate.read(map, keys),
           data.outDir!,
         );
         break;
-      case "newworld":
-        keys.removeAll([
-          "worlds",
-          "modules",
-          "omitPlatform",
-          "target",
-          "forceLateLoweringForTesting",
-          "trackWidgetCreation",
-          "incrementalSerialization",
-          "nnbdMode",
-        ]);
+      case TestProperties.type_newworld:
         result = await new NewWorldTest(
           data: data,
           context: context,
-          omitPlatform: map["omitPlatform"] != false,
-          forceLateLoweringForTesting:
-              map["forceLateLoweringForTesting"] ?? false,
-          trackWidgetCreation: map["trackWidgetCreation"] ?? false,
-          incrementalSerialization: map["incrementalSerialization"] ?? false,
-          nnbdMode:
-              map["nnbdMode"] == "strong" ? NnbdMode.Strong : NnbdMode.Weak,
-          targetName: map["target"],
+          worlds: NewWorldTestProperties.worlds.read(map, keys),
+          omitPlatform: NewWorldTestProperties.omitPlatform.read(map, keys),
+          forceLateLoweringForTesting: NewWorldTestProperties
+              .forceLateLoweringForTesting
+              .read(map, keys),
+          trackWidgetCreation:
+              NewWorldTestProperties.trackWidgetCreation.read(map, keys),
+          incrementalSerialization:
+              NewWorldTestProperties.incrementalSerialization.read(map, keys),
+          nnbdMode: NewWorldTestProperties.nnbdMode.read(map, keys) ==
+                  NewWorldTestProperties.nnbdMode_strong
+              ? NnbdMode.Strong
+              : NnbdMode.Weak,
+          modules: NewWorldTestProperties.modules.read(map, keys),
+          targetName: NewWorldTestProperties.target.read(map, keys),
         ).newWorldTest();
         break;
       default:
-        throw "Unexpected type: ${map['type']}";
+        throw "Unexpected type: ${type}";
     }
 
     if (keys.isNotEmpty) throw "Unknown toplevel keys: $keys";
@@ -387,8 +612,8 @@ class RunCompilations extends Step<TestData, TestData, Context> {
   }
 }
 
-Future<Null> basicTest(YamlMap sourceFiles, String entryPoint,
-    YamlList? invalidate, Directory outDir) async {
+Future<Null> basicTest(Map<String, String> sourceFiles, String entryPoint,
+    List<String>? invalidate, Directory outDir) async {
   Uri entryPointUri = outDir.uri.resolve(entryPoint);
   Set<String> invalidateFilenames =
       invalidate == null ? new Set<String>() : new Set<String>.from(invalidate);
@@ -400,7 +625,7 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint,
       invalidateUris.add(uri);
       invalidateFilenames.remove(filename);
     }
-    String source = sourceFiles[filename];
+    String source = sourceFiles[filename]!;
     if (filename == ".dart_tool/package_config.json") {
       packagesUri = uri;
     }
@@ -447,7 +672,7 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint,
 }
 
 Future<Map<String, List<int>>> createModules(
-    Map module,
+    Map<String, Map<String, String>> module,
     final List<int> sdkSummaryData,
     Target target,
     Target originalTarget,
@@ -460,9 +685,9 @@ Future<Map<String, List<int>>> createModules(
   fs.entityForUri(sdkSummaryUri).writeAsBytesSync(sdkSummaryData);
 
   // Setup all sources
-  for (Map moduleSources in module.values) {
+  for (Map<String, String> moduleSources in module.values) {
     for (String filename in moduleSources.keys) {
-      String data = moduleSources[filename];
+      String data = moduleSources[filename]!;
       Uri uri = base.resolve(filename);
       if (await fs.entityForUri(uri).exists()) {
         throw "More than one entry for $filename";
@@ -476,7 +701,7 @@ Future<Map<String, List<int>>> createModules(
   for (String moduleName in module.keys) {
     List<Uri> moduleSources = <Uri>[];
     Uri? packagesUri;
-    for (String filename in module[moduleName].keys) {
+    for (String filename in module[moduleName]!.keys) {
       Uri uri = base.resolve(filename);
       if (uri.pathSegments.last == "package_config.json") {
         packagesUri = uri;
@@ -550,10 +775,11 @@ class ExpressionCompilation {
   static ExpressionCompilation create(Map yaml) {
     Set<String> keys = new Set<String>.from(yaml.keys);
 
-    bool errors = checkTypeOrNull<bool>(yaml, keys, "errors") ?? false;
-    bool warnings = checkTypeOrNull<bool>(yaml, keys, "warnings") ?? false;
-    String uri = checkType<String>(yaml, keys, "uri");
-    String expression = checkType<String>(yaml, keys, "expression");
+    bool errors = ExpressionCompilationProperties.errors.read(yaml, keys);
+    bool warnings = ExpressionCompilationProperties.warnings.read(yaml, keys);
+    String uri = ExpressionCompilationProperties.uri.read(yaml, keys);
+    String expression =
+        ExpressionCompilationProperties.expression.read(yaml, keys);
 
     if (keys.isNotEmpty) {
       throw "Unknown key(s) for ExpressionCompilation: $keys";
@@ -561,101 +787,6 @@ class ExpressionCompilation {
     return new ExpressionCompilation(
         errors: errors, warnings: warnings, uri: uri, expression: expression);
   }
-}
-
-T checkType<T>(Map world, Set<String> keys, String key, {Set<T>? options}) {
-  dynamic data = world[key];
-  keys.remove(key);
-  if (data == null) throw "Expected '$key' to have non-null value.";
-  if (data is! T) throw "Expected '$key' to be a '$T'.";
-  if (options != null) {
-    if (!options.contains(data)) {
-      throw "Got '$data' for '$key' but expected one of $options";
-    }
-  }
-  return data;
-}
-
-T? checkTypeOrNull<T>(Map world, Set<String> keys, String key,
-    {Set<T>? options}) {
-  dynamic data = world[key];
-  keys.remove(key);
-  if (data == null) return null;
-  if (data is! T) {
-    throw "Expected '$key' to be a '$T' but was '${data.runtimeType}'";
-  }
-  if (options != null) {
-    if (!options.contains(data)) {
-      throw "Got '$data' for '$key' but expected one of $options";
-    }
-  }
-  return data;
-}
-
-T? checkTypeEnumOrNull<T extends Enum>(
-    Map world, Set<String> keys, String key, List<T> enums) {
-  String? enumValue = checkTypeOrNull<String>(world, keys, key,
-      options: new Set<String>.from(enums.map((e) => e.name)));
-  if (enumValue == null) return null;
-  return enums.where((element) => element.name == enumValue).single;
-}
-
-List<T>? checkTypeListOrNull<T>(Map world, Set<String> keys, String key) {
-  List? list = checkTypeOrNull<List>(world, keys, key);
-  if (list == null) return null;
-  try {
-    return new List<T>.from(list);
-  } catch (e) {
-    throw "Expected the list to contain '$T' for '$key' but failed: $e";
-  }
-}
-
-Map<K, V>? checkTypeMapOrNull<K, V>(Map world, Set<String> keys, String key) {
-  Map? map = checkTypeOrNull<Map>(world, keys, key);
-  if (map == null) return null;
-  try {
-    return new Map<K, V>.from(map);
-  } catch (e) {
-    throw "Expected the map to contain '<$K, $V>' for '$key' but failed: $e";
-  }
-}
-
-Map<K, List<V>>? checkTypeMapListOrNull<K, V>(
-    Map world, Set<String> keys, String key) {
-  Map? map = checkTypeOrNull<Map>(world, keys, key);
-  if (map == null) return null;
-  try {
-    Map<K, List<V>> result = {};
-    for (var entry in map.entries) {
-      result[entry.key] = new List<V>.from(entry.value);
-    }
-    return result;
-  } catch (e) {
-    throw "Expected the map to contain '<$K, $V>' for '$key' but failed: $e";
-  }
-}
-
-List<T>? checkTypeSingletonOrListOrNull<T>(
-    Map world, Set<String> keys, String key) {
-  dynamic data = world[key];
-  keys.remove(key);
-
-  if (data == null) return null;
-  if (data is T) return [data];
-  if (data is List) {
-    try {
-      return new List<T>.from(data);
-    } catch (e) {
-      throw "Expected the list to contain '$T' for '$key' but failed: $e";
-    }
-  }
-  throw "Expected '$key' to be a '$T' or List<$T>";
-}
-
-List<T> checkTypeSingletonOrList<T>(Map world, Set<String> keys, String key) {
-  List<T>? data = checkTypeSingletonOrListOrNull(world, keys, key);
-  if (data == null) throw "Expected non-null value for '$key'";
-  return data;
 }
 
 class World {
@@ -749,123 +880,106 @@ class World {
   static World create(Map world) {
     Set<String> keys = new Set<String>.from(world.keys);
 
-    List<String>? modules = checkTypeListOrNull<String>(world, keys, "modules");
+    List<String>? modules = WorldProperties.modules.read(world, keys);
 
-    String? worldType =
-        checkTypeOrNull(world, keys, "worldType", options: {"updated"});
-    bool updateWorldType = worldType == "updated";
+    String? worldType = WorldProperties.worldType.read(world, keys);
+    bool updateWorldType = worldType == WorldProperties.worldType_updated;
 
-    bool noFullComponent =
-        checkTypeOrNull<bool>(world, keys, "noFullComponent") ?? false;
+    bool noFullComponent = WorldProperties.noFullComponent.read(world, keys);
 
     bool? expectInitializeFromDill =
-        checkTypeOrNull<bool>(world, keys, "expectInitializeFromDill");
+        WorldProperties.expectInitializeFromDill.read(world, keys);
 
-    Map<String, String?> sources =
-        checkTypeMapOrNull<String, String?>(world, keys, "sources") ?? {};
+    Map<String, String?> sources = WorldProperties.sources.read(world, keys);
 
-    bool useBadSdk = checkTypeOrNull<bool>(world, keys, "badSdk") ?? false;
+    bool useBadSdk = WorldProperties.badSdk.read(world, keys);
 
     bool enableStringReplacement =
-        checkTypeOrNull<bool>(world, keys, "enableStringReplacement") ?? false;
+        WorldProperties.enableStringReplacement.read(world, keys);
 
     String? packageConfigFile =
-        checkTypeOrNull<String>(world, keys, "packageConfigFile");
+        WorldProperties.packageConfigFile.read(world, keys);
 
-    String? experiments = checkTypeOrNull<String>(world, keys, "experiments");
+    String? experiments = WorldProperties.experiments.read(world, keys);
 
-    String? nnbdModeString =
-        checkTypeOrNull<String>(world, keys, "nnbdMode", options: {"strong"});
+    String? nnbdModeString = WorldProperties.nnbdMode.read(world, keys);
 
-    List<String> entries =
-        checkTypeSingletonOrList<String>(world, keys, "entry");
+    List<String> entries = WorldProperties.entry.read(world, keys);
 
-    bool outlineOnly =
-        checkTypeOrNull<bool>(world, keys, "outlineOnly") ?? false;
+    bool outlineOnly = WorldProperties.outlineOnly.read(world, keys);
 
     bool skipOutlineBodyCheck =
-        checkTypeOrNull<bool>(world, keys, "skipOutlineBodyCheck") ?? false;
+        WorldProperties.skipOutlineBodyCheck.read(world, keys);
 
-    bool fromComponent =
-        checkTypeOrNull<bool>(world, keys, "fromComponent") ?? false;
+    bool fromComponent = WorldProperties.fromComponent.read(world, keys);
 
-    List<String>? invalidate =
-        checkTypeListOrNull<String>(world, keys, "invalidate");
+    List<String>? invalidate = WorldProperties.invalidate.read(world, keys);
 
     bool simulateTransformer =
-        checkTypeOrNull<bool>(world, keys, "simulateTransformer") ?? false;
+        WorldProperties.simulateTransformer.read(world, keys);
 
     bool? expectInitializationError =
-        checkTypeOrNull<bool>(world, keys, "expectInitializationError");
+        WorldProperties.expectInitializationError.read(world, keys);
 
     bool compareToPrevious =
-        checkTypeOrNull<bool>(world, keys, "compareToPrevious") ?? false;
+        WorldProperties.compareToPrevious.read(world, keys);
 
     List<String>? uriToSourcesDoesntInclude =
-        checkTypeListOrNull<String>(world, keys, "uriToSourcesDoesntInclude");
+        WorldProperties.uriToSourcesDoesntInclude.read(world, keys);
 
     List<String>? uriToSourcesOnlyIncludes =
-        checkTypeListOrNull<String>(world, keys, "uriToSourcesOnlyIncludes");
+        WorldProperties.uriToSourcesOnlyIncludes.read(world, keys);
 
     bool skipClassHierarchyTest =
-        checkTypeOrNull<bool>(world, keys, "skipClassHierarchyTest") ?? false;
+        WorldProperties.skipClassHierarchyTest.read(world, keys);
 
-    bool expectsPlatform =
-        checkTypeOrNull<bool>(world, keys, "expectsPlatform") ?? false;
+    bool expectsPlatform = WorldProperties.expectsPlatform.read(world, keys);
 
     int? expectedLibraryCount =
-        checkTypeOrNull<int>(world, keys, "expectedLibraryCount");
+        WorldProperties.expectedLibraryCount.read(world, keys);
 
     int? expectedSyntheticLibraryCount =
-        checkTypeOrNull<int>(world, keys, "expectedSyntheticLibraryCount");
+        WorldProperties.expectedSyntheticLibraryCount.read(world, keys);
 
-    /// The expected result of the advanced invalidation.
     AdvancedInvalidationResult? advancedInvalidation =
-        checkTypeEnumOrNull<AdvancedInvalidationResult>(world, keys,
-            "advancedInvalidation", AdvancedInvalidationResult.values);
+        WorldProperties.advancedInvalidation.read(world, keys);
 
-    bool checkEntries =
-        checkTypeOrNull<bool>(world, keys, "checkEntries") ?? true;
+    bool checkEntries = WorldProperties.checkEntries.read(world, keys);
 
     bool checkInvalidatedFiles =
-        checkTypeOrNull<bool>(world, keys, "checkInvalidatedFiles") ?? true;
+        WorldProperties.checkInvalidatedFiles.read(world, keys);
 
     List<String>? expectedInvalidatedUri =
-        checkTypeListOrNull<String>(world, keys, "expectedInvalidatedUri");
+        WorldProperties.expectedInvalidatedUri.read(world, keys);
 
     int? expectSameErrorsAsWorld =
-        checkTypeOrNull<int>(world, keys, "expectSameErrorsAsWorld");
+        WorldProperties.expectSameErrorsAsWorld.read(world, keys);
 
-    List<Map>? expressionCompilationRaw = checkTypeSingletonOrListOrNull<Map>(
-        world, keys, "expressionCompilation");
     List<ExpressionCompilation>? expressionCompilation =
-        expressionCompilationRaw
-            ?.map((e) => ExpressionCompilation.create(e))
-            .toList();
+        WorldProperties.expressionCompilation.read(world, keys);
 
     bool compareWithFromScratch =
-        checkTypeOrNull<bool>(world, keys, "compareWithFromScratch") ?? false;
+        WorldProperties.compareWithFromScratch.read(world, keys);
 
-    bool brandNewIncrementalSerializationAllowDifferent = checkTypeOrNull<bool>(
-            world, keys, "brandNewIncrementalSerializationAllowDifferent") ??
-        false;
+    bool brandNewIncrementalSerializationAllowDifferent = WorldProperties
+        .brandNewIncrementalSerializationAllowDifferent
+        .read(world, keys);
 
-    bool warnings = checkTypeOrNull<bool>(world, keys, "warnings") ?? false;
+    bool warnings = WorldProperties.warnings.read(world, keys);
 
-    bool errors = checkTypeOrNull<bool>(world, keys, "errors") ?? false;
+    bool errors = WorldProperties.errors.read(world, keys);
 
     List<String>? neededDillLibraries =
-        checkTypeListOrNull<String>(world, keys, "neededDillLibraries");
+        WorldProperties.neededDillLibraries.read(world, keys);
 
     Map<String, List<String>>? expectedContent =
-        checkTypeMapListOrNull<String, String>(world, keys, "expectedContent");
+        WorldProperties.expectedContent.read(world, keys);
 
-    bool incrementalSerializationDoesWork = checkTypeOrNull<bool>(
-            world, keys, "incrementalSerializationDoesWork") ??
-        false;
+    bool incrementalSerializationDoesWork =
+        WorldProperties.incrementalSerializationDoesWork.read(world, keys);
 
-    List<String>? serializationShouldNotInclude = checkTypeListOrNull<String>(
-        world, keys, "serializationShouldNotInclude");
+    List<String>? serializationShouldNotInclude =
+        WorldProperties.serializationShouldNotInclude.read(world, keys);
 
     if (keys.isNotEmpty) {
       throw "Unknown key(s) for World: $keys";
@@ -918,6 +1032,8 @@ class World {
 class NewWorldTest {
   final TestData data;
   final Context context;
+  final List<World> worlds;
+  final Map<String, Map<String, String>>? modules;
   final bool omitPlatform;
   final bool forceLateLoweringForTesting;
   final bool trackWidgetCreation;
@@ -936,6 +1052,8 @@ class NewWorldTest {
   NewWorldTest({
     required this.data,
     required this.context,
+    required this.worlds,
+    required this.modules,
     required this.omitPlatform,
     required this.forceLateLoweringForTesting,
     required this.trackWidgetCreation,
@@ -943,10 +1061,6 @@ class NewWorldTest {
     required this.nnbdMode,
     required this.targetName,
   });
-
-  List<World> get worlds =>
-      (data.map["worlds"] as List).map((e) => World.create(e)).toList();
-  Map? get modules => data.map["modules"];
 
   Future<Result<TestData>> newWorldTest() async {
     final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
@@ -957,13 +1071,13 @@ class NewWorldTest {
         trackWidgetCreation: trackWidgetCreation);
     Target target = new VmTarget(targetFlags);
     if (targetName != null) {
-      if (targetName == "None") {
+      if (targetName == NewWorldTestProperties.target_none) {
         target = new NoneTarget(targetFlags);
-      } else if (targetName == "DDC") {
+      } else if (targetName == NewWorldTestProperties.target_ddc) {
         target = new DevCompilerTarget(targetFlags);
-      } else if (targetName == "dart2js") {
+      } else if (targetName == NewWorldTestProperties.target_dart2js) {
         target = new Dart2jsTarget("dart2js", targetFlags);
-      } else if (targetName == "VM") {
+      } else if (targetName == NewWorldTestProperties.target_vm) {
         // default.
       } else {
         throw "Unknown target name '$targetName'";
@@ -1108,7 +1222,7 @@ class NewWorldTest {
         if (world.nnbdModeString != null) {
           String nnbdMode = world.nnbdModeString!;
           switch (nnbdMode) {
-            case "strong":
+            case WorldProperties.nnbdMode_strong:
               options.nnbdMode = NnbdMode.Strong;
               break;
             default:
