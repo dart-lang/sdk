@@ -41,8 +41,8 @@ Future<void> main(List<String> args) async {
       if (title.contains(rule.key)) {
         var sets = rule.value;
         for (var set in sets) {
-          if (!issue.labels.any((label) => label.name.startsWith('set: '))) {
-            print('${issue.htmlUrl} => set: $set');
+          if (!issue.labels.any((label) => label.name.startsWith('set-'))) {
+            print('${issue.htmlUrl} => set-$set');
           }
         }
       }
