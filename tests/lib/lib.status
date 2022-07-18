@@ -13,7 +13,9 @@ isolate/issue_24243_parent_isolate_test: Skip # Requires checked mode
 
 [ $runtime == d8 ]
 js/js_util/javascriptobject_extensions_test: SkipByDesign # Uses dart:html.
+js/static_interop_test/constants_test: SkipByDesign # Uses dart:html.
 js/static_interop_test/futurevaluetype_test: SkipByDesign # Uses dart:html.
+js/static_interop_test/supertype_transform_test: SkipByDesign # Uses dart:html.
 
 [ $runtime == dart_precompiled ]
 isolate/package_config_getter_test: SkipByDesign # AOT mode doesn't preserve package structure.
