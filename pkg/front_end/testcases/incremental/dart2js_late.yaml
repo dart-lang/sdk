@@ -9,6 +9,7 @@ type: newworld
 target: dart2js
 worlds:
   - entry: late_statics.dart
+    experiments: alternative-invalidation-strategy
     sources:
       late_statics.dart: |
         import 'late_statics_lib.dart' as lib;
@@ -22,10 +23,11 @@ worlds:
     expectedLibraryCount: 2
 
   - entry: late_statics.dart
+    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
       - late_statics.dart
     expectedLibraryCount: 2
-    advancedInvalidation: disabled
+    advancedInvalidation: bodiesOnly
 
