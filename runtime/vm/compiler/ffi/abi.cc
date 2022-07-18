@@ -92,19 +92,23 @@ static_assert(offsetof(AbiAlignmentUint64, i) == 8,
 #error Unknown arch
 #endif
 
+#if defined(USING_SIMULATOR)
+#define ABI_ENUM_VALUE3 kNone
+const char* target_abi_name = "none";
+#else
 #define ABI_ENUM_VALUE1(os, arch) k##os##arch
 #define ABI_ENUM_VALUE2(os, arch) ABI_ENUM_VALUE1(os, arch)
 #define ABI_ENUM_VALUE3 ABI_ENUM_VALUE2(DART_TARGET_OS_NAME, TARGET_ARCH_NAME)
+#define STRINGIFY2(s) STRINGIFY(s)
+#define STRINGIFY(s) #s
+const char* target_abi_name =
+    STRINGIFY2(DART_TARGET_OS_NAME_LC) "_" STRINGIFY2(TARGET_ARCH_NAME_LC);
+#endif
 
 Abi TargetAbi() {
   return Abi::ABI_ENUM_VALUE3;
 }
 
-#define STRINGIFY2(s) STRINGIFY(s)
-#define STRINGIFY(s) #s
-
-const char* target_abi_name =
-    STRINGIFY2(DART_TARGET_OS_NAME_LC) "_" STRINGIFY2(TARGET_ARCH_NAME_LC);
 
 }  // namespace ffi
 
