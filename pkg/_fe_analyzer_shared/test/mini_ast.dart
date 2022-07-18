@@ -34,13 +34,14 @@ Statement checkAssigned(Var variable, bool expectedAssignedState) =>
     new _CheckAssigned(variable, expectedAssignedState);
 
 /// Creates a pseudo-statement whose function is to verify that flow analysis
-/// considers [variable] to be un-promoted.
-Statement checkNotPromoted(Var variable) => new _CheckPromoted(variable, null);
+/// considers [promotable] to be un-promoted.
+Statement checkNotPromoted(Promotable promotable) =>
+    new _CheckPromoted(promotable, null);
 
 /// Creates a pseudo-statement whose function is to verify that flow analysis
-/// considers [variable]'s assigned state to be promoted to [expectedTypeStr].
-Statement checkPromoted(Var variable, String? expectedTypeStr) =>
-    new _CheckPromoted(variable, expectedTypeStr);
+/// considers [promotable]'s assigned state to be promoted to [expectedTypeStr].
+Statement checkPromoted(Promotable promotable, String? expectedTypeStr) =>
+    new _CheckPromoted(promotable, expectedTypeStr);
 
 /// Creates a pseudo-statement whose function is to verify that flow analysis
 /// considers the current location's reachability state to be
@@ -145,8 +146,8 @@ Statement switch_(Expression expression, List<SwitchCase> cases,
         {required bool isExhaustive}) =>
     new _Switch(expression, cases, isExhaustive);
 
-Expression thisOrSuperPropertyGet(String name) =>
-    new _ThisOrSuperPropertyGet(name);
+PromotableLValue thisOrSuperProperty(String name) =>
+    new _ThisOrSuperProperty(name);
 
 Expression throw_(Expression operand) => new _Throw(operand);
 
@@ -179,6 +180,12 @@ abstract class Expression extends Node {
 
   /// If `this` is an expression `x`, creates the expression `x as typeStr`.
   Expression as_(String typeStr) => new _As(this, Type(typeStr));
+
+  /// Creates an [Expression] that, when analyzed, will behave the same as
+  /// `this`, but after visiting it, will verify that the type of the expression
+  /// was [expectedType].
+  Expression checkType(String expectedType) =>
+      new _CheckExpressionType(this, expectedType);
 
   /// If `this` is an expression `x`, creates the expression
   /// `x ? ifTrue : ifFalse`.
@@ -223,7 +230,7 @@ abstract class Expression extends Node {
   Expression or(Expression other) => new _Logical(this, other, isAnd: false);
 
   /// If `this` is an expression `x`, creates the L-value `x.name`.
-  LValue property(String name) => new _Property(this, name);
+  PromotableLValue property(String name) => new _Property(this, name);
 
   /// If `this` is an expression `x`, creates a pseudo-expression that models
   /// evaluation of `x` followed by execution of [stmt].  This can be used to
@@ -253,6 +260,7 @@ class Harness extends Operations<Var, Type> {
     'bool <: int': false,
     'bool <: Object': true,
     'double <: Object': true,
+    'double <: Object?': true,
     'double <: num': true,
     'double <: num?': true,
     'double <: int': false,
@@ -327,9 +335,11 @@ class Harness extends Operations<Var, Type> {
     'String <: num?': false,
     'String <: Object': true,
     'String <: Object?': true,
+    'String? <: Object?': true,
   };
 
   static final Map<String, Type> _coreFactors = {
+    'Object? - double': Type('Object?'),
     'Object? - int': Type('Object?'),
     'Object? - int?': Type('Object'),
     'Object? - Never': Type('Object?'),
@@ -337,6 +347,7 @@ class Harness extends Operations<Var, Type> {
     'Object? - num?': Type('Object'),
     'Object? - Object?': Type('Never?'),
     'Object? - String': Type('Object?'),
+    'Object? - String?': Type('Object?'),
     'Object - bool': Type('Object'),
     'Object - int': Type('Object'),
     'Object - String': Type('Object'),
@@ -376,7 +387,7 @@ class Harness extends Operations<Var, Type> {
 
   final Map<String, Type> _factorResults = Map.of(_coreFactors);
 
-  final Map<String, Type> _members = {};
+  final Map<String, _PropertyElement> _members = {};
 
   Map<String, Map<String, String>> _promotionExceptions = {};
 
@@ -388,6 +399,8 @@ class Harness extends Operations<Var, Type> {
   /// always, and we need to be able to replicate the old behavior when
   /// analyzing old language versions).
   final bool respectImplicitlyTypedVarInitializers;
+
+  final Set<_PropertyElement> _promotableFields = {};
 
   Harness(
       {this.legacy = false,
@@ -406,9 +419,14 @@ class Harness extends Operations<Var, Type> {
 
   /// Updates the harness so that when member [memberName] is looked up on type
   /// [targetType], a member is found having the given [type].
-  void addMember(String targetType, String memberName, String type) {
+  void addMember(String targetType, String memberName, String type,
+      {bool promotable = false}) {
     var query = '$targetType.$memberName';
-    _members[query] = Type(type);
+    var member = _PropertyElement(Type(type));
+    _members[query] = member;
+    if (promotable) {
+      _promotableFields.add(member);
+    }
   }
 
   void addPromotionException(String from, String to, String result) {
@@ -440,8 +458,9 @@ class Harness extends Operations<Var, Type> {
   }
 
   /// Attempts to look up a member named [memberName] in the given [type].  If
-  /// a member is found, returns its type.  Otherwise the test fails.
-  Type getMember(Type type, String memberName) {
+  /// a member is found, returns its [_PropertyElement] object.  Otherwise the
+  /// test fails.
+  _PropertyElement getMember(Type type, String memberName) {
     var query = '$type.$memberName';
     return _members[query] ?? fail('Unknown member query: $query');
   }
@@ -489,7 +508,8 @@ class Harness extends Operations<Var, Type> {
         : FlowAnalysis<Node, Statement, Expression, Var, Type>(
             this, assignedVariables,
             respectImplicitlyTypedVarInitializers:
-                respectImplicitlyTypedVarInitializers);
+                respectImplicitlyTypedVarInitializers,
+            promotableFields: _promotableFields);
     _typeAnalyzer.dispatchStatement(b);
     _typeAnalyzer.finish();
   }
@@ -595,6 +615,24 @@ class Node {
   String toString() => 'Node#$id';
 }
 
+/// Base class for language constructs that, at a given point in flow analysis,
+/// might or might not be promoted.
+abstract class Promotable {
+  /// Queries the current promotion status of `this`.  Return value is either a
+  /// type (if `this` is promoted), or `null` (if it isn't).
+  Type? _getPromotedType(Harness h);
+
+  /// Makes the appropriate calls to [assignedVariables] for this syntactic
+  /// construct.
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables);
+}
+
+/// Base class for l-values that, at a given point in flow analysis, might or
+/// might not be promoted.
+abstract class PromotableLValue extends LValue implements Promotable {
+  PromotableLValue._() : super._();
+}
+
 /// Helper class allowing tests to examine the values of variables' SSA nodes.
 class SsaNodeHarness {
   final FlowAnalysis<Node, Statement, Expression, Var, Type> _flow;
@@ -654,7 +692,7 @@ abstract class TryStatement extends Statement implements TryBuilder {
 
 /// Representation of a local variable in the pseudo-Dart language used for flow
 /// analysis testing.
-class Var {
+class Var implements Promotable {
   final String name;
   final Type type;
   final bool isFinal;
@@ -680,6 +718,15 @@ class Var {
 
   /// Creates an expression representing a write to this variable.
   Expression write(Expression? value) => expr.write(value);
+
+  @override
+  Type? _getPromotedType(Harness h) {
+    h._irBuilder.atom(name);
+    return h._flow.promotedType(this);
+  }
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
 }
 
 class _As extends Expression {
@@ -833,29 +880,54 @@ class _CheckAssigned extends Statement {
   }
 }
 
+class _CheckExpressionType extends Expression {
+  final Expression target;
+  final String expectedType;
+  final StackTrace _creationTrace = StackTrace.current;
+
+  _CheckExpressionType(this.target, this.expectedType);
+
+  @override
+  String toString() => '$target (expected type: $expectedType)';
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    target._preVisit(assignedVariables);
+  }
+
+  @override
+  Type _visit(Harness h, Type context) {
+    var type = h._typeAnalyzer.analyzeExpression(target);
+    h._flow.forwardExpression(this, target);
+    expect(type.type, expectedType, reason: '$_creationTrace');
+    return type;
+  }
+}
+
 class _CheckPromoted extends Statement {
-  final Var variable;
+  final Promotable promotable;
   final String? expectedTypeStr;
   final StackTrace _creationTrace = StackTrace.current;
 
-  _CheckPromoted(this.variable, this.expectedTypeStr) : super._();
+  _CheckPromoted(this.promotable, this.expectedTypeStr) : super._();
 
   @override
   String toString() {
     var predicate = expectedTypeStr == null
         ? 'not promoted'
         : 'promoted to $expectedTypeStr';
-    return 'check $variable $predicate;';
+    return 'check $promotable $predicate;';
   }
 
   @override
-  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    promotable._preVisit(assignedVariables);
+  }
 
   @override
   void _visit(Harness h) {
-    var promotedType = h._flow.promotedType(variable);
+    var promotedType = promotable._getPromotedType(h);
     expect(promotedType?.type, expectedTypeStr, reason: '$_creationTrace');
-    h._irBuilder.atom('null');
   }
 }
 
@@ -1536,9 +1608,10 @@ class _MiniAstTypeAnalyzer {
   Type analyzePropertyGet(
       Expression node, Expression receiver, String propertyName) {
     var receiverType = analyzeExpression(receiver);
-    var type = _lookupMember(node, receiverType, propertyName);
-    flow.propertyGet(node, receiver, propertyName, propertyName, type);
-    return type;
+    var member = _lookupMember(node, receiverType, propertyName);
+    var promotedType =
+        flow.propertyGet(node, receiver, propertyName, member, member._type);
+    return promotedType ?? member._type;
   }
 
   void analyzeReturnStatement() {
@@ -1566,9 +1639,10 @@ class _MiniAstTypeAnalyzer {
   }
 
   Type analyzeThisPropertyGet(Expression node, String propertyName) {
-    var type = _lookupMember(node, thisType, propertyName);
-    flow.thisOrSuperPropertyGet(node, propertyName, propertyName, type);
-    return type;
+    var member = _lookupMember(node, thisType, propertyName);
+    var promotedType =
+        flow.thisOrSuperPropertyGet(node, propertyName, member, member._type);
+    return promotedType ?? member._type;
   }
 
   Type analyzeThrow(Expression node, Expression expression) {
@@ -1682,11 +1756,13 @@ class _MiniAstTypeAnalyzer {
 
   Type leastUpperBound(Type t1, Type t2) => _harness._lub(t1, t2);
 
-  Type lookupInterfaceMember(Node node, Type receiverType, String memberName) {
+  _PropertyElement lookupInterfaceMember(
+      Node node, Type receiverType, String memberName) {
     return _harness.getMember(receiverType, memberName);
   }
 
-  Type _lookupMember(Expression node, Type receiverType, String memberName) {
+  _PropertyElement _lookupMember(
+      Expression node, Type receiverType, String memberName) {
     return lookupInterfaceMember(node, receiverType, memberName);
   }
 
@@ -1824,12 +1900,21 @@ class _PlaceholderExpression extends Expression {
   }
 }
 
-class _Property extends LValue {
+class _Property extends PromotableLValue {
   final Expression target;
 
   final String propertyName;
 
   _Property(this.target, this.propertyName) : super._();
+
+  @override
+  Type? _getPromotedType(Harness h) {
+    var receiverType = h._typeAnalyzer.analyzeExpression(target);
+    var member =
+        h._typeAnalyzer._lookupMember(this, receiverType, propertyName);
+    return h._flow
+        .promotedPropertyType(target, propertyName, member, member._type);
+  }
 
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables,
@@ -1847,6 +1932,15 @@ class _Property extends LValue {
       Expression? rhs) {
     // No flow analysis impact
   }
+}
+
+/// Mini-ast representation of a class property.  Instances of this class are
+/// used to represent class members in the flow analysis `promotableFields` set.
+class _PropertyElement {
+  /// The type of the property.
+  final Type _type;
+
+  _PropertyElement(this._type);
 }
 
 class _Return extends Statement {
@@ -1917,19 +2011,34 @@ class _This extends Expression {
   }
 }
 
-class _ThisOrSuperPropertyGet extends Expression {
+class _ThisOrSuperProperty extends PromotableLValue {
   final String propertyName;
 
-  _ThisOrSuperPropertyGet(this.propertyName);
+  _ThisOrSuperProperty(this.propertyName) : super._();
 
   @override
-  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  Type? _getPromotedType(Harness h) {
+    h._irBuilder.atom('this.$propertyName');
+    var member = h._typeAnalyzer._lookupMember(this, h.thisType!, propertyName);
+    return h._flow
+        .promotedPropertyType(null, propertyName, member, member._type);
+  }
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables,
+      {_LValueDisposition disposition = _LValueDisposition.read}) {}
 
   @override
   Type _visit(Harness h, Type context) {
     var type = h._typeAnalyzer.analyzeThisPropertyGet(this, propertyName);
     h._irBuilder.atom('this.$propertyName');
     return type;
+  }
+
+  @override
+  void _visitWrite(Harness h, Expression assignmentExpression, Type writtenType,
+      Expression? rhs) {
+    // No flow analysis impact
   }
 }
 

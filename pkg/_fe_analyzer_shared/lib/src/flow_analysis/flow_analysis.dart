@@ -417,10 +417,12 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
     Expression extends Object, Variable extends Object, Type extends Object> {
   factory FlowAnalysis(Operations<Variable, Type> operations,
       AssignedVariables<Node, Variable> assignedVariables,
-      {required bool respectImplicitlyTypedVarInitializers}) {
+      {required bool respectImplicitlyTypedVarInitializers,
+      Set<Object?> promotableFields = const {}}) {
     return new _FlowAnalysisImpl(operations, assignedVariables,
         respectImplicitlyTypedVarInitializers:
-            respectImplicitlyTypedVarInitializers);
+            respectImplicitlyTypedVarInitializers,
+        promotableFields: promotableFields);
   }
 
   factory FlowAnalysis.legacy(Operations<Variable, Type> operations,
@@ -787,6 +789,28 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   void parenthesizedExpression(
       Expression outerExpression, Expression innerExpression);
 
+  /// Retrieves the type that a property named [propertyName] is promoted to, if
+  /// the property is currently promoted.  Otherwise returns `null`.
+  ///
+  /// The [target] parameter determines which expression's property is being
+  /// queried; if it is `null`, a property of `this` is being queried.  If it is
+  /// non-`null`, this method should be called just after visiting the target
+  /// expression.
+  ///
+  /// [propertyMember] should be whatever data structure the client uses to keep
+  /// track of the field or property being accessed.  This will be matched
+  /// against set set of promotable fields passed to the [FlowAnalysis]
+  /// constructor.  [staticType] should be the static type of the value returned
+  /// by the property get.
+  ///
+  /// Note: although only fields can be promoted, this method uses the
+  /// nomenclature "property" rather than "field", to highlight the fact that
+  /// it is not necessary for the client to check whether a property refers to a
+  /// field before calling this method; if the property does not refer to a
+  /// field, `null` will be returned.
+  Type? promotedPropertyType(Expression? target, String propertyName,
+      Object? propertyMember, Type staticType);
+
   /// Retrieves the type that the [variable] is promoted to, if the [variable]
   /// is currently promoted.  Otherwise returns `null`.
   Type? promotedType(Variable variable);
@@ -798,10 +822,14 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// the static type of the value returned by the property get.
   ///
   /// [propertyMember] should be whatever data structure the client uses to keep
-  /// track of the field or property being accessed.  In the event of
-  /// non-promotion of a property get, this value can be retrieved from
-  /// [PropertyNotPromoted.propertyMember].
-  void propertyGet(Expression wholeExpression, Expression target,
+  /// track of the field or property being accessed.  This will be matched
+  /// against the set of promotable fields passed to the [FlowAnalysis]
+  /// constructor.  In the event of non-promotion of a property get, this value
+  /// can be retrieved from [PropertyNotPromoted.propertyMember].
+  ///
+  /// If the property's type is currently promoted, the promoted type is
+  /// returned.  Otherwise `null` is returned.
+  Type? propertyGet(Expression wholeExpression, Expression target,
       String propertyName, Object? propertyMember, Type staticType);
 
   /// Retrieves the SSA node associated with [variable], or `null` if [variable]
@@ -855,10 +883,14 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// returned by the property get.
   ///
   /// [propertyMember] should be whatever data structure the client uses to keep
-  /// track of the field or property being accessed.  In the event of
-  /// non-promotion of a property get, this value can be retrieved from
-  /// [PropertyNotPromoted.propertyMember].
-  void thisOrSuperPropertyGet(Expression expression, String propertyName,
+  /// track of the field or property being accessed.  This will be matched
+  /// against the set of promotable fields passed to the [FlowAnalysis]
+  /// constructor.  In the event of non-promotion of a property get, this value
+  /// can be retrieved from [PropertyNotPromoted.propertyMember].
+  ///
+  /// If the property's type is currently promoted, the promoted type is
+  /// returned.  Otherwise `null` is returned.
+  Type? thisOrSuperPropertyGet(Expression expression, String propertyName,
       Object? propertyMember, Type staticType);
 
   /// Call this method just before visiting the body of a "try/catch" statement.
@@ -1049,12 +1081,14 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
 
   factory FlowAnalysisDebug(Operations<Variable, Type> operations,
       AssignedVariables<Node, Variable> assignedVariables,
-      {required bool respectImplicitlyTypedVarInitializers}) {
+      {required bool respectImplicitlyTypedVarInitializers,
+      Set<Object?> promotableFields = const {}}) {
     print('FlowAnalysisDebug()');
     return new FlowAnalysisDebug._(new _FlowAnalysisImpl(
         operations, assignedVariables,
         respectImplicitlyTypedVarInitializers:
-            respectImplicitlyTypedVarInitializers));
+            respectImplicitlyTypedVarInitializers,
+        promotableFields: promotableFields));
   }
 
   factory FlowAnalysisDebug.legacy(Operations<Variable, Type> operations,
@@ -1410,6 +1444,17 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
+  Type? promotedPropertyType(Expression? target, String propertyName,
+      Object? propertyMember, Type staticType) {
+    return _wrap(
+        'promotedPropertyType($target, $propertyName, $propertyMember, '
+        '$staticType)',
+        () => _wrapped.promotedPropertyType(
+            target, propertyName, propertyMember, staticType),
+        isQuery: true);
+  }
+
+  @override
   Type? promotedType(Variable variable) {
     return _wrap(
         'promotedType($variable)', () => _wrapped.promotedType(variable),
@@ -1417,13 +1462,15 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void propertyGet(Expression wholeExpression, Expression target,
+  Type? propertyGet(Expression wholeExpression, Expression target,
       String propertyName, Object? propertyMember, Type staticType) {
-    _wrap(
+    return _wrap(
         'propertyGet($wholeExpression, $target, $propertyName, '
         '$propertyMember, $staticType)',
         () => _wrapped.propertyGet(
-            wholeExpression, target, propertyName, propertyMember, staticType));
+            wholeExpression, target, propertyName, propertyMember, staticType),
+        isQuery: true,
+        isPure: false);
   }
 
   @override
@@ -1458,13 +1505,15 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void thisOrSuperPropertyGet(Expression expression, String propertyName,
+  Type? thisOrSuperPropertyGet(Expression expression, String propertyName,
       Object? propertyMember, Type staticType) {
-    _wrap(
+    return _wrap(
         'thisOrSuperPropertyGet($expression, $propertyName, $propertyMember, '
         '$staticType)',
         () => _wrapped.thisOrSuperPropertyGet(
-            expression, propertyName, propertyMember, staticType));
+            expression, propertyName, propertyMember, staticType),
+        isQuery: false,
+        isPure: false);
   }
 
   @override
@@ -2441,6 +2490,11 @@ class PromotionKeyStore<Variable extends Object> {
   /// Null list elements are considered equivalent to an empty map (this allows
   /// us so save memory due to the fact that most entries will not be accessed).
   final List<Map<String, int>?> _properties = [];
+
+  /// The set of fields that can be promoted.  The type of the set element is
+  /// `Object?` to match the type of the `propertyMember` argument of
+  /// [promotedFieldType], [propertyGet], and [thisOrSuperPropertyGet].
+  late final Set<Object?> _promotableFields;
 
   int getProperty(int targetKey, String propertyName) =>
       (_properties[targetKey] ??= {})[propertyName] ??= _makeNewKey(null);
@@ -3442,8 +3496,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   final PromotionKeyStore<Variable> _promotionKeyStore;
 
   _FlowAnalysisImpl(this.operations, this._assignedVariables,
-      {required this.respectImplicitlyTypedVarInitializers})
+      {required this.respectImplicitlyTypedVarInitializers,
+      Set<Object?> promotableFields = const {}})
       : _promotionKeyStore = _assignedVariables._promotionKeyStore {
+    _promotionKeyStore._promotableFields = promotableFields;
     if (!_assignedVariables._isFinished) {
       _assignedVariables.finish();
     }
@@ -3987,6 +4043,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
+  Type? promotedPropertyType(Expression? target, String propertyName,
+      Object? propertyMember, Type staticType) {
+    return _handleProperty(
+        null, target, propertyName, propertyMember, staticType);
+  }
+
+  @override
   Type? promotedType(Variable variable) {
     return _current
         .infoFor(_promotionKeyStore.keyForVariable(variable))
@@ -3995,18 +4058,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void propertyGet(Expression wholeExpression, Expression target,
+  Type? propertyGet(Expression wholeExpression, Expression target,
       String propertyName, Object? propertyMember, Type staticType) {
-    int? targetKey = _getExpressionReference(target)?.promotionKey;
-    if (targetKey != null) {
-      _storeExpressionReference(
-          wholeExpression,
-          new _PropertyReferenceWithType<Type>(
-              propertyName,
-              propertyMember,
-              _promotionKeyStore.getProperty(targetKey, propertyName),
-              staticType));
-    }
+    return _handleProperty(
+        wholeExpression, target, propertyName, propertyMember, staticType);
   }
 
   @override
@@ -4060,16 +4115,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void thisOrSuperPropertyGet(Expression expression, String propertyName,
+  Type? thisOrSuperPropertyGet(Expression expression, String propertyName,
       Object? propertyMember, Type staticType) {
-    _storeExpressionReference(
-        expression,
-        new _PropertyReferenceWithType<Type>(
-            propertyName,
-            propertyMember,
-            _promotionKeyStore.getProperty(
-                _promotionKeyStore.thisPromotionKey, propertyName),
-            staticType));
+    return _handleProperty(
+        expression, null, propertyName, propertyMember, staticType);
   }
 
   @override
@@ -4331,6 +4380,36 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       }
     }
     return () => {};
+  }
+
+  Type? _handleProperty(Expression? wholeExpression, Expression? target,
+      String propertyName, Object? propertyMember, Type staticType) {
+    int targetKey;
+    if (target == null) {
+      targetKey = _promotionKeyStore.thisPromotionKey;
+    } else {
+      ReferenceWithType<Type>? targetReference =
+          _getExpressionReference(target);
+      if (targetReference == null) return null;
+      targetKey = targetReference.promotionKey;
+    }
+    _PropertyReferenceWithType<Type> propertyReference =
+        new _PropertyReferenceWithType<Type>(
+            propertyName,
+            propertyMember,
+            _promotionKeyStore.getProperty(targetKey, propertyName),
+            staticType);
+    if (wholeExpression != null) {
+      _storeExpressionReference(wholeExpression, propertyReference);
+    }
+    if (!propertyReference.isPromotable(_promotionKeyStore)) return null;
+    Type? promotedType =
+        _current.infoFor(propertyReference.promotionKey).promotedTypes?.last;
+    if (promotedType == null ||
+        !operations.isSubtypeOf(promotedType, staticType)) {
+      return null;
+    }
+    return promotedType;
   }
 
   FlowModel<Type> _join(FlowModel<Type>? first, FlowModel<Type>? second) =>
@@ -4779,14 +4858,20 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
+  Type? promotedPropertyType(Expression? target, String propertyName,
+          Object? propertyMember, Type staticType) =>
+      null;
+
+  @override
   Type? promotedType(Variable variable) {
     int variableKey = _promotionKeyStore.keyForVariable(variable);
     return _knownTypes[variableKey];
   }
 
   @override
-  void propertyGet(Expression wholeExpression, Expression target,
-      String propertyName, Object? propertyMember, Type staticType) {}
+  Type? propertyGet(Expression wholeExpression, Expression target,
+          String propertyName, Object? propertyMember, Type staticType) =>
+      null;
 
   @override
   SsaNode<Type>? ssaNodeForTesting(Variable variable) {
@@ -4806,8 +4891,9 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void thisOrSuper(Expression expression, Type staticType) {}
 
   @override
-  void thisOrSuperPropertyGet(Expression expression, String propertyName,
-      Object? propertyMember, Type staticType) {}
+  Type? thisOrSuperPropertyGet(Expression expression, String propertyName,
+          Object? propertyMember, Type staticType) =>
+      null;
 
   @override
   void tryCatchStatement_bodyBegin() {}
@@ -5005,6 +5091,10 @@ class _PropertyReferenceWithType<Type extends Object>
 
   _PropertyReferenceWithType(
       this.propertyName, this.propertyMember, super.promotionKey, super.type);
+
+  @override
+  bool isPromotable(PromotionKeyStore<Object> promotionKeyStore) =>
+      promotionKeyStore._promotableFields.contains(propertyMember);
 
   @override
   String toString() =>
