@@ -47,7 +47,7 @@ class ConstantInitializersResolver {
         unit.extensions.forEach(_resolveExtensionFields);
         unit.mixins.forEach(_resolveClassFields);
 
-        _scope = builder.element.scope;
+        _scope = unit.enclosingElement2.scope;
         unit.topLevelVariables.forEach(_resolveVariable);
       }
     }
