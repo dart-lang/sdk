@@ -5,8 +5,8 @@
 import 'dart:developer';
 
 void main() {
-  print(ServiceExtensionResponse.kInvalidParams);
-  print(ServiceExtensionResponse.kExtensionError);
-  print(ServiceExtensionResponse.kExtensionErrorMax);
-  print(ServiceExtensionResponse.kExtensionErrorMin);
+  print(ServiceExtensionResponse.invalidParams);
+  print(ServiceExtensionResponse.extensionError);
+  print(ServiceExtensionResponse.extensionErrorMax);
+  print(ServiceExtensionResponse.extensionErrorMin);
 }

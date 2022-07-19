@@ -2489,6 +2489,15 @@ breaking changes:
 
 #### `dart:developer`
 
+- **Breaking change** [#34233][]: The previously deprecated APIs
+  `kInvalidParams`, `kExtensionError`, `kExtensionErrorMax`, and
+  `kExtensionErrorMin` in [`ServiceExtensionResponse`][] have been removed. They
+  have been replaced by `invalidParams`, `extensionError`, `extensionErrorMax`,
+  and `extensionErrorMin`.
+
+[#34233]: https://github.com/dart-lang/sdk/issues/34233
+[`ServiceExtensionResponse`]: https://api.dart.dev/stable/dart-developer/ServiceExtensionResponse-class.html#constants
+
 - The constructors for `TimelineTask` now accept an optional `filterKey`
   parameter. If provided, the arguments for all events associated with the task
   will contain an entry named `filterKey`, set to the value of the `filterKey`

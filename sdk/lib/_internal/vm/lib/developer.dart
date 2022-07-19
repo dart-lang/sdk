@@ -88,13 +88,13 @@ _runExtension(
   } catch (e, st) {
     var errorDetails = (st == null) ? '$e' : '$e\n$st';
     response = new ServiceExtensionResponse.error(
-        ServiceExtensionResponse.kExtensionError, errorDetails);
+        ServiceExtensionResponse.extensionError, errorDetails);
     _postResponse(replyPort, id, response, trace_service);
     return;
   }
   if (response is! Future) {
     response = new ServiceExtensionResponse.error(
-        ServiceExtensionResponse.kExtensionError,
+        ServiceExtensionResponse.extensionError,
         "Extension handler must return a Future");
     _postResponse(replyPort, id, response, trace_service);
     return;
@@ -103,13 +103,13 @@ _runExtension(
     // Catch any errors eagerly and wrap them in a ServiceExtensionResponse.
     var errorDetails = (st == null) ? '$e' : '$e\n$st';
     return new ServiceExtensionResponse.error(
-        ServiceExtensionResponse.kExtensionError, errorDetails);
+        ServiceExtensionResponse.extensionError, errorDetails);
   }).then((response) {
     // Post the valid response or the wrapped error after verifying that
     // the response is a ServiceExtensionResponse.
     if (response is! ServiceExtensionResponse) {
       response = new ServiceExtensionResponse.error(
-          ServiceExtensionResponse.kExtensionError,
+          ServiceExtensionResponse.extensionError,
           "Extension handler must complete to a ServiceExtensionResponse");
     }
     _postResponse(replyPort, id, response, trace_service);
