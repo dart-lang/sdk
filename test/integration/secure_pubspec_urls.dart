@@ -35,14 +35,14 @@ void main() {
       expect(
           collectingOut.trim(),
           stringContainsInOrder([
-            '4:11 [lint] The url should only use secure protocols.',
-            '6:16 [lint] The url should only use secure protocols.',
-            '5:13 [lint] The url should only use secure protocols.',
-            '15:12 [lint] The url should only use secure protocols.',
-            '20:13 [lint] The url should only use secure protocols.',
-            '25:10 [lint] The url should only use secure protocols.',
-            '28:12 [lint] The url should only use secure protocols.',
-            '32:12 [lint] The url should only use secure protocols.',
+            '4:11 [lint]',
+            '6:16 [lint]',
+            '5:13 [lint]',
+            '15:12 [lint]',
+            '20:13 [lint]',
+            '25:10 [lint]',
+            '28:12 [lint]',
+            '32:12 [lint]',
             '1 file analyzed, 8 issues found',
           ]));
       expect(exitCode, 1);

@@ -28,8 +28,7 @@ void main() {
       ], LinterOptions());
       var out = collectingOut.trim();
       expect(out, contains('1 file analyzed, 1 issue found'));
-      expect(out,
-          contains('22:3 [lint] Do not use BuildContexts across async gaps.'));
+      expect(out, contains('22:3'));
     });
   });
 }

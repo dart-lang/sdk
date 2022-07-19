@@ -35,12 +35,12 @@ void main() {
       expect(
           collectingOut.trim(),
           stringContainsInOrder([
-            "a.dart 31:6 [lint] The parameter 'aa' should have the name 'a' to match the name used in the overridden method.",
-            "a.dart 33:12 [lint] The parameter 'aa' should have the name 'a' to match the name used in the overridden method.",
-            "a.dart 34:9 [lint] The parameter 'bb' should have the name 'b' to match the name used in the overridden method.",
-            "a.dart 36:7 [lint] The parameter 'aa' should have the name 'a' to match the name used in the overridden method.",
-            "a.dart 37:6 [lint] The parameter 'aa' should have the name 'a' to match the name used in the overridden method.",
-            "a.dart 38:6 [lint] The parameter 'aa' should have the name 'a' to match the name used in the overridden method.",
+            'a.dart 31:6 [lint]',
+            'a.dart 33:12 [lint]',
+            'a.dart 34:9 [lint]',
+            'a.dart 36:7 [lint]',
+            'a.dart 37:6 [lint]',
+            'a.dart 38:6 [lint]',
             '3 files analyzed, 6 issues found',
           ]));
       expect(exitCode, 1);
