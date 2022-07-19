@@ -176,7 +176,7 @@ class _Pool {
 /// entities are identified by integers.
 class _Cohort {
   _Cohort? next; // Next cohort in decreasing frequency.
-  final int count; // This is the cohort of items occuring [count] times.
+  final int count; // This is the cohort of items occurring [count] times.
   Set<int> unassigned = Set();
 
   _Cohort(this.count);

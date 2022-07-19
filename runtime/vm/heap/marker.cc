@@ -94,7 +94,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     // by a conservative estimate of the duration of one batch of work.
     deadline -= 1500;
 
-    // A 512kB budget is choosen to be large enough that we don't waste too much
+    // A 512kB budget is chosen to be large enough that we don't waste too much
     // time on the overhead of exiting ProcessMarkingStack, querying the clock,
     // and re-entering, and small enough that a few batches can fit in the idle
     // time between animation frames. This amount of marking takes ~1ms on a

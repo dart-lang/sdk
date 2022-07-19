@@ -46,7 +46,7 @@ main() {
   }
 
   {
-    // Pass an array of structs to a c funtion.
+    // Pass an array of structs to a c function.
     Pointer<NativeFunction<NativeCoordinateOp>> p1 =
         ffiTestFunctions.lookup("CoordinateElemAt1");
     NativeCoordinateOp f1 = p1.asFunction();

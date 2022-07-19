@@ -847,7 +847,7 @@ abstract class _StringBase implements String {
     int startIndex = 0;
     int previousIndex = 0;
     // 'pattern' may not be implemented correctly and therefore we cannot
-    // call _substringUnhchecked unless it is a trustworthy type (e.g. String).
+    // call _substringUnchecked unless it is a trustworthy type (e.g. String).
     while (true) {
       if (startIndex == length || !iterator.moveNext()) {
         result.add(this.substring(previousIndex, length));

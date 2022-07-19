@@ -481,7 +481,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   // Only used for UDP sockets.
   bool _availableDatagram = false;
 
-  // The number of incoming connnections for Listening socket.
+  // The number of incoming connections for Listening socket.
   int connections = 0;
 
   // The count of received event from eventhandler.

@@ -1615,7 +1615,7 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_RunLoop(void);
  * \param error A non-NULL pointer which will hold an error message if the call
  *   fails. The error has to be free()ed by the caller.
  *
- * \return If successfull the VM takes owernship of the isolate and takes care
+ * \return If successful the VM takes owernship of the isolate and takes care
  *   of its message loop. If not successful the caller retains owernship of the
  *   isolate.
  */

@@ -418,7 +418,7 @@ class HandlerTask extends Task {
 }
 
 /// A simple package of data that is manipulated by the tasks.  The exact layout
-/// of the payload data carried by a packet is not importaint, and neither is
+/// of the payload data carried by a packet is not important, and neither is
 /// the nature of the work performed on packets by the tasks. Besides carrying
 /// data, packets form linked lists and are hence used both as data and
 /// worklists.

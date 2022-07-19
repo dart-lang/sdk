@@ -118,7 +118,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       assert(node is ir.Procedure || node is ir.Constructor);
       if (!(node is ir.Procedure && node.isRedirectingFactory)) {
         // Skip redirecting factories: they contain invalid expressions only
-        // used to suppport internal CFE modular compilation.
+        // used to support internal CFE modular compilation.
         node.accept(this);
       }
     }

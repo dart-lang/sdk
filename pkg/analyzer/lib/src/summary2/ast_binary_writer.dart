@@ -434,7 +434,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       }
     }
 
-    // TODO(scheglov) Dont write type, AKA separate true `int` and `double`?
+    // TODO(scheglov) Don't write type, AKA separate true `int` and `double`?
     _storeExpression(node);
   }
 

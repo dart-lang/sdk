@@ -49,7 +49,7 @@ void testInvalidBind() {
     asyncEnd();
   });
 
-  // Bind to an unavaliable IP-address.
+  // Bind to an unavailable IP-address.
   asyncStart();
   SecureServerSocket.bind("8.8.8.8", 0, serverContext).then((_) {
     Expect.fail("Failure expected");

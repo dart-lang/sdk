@@ -114,7 +114,7 @@ class Runtime {
 
   static Runtime _createSingleton() {
     var versionString = Platform.version;
-    // Exepcted format: "version (channel) ..."
+    // Expected format: "version (channel) ..."
     var version = versionString;
     String? channel;
     var versionEnd = versionString.indexOf(' ');

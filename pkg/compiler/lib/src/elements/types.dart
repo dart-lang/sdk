@@ -2269,7 +2269,7 @@ abstract class DartTypes {
         type is FunctionTypeVariable && canAssignGenericFunctionTo(type.bound);
   }
 
-  /// Returns `true` if [type] occuring in a program with no sound null safety
+  /// Returns `true` if [type] occurring in a program with no sound null safety
   /// cannot accept `null` under sound rules.
   bool isNonNullableIfSound(DartType type) {
     if (type is DynamicType ||

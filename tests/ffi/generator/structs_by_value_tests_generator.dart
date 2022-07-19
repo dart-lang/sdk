@@ -96,7 +96,7 @@ extension on List<Member> {
 }
 
 extension on CType {
-  /// A list of statements adding all members recurisvely to `result`.
+  /// A list of statements adding all members recursively to `result`.
   ///
   /// Both valid in Dart and C.
   String addToResultStatements(String variableName) {
@@ -130,7 +130,7 @@ extension on CType {
 }
 
 extension on List<Member> {
-  /// A list of statements adding all members recurisvely to `result`.
+  /// A list of statements adding all members recursively to `result`.
   ///
   /// Both valid in Dart and C.
   String addToResultStatements([String namePrefix = ""]) {

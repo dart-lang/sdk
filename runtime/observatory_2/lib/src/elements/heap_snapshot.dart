@@ -457,7 +457,7 @@ class MergedDominatorDiff {
     for (var i = 0; i < worklist.length; i++) {
       worklist[i]._computeChildren(worklist);
     }
-    // Compute area botton-up.
+    // Compute area bottom-up.
     for (var i = worklist.length - 1; i >= 0; i--) {
       worklist[i]._computeArea();
     }

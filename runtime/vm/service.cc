@@ -198,7 +198,7 @@ class EnumListParameter : public MethodParameter {
     intptr_t element_pos = 0;
 
     // Allocate our element array.  +1 for NULL terminator.
-    // The caller is reponsible for deleting this memory.
+    // The caller is responsible for deleting this memory.
     char** elements = new char*[element_count + 1];
     elements[element_count] = NULL;
 
