@@ -361,6 +361,48 @@ void testHeaderValue() {
   Expect.equals("v; a=\"ø\"", HeaderValue("v", {"a": "ø"}).toString());
 }
 
+void testContentLength() {
+  // See also http_headers_content_length_test.dart.
+  var headers = new _HttpHeaders("1.1");
+  headers.set("content-length", ["256"]);
+  Expect.equals(256, headers.contentLength);
+  Expect.listEquals(["256"], headers["content-length"]!);
+  Expect.equals("256", headers.value("content-length"));
+
+  headers = new _HttpHeaders("1.1");
+  headers.set("content-length", [256]);
+  Expect.equals(256, headers.contentLength);
+  Expect.listEquals(["256"], headers["content-length"]!);
+  Expect.equals("256", headers.value("content-length"));
+
+  headers = new _HttpHeaders("1.1");
+  var e = Expect.throws<HttpException>(
+      () => headers.set("content-length", ["cat"]));
+  Expect.isTrue(e.message.contains("Content-Length must contain only digits"));
+
+  headers = new _HttpHeaders("1.1");
+  e = Expect.throws(
+      () => headers.set("content-length", ["-3"]), (e) => e is HttpException);
+  Expect.isTrue(e.message.contains("Content-Length must contain only digits"));
+
+  headers = new _HttpHeaders("1.1");
+  e = Expect.throws(
+      () => headers.set("content-length", [-3]), (e) => e is HttpException);
+  Expect.isTrue(e.message.contains("Content-Length must contain only digits"));
+
+  headers = new _HttpHeaders("1.1");
+  e = Expect.throws(
+      () => headers.set("content-length", [[]]), (e) => e is HttpException);
+  Expect.isTrue(
+      e.message.contains("Unexpected type for header named content-length"));
+
+  headers = new _HttpHeaders("1.1");
+  headers.set("content-length", ["1", "2"]);
+  Expect.equals(2, headers.contentLength);
+  Expect.listEquals(["2"], headers["content-length"]!);
+  Expect.equals("2", headers.value("content-length"));
+}
+
 void testContentType() {
   void check(ContentType contentType, String primaryType, String subType,
       [Map<String, String?>? parameters]) {
@@ -743,6 +785,7 @@ main() {
   testTransferEncoding();
   testEnumeration();
   testHeaderValue();
+  testContentLength();
   testContentType();
   testKnownContentTypes();
   testContentTypeCache();
