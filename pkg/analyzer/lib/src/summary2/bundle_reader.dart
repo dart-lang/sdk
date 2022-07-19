@@ -559,6 +559,7 @@ class LibraryReader {
       nameOffset: -1, // TODO(scheglov) implement, test
     );
     augmentation.definingCompilationUnit = definingUnit;
+    augmentation.reference = definingUnit.reference!;
 
     final resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     _readLibraryOrAugmentationElement(augmentation);
@@ -988,7 +989,9 @@ class LibraryReader {
     final uri = _readDirectiveUri(
       container: container,
     );
-    final prefix = _readImportElementPrefix();
+    final prefix = _readImportElementPrefix(
+      container: container,
+    );
     final combinators = _reader.readTypedList(_readNamespaceCombinator);
 
     final element = LibraryImportElementImpl(
@@ -1000,9 +1003,13 @@ class LibraryReader {
     return element;
   }
 
-  ImportElementPrefixImpl? _readImportElementPrefix() {
+  ImportElementPrefixImpl? _readImportElementPrefix({
+    required LibraryOrAugmentationElementImpl container,
+  }) {
     PrefixElementImpl buildElement(String name) {
-      final reference = _reference.getChild('@prefix').getChild(name);
+      // TODO(scheglov) Make reference required.
+      final containerRef = container.reference!;
+      final reference = containerRef.getChild('@prefix').getChild(name);
       final existing = reference.element;
       if (existing is PrefixElementImpl) {
         return existing;
