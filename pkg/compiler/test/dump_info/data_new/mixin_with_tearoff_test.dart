@@ -103,7 +103,8 @@ import 'package:expect/expect.dart';
   "modifiers": {
     "abstract": false
   },
-  "children": []
+  "children": [],
+  "supers": []
 }]*/
 class Super<T> {
   void method(T t) {}
@@ -121,7 +122,8 @@ class Super<T> {
   },
   "children": [
     "function/memory:sdk/tests/web/native/main.dart::Mixin.method"
-  ]
+  ],
+  "supers": []
 }]*/
 class Mixin {
   /*member: Mixin.method:
@@ -206,6 +208,10 @@ class Mixin {
   },
   "children": [
     "function/memory:sdk/tests/web/native/main.dart::Clazz.method"
+  ],
+  "supers": [
+    "class/memory:sdk/tests/web/native/main.dart::Mixin",
+    "class/memory:sdk/tests/web/native/main.dart::Super"
   ]
 }]*/
 /*member: Clazz.method:
@@ -291,6 +297,9 @@ class Clazz = Super<int> with Mixin;
   "children": [
     "function/memory:sdk/tests/web/native/main.dart::Subclass.Subclass",
     "function/memory:sdk/tests/web/native/main.dart::Subclass.test"
+  ],
+  "supers": [
+    "class/memory:sdk/tests/web/native/main.dart::Clazz"
   ]
 }]*/
 /*member: Subclass.:function=[{

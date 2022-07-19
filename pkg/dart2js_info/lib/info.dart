@@ -257,14 +257,19 @@ class ClassInfo extends BasicInfo {
   // but this should be fixed.
   List<FieldInfo> fields = <FieldInfo>[];
 
+  /// Classes in the supertype hierarchy for this class.
+  List<ClassInfo> supers = <ClassInfo>[];
+
   ClassInfo(
       {required String name,
       required this.isAbstract,
+      required this.supers,
       OutputUnitInfo? outputUnit,
       int size = 0})
       : super(InfoKind.clazz, name, outputUnit, size, null);
 
-  ClassInfo.fromKernel({required String name, required this.isAbstract})
+  ClassInfo.fromKernel(
+      {required String name, required this.isAbstract, required this.supers})
       : super(InfoKind.clazz, name, null, 0, null);
 
   ClassInfo.internal() : super.internal(InfoKind.clazz);

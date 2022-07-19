@@ -113,9 +113,10 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
         result.classes.add(child);
       } else if (child is ClassTypeInfo) {
         result.classTypes.add(child);
-      } else {
-        assert(child is TypedefInfo);
+      } else if (child is TypedefInfo) {
         result.typedefs.add(child);
+      } else {
+        throw StateError('Invalid LibraryInfo child: $child');
       }
     }
     return result;
@@ -132,11 +133,14 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
     for (var child in json['children'].map((id) => parseId(id))) {
       if (child is FunctionInfo) {
         result.functions.add(child);
-      } else {
-        assert(child is FieldInfo);
+      } else if (child is FieldInfo) {
         result.fields.add(child);
+      } else {
+        throw StateError('Invalid ClassInfo child: $child');
       }
     }
+    result.supers.addAll(
+        json['supers'].map<ClassInfo>((id) => parseId(id) as ClassInfo));
     return result;
   }
 
@@ -350,6 +354,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
         info is LibraryInfo ||
             info is ConstantInfo ||
             info is OutputUnitInfo ||
+            info is ClassInfo ||
             info.parent != null,
         "$info");
 
@@ -510,7 +515,8 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
         // TODO(sigmund): change format, include only when abstract is true.
         'modifiers': {'abstract': info.isAbstract},
         'children':
-            _toSortedSerializedIds([...info.fields, ...info.functions], idFor)
+            _toSortedSerializedIds([...info.fields, ...info.functions], idFor),
+        'supers': _toSortedSerializedIds(info.supers, idFor)
       });
   }
 

@@ -166,6 +166,9 @@ external void eval(String code);
     "function/memory:sdk/tests/web/native/main.dart::Foo.mixedPositionalArgs",
     "function/memory:sdk/tests/web/native/main.dart::Foo.singleArg",
     "function/memory:sdk/tests/web/native/main.dart::Foo.singlePositionalArg"
+  ],
+  "supers": [
+    "class/dart:_interceptors::LegacyJavaScriptObject"
   ]
 }]*/
 class Foo {
@@ -278,7 +281,10 @@ class Foo {
   "modifiers": {
     "abstract": false
   },
-  "children": []
+  "children": [],
+  "supers": [
+    "class/dart:_interceptors::LegacyJavaScriptObject"
+  ]
 }]*/
 class Bar {
   external static singleArg(a);

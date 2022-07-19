@@ -117,6 +117,7 @@ class BinaryPrinter implements InfoVisitor<void> {
       sink.writeBool(info.isAbstract);
       sink.writeList(info.fields, visitField);
       sink.writeList(info.functions, visitFunction);
+      sink.writeList(info.supers, visitClass);
     });
   }
 
@@ -387,6 +388,7 @@ class BinaryReader {
         info.isAbstract = source.readBool();
         info.fields.addAll(source.readList(readField));
         info.functions.addAll(source.readList(readFunction));
+        info.supers.addAll(source.readList(readClass));
 
         setParent(BasicInfo child) => child.parent = info;
         info.fields.forEach(setParent);
