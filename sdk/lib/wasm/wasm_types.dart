@@ -153,6 +153,32 @@ class WasmFunction<F extends Function> extends WasmFuncRef {
   external F get call;
 }
 
+/// A Wasm table.
+@pragma("wasm:entry-point")
+class WasmTable<T> {
+  /// Declare a table with the given size.
+  ///
+  /// Must be an initializer for a static field. The [size] argument must be
+  /// either a constant or a reference to a `static` `final` field with a
+  /// constant initializer.
+  external WasmTable(int size);
+
+  /// Read from an entry in the table.
+  external T operator [](WasmI32 index);
+
+  /// Write to an entry in the table.
+  external void operator []=(WasmI32 index, T value);
+
+  /// The size of the table.
+  external WasmI32 get size;
+
+  /// Call a function stored in the table using the `call_indirect` Wasm
+  /// instructionm. The function value returned from this method must be
+  /// called directly.
+  @pragma("wasm:entry-point")
+  external F callIndirect<F extends Function>(WasmI32 index);
+}
+
 extension IntToWasmInt on int {
   WasmI32 toWasmI32() => WasmI32.fromInt(this);
   WasmI64 toWasmI64() => WasmI64.fromInt(this);

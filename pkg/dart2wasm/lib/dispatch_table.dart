@@ -149,6 +149,7 @@ class DispatchTable {
   final Map<int, SelectorInfo> selectorInfo = {};
   final Map<String, int> dynamicGets = {};
   late final List<Reference?> table;
+  late final w.DefinedTable wasmTable;
 
   DispatchTable(this.translator)
       : selectorMetadata =
@@ -292,11 +293,11 @@ class DispatchTable {
         firstAvailable++;
       }
     }
+
+    wasmTable = translator.m.addTable(w.RefType.func(), table.length);
   }
 
   void output() {
-    w.Module m = translator.m;
-    w.DefinedTable wasmTable = m.addTable(w.RefType.func(), table.length);
     for (int i = 0; i < table.length; i++) {
       Reference? target = table[i];
       if (target != null) {
