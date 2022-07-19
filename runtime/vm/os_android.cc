@@ -121,14 +121,6 @@ int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
   return succeeded ? static_cast<int>(decomposed.tm_gmtoff) : 0;
 }
 
-int OS::GetLocalTimeZoneAdjustmentInSeconds() {
-  // TODO(floitsch): avoid excessive calls to tzset?
-  tzset();
-  // Even if the offset was 24 hours it would still easily fit into 32 bits.
-  // Note that Unix and Dart disagree on the sign.
-  return static_cast<int>(-timezone);
-}
-
 int64_t OS::GetCurrentTimeMillis() {
   return GetCurrentTimeMicros() / 1000;
 }

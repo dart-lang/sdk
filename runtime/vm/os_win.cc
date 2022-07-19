@@ -106,13 +106,6 @@ int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
   }
 }
 
-int OS::GetLocalTimeZoneAdjustmentInSeconds() {
-  // TODO(floitsch): avoid excessive calls to _tzset?
-  _tzset();
-  // Dart and Windows disagree on the sign of the bias.
-  return static_cast<int>(-_timezone);
-}
-
 int64_t OS::GetCurrentTimeMillis() {
   return GetCurrentTimeMicros() / 1000;
 }
