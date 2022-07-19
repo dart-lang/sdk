@@ -28,17 +28,17 @@ class MustCallSuperVerifier {
 
     if (element is MethodElement && _hasConcreteSuperMethod(element)) {
       _verifySuperIsCalled(
-          node, overridden.name, overridden.enclosingElement.name);
+          node, overridden.name, overridden.enclosingElement2.name);
       return;
     }
 
-    var enclosingElement = element.enclosingElement as ClassElement;
+    var enclosingElement = element.enclosingElement2 as ClassElement;
     if (element is PropertyAccessorElement && element.isGetter) {
       var inheritedConcreteGetter = enclosingElement
           .lookUpInheritedConcreteGetter(element.name, element.library);
       if (inheritedConcreteGetter != null) {
         _verifySuperIsCalled(
-            node, overridden.name, overridden.enclosingElement.name);
+            node, overridden.name, overridden.enclosingElement2.name);
       }
       return;
     }
@@ -53,7 +53,7 @@ class MustCallSuperVerifier {
         if (name.endsWith('=')) {
           name = name.substring(0, name.length - 1);
         }
-        _verifySuperIsCalled(node, name, overridden.enclosingElement.name);
+        _verifySuperIsCalled(node, name, overridden.enclosingElement2.name);
       }
     }
   }
@@ -69,10 +69,10 @@ class MustCallSuperVerifier {
   ExecutableElement? _findOverriddenMemberWithMustCallSuper(
       ExecutableElement element) {
     //Element member = node.declaredElement;
-    if (element.enclosingElement is! ClassElement) {
+    if (element.enclosingElement2 is! ClassElement) {
       return null;
     }
-    var classElement = element.enclosingElement as ClassElement;
+    var classElement = element.enclosingElement2 as ClassElement;
     String name = element.name;
 
     // Walk up the type hierarchy from [classElement], ignoring direct
@@ -109,7 +109,7 @@ class MustCallSuperVerifier {
 
   /// Returns whether [node] overrides a concrete method.
   bool _hasConcreteSuperMethod(ExecutableElement element) {
-    var classElement = element.enclosingElement as ClassElement;
+    var classElement = element.enclosingElement2 as ClassElement;
     String name = element.name;
 
     if (classElement.supertype.isConcrete(name)) {

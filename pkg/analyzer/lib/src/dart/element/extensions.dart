@@ -25,7 +25,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
         }
       }
     } else if (element is ConstructorElement) {
-      classElement = element.enclosingElement;
+      classElement = element.enclosingElement2;
     }
     if (classElement == null) {
       return const <TargetKind>{};
@@ -68,17 +68,17 @@ extension ElementExtension on Element {
       return true;
     }
 
-    var ancestor = enclosingElement;
+    var ancestor = enclosingElement2;
     if (ancestor is ClassElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement;
+      ancestor = ancestor.enclosingElement2;
     } else if (ancestor is ExtensionElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement;
+      ancestor = ancestor.enclosingElement2;
     }
 
     return ancestor is CompilationUnitElement &&
@@ -94,7 +94,7 @@ extension ElementExtension on Element {
   /// [PropertyAccessorElement]s.
   bool get isInstanceMember {
     var this_ = this;
-    var enclosing = this_.enclosingElement;
+    var enclosing = this_.enclosingElement2;
     if (enclosing is ClassElement) {
       return this_ is MethodElement && !this_.isStatic ||
           this_ is PropertyAccessorElement && !this_.isStatic;
@@ -105,7 +105,7 @@ extension ElementExtension on Element {
 
 extension ExecutableElementExtension on ExecutableElement {
   bool get isEnumConstructor {
-    return this is ConstructorElement && enclosingElement is EnumElementImpl;
+    return this is ConstructorElement && enclosingElement2 is EnumElementImpl;
   }
 }
 

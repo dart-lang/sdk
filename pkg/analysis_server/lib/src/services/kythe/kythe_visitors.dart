@@ -28,7 +28,7 @@ const int _notFound = -1;
 /// name of the constructor, unless the constructor is a named constructor in
 /// which '<class-name>.<constructor-name>' is returned.
 String _computeConstructorElementName(ConstructorElement element) {
-  var name = element.enclosingElement.name;
+  var name = element.enclosingElement2.name;
   var constructorName = element.name;
   if (constructorName.isNotEmpty) {
     name = '$name.$constructorName';
@@ -723,13 +723,13 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
       // We can't call _handleRefEdge as the anchor node has already been
       // written out.
       var enclosingEltVName = _vNameFromElement(
-          constructorElement.enclosingElement, schema.RECORD_KIND);
+          constructorElement.enclosingElement2, schema.RECORD_KIND);
       var anchorVName =
           _vNameAnchor(constructorName.offset, constructorName.end);
       addEdge(anchorVName, schema.REF_EDGE, enclosingEltVName);
 
       // TODO(jwren): investigate
-      //   assert (element.enclosingElement != null);
+      //   assert (element.enclosingElement2 != null);
     }
     // visit children
     _safelyVisitList(constructorName.type.typeArguments?.arguments);
@@ -1422,7 +1422,7 @@ class SignatureElementVisitor extends GeneralizingElementVisitor<StringBuffer> {
   @override
   StringBuffer visitElement(Element element) {
     assert(element is! MultiplyInheritedExecutableElement);
-    var enclosingElt = element.enclosingElement!;
+    var enclosingElt = element.enclosingElement2!;
     var buffer = enclosingElt.accept(this)!;
     if (buffer.isNotEmpty) {
       buffer.write('#');
@@ -1454,7 +1454,7 @@ class SignatureElementVisitor extends GeneralizingElementVisitor<StringBuffer> {
     // It is legal to have a named constructor with the same name as a type
     // parameter.  So we distinguish them by using '.' between the class (or
     // typedef) name and the type parameter name.
-    return element.enclosingElement!.accept(this)!
+    return element.enclosingElement2!.accept(this)!
       ..write('.')
       ..write(element.name);
   }

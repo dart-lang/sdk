@@ -373,7 +373,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       // lookup for ==
       var method = element.lookUpConcreteMethod("==", _currentLibrary);
       if (method == null ||
-          (method.enclosingElement as ClassElement).isDartCoreObject) {
+          (method.enclosingElement2 as ClassElement).isDartCoreObject) {
         return false;
       }
       // there is == that we don't like

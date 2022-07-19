@@ -141,7 +141,7 @@ class DuplicateDefinitionVerifier {
             [
               enumElement.displayName,
               baseName,
-              inherited.enclosingElement.displayName,
+              inherited.enclosingElement2.displayName,
             ],
           );
         }
@@ -168,7 +168,7 @@ class DuplicateDefinitionVerifier {
             [
               enumElement.displayName,
               baseName,
-              inherited.enclosingElement.displayName,
+              inherited.enclosingElement2.displayName,
             ],
           );
         }

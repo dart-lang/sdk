@@ -227,7 +227,7 @@ class _Collector {
     }
 
     if (element is ParameterElement) {
-      var enclosing = element.enclosingElement;
+      var enclosing = element.enclosingElement2;
       if (enclosing is ConstructorElement &&
           isConstConstructorElement(enclosing)) {
         if (node.thisOrAncestorOfType<ConstructorInitializer>() != null) {

@@ -42,7 +42,7 @@ LibraryImportElement? _getImportElement(
     String prefix,
     Element element,
     Map<LibraryImportElement, Set<Element>> importElementsMap) {
-  if (element.enclosingElement is! CompilationUnitElement) {
+  if (element.enclosingElement2 is! CompilationUnitElement) {
     return null;
   }
   var usedLibrary = element.library;

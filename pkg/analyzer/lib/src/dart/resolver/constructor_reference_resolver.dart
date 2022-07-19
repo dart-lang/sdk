@@ -31,7 +31,7 @@ class ConstructorReferenceResolver {
     var element = node.constructorName.staticElement;
     if (element != null &&
         !element.isFactory &&
-        element.enclosingElement.isAbstract) {
+        element.enclosingElement2.isAbstract) {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode
             .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,

@@ -117,7 +117,7 @@ class EnclosingExecutableContext {
   }
 
   static bool _inFactoryConstructor(Element? element) {
-    var enclosing = element?.enclosingElement;
+    var enclosing = element?.enclosingElement2;
     if (enclosing == null) {
       return false;
     }
@@ -128,7 +128,7 @@ class EnclosingExecutableContext {
   }
 
   static bool _inStaticMethod(Element? element) {
-    var enclosing = element?.enclosingElement;
+    var enclosing = element?.enclosingElement2;
     if (enclosing == null) {
       return false;
     }
@@ -746,7 +746,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement functionElement = node.declaredElement!;
-    if (functionElement.enclosingElement is! CompilationUnitElement) {
+    if (functionElement.enclosingElement2 is! CompilationUnitElement) {
       _hiddenElements!.declare(functionElement);
     }
 
@@ -1624,7 +1624,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
           highlightedNode,
-          [variable.name, variable.enclosingElement.displayName],
+          [variable.name, variable.enclosingElement2.displayName],
         );
       } else {
         errorReporter.reportErrorForNode(
@@ -1797,14 +1797,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, method, [
           _enclosingClass!.displayName,
           name,
-          inherited.enclosingElement.displayName,
+          inherited.enclosingElement2.displayName,
         ]);
       } else if (inherited is PropertyAccessorElement) {
         errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, method, [
           _enclosingClass!.displayName,
           name,
-          inherited.enclosingElement.displayName
+          inherited.enclosingElement2.displayName
         ]);
       }
     }
@@ -1824,14 +1824,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, accessor, [
           _enclosingClass!.displayName,
           name,
-          inherited.enclosingElement.displayName,
+          inherited.enclosingElement2.displayName,
         ]);
       } else if (inherited is MethodElement) {
         errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, accessor, [
           _enclosingClass!.displayName,
           name,
-          inherited.enclosingElement.displayName
+          inherited.enclosingElement2.displayName
         ]);
       }
     }
@@ -2089,11 +2089,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
           constructor.returnType,
-          ["'${field.enclosingElement.name}.${field.name}'"]);
+          ["'${field.enclosingElement2.name}.${field.name}'"]);
       return true;
     } else if (instanceFields.length > 1) {
       var fieldNames = instanceFields
-          .map((field) => "'${field.enclosingElement.name}.${field.name}'")
+          .map((field) => "'${field.enclosingElement2.name}.${field.name}'")
           .join(', ');
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS,
@@ -2117,7 +2117,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         errorReporter.reportErrorForNode(
             CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
             initializer,
-            [element.enclosingElement.displayName]);
+            [element.enclosingElement2.displayName]);
         return true;
       }
     }
@@ -2155,7 +2155,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     // check if there is non-final field
-    ClassElement classElement = constructorElement.enclosingElement;
+    ClassElement classElement = constructorElement.enclosingElement2;
     if (!classElement.hasNonFinalField) {
       return;
     }
@@ -2921,7 +2921,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         // OK, instance member
         return;
       }
-      Element enclosingElement = element.enclosingElement;
+      Element enclosingElement = element.enclosingElement2;
       if (enclosingElement is ExtensionElement) {
         if (target is ExtensionOverride) {
           // OK, target is an extension override
@@ -3003,7 +3003,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var constructorElement = node.staticElement;
     if (constructorElement != null &&
         constructorElement.isGenerative &&
-        constructorElement.enclosingElement.isEnum) {
+        constructorElement.enclosingElement2.isEnum) {
       if (_currentLibrary.featureSet.isEnabled(Feature.enhanced_enums)) {
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
@@ -3046,7 +3046,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     // not a class member
-    Element enclosingElement = element.enclosingElement;
+    Element enclosingElement = element.enclosingElement2;
     if (enclosingElement is! ClassElement &&
         enclosingElement is! ExtensionElement) {
       return;
@@ -3182,7 +3182,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var element = nameNode.staticElement!;
 
     // We should only check exported declarations, i.e. top-level.
-    if (element.enclosingElement is! CompilationUnitElement) {
+    if (element.enclosingElement2 is! CompilationUnitElement) {
       return;
     }
 
@@ -3496,14 +3496,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
         if (inheritedMember != null) {
           // Inherited members are always contained inside named elements, so we
-          // can safely assume `inheritedMember.enclosingElement.name` is
+          // can safely assume `inheritedMember.enclosingElement2.name` is
           // non-`null`.
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
               namedType, [
             name,
             namedType.name.name,
-            inheritedMember.enclosingElement.name!
+            inheritedMember.enclosingElement2.name!
           ]);
           return true;
         }
@@ -4032,7 +4032,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       redirectedElement,
       redirectedConstructor,
     );
-    var redirectedClass = redirectedElement?.enclosingElement;
+    var redirectedClass = redirectedElement?.enclosingElement2;
     if (redirectedClass is ClassElement &&
         redirectedClass.isAbstract &&
         redirectedElement != null &&
@@ -4323,7 +4323,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_enclosingExecutable.inStaticMethod || _isInStaticVariableDeclaration) {
       var element = identifier.staticElement;
       if (element is TypeParameterElement &&
-          element.enclosingElement is ClassElement) {
+          element.enclosingElement2 is ClassElement) {
         // The class's type parameters are not in scope for static methods.
         // However all other type parameters are legal (e.g. the static method's
         // type parameters, or a local function's type parameters).
@@ -4565,7 +4565,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (element == null || element is TypeParameterElement) {
       return;
     }
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement2;
     if (identical(enclosingElement, _enclosingClass)) {
       return;
     }

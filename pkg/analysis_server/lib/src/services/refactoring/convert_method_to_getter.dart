@@ -72,7 +72,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
   RefactoringStatus _checkElement() {
     // check Element type
     if (element is FunctionElement) {
-      if (element.enclosingElement is! CompilationUnitElement) {
+      if (element.enclosingElement2 is! CompilationUnitElement) {
         return RefactoringStatus.fatal(
             'Only top-level functions can be converted to getters.');
       }

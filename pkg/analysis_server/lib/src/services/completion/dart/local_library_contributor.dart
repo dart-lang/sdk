@@ -90,7 +90,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
     if (element.isOperator) {
       return;
     }
-    if (element.enclosingElement is! CompilationUnitElement) {
+    if (element.enclosingElement2 is! CompilationUnitElement) {
       return;
     }
     var returnType = element.returnType;
@@ -115,7 +115,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   @override
   void visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (opType.includeReturnValueSuggestions) {
-      var parent = element.enclosingElement;
+      var parent = element.enclosingElement2;
       if (parent is ClassElement || parent is ExtensionElement) {
         builder.suggestAccessor(element, inheritanceDistance: 0.0);
       } else {

@@ -258,7 +258,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           .thisOrAncestorOfType<ClassDeclaration>();
       var enclosingElement = enclosingClass?.declaredElement;
       if (enclosingElement != null) {
-        var enclosingElement = field.enclosingElement;
+        var enclosingElement = field.enclosingElement2;
         if (enclosingElement is ClassElement) {
           inheritanceDistance = request.featureComputer
               .inheritanceDistanceFeature(enclosingElement, enclosingElement);
@@ -333,7 +333,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       var enclosingClass = request.target.containingNode
           .thisOrAncestorOfType<ClassDeclaration>();
       if (enclosingClass != null) {
-        var enclosingElement = element?.enclosingElement;
+        var enclosingElement = element?.enclosingElement2;
         if (enclosingElement is ClassElement) {
           inheritanceDistance = request.featureComputer
               .inheritanceDistanceFeature(

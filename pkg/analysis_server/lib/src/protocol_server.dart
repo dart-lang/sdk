@@ -215,7 +215,7 @@ Location newLocation_fromUnit(
 OverriddenMember newOverriddenMember_fromEngine(engine.Element member,
     {required bool withNullability}) {
   var element = convertElement(member, withNullability: withNullability);
-  var className = member.enclosingElement!.displayName;
+  var className = member.enclosingElement2!.displayName;
   return OverriddenMember(element, className);
 }
 
@@ -277,7 +277,7 @@ engine.CompilationUnitElement _getUnitElement(engine.Element element) {
     return element;
   }
 
-  var enclosingElement = element.enclosingElement;
+  var enclosingElement = element.enclosingElement2;
   if (enclosingElement is engine.LibraryElement) {
     element = enclosingElement;
   }

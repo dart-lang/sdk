@@ -366,7 +366,7 @@ class InheritanceManager3 {
         continue;
       }
 
-      var class_ = executable.enclosingElement;
+      var class_ = executable.enclosingElement2;
       if (class_ is ClassElement && class_.isDartCoreObject) {
         continue;
       }
@@ -518,7 +518,7 @@ class InheritanceManager3 {
         }
 
         var current = currentList.single;
-        if (candidate.enclosingElement == mixinElement) {
+        if (candidate.enclosingElement2 == mixinElement) {
           namedCandidates[name] = [
             isNonNullableByDefault
                 ? candidate
@@ -714,7 +714,7 @@ class InheritanceManager3 {
     Name name,
     ExecutableElement executable,
   ) {
-    if (executable.enclosingElement == class_) {
+    if (executable.enclosingElement2 == class_) {
       return executable;
     }
 
@@ -902,7 +902,7 @@ class InheritanceManager3 {
   }
 
   static bool _isDeclaredInObject(ExecutableElement element) {
-    var enclosing = element.enclosingElement;
+    var enclosing = element.enclosingElement2;
     return enclosing is ClassElement &&
         enclosing.supertype == null &&
         !enclosing.isMixin;
