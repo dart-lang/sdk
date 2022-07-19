@@ -46,15 +46,15 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
   /// This is usually the default value, but can be overridden via
   /// initializationOptions (used for tests, but may also be useful for
   /// debugging).
-  late final CompletionBudget completionBudget;
+  late final Duration completionBudgetDuration;
 
   CompletionHandler(super.server, LspInitializationOptions options)
       : suggestFromUnimportedLibraries = options.suggestFromUnimportedLibraries,
         previewNotImportedCompletions = options.previewNotImportedCompletions {
     final budgetMs = options.completionBudgetMilliseconds;
-    completionBudget = CompletionBudget(budgetMs != null
+    completionBudgetDuration = budgetMs != null
         ? Duration(milliseconds: budgetMs)
-        : CompletionBudget.defaultDuration);
+        : CompletionBudget.defaultDuration;
   }
 
   @override
@@ -356,7 +356,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       final serverSuggestions2 =
           await performance.runAsync('computeSuggestions', (performance) async {
         var contributor = DartCompletionManager(
-          budget: completionBudget,
+          budget: CompletionBudget(completionBudgetDuration),
           includedElementKinds: includedElementKinds,
           includedElementNames: includedElementNames,
           includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
