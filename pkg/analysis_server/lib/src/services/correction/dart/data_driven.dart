@@ -25,7 +25,7 @@ class DataDriven extends MultiCorrectionProducer {
   Stream<CorrectionProducer> get producers async* {
     var importedUris = <Uri>[];
     var library = resolvedResult.libraryElement;
-    for (var importElement in library.imports2) {
+    for (var importElement in library.libraryImports) {
       // TODO(brianwilkerson) Filter based on combinators to help avoid making
       //  invalid suggestions.
       var uri = importElement.uri;

@@ -187,8 +187,6 @@ class MoveFieldInitializers {
         if (!_isRedirectingConstructor(c)) c
     ];
 
-    assert(constructors.isNotEmpty || cls.isMixinDeclaration);
-
     // Move field initializers to constructors.
     // Clone AST for all constructors except the first.
     bool isFirst = true;

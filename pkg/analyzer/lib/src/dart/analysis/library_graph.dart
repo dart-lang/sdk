@@ -12,7 +12,7 @@ import 'package:collection/collection.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
 /// depends on is computed.
-void computeLibraryCycle(Uint32List salt, LibraryFileStateKind file) {
+void computeLibraryCycle(Uint32List salt, LibraryFileKind file) {
   var libraryWalker = _LibraryWalker(salt);
   libraryWalker.walk(libraryWalker.getNode(file));
 }
@@ -23,7 +23,7 @@ class LibraryCycle {
   final int id = _nextId++;
 
   /// The libraries that belong to this cycle.
-  final List<LibraryFileStateKind> libraries;
+  final List<LibraryFileKind> libraries;
 
   /// The library cycles that this cycle references directly.
   final Set<LibraryCycle> directDependencies;
@@ -130,7 +130,7 @@ class LibraryCycle {
 /// Node in [_LibraryWalker].
 class _LibraryNode extends graph.Node<_LibraryNode> {
   final _LibraryWalker walker;
-  final LibraryFileStateKind kind;
+  final LibraryFileKind kind;
 
   _LibraryNode(this.walker, this.kind);
 
@@ -139,13 +139,13 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 
   @override
   List<_LibraryNode> computeDependencies() {
-    final referencedLibraries = {kind, ...kind.allAugmentations}
+    final referencedLibraries = {kind, ...kind.augmentations}
         .map((container) => [
-              ...container.imports
-                  .whereType<ImportDirectiveWithFile>()
+              ...container.libraryImports
+                  .whereType<LibraryImportWithFile>()
                   .map((import) => import.importedLibrary),
-              ...container.exports
-                  .whereType<ExportDirectiveWithFile>()
+              ...container.libraryExports
+                  .whereType<LibraryExportWithFile>()
                   .map((export) => export.exportedLibrary),
             ])
         .expand((libraries) => libraries)
@@ -160,7 +160,7 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 /// sorted [LibraryCycle]s.
 class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   final Uint32List _salt;
-  final Map<LibraryFileStateKind, _LibraryNode> nodesOfFiles = {};
+  final Map<LibraryFileKind, _LibraryNode> nodesOfFiles = {};
 
   _LibraryWalker(this._salt);
 
@@ -195,7 +195,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     }
 
     // Fill the cycle with libraries.
-    var libraries = <LibraryFileStateKind>[];
+    var libraries = <LibraryFileKind>[];
     for (var node in scc) {
       final file = node.kind.file;
       libraries.add(node.kind);
@@ -239,7 +239,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     }
   }
 
-  _LibraryNode getNode(LibraryFileStateKind file) {
+  _LibraryNode getNode(LibraryFileKind file) {
     return nodesOfFiles.putIfAbsent(file, () => _LibraryNode(this, file));
   }
 

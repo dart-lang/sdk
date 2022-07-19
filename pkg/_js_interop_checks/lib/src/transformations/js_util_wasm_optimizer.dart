@@ -424,7 +424,7 @@ class JsUtilWasmOptimizer extends Transformer {
 
   ReturnStatement _getExternalExtensionMethodBody(Procedure node) {
     final parameters = node.function.positionalParameters;
-    assert(parameters.length > 0);
+    assert(parameters.isNotEmpty);
     return _getExternalMethodBody(node, VariableGet(parameters.first),
         _getExtensionMemberName(node), parameters.sublist(1));
   }

@@ -1709,7 +1709,7 @@ abstract class ExportDirective implements NamespaceDirective {
 
   /// Return the element associated with this directive, or `null` if the AST
   /// structure has not been resolved.
-  ExportElement2? get element2;
+  LibraryExportElement? get element2;
 
   /// The token representing the 'export' keyword.
   Token get exportKeyword;
@@ -2888,7 +2888,7 @@ abstract class ImportDirective implements NamespaceDirective {
 
   /// Return the element associated with this directive, or `null` if the AST
   /// structure has not been resolved.
-  ImportElement2? get element2;
+  LibraryImportElement? get element2;
 
   /// The token representing the 'import' keyword.
   Token get importKeyword;

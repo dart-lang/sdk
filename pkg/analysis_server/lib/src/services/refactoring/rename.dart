@@ -114,7 +114,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   static String _getOldName(Element element) {
     if (element is ConstructorElement) {
       return element.name;
-    } else if (element is ImportElement2) {
+    } else if (element is LibraryImportElement) {
       var prefix = element.prefix?.element;
       if (prefix != null) {
         return prefix.displayName;

@@ -26,7 +26,7 @@ import 'package:analyzer/src/generated/super_context.dart';
 ///    * An identifier within the declaration of that name should resolve to the
 ///      element being declared.
 ///    * An identifier denoting a prefix should resolve to the element
-///      representing the import that defines the prefix (an [ImportElement2]).
+///      representing the import that defines the prefix (an [LibraryImportElement]).
 ///    * An identifier denoting a variable should resolve to the element
 ///      representing the variable (a [VariableElement]).
 ///    * An identifier denoting a parameter should resolve to the element
@@ -56,8 +56,8 @@ import 'package:analyzer/src/generated/super_context.dart';
 ///    specified library does not exist.
 /// 5. Every [ImportDirective] and [ExportDirective] should resolve to the
 ///    element representing the library being specified by the directive unless
-///    the specified library does not exist (an [ImportElement2] or
-///    [ExportElement2]).
+///    the specified library does not exist (an [LibraryImportElement] or
+///    [LibraryExportElement]).
 /// 6. The identifier representing the prefix in an [ImportDirective] should
 ///    resolve to the element representing the prefix (a [PrefixElement]).
 /// 7. The identifiers in the hide and show combinators in [ImportDirective]s

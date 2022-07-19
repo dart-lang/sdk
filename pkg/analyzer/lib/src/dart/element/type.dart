@@ -894,7 +894,7 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   final NullabilitySuffix nullabilitySuffix;
 
   /// Prevent the creation of instances of this class.
-  NeverTypeImpl._(this.nullabilitySuffix) : super(NeverElementImpl());
+  NeverTypeImpl._(this.nullabilitySuffix) : super(NeverElementImpl.instance);
 
   @override
   NeverElementImpl get element => super.element as NeverElementImpl;

@@ -1224,16 +1224,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             AdvancedInvalidationResult.problemsInLibrary);
         return null;
       }
-      Iterator<Builder> iterator = builder.iterator;
-      while (iterator.moveNext()) {
-        Builder childBuilder = iterator.current;
-        if (childBuilder.isDuplicate) {
-          // TODO(johnniwinther): Doesn't this imply [problemsInLibrary]?
-          recorderForTesting?.recordAdvancedInvalidationResult(
-              AdvancedInvalidationResult.duplicateInLibrary);
-          return null;
-        }
-      }
 
       List<Uri> builderUris = [builder.fileUri];
       for (LibraryPart part in builder.library.parts) {
@@ -2851,10 +2841,6 @@ enum AdvancedInvalidationResult {
 
   /// Problems in invalidated library, advanced invalidation is not supported.
   problemsInLibrary,
-
-  /// Duplicate declaration in invalidated library, advanced invalidation is not
-  /// supported.
-  duplicateInLibrary,
 
   /// No previous source for invalidated library, can't compare to new source.
   noPreviousSource,

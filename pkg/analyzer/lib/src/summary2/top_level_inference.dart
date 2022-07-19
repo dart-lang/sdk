@@ -356,7 +356,7 @@ class _InitializerInference {
         unit.extensions.forEach(_addExtensionElementFields);
         unit.mixins.forEach(_addClassElementFields);
 
-        _scope = builder.element.scope;
+        _scope = unit.enclosingElement2.scope;
         for (var element in unit.topLevelVariables) {
           _addVariableNode(element);
         }

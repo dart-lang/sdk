@@ -412,7 +412,7 @@ main() {}
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    final aImport = unit.declaredElement!.library.imports2[0];
+    final aImport = unit.declaredElement!.library.libraryImports[0];
     PrefixElement aPrefix = aImport.prefix!.element;
     LibraryElement aLibrary = aImport.importedLibrary!;
 
@@ -451,7 +451,7 @@ main() {}
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    final aImport = unit.declaredElement!.library.imports2[0];
+    final aImport = unit.declaredElement!.library.libraryImports[0];
     PrefixElement aPrefix = aImport.prefix!.element;
     LibraryElement aLibrary = aImport.importedLibrary!;
 
@@ -492,7 +492,7 @@ main() {}
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    final aImport = unit.declaredElement!.library.imports2[0];
+    final aImport = unit.declaredElement!.library.libraryImports[0];
     PrefixElement aPrefix = aImport.prefix!.element;
     LibraryElement aLibrary = aImport.importedLibrary!;
 
@@ -533,7 +533,7 @@ main() {}
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    final aImport = unit.declaredElement!.library.imports2[0];
+    final aImport = unit.declaredElement!.library.libraryImports[0];
     PrefixElement aPrefix = aImport.prefix!.element;
     LibraryElement aLibrary = aImport.importedLibrary!;
 
@@ -2210,7 +2210,7 @@ main() {
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    final aImport = unit.declaredElement!.library.imports2[0];
+    final aImport = unit.declaredElement!.library.libraryImports[0];
     LibraryElement aLibrary = aImport.importedLibrary!;
 
     ClassElement cElement = aLibrary.getType('C')!;
@@ -5907,7 +5907,7 @@ import 'dart:async' as my;
 my.Future<int> a;
 ''');
     await resolveTestFile();
-    final myImport = result.libraryElement.imports2[0];
+    final myImport = result.libraryElement.libraryImports[0];
 
     var intRef = findNode.namedType('int> a');
     assertNamedType(intRef, intElement, 'int');
@@ -6163,7 +6163,7 @@ main() {
 //    expect(result.errors, isEmpty);
 
     var unitElement = result.unit.declaredElement!;
-    final myImport = unitElement.library.imports2[0];
+    final myImport = unitElement.library.libraryImports[0];
     PrefixElement myPrefix = myImport.prefix!.element;
 
     var myLibrary = myImport.importedLibrary!;
@@ -7751,11 +7751,11 @@ c.A a2;
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    final bImport = unit.declaredElement!.library.imports2[0];
-    final cImport = unit.declaredElement!.library.imports2[1];
+    final bImport = unit.declaredElement!.library.libraryImports[0];
+    final cImport = unit.declaredElement!.library.libraryImports[1];
 
     LibraryElement bLibrary = bImport.importedLibrary!;
-    LibraryElement aLibrary = bLibrary.exports2[0].exportedLibrary!;
+    LibraryElement aLibrary = bLibrary.libraryExports[0].exportedLibrary!;
     ClassElement aClass = aLibrary.getType('A')!;
 
     {
@@ -7919,7 +7919,7 @@ main() {
     expect(result.errors, isNotEmpty);
 
     var unitElement = result.unit.declaredElement!;
-    var foo = unitElement.library.imports2[0].prefix?.element;
+    var foo = unitElement.library.libraryImports[0].prefix?.element;
 
     List<Statement> statements = _getMainStatements(result);
     var statement = statements[0] as ExpressionStatement;
@@ -8003,7 +8003,7 @@ main() {
     expect(result.errors, isNotEmpty);
 
     var unitElement = result.unit.declaredElement!;
-    var mathImport = unitElement.library.imports2[0];
+    var mathImport = unitElement.library.libraryImports[0];
     var foo = mathImport.prefix?.element;
 
     List<Statement> statements = _getMainStatements(result);
@@ -8049,7 +8049,7 @@ main() {
     expect(result.errors, isNotEmpty);
 
     var unitElement = result.unit.declaredElement!;
-    var mathImport = unitElement.library.imports2[0];
+    var mathImport = unitElement.library.libraryImports[0];
     var foo = mathImport.prefix?.element;
     var randomElement = mathImport.importedLibrary!.getType('Random')!;
 

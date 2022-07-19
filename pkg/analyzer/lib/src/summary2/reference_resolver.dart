@@ -40,10 +40,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   ReferenceResolver(
     this.linker,
     this.nodesToBuildType,
-    LibraryElementImpl libraryElement,
-  )   : _typeSystem = libraryElement.typeSystem,
-        scope = libraryElement.scope,
-        isNNBD = libraryElement.isNonNullableByDefault;
+    LibraryOrAugmentationElementImpl container,
+  )   : _typeSystem = container.library.typeSystem,
+        scope = container.scope,
+        isNNBD = container.isNonNullableByDefault;
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}

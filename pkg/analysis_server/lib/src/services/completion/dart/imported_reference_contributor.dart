@@ -18,7 +18,7 @@ class ImportedReferenceContributor extends DartCompletionContributor {
     }
 
     // Traverse imports including dart:core
-    var imports = request.libraryElement.imports2;
+    var imports = request.libraryElement.libraryImports;
     for (var importElement in imports) {
       var libraryElement = importElement.importedLibrary;
       if (libraryElement != null) {

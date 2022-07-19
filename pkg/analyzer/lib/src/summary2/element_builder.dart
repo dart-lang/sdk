@@ -376,8 +376,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     final index = _exportDirectiveIndex++;
-    final exportElement = _container.exports2[index];
-    exportElement as ExportElement2Impl;
+    final exportElement = _container.libraryExports[index];
+    exportElement as LibraryExportElementImpl;
     exportElement.metadata = _buildAnnotations(node.metadata);
     node.element = exportElement;
   }
@@ -743,8 +743,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     final index = _importDirectiveIndex++;
-    final importElement = _container.imports2[index];
-    importElement as ImportElement2Impl;
+    final importElement = _container.libraryImports[index];
+    importElement as LibraryImportElementImpl;
     importElement.metadata = _buildAnnotations(node.metadata);
     node.element = importElement;
   }

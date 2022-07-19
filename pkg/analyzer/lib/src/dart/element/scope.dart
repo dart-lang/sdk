@@ -107,24 +107,24 @@ class ImportedElement {
   });
 }
 
-class LibraryScope extends EnclosedScope {
-  final LibraryElementImpl _element;
+class LibraryOrAugmentationScope extends EnclosedScope {
+  final LibraryOrAugmentationElementImpl _container;
   final List<ExtensionElement> extensions = [];
 
-  LibraryScope(LibraryElementImpl element)
-      : _element = element,
-        super(_LibraryImportScope(element)) {
-    extensions.addAll((_parent as _LibraryImportScope).extensions);
+  LibraryOrAugmentationScope(LibraryOrAugmentationElementImpl container)
+      : _container = container,
+        super(_LibraryOrAugmentationImportScope(container)) {
+    extensions
+        .addAll((_parent as _LibraryOrAugmentationImportScope).extensions);
 
-    _element.prefixes.forEach(_addGetter);
-    _element.units.forEach(_addUnitElements);
+    _container.prefixes.forEach(_addGetter);
+    _container.library.units.forEach(_addUnitElements);
 
     // TODO(scheglov) I don't understand why it used to work, but broke now.
     // Now: when I'm adding `ImportElement2`.
     // We used to get it from `exportedReference`, but this is wrong.
     // These elements are declared in dart:core itself.
-    final reference = _element.reference!;
-    if (reference.name == 'dart:core') {
+    if ('${_container.source.uri}' == 'dart:core') {
       _addGetter(DynamicElementImpl.instance);
       _addGetter(NeverElementImpl.instance);
     }
@@ -157,15 +157,15 @@ class LocalScope extends EnclosedScope {
 }
 
 class PrefixScope implements Scope {
-  final LibraryOrAugmentationElementImpl _library;
+  final LibraryOrAugmentationElementImpl _container;
   final Map<String, ImportedElement> _getters = {};
   final Map<String, ImportedElement> _setters = {};
   final Set<ExtensionElement> _extensions = {};
   LibraryElement? _deferredLibrary;
 
-  PrefixScope(this._library, PrefixElement? prefix) {
-    final elementFactory = _library.session.elementFactory;
-    for (final import in _library.imports2) {
+  PrefixScope(this._container, PrefixElement? prefix) {
+    final elementFactory = _container.session.elementFactory;
+    for (final import in _container.libraryImports) {
       final importedUri = import.uri;
       if (importedUri is DirectiveUriWithLibrary &&
           import.prefix?.element == prefix) {
@@ -259,8 +259,8 @@ class PrefixScope implements Scope {
     _addElement(conflictingElements, other);
 
     return MultiplyDefinedElementImpl(
-      _library.context,
-      _library.session,
+      _container.context,
+      _container.session,
       conflictingElements.first.name!,
       conflictingElements.toList(),
     );
@@ -283,8 +283,8 @@ class PrefixScope implements Scope {
     ExportedReference exportedReference,
   ) {
     if (exportedReference is ExportedReferenceExported) {
-      for (final exportIndex in exportedReference.indexes) {
-        final export = importedLibrary.exports2[exportIndex];
+      for (final location in exportedReference.locations) {
+        final export = location.exportOf(importedLibrary);
         if (!export.hasDeprecated) {
           return false;
         }
@@ -340,19 +340,19 @@ class TypeParameterScope extends EnclosedScope {
   }
 }
 
-class _LibraryImportScope implements Scope {
-  final LibraryElementImpl _library;
+class _LibraryOrAugmentationImportScope implements Scope {
+  final LibraryOrAugmentationElementImpl _container;
   final PrefixScope _nullPrefixScope;
   List<ExtensionElement>? _extensions;
 
-  _LibraryImportScope(LibraryElementImpl library)
-      : _library = library,
-        _nullPrefixScope = PrefixScope(library, null);
+  _LibraryOrAugmentationImportScope(LibraryOrAugmentationElementImpl container)
+      : _container = container,
+        _nullPrefixScope = PrefixScope(container, null);
 
   List<ExtensionElement> get extensions {
     return _extensions ??= {
       ..._nullPrefixScope._extensions,
-      for (var prefix in _library.prefixes)
+      for (var prefix in _container.prefixes)
         ...(prefix.scope as PrefixScope)._extensions,
     }.toList();
   }

@@ -157,6 +157,48 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
         ]));
   }
 
+  Future<void> test_flutterWrap_selection() async {
+    const content = '''
+import 'package:flutter/widgets.dart';
+Widget build() {
+  return Te^xt('');
+}
+    ''';
+
+    // For testing, the snippet will be inserted literally into the text, as
+    // this requires some magic on the client. The expected text should
+    // therefore contain '$0' at the location of the selection/final tabstop.
+    const expectedContent = r'''
+import 'package:flutter/widgets.dart';
+Widget build() {
+  return Center($0child: Text(''));
+}
+    ''';
+
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
+      workspaceCapabilities:
+          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
+      experimentalCapabilities: {
+        'snippetTextEdit': true,
+      },
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final assist = findEditAction(codeActions,
+        CodeActionKind('refactor.flutter.wrap.center'), 'Wrap with Center')!;
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyDocumentChanges(contents, assist.edit!.documentChanges!);
+    expect(contents[mainFilePath], equals(expectedContent));
+  }
+
   Future<void> test_nonDartFile() async {
     newFile(pubspecFilePath, simplePubspecContent);
     await initialize(

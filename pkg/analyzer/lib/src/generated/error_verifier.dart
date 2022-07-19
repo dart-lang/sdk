@@ -1528,13 +1528,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Verify that the export namespace of the given export [directive] does not
   /// export any name already exported by another export directive. The
-  /// [exportElement] is the [ExportElement2] retrieved from the node. If the
+  /// [exportElement] is the [LibraryExportElement] retrieved from the node. If the
   /// element in the node was `null`, then this method is not called. The
   /// [exportedLibrary] is the library element containing the exported element.
   ///
   /// See [CompileTimeErrorCode.AMBIGUOUS_EXPORT].
   void _checkForAmbiguousExport(ExportDirective directive,
-      ExportElement2 exportElement, LibraryElement? exportedLibrary) {
+      LibraryExportElement exportElement, LibraryElement? exportedLibrary) {
     if (exportedLibrary == null) {
       return;
     }
@@ -2299,7 +2299,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Report a diagnostic if there are any extensions in the imported library
   /// that are not hidden.
   void _checkForDeferredImportOfExtensions(
-      ImportDirective directive, ImportElement2 importElement) {
+      ImportDirective directive, LibraryImportElement importElement) {
     for (var element in importElement.namespace.definedNames.values) {
       if (element is ExtensionElement) {
         errorReporter.reportErrorForNode(
@@ -2495,12 +2495,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Check that if the visiting library is not system, then any given library
   /// should not be SDK internal library. The [exportElement] is the
-  /// [ExportElement2] retrieved from the node, if the element in the node was
+  /// [LibraryExportElement] retrieved from the node, if the element in the node was
   /// `null`, then this method is not called.
   ///
   /// See [CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY].
   void _checkForExportInternalLibrary(
-      ExportDirective directive, ExportElement2 exportElement) {
+      ExportDirective directive, LibraryExportElement exportElement) {
     if (_isInSystemLibrary) {
       return;
     }
@@ -2872,12 +2872,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Check that if the visiting library is not system, then any given library
   /// should not be SDK internal library. The [importElement] is the
-  /// [ImportElement2] retrieved from the node, if the element in the node was
+  /// [LibraryImportElement] retrieved from the node, if the element in the node was
   /// `null`, then this method is not called
   ///
   /// See [CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY].
   void _checkForImportInternalLibrary(
-      ImportDirective directive, ImportElement2 importElement) {
+      ImportDirective directive, LibraryImportElement importElement) {
     if (_isInSystemLibrary) {
       return;
     }
@@ -5096,7 +5096,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (library == null) {
       return '';
     }
-    final imports = _currentLibrary.imports2;
+    final imports = _currentLibrary.libraryImports;
     int count = imports.length;
     for (int i = 0; i < count; i++) {
       if (identical(imports[i].importedLibrary, library)) {

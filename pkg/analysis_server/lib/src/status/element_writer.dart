@@ -82,7 +82,7 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['returnType'] = element.returnType;
       properties['type'] = element.type;
     }
-    if (element is ExportElement2) {
+    if (element is LibraryExportElement) {
       properties['combinators'] = element.combinators;
       properties['library'] = element.exportedLibrary;
     }
@@ -99,7 +99,7 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['returnType'] = element.returnType;
       properties['type'] = element.type;
     }
-    if (element is ImportElement2) {
+    if (element is LibraryImportElement) {
       properties['combinators'] = element.combinators;
       properties['isDeferred'] = element.prefix is DeferredImportElementPrefix;
       properties['library'] = element.importedLibrary;

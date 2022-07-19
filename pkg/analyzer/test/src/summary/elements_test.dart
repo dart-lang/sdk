@@ -96,6 +96,108 @@ library
 ''');
   }
 
+  test_augmentation_importScope_topInference() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+final b = a;
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static final b @52
+            type: int
+        accessors
+          synthetic static get b @-1
+            returnType: int
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_types_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+A f() {}
+''');
+
+    // The augmentation imports `a.dart`, so can resolve `A`.
+    // But the library does not import, so there `A` is unresolved.
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        functions
+          f @48
+            returnType: A
+  definingUnit
+    functions
+      f @27
+        returnType: dynamic
+''');
+  }
+
+  test_augmentation_importScope_types_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+import 'a.dart';
+A f() {}
+''');
+
+    // The library imports `a.dart`, so can resolve `A`.
+    // But the augmentation does not import, so there `A` is unresolved.
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  augmentationImports
+    package:test/b.dart
+      definingUnit
+        functions
+          f @31
+            returnType: dynamic
+  definingUnit
+    functions
+      f @44
+        returnType: A
+''');
+  }
+
   test_augmentation_libraryExports_library() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
@@ -159,6 +261,70 @@ library
         dart:math
       definingUnit
   definingUnit
+''');
+  }
+
+  test_augmentation_topScope_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class A {}
+A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+A f() {}
+''');
+
+    // The augmentation declares `A`, and can it be used in the library.
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class A @35
+            constructors
+              synthetic @-1
+        functions
+          f @42
+            returnType: A
+  definingUnit
+    functions
+      f @27
+        returnType: A
+''');
+  }
+
+  test_augmentation_topScope_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {}
+A f() {}
+''');
+
+    // The library declares `A`, and can it be used in the augmentation.
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        functions
+          f @31
+            returnType: A
+  definingUnit
+    classes
+      class A @31
+        constructors
+          synthetic @-1
+    functions
+      f @38
+        returnType: A
 ''');
   }
 
@@ -20106,7 +20272,7 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart;C
 ''',
@@ -20128,7 +20294,7 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart;C
 ''',
@@ -20155,12 +20321,13 @@ library
     package:test/foo.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/foo.dart::@unit::package:test/foo.dart::@class::A
+    exported[(0, 0)] root::package:test/foo.dart::@unit::package:test/foo.dart::@class::A
   exportNamespace
     A: package:test/foo.dart;A
 ''',
         withExportScope: true);
-    expect(library.exports2[0].exportedLibrary!.source.shortName, 'foo.dart');
+    expect(library.libraryExports[0].exportedLibrary!.source.shortName,
+        'foo.dart');
   }
 
   test_export_configurations_useFirst() async {
@@ -20184,13 +20351,13 @@ library
     package:test/foo_io.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/foo_io.dart::@unit::package:test/foo_io.dart::@class::A
+    exported[(0, 0)] root::package:test/foo_io.dart::@unit::package:test/foo_io.dart::@class::A
   exportNamespace
     A: package:test/foo_io.dart;A
 ''',
         withExportScope: true);
-    expect(
-        library.exports2[0].exportedLibrary!.source.shortName, 'foo_io.dart');
+    expect(library.libraryExports[0].exportedLibrary!.source.shortName,
+        'foo_io.dart');
   }
 
   test_export_configurations_useSecond() async {
@@ -20214,12 +20381,12 @@ library
     package:test/foo_html.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/foo_html.dart::@unit::package:test/foo_html.dart::@class::A
+    exported[(0, 0)] root::package:test/foo_html.dart::@unit::package:test/foo_html.dart::@class::A
   exportNamespace
     A: package:test/foo_html.dart;A
 ''',
         withExportScope: true);
-    final export = library.exports2[0];
+    final export = library.libraryExports[0];
     expect(export.exportedLibrary!.source.shortName, 'foo_html.dart');
   }
 
@@ -20245,7 +20412,7 @@ library
         constructors
           synthetic @-1
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
     declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
   exportNamespace
     A: package:test/a.dart;A
@@ -20265,7 +20432,7 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@function::f
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@function::f
   exportNamespace
     f: package:test/a.dart;f
 ''',
@@ -20303,8 +20470,8 @@ library
         hide: A, C
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::B
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::D
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::B
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::D
   exportNamespace
     B: package:test/a.dart;B
     D: package:test/a.dart;D
@@ -20333,7 +20500,7 @@ library
         show: C
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart;C
 ''',
@@ -20373,9 +20540,9 @@ library
         constructors
           synthetic @-1
   exportedReferences
-    exported[0, 1] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
-    exported[0] root::package:test/b.dart::@unit::package:test/b.dart::@class::B
-    exported[1] root::package:test/c.dart::@unit::package:test/c.dart::@class::C
+    exported[(0, 0), (0, 1)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[(0, 0)] root::package:test/b.dart::@unit::package:test/b.dart::@class::B
+    exported[(0, 1)] root::package:test/c.dart::@unit::package:test/c.dart::@class::C
     declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
   exportNamespace
     A: package:test/a.dart;A
@@ -20397,7 +20564,7 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
   exportNamespace
     f=: package:test/a.dart;f=
 ''',
@@ -20424,8 +20591,8 @@ library
         show: A, C
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
   exportNamespace
     A: package:test/a.dart;A
     C: package:test/a.dart;C
@@ -20449,8 +20616,8 @@ library
         show: f
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::f
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::f
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
   exportNamespace
     f: package:test/a.dart;f?
     f=: package:test/a.dart;f=
@@ -20469,7 +20636,7 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@typeAlias::F
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@typeAlias::F
   exportNamespace
     F: package:test/a.dart;F
 ''',
@@ -20481,7 +20648,7 @@ library
 export 'foo.dart';
 ''');
 
-    final uri = library.exports2[0].uri as DirectiveUriWithLibrary;
+    final uri = library.libraryExports[0].uri as DirectiveUriWithLibrary;
     expect(uri.relativeUriString, 'foo.dart');
   }
 
@@ -20496,8 +20663,8 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@setter::x
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@setter::x
   exportNamespace
     x: package:test/a.dart;x?
     x=: package:test/a.dart;x=
@@ -20516,7 +20683,7 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
   exportNamespace
     x: package:test/a.dart;x?
 ''',
@@ -20534,7 +20701,7 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
   exportNamespace
     x: package:test/a.dart;x?
 ''',
@@ -20653,6 +20820,357 @@ library
   definingUnit
   exportedReferences
   exportNamespace
+''',
+        withExportScope: true);
+  }
+
+  test_exportScope_augmentation_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class A {}
+''');
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class B {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class A @35
+            constructors
+              synthetic @-1
+  definingUnit
+    classes
+      class B @31
+        constructors
+          synthetic @-1
+  exportedReferences
+    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@class::A
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::B
+  exportNamespace
+    A: package:test/test.dart;package:test/a.dart;package:test/a.dart;A
+    B: package:test/test.dart;B
+''',
+        withExportScope: true);
+  }
+
+  test_exportScope_augmentation_export() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+class B1 {}
+class B2 {}
+''');
+    newFile('$testPackageLibPath/c.dart', r'''
+class C {}
+''');
+    newFile('$testPackageLibPath/d.dart', r'''
+library augment 'test.dart';
+export 'a.dart';
+''');
+    newFile('$testPackageLibPath/e.dart', r'''
+library augment 'test.dart';
+export 'b.dart';
+export 'c.dart';
+''');
+    var library = await buildLibrary(r'''
+import augment 'd.dart';
+import augment 'e.dart';
+class X {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  augmentationImports
+    package:test/d.dart
+      exports
+        package:test/a.dart
+      definingUnit
+    package:test/e.dart
+      exports
+        package:test/b.dart
+        package:test/c.dart
+      definingUnit
+  definingUnit
+    classes
+      class X @56
+        constructors
+          synthetic @-1
+  exportedReferences
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[(2, 0)] root::package:test/b.dart::@unit::package:test/b.dart::@class::B1
+    exported[(2, 0)] root::package:test/b.dart::@unit::package:test/b.dart::@class::B2
+    exported[(2, 1)] root::package:test/c.dart::@unit::package:test/c.dart::@class::C
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+  exportNamespace
+    A: package:test/a.dart;A
+    B1: package:test/b.dart;B1
+    B2: package:test/b.dart;B2
+    C: package:test/c.dart;C
+    X: package:test/test.dart;X
+''',
+        withExportScope: true);
+  }
+
+  test_exportScope_augmentation_export_hide() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A1 {}
+class A2 {}
+class A3 {}
+class A4 {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+export 'a.dart' hide A2, A4;
+''');
+    var library = await buildLibrary(r'''
+import augment 'b.dart';
+class X {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  augmentationImports
+    package:test/b.dart
+      exports
+        package:test/a.dart
+          combinators
+            hide: A2, A4
+      definingUnit
+  definingUnit
+    classes
+      class X @31
+        constructors
+          synthetic @-1
+  exportedReferences
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A1
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A3
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+  exportNamespace
+    A1: package:test/a.dart;A1
+    A3: package:test/a.dart;A3
+    X: package:test/test.dart;X
+''',
+        withExportScope: true);
+  }
+
+  test_exportScope_augmentation_export_show() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A1 {}
+class A2 {}
+class A3 {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+export 'a.dart' show A1, A3;
+''');
+    var library = await buildLibrary(r'''
+import augment 'b.dart';
+class X {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  augmentationImports
+    package:test/b.dart
+      exports
+        package:test/a.dart
+          combinators
+            show: A1, A3
+      definingUnit
+  definingUnit
+    classes
+      class X @31
+        constructors
+          synthetic @-1
+  exportedReferences
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A1
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A3
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+  exportNamespace
+    A1: package:test/a.dart;A1
+    A3: package:test/a.dart;A3
+    X: package:test/test.dart;X
+''',
+        withExportScope: true);
+  }
+
+  test_exportScope_augmentation_nested_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import augment 'b.dart';
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+class B {}
+''');
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class C {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  augmentationImports
+    package:test/a.dart
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            classes
+              class B @32
+                constructors
+                  synthetic @-1
+      definingUnit
+        classes
+          class A @60
+            constructors
+              synthetic @-1
+  definingUnit
+    classes
+      class C @31
+        constructors
+          synthetic @-1
+  exportedReferences
+    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@class::A
+    declared root::package:test/test.dart::@augmentation::package:test/b.dart::@class::B
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::C
+  exportNamespace
+    A: package:test/test.dart;package:test/a.dart;package:test/a.dart;A
+    B: package:test/test.dart;package:test/a.dart;package:test/b.dart;package:test/b.dart;B
+    C: package:test/test.dart;C
+''',
+        withExportScope: true);
+  }
+
+  test_exportScope_augmentation_nested_export() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+    newFile('$testPackageLibPath/c.dart', r'''
+library augment 'test.dart';
+import augment 'd.dart';
+export 'a.dart';
+''');
+    newFile('$testPackageLibPath/d.dart', r'''
+library augment 'c.dart';
+export 'b.dart';
+''');
+    var library = await buildLibrary(r'''
+import augment 'c.dart';
+class X {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  augmentationImports
+    package:test/c.dart
+      exports
+        package:test/a.dart
+      augmentationImports
+        package:test/d.dart
+          exports
+            package:test/b.dart
+          definingUnit
+      definingUnit
+  definingUnit
+    classes
+      class X @31
+        constructors
+          synthetic @-1
+  exportedReferences
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[(2, 0)] root::package:test/b.dart::@unit::package:test/b.dart::@class::B
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+  exportNamespace
+    A: package:test/a.dart;A
+    B: package:test/b.dart;B
+    X: package:test/test.dart;X
+''',
+        withExportScope: true);
+  }
+
+  test_exportScope_augmentation_variable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+int a = 0;
+''');
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static a @33
+            type: int
+        accessors
+          synthetic static get a @-1
+            returnType: int
+          synthetic static set a @-1
+            parameters
+              requiredPositional _a @-1
+                type: int
+            returnType: void
+  definingUnit
+  exportedReferences
+    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@getter::a
+    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@setter::a
+  exportNamespace
+    a: package:test/test.dart;package:test/a.dart;package:test/a.dart;a?
+    a=: package:test/test.dart;package:test/a.dart;package:test/a.dart;a=
+''',
+        withExportScope: true);
+  }
+
+  test_exportScope_augmentation_variable_const() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+const a = 0;
+''');
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static const a @35
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 0 @39
+                staticType: int
+        accessors
+          synthetic static get a @-1
+            returnType: int
+  definingUnit
+  exportedReferences
+    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@getter::a
+  exportNamespace
+    a: package:test/test.dart;package:test/a.dart;package:test/a.dart;a?
 ''',
         withExportScope: true);
   }
@@ -22965,7 +23483,7 @@ library
       expect(prefixElement.nameLength, 1);
     }
 
-    final prefixElement = library.imports2[0].prefix!.element;
+    final prefixElement = library.libraryImports[0].prefix!.element;
     expect(prefixElement.nameOffset, 19);
 
     checkElementText(library, r'''
@@ -22993,9 +23511,10 @@ import 'test.dart' as p;
 class C {}
 class D extends p.C {} // Prevent "unused import" warning
 ''');
-    expect(library.imports2, hasLength(2));
-    expect(library.imports2[0].importedLibrary!.location, library.location);
-    expect(library.imports2[1].importedLibrary!.isDartCore, true);
+    expect(library.libraryImports, hasLength(2));
+    expect(
+        library.libraryImports[0].importedLibrary!.location, library.location);
+    expect(library.libraryImports[1].importedLibrary!.isDartCore, true);
     checkElementText(library, r'''
 library
   imports
@@ -23053,7 +23572,7 @@ library
     var library = await buildLibrary('''
 import "dart:math" show e, pi;
 ''');
-    var import = library.imports2[0];
+    var import = library.libraryImports[0];
     var combinator = import.combinators[0] as ShowElementCombinator;
     expect(combinator.offset, 19);
     expect(combinator.end, 29);
@@ -23064,7 +23583,7 @@ import "dart:math" show e, pi;
 import 'foo.dart';
 ''');
 
-    final uri = library.imports2[0].uri as DirectiveUriWithLibrary;
+    final uri = library.libraryImports[0].uri as DirectiveUriWithLibrary;
     expect(uri.relativeUriString, 'foo.dart');
   }
 
@@ -25748,8 +26267,8 @@ import 'dart:collection' as p2;
 import 'dart:math' as p1;
 ''');
     final p1 = library.prefixes.singleWhere((prefix) => prefix.name == 'p1');
-    final import_async = library.imports2[0];
-    final import_math = library.imports2[2];
+    final import_async = library.libraryImports[0];
+    final import_math = library.libraryImports[2];
     expect(p1.imports2, unorderedEquals([import_async, import_math]));
   }
 
@@ -38566,7 +39085,7 @@ library
 
   test_unresolved_import() async {
     var library = await buildLibrary("import 'foo.dart';", allowErrors: true);
-    var importedLibrary = library.imports2[0].importedLibrary!;
+    var importedLibrary = library.libraryImports[0].importedLibrary!;
     expect(importedLibrary.loadLibraryFunction, isNotNull);
     expect(importedLibrary.publicNamespace, isNotNull);
     expect(importedLibrary.exportNamespace, isNotNull);

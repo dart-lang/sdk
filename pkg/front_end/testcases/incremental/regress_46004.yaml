@@ -5,6 +5,7 @@
 type: newworld
 worlds:
   - entry: main.dart
+    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         import 'dart:ffi';
@@ -25,9 +26,10 @@ worlds:
     expectedLibraryCount: 2
 
   - entry: main.dart
+    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
       - main.dart
     expectedLibraryCount: 2
-    advancedInvalidation: disabled
+    advancedInvalidation: importsFfi

@@ -22,13 +22,14 @@ class LibraryMemberContributor extends DartCompletionContributor {
     if (targetId is SimpleIdentifier && !request.target.isCascade) {
       var elem = targetId.staticElement;
       if (elem is PrefixElement && !elem.isSynthetic) {
-        var imports = request.libraryElement.imports2;
+        var imports = request.libraryElement.libraryImports;
         _buildSuggestions(elem, imports);
       }
     }
   }
 
-  void _buildSuggestions(PrefixElement elem, List<ImportElement2> imports) {
+  void _buildSuggestions(
+      PrefixElement elem, List<LibraryImportElement> imports) {
     var parent = request.target.containingNode.parent;
     var typesOnly = parent is NamedType;
     var isConstructor = parent?.parent is ConstructorName;

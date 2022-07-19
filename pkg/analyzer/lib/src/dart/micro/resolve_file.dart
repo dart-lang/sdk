@@ -288,7 +288,7 @@ class FileResolver {
       if (element is LocalVariableElement ||
           (element is ParameterElement && !element.isNamed)) {
         await collectReferences2(element.source!.fullName, performance!);
-      } else if (element is ImportElement2) {
+      } else if (element is LibraryImportElement) {
         return await _searchReferences_Import(element);
       } else {
         var result = performance!.run('getFilesContaining', (performance) {
@@ -317,7 +317,7 @@ class FileResolver {
       );
       var file = fileContext.file;
       // TODO(scheglov) Casts are unsafe.
-      final kind = file.kind as LibraryFileStateKind;
+      final kind = file.kind as LibraryFileKind;
 
       final errorsSignatureBuilder = ApiSignature();
       errorsSignatureBuilder.addString(kind.libraryCycle.apiSignature);
@@ -413,7 +413,7 @@ class FileResolver {
     var file = fileContext.file;
 
     final kind = file.kind;
-    if (kind is! LibraryFileStateKind) {
+    if (kind is! LibraryFileKind) {
       throw ArgumentError('$uri is not a library.');
     }
 
@@ -439,7 +439,7 @@ class FileResolver {
     );
 
     // TODO(scheglov) Casts are unsafe.
-    final kind = file.kind as LibraryFileStateKind;
+    final kind = file.kind as LibraryFileKind;
     return kind.libraryCycle.apiSignature;
   }
 
@@ -842,7 +842,7 @@ class FileResolver {
   }
 
   Future<List<CiderSearchMatch>> _searchReferences_Import(
-      ImportElement2 element) async {
+      LibraryImportElement element) async {
     var results = <CiderSearchMatch>[];
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {

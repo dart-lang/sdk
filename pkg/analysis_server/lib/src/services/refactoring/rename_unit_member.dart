@@ -183,7 +183,7 @@ class _BaseUnitMemberValidator {
       return true;
     }
     // check imports
-    for (var importElement in atLibrary.imports2) {
+    for (var importElement in atLibrary.libraryImports) {
       // ignore if imported with prefix
       if (importElement.prefix != null) {
         continue;

@@ -1595,7 +1595,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType? visitPrefixedIdentifier(PrefixedIdentifier node) {
-    if (node.prefix.staticElement is ImportElement2) {
+    if (node.prefix.staticElement is LibraryImportElement) {
       // TODO(paulberry)
       _unimplemented(node, 'PrefixedIdentifier with a prefix');
     } else {

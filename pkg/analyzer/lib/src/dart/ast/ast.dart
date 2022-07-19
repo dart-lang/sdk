@@ -3786,14 +3786,14 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   ExportElement? get element {
     final element2 = this.element2;
-    if (element2 is ExportElement2Impl) {
+    if (element2 is LibraryExportElementImpl) {
       return ExportElementImpl(element2);
     }
     return null;
   }
 
   @override
-  ExportElement2? get element2 => super.element as ExportElement2?;
+  LibraryExportElement? get element2 => super.element as LibraryExportElement?;
 
   @override
   Token get firstTokenAfterCommentAndMetadata => exportKeyword;
@@ -6435,14 +6435,14 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   ImportElement? get element {
     final element2 = this.element2;
-    if (element2 is ImportElement2Impl) {
+    if (element2 is LibraryImportElementImpl) {
       return ImportElementImpl(element2);
     }
     return null;
   }
 
   @override
-  ImportElement2? get element2 => super.element as ImportElement2?;
+  LibraryImportElement? get element2 => super.element as LibraryImportElement?;
 
   @override
   Token get firstTokenAfterCommentAndMetadata => importKeyword;

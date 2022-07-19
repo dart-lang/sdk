@@ -1235,12 +1235,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The import has already been determined to be deferred when this is called.
   ///
   /// @param node the import directive to evaluate
-  /// @param importElement the [ImportElement2] retrieved from the node
+  /// @param importElement the [LibraryImportElement] retrieved from the node
   /// @return `true` if and only if an error code is generated on the passed
   ///         node
   /// See [CompileTimeErrorCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION].
   bool _checkForLoadLibraryFunction(
-      ImportDirective node, ImportElement2 importElement) {
+      ImportDirective node, LibraryImportElement importElement) {
     var importedLibrary = importElement.importedLibrary;
     var prefix = importElement.prefix?.element;
     if (importedLibrary == null || prefix == null) {

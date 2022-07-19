@@ -89,7 +89,7 @@ class LibraryContext {
 
   /// Computes a [CompilationUnitElement] for the given library/unit pair.
   CompilationUnitElementImpl computeUnitElement(
-    LibraryFileStateKind library,
+    LibraryFileKind library,
     FileState unit,
   ) {
     var reference = elementFactory.rootReference
@@ -117,7 +117,7 @@ class LibraryContext {
 
   /// Load data required to access elements of the given [targetLibrary].
   Future<void> load({
-    required LibraryFileStateKind targetLibrary,
+    required LibraryFileKind targetLibrary,
     required OperationPerformanceImpl performance,
   }) async {
     addToLogRing('[load][targetLibrary: ${targetLibrary.file}]');

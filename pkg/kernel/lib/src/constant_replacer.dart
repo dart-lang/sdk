@@ -60,7 +60,8 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
   /// Call this method to compute values for subnodes recursively, while only
   /// visiting each subnode once.
   Constant? visitConstant(Constant node) {
-    return cache[node] ??= node.accept(this);
+    if (cache.containsKey(node)) return cache[node];
+    return cache[node] = node.accept(this);
   }
 
   @override

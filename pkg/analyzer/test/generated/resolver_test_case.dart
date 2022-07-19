@@ -87,7 +87,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    _checkResolved(node, node.element2, (node) => node is ExportElement2);
+    _checkResolved(node, node.element2, (node) => node is LibraryExportElement);
   }
 
   @override
@@ -110,7 +110,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   void visitImportDirective(ImportDirective node) {
     // Not sure how to test the combinators given that it isn't an error if the
     // names are not defined.
-    _checkResolved(node, node.element2, (node) => node is ImportElement2);
+    _checkResolved(node, node.element2, (node) => node is LibraryImportElement);
     var prefix = node.prefix;
     if (prefix == null) {
       return;

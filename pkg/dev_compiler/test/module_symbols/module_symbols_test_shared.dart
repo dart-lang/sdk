@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show Directory, File;
 
-import 'package:dev_compiler/dev_compiler.dart';
+import 'package:dev_compiler/src/compiler/module_builder.dart'
+    show ModuleFormat;
+import 'package:dev_compiler/src/compiler/shared_command.dart'
+    show SharedCompilerOptions;
 import 'package:dev_compiler/src/kernel/command.dart';
+import 'package:dev_compiler/src/kernel/compiler.dart' show ProgramCompiler;
+import 'package:dev_compiler/src/kernel/module_symbols.dart';
 import 'package:kernel/ast.dart' show Component, Library;
 
 import '../shared_test_options.dart';
@@ -17,7 +20,7 @@ class TestCompiler {
 
   TestCompiler(this.setup);
 
-  Future<JSCode> compile({Uri input, Uri packages}) async {
+  Future<JSCode> compile({required Uri input, required Uri packages}) async {
     // Initialize incremental compiler and create component.
     setup.options.packagesFileUri = packages;
     var compiler = DevelopmentIncrementalCompiler(setup.options, input);
@@ -31,7 +34,7 @@ class TestCompiler {
 
     // Initialize DDC.
     var moduleName = 'foo.dart';
-    var classHierarchy = compilerResult.classHierarchy;
+    var classHierarchy = compilerResult.classHierarchy!;
     var compilerOptions = SharedCompilerOptions(
         replCompile: true,
         moduleName: moduleName,
@@ -63,18 +66,16 @@ class TestCompiler {
 
 class TestDriver {
   final SetupCompilerOptions options;
-  Directory tempDir;
-  final String source;
-  Uri input;
-  Uri packages;
-  File file;
+  late final Directory tempDir;
+  late final Uri input;
+  late final Uri packages;
 
-  TestDriver(this.options, this.source) {
+  TestDriver(this.options, String source) {
     var systemTempDir = Directory.systemTemp;
     tempDir = systemTempDir.createTempSync('foo bar');
 
     input = tempDir.uri.resolve('foo.dart');
-    file = File.fromUri(input)..createSync();
+    var file = File.fromUri(input)..createSync();
     file.writeAsStringSync(source);
 
     packages = tempDir.uri.resolve('package_config.json');
@@ -93,8 +94,15 @@ class TestDriver {
       ''');
   }
 
-  Future<JSCode> compile() async =>
-      await TestCompiler(options).compile(input: input, packages: packages);
+  Future<ModuleSymbols> compileAndGetSymbols() async {
+    var result =
+        await TestCompiler(options).compile(input: input, packages: packages);
+    var symbols = result.symbols;
+    if (symbols == null) {
+      throw Exception('No symbols found in compilation result.');
+    }
+    return symbols;
+  }
 
   void cleanUp() {
     tempDir.delete(recursive: true);

@@ -339,11 +339,11 @@ class Driver implements CommandLineStarter {
           var file = analysisDriver.fsState.getFileForPath(path);
 
           final kind = file.kind;
-          if (kind is LibraryFileStateKind) {
+          if (kind is LibraryFileKind) {
             var status = await _runAnalyzer(file, options, formatter);
             allResult = allResult.max(status);
             analyzedFiles.addAll(kind.files);
-          } else if (kind is PartFileStateKind) {
+          } else if (kind is PartFileKind) {
             partFiles.add(file);
           }
         }

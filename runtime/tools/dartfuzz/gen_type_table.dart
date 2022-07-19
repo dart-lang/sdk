@@ -1395,6 +1395,8 @@ void visitCompilationUnit(
           (classElement.name == 'BidirectionalIterator') ||
           (classElement.name == 'Iterator') ||
           (classElement.name == 'Stopwatch') ||
+          (classElement.name == 'Finalizer') ||
+          (classElement.name == 'Enum') ||
           (classElement.name == 'OutOfMemoryError')) {
         continue;
       }

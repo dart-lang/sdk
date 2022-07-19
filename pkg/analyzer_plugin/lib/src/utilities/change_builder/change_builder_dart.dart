@@ -286,7 +286,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeImportedName(List<Uri> uris, String name) {
     assert(uris.isNotEmpty);
-    var imports = <ImportElement2>[];
+    var imports = <LibraryImportElement>[];
     for (var uri in uris) {
       imports.addAll(dartFileEditBuilder._getImportsForUri(uri));
     }
@@ -1005,8 +1005,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   /// Given a list of [imports] that do, or can, make the [name] visible in
   /// scope, return the one that will lead to the cleanest code.
-  ImportElement2? _getBestImportForName(
-      List<ImportElement2> imports, String name) {
+  LibraryImportElement? _getBestImportForName(
+      List<LibraryImportElement> imports, String name) {
     if (imports.isEmpty) {
       return null;
     } else if (imports.length == 1) {
@@ -1464,7 +1464,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       return ImportLibraryElementResultImpl(null);
     }
 
-    for (var import in resolvedUnit.libraryElement.imports2) {
+    for (var import in resolvedUnit.libraryElement.libraryImports) {
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null && importedLibrary.source.uri == uri) {
         return ImportLibraryElementResultImpl(import.prefix?.element.name);
@@ -1489,7 +1489,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     if (resolvedUnit.libraryElement.source.uri == uri) return false;
 
     // Existing import.
-    for (var import in resolvedUnit.libraryElement.imports2) {
+    for (var import in resolvedUnit.libraryElement.libraryImports) {
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null && importedLibrary.source.uri == uri) {
         return true;
@@ -1752,8 +1752,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// Return the import element used to import the given [element] into the
   /// target library, or `null` if the element was not imported, such as when
   /// the element is declared in the same library.
-  ImportElement2? _getImportElement(Element element) {
-    for (var import in resolvedUnit.libraryElement.imports2) {
+  LibraryImportElement? _getImportElement(Element element) {
+    for (var import in resolvedUnit.libraryElement.libraryImports) {
       var definedNames = import.namespace.definedNames;
       if (definedNames.containsValue(element)) {
         return import;
@@ -1762,8 +1762,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return null;
   }
 
-  Iterable<ImportElement2> _getImportsForUri(Uri uri) sync* {
-    for (var import in resolvedUnit.libraryElement.imports2) {
+  Iterable<LibraryImportElement> _getImportsForUri(Uri uri) sync* {
+    for (var import in resolvedUnit.libraryElement.libraryImports) {
       var importUri = import.importedLibrary?.source.uri;
       if (importUri == uri) {
         yield import;

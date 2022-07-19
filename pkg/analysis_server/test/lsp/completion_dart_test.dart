@@ -2294,6 +2294,17 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_isIncompleteSetIfBudgetExhausted() async {
+    // This test only applies to notImportedCompletions because the completion
+    // will not be truncated due to exhausted budget for suggestion sets.
+    if (this is! CompletionWithPreviewNotImportedCompletionsTest) {
+      return;
+    }
+
+    newFile(
+      join(projectFolderPath, 'lib', 'other_file.dart'),
+      'class InOtherFile {}',
+    );
+
     final content = '''
 void f() {
   InOtherF^
@@ -2315,7 +2326,8 @@ void f() {
         await getCompletionList(mainFileUri, positionFromMarker(content));
 
     // Ensure we flagged that we did not return everything.
-    expect(res.isIncomplete, isFalse);
+    expect(res.items, hasLength(0));
+    expect(res.isIncomplete, isTrue);
   }
 
   /// This test reproduces a bug where the pathKey hash used in

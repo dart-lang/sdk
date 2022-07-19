@@ -264,18 +264,23 @@ class BundleWriter {
       } else if (exported is ExportedReferenceExported) {
         _sink.writeByte(1);
         _sink.writeUInt30(index);
-        _sink.writeUint30List(exported.indexes);
+        _sink.writeList(exported.locations, _writeExportLocation);
       } else {
         throw UnimplementedError('(${exported.runtimeType}) $exported');
       }
     });
   }
 
-  void _writeExportElement(ExportElement2 element) {
-    element as ExportElement2Impl;
+  void _writeExportElement(LibraryExportElement element) {
+    element as LibraryExportElementImpl;
     _resolutionSink._writeAnnotationList(element.metadata);
     _writeDirectiveUri(element.uri);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
+  }
+
+  void _writeExportLocation(ExportLocation location) {
+    _sink.writeUInt30(location.containerIndex);
+    _sink.writeUInt30(location.exportIndex);
   }
 
   void _writeExtensionElement(ExtensionElement element) {
@@ -334,8 +339,8 @@ class BundleWriter {
     });
   }
 
-  void _writeImportElement(ImportElement2 element) {
-    element as ImportElement2Impl;
+  void _writeImportElement(LibraryImportElement element) {
+    element as LibraryImportElementImpl;
     _resolutionSink._writeAnnotationList(element.metadata);
     _writeDirectiveUri(element.uri);
     _writeImportElementPrefix(element.prefix);
@@ -373,8 +378,8 @@ class BundleWriter {
     LibraryOrAugmentationElementImpl container,
   ) {
     _resolutionSink._writeAnnotationList(container.metadata);
-    _writeList(container.imports2, _writeImportElement);
-    _writeList(container.exports2, _writeExportElement);
+    _writeList(container.libraryImports, _writeImportElement);
+    _writeList(container.libraryExports, _writeExportElement);
     _writeList(
       container.augmentationImports,
       _writeAugmentationImportElement,

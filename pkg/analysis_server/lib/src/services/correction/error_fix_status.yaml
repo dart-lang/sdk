@@ -343,7 +343,7 @@ CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR:
 CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR:
   status: needsEvaluation
 CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION:
   status: needsEvaluation
 CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE:

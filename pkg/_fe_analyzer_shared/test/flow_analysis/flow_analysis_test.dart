@@ -582,8 +582,8 @@ main() {
       test('on implicit this/super', () {
         var h = Harness(thisType: 'C')..addMember('C', 'f', 'Object?');
         h.run([
-          if_(thisOrSuperPropertyGet('f').is_('Null'), [
-            if_(thisOrSuperPropertyGet('f').eq(nullLiteral), [
+          if_(thisOrSuperProperty('f').is_('Null'), [
+            if_(thisOrSuperProperty('f').eq(nullLiteral), [
               checkReachable(true),
             ], [
               checkReachable(true),
@@ -1634,7 +1634,7 @@ main() {
       test('on implicit this/super', () {
         var h = Harness(thisType: 'C')..addMember('C', 'f', 'Object?');
         h.run([
-          if_(thisOrSuperPropertyGet('f').is_('Never'), [
+          if_(thisOrSuperProperty('f').is_('Never'), [
             checkReachable(true),
           ], [
             checkReachable(true),
@@ -5769,10 +5769,10 @@ main() {
       test('via implicit this/super', () {
         var h = Harness(thisType: 'C')..addMember('C', 'field', 'Object?');
         h.run([
-          if_(thisOrSuperPropertyGet('field').eq(nullLiteral), [
+          if_(thisOrSuperProperty('field').eq(nullLiteral), [
             return_(),
           ]),
-          thisOrSuperPropertyGet('field').whyNotPromoted((reasons) {
+          thisOrSuperProperty('field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
             var nonPromotionReason = reasons.values.single;
             expect(nonPromotionReason, TypeMatcher<PropertyNotPromoted>());
@@ -5829,6 +5829,217 @@ main() {
           }),
         ]);
       });
+    });
+  });
+
+  group('Field promotion', () {
+    test('promotable field', () {
+      var h = Harness()..addMember('C', '_field', 'Object?', promotable: true);
+      var x = Var('x', 'C');
+      h.run([
+        declare(x, initialized: true),
+        if_(x.expr.property('_field').eq(nullLiteral), [
+          return_(),
+        ]),
+        checkPromoted(x.expr.property('_field'), 'Object'),
+        x.expr.property('_field').checkType('Object').stmt,
+      ]);
+    });
+
+    test('promotable field, this', () {
+      var h = Harness(thisType: 'C')
+        ..addMember('C', '_field', 'Object?', promotable: true);
+      h.run([
+        if_(thisOrSuperProperty('_field').eq(nullLiteral), [
+          return_(),
+        ]),
+        checkPromoted(thisOrSuperProperty('_field'), 'Object'),
+        thisOrSuperProperty('_field').checkType('Object').stmt,
+      ]);
+    });
+
+    test('non-promotable field', () {
+      var h = Harness()..addMember('C', '_field', 'Object?', promotable: false);
+      var x = Var('x', 'C');
+      h.run([
+        declare(x, initialized: true),
+        if_(x.expr.property('_field').eq(nullLiteral), [
+          return_(),
+        ]),
+        checkNotPromoted(x.expr.property('_field')),
+        x.expr.property('_field').checkType('Object?').stmt,
+      ]);
+    });
+
+    test('non-promotable field, this', () {
+      var h = Harness(thisType: 'C')
+        ..addMember('C', '_field', 'Object?', promotable: false);
+      h.run([
+        if_(thisOrSuperProperty('_field').eq(nullLiteral), [
+          return_(),
+        ]),
+        checkNotPromoted(thisOrSuperProperty('_field')),
+        thisOrSuperProperty('_field').checkType('Object?').stmt,
+      ]);
+    });
+
+    test('multiply promoted', () {
+      var h = Harness()..addMember('C', '_field', 'Object?', promotable: true);
+      var x = Var('x', 'C');
+      h.run([
+        declare(x, initialized: true),
+        if_(x.expr.property('_field').eq(nullLiteral), [
+          return_(),
+        ]),
+        if_(x.expr.property('_field').isNot('int'), [
+          return_(),
+        ]),
+        checkPromoted(x.expr.property('_field'), 'int'),
+        x.expr.property('_field').checkType('int').stmt,
+      ]);
+    });
+
+    test('multiply promoted, this', () {
+      var h = Harness(thisType: 'C')
+        ..addMember('C', '_field', 'Object?', promotable: true);
+      h.run([
+        if_(thisOrSuperProperty('_field').eq(nullLiteral), [
+          return_(),
+        ]),
+        if_(thisOrSuperProperty('_field').isNot('int'), [
+          return_(),
+        ]),
+        checkPromoted(thisOrSuperProperty('_field'), 'int'),
+        thisOrSuperProperty('_field').checkType('int').stmt,
+      ]);
+    });
+
+    test('promotion of target breaks field promotion', () {
+      var h = Harness()
+        ..addMember('B', '_field', 'Object?', promotable: true)
+        ..addMember('C', '_field', 'num?', promotable: true)
+        ..addSubtype('C', 'B', true)
+        ..addFactor('B', 'C', 'B');
+      var x = Var('x', 'B');
+      h.run([
+        declare(x, initialized: true),
+        if_(x.expr.property('_field').eq(nullLiteral), [
+          return_(),
+        ]),
+        checkPromoted(x.expr.property('_field'), 'Object'),
+        x.expr.property('_field').checkType('Object').stmt,
+        if_(x.expr.isNot('C'), [
+          return_(),
+        ]),
+        checkNotPromoted(x.expr.property('_field')),
+        x.expr.property('_field').checkType('num?').stmt,
+      ]);
+    });
+
+    test('promotion of target does not break field promotion', () {
+      var h = Harness()
+        ..addMember('B', '_field', 'Object?', promotable: true)
+        ..addMember('C', '_field', 'num?', promotable: true)
+        ..addSubtype('C', 'B', true)
+        ..addFactor('B', 'C', 'B');
+      var x = Var('x', 'B');
+      h.run([
+        declare(x, initialized: true),
+        if_(x.expr.property('_field').isNot('int'), [
+          return_(),
+        ]),
+        checkPromoted(x.expr.property('_field'), 'int'),
+        x.expr.property('_field').checkType('int').stmt,
+        if_(x.expr.isNot('C'), [
+          return_(),
+        ]),
+        checkPromoted(x.expr.property('_field'), 'int'),
+        x.expr.property('_field').checkType('int').stmt,
+      ]);
+    });
+
+    test('field not promotable after outer variable demoted', () {
+      var h = Harness()
+        ..addMember('B', '_field', 'Object?', promotable: false)
+        ..addMember('C', '_field', 'Object?', promotable: true)
+        ..addSubtype('C', 'B', true)
+        ..addFactor('B', 'C', 'B');
+      var x = Var('x', 'B');
+      h.run([
+        declare(x, initialized: true),
+        if_(x.expr.is_('C'), [
+          if_(x.expr.property('_field').notEq(nullLiteral), [
+            checkPromoted(x.expr.property('_field'), 'Object'),
+            x.expr.property('_field').checkType('Object').stmt,
+          ]),
+        ]),
+        if_(x.expr.property('_field').notEq(nullLiteral), [
+          checkNotPromoted(x.expr.property('_field')),
+          x.expr.property('_field').checkType('Object?').stmt,
+        ]),
+      ]);
+    });
+
+    test('field promotable after outer variable promoted', () {
+      var h = Harness()
+        ..addMember('B', '_field', 'Object?', promotable: false)
+        ..addMember('C', '_field', 'Object?', promotable: true)
+        ..addSubtype('C', 'B', true)
+        ..addFactor('B', 'C', 'B');
+      var x = Var('x', 'B');
+      h.run([
+        declare(x, initialized: true),
+        if_(x.expr.property('_field').notEq(nullLiteral), [
+          checkNotPromoted(x.expr.property('_field')),
+          x.expr.property('_field').checkType('Object?').stmt,
+        ]),
+        if_(x.expr.is_('C'), [
+          if_(x.expr.property('_field').notEq(nullLiteral), [
+            checkPromoted(x.expr.property('_field'), 'Object'),
+            x.expr.property('_field').checkType('Object').stmt,
+          ]),
+        ]),
+      ]);
+    });
+
+    test('promotion targets properly distinguished', () {
+      var h = Harness(thisType: 'C')
+        ..addMember('C', '_field1', 'Object?', promotable: true)
+        ..addMember('C', '_field2', 'Object?', promotable: true);
+      var x = Var('x', 'C');
+      var y = Var('x', 'C');
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        if_(thisOrSuperProperty('_field1').isNot('String'), [
+          return_(),
+        ]),
+        if_(this_.property('_field2').isNot('String?'), [
+          return_(),
+        ]),
+        if_(x.expr.property('_field1').isNot('int'), [
+          return_(),
+        ]),
+        if_(y.expr.property('_field1').isNot('double'), [
+          return_(),
+        ]),
+        checkPromoted(thisOrSuperProperty('_field1'), 'String'),
+        thisOrSuperProperty('_field1').checkType('String').stmt,
+        checkPromoted(this_.property('_field1'), 'String'),
+        this_.property('_field1').checkType('String').stmt,
+        checkPromoted(thisOrSuperProperty('_field2'), 'String?'),
+        thisOrSuperProperty('_field2').checkType('String?').stmt,
+        checkPromoted(this_.property('_field2'), 'String?'),
+        this_.property('_field2').checkType('String?').stmt,
+        checkPromoted(x.expr.property('_field1'), 'int'),
+        x.expr.property('_field1').checkType('int').stmt,
+        checkNotPromoted(x.expr.property('_field2')),
+        x.expr.property('_field2').checkType('Object?').stmt,
+        checkPromoted(y.expr.property('_field1'), 'double'),
+        y.expr.property('_field1').checkType('double').stmt,
+        checkNotPromoted(y.expr.property('_field2')),
+        y.expr.property('_field2').checkType('Object?').stmt,
+      ]);
     });
   });
 }

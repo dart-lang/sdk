@@ -282,6 +282,12 @@ abstract class _WrapSingleWidget extends CorrectionProducer {
           builder.writeReference(parentClassElement);
         }
         builder.write('(');
+        // When there's no linked edit for the widget name, leave the selection
+        // inside the opening paren which is useful if you want to add
+        // additional named arguments to the newly-created widget.
+        if (parentClassElement != null) {
+          builder.selectHere();
+        }
         var leadingLines = _leadingLines;
         if (widgetSrc.contains(eol) || leadingLines.isNotEmpty) {
           var indentOld = utils.getLinePrefix(widgetExpr.offset);

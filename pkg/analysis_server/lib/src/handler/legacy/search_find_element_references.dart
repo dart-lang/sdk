@@ -26,7 +26,7 @@ class SearchFindElementReferencesHandler extends LegacyHandler {
     var file = params.file;
     // prepare element
     var element = await server.getElementAtOffset(file, params.offset);
-    if (element is ImportElement2) {
+    if (element is LibraryImportElement) {
       element = element.prefix?.element;
     }
     if (element is FieldFormalParameterElement) {
