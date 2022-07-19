@@ -104,11 +104,11 @@ class FeatureOptions {
   /// [FeatureOption]s which default to enabled.
   late final List<FeatureOption> shipping = [
     useContentSecurityPolicy,
+    deferredSerialization,
   ];
 
   /// [FeatureOption]s which default to disabled.
   late final List<FeatureOption> canary = [
-    deferredSerialization,
     writeUtf8,
     newDumpInfo,
     simpleAsyncToFuture,
