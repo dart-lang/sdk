@@ -824,17 +824,13 @@ class LibraryReader {
   LibraryExportElementImpl _readExportElement({
     required LibraryOrAugmentationElementImpl container,
   }) {
-    final uri = _readDirectiveUri(
-      container: container,
-    );
-    // TODO(scheglov) pass to the constructor
-    final combinators = _reader.readTypedList(_readNamespaceCombinator);
-
-    final element = LibraryExportElementImpl(
+    return LibraryExportElementImpl(
+      combinators: _reader.readTypedList(_readNamespaceCombinator),
       exportKeywordOffset: -1,
-      uri: uri,
-    )..combinators = combinators;
-    return element;
+      uri: _readDirectiveUri(
+        container: container,
+      ),
+    );
   }
 
   ExportLocation _readExportLocation() {
@@ -986,19 +982,16 @@ class LibraryReader {
   LibraryImportElementImpl _readImportElement({
     required LibraryOrAugmentationElementImpl container,
   }) {
-    final uri = _readDirectiveUri(
-      container: container,
-    );
-    final prefix = _readImportElementPrefix(
-      container: container,
-    );
-    final combinators = _reader.readTypedList(_readNamespaceCombinator);
-
     final element = LibraryImportElementImpl(
+      combinators: _reader.readTypedList(_readNamespaceCombinator),
       importKeywordOffset: -1,
-      uri: uri,
-      prefix: prefix,
-    )..combinators = combinators;
+      prefix: _readImportElementPrefix(
+        container: container,
+      ),
+      uri: _readDirectiveUri(
+        container: container,
+      ),
+    );
     ImportElementFlags.read(_reader, element);
     return element;
   }

@@ -274,8 +274,8 @@ class BundleWriter {
   void _writeExportElement(LibraryExportElement element) {
     element as LibraryExportElementImpl;
     _resolutionSink._writeAnnotationList(element.metadata);
-    _writeDirectiveUri(element.uri);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
+    _writeDirectiveUri(element.uri);
   }
 
   void _writeExportLocation(ExportLocation location) {
@@ -342,9 +342,9 @@ class BundleWriter {
   void _writeImportElement(LibraryImportElement element) {
     element as LibraryImportElementImpl;
     _resolutionSink._writeAnnotationList(element.metadata);
-    _writeDirectiveUri(element.uri);
-    _writeImportElementPrefix(element.prefix);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
+    _writeImportElementPrefix(element.prefix);
+    _writeDirectiveUri(element.uri);
     ImportElementFlags.write(_sink, element);
   }
 
