@@ -8,7 +8,7 @@ import 'dart:math';
 import 'package:analyzer/error/error.dart';
 
 import 'analyzer.dart';
-import 'util/charcodes.dart' show $pipe, $backslash;
+import 'util/charcodes.dart' show $backslash, $pipe;
 import 'util/score_utils.dart';
 
 // Number of times to perform linting to get stable benchmarks.

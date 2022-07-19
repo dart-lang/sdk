@@ -36,11 +36,11 @@ linter:
     - cancel_subscriptions
 #    - cascade_invocations
     - cast_nullable_to_non_nullable
+    - combinators_ordering
 #    - close_sinks # https://github.com/dart-lang/linter/issues/268
     - comment_references
     - directives_ordering
     - discarded_futures
-    - invariant_booleans
     - join_return_with_assignment
 #    - lines_longer_than_80_chars # under review (see #1068)
     - literal_only_boolean_expressions

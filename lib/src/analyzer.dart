@@ -29,15 +29,15 @@ export 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 export 'package:analyzer/src/lint/linter.dart'
     show
         DartLinter,
-        LintRule,
         Group,
-        Maturity,
+        LintFilter,
+        LintRule,
         LinterContext,
         LinterOptions,
-        LintFilter,
+        Maturity,
         NodeLintRegistry,
         NodeLintRule;
-export 'package:analyzer/src/lint/pub.dart' show PubspecVisitor, PSEntry;
+export 'package:analyzer/src/lint/pub.dart' show PSEntry, PubspecVisitor;
 export 'package:analyzer/src/lint/util.dart' show Spelunker;
 export 'package:analyzer/src/services/lint.dart' show lintRegistry;
 export 'package:analyzer/src/workspace/pub.dart' show PubWorkspacePackage;
