@@ -76,6 +76,7 @@ class Translator {
   late final Class wasmEqRefClass;
   late final Class wasmDataRefClass;
   late final Class wasmFunctionClass;
+  late final Class wasmTableClass;
   late final Class boxedBoolClass;
   late final Class boxedIntClass;
   late final Class boxedDoubleClass;
@@ -112,6 +113,7 @@ class Translator {
   late final Class typeErrorClass;
   late final Class typeUniverseClass;
   late final Procedure wasmFunctionCall;
+  late final Procedure wasmTableCallIndirect;
   late final Procedure stackTraceCurrent;
   late final Procedure stringEquals;
   late final Procedure stringInterpolate;
@@ -143,6 +145,7 @@ class Translator {
   final Map<Field, int> fieldIndex = {};
   final Map<TypeParameter, int> typeParameterIndex = {};
   final Map<Reference, ParameterInfo> staticParamInfo = {};
+  final Map<Field, w.DefinedTable> declaredTables = {};
   late Procedure mainFunction;
   late final w.Module m;
   late final w.DefinedFunction initFunction;
@@ -194,6 +197,7 @@ class Translator {
     wasmEqRefClass = lookupWasm("WasmEqRef");
     wasmDataRefClass = lookupWasm("WasmDataRef");
     wasmFunctionClass = lookupWasm("WasmFunction");
+    wasmTableClass = lookupWasm("WasmTable");
     boxedBoolClass = lookupCore("_BoxedBool");
     boxedIntClass = lookupCore("_BoxedInt");
     boxedDoubleClass = lookupCore("_BoxedDouble");
@@ -232,6 +236,8 @@ class Translator {
     byteDataViewClass = lookupTypedData("_ByteDataView");
     wasmFunctionCall =
         wasmFunctionClass.procedures.firstWhere((p) => p.name.text == "call");
+    wasmTableCallIndirect = wasmTableClass.procedures
+        .firstWhere((p) => p.name.text == "callIndirect");
     stackTraceCurrent =
         stackTraceClass.procedures.firstWhere((p) => p.name.text == "current");
     stringEquals =
@@ -362,9 +368,7 @@ class Translator {
         if (!options.printWasm) print("");
       }
 
-      if (exportName != null) {
-        m.exportFunction(exportName, function);
-      } else if (options.exportAll) {
+      if (options.exportAll && exportName == null) {
         m.exportFunction(canonicalName, function);
       }
       var codeGen = CodeGenerator(this, function, reference);
@@ -732,6 +736,34 @@ class Translator {
       return staticParamInfo.putIfAbsent(
           target, () => ParameterInfo.fromMember(target));
     }
+  }
+
+  /// Get the Wasm table declared by [field], or `null` if [field] is not a
+  /// declaration of a Wasm table.
+  ///
+  /// This function participates in tree shaking in the sense that if it's
+  /// never called for a particular table declaration, that table is not added
+  /// to the output module.
+  w.DefinedTable? getTable(Field field) {
+    w.DefinedTable? table = declaredTables[field];
+    if (table != null) return table;
+    DartType fieldType = field.type;
+    if (fieldType is InterfaceType && fieldType.classNode == wasmTableClass) {
+      w.RefType elementType =
+          translateType(fieldType.typeArguments.single) as w.RefType;
+      Expression sizeExp = (field.initializer as ConstructorInvocation)
+          .arguments
+          .positional
+          .single;
+      if (sizeExp is StaticGet && sizeExp.target is Field) {
+        sizeExp = (sizeExp.target as Field).initializer!;
+      }
+      int size = sizeExp is ConstantExpression
+          ? (sizeExp.constant as IntConstant).value
+          : (sizeExp as IntLiteral).value;
+      return declaredTables[field] = m.addTable(elementType, size);
+    }
+    return null;
   }
 
   Member? singleTarget(TreeNode node) {

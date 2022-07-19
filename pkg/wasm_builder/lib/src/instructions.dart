@@ -583,6 +583,32 @@ class Instructions with SerializerMixin {
     writeUnsigned(global.index);
   }
 
+  // Table instructions
+
+  /// Emit a `table.get` instruction.
+  void table_get(Table table) {
+    assert(_verifyTypes(const [NumType.i32], [table.type],
+        trace: ['table.get', table.index]));
+    writeByte(0x25);
+    writeUnsigned(table.index);
+  }
+
+  /// Emit a `table.set` instruction.
+  void table_set(Table table) {
+    assert(_verifyTypes([NumType.i32, table.type], const [],
+        trace: ['table.set', table.index]));
+    writeByte(0x26);
+    writeUnsigned(table.index);
+  }
+
+  /// Emit a `table.size` instruction.
+  void table_size(Table table) {
+    assert(_verifyTypes(const [], const [NumType.i32],
+        trace: ['table.size', table.index]));
+    writeBytes([0xFC, 0x10]);
+    writeUnsigned(table.index);
+  }
+
   // Memory instructions
 
   void _writeMemArg(Memory memory, int offset, int align) {

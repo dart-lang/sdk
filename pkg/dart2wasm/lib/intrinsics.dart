@@ -152,6 +152,18 @@ class Intrinsifier {
       return w.NumType.i64;
     }
 
+    // WasmTable.size
+    if (cls == translator.wasmTableClass) {
+      if (receiver is! StaticGet || receiver.target is! Field) {
+        throw "Table size not directly on a static field"
+            " at ${node.location}";
+      }
+      w.Table table = translator.getTable(receiver.target as Field)!;
+      assert(name == "size");
+      b.table_size(table);
+      return w.NumType.i32;
+    }
+
     // int.bitlength
     if (cls == translator.coreTypes.intClass && name == 'bitLength') {
       w.Local temp = codeGen.function.addLocal(w.NumType.i64);
@@ -444,6 +456,25 @@ class Intrinsifier {
           assert(name == "toDouble");
           codeGen.wrap(receiver, w.NumType.f64);
           return w.NumType.f64;
+      }
+    }
+
+    // WasmTable.[] and WasmTable.[]=
+    if (cls == translator.wasmTableClass) {
+      if (receiver is! StaticGet || receiver.target is! Field) {
+        throw "Table indexing not directly on a static field"
+            " at ${node.location}";
+      }
+      w.Table table = translator.getTable(receiver.target as Field)!;
+      codeGen.wrap(node.arguments.positional[0], w.NumType.i32);
+      if (name == '[]') {
+        b.table_get(table);
+        return table.type;
+      } else {
+        assert(name == '[]=');
+        codeGen.wrap(node.arguments.positional[1], table.type);
+        b.table_set(table);
+        return codeGen.voidMarker;
       }
     }
 
@@ -969,6 +1000,60 @@ class Intrinsifier {
       // Pointer, whose representation is the same.
       codeGen.wrap(node.arguments.positional.single, w.NumType.i32);
       return w.NumType.i32;
+    }
+
+    return null;
+  }
+
+  w.ValueType? generateFunctionCallIntrinsic(FunctionInvocation node) {
+    Expression receiver = node.receiver;
+
+    if (receiver is InstanceGet &&
+        receiver.interfaceTarget == translator.wasmFunctionCall) {
+      // Receiver is a WasmFunction
+      assert(receiver.name.text == "call");
+      w.RefType receiverType =
+          translator.translateType(dartTypeOf(receiver.receiver)) as w.RefType;
+      w.Local temp = codeGen.addLocal(receiverType);
+      codeGen.wrap(receiver.receiver, receiverType);
+      b.local_set(temp);
+      w.FunctionType functionType = receiverType.heapType as w.FunctionType;
+      assert(node.arguments.positional.length == functionType.inputs.length);
+      for (int i = 0; i < node.arguments.positional.length; i++) {
+        codeGen.wrap(node.arguments.positional[i], functionType.inputs[i]);
+      }
+      b.local_get(temp);
+      b.call_ref();
+      return translator.outputOrVoid(functionType.outputs);
+    }
+
+    if (receiver is InstanceInvocation &&
+        receiver.interfaceTarget == translator.wasmTableCallIndirect) {
+      // Receiver is a WasmTable.callIndirect
+      assert(receiver.name.text == "callIndirect");
+      Expression tableExp = receiver.receiver;
+      if (tableExp is! StaticGet || tableExp.target is! Field) {
+        throw "Table callIndirect not directly on a static field"
+            " at ${node.location}";
+      }
+      w.Table table = translator.getTable(tableExp.target as Field)!;
+      InterfaceType wasmFunctionType = InterfaceType(
+          translator.wasmFunctionClass,
+          Nullability.nonNullable,
+          [receiver.arguments.types.single]);
+      w.RefType receiverType =
+          translator.translateType(wasmFunctionType) as w.RefType;
+      w.Local tableIndex = codeGen.addLocal(w.NumType.i32);
+      codeGen.wrap(receiver.arguments.positional.single, w.NumType.i32);
+      b.local_set(tableIndex);
+      w.FunctionType functionType = receiverType.heapType as w.FunctionType;
+      assert(node.arguments.positional.length == functionType.inputs.length);
+      for (int i = 0; i < node.arguments.positional.length; i++) {
+        codeGen.wrap(node.arguments.positional[i], functionType.inputs[i]);
+      }
+      b.local_get(tableIndex);
+      b.call_indirect(functionType, table);
+      return translator.outputOrVoid(functionType.outputs);
     }
 
     return null;

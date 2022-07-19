@@ -1340,7 +1340,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         b.i32_const(offset);
         b.i32_add();
       }
-      b.call_indirect(selector.signature);
+      b.call_indirect(selector.signature, translator.dispatchTable.wasmTable);
 
       translator.functions.activateSelector(selector);
     }
@@ -1599,7 +1599,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.i32_const(offset);
       b.i32_add();
     }
-    b.call_indirect(selector.signature);
+    b.call_indirect(selector.signature, translator.dispatchTable.wasmTable);
 
     translator.functions.activateSelector(selector);
 
@@ -1765,28 +1765,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitFunctionInvocation(
       FunctionInvocation node, w.ValueType expectedType) {
-    Expression receiver = node.receiver;
-    if (receiver is InstanceGet &&
-        receiver.interfaceTarget == translator.wasmFunctionCall) {
-      // Receiver is a WasmFunction
-      assert(receiver.name.text == "call");
-      w.RefType receiverType =
-          translator.translateType(dartTypeOf(receiver.receiver)) as w.RefType;
-      w.Local temp = addLocal(receiverType);
-      wrap(receiver.receiver, receiverType);
-      b.local_set(temp);
-      w.FunctionType functionType = receiverType.heapType as w.FunctionType;
-      assert(node.arguments.positional.length == functionType.inputs.length);
-      for (int i = 0; i < node.arguments.positional.length; i++) {
-        wrap(node.arguments.positional[i], functionType.inputs[i]);
-      }
-      b.local_get(temp);
-      b.call_ref();
-      return translator.outputOrVoid(functionType.outputs);
-    }
+    w.ValueType? intrinsicResult =
+        intrinsifier.generateFunctionCallIntrinsic(node);
+    if (intrinsicResult != null) return intrinsicResult;
+
     int parameterCount = node.functionType?.requiredParameterCount ??
         node.arguments.positional.length;
-    return _functionCall(parameterCount, receiver, node.arguments);
+    return _functionCall(parameterCount, node.receiver, node.arguments);
   }
 
   w.ValueType _functionCall(

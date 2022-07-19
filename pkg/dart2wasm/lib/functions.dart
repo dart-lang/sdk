@@ -34,36 +34,35 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
 
   void collectImportsAndExports() {
     for (Library library in translator.libraries) {
-      for (Procedure procedure in library.procedures) {
-        _importOrExport(procedure);
-      }
+      library.procedures.forEach(_importOrExport);
+      library.fields.forEach(_importOrExport);
       for (Class cls in library.classes) {
-        for (Procedure procedure in cls.procedures) {
-          _importOrExport(procedure);
-        }
+        cls.procedures.forEach(_importOrExport);
       }
     }
   }
 
-  void _importOrExport(Procedure procedure) {
-    String? importName = translator.getPragma(procedure, "wasm:import");
+  void _importOrExport(Member member) {
+    String? importName = translator.getPragma(member, "wasm:import");
     if (importName != null) {
       int dot = importName.indexOf('.');
       if (dot != -1) {
-        assert(!procedure.isInstanceMember);
+        assert(!member.isInstanceMember);
         String module = importName.substring(0, dot);
         String name = importName.substring(dot + 1);
-        w.FunctionType ftype = _makeFunctionType(
-            procedure.reference, procedure.function.returnType, null,
-            isImportOrExport: true);
-        _functions[procedure.reference] =
-            m.importFunction(module, name, ftype, "$importName (import)");
+        if (member is Procedure) {
+          w.FunctionType ftype = _makeFunctionType(
+              member.reference, member.function.returnType, null,
+              isImportOrExport: true);
+          _functions[member.reference] =
+              m.importFunction(module, name, ftype, "$importName (import)");
+        }
       }
     }
     String? exportName =
-        translator.getPragma(procedure, "wasm:export", procedure.name.text);
+        translator.getPragma(member, "wasm:export", member.name.text);
     if (exportName != null) {
-      addExport(procedure.reference, exportName);
+      addExport(member.reference, exportName);
     }
   }
 
@@ -72,16 +71,26 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
   }
 
   void initialize() {
-    // Add all exports to the worklist
-    for (Reference target in exports.keys) {
-      worklist.add(target);
-      Procedure node = target.asProcedure;
-      assert(!node.isInstanceMember);
-      assert(!node.isGetter);
-      w.FunctionType ftype = _makeFunctionType(
-          target, node.function.returnType, null,
-          isImportOrExport: true);
-      _functions[target] = m.addFunction(ftype, "$node");
+    // Add exports to the module and add exported functions to the worklist
+    for (var export in exports.entries) {
+      Reference target = export.key;
+      Member node = target.asMember;
+      if (node is Procedure) {
+        worklist.add(target);
+        assert(!node.isInstanceMember);
+        assert(!node.isGetter);
+        w.FunctionType ftype = _makeFunctionType(
+            target, node.function.returnType, null,
+            isImportOrExport: true);
+        w.DefinedFunction function = m.addFunction(ftype, "$node");
+        _functions[target] = function;
+        m.exportFunction(export.value, function);
+      } else if (node is Field) {
+        w.Table? table = translator.getTable(node);
+        if (table != null) {
+          m.exportTable(export.value, table);
+        }
+      }
     }
 
     // Value classes are always implicitly allocated.
