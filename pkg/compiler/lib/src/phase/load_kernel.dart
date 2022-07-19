@@ -196,6 +196,8 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
   if (options.cfeOnly) {
     _doGlobalTransforms(component);
   }
+
+  registerSources(component, compilerInput);
   return _LoadFromKernelResult(component, entryLibrary, moduleLibraries);
 }
 
@@ -287,6 +289,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
   if (isModularCompile) {
     component?.computeCanonicalNames();
   }
+  registerSources(component, compilerInput);
   return _LoadFromSourceResult(
       component, initializedCompilerState, isModularCompile ? sources : []);
 }
@@ -393,4 +396,17 @@ Future<Output?> run(Input input) async {
   }
   return _createOutput(options, reporter, entryLibrary, component,
       moduleLibraries, initializedCompilerState);
+}
+
+/// Registers with the dart2js compiler all sources embeded in a kernel
+/// component. This may include sources that were read from disk directly as
+/// files, but also sources that were embedded in binary `.dill` files (like the
+/// platform kernel file and kernel files from modular compilation pipelines).
+///
+/// This registration improves how locations are presented when errors
+/// or crashes are reported by the dart2js compiler.
+void registerSources(ir.Component? component, api.CompilerInput compilerInput) {
+  component?.uriToSource.forEach((uri, source) {
+    compilerInput.registerUtf8ContentsForDiagnostics(uri, source.source);
+  });
 }
