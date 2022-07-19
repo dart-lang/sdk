@@ -579,18 +579,26 @@ class ImportsVerifier {
     if (identifiers == null) {
       return;
     }
+
+    /// When an element is used, it might be converted into a `Member`,
+    /// to apply substitution, or turn it into legacy. But using something
+    /// is purely declaration based.
+    bool hasElement(SimpleIdentifier identifier, Element element) {
+      return identifier.staticElement?.declaration == element.declaration;
+    }
+
     int length = identifiers.length;
     for (int i = 0; i < length; i++) {
-      Identifier identifier = identifiers[i];
+      var identifier = identifiers[i];
       if (element is PropertyAccessorElement) {
         // If the getter or setter of a variable is used, then the variable (the
         // shown name) is used.
-        if (identifier.staticElement == element.variable) {
+        if (hasElement(identifier, element.variable)) {
           identifiers.remove(identifier);
           break;
         }
       } else {
-        if (identifier.staticElement == element) {
+        if (hasElement(identifier, element)) {
           identifiers.remove(identifier);
           break;
         }

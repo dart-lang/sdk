@@ -2569,7 +2569,9 @@ abstract class ElementImpl implements Element {
     if (identical(this, other)) {
       return true;
     }
-    return other is Element && other.kind == kind && other.location == location;
+    return other is ElementImpl &&
+        other.kind == kind &&
+        other.location == location;
   }
 
   /// Append a textual representation of this element to the given [builder].
