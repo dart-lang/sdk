@@ -116,6 +116,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_constructor_name.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_code.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_default_value.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_deprecated_new_in_comment_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_duplicate_case.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.dart';
@@ -914,6 +915,7 @@ class FixProcessor extends BaseProcessor {
       ReplaceWithFilled.new,
     ],
     CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER: [
+      RemoveDefaultValue.new,
       RemoveRequired.new,
     ],
     CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER: [

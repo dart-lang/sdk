@@ -914,6 +914,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Remove dead code',
   );
+  static const REMOVE_DEFAULT_VALUE = FixKind(
+    'dart.fix.remove.defaultValue',
+    DartFixKindPriority.DEFAULT,
+    "Remove the default value",
+  );
   static const REMOVE_DEPRECATED_NEW_IN_COMMENT_REFERENCE = FixKind(
     'dart.fix.remove.deprecatedNewInCommentReference',
     DartFixKindPriority.DEFAULT,
