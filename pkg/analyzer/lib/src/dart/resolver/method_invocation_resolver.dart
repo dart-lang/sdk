@@ -220,7 +220,7 @@ class MethodInvocationResolver with ScopeHelpers {
     ExecutableElement element,
     bool nullReceiver,
   ) {
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement2;
     if (nullReceiver) {
       if (_resolver.enclosingExtension != null) {
         _resolver.errorReporter.reportErrorForNode(

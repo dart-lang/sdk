@@ -79,14 +79,14 @@ class DiagnosticFactory {
       ExecutableElement superMember) {
     errorCode ??= CompileTimeErrorCode.INVALID_OVERRIDE;
     // Elements enclosing members that can participate in overrides are always
-    // named, so we can safely assume `_thisMember.enclosingElement.name` and
-    // `superMember.enclosingElement.name` are non-`null`.
+    // named, so we can safely assume `_thisMember.enclosingElement2.name` and
+    // `superMember.enclosingElement2.name` are non-`null`.
     return AnalysisError(
         source, errorNode.offset, errorNode.length, errorCode, [
       member.name,
-      member.enclosingElement.name!,
+      member.enclosingElement2.name!,
       member.type,
-      superMember.enclosingElement.name!,
+      superMember.enclosingElement2.name!,
       superMember.type,
     ], [
       // Only include the context location for INVALID_OVERRIDE because for

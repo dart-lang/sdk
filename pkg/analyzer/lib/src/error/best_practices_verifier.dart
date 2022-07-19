@@ -171,7 +171,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           }
         }
       } else if (parent is ConstructorDeclaration) {
-        var class_ = parent.declaredElement!.enclosingElement;
+        var class_ = parent.declaredElement!.enclosingElement2;
         if (class_.isPrivate || (parentElement?.isPrivate ?? false)) {
           _errorReporter.reportErrorForNode(
               HintCode.INVALID_INTERNAL_ANNOTATION, node, []);
@@ -301,7 +301,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         var invokedElement = element.element!;
         var name = invokedElement.name;
         if (invokedElement is ConstructorElement) {
-          var className = invokedElement.enclosingElement.name;
+          var className = invokedElement.enclosingElement2.name;
           if (name!.isEmpty) {
             name = className;
           } else {
@@ -449,7 +449,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           final element = field.declaredElement;
           if (element is PropertyAccessorElement || element is FieldElement) {
             Name name = Name(_currentLibrary.source.uri, element!.name);
-            Element enclosingElement = element.enclosingElement!;
+            Element enclosingElement = element.enclosingElement2!;
             if (enclosingElement is ClassElement) {
               var overridden = _inheritanceManager
                   .getMember2(enclosingElement, name, forSuper: true);
@@ -471,11 +471,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             _hasNonVirtualAnnotation(overriddenElement)) {
           // Overridden members are always inside classes or mixins, which are
           // always named, so we can safely assume
-          // `overriddenElement.enclosingElement.name` is non-`null`.
+          // `overriddenElement.enclosingElement2.name` is non-`null`.
           _errorReporter.reportErrorForNode(
               HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, field.name, [
             field.name.name,
-            overriddenElement.enclosingElement.displayName
+            overriddenElement.enclosingElement2.displayName
           ]);
         }
         if (!_invalidAccessVerifier._inTestDirectory) {
@@ -618,7 +618,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
     var element = node.declaredElement!;
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement2;
 
     Name name = Name(_currentLibrary.source.uri, element.name);
 
@@ -665,11 +665,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           _hasNonVirtualAnnotation(overriddenElement)) {
         // Overridden members are always inside classes or mixins, which are
         // always named, so we can safely assume
-        // `overriddenElement.enclosingElement.name` is non-`null`.
+        // `overriddenElement.enclosingElement2.name` is non-`null`.
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
             node.name,
-            [node.name.name, overriddenElement.enclosingElement.displayName]);
+            [node.name.name, overriddenElement.enclosingElement2.displayName]);
       }
 
       super.visitMethodDeclaration(node);
@@ -1439,7 +1439,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         SimpleIdentifier name = invocation.methodName;
         if (name.name == FunctionElement.NO_SUCH_METHOD_METHOD_NAME) {
           var methodElement = name.staticElement;
-          var classElement = methodElement?.enclosingElement;
+          var classElement = methodElement?.enclosingElement2;
           return methodElement is MethodElement &&
               classElement is ClassElement &&
               !classElement.isDartCoreObject;
@@ -1943,7 +1943,7 @@ class _InvalidAccessVerifier {
       SimpleIdentifier identifier, Element element) {
     bool hasProtected = _hasProtected(element);
     if (hasProtected) {
-      var definingClass = element.enclosingElement as ClassElement;
+      var definingClass = element.enclosingElement2 as ClassElement;
       if (_hasTypeOrSuperType(_enclosingClass, definingClass)) {
         return;
       }
@@ -1982,7 +1982,7 @@ class _InvalidAccessVerifier {
       node = identifier;
     }
 
-    var definingClass = element.enclosingElement;
+    var definingClass = element.enclosingElement2;
     if (hasProtected) {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
@@ -2038,12 +2038,12 @@ class _InvalidAccessVerifier {
 
   bool _hasProtected(Element element) {
     if (element is PropertyAccessorElement &&
-        element.enclosingElement is ClassElement &&
+        element.enclosingElement2 is ClassElement &&
         (element.hasProtected || element.variable.hasProtected)) {
       return true;
     }
     if (element is MethodElement &&
-        element.enclosingElement is ClassElement &&
+        element.enclosingElement2 is ClassElement &&
         element.hasProtected) {
       return true;
     }

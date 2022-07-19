@@ -178,7 +178,7 @@ class ResolvedForCompletionResultImpl {
     required this.resolvedNodes,
   });
 
-  LibraryElement get libraryElement => unitElement.enclosingElement;
+  LibraryElement get libraryElement => unitElement.library;
 }
 
 class ResolvedLibraryResultImpl extends AnalysisResultImpl

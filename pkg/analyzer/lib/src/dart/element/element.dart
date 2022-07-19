@@ -103,8 +103,14 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   @override
   String get displayName => name;
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
   CompilationUnitElementImpl get enclosingElement {
+    return _enclosingElement as CompilationUnitElementImpl;
+  }
+
+  @override
+  CompilationUnitElementImpl get enclosingElement2 {
     return _enclosingElement as CompilationUnitElementImpl;
   }
 
@@ -314,7 +320,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
               !getter.isAbstract &&
               !getter.isStatic &&
               getter.isAccessibleIn2(library) &&
-              getter.enclosingElement != this));
+              getter.enclosingElement2 != this));
 
   ExecutableElement? lookUpInheritedConcreteMember(
       String name, LibraryElement library) {
@@ -334,7 +340,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
               !method.isAbstract &&
               !method.isStatic &&
               method.isAccessibleIn2(library) &&
-              method.enclosingElement != this));
+              method.enclosingElement2 != this));
 
   @override
   PropertyAccessorElement? lookUpInheritedConcreteSetter(
@@ -344,7 +350,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
               !setter.isAbstract &&
               !setter.isStatic &&
               setter.isAccessibleIn2(library) &&
-              setter.enclosingElement != this));
+              setter.enclosingElement2 != this));
 
   @override
   MethodElement? lookUpInheritedMethod(
@@ -353,7 +359,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
           (MethodElement method) =>
               !method.isStatic &&
               method.isAccessibleIn2(library) &&
-              method.enclosingElement != this));
+              method.enclosingElement2 != this));
 
   @override
   MethodElement? lookUpMethod(String methodName, LibraryElement library) =>
@@ -539,9 +545,15 @@ class AugmentationImportElementImpl extends _ExistingElementImpl
     required this.uri,
   }) : super(null, importKeywordOffset);
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
   LibraryOrAugmentationElementImpl get enclosingElement {
-    return super.enclosingElement as LibraryOrAugmentationElementImpl;
+    return super.enclosingElement2 as LibraryOrAugmentationElementImpl;
+  }
+
+  @override
+  LibraryOrAugmentationElementImpl get enclosingElement2 {
+    return super.enclosingElement2 as LibraryOrAugmentationElementImpl;
   }
 
   @override
@@ -690,7 +702,7 @@ class ClassElementImpl extends AbstractClassElementImpl {
   bool get hasNoSuchMethod {
     MethodElement? method = lookUpConcreteMethod(
         FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library);
-    var definingClass = method?.enclosingElement as ClassElement?;
+    var definingClass = method?.enclosingElement2 as ClassElement?;
     return definingClass != null && !definingClass.isDartCoreObject;
   }
 
@@ -1115,13 +1127,14 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     _classes = classes;
   }
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
   LibraryElement get enclosingElement =>
-      super.enclosingElement as LibraryElement;
+      super.enclosingElement2 as LibraryElement;
 
   @override
   LibraryOrAugmentationElement get enclosingElement2 =>
-      super.enclosingElement as LibraryOrAugmentationElement;
+      super.enclosingElement2 as LibraryOrAugmentationElement;
 
   @override
   CompilationUnitElementImpl get enclosingUnit {
@@ -1198,7 +1211,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  AnalysisSession get session => enclosingElement.session;
+  AnalysisSession get session => enclosingElement2.session;
 
   @override
   List<TopLevelVariableElement> get topLevelVariables {
@@ -1366,7 +1379,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   String get displayName {
-    var className = enclosingElement.name;
+    var className = enclosingElement2.name;
     var name = this.name;
     if (name.isNotEmpty) {
       return '$className.$name';
@@ -1375,9 +1388,14 @@ class ConstructorElementImpl extends ExecutableElementImpl
     }
   }
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
   AbstractClassElementImpl get enclosingElement =>
-      super.enclosingElement as AbstractClassElementImpl;
+      super.enclosingElement2 as AbstractClassElementImpl;
+
+  @override
+  AbstractClassElementImpl get enclosingElement2 =>
+      super.enclosingElement2 as AbstractClassElementImpl;
 
   @override
   bool get isConst {
@@ -1414,7 +1432,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   Element get nonSynthetic {
-    return isSynthetic ? enclosingElement : this;
+    return isSynthetic ? enclosingElement2 : this;
   }
 
   @override
@@ -1439,7 +1457,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   InterfaceType get returnTypeInternal {
-    return (_returnType ??= enclosingElement.thisType) as InterfaceType;
+    return (_returnType ??= enclosingElement2.thisType) as InterfaceType;
   }
 
   ConstructorElement? get superConstructor {
@@ -1568,7 +1586,7 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
       if (library == null) {
         throw StateError(
           '[library: null][this: ($runtimeType) $this]'
-          '[enclosingElement: $enclosingElement]'
+          '[enclosingElement2: $enclosingElement2]'
           '[reference: $reference]',
         );
       }
@@ -1936,7 +1954,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
     final element = this.element;
     if (element is ConstructorElement) {
       return element.library.isDartCore &&
-          element.enclosingElement.name == _DEPRECATED_CLASS_NAME;
+          element.enclosingElement2.name == _DEPRECATED_CLASS_NAME;
     } else if (element is PropertyAccessorElement) {
       return element.library.isDartCore &&
           element.name == _DEPRECATED_VARIABLE_NAME;
@@ -2063,7 +2081,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }) {
     final element = this.element;
     return element is ConstructorElement &&
-        element.enclosingElement.name == className &&
+        element.enclosingElement2.name == className &&
         element.library.name == libraryName;
   }
 
@@ -2177,6 +2195,7 @@ abstract class ElementImpl implements Element {
     _docComment = doc;
   }
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
   Element? get enclosingElement => _enclosingElement;
 
@@ -2184,6 +2203,9 @@ abstract class ElementImpl implements Element {
   set enclosingElement(Element? element) {
     _enclosingElement = element as ElementImpl?;
   }
+
+  @override
+  Element? get enclosingElement2 => _enclosingElement;
 
   /// Return the enclosing unit element (which might be the same as `this`), or
   /// `null` if this element is not contained in any compilation unit.
@@ -2521,12 +2543,12 @@ abstract class ElementImpl implements Element {
 
   @override
   AnalysisSession? get session {
-    return enclosingElement?.session;
+    return enclosingElement2?.session;
   }
 
   @override
   Source? get source {
-    return enclosingElement?.source;
+    return enclosingElement2?.source;
   }
 
   /// Return the context to resolve type parameters in, or `null` if neither
@@ -2634,7 +2656,7 @@ abstract class ElementImpl implements Element {
   ) {
     Element? element = this;
     while (element != null && !predicate(element)) {
-      element = element.enclosingElement;
+      element = element.enclosingElement2;
     }
     return element as E?;
   }
@@ -2646,7 +2668,7 @@ abstract class ElementImpl implements Element {
       if (element is CompilationUnitElement) {
         element = element.enclosingElement2;
       } else {
-        element = element.enclosingElement;
+        element = element.enclosingElement2;
       }
     }
     return element as E?;
@@ -2725,12 +2747,7 @@ class ElementLocationImpl implements ElementLocation {
     Element? ancestor = element;
     while (ancestor != null) {
       components.insert(0, (ancestor as ElementImpl).identifier);
-      if (ancestor is CompilationUnitElementImpl) {
-        // TODO(scheglov) switch everything to `enclosingElement2`.
-        ancestor = ancestor.enclosingElement2;
-      } else {
-        ancestor = ancestor.enclosingElement;
-      }
+      ancestor = ancestor.enclosingElement2;
     }
     _components = components;
   }
@@ -2974,8 +2991,12 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   /// [offset].
   ExecutableElementImpl(String super.name, super.offset, {super.reference});
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
-  Element get enclosingElement => super.enclosingElement!;
+  Element get enclosingElement => super.enclosingElement2!;
+
+  @override
+  Element get enclosingElement2 => super.enclosingElement2!;
 
   @override
   bool get hasImplicitReturnType {
@@ -3247,9 +3268,15 @@ class ExtensionElementImpl extends _ExistingElementImpl
   @override
   String get displayName => name ?? '';
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
   CompilationUnitElementImpl get enclosingElement {
     return _enclosingElement as CompilationUnitElementImpl;
+  }
+
+  @override
+  CompilationUnitElementImpl get enclosingElement2 {
+    return super.enclosingElement2 as CompilationUnitElementImpl;
   }
 
   @override
@@ -3444,7 +3471,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   ///
   /// Such fields are `index`, `_name`, and `values`.
   bool get isSyntheticEnumField {
-    return enclosingElement is EnumElementImpl &&
+    return enclosingElement2 is EnumElementImpl &&
         isSynthetic &&
         getter?.isSynthetic == true &&
         setter == null;
@@ -3512,7 +3539,7 @@ class FunctionElementImpl extends ExecutableElementImpl
   @override
   String get identifier {
     String identifier = super.identifier;
-    Element? enclosing = enclosingElement;
+    Element? enclosing = enclosingElement2;
     if (enclosing is ExecutableElement || enclosing is VariableElement) {
       identifier += "@$nameOffset";
     }
@@ -3780,9 +3807,14 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   @override
   String get displayName => name;
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
   ExecutableElement get enclosingElement =>
-      super.enclosingElement as ExecutableElement;
+      super.enclosingElement2 as ExecutableElement;
+
+  @override
+  ExecutableElement get enclosingElement2 =>
+      super.enclosingElement2 as ExecutableElement;
 
   /// Return `true` if this label is associated with a `switch` member (`case
   /// ` or`default`).
@@ -4738,8 +4770,8 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 
   @override
   Element get nonSynthetic {
-    if (isSynthetic && enclosingElement is EnumElementImpl) {
-      return enclosingElement;
+    if (isSynthetic && enclosingElement2 is EnumElementImpl) {
+      return enclosingElement2;
     }
     return this;
   }
@@ -4977,6 +5009,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   Element? get enclosingElement => null;
 
   @override
+  Element? get enclosingElement2 => null;
+
+  @override
   bool get hasAlwaysThrows => false;
 
   @override
@@ -5201,8 +5236,12 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
   /// [offset].
   NonParameterVariableElementImpl(String super.name, super.offset);
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
-  Element get enclosingElement => super.enclosingElement!;
+  Element get enclosingElement => super.enclosingElement2!;
+
+  @override
+  Element get enclosingElement2 => super.enclosingElement2!;
 
   bool get hasInitializer {
     return hasModifier(Modifier.HAS_INITIALIZER);
@@ -5472,7 +5511,7 @@ class PartElementImpl extends _ExistingElementImpl implements PartElement {
 
   @override
   CompilationUnitElementImpl get enclosingUnit {
-    var enclosingLibrary = enclosingElement as LibraryElementImpl;
+    var enclosingLibrary = enclosingElement2 as LibraryElementImpl;
     return enclosingLibrary._definingCompilationUnit;
   }
 
@@ -5506,11 +5545,11 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   @Deprecated('Use enclosingElement2 instead')
   @override
   LibraryElement get enclosingElement =>
-      super.enclosingElement as LibraryElement;
+      super.enclosingElement2 as LibraryElement;
 
   @override
   LibraryOrAugmentationElementImpl get enclosingElement2 =>
-      super.enclosingElement as LibraryOrAugmentationElementImpl;
+      super.enclosingElement2 as LibraryOrAugmentationElementImpl;
 
   @Deprecated('Use imports2 instead')
   @override
@@ -5671,8 +5710,12 @@ class PropertyAccessorElementImpl_ImplicitGetter
     reference?.element = this;
   }
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
-  Element get enclosingElement => variable.enclosingElement!;
+  Element get enclosingElement => variable.enclosingElement2!;
+
+  @override
+  Element get enclosingElement2 => variable.enclosingElement2!;
 
   @override
   bool get hasImplicitReturnType => variable.hasImplicitType;
@@ -5686,8 +5729,8 @@ class PropertyAccessorElementImpl_ImplicitGetter
     if (!variable.isSynthetic) {
       return variable;
     }
-    assert(enclosingElement is EnumElementImpl);
-    return enclosingElement;
+    assert(enclosingElement2 is EnumElementImpl);
+    return enclosingElement2;
   }
 
   @override
@@ -5732,8 +5775,12 @@ class PropertyAccessorElementImpl_ImplicitSetter
     property.setter = this;
   }
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
-  Element get enclosingElement => variable.enclosingElement!;
+  Element get enclosingElement => variable.enclosingElement2!;
+
+  @override
+  Element get enclosingElement2 => variable.enclosingElement2!;
 
   @override
   bool get isSetter => true;
@@ -5831,10 +5878,10 @@ abstract class PropertyInducingElementImpl
   @override
   Element get nonSynthetic {
     if (isSynthetic) {
-      if (enclosingElement is EnumElementImpl) {
+      if (enclosingElement2 is EnumElementImpl) {
         // TODO(scheglov) remove 'index'?
         if (name == 'index' || name == 'values') {
-          return enclosingElement;
+          return enclosingElement2;
         }
       }
       return (getter ?? setter)!;
@@ -5975,16 +6022,16 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
 
   @override
   ParameterElement? get superConstructorParameter {
-    final enclosingElement = this.enclosingElement;
-    if (enclosingElement is ConstructorElementImpl) {
-      var superConstructor = enclosingElement.superConstructor;
+    final enclosingElement2 = this.enclosingElement2;
+    if (enclosingElement2 is ConstructorElementImpl) {
+      var superConstructor = enclosingElement2.superConstructor;
       if (superConstructor != null) {
         var superParameters = superConstructor.parameters;
         if (isNamed) {
           return superParameters
               .firstWhereOrNull((e) => e.isNamed && e.name == name);
         } else {
-          var index = indexIn(enclosingElement);
+          var index = indexIn(enclosingElement2);
           var positionalSuperParameters =
               superParameters.where((e) => e.isPositional).toList();
           if (index >= 0 && index < positionalSuperParameters.length) {
@@ -6085,9 +6132,14 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   @override
   String get displayName => name;
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
   CompilationUnitElement get enclosingElement =>
-      super.enclosingElement as CompilationUnitElement;
+      super.enclosingElement2 as CompilationUnitElement;
+
+  @override
+  CompilationUnitElement get enclosingElement2 =>
+      super.enclosingElement2 as CompilationUnitElement;
 
   /// Returns whether this alias is a "proper rename" of [aliasedClass], as
   /// defined in the constructor-tearoffs specification.
@@ -6327,7 +6379,7 @@ class TypeParameterElementImpl extends ElementImpl
       return true;
     }
     if (other is TypeParameterElement) {
-      if (other.enclosingElement == null || enclosingElement == null) {
+      if (other.enclosingElement2 == null || enclosingElement2 == null) {
         return identical(other, this);
       }
       return other.location == location;
@@ -6557,7 +6609,7 @@ mixin WrapperElementImpl implements ElementImpl {
   String? get documentationComment => base.documentationComment;
 
   @override
-  Element? get enclosingElement => base.enclosingElement;
+  Element? get enclosingElement => base.enclosingElement2;
 
   @override
   bool get hasAlwaysThrows => base.hasAlwaysThrows;
@@ -6723,7 +6775,7 @@ mixin _HasLibraryMixin on ElementImpl {
   Source get librarySource => library.source;
 
   @override
-  Source get source => enclosingElement!.source!;
+  Source get source => enclosingElement2!.source!;
 }
 
 /// Instances of [List]s that are used as "not yet computed" values, they

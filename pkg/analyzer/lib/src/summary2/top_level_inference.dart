@@ -174,7 +174,7 @@ class _ConstructorInferenceNode extends _InferenceNode {
       }
     }
 
-    var classElement = _constructor.enclosingElement;
+    var classElement = _constructor.enclosingElement2;
     if (classElement.isMixinApplication) {
       var superType = classElement.supertype;
       if (superType != null) {
@@ -285,7 +285,7 @@ class _InferenceDependenciesCollector extends RecursiveAstVisitor<void> {
 
     _set.add(element);
 
-    if (element.enclosingElement.typeParameters.isNotEmpty) {
+    if (element.enclosingElement2.typeParameters.isNotEmpty) {
       node.argumentList.accept(this);
     }
   }
@@ -526,7 +526,7 @@ class _VariableInferenceNode extends _InferenceNode {
   }
 
   void _resolveInitializer({required bool forDependencies}) {
-    var enclosingElement = _element.enclosingElement;
+    var enclosingElement = _element.enclosingElement2;
     var enclosingClassElement =
         enclosingElement is ClassElement ? enclosingElement : null;
     var astResolver = AstResolver(_walker._linker, _unitElement, _scope,

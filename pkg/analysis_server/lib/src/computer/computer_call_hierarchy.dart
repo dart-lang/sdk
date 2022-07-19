@@ -104,7 +104,7 @@ class CallHierarchyItem {
         codeRange = _codeRangeForElement(element),
         file = element.source!.fullName,
         kind = CallHierarchyKind.forElement(element) {
-    final enclosingElement = element.enclosingElement;
+    final enclosingElement = element.enclosingElement2;
     final container =
         enclosingElement != null ? _getContainer(enclosingElement) : null;
     containerName = container != null ? _getDisplayName(container) : null;

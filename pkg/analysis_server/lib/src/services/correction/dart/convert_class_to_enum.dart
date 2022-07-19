@@ -80,7 +80,7 @@ class _BaseVisitor extends RecursiveAstVisitor<void> {
     var constructorElement = node.constructorName.staticElement;
     return constructorElement != null &&
         !constructorElement.isFactory &&
-        constructorElement.enclosingElement == classElement;
+        constructorElement.enclosingElement2 == classElement;
   }
 }
 
@@ -571,7 +571,7 @@ class _EnumDescription {
                       initializer.constructorName.staticElement;
                   if (constructorElement != null &&
                       !constructorElement.isFactory &&
-                      constructorElement.enclosingElement == classElement) {
+                      constructorElement.enclosingElement2 == classElement) {
                     var fieldValue = fieldElement.computeConstantValue();
                     if (fieldValue != null) {
                       if (fieldList.variables.length != 1) {

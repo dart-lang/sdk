@@ -123,16 +123,16 @@ class CovariantParametersVerifier {
           var superMember = superParameter.member;
           // Elements enclosing members that can participate in overrides are
           // always named, so we can safely assume
-          // `_thisMember.enclosingElement.name` and
-          // `superMember.enclosingElement.name` are non-`null`.
+          // `_thisMember.enclosingElement2.name` and
+          // `superMember.enclosingElement2.name` are non-`null`.
           errorReporter.reportErrorForNode(
             CompileTimeErrorCode.INVALID_OVERRIDE,
             errorNode,
             [
               _thisMember.name,
-              _thisMember.enclosingElement.name!,
+              _thisMember.enclosingElement2.name!,
               _thisMember.type,
-              superMember.enclosingElement.name!,
+              superMember.enclosingElement2.name!,
               superMember.type,
             ],
           );
@@ -143,7 +143,7 @@ class CovariantParametersVerifier {
 
   List<_SuperMember> _superMembers() {
     var classHierarchy = _session.classHierarchy;
-    var classElement = _thisMember.enclosingElement as ClassElement;
+    var classElement = _thisMember.enclosingElement2 as ClassElement;
     var interfaces = classHierarchy.implementedInterfaces(classElement);
 
     var superMembers = <_SuperMember>[];
@@ -271,5 +271,6 @@ class _SuperParameter {
 
   _SuperParameter(this.element, this.type);
 
-  ExecutableElement get member => element.enclosingElement as ExecutableElement;
+  ExecutableElement get member =>
+      element.enclosingElement2 as ExecutableElement;
 }

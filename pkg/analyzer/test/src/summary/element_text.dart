@@ -194,8 +194,8 @@ class _ElementWriter {
 
     expect(accessor.variable, same(property));
 
-    var propertyEnclosing = property.enclosingElement;
-    expect(accessor.enclosingElement, same(propertyEnclosing));
+    var propertyEnclosing = property.enclosingElement2;
+    expect(accessor.enclosingElement2, same(propertyEnclosing));
 
     if (propertyEnclosing is CompilationUnitElement) {
       expect(propertyEnclosing.accessors, contains(accessor));
@@ -373,7 +373,7 @@ class _ElementWriter {
       var classReference = reference.parent!.parent!;
       // We need this `if` for duplicate declarations.
       // The reference might be filled by another declaration.
-      if (identical(classReference.element, e.enclosingElement)) {
+      if (identical(classReference.element, e.enclosingElement2)) {
         expect(reference.element, same(e));
       }
     }
@@ -410,7 +410,7 @@ class _ElementWriter {
 
       var superConstructor = e.superConstructor;
       if (superConstructor != null) {
-        if (!superConstructor.enclosingElement.isDartCoreObject) {
+        if (!superConstructor.enclosingElement2.isDartCoreObject) {
           _writeElementReference('superConstructor', superConstructor);
         }
       }
@@ -428,7 +428,7 @@ class _ElementWriter {
 
     if (e.isSynthetic) {
       expect(e.nameOffset, -1);
-      expect(e.nonSynthetic, same(e.enclosingElement));
+      expect(e.nonSynthetic, same(e.enclosingElement2));
     } else {
       if (!e.isTempAugmentation) {
         expect(e.nameOffset, isPositive);
@@ -674,9 +674,9 @@ class _ElementWriter {
       _writeNonSyntheticElement(e);
     });
 
-    if (e.isSynthetic && e.enclosingElement is EnumElementImpl) {
+    if (e.isSynthetic && e.enclosingElement2 is EnumElementImpl) {
       expect(e.name, 'toString');
-      expect(e.nonSynthetic, same(e.enclosingElement));
+      expect(e.nonSynthetic, same(e.enclosingElement2));
     } else {
       _assertNonSyntheticElementSelf(e);
     }
@@ -781,7 +781,7 @@ class _ElementWriter {
     PropertyInducingElement variable = e.variable;
     expect(variable, isNotNull);
 
-    var variableEnclosing = variable.enclosingElement;
+    var variableEnclosing = variable.enclosingElement2;
     if (variableEnclosing is CompilationUnitElement) {
       expect(variableEnclosing.topLevelVariables, contains(variable));
     } else if (variableEnclosing is ClassElement) {

@@ -30,12 +30,12 @@ extension ElementExtension on Element {
     if (hasDeprecated) {
       return true;
     }
-    var ancestor = enclosingElement;
+    var ancestor = enclosingElement2;
     if (ancestor is ClassElement) {
       if (ancestor.hasDeprecated) {
         return true;
       }
-      ancestor = ancestor.enclosingElement;
+      ancestor = ancestor.enclosingElement2;
     }
     return ancestor is CompilationUnitElement &&
         ancestor.enclosingElement2.hasDeprecated;
@@ -46,7 +46,7 @@ extension ElementExtension on Element {
     var current = this;
     while (true) {
       yield current;
-      var enclosing = current.enclosingElement;
+      var enclosing = current.enclosingElement2;
       if (enclosing == null) {
         break;
       }
@@ -69,7 +69,7 @@ extension MethodElementExtensions on MethodElement {
     if (name != 'cast') {
       return false;
     }
-    var definingClass = enclosingElement;
+    var definingClass = enclosingElement2;
     if (definingClass is! ClassElement) {
       return false;
     }
@@ -85,7 +85,7 @@ extension MethodElementExtensions on MethodElement {
     if (name != 'toList') {
       return false;
     }
-    var definingClass = enclosingElement;
+    var definingClass = enclosingElement2;
     if (definingClass is! ClassElement) {
       return false;
     }

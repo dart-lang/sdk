@@ -1,6 +1,9 @@
 ## 4.3.0-dev
 * Deprecated `Directive.keyword`, use corresponding `xyzToken` in specific directives.
 * Deprecated `LibraryElement.parts`, use `parts2` instead.
+* Deprecated `LibraryElement.exports`, use `libraryexports` instead.
+* Deprecated `LibraryElement.imports`, use `libraryImports` instead.
+* Deprecated `Element.enclosingElement`, use `enclosingElement2` instead.
 
 ## 4.2.0
 * Update SDK constraints to `>=2.17.0 <3.0.0`.
