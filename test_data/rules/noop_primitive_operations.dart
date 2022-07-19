@@ -4,6 +4,28 @@
 
 // test w/ `dart test -N noop_primitive_operations`
 
+onStringInterpolations() {
+  var s = '${1.toString()}'; // LINT
+}
+
+onPrint() {
+  print(''); // OK
+  print(1.toString()); // LINT
+  print(null.toString()); // LINT
+
+  print(toString()); // OK
+}
+
+String toString() => '';
+
+class Ok {
+  f() {
+    // Can't use 'super' as an expression
+    var s = '${super.toString()}'; // OK
+    print(super.toString()); // OK
+  }
+}
+
 onString() {
   String? nullable;
   String v = 'hello';
