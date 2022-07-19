@@ -4022,14 +4022,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     _exportNamespace = exportNamespace;
   }
 
-  @Deprecated('Use exports2 instead')
-  @override
-  List<ExportElement> get exports {
-    return libraryExports
-        .map((e) => ExportElementImpl(e as LibraryExportElementImpl))
-        .toList();
-  }
-
   bool get hasPartOfDirective {
     return hasModifier(Modifier.HAS_PART_OF_DIRECTIVE);
   }
@@ -4047,14 +4039,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
         .map((import) => import.importedLibrary)
         .whereNotNull()
         .toSet()
-        .toList();
-  }
-
-  @Deprecated('Use imports2 instead')
-  @override
-  List<ImportElement> get imports {
-    return libraryImports
-        .map((e) => ImportElementImpl(e as LibraryImportElementImpl))
         .toList();
   }
 
@@ -4573,7 +4557,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
     return _definingCompilationUnit;
   }
 
-  @Deprecated('Use exports2 instead')
+  @Deprecated('Use libraryExports instead')
   @override
   List<ExportElement> get exports {
     return libraryExports
@@ -4588,7 +4572,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   @override
   String get identifier => '${_definingCompilationUnit.source.uri}';
 
-  @Deprecated('Use imports2 instead')
+  @Deprecated('Use libraryImports instead')
   @override
   List<ImportElement> get imports {
     return libraryImports
