@@ -33,13 +33,9 @@ void main() {
       expect(
           collectingOut.trim(),
           stringContainsInOrder([
-            "Place 'dart:' imports before other imports.",
             "import 'dart:html';  // LINT",
-            "Place 'dart:' imports before other imports.",
             "import 'dart:isolate';  // LINT",
-            "Place 'dart:' exports before other exports.",
             "export 'dart:html';  // LINT",
-            "Place 'dart:' exports before other exports.",
             "export 'dart:isolate';  // LINT",
             '2 files analyzed, 4 issues found, in'
           ]));
@@ -54,13 +50,9 @@ void main() {
       expect(
           collectingOut.trim(),
           stringContainsInOrder([
-            "Place 'package:' imports before relative imports.",
             "import 'package:async/src/async_cache.dart'; // LINT",
-            "Place 'package:' imports before relative imports.",
             "import 'package:yaml/yaml.dart'; // LINT",
-            "Place 'package:' exports before relative exports.",
             "export 'package:async/src/async_cache.dart'; // LINT",
-            "Place 'package:' exports before relative exports.",
             "export 'package:yaml/yaml.dart'; // LINT",
             '3 files analyzed, 4 issues found, in'
           ]));
@@ -75,9 +67,7 @@ void main() {
       expect(
           collectingOut.trim(),
           stringContainsInOrder([
-            'Specify exports in a separate section after all imports.',
             "export 'dummy.dart';  // LINT",
-            'Specify exports in a separate section after all imports.',
             "export 'dummy2.dart';  // LINT",
             '5 files analyzed, 2 issues found, in'
           ]));
@@ -92,29 +82,17 @@ void main() {
       expect(
           collectingOut.trim(),
           stringContainsInOrder([
-            'Sort directive sections alphabetically.',
             "import 'dart:convert'; // LINT",
-            'Sort directive sections alphabetically.',
             "import 'package:collection/collection.dart'; // LINT",
-            'Sort directive sections alphabetically.',
             "import 'package:async/async.dart'; // LINT",
-            'Sort directive sections alphabetically.',
             "import 'package:linter/src/formatter.dart'; // LINT",
-            'Sort directive sections alphabetically.',
             "import 'dummy3.dart'; // LINT",
-            'Sort directive sections alphabetically.',
             "import 'dummy2.dart'; // LINT",
-            'Sort directive sections alphabetically.',
             "import 'dummy1.dart'; // LINT",
-            'Sort directive sections alphabetically.',
             "export 'dart:convert'; // LINT",
-            'Sort directive sections alphabetically.',
             "export 'package:collection/collection.dart'; // LINT",
-            'Sort directive sections alphabetically.',
             "export 'package:async/async.dart'; // LINT",
-            'Sort directive sections alphabetically.',
             "export 'package:linter/src/formatter.dart'; // LINT",
-            'Sort directive sections alphabetically.',
             "export 'dummy1.dart'; // LINT",
             '5 files analyzed, 12 issues found, in'
           ]));

@@ -12,7 +12,7 @@ import '../mocks.dart';
 import '../test_constants.dart';
 
 void main() {
-  group('Depend on referenced packages', () {
+  group('depend_on_referenced_packages', () {
     var currentOut = outSink;
     var collectingOut = CollectingSink();
     setUp(() {
@@ -34,13 +34,9 @@ void main() {
       expect(
           output,
           stringContainsInOrder([
-            "isn't a dependency of the importing package.",
             "import 'package:private_dep/private_dep.dart'; // LINT",
-            "isn't a dependency of the importing package.",
             "import 'package:transitive_dep/transitive_dep.dart'; // LINT",
-            "isn't a dependency of the importing package.",
             "export 'package:private_dep/private_dep.dart'; // LINT",
-            "isn't a dependency of the importing package.",
             "export 'package:transitive_dep/transitive_dep.dart'; // LINT",
           ]));
       expect(output, isNot(contains('// OK')));
@@ -56,13 +52,9 @@ void main() {
       expect(
           output,
           stringContainsInOrder([
-            "isn't a dependency of the importing package.",
             "import 'package:private_dep/private_dep.dart'; // LINT",
-            "isn't a dependency of the importing package.",
             "import 'package:transitive_dep/transitive_dep.dart'; // LINT",
-            "isn't a dependency of the importing package.",
             "export 'package:private_dep/private_dep.dart'; // LINT",
-            "isn't a dependency of the importing package.",
             "export 'package:transitive_dep/transitive_dep.dart'; // LINT",
           ]));
       expect(output, isNot(contains('// OK')));
@@ -78,9 +70,7 @@ void main() {
       expect(
           output,
           stringContainsInOrder([
-            "isn't a dependency of the importing package.",
             "import 'package:transitive_dep/transitive_dep.dart'; // LINT",
-            "isn't a dependency of the importing package.",
             "export 'package:transitive_dep/transitive_dep.dart'; // LINT",
           ]));
       expect(output, isNot(contains('// OK')));
