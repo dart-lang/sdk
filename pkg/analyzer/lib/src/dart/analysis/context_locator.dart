@@ -378,10 +378,12 @@ class ContextLocatorImpl implements ContextLocator {
     Workspace? workspace;
     workspace = BazelWorkspace.find(resourceProvider, rootPath,
         lookForBuildFileSubstitutes: false);
-    workspace ??= GnWorkspace.find(resourceProvider, rootPath);
-    workspace ??=
-        PackageBuildWorkspace.find(resourceProvider, packages, rootPath);
-    workspace ??= PubWorkspace.find(resourceProvider, packages, rootPath);
+    workspace = _mostSpecificWorkspace(
+        workspace, GnWorkspace.find(resourceProvider, rootPath));
+    workspace = _mostSpecificWorkspace(workspace,
+        PackageBuildWorkspace.find(resourceProvider, packages, rootPath));
+    workspace = _mostSpecificWorkspace(
+        workspace, PubWorkspace.find(resourceProvider, packages, rootPath));
     workspace ??= BasicWorkspace.find(resourceProvider, packages, rootPath);
     return workspace;
   }
@@ -554,6 +556,20 @@ class ContextLocatorImpl implements ContextLocator {
     }
 
     return true;
+  }
+
+  /// Pick a workspace with the most specific root. If the root of [first] is
+  /// non-null and is within the root of [second], return [second]. If any of
+  /// [first] and [second] is null, return the other one. If the roots aren't
+  /// within each other, return [first].
+  static Workspace? _mostSpecificWorkspace(
+      Workspace? first, Workspace? second) {
+    if (first == null) return second;
+    if (second == null) return first;
+    if (isWithin(first.root, second.root)) {
+      return second;
+    }
+    return first;
   }
 }
 
