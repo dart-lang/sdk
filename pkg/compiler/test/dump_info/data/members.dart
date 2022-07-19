@@ -98,7 +98,8 @@
     "function/memory:sdk/tests/web/native/main.dart::C.C._default",
     "function/memory:sdk/tests/web/native/main.dart::C.C.create",
     "function/memory:sdk/tests/web/native/main.dart::C.compute"
-  ]
+  ],
+  "supers": []
 }]*/
 class C {
   /*member: C.value:
@@ -291,7 +292,8 @@ void F() {}
   "children": [
     "field/memory:sdk/tests/web/native/main.dart::A.a",
     "function/memory:sdk/tests/web/native/main.dart::A.A"
-  ]
+  ],
+  "supers": []
 }],
  classType=[{
   "id": "classType/memory:sdk/tests/web/native/main.dart::A",

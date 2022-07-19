@@ -14,6 +14,7 @@ import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as dump_info;
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/core_types.dart' as ir;
 
 import '../compiler_api.dart' as api;
 import 'common.dart';
@@ -184,11 +185,47 @@ class ElementInfoCollector {
     return classTypeInfo;
   }
 
+  /// Returns all immediately extended, implemented, or mixed-in types of
+  /// [clazz].
+  List<ClassEntity> getImmediateSupers(ClassEntity clazz) {
+    final superclass =
+        environment.getSuperClass(clazz, skipUnnamedMixinApplications: true);
+    // Ignore 'Object' to reduce overhead.
+    return [
+      if (superclass != null &&
+          superclass != closedWorld.commonElements.objectClass)
+        superclass,
+      ...closedWorld.dartTypes
+          .getInterfaces(clazz)
+          .map((i) => i.element)
+          .where((cls) => cls != null),
+    ];
+  }
+
   ClassInfo visitClass(ClassEntity clazz) {
-    // Omit class if it is not needed.
-    ClassInfo classInfo = ClassInfo(
+    // True if [info] can be safely removed from the output.
+    bool filterClassInfo(ClassInfo info) =>
+        !compiler.backendStrategy.emitterTask.neededClasses.contains(clazz) &&
+        info.fields.isEmpty &&
+        info.functions.isEmpty;
+
+    ClassInfo classInfo = state.entityToInfo[clazz];
+    if (classInfo != null) {
+      return filterClassInfo(classInfo) ? null : classInfo;
+    }
+    final supers = <ClassInfo>[];
+    getImmediateSupers(clazz).forEach((superInterface) {
+      final superclass =
+          environment.lookupClass(superInterface.library, superInterface.name);
+      if (superclass == null) return;
+      final classInfo = visitClass(superclass);
+      if (classInfo == null) return;
+      supers.add(classInfo);
+    });
+    classInfo = ClassInfo(
         name: clazz.name,
         isAbstract: clazz.isAbstract,
+        supers: supers,
         outputUnit: _unitInfoForClass(clazz));
     state.entityToInfo[clazz] = classInfo;
 
@@ -229,9 +266,7 @@ class ElementInfoCollector {
 
     classInfo.size = size;
 
-    if (!compiler.backendStrategy.emitterTask.neededClasses.contains(clazz) &&
-        classInfo.fields.isEmpty &&
-        classInfo.functions.isEmpty) {
+    if (filterClassInfo(classInfo)) {
       return null;
     }
 
@@ -417,11 +452,13 @@ class KernelInfoCollector {
   final JClosedWorld closedWorld;
   final DumpInfoTask dumpInfoTask;
   final state = DumpInfoStateData();
+  final ir.CoreTypes coreTypes;
 
   JElementEnvironment get environment => closedWorld.elementEnvironment;
 
   KernelInfoCollector(
-      this.component, this.compiler, this.dumpInfoTask, this.closedWorld);
+      this.component, this.compiler, this.dumpInfoTask, this.closedWorld)
+      : this.coreTypes = ir.CoreTypes(component);
 
   void run() {
     // TODO(markzipan): Add CFE constants to `state.info.constants`.
@@ -506,9 +543,29 @@ class KernelInfoCollector {
   }
 
   ClassInfo visitClass(ir.Class clazz, {ClassEntity classEntity}) {
-    // Omit class if it is not needed.
-    ClassInfo classInfo = ClassInfo(
-        name: clazz.name, isAbstract: clazz.isAbstract, outputUnit: null);
+    if (state.entityToInfo[classEntity] != null)
+      return state.entityToInfo[classEntity];
+
+    final supers = <ClassInfo>[];
+    clazz.supers.forEach((supertype) {
+      final superclass = supertype.classNode;
+      // Ignore 'Object' to reduce overhead.
+      if (superclass == coreTypes.objectClass) {
+        return;
+      }
+      final superclassLibrary =
+          environment.lookupLibrary(superclass.enclosingLibrary.importUri);
+      final superclassEntity =
+          environment.lookupClass(superclassLibrary, superclass.name);
+      if (superclassEntity == null) return;
+      ClassInfo classInfo =
+          visitClass(superclass, classEntity: superclassEntity);
+      if (classInfo != null) supers.add(classInfo);
+    });
+
+    ClassInfo classInfo = ClassInfo.fromKernel(
+        name: clazz.name, isAbstract: clazz.isAbstract, supers: supers);
+    state.entityToInfo[classEntity] = classInfo;
 
     clazz.members.forEach((ir.Member member) {
       final isSetter = member is ir.Procedure && member.isSetter;
@@ -860,6 +917,17 @@ class DumpInfoAnnotator {
         'Expected singleton, found $kClassInfos');
     final kClassInfo = kClassInfos.first;
     kernelInfo.state.entityToInfo[clazz] = kClassInfo;
+
+    /// Add synthetically injected superclasses like `Interceptor` and
+    /// `LegacyJavaScriptObject`.
+    final syntheticSuperclass = closedWorld.commonElements
+        .getDefaultSuperclass(clazz, closedWorld.nativeData);
+    if (syntheticSuperclass != closedWorld.commonElements.objectClass) {
+      final classInfo = kernelInfo.state.entityToInfo[syntheticSuperclass];
+      if (classInfo != null) {
+        kClassInfo.supers.add(classInfo);
+      }
+    }
 
     int size = dumpInfoTask.sizeOf(clazz);
     final disambiguatedMemberName = '$parentName/${clazz.name}';
@@ -1647,9 +1715,11 @@ class TreeShakingInfoVisitor extends InfoVisitor<void> {
   visitClass(ClassInfo info) {
     info.functions = filterDeadInfo<FunctionInfo>(info.functions);
     info.fields = filterDeadInfo<FieldInfo>(info.fields);
+    info.supers = filterDeadInfo<ClassInfo>(info.supers);
 
     info.functions.forEach(visitFunction);
     info.fields.forEach(visitField);
+    info.supers.forEach(visitClass);
   }
 
   @override
@@ -1684,6 +1754,7 @@ class TreeShakingInfoVisitor extends InfoVisitor<void> {
 
 /// Returns a fully resolved name for [info] for disambiguation.
 String fullyResolvedNameForInfo(BasicInfo info) {
+  if (info == null) return '';
   var name = info.name;
   var currentInfo = info;
   while (currentInfo.parent != null) {

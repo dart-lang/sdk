@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -379,9 +377,9 @@ void main() {
 }
 
 Future<WorkResponse> _readResponse(MessageGrouper messageGrouper) async {
-  var buffer = await messageGrouper.next as List<int>;
+  var buffer = await messageGrouper.next as List<int>?;
   try {
-    return WorkResponse.fromBuffer(buffer);
+    return WorkResponse.fromBuffer(buffer!);
   } catch (_) {
     var bufferAsString =
         buffer == null ? '' : 'String: ${utf8.decode(buffer)}\n';

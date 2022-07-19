@@ -26,6 +26,11 @@ Updated the Linter to `1.26.0`, which includes changes that
   non-final variable.
 - fix`use_build_context_synchronously` to handle `await`s in `if` conditions.
 
+#### `dart:io`
+
+- **Breaking Change** [#49305](https://github.com/dart-lang/sdk/issues/49305):
+  Disallow negative or hexadecimal content-length headers.
+
 ## 2.18.0
 
 ### Language

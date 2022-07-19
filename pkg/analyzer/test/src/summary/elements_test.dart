@@ -78,6 +78,173 @@ library
 ''');
   }
 
+  test_augmentation_class_constructor_superConstructor_generic_named() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class B extends A<int> {
+  B() : super.named(0);
+}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+class A<T> {
+  A.named(T a);
+}
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class B @35
+            supertype: A<int>
+            constructors
+              @56
+                superConstructor: ConstructorMember
+                  base: self::@class::A::@constructor::named
+                  substitution: {T: int}
+  definingUnit
+    classes
+      class A @31
+        typeParameters
+          covariant T @33
+            defaultType: dynamic
+        constructors
+          named @42
+            periodOffset: 41
+            nameEnd: 47
+            parameters
+              requiredPositional a @50
+                type: T
+''');
+  }
+
+  test_augmentation_class_constructor_superConstructor_notGeneric_named() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class B extends A {
+  B() : super.named();
+}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+class A {
+  A.named();
+}
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class B @35
+            supertype: A
+            constructors
+              @51
+                superConstructor: self::@class::A::@constructor::named
+  definingUnit
+    classes
+      class A @31
+        constructors
+          named @39
+            periodOffset: 38
+            nameEnd: 44
+''');
+  }
+
+  test_augmentation_class_constructor_superConstructor_notGeneric_unnamed_explicit() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class B extends A {
+  B() : super();
+}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+class A {}
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class B @35
+            supertype: A
+            constructors
+              @51
+                superConstructor: self::@class::A::@constructor::•
+  definingUnit
+    classes
+      class A @31
+        constructors
+          synthetic @-1
+''');
+  }
+
+  test_augmentation_class_notSimplyBounded_circularity_via_typedef() async {
+    // C's type parameter T is not simply bounded because its bound, F, expands
+    // to `dynamic F(C)`, which refers to C.
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class C<T extends F> {}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+typedef F(C value);
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          notSimplyBounded class C @35
+            typeParameters
+              covariant T @37
+                bound: dynamic
+                defaultType: dynamic
+            constructors
+              synthetic @-1
+  definingUnit
+    typeAliases
+      functionTypeAliasBased notSimplyBounded F @33
+        aliasedType: dynamic Function(C<dynamic>)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional value @37
+              type: C<dynamic>
+          returnType: dynamic
+''');
+  }
+
+  test_augmentation_class_notSimplyBounded_self() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class C<T extends C> {}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          notSimplyBounded class C @35
+            typeParameters
+              covariant T @37
+                bound: C<dynamic>
+                defaultType: dynamic
+            constructors
+              synthetic @-1
+  definingUnit
+''');
+  }
+
   test_augmentation_documented() async {
     newFile('$testPackageLibPath/a.dart', r'''
 /// My documentation.
@@ -92,6 +259,138 @@ library
     package:test/a.dart
       documentationComment: /// My documentation.
       definingUnit
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_constant() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+const b = a;
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static const b @52
+            type: int
+            constantInitializer
+              SimpleIdentifier
+                token: a @56
+                staticElement: package:test/a.dart::@getter::a
+                staticType: int
+        accessors
+          synthetic static get b @-1
+            returnType: int
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_constant_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const a = 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+const b = A.a;
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static const b @52
+            type: int
+            constantInitializer
+              PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: A @56
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                period: . @57
+                identifier: SimpleIdentifier
+                  token: a @58
+                  staticElement: package:test/a.dart::@class::A::@getter::a
+                  staticType: int
+                staticElement: package:test/a.dart::@class::A::@getter::a
+                staticType: int
+        accessors
+          synthetic static get b @-1
+            returnType: int
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_constant_instanceCreation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A {};
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+const a = A();
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static const a @52
+            type: A
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: A @56
+                      staticElement: package:test/a.dart::@class::A
+                      staticType: null
+                    type: A
+                  staticElement: package:test/a.dart::@class::A::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @57
+                  rightParenthesis: ) @58
+                staticType: A
+        accessors
+          synthetic static get a @-1
+            returnType: A
   definingUnit
 ''');
   }

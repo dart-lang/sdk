@@ -960,6 +960,7 @@ class FixProcessor extends BaseProcessor {
       CreateClass.new,
     ],
     CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD: [
+      ChangeTo.field,
       CreateField.new,
     ],
     CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER: [
@@ -1070,7 +1071,7 @@ class FixProcessor extends BaseProcessor {
       ReplaceReturnType.new,
     ],
     CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED: [
-      ChangeTo.formalParameter,
+      ChangeTo.superFormalParameter,
     ],
     CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY: [
       AddSwitchCaseBreak.new,

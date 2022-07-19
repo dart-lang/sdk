@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:dev_compiler/src/kernel/expression_compiler.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
@@ -109,11 +107,11 @@ class ScopeOffsetValidator extends Visitor<void> with VisitorVoidMixin {
         const TypeMatcher<FunctionNode>()
             .having(
                 (c) => c.fileOffset,
-                '${fun.parent.toText(astTextStrategyForTesting)} : fileOffset',
+                '${fun.parent!.toText(astTextStrategyForTesting)} : fileOffset',
                 isNot(equals(-1)))
             .having(
                 (c) => c.fileEndOffset,
-                '${fun.parent.toText(astTextStrategyForTesting)} : fileEndOffset',
+                '${fun.parent!.toText(astTextStrategyForTesting)} : fileEndOffset',
                 isNot(equals(-1))));
 
     super.visitFunctionNode(fun);
