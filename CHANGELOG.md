@@ -6,7 +6,18 @@
 
 ### `dart:developer`
 
-- Deprecates `UserTag.MAX_USER_TAGS` in favor of `UserTag.maxUserTags`.
+#### `dart:developer`
+
+- **Breaking change** [#34233][]: The previously deprecated APIs
+  `kInvalidParams`, `kExtensionError`, `kExtensionErrorMax`, and
+  `kExtensionErrorMin` in [`ServiceExtensionResponse`][] have been removed. They
+  have been replaced by `invalidParams`, `extensionError`, `extensionErrorMax`,
+  and `extensionErrorMin`.
+
+[#34233]: https://github.com/dart-lang/sdk/issues/34233
+[`ServiceExtensionResponse`]: https://api.dart.dev/stable/dart-developer/ServiceExtensionResponse-class.html#constants
+
+- Deprecated `UserTag.MAX_USER_TAGS` in favor of `UserTag.maxUserTags`.
 
 ### Tools
 
@@ -41,12 +52,11 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 [language version]: https://dart.dev/guides/language/evolution
 
--  **[Enhanced type inference for generic invocations with function
-   literals][]**: Invocations of generic methods/constructors that supply
-   function literal arguments now have improved type inference.  This primarily
-   affects the `Iterable.fold` method.  For example, in previous versions of
-   Dart, the compiler would fail to infer an appropriate type for the parameter
-   `a`:
+-  **[Enhanced type inference for generic invocations with function literals][]**: 
+   Invocations of generic methods/constructors that supply function literal
+   arguments now have improved type inference. This primarily affects the
+   `Iterable.fold` method. For example, in previous versions of Dart, the
+   compiler would fail to infer an appropriate type for the parameter `a`:
 
    ```dart
    void main() {
@@ -79,6 +89,7 @@ them, you must set the lower bound on the SDK constraint for your package to
          (a, b) => a == null || a < b ? b : a);
    }
    ```
+[Enhanced type inference for generic invocations with function literals]: https://github.com/dart-lang/language/issues/731
 
 - **Breaking Change** [#48167](https://github.com/dart-lang/sdk/issues/48167):
   Mixin of classes that don't extend `Object` is no longer supported:
@@ -200,6 +211,30 @@ the new implementation carries a few subtle changes in behavior:
 
 ### Tools
 
+#### General
+
+- **Breaking Change** [#48272](https://github.com/dart-lang/sdk/issues/48272):
+  The `.packages` file has been fully discontinued. Historically when the
+  commands `dart pub get` or `flutter pub get` are executed, pub resolved all
+  dependencies, and installs those dependencies to the local pub cache. It
+  furthermore created a mapping from each used package to their location on the
+  local file system, and wrote that into two files:
+
+    * `.dart_tool/package_config.json`
+    * `.packages` (deprecated in Dart 2.8.0)
+
+  As of Dart 2.18.0, the `.packages` is now fully desupported, and all tools
+  distributed in, and based on, the Dart SDK no longer support it, and thus
+  solely use the `.dart_tool/package_config.json` file. If you've run `dart pub
+  get` or `flutter pub get` with any Dart SDK from the past few years you
+  already have a `.dart_tool/package_config.json` and thus should not be
+  impacted. You can delete any old `.packages` files.
+
+  If you have any third-party tools that for historical reasons depend on a
+  `.packages` we will support the ability to generate a `.packages` by passing
+  the flag `--legacy-packages-file` to `dart pub get`. This support will be
+  removed in a following stable release.
+
 #### Dart command line
 
 - **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
@@ -244,9 +279,8 @@ Updated the Linter to `1.25.0`, which includes changes that
 
 #### Pub
 
-* Breaking: `dart pub get` and `dart pub upgrade` no longer creates the
-  [deprecated](https://github.com/dart-lang/sdk/issues/47431) `.packages` file.
-  It can still be created with the `--legacy-packages-file` flag.
+* `dart pub get` and `dart pub upgrade` no longer create the
+  `.packages` file. For details, see breaking change #48272 above.
 * `dart pub outdated` now shows which of your dependencies are discontinued.
 * `dart pub publish` will now list all the files it is about to publish.
 
