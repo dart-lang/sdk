@@ -30,8 +30,8 @@ class ChangeTo extends CorrectionProducer {
   /// Initialize a newly created instance that will propose classes and mixins.
   ChangeTo.classOrMixin() : _kind = _ReplacementKind.classOrMixin;
 
-  /// Initialize a newly created instance that will propose formal parameters.
-  ChangeTo.formalParameter() : _kind = _ReplacementKind.formalParameter;
+  /// Initialize a newly created instance that will propose fields.
+  ChangeTo.field() : _kind = _ReplacementKind.field;
 
   /// Initialize a newly created instance that will propose functions.
   ChangeTo.function() : _kind = _ReplacementKind.function;
@@ -41,6 +41,11 @@ class ChangeTo extends CorrectionProducer {
 
   /// Initialize a newly created instance that will propose methods.
   ChangeTo.method() : _kind = _ReplacementKind.method;
+
+  /// Initialize a newly created instance that will propose super formal
+  /// parameters.
+  ChangeTo.superFormalParameter()
+      : _kind = _ReplacementKind.superFormalParameter;
 
   @override
   List<Object> get fixArguments => [_proposedName];
@@ -58,14 +63,16 @@ class ChangeTo extends CorrectionProducer {
       await _proposeAnnotation(builder);
     } else if (_kind == _ReplacementKind.classOrMixin) {
       await _proposeClassOrMixin(builder, node);
-    } else if (_kind == _ReplacementKind.formalParameter) {
-      await _proposeFormalParameter(builder);
+    } else if (_kind == _ReplacementKind.field) {
+      await _proposeField(builder);
     } else if (_kind == _ReplacementKind.function) {
       await _proposeFunction(builder);
     } else if (_kind == _ReplacementKind.getterOrSetter) {
       await _proposeGetterOrSetter(builder);
     } else if (_kind == _ReplacementKind.method) {
       await _proposeMethod(builder);
+    } else if (_kind == _ReplacementKind.superFormalParameter) {
+      await _proposeSuperFormalParameter(builder);
     }
   }
 
@@ -123,76 +130,69 @@ class ChangeTo extends CorrectionProducer {
     }
   }
 
-  Future<void> _proposeClassOrMixinMember(ChangeBuilder builder,
-      Expression? target, _ElementPredicate predicate) async {
-    final node = this.node;
+  Future<void> _proposeClassOrMixinMember(
+      ChangeBuilder builder,
+      SimpleIdentifier node,
+      Expression? target,
+      _ElementPredicate predicate) async {
     var targetIdentifierElement =
         target is Identifier ? target.staticElement : null;
-    if (node is SimpleIdentifier) {
-      var finder = _ClosestElementFinder(node.name, predicate);
-      // unqualified invocation
-      if (target == null) {
-        var clazz = node.thisOrAncestorOfType<ClassDeclaration>();
-        if (clazz != null) {
-          var classElement = clazz.declaredElement!;
-          _updateFinderWithClassMembers(finder, classElement);
-        }
-      } else if (target is ExtensionOverride) {
-        _updateFinderWithExtensionMembers(finder, target.staticElement);
-      } else if (targetIdentifierElement is ExtensionElement) {
-        _updateFinderWithExtensionMembers(finder, targetIdentifierElement);
-      } else {
-        var classElement = getTargetClassElement(target);
-        if (classElement != null) {
-          _updateFinderWithClassMembers(finder, classElement);
-        }
+    var finder = _ClosestElementFinder(node.name, predicate);
+    // unqualified invocation
+    if (target == null) {
+      var clazz = node.thisOrAncestorOfType<ClassDeclaration>();
+      if (clazz != null) {
+        var classElement = clazz.declaredElement!;
+        _updateFinderWithClassMembers(finder, classElement);
       }
-      // if we have close enough element, suggest to use it
-      await _suggest(builder, node, finder._element?.displayName);
+    } else if (target is ExtensionOverride) {
+      _updateFinderWithExtensionMembers(finder, target.staticElement);
+    } else if (targetIdentifierElement is ExtensionElement) {
+      _updateFinderWithExtensionMembers(finder, targetIdentifierElement);
+    } else {
+      var classElement = getTargetClassElement(target);
+      if (classElement != null) {
+        _updateFinderWithClassMembers(finder, classElement);
+      }
     }
+    // if we have close enough element, suggest to use it
+    await _suggest(builder, node, finder._element?.displayName);
   }
 
-  Future<void> _proposeFormalParameter(ChangeBuilder builder) async {
-    var parent = node.parent;
-    if (parent is! SuperFormalParameter) return;
+  Future<void> _proposeField(ChangeBuilder builder) async {
+    final node = this.node;
+    if (node is! FieldFormalParameter) return;
 
+    var exclusions = <String>{};
     var constructorDeclaration =
-        parent.thisOrAncestorOfType<ConstructorDeclaration>();
-    if (constructorDeclaration == null) return;
-
-    var formalParameters = constructorDeclaration.parameters.parameters
-        .whereType<DefaultFormalParameter>();
-
-    var finder =
-        _ClosestElementFinder(parent.identifier.name, (Element e) => true);
-
-    var superInvocation = constructorDeclaration.initializers.lastOrNull;
-
-    if (superInvocation is SuperConstructorInvocation) {
-      var staticElement = superInvocation.staticElement;
-      if (staticElement == null) return;
-
-      var list = _formalParameterSuggestions(staticElement, formalParameters);
-      finder._updateList(list);
-    } else {
-      var targetClassNode = parent.thisOrAncestorOfType<ClassDeclaration>();
-      if (targetClassNode == null) return;
-
-      var targetClassElement = targetClassNode.declaredElement!;
-      var superType = targetClassElement.supertype;
-      if (superType == null) return;
-
-      for (var constructor in superType.constructors) {
-        if (constructor.name.isEmpty) {
-          var list = _formalParameterSuggestions(constructor, formalParameters);
-          finder._updateList(list);
-          break;
+        node.thisOrAncestorOfType<ConstructorDeclaration>();
+    var initializers = constructorDeclaration?.initializers;
+    if (initializers != null) {
+      for (var initializer in initializers) {
+        if (initializer is ConstructorFieldInitializer) {
+          exclusions.add(initializer.fieldName.name);
+        }
+      }
+    }
+    var formalParameterList = node.thisOrAncestorOfType<FormalParameterList>();
+    if (formalParameterList != null) {
+      for (var parameter in formalParameterList.parameters) {
+        var name = parameter.identifier?.name;
+        if (name != null) {
+          exclusions.add(name);
         }
       }
     }
 
-    // If we have a close enough element, suggest to use it.
-    await _suggest(builder, node, finder._element?.name);
+    var type = node.type?.type;
+    await _proposeClassOrMixinMember(builder, node.identifier, null,
+        (Element element) {
+      return element is FieldElement &&
+          !exclusions.contains(element.name) &&
+          !element.isSynthetic &&
+          !element.isExternal &&
+          (type == null || typeSystem.isAssignableTo(type, element.type));
+    });
   }
 
   Future<void> _proposeFunction(ChangeBuilder builder) async {
@@ -245,7 +245,8 @@ class ChangeTo extends CorrectionProducer {
       // find getter or setter
       var wantGetter = node.inGetterContext();
       var wantSetter = node.inSetterContext();
-      await _proposeClassOrMixinMember(builder, target, (Element element) {
+      await _proposeClassOrMixinMember(builder, node, target,
+          (Element element) {
         if (element is PropertyAccessorElement) {
           return wantGetter && element.isGetter ||
               wantSetter && element.isSetter;
@@ -259,11 +260,55 @@ class ChangeTo extends CorrectionProducer {
   }
 
   Future<void> _proposeMethod(ChangeBuilder builder) async {
+    final node = this.node;
     var parent = node.parent;
-    if (parent is MethodInvocation) {
-      await _proposeClassOrMixinMember(builder, parent.realTarget,
+    if (parent is MethodInvocation && node is SimpleIdentifier) {
+      await _proposeClassOrMixinMember(builder, node, parent.realTarget,
           (Element element) => element is MethodElement && !element.isOperator);
     }
+  }
+
+  Future<void> _proposeSuperFormalParameter(ChangeBuilder builder) async {
+    var parent = node.parent;
+    if (parent is! SuperFormalParameter) return;
+
+    var constructorDeclaration =
+        parent.thisOrAncestorOfType<ConstructorDeclaration>();
+    if (constructorDeclaration == null) return;
+
+    var formalParameters = constructorDeclaration.parameters.parameters
+        .whereType<DefaultFormalParameter>();
+
+    var finder =
+        _ClosestElementFinder(parent.identifier.name, (Element e) => true);
+
+    var superInvocation = constructorDeclaration.initializers.lastOrNull;
+
+    if (superInvocation is SuperConstructorInvocation) {
+      var staticElement = superInvocation.staticElement;
+      if (staticElement == null) return;
+
+      var list = _formalParameterSuggestions(staticElement, formalParameters);
+      finder._updateList(list);
+    } else {
+      var targetClassNode = parent.thisOrAncestorOfType<ClassDeclaration>();
+      if (targetClassNode == null) return;
+
+      var targetClassElement = targetClassNode.declaredElement!;
+      var superType = targetClassElement.supertype;
+      if (superType == null) return;
+
+      for (var constructor in superType.constructors) {
+        if (constructor.name.isEmpty) {
+          var list = _formalParameterSuggestions(constructor, formalParameters);
+          finder._updateList(list);
+          break;
+        }
+      }
+    }
+
+    // If we have a close enough element, suggest to use it.
+    await _suggest(builder, node, finder._element?.name);
   }
 
   Future<void> _suggest(
@@ -333,8 +378,9 @@ class _ClosestElementFinder {
 enum _ReplacementKind {
   annotation,
   classOrMixin,
-  formalParameter,
+  field,
   function,
   getterOrSetter,
-  method
+  method,
+  superFormalParameter,
 }
