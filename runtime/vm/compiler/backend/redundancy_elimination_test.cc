@@ -1201,7 +1201,13 @@ main() {
   RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveFunctionEntry,
       kMatchAndMoveCheckStackOverflow,
-      kMatchAndMoveCheckClass,
+  }));
+  if (FLAG_sound_null_safety != kNullSafetyOptionStrong) {
+    RELEASE_ASSERT(cursor.TryMatch({
+        kMatchAndMoveCheckClass,
+    }));
+  }
+  RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveUnbox,
       kMatchAndMoveBinaryDoubleOp,
       kMatchAndMoveBinaryDoubleOp,
