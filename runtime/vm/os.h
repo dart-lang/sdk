@@ -34,11 +34,6 @@ class OS {
   // For example 3600 for CET, and 7200 for CEST.
   static int GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch);
 
-  // Returns the difference in seconds between local time and UTC when no
-  // daylight saving is active.
-  // For example 3600 in CET and CEST.
-  static int GetLocalTimeZoneAdjustmentInSeconds();
-
   // Returns the current time in milliseconds measured
   // from midnight January 1, 1970 UTC.
   static int64_t GetCurrentTimeMillis();

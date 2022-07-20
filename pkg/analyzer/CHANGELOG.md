@@ -4,6 +4,7 @@
 * Deprecated `LibraryElement.exports`, use `libraryexports` instead.
 * Deprecated `LibraryElement.imports`, use `libraryImports` instead.
 * Deprecated `Element.enclosingElement`, use `enclosingElement2` instead.
+* `Member` is not equal to `ElementImpl`, use `Element.declaration`.
 
 ## 4.2.0
 * Update SDK constraints to `>=2.17.0 <3.0.0`.

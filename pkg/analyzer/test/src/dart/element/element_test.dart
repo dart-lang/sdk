@@ -23,6 +23,7 @@ main() {
     defineReflectiveTests(FieldElementImplTest);
     defineReflectiveTests(FunctionTypeImplTest);
     defineReflectiveTests(InterfaceTypeImplTest);
+    defineReflectiveTests(MethodElementImplTest);
     defineReflectiveTests(TypeParameterTypeImplTest);
     defineReflectiveTests(VoidTypeImplTest);
     defineReflectiveTests(ClassElementImplTest);
@@ -1237,6 +1238,30 @@ class InterfaceTypeImplTest extends AbstractTypeSystemTest {
 
     // Returns this.
     expect(type.resolveToBound(objectNone), same(type));
+  }
+}
+
+@reflectiveTest
+class MethodElementImplTest extends AbstractTypeSystemTest {
+  void test_equal() {
+    var foo = method('foo', intNone);
+    var T = typeParameter('T');
+    var A = class_(
+      name: 'A',
+      typeParameters: [T],
+      methods: [foo],
+    );
+
+    // MethodElementImpl is equal to itself.
+    expect(foo == foo, isTrue);
+
+    // MethodMember is not equal to MethodElementImpl.
+    var foo_int = A.instantiate(
+      typeArguments: [intNone],
+      nullabilitySuffix: NullabilitySuffix.none,
+    ).getMethod('foo')!;
+    expect(foo == foo_int, isFalse);
+    expect(foo_int == foo, isFalse);
   }
 }
 

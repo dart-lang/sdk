@@ -2230,7 +2230,13 @@ main() {
 
       var constructorName = creation.constructorName;
       expect(constructorName.name, isNull);
-      expect(constructorName.staticElement, defaultConstructor);
+      assertElement(
+        constructorName.staticElement,
+        elementMatcher(
+          defaultConstructor,
+          substitution: {'T': 'int'},
+        ),
+      );
 
       NamedType namedType = constructorName.type;
       expect(namedType.typeArguments, isNull);
@@ -2258,9 +2264,21 @@ main() {
       expect(creation.staticType, cTypeDouble);
 
       var constructorName = creation.constructorName;
-      expect(constructorName.name!.staticElement, namedConstructor);
+      assertElement(
+        constructorName.name!.staticElement,
+        elementMatcher(
+          namedConstructor,
+          substitution: {'T': 'dynamic'},
+        ),
+      );
       expect(constructorName.name!.staticType, isNull);
-      expect(constructorName.staticElement, namedConstructor);
+      assertElement(
+        constructorName.staticElement,
+        elementMatcher(
+          namedConstructor,
+          substitution: {'T': 'double'},
+        ),
+      );
 
       NamedType namedType = constructorName.type;
       expect(namedType.typeArguments, isNull);
@@ -2288,9 +2306,21 @@ main() {
       expect(creation.staticType, cTypeBool);
 
       var constructorName = creation.constructorName;
-      expect(constructorName.name!.staticElement, namedConstructor);
+      assertElement(
+        constructorName.name!.staticElement,
+        elementMatcher(
+          namedConstructor,
+          substitution: {'T': 'bool'},
+        ),
+      );
       expect(constructorName.name!.staticType, isNull);
-      expect(constructorName.staticElement, namedConstructor);
+      assertElement(
+        constructorName.staticElement,
+        elementMatcher(
+          namedConstructor,
+          substitution: {'T': 'bool'},
+        ),
+      );
 
       NamedType namedType = constructorName.type;
       expect(namedType.typeArguments!.arguments, hasLength(1));
@@ -2345,7 +2375,13 @@ class C<T> {
 
       var constructorName = creation.constructorName;
       expect(constructorName.name, isNull);
-      expect(constructorName.staticElement, defaultConstructor);
+      assertElement(
+        constructorName.staticElement,
+        elementMatcher(
+          defaultConstructor,
+          substitution: {'T': 'int'},
+        ),
+      );
 
       NamedType namedType = constructorName.type;
       expect(namedType.typeArguments, isNull);
@@ -2367,7 +2403,13 @@ class C<T> {
 
       var constructorName = creation.constructorName;
       expect(constructorName.name, isNull);
-      expect(constructorName.staticElement, defaultConstructor);
+      assertElement(
+        constructorName.staticElement,
+        elementMatcher(
+          defaultConstructor,
+          substitution: {'T': 'bool'},
+        ),
+      );
 
       NamedType namedType = constructorName.type;
       expect(namedType.typeArguments!.arguments, hasLength(1));
@@ -2390,9 +2432,21 @@ class C<T> {
       expect(creation.staticType, cTypeDouble);
 
       var constructorName = creation.constructorName;
-      expect(constructorName.name!.staticElement, namedConstructor);
+      assertElement(
+        constructorName.name!.staticElement,
+        elementMatcher(
+          namedConstructor,
+          substitution: {'T': 'dynamic'},
+        ),
+      );
       expect(constructorName.name!.staticType, isNull);
-      expect(constructorName.staticElement, namedConstructor);
+      assertElement(
+        constructorName.staticElement,
+        elementMatcher(
+          namedConstructor,
+          substitution: {'T': 'double'},
+        ),
+      );
 
       NamedType namedType = constructorName.type;
       expect(namedType.typeArguments, isNull);
@@ -2413,9 +2467,21 @@ class C<T> {
       expect(creation.staticType, cTypeBool);
 
       var constructorName = creation.constructorName;
-      expect(constructorName.name!.staticElement, namedConstructor);
+      assertElement(
+        constructorName.name!.staticElement,
+        elementMatcher(
+          namedConstructor,
+          substitution: {'T': 'bool'},
+        ),
+      );
       expect(constructorName.name!.staticType, isNull);
-      expect(constructorName.staticElement, namedConstructor);
+      assertElement(
+        constructorName.staticElement,
+        elementMatcher(
+          namedConstructor,
+          substitution: {'T': 'bool'},
+        ),
+      );
 
       NamedType namedType = constructorName.type;
       expect(namedType.typeArguments!.arguments, hasLength(1));

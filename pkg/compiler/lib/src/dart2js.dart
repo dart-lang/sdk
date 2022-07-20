@@ -1085,7 +1085,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     return result;
   }
 
-  diagnosticHandler.autoReadFileUri = true;
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
       featureOptions: features,
       librariesSpecificationUri: librariesSpecificationUri,

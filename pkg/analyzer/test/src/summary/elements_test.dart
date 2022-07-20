@@ -300,7 +300,7 @@ library
 ''');
   }
 
-  test_augmentation_importScope_constant_field() async {
+  test_augmentation_importScope_constant_class_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const a = 0;
@@ -390,6 +390,89 @@ library
                 staticType: A
         accessors
           synthetic static get a @-1
+            returnType: A
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_constant_prefix_class_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const a = 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart' as prefix;
+const b = prefix.A.a;
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart as prefix @48
+      definingUnit
+        topLevelVariables
+          static const b @62
+            type: int
+            constantInitializer
+              PropertyAccess
+                target: PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: prefix @66
+                    staticElement: self::@augmentation::package:test/b.dart::@prefix::prefix
+                    staticType: null
+                  period: . @72
+                  identifier: SimpleIdentifier
+                    token: A @73
+                    staticElement: package:test/a.dart::@class::A
+                    staticType: null
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                operator: . @74
+                propertyName: SimpleIdentifier
+                  token: a @75
+                  staticElement: package:test/a.dart::@class::A::@getter::a
+                  staticType: int
+                staticType: int
+        accessors
+          synthetic static get b @-1
+            returnType: int
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart' as prefix;
+prefix.A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart as prefix @48
+      definingUnit
+        functions
+          f @65
             returnType: A
   definingUnit
 ''');

@@ -28,10 +28,6 @@ class DateTime {
   external static int _timeZoneOffsetInSecondsForClampedSeconds(
       int secondsSinceEpoch);
 
-  // Daylight-savings independent adjustment for the local time zone.
-  @pragma("vm:external-name", "DateTime_localTimeZoneAdjustmentInSeconds")
-  external static int _localTimeZoneAdjustmentInSeconds();
-
   static const _MICROSECOND_INDEX = 0;
   static const _MILLISECOND_INDEX = 1;
   static const _SECOND_INDEX = 2;

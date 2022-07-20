@@ -159,7 +159,7 @@ class LibraryBuilder {
   void buildElements() {
     _buildDirectives(
       kind: kind,
-      element: element,
+      container: element,
     );
 
     for (var linkingUnit in units) {
@@ -467,10 +467,11 @@ class LibraryBuilder {
           nameOffset: importedAugmentation.unlinked.libraryKeywordOffset,
         );
         augmentation.definingCompilationUnit = unitElement;
+        augmentation.reference = unitElement.reference!;
 
         _buildDirectives(
           kind: importedAugmentation,
-          element: augmentation,
+          container: augmentation,
         );
 
         uri = DirectiveUriWithAugmentationImpl(
@@ -537,13 +538,18 @@ class LibraryBuilder {
   /// augmentations.
   void _buildDirectives({
     required LibraryOrAugmentationFileKind kind,
-    required LibraryOrAugmentationElementImpl element,
+    required LibraryOrAugmentationElementImpl container,
   }) {
-    element.libraryExports = kind.libraryExports.map(_buildExport).toList();
-    element.libraryImports = kind.libraryImports.map(_buildImport).toList();
+    container.libraryExports = kind.libraryExports.map(_buildExport).toList();
+    container.libraryImports = kind.libraryImports.map((state) {
+      return _buildImport(
+        container: container,
+        state: state,
+      );
+    }).toList();
 
-    element.augmentationImports = kind.augmentationImports.map((state) {
-      return _buildAugmentationImport(element, state);
+    container.augmentationImports = kind.augmentationImports.map((state) {
+      return _buildAugmentationImport(container, state);
     }).toList();
   }
 
@@ -614,21 +620,23 @@ class LibraryBuilder {
     )..combinators = combinators;
   }
 
-  LibraryImportElementImpl _buildImport(LibraryImportState state) {
+  LibraryImportElementImpl _buildImport({
+    required LibraryOrAugmentationElementImpl container,
+    required LibraryImportState state,
+  }) {
     final importPrefix = state.unlinked.prefix.mapOrNull((unlinked) {
+      final prefix = _buildPrefix(
+        name: unlinked.name,
+        nameOffset: unlinked.nameOffset,
+        container: container,
+      );
       if (unlinked.deferredOffset != null) {
         return DeferredImportElementPrefixImpl(
-          element: _buildPrefix(
-            name: unlinked.name,
-            nameOffset: unlinked.nameOffset,
-          ),
+          element: prefix,
         );
       } else {
         return ImportElementPrefixImpl(
-          element: _buildPrefix(
-            name: unlinked.name,
-            nameOffset: unlinked.nameOffset,
-          ),
+          element: prefix,
         );
       }
     });
@@ -705,8 +713,11 @@ class LibraryBuilder {
   PrefixElementImpl _buildPrefix({
     required String name,
     required int nameOffset,
+    required LibraryOrAugmentationElementImpl container,
   }) {
-    final reference = this.reference.getChild('@prefix').getChild(name);
+    // TODO(scheglov) Make reference required.
+    final containerRef = container.reference!;
+    final reference = containerRef.getChild('@prefix').getChild(name);
     final existing = reference.element;
     if (existing is PrefixElementImpl) {
       return existing;
@@ -716,7 +727,7 @@ class LibraryBuilder {
         nameOffset,
         reference: reference,
       );
-      element.encloseElement(result);
+      container.encloseElement(result);
       return result;
     }
   }

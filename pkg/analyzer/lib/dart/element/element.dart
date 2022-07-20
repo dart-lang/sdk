@@ -1626,7 +1626,7 @@ abstract class LibraryOrAugmentationElement implements Element {
   CompilationUnitElement get definingCompilationUnit;
 
   /// Return a list containing all of the exports defined in this library.
-  @Deprecated('Use exports2 instead')
+  @Deprecated('Use libraryExports instead')
   List<ExportElement> get exports;
 
   /// The set of features available to this library.
@@ -1637,7 +1637,7 @@ abstract class LibraryOrAugmentationElement implements Element {
   FeatureSet get featureSet;
 
   /// Return a list containing all of the imports defined in this library.
-  @Deprecated('Use imports2 instead')
+  @Deprecated('Use libraryImports instead')
   List<ImportElement> get imports;
 
   bool get isNonNullableByDefault;
