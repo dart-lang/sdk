@@ -267,6 +267,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitConfiguration(Configuration node) {
+    _writeln('Configuration');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _writeln('ConstructorDeclaration');
     _withIndent(() {
@@ -347,6 +355,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitDoStatement(DoStatement node) {
     _writeln('DoStatement');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitDottedName(DottedName node) {
+    _writeln('DottedName');
     _withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -1380,6 +1396,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
         final uriStr = _stringOfSource(uri.augmentation.source);
         _writelnWithIndent('uri: $uriStr');
       });
+    } else if (uri is DirectiveUriWithLibrary) {
+      _writeln('DirectiveUriWithLibrary');
+      _withIndent(() {
+        final uriStr = _stringOfSource(uri.library.source);
+        _writelnWithIndent('uri: $uriStr');
+      });
     } else if (uri is DirectiveUriWithUnit) {
       _writeln('DirectiveUriWithUnit');
       _withIndent(() {
@@ -1438,6 +1460,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _sink.writeln('<null>');
     } else if (element is AugmentationImportElement) {
       _writeAugmentationImportElement(element);
+    } else if (element is LibraryExportElement) {
+      _writeLibraryExportElement(element);
+    } else if (element is LibraryImportElement) {
+      _writeLibraryImportElement(element);
     } else if (element is PartElement) {
       _writePartElement(element);
     } else {
@@ -1462,6 +1488,24 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
         _writeType('type', element.type);
       });
     }
+  }
+
+  void _writeLibraryExportElement(LibraryExportElement element) {
+    _writeln('LibraryExportElement');
+    _withIndent(() {
+      _sink.write(_indent);
+      _sink.write('uri: ');
+      _writeDirectiveUri(element.uri);
+    });
+  }
+
+  void _writeLibraryImportElement(LibraryImportElement element) {
+    _writeln('LibraryImportElement');
+    _withIndent(() {
+      _sink.write(_indent);
+      _sink.write('uri: ');
+      _writeDirectiveUri(element.uri);
+    });
   }
 
   void _writeln(String line) {

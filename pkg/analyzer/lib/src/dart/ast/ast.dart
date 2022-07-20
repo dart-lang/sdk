@@ -3812,6 +3812,7 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
     ..addToken('exportKeyword', exportKeyword)
     ..addNode('uri', uri)
     ..addNodeList('combinators', combinators)
+    ..addNodeList('configurations', configurations)
     ..addToken('semicolon', semicolon);
 
   @override
@@ -6471,6 +6472,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
     ..addToken('asKeyword', asKeyword)
     ..addNode('prefix', prefix)
     ..addNodeList('combinators', combinators)
+    ..addNodeList('configurations', configurations)
     ..addToken('semicolon', semicolon);
 
   @override

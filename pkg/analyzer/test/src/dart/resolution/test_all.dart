@@ -16,7 +16,6 @@ import 'constant_test.dart' as constant;
 import 'constructor_reference_test.dart' as constructor_reference;
 import 'constructor_test.dart' as constructor;
 import 'enum_test.dart' as enum_resolution;
-import 'export_test.dart' as export_;
 import 'extension_method_test.dart' as extension_method;
 import 'extension_override_test.dart' as extension_override;
 import 'field_formal_parameter_test.dart' as field_formal_parameter;
@@ -41,6 +40,7 @@ import 'instance_member_inference_mixin_test.dart'
 import 'interpolation_string_test.dart' as interpolation_string;
 import 'language_version_test.dart' as language_version;
 import 'library_element_test.dart' as library_element;
+import 'library_export_test.dart' as library_export;
 import 'library_import_prefix_test.dart' as library_import_prefix;
 import 'library_import_test.dart' as library_import;
 import 'local_function_test.dart' as local_function;
@@ -86,7 +86,6 @@ main() {
     constructor.main();
     constructor_reference.main();
     enum_resolution.main();
-    export_.main();
     extension_method.main();
     extension_override.main();
     field_formal_parameter.main();
@@ -108,6 +107,7 @@ main() {
     interpolation_string.main();
     language_version.main();
     library_element.main();
+    library_export.main();
     library_import_prefix.main();
     library_import.main();
     local_function.main();
