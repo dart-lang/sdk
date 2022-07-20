@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.59.0';
+const String vmServiceVersion = '3.60.0';
 
 /// @optional
 const String optional = 'optional';
@@ -4073,6 +4073,13 @@ class Event extends Response {
   @optional
   InstanceRef? inspectee;
 
+  /// The garbage collection (GC) operation performed.
+  ///
+  /// This is provided for the event kinds:
+  ///  - GC
+  @optional
+  String? gcType;
+
   /// The RPC name of the extension that was added.
   ///
   /// This is provided for the ServiceExtensionAdded event.
@@ -4197,6 +4204,7 @@ class Event extends Response {
     this.exception,
     this.bytes,
     this.inspectee,
+    this.gcType,
     this.extensionRPC,
     this.extensionKind,
     this.extensionData,
@@ -4236,6 +4244,7 @@ class Event extends Response {
     bytes = json['bytes'];
     inspectee = createServiceObject(json['inspectee'], const ['InstanceRef'])
         as InstanceRef?;
+    gcType = json['gcType'];
     extensionRPC = json['extensionRPC'];
     extensionKind = json['extensionKind'];
     extensionData = ExtensionData.parse(json['extensionData']);
@@ -4284,6 +4293,7 @@ class Event extends Response {
     _setIfNotNull(json, 'exception', exception?.toJson());
     _setIfNotNull(json, 'bytes', bytes);
     _setIfNotNull(json, 'inspectee', inspectee?.toJson());
+    _setIfNotNull(json, 'gcType', gcType);
     _setIfNotNull(json, 'extensionRPC', extensionRPC);
     _setIfNotNull(json, 'extensionKind', extensionKind);
     _setIfNotNull(json, 'extensionData', extensionData?.data);
