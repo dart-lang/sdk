@@ -1002,7 +1002,7 @@ class ResolutionWorldBuilder extends WorldBuilder
         mixinUses: _classHierarchyBuilder.mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         classHierarchy: _classHierarchyBuilder.close(),
-        annotationsData: _annotationsDataBuilder.close(_options),
+        annotationsData: _annotationsDataBuilder.close(_options, reporter),
         isChecks: _isChecks,
         staticTypeArgumentDependencies: staticTypeArgumentDependencies,
         dynamicTypeArgumentDependencies: dynamicTypeArgumentDependencies,

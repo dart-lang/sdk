@@ -46,10 +46,11 @@ class JsClosedWorldBuilder {
   final Map<ClassEntity, ClassSet> _classSets = <ClassEntity, ClassSet>{};
   final ClosureDataBuilder _closureDataBuilder;
   final CompilerOptions _options;
+  final DiagnosticReporter _reporter;
   final AbstractValueStrategy _abstractValueStrategy;
 
   JsClosedWorldBuilder(this._elementMap, this._closureDataBuilder,
-      this._options, this._abstractValueStrategy);
+      this._options, this._reporter, this._abstractValueStrategy);
 
   ElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
   CommonElements get _commonElements => _elementMap.commonElements;
@@ -200,7 +201,7 @@ class JsClosedWorldBuilder {
         JFieldAnalysis.from(closedWorld, map, _options);
 
     AnnotationsDataImpl oldAnnotationsData = closedWorld.annotationsData;
-    AnnotationsData annotationsData = AnnotationsDataImpl(_options,
+    AnnotationsData annotationsData = AnnotationsDataImpl(_options, _reporter,
         map.toBackendMemberMap(oldAnnotationsData.pragmaAnnotations, identity));
 
     OutputUnitData outputUnitData =

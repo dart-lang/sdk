@@ -154,8 +154,8 @@ class KernelFrontendStrategy implements KernelFrontendStrategyForBackendUsage {
     // TODO(johnniwinther): This is a hack. The annotation data is built while
     // using it. With CFE constants the annotations data can be built fully
     // before creating the resolution enqueuer.
-    AnnotationsData annotationsData = AnnotationsDataImpl(
-        compiler.options, annotationsDataBuilder.pragmaAnnotations);
+    AnnotationsData annotationsData = AnnotationsDataImpl(compiler.options,
+        compiler.reporter, annotationsDataBuilder.pragmaAnnotations);
     InterceptorDataBuilder interceptorDataBuilder = InterceptorDataBuilderImpl(
         nativeBasicData, elementEnvironment, commonElements);
     return ResolutionEnqueuer(
@@ -392,6 +392,9 @@ class KernelWorkItem implements WorkItem {
           node,
           pragmaAnnotationData);
       _annotationsDataBuilder.registerPragmaAnnotations(element, annotations);
+      // TODO(sra): Replace the above three statements with a single call to a
+      // new API on AnnotationsData that causes the annotations to be parsed and
+      // checked.
 
       ModularMemberData modularMemberData =
           _modularStrategy.getModularMemberData(node, annotations);
