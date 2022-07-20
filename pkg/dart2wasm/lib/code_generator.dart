@@ -915,7 +915,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       compare = () => call(translator.stringEquals.reference);
     } else {
       // Object switch
-      assert(check<InvalidExpression, InstanceConstant>());
+      assert(check<InvalidExpression, Constant>());
       nonNullableType = w.RefType.eq(nullable: false);
       nullableType = w.RefType.eq(nullable: true);
       compare = () => b.ref_eq();
