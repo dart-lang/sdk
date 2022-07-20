@@ -4,7 +4,7 @@
 
 ### Libraries
 
-### `dart:developer`
+#### `dart:developer`
 
 #### `dart:developer`
 
@@ -18,6 +18,16 @@
 [`ServiceExtensionResponse`]: https://api.dart.dev/stable/dart-developer/ServiceExtensionResponse-class.html#constants
 
 - Deprecated `UserTag.MAX_USER_TAGS` in favor of `UserTag.maxUserTags`.
+
+#### `dart:mirrors`
+
+- **Breaking change** [#34233][]: The APIs [`MirrorsUsed`][] and [`Comment`][]
+  have been removed. `MirrorsUsed` was experimental and deprecated; `Comment`
+  was previously used internally in dart2js. Both are no longer functional.
+
+[#34233]: https://github.com/dart-lang/sdk/issues/34233
+[`MirrorsUsed`]: https://api.dart.dev/stable/dart-mirrors/MirrorsUsed-class.html
+[`Comment`]: https://api.dart.dev/stable/dart-mirrors/Comment-class.html
 
 ### Tools
 

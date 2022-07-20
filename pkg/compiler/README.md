@@ -223,8 +223,7 @@ functionality is publicly exposed.
 
   * `lib/src/common/elements.dart`: provides an interface to lookup basic
     elements like the class of `Object`, `int`, `List`, and their corresponding
-    interface types, constructors for symbols, annotations such as
-    `@MirrorsUsed`, the `identical` function, etc. These are normally restricted
+    interface types, constructors for symbols, annotations such as the `identical` function. These are normally restricted
     to elements that are understood directly in Dart.
 
   * `lib/src/js_backend/backend_helpers.dart`: provides a way to lookup internal
@@ -277,10 +276,6 @@ functionality is publicly exposed.
   compiler to read and scan files, produce enough metadata to understand
   import, export, and part directives and keep crawling. It also triggers the
   patch parser to load patch files.
-
-* `lib/src/mirrors_used.dart`: task that analyzes `@MirrorsUsed` annotations,
-  which let the compiler continue to do tree-shaking even when code is used via
-  `dart:mirrors`.
 
 * Input/output: the compiler is designed to avoid all dependencies on dart:io.
   Most data is consumed and emitted via provider APIs.

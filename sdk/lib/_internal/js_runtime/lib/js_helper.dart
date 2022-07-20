@@ -154,8 +154,7 @@ createUnmangledInvocationMirror(
 }
 
 void throwInvalidReflectionError(String memberName) {
-  throw new UnsupportedError("Can't use '$memberName' in reflection "
-      "because it is not included in a @MirrorsUsed annotation.");
+  throw new UnsupportedError("Can't use '$memberName' in reflection.");
 }
 
 /// Helper used to instrument calls when the compiler is invoked with
