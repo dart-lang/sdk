@@ -15,18 +15,15 @@ main() {
 
 @reflectiveTest
 class UriDoesNotExistTest extends PubPackageResolutionTest {
-  test_deferredImportWithInvalidUri() async {
-    await assertErrorsInCode(r'''
-import '[invalid uri]' deferred as p;
-main() {
-  p.loadLibrary();
-}
+  test_augmentationImport() async {
+    await assertErrorsInCode('''
+import augment 'unknown.dart';
 ''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 15),
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 15, 14),
     ]);
   }
 
-  test_export() async {
+  test_libraryExport() async {
     await assertErrorsInCode('''
 export 'unknown.dart';
 ''', [
@@ -34,7 +31,7 @@ export 'unknown.dart';
     ]);
   }
 
-  test_export_cannotResolve() async {
+  test_libraryExport_cannotResolve() async {
     await assertErrorsInCode(r'''
 export 'dart:foo';
 ''', [
@@ -42,7 +39,7 @@ export 'dart:foo';
     ]);
   }
 
-  test_export_dart() async {
+  test_libraryExport_dart() async {
     await assertErrorsInCode('''
 export 'dart:math/bar.dart';
 ''', [
@@ -50,7 +47,7 @@ export 'dart:math/bar.dart';
     ]);
   }
 
-  test_import() async {
+  test_libraryImport() async {
     await assertErrorsInCode('''
 import 'unknown.dart';
 ''', [
@@ -58,7 +55,7 @@ import 'unknown.dart';
     ]);
   }
 
-  test_import_appears_after_deleting_target() async {
+  test_libraryImport_appears_after_deleting_target() async {
     String filePath = newFile('$testPackageLibPath/target.dart', '').path;
 
     await assertErrorsInCode('''
@@ -80,7 +77,7 @@ import 'target.dart';
     ]);
   }
 
-  test_import_cannotResolve() async {
+  test_libraryImport_cannotResolve() async {
     await assertErrorsInCode(r'''
 import 'dart:foo';
 ''', [
@@ -88,7 +85,7 @@ import 'dart:foo';
     ]);
   }
 
-  test_import_dart() async {
+  test_libraryImport_dart() async {
     await assertErrorsInCode('''
 import 'dart:math/bar.dart';
 ''', [
@@ -96,8 +93,19 @@ import 'dart:math/bar.dart';
     ]);
   }
 
+  test_libraryImport_deferredWithInvalidUri() async {
+    await assertErrorsInCode(r'''
+import '[invalid uri]' deferred as p;
+main() {
+  p.loadLibrary();
+}
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 15),
+    ]);
+  }
+
   @failingTest
-  test_import_disappears_when_fixed() async {
+  test_libraryImport_disappears_when_fixed() async {
     await assertErrorsInCode('''
 import 'target.dart';
 ''', [

@@ -351,6 +351,8 @@ CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE:
 CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION:
   status: needsFix
   since: 2.15
+CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT:
+  status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT:
   status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME:
@@ -536,6 +538,8 @@ CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS:
 CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION:
   status: needsEvaluation
 CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES:
   status: needsEvaluation

@@ -992,7 +992,7 @@ class LibraryReader {
         container: container,
       ),
     );
-    ImportElementFlags.read(_reader, element);
+    LibraryImportElementFlags.read(_reader, element);
     return element;
   }
 

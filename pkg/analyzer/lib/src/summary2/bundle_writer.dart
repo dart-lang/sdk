@@ -345,7 +345,7 @@ class BundleWriter {
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
     _writeImportElementPrefix(element.prefix);
     _writeDirectiveUri(element.uri);
-    ImportElementFlags.write(_sink, element);
+    LibraryImportElementFlags.write(_sink, element);
   }
 
   void _writeImportElementPrefix(ImportElementPrefix? prefix) {

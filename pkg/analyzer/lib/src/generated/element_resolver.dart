@@ -111,6 +111,10 @@ class ElementResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
+  void visitAugmentationImportDirective(AugmentationImportDirectiveImpl node) {
+    _resolveAnnotations(node.metadata);
+  }
+
   void visitClassDeclaration(ClassDeclaration node) {
     _resolveAnnotations(node.metadata);
   }

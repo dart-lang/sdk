@@ -6,6 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assignment_test.dart' as assignment;
 import 'ast_rewrite_test.dart' as ast_rewrite;
+import 'augmentation_import_test.dart' as augmentation_import;
 import 'await_expression_test.dart' as await_expression;
 import 'binary_expression_test.dart' as binary_expression;
 import 'class_alias_test.dart' as class_alias;
@@ -31,8 +32,6 @@ import 'generic_function_type_test.dart' as generic_function_type;
 import 'generic_type_alias_test.dart' as generic_type_alias;
 import 'if_element_test.dart' as if_element;
 import 'if_statement_test.dart' as if_statement;
-import 'import_prefix_test.dart' as import_prefix;
-import 'import_test.dart' as import_;
 import 'index_expression_test.dart' as index_expression;
 import 'instance_creation_test.dart' as instance_creation;
 import 'instance_member_inference_class_test.dart'
@@ -42,6 +41,8 @@ import 'instance_member_inference_mixin_test.dart'
 import 'interpolation_string_test.dart' as interpolation_string;
 import 'language_version_test.dart' as language_version;
 import 'library_element_test.dart' as library_element;
+import 'library_import_prefix_test.dart' as library_import_prefix;
+import 'library_import_test.dart' as library_import;
 import 'local_function_test.dart' as local_function;
 import 'local_variable_test.dart' as local_variable;
 import 'macro_test.dart' as macro;
@@ -75,6 +76,7 @@ main() {
   defineReflectiveSuite(() {
     assignment.main();
     ast_rewrite.main();
+    augmentation_import.main();
     await_expression.main();
     binary_expression.main();
     class_alias.main();
@@ -97,10 +99,8 @@ main() {
     function_type_alias.main();
     generic_function_type.main();
     generic_type_alias.main();
-    import_.main();
     if_element.main();
     if_statement.main();
-    import_prefix.main();
     index_expression.main();
     instance_creation.main();
     instance_member_inference_class.main();
@@ -108,6 +108,8 @@ main() {
     interpolation_string.main();
     language_version.main();
     library_element.main();
+    library_import_prefix.main();
+    library_import.main();
     local_function.main();
     local_variable.main();
     macro.main();

@@ -20,6 +20,26 @@ class IgnoreDiagnosticFileTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IGNORE_ERROR_FILE;
 
+  Future<void> test_cannotIgnore_other() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      cannotIgnore: ['unused_label'],
+    );
+
+    await resolveTestCode('''
+void f() {
+  var a = 1;
+}
+''');
+    await assertHasFix('''
+// ignore_for_file: unused_local_variable
+
+void f() {
+  var a = 1;
+}
+''');
+  }
+
   Future<void> test_existingIgnores() async {
     await resolveTestCode('''
 // Copyright header.
@@ -28,8 +48,8 @@ class IgnoreDiagnosticFileTest extends FixProcessorTest {
 
 // Some other header.
 
-/// main dartcode
-void main(List<String> args) {
+/// some comment
+void f() {
   var a = 1;
 }
 ''');
@@ -40,8 +60,8 @@ void main(List<String> args) {
 
 // Some other header.
 
-/// main dartcode
-void main(List<String> args) {
+/// some comment
+void f() {
   var a = 1;
 }
 ''');
@@ -53,8 +73,8 @@ void main(List<String> args) {
 
 // Some other header.
 
-/// main dartcode
-void main(List<String> args) {
+/// some comment
+void f() {
   var a = 1;
 }
 ''');
@@ -65,8 +85,8 @@ void main(List<String> args) {
 
 // ignore_for_file: unused_local_variable
 
-/// main dartcode
-void main(List<String> args) {
+/// some comment
+void f() {
   var a = 1;
 }
 ''');
@@ -74,17 +94,31 @@ void main(List<String> args) {
 
   Future<void> test_noHeader() async {
     await resolveTestCode('''
-void main(List<String> args) {
+void f() {
   var a = 1;
 }
 ''');
     await assertHasFix('''
 // ignore_for_file: unused_local_variable
 
-void main(List<String> args) {
+void f() {
   var a = 1;
 }
 ''');
+  }
+
+  Future<void> test_unignorable() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      cannotIgnore: ['unused_local_variable'],
+    );
+
+    await resolveTestCode('''
+void f() {
+  var a = 1;
+}
+''');
+    await assertNoFix();
   }
 }
 
@@ -93,29 +127,62 @@ class IgnoreDiagnosticLineTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IGNORE_ERROR_LINE;
 
+  Future<void> test_cannotIgnore_other() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      cannotIgnore: ['unused_label'],
+    );
+
+    await resolveTestCode('''
+void f() {
+  var a = 1;
+}
+''');
+    await assertHasFix('''
+void f() {
+  // ignore: unused_local_variable
+  var a = 1;
+}
+''');
+  }
+
   Future<void> test_existingIgnore() async {
     await resolveTestCode('''
-void main(List<String> args) {
+void f() {
   // ignore: foo
   var a = 1;
 }
 ''');
     await assertHasFix('''
-void main(List<String> args) {
+void f() {
   // ignore: foo, unused_local_variable
   var a = 1;
 }
 ''');
   }
 
+  Future<void> test_unignorable() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      cannotIgnore: ['unused_local_variable'],
+    );
+
+    await resolveTestCode('''
+void f() {
+  var a = 1;
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_unusedCode() async {
     await resolveTestCode('''
-void main(List<String> args) {
+void f() {
   var a = 1;
 }
 ''');
     await assertHasFix('''
-void main(List<String> args) {
+void f() {
   // ignore: unused_local_variable
   var a = 1;
 }

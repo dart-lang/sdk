@@ -1454,7 +1454,8 @@ abstract class LabelElement implements Element {
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class LibraryAugmentationElement extends LibraryOrAugmentationElement {
+abstract class LibraryAugmentationElement
+    implements LibraryOrAugmentationElement, _ExistingElement {
   /// Returns the library that is augmented by this augmentation.
   LibraryOrAugmentationElement get augmented;
 }
