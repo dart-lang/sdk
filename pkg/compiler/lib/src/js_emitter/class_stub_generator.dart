@@ -234,7 +234,7 @@ class ClassStubGenerator {
       code = js(template, fieldName);
     }
     jsAst.Name getterName = _namer.deriveGetterName(field.accessorName);
-    return StubMethod(getterName, code);
+    return StubMethod(getterName, code, element: field.element);
   }
 
   /// Generates a setter for the given [field].
@@ -259,7 +259,7 @@ class ClassStubGenerator {
     }
 
     jsAst.Name setterName = _namer.deriveSetterName(field.accessorName);
-    return StubMethod(setterName, code);
+    return StubMethod(setterName, code, element: field.element);
   }
 }
 

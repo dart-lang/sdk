@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.new_js_emitter.model;
 
 import '../common/elements.dart';
@@ -14,7 +12,7 @@ import '../elements/types.dart';
 import '../js/js.dart' as js show Expression, Name, Statement, TokenFinalizer;
 import '../js/js_debug.dart' as js show nodeToString;
 import '../js_backend/runtime_types_codegen.dart';
-import 'js_emitter.dart' show MetadataCollector;
+import 'metadata_collector.dart' show MetadataCollector;
 
 class Program {
   final List<Fragment> fragments;
@@ -32,10 +30,8 @@ class Program {
 
   Program(this.fragments, this.typeToInterceptorMap, this._metadataCollector,
       this.finalizers,
-      {this.needsNativeSupport, this.outputContainsConstantList}) {
-    assert(needsNativeSupport != null);
-    assert(outputContainsConstantList != null);
-  }
+      {required this.needsNativeSupport,
+      required this.outputContainsConstantList});
 
   void mergeOutputUnitMetadata(OutputUnit target, OutputUnit source) {
     _metadataCollector.mergeOutputUnitMetadata(target, source);
@@ -187,8 +183,8 @@ class StaticField {
   final bool usesNonNullableInitialization;
 
   StaticField(this.element, this.name, this.getterName, this.code,
-      {this.isFinal,
-      this.isLazy,
+      {required this.isFinal,
+      required this.isLazy,
       this.isInitializedByConstant = false,
       this.usesNonNullableInitialization = false});
 
@@ -224,8 +220,8 @@ class Class {
   final ClassTypeData typeData;
 
   final js.Name name;
-  Class _superclass;
-  Class _mixinClass;
+  Class? superclass;
+  Class? mixinClass;
   final List<Method> methods;
   final List<Field> fields;
   final List<StubMethod> isChecks;
@@ -250,7 +246,7 @@ class Class {
   /// If non-null, this class is used as a base class for closures with a fixed
   /// small number of arguments in order to inherit `Function.apply`
   /// metadata. The value is the fixed number of arguments.
-  final int sharedClosureApplyMetadata;
+  final int? sharedClosureApplyMetadata;
 
   final bool isMixinApplicationWithMembers;
 
@@ -262,13 +258,13 @@ class Class {
   bool isEager = false;
 
   /// Leaf tags. See [NativeEmitter.prepareNativeClasses].
-  List<String> nativeLeafTags;
+  List<String>? nativeLeafTags;
 
   /// Non-leaf tags. See [NativeEmitter.prepareNativeClasses].
-  List<String> nativeNonLeafTags;
+  List<String>? nativeNonLeafTags;
 
   /// Native extensions. See [NativeEmitter.prepareNativeClasses].
-  List<Class> nativeExtensions;
+  List<Class>? nativeExtensions;
 
   Class(
       this.element,
@@ -282,36 +278,18 @@ class Class {
       this.gettersSetters,
       this.isChecks,
       this.functionTypeIndex,
-      {this.hasRtiField,
-      this.onlyForRti,
-      this.onlyForConstructor,
-      this.isDirectlyInstantiated,
-      this.isNative,
-      this.isClosureBaseClass,
+      {required this.hasRtiField,
+      required this.onlyForRti,
+      required this.onlyForConstructor,
+      required this.isDirectlyInstantiated,
+      required this.isNative,
+      required this.isClosureBaseClass,
       this.sharedClosureApplyMetadata,
-      this.isMixinApplicationWithMembers}) {
-    assert(onlyForRti != null);
-    assert(onlyForConstructor != null);
-    assert(isDirectlyInstantiated != null);
-    assert(isNative != null);
-    assert(isClosureBaseClass != null);
-  }
+      required this.isMixinApplicationWithMembers});
 
   bool get isSimpleMixinApplication => false;
 
-  Class get superclass => _superclass;
-
-  void setSuperclass(Class superclass) {
-    _superclass = superclass;
-  }
-
-  Class get mixinClass => _mixinClass;
-
-  void setMixinClass(Class mixinClass) {
-    _mixinClass = mixinClass;
-  }
-
-  js.Name get superclassName => superclass?.name;
+  js.Name? get superclassName => superclass?.name;
 
   @override
   String toString() => 'Class(name=${name.key},element=$element)';
@@ -328,10 +306,10 @@ class MixinApplication extends Class {
       List<StubMethod> gettersSetters,
       List<StubMethod> isChecks,
       js.Expression functionTypeIndex,
-      {bool hasRtiField,
-      bool onlyForRti,
-      bool onlyForConstructor,
-      bool isDirectlyInstantiated})
+      {required bool hasRtiField,
+      required bool onlyForRti,
+      required bool onlyForConstructor,
+      required bool isDirectlyInstantiated})
       : super(
             element,
             typeData,
@@ -424,7 +402,7 @@ class Field {
 abstract class Method {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
-  final MemberEntity element;
+  final MemberEntity? element;
 
   /// The name of the method. If the method is a [ParameterStubMethod] for a
   /// static function, then the name can be `null`. In that case, only the
@@ -438,7 +416,7 @@ abstract class Method {
 /// A method that corresponds to a method in the original Dart program.
 abstract class DartMethod extends Method {
   final bool needsTearOff;
-  final js.Name tearOffName;
+  final js.Name? tearOffName;
   final List<ParameterStubMethod> parameterStubs;
   final bool canBeApplied;
   final int applyIndex;
@@ -448,7 +426,7 @@ abstract class DartMethod extends Method {
   // If the type is encoded in the metadata table this field contains an index
   // into the table. Otherwise the type contains type variables in which case
   // this field holds a function computing the function signature.
-  final js.Expression functionType;
+  final js.Expression? functionType;
 
   // Signature information for this method. [optionalParameterDefaultValues] is
   // only required and stored here if the method [canBeApplied]. The count is
@@ -459,24 +437,20 @@ abstract class DartMethod extends Method {
   // If this method can be torn off, contains the name of the corresponding
   // call method. For example, for the member `foo$1$name` it would be
   // `call$1$name` (in unminified mode).
-  final js.Name callName;
+  final js.Name? callName;
 
   DartMethod(FunctionEntity element, js.Name name, js.Expression code,
       this.parameterStubs, this.callName,
-      {this.needsTearOff,
+      {required this.needsTearOff,
       this.tearOffName,
-      this.canBeApplied,
-      this.requiredParameterCount,
+      required this.canBeApplied,
+      required this.requiredParameterCount,
       this.optionalParameterDefaultValues,
       this.functionType,
-      this.applyIndex})
+      required this.applyIndex})
       : super(element, name, code) {
-    assert(needsTearOff != null);
     assert(!needsTearOff || tearOffName != null);
-    assert(canBeApplied != null);
-    assert(!canBeApplied ||
-        (requiredParameterCount != null &&
-            optionalParameterDefaultValues != null));
+    assert(!canBeApplied || optionalParameterDefaultValues != null);
   }
 
   bool get isStatic;
@@ -487,7 +461,7 @@ class InstanceMethod extends DartMethod {
   /// a method via `super`. If [aliasName] is non-null, the emitter has to
   /// ensure that this method is registered on the prototype under both [name]
   /// and [aliasName].
-  final js.Name aliasName;
+  final js.Name? aliasName;
 
   /// `true` if the tear-off needs to access methods directly rather than rely
   /// on JavaScript prototype lookup. This happens when a tear-off getter is
@@ -516,18 +490,18 @@ class InstanceMethod extends DartMethod {
     js.Expression code,
     List<ParameterStubMethod> parameterStubs,
     js.Name callName, {
-    bool needsTearOff,
-    js.Name tearOffName,
+    required bool needsTearOff,
+    js.Name? tearOffName,
     this.aliasName,
-    this.tearOffNeedsDirectAccess,
-    bool canBeApplied,
-    int requiredParameterCount,
+    required this.tearOffNeedsDirectAccess,
+    required bool canBeApplied,
+    required int requiredParameterCount,
     /* List | Map */ optionalParameterDefaultValues,
-    this.isClosureCallMethod,
-    this.inheritsApplyMetadata,
-    this.isIntercepted,
-    js.Expression functionType,
-    int applyIndex,
+    required this.isClosureCallMethod,
+    required this.inheritsApplyMetadata,
+    required this.isIntercepted,
+    js.Expression? functionType,
+    required int applyIndex,
   }) : super(element, name, code, parameterStubs, callName,
             needsTearOff: needsTearOff,
             tearOffName: tearOffName,
@@ -535,9 +509,7 @@ class InstanceMethod extends DartMethod {
             requiredParameterCount: requiredParameterCount,
             optionalParameterDefaultValues: optionalParameterDefaultValues,
             functionType: functionType,
-            applyIndex: applyIndex) {
-    assert(isClosureCallMethod != null);
-  }
+            applyIndex: applyIndex);
 
   @override
   bool get isStatic => false;
@@ -553,7 +525,7 @@ class InstanceMethod extends DartMethod {
 /// to a method in the original Dart program. Examples are getter and setter
 /// stubs and stubs to dispatch calls to methods with optional parameters.
 class StubMethod extends Method {
-  StubMethod(js.Name name, js.Expression code, {MemberEntity element})
+  StubMethod(js.Name name, js.Expression code, {MemberEntity? element})
       : super(element, name, code);
 
   @override
@@ -578,10 +550,10 @@ class ParameterStubMethod extends StubMethod {
   /// name when it is used this way.
   ///
   /// If a stub's member can not be torn off, the [callName] is `null`.
-  js.Name callName;
+  js.Name? callName;
 
   ParameterStubMethod(js.Name name, this.callName, js.Expression code,
-      {MemberEntity element})
+      {required MemberEntity element})
       : super(name, code, element: element);
 
   @override
@@ -597,13 +569,13 @@ abstract class StaticMethod implements Method {}
 class StaticDartMethod extends DartMethod implements StaticMethod {
   StaticDartMethod(FunctionEntity element, js.Name name, js.Expression code,
       List<ParameterStubMethod> parameterStubs, js.Name callName,
-      {bool needsTearOff,
-      js.Name tearOffName,
-      bool canBeApplied,
-      int requiredParameterCount,
+      {required bool needsTearOff,
+      js.Name? tearOffName,
+      required bool canBeApplied,
+      required int requiredParameterCount,
       /* List | Map */ optionalParameterDefaultValues,
-      js.Expression functionType,
-      int applyIndex})
+      js.Expression? functionType,
+      required int applyIndex})
       : super(element, name, code, parameterStubs, callName,
             needsTearOff: needsTearOff,
             tearOffName: tearOffName,
