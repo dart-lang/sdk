@@ -132,7 +132,8 @@ class ImportOrganizer {
           final leadingToken =
               lastLibraryAnnotation == null ? directive.beginToken : null;
           final leadingComment = leadingToken != null
-              ? getLeadingComment(unit, leadingToken, lineInfo)
+              ? getLeadingComment(unit, leadingToken, lineInfo,
+                  isPseudoLibraryDirective: isPseudoLibraryDirective)
               : null;
           final trailingComment = getTrailingComment(unit, directive, lineInfo);
 
@@ -205,14 +206,16 @@ class ImportOrganizer {
   /// Gets the first comment token considered to be the leading comment for this
   /// token.
   ///
-  /// Leading comments for the first directive in a file are considered library
-  /// comments and not returned unless they contain blank lines, in which case
-  /// only the last part of the comment will be returned (unless it is a
-  /// language directive comment, in which case it will also be skipped) or an
-  /// '// ignore:' comment which should always be treated as attached to the
-  /// import.
+  /// Leading comments for the first directive in a file with no library
+  /// directive (indicated with [isPseudoLibraryDirective]) are considered
+  /// library comments and not included unless they contain blank lines, in
+  /// which case only the last part of the comment will be returned (unless it
+  /// is a language directive comment, in which case it will also be skipped),
+  /// or an '// ignore:' comment which should always be treated as attached to
+  /// the import.
   static Token? getLeadingComment(
-      CompilationUnit unit, Token beginToken, LineInfo lineInfo) {
+      CompilationUnit unit, Token beginToken, LineInfo lineInfo,
+      {required bool isPseudoLibraryDirective}) {
     if (beginToken.precedingComments == null) {
       return null;
     }
@@ -220,8 +223,9 @@ class ImportOrganizer {
     Token? firstComment = beginToken.precedingComments;
     var comment = firstComment;
     var nextComment = comment?.next;
-    // Don't connect comments that have a blank line between them
-    while (comment != null && nextComment != null) {
+    // Don't connect comments that have a blank line between them if this is
+    // a psuedo-library directive.
+    while (isPseudoLibraryDirective && comment != null && nextComment != null) {
       var currentLine = lineInfo.getLocation(comment.offset).lineNumber;
       var nextLine = lineInfo.getLocation(nextComment.offset).lineNumber;
       if (nextLine - currentLine > 1) {
