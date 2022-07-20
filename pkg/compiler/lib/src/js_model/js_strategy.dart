@@ -172,8 +172,12 @@ class JsBackendStrategy {
         closedWorld.annotationsData);
     ClosureDataBuilder closureDataBuilder = ClosureDataBuilder(
         _compiler.reporter, _elementMap, closedWorld.annotationsData);
-    JsClosedWorldBuilder closedWorldBuilder = JsClosedWorldBuilder(_elementMap,
-        closureDataBuilder, _compiler.options, _compiler.abstractValueStrategy);
+    JsClosedWorldBuilder closedWorldBuilder = JsClosedWorldBuilder(
+        _elementMap,
+        closureDataBuilder,
+        _compiler.options,
+        _compiler.reporter,
+        _compiler.abstractValueStrategy);
     JClosedWorld jClosedWorld = closedWorldBuilder.convertClosedWorld(
         closedWorld, strategy.closureModels, outputUnitData);
     _elementMap.lateOutputUnitDataBuilder =
