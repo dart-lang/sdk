@@ -4434,7 +4434,7 @@ class LibraryExportElementImpl extends _ExistingElementImpl
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitExportElement2(this);
+    return visitor.visitLibraryExportElement(this);
   }
 
   @override
@@ -4502,7 +4502,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitImportElement2(this);
+    return visitor.visitLibraryImportElement(this);
   }
 
   @override
