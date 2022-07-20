@@ -245,6 +245,107 @@ library
 ''');
   }
 
+  test_augmentation_defaultValue_class_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const a = 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+void f({int x = A.a}) {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        functions
+          f @51
+            parameters
+              optionalNamed x @58
+                type: int
+                constantInitializer
+                  PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: A @62
+                      staticElement: package:test/a.dart::@class::A
+                      staticType: null
+                    period: . @63
+                    identifier: SimpleIdentifier
+                      token: a @64
+                      staticElement: package:test/a.dart::@class::A::@getter::a
+                      staticType: int
+                    staticElement: package:test/a.dart::@class::A::@getter::a
+                    staticType: int
+            returnType: void
+  definingUnit
+''');
+  }
+
+  test_augmentation_defaultValue_prefix_class_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const a = 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart' as prefix;
+void f({int x = prefix.A.a}) {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart as prefix @48
+      definingUnit
+        functions
+          f @61
+            parameters
+              optionalNamed x @68
+                type: int
+                constantInitializer
+                  PropertyAccess
+                    target: PrefixedIdentifier
+                      prefix: SimpleIdentifier
+                        token: prefix @72
+                        staticElement: self::@augmentation::package:test/b.dart::@prefix::prefix
+                        staticType: null
+                      period: . @78
+                      identifier: SimpleIdentifier
+                        token: A @79
+                        staticElement: package:test/a.dart::@class::A
+                        staticType: null
+                      staticElement: package:test/a.dart::@class::A
+                      staticType: null
+                    operator: . @80
+                    propertyName: SimpleIdentifier
+                      token: a @81
+                      staticElement: package:test/a.dart::@class::A::@getter::a
+                      staticType: int
+                    staticType: int
+            returnType: void
+  definingUnit
+''');
+  }
+
   test_augmentation_documented() async {
     newFile('$testPackageLibPath/a.dart', r'''
 /// My documentation.
