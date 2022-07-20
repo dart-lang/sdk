@@ -1030,6 +1030,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitAugmentationImportDirective(
+    covariant AugmentationImportDirectiveImpl node,
+  ) {
+    node.visitChildren(this);
+    elementResolver.visitAugmentationImportDirective(node);
+  }
+
+  @override
   void visitAwaitExpression(AwaitExpression node, {DartType? contextType}) {
     DartType? futureUnion;
     if (contextType != null) {

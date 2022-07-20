@@ -15,7 +15,23 @@ main() {
 
 @reflectiveTest
 class InvalidUriTest extends PubPackageResolutionTest {
-  test_emptyUri() async {
+  test_augmentationImport_invalidScheme() async {
+    await assertErrorsInCode('''
+import augment 'ht:';
+''', [
+      error(CompileTimeErrorCode.INVALID_URI, 15, 5),
+    ]);
+  }
+
+  test_libraryExport_invalidScheme() async {
+    await assertErrorsInCode('''
+export 'ht:';
+''', [
+      error(CompileTimeErrorCode.INVALID_URI, 7, 5),
+    ]);
+  }
+
+  test_libraryImport_emptyUri() async {
     await assertNoErrorsInCode('''
 import '' as top;
 int x = 1;
@@ -27,15 +43,7 @@ class C {
     assertElement(findNode.simple('x; // ref'), findElement.topGet('x'));
   }
 
-  test_invalidScheme_export() async {
-    await assertErrorsInCode('''
-export 'ht:';
-''', [
-      error(CompileTimeErrorCode.INVALID_URI, 7, 5),
-    ]);
-  }
-
-  test_invalidScheme_import() async {
+  test_libraryImport_invalidScheme() async {
     await assertErrorsInCode('''
 import 'ht:';
 ''', [
@@ -43,7 +51,7 @@ import 'ht:';
     ]);
   }
 
-  test_invalidScheme_part() async {
+  test_part_invalidScheme() async {
     await assertErrorsInCode(r'''
 part 'ht:';
 ''', [

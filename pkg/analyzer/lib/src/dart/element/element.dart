@@ -3884,6 +3884,9 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   @override
+  Source get librarySource => library.source;
+
+  @override
   AnalysisSessionImpl get session => augmented.session;
 
   @override
@@ -4279,6 +4282,14 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     }
 
     if (prefix == null && name.startsWith(r'_$')) {
+      for (final augmentation in augmentationImports) {
+        final uri = augmentation.uri;
+        if (uri is DirectiveUriWithSource &&
+            uri is! DirectiveUriWithAugmentation &&
+            file_paths.isGenerated(uri.relativeUriString)) {
+          return true;
+        }
+      }
       for (var partElement in parts2) {
         final uri = partElement.uri;
         if (uri is DirectiveUriWithSource &&

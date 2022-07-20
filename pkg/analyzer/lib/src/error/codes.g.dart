@@ -1073,6 +1073,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the URI of the duplicate augmentation
+  static const CompileTimeErrorCode DUPLICATE_AUGMENTATION_IMPORT =
+      CompileTimeErrorCode(
+    'DUPLICATE_AUGMENTATION_IMPORT',
+    "The library already contains an augmentation with the URI '{0}'.",
+    correctionMessage:
+        "Try removing all except one of the duplicated augmentation "
+        "directives.",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_DEFAULT =
       CompileTimeErrorCode(
@@ -1888,6 +1899,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The imported library '{0}' can't have a part-of directive.",
     correctionMessage: "Try importing the library that the part is a part of.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the URI of the imported file
+  static const CompileTimeErrorCode IMPORT_OF_NOT_AUGMENTATION =
+      CompileTimeErrorCode(
+    'IMPORT_OF_NOT_AUGMENTATION',
+    "The imported file '{0}' isn't an augmentation of this library.",
+    correctionMessage:
+        "Try adding a 'library augment' directive referencing this library to "
+        "the imported file.",
   );
 
   ///  13.9 Switch: It is a compile-time error if values of the expressions

@@ -15,7 +15,15 @@ main() {
 
 @reflectiveTest
 class UriWithInterpolationTest extends PubPackageResolutionTest {
-  test_export() async {
+  test_augmentationImport() async {
+    await assertErrorsInCode(r'''
+import augment '${'foo'}.dart';
+''', [
+      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 15, 15),
+    ]);
+  }
+
+  test_libraryExport() async {
     await assertErrorsInCode(r'''
 export '${'foo'}.dart';
 ''', [
@@ -23,7 +31,7 @@ export '${'foo'}.dart';
     ]);
   }
 
-  test_import() async {
+  test_libraryImport() async {
     await assertErrorsInCode(r'''
 import '${'foo'}.dart';
 ''', [

@@ -125,6 +125,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitAugmentationImportDirective(AugmentationImportDirective node) {
+    _writeln('AugmentationImportDirective');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
+      _writeRaw('uriContent', node.uriContent);
+      _writeElement('uriElement', node.uriElement);
+      _writeSource('uriSource', node.uriSource);
+    });
+  }
+
+  @override
   void visitAwaitExpression(AwaitExpression node) {
     _writeln('AwaitExpression');
     _withIndent(() {
@@ -1352,8 +1364,23 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _indent = indent;
   }
 
+  void _writeAugmentationImportElement(AugmentationImportElement element) {
+    _writeln('AugmentationImportElement');
+    _withIndent(() {
+      _sink.write(_indent);
+      _sink.write('uri: ');
+      _writeDirectiveUri(element.uri);
+    });
+  }
+
   void _writeDirectiveUri(DirectiveUri uri) {
-    if (uri is DirectiveUriWithUnit) {
+    if (uri is DirectiveUriWithAugmentation) {
+      _writeln('DirectiveUriWithAugmentation');
+      _withIndent(() {
+        final uriStr = _stringOfSource(uri.augmentation.source);
+        _writelnWithIndent('uri: $uriStr');
+      });
+    } else if (uri is DirectiveUriWithUnit) {
       _writeln('DirectiveUriWithUnit');
       _withIndent(() {
         final uriStr = _stringOfSource(uri.unit.source);
@@ -1409,6 +1436,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       });
     } else if (element is MultiplyDefinedElement) {
       _sink.writeln('<null>');
+    } else if (element is AugmentationImportElement) {
+      _writeAugmentationImportElement(element);
     } else if (element is PartElement) {
       _writePartElement(element);
     } else {
