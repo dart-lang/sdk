@@ -125,7 +125,7 @@ class AllInfo {
   /// Major version indicating breaking changes in the format. A new version
   /// means that an old deserialization algorithm will not work with the new
   /// format.
-  final int version = 6;
+  final int version = 7;
 
   /// Minor version indicating non-breaking changes in the format. A change in
   /// this version number means that the json parsing in this library from a
