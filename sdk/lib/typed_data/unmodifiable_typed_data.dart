@@ -5,6 +5,9 @@
 part of dart.typed_data;
 
 /// A read-only view of a [ByteBuffer].
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// UnmodifiableByteBufferView.
 class UnmodifiableByteBufferView implements ByteBuffer {
   final ByteBuffer _data;
 
@@ -65,6 +68,9 @@ class UnmodifiableByteBufferView implements ByteBuffer {
 }
 
 /// A read-only view of a [ByteData].
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// UnmodifiableByteDataView.
 class UnmodifiableByteDataView implements ByteData {
   final ByteData _data;
 
@@ -170,6 +176,9 @@ abstract class _UnmodifiableListMixin<N, L extends List<N>,
 }
 
 /// View of a [Uint8List] that disallows modification.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// UnmodifiableUint8ListView.
 class UnmodifiableUint8ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Uint8List, Uint8List>
     implements Uint8List {
@@ -180,6 +189,9 @@ class UnmodifiableUint8ListView extends UnmodifiableListBase<int>
 }
 
 /// View of a [Int8List] that disallows modification.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// UnmodifiableInt8ListView.
 class UnmodifiableInt8ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Int8List, Int8List>
     implements Int8List {
@@ -190,6 +202,9 @@ class UnmodifiableInt8ListView extends UnmodifiableListBase<int>
 }
 
 /// View of a [Uint8ClampedList] that disallows modification.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// UnmodifiableUint8ClampedListView.
 class UnmodifiableUint8ClampedListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Uint8ClampedList, Uint8ClampedList>
     implements Uint8ClampedList {
@@ -200,6 +215,9 @@ class UnmodifiableUint8ClampedListView extends UnmodifiableListBase<int>
 }
 
 /// View of a [Uint16List] that disallows modification.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// UnmodifiableUint16ListView.
 class UnmodifiableUint16ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Uint16List, Uint16List>
     implements Uint16List {
@@ -210,6 +228,9 @@ class UnmodifiableUint16ListView extends UnmodifiableListBase<int>
 }
 
 /// View of a [Int16List] that disallows modification.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// UnmodifiableInt16ListView.
 class UnmodifiableInt16ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Int16List, Int16List>
     implements Int16List {
@@ -220,6 +241,9 @@ class UnmodifiableInt16ListView extends UnmodifiableListBase<int>
 }
 
 /// View of a [Uint32List] that disallows modification.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// UnmodifiableUint32ListView.
 class UnmodifiableUint32ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Uint32List, Uint32List>
     implements Uint32List {
@@ -230,6 +254,9 @@ class UnmodifiableUint32ListView extends UnmodifiableListBase<int>
 }
 
 /// View of a [Int32List] that disallows modification.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// UnmodifiableInt32ListView.
 class UnmodifiableInt32ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Int32List, Int32List>
     implements Int32List {
@@ -240,6 +267,9 @@ class UnmodifiableInt32ListView extends UnmodifiableListBase<int>
 }
 
 /// View of a [Uint64List] that disallows modification.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// UnmodifiableUint64ListView.
 class UnmodifiableUint64ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Uint64List, Uint64List>
     implements Uint64List {
@@ -250,6 +280,9 @@ class UnmodifiableUint64ListView extends UnmodifiableListBase<int>
 }
 
 /// View of a [Int64List] that disallows modification.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// UnmodifiableInt64ListView.
 class UnmodifiableInt64ListView extends UnmodifiableListBase<int>
     with _UnmodifiableListMixin<int, Int64List, Int64List>
     implements Int64List {
@@ -260,6 +293,9 @@ class UnmodifiableInt64ListView extends UnmodifiableListBase<int>
 }
 
 /// View of a [Int32x4List] that disallows modification.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// UnmodifiableInt32x4ListView.
 class UnmodifiableInt32x4ListView extends UnmodifiableListBase<Int32x4>
     with _UnmodifiableListMixin<Int32x4, Int32x4List, Int32x4List>
     implements Int32x4List {
@@ -270,6 +306,9 @@ class UnmodifiableInt32x4ListView extends UnmodifiableListBase<Int32x4>
 }
 
 /// View of a [Float32x4List] that disallows modification.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// UnmodifiableFloat32x4ListView.
 class UnmodifiableFloat32x4ListView extends UnmodifiableListBase<Float32x4>
     with _UnmodifiableListMixin<Float32x4, Float32x4List, Float32x4List>
     implements Float32x4List {
@@ -280,6 +319,9 @@ class UnmodifiableFloat32x4ListView extends UnmodifiableListBase<Float32x4>
 }
 
 /// View of a [Float64x2List] that disallows modification.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// UnmodifiableFloat64x2ListView.
 class UnmodifiableFloat64x2ListView extends UnmodifiableListBase<Float64x2>
     with _UnmodifiableListMixin<Float64x2, Float64x2List, Float64x2List>
     implements Float64x2List {
@@ -290,6 +332,9 @@ class UnmodifiableFloat64x2ListView extends UnmodifiableListBase<Float64x2>
 }
 
 /// View of a [Float32List] that disallows modification.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// UnmodifiableFloat32ListView.
 class UnmodifiableFloat32ListView extends UnmodifiableListBase<double>
     with _UnmodifiableListMixin<double, Float32List, Float32List>
     implements Float32List {
@@ -300,6 +345,9 @@ class UnmodifiableFloat32ListView extends UnmodifiableListBase<double>
 }
 
 /// View of a [Float64List] that disallows modification.
+///
+/// It is a compile-time error for a class to attempt to extend or implement
+/// UnmodifiableFloat64ListView.
 class UnmodifiableFloat64ListView extends UnmodifiableListBase<double>
     with _UnmodifiableListMixin<double, Float64List, Float64List>
     implements Float64List {
