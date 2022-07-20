@@ -158,6 +158,9 @@
   },
   "wasm": {
     "libraries": {
+      "_http": {
+        "uri": "_http/http.dart"
+      },
       "_internal": {
         "uri": "internal/internal.dart",
         "patches": [
@@ -231,6 +234,11 @@
       },
       "nativewrappers": {
         "uri": "html/dartium/nativewrappers.dart"
+      },
+      "io": {
+        "uri": "io/io.dart",
+        "patches": "_internal/wasm/lib/io_patch.dart",
+        "supported": false
       },
       "isolate": {
         "uri": "isolate/isolate.dart"
