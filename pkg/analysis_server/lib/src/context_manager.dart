@@ -565,11 +565,23 @@ class ContextManagerImpl implements ContextManager {
       // rest of this method, we will need to start again.
       var needsBuild = true;
       final temporaryWatcherSubscriptions = temporaryWatchers
-          .map((watcher) => watcher.changes.listen((event) {
-                if (shouldRestartBuild(event.path)) {
+          .map((watcher) => watcher.changes.listen(
+                (event) {
+                  if (shouldRestartBuild(event.path)) {
+                    needsBuild = true;
+                  }
+                },
+                onError: (error, stackTrace) {
+                  // Errors in the watcher such as "Directory watcher closed
+                  // unexpectedly" on Windows when the buffer overflows also
+                  // require that we restarted to be consistent.
                   needsBuild = true;
-                }
-              }))
+                  _instrumentationService.logError(
+                    'Temporary watcher error; restarting context build.\n'
+                    '$error\n$stackTrace',
+                  );
+                },
+              ))
           .toList();
 
       try {
