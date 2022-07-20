@@ -4387,7 +4387,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 class LibraryExportElementImpl extends _ExistingElementImpl
     implements LibraryExportElement {
   @override
-  List<NamespaceCombinator> combinators = const [];
+  final List<NamespaceCombinator> combinators;
 
   @override
   final int exportKeywordOffset;
@@ -4396,6 +4396,7 @@ class LibraryExportElementImpl extends _ExistingElementImpl
   final DirectiveUri uri;
 
   LibraryExportElementImpl({
+    required this.combinators,
     required this.exportKeywordOffset,
     required this.uri,
   }) : super(null, exportKeywordOffset);
@@ -4434,7 +4435,7 @@ class LibraryExportElementImpl extends _ExistingElementImpl
 class LibraryImportElementImpl extends _ExistingElementImpl
     implements LibraryImportElement {
   @override
-  List<NamespaceCombinator> combinators = const [];
+  final List<NamespaceCombinator> combinators;
 
   @override
   final int importKeywordOffset;
@@ -4448,6 +4449,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   Namespace? _namespace;
 
   LibraryImportElementImpl({
+    required this.combinators,
     required this.importKeywordOffset,
     required this.prefix,
     required this.uri,

@@ -615,9 +615,10 @@ class LibraryBuilder {
     }
 
     return LibraryExportElementImpl(
+      combinators: combinators,
       exportKeywordOffset: state.unlinked.exportKeywordOffset,
       uri: uri,
-    )..combinators = combinators;
+    );
   }
 
   LibraryImportElementImpl _buildImport({
@@ -702,12 +703,11 @@ class LibraryBuilder {
     }
 
     return LibraryImportElementImpl(
+      combinators: combinators,
       importKeywordOffset: state.unlinked.importKeywordOffset,
-      uri: uri,
       prefix: importPrefix,
-    )
-      ..combinators = combinators
-      ..isSynthetic = state.isSyntheticDartCore;
+      uri: uri,
+    )..isSynthetic = state.isSyntheticDartCore;
   }
 
   PrefixElementImpl _buildPrefix({
