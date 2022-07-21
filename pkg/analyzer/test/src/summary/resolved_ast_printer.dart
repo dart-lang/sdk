@@ -774,11 +774,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('LibraryAugmentationDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      // TODO(scheglov) Implement.
-      // _writeElement('element', node.element);
-      // _writeRaw('uriContent', node.uriContent);
-      // _writeElement('uriElement', node.uriElement);
-      // _writeSource('uriSource', node.uriSource);
+      _writeElement('element', node.element);
     });
   }
 

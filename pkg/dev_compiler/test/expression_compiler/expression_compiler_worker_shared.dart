@@ -936,22 +936,15 @@ class TestAssetServer {
     try {
       var entity = fileSystem.entityForUri(uri);
       if (await entity.existsAsyncIfPossible()) {
-        if (request.method == 'HEAD') {
-          var headers = {
-            'content-length': '-1',
-            ...request.headers,
-          };
-          return Response.ok(null, headers: headers);
-        }
-
-        if (request.method == 'GET') {
+        if (request.method == 'HEAD' || request.method == 'GET') {
           // 'readAsBytes'
           var contents = await entity.readAsBytesAsyncIfPossible();
           var headers = {
             'content-length': '${contents.length}',
             ...request.headers,
           };
-          return Response.ok(contents, headers: headers);
+          return Response.ok(request.method == 'GET' ? contents : null,
+              headers: headers);
         }
       }
       return Response.notFound(path);

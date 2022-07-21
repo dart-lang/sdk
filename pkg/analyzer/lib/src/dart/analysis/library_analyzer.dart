@@ -684,7 +684,6 @@ class LibraryAnalyzer {
           errorReporter: containerErrorReporter,
         );
       } else if (directive is LibraryAugmentationDirectiveImpl) {
-        // TODO(scheglov) test
         directive.element = containerElement;
       } else if (directive is LibraryDirectiveImpl) {
         directive.element = containerElement;

@@ -103,10 +103,6 @@ class TextDocumentOpenHandler
       );
       server.onOverlayCreated(path, doc.text);
 
-      // If the file did not exist, and is "overlay only", it still should be
-      // analyzed. Add it to driver to which it should have been added.
-      server.contextManager.getDriverFor(path)?.addFile(path);
-
       await server.addPriorityFile(path);
 
       return success(null);
