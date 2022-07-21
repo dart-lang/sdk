@@ -395,6 +395,17 @@ void f() {
         'Not all selected statements are enclosed by the same parent statement.');
   }
 
+  Future<void> test_bad_function_prefix() async {
+    await indexTestUnit('''
+import 'dart:io' as io;
+void f() {
+  io.exit(1);
+}
+''');
+    _createRefactoringWithSuffix('io', '.exit');
+    return _assertConditionsFatal('Cannot extract an import prefix.');
+  }
+
   Future<void> test_bad_methodName_reference() async {
     await indexTestUnit('''
 void f() {
@@ -769,8 +780,7 @@ void f() {
 }
 ''');
     _createRefactoringWithSuffix('io', '.File f');
-    return _assertConditionsFatal(
-        'Cannot extract prefix part of a type reference.');
+    return _assertConditionsFatal('Cannot extract an import prefix.');
   }
 
   Future<void> test_bad_variableDeclarationFragment() async {
@@ -2461,6 +2471,25 @@ void f(int p) {
 ''');
     _createRefactoringForStartEndComments();
     await assertRefactoringConditionsOK();
+  }
+
+  Future<void> test_statements_functionPrefix() async {
+    await indexTestUnit('''
+import 'dart:io' as io;
+void f() {
+  io.exit(1);
+}
+''');
+    _createRefactoringForString('io.exit(1)');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+import 'dart:io' as io;
+void f() {
+  res();
+}
+
+Never res() => io.exit(1);
+''');
   }
 
   Future<void> test_statements_hasAwait_dynamicReturnType() async {

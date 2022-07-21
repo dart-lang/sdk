@@ -2,7 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-
 [ $compiler == app_jitk ]
 main/no_main_test/01: Crash
 number/web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
@@ -202,6 +201,9 @@ nnbd/static_errors/use_nnbd_sdk_test/06: Skip # Issue 39813
 nnbd/syntax/class_member_declarations_test/none: Skip # Issue 39823
 nnbd/syntax/nullable_type_test: Skip # Issue 39820
 nnbd/syntax/opt_out_nnbd_modifiers_test: Skip # Issue 37957
+
+[ $arch == ia32 && $mode == debug ]
+*: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
 
 [ $builder_tag == obfuscated && $compiler == dartkp ]
 generic/function_dcall_test/01: SkipByDesign # Prints type names
