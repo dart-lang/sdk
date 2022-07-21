@@ -989,14 +989,14 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
       if (element is FunctionElement || element is MethodElement) {
         invalidSelection('Cannot extract a single method name.');
       }
+      if (element is PrefixElement) {
+        invalidSelection('Cannot extract an import prefix.');
+      }
       var parent = node.parent;
       if (parent is PrefixedIdentifier) {
         if (parent.identifier == node) {
           // name in property access
           invalidSelection('Cannot extract name part of a property access.');
-        } else if (parent.prefix == node && parent.parent is NamedType) {
-          // prefix in a named type (for example `io` in `io.File`)
-          invalidSelection('Cannot extract prefix part of a type reference.');
         }
       }
       // part of a named type (for example `int` in `int?`)
