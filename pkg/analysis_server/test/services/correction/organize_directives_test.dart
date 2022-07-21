@@ -245,6 +245,31 @@ void f() {
 }''', removeUnused: true);
   }
 
+  Future<void> test_remove_unnecessaryImports() async {
+    newFile(
+      convertPath('$testPackageLibPath/declarations.dart'),
+      'class A {} class B {}',
+    );
+    newFile(
+      convertPath('$testPackageLibPath/exports.dart'),
+      'export "a.dart" show A;',
+    );
+    await _computeUnitAndErrors(r'''
+import 'declarations.dart';
+import 'exports.dart';
+
+A? a;
+B? b;
+''');
+    // validate change
+    _assertOrganize(r'''
+import 'declarations.dart';
+
+A? a;
+B? b;
+''', removeUnused: true);
+  }
+
   Future<void> test_remove_unusedImports() async {
     await _computeUnitAndErrors(r'''
 library lib;

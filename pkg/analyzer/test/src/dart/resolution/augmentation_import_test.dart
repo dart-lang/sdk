@@ -87,38 +87,6 @@ AugmentationImportDirective
 ''');
   }
 
-  test_inAugmentation_notAugmentation_invalidUri() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-''');
-
-    final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
-import augment 'da:';
-''');
-
-    await resolveFile2(b.path);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.INVALID_URI, 41, 5),
-    ]);
-
-    final node = findNode.augmentationImportDirective('da:');
-    assertResolvedNodeText(node, r'''
-AugmentationImportDirective
-  importKeyword: import
-  augmentKeyword: augment
-  uri: SimpleStringLiteral
-    literal: 'da:'
-  semicolon: ;
-  element: AugmentationImportElement
-    uri: DirectiveUriWithRelativeUri
-      relativeUri: da:
-  uriContent: da:
-  uriElement: <null>
-  uriSource: <null>
-''');
-  }
-
   test_inAugmentation_notAugmentation_library() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'b.dart';
@@ -153,35 +121,109 @@ AugmentationImportDirective
 ''');
   }
 
-  test_inAugmentation_notAugmentation_uriDoesNotExist() async {
+  test_inAugmentation_notAugmentation_noRelativeUri() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'b.dart';
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
 library augment 'a.dart';
-import augment 'c.dart';
+import augment ':net';
 ''');
 
     await resolveFile2(b.path);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 41, 8),
+      error(CompileTimeErrorCode.INVALID_URI, 41, 6),
     ]);
 
-    final node = findNode.augmentationImportDirective('c.dart');
+    final node = findNode.augmentationImportDirective(':net');
     assertResolvedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
   augmentKeyword: augment
   uri: SimpleStringLiteral
-    literal: 'c.dart'
+    literal: ':net'
   semicolon: ;
   element: AugmentationImportElement
-    uri: DirectiveUriWithSource
-      source: package:test/c.dart
-  uriContent: c.dart
+    uri: DirectiveUriWithRelativeUriString
+      relativeUriString: :net
+  uriContent: :net
   uriElement: <null>
-  uriSource: package:test/c.dart
+  uriSource: <null>
+''');
+  }
+
+  test_inAugmentation_notAugmentation_noRelativeUriStr() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+import augment '${'foo'}.dart';
+''');
+
+    await resolveFile2(b.path);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 41, 15),
+    ]);
+
+    final node = findNode.augmentationImportDirective('foo');
+    assertResolvedNodeText(node, r'''
+AugmentationImportDirective
+  importKeyword: import
+  augmentKeyword: augment
+  uri: StringInterpolation
+    elements
+      InterpolationString
+        contents: '
+      InterpolationExpression
+        leftBracket: ${
+        expression: SimpleStringLiteral
+          literal: 'foo'
+        rightBracket: }
+      InterpolationString
+        contents: .dart'
+    staticType: String
+    stringValue: null
+  semicolon: ;
+  element: AugmentationImportElement
+    uri: DirectiveUri
+  uriContent: null
+  uriElement: <null>
+  uriSource: <null>
+''');
+  }
+
+  test_inAugmentation_notAugmentation_noSource() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+import augment 'foo:bar';
+''');
+
+    await resolveFile2(b.path);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 41, 9),
+    ]);
+
+    final node = findNode.augmentationImportDirective('foo:bar');
+    assertResolvedNodeText(node, r'''
+AugmentationImportDirective
+  importKeyword: import
+  augmentKeyword: augment
+  uri: SimpleStringLiteral
+    literal: 'foo:bar'
+  semicolon: ;
+  element: AugmentationImportElement
+    uri: DirectiveUriWithRelativeUri
+      relativeUri: foo:bar
+  uriContent: foo:bar
+  uriElement: <null>
+  uriSource: <null>
 ''');
   }
 
@@ -240,6 +282,30 @@ AugmentationImportDirective
 ''');
   }
 
+  test_inLibrary_notAugmentation_fileDoesNotExist() async {
+    await assertErrorsInCode(r'''
+import augment 'a.dart';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 15, 8),
+    ]);
+
+    final node = findNode.augmentationImportDirective('a.dart');
+    assertResolvedNodeText(node, r'''
+AugmentationImportDirective
+  importKeyword: import
+  augmentKeyword: augment
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  semicolon: ;
+  element: AugmentationImportElement
+    uri: DirectiveUriWithSource
+      source: package:test/a.dart
+  uriContent: a.dart
+  uriElement: <null>
+  uriSource: package:test/a.dart
+''');
+  }
+
   test_inLibrary_notAugmentation_library() async {
     newFile('$testPackageLibPath/a.dart', '');
 
@@ -263,6 +329,88 @@ AugmentationImportDirective
   uriContent: a.dart
   uriElement: <null>
   uriSource: package:test/a.dart
+''');
+  }
+
+  test_inLibrary_notAugmentation_noRelativeUri() async {
+    await assertErrorsInCode(r'''
+import augment ':net';
+''', [
+      error(CompileTimeErrorCode.INVALID_URI, 15, 6),
+    ]);
+
+    final node = findNode.augmentationImportDirective(':net');
+    assertResolvedNodeText(node, r'''
+AugmentationImportDirective
+  importKeyword: import
+  augmentKeyword: augment
+  uri: SimpleStringLiteral
+    literal: ':net'
+  semicolon: ;
+  element: AugmentationImportElement
+    uri: DirectiveUriWithRelativeUriString
+      relativeUriString: :net
+  uriContent: :net
+  uriElement: <null>
+  uriSource: <null>
+''');
+  }
+
+  test_inLibrary_notAugmentation_noRelativeUriStr() async {
+    await assertErrorsInCode(r'''
+import augment '${'foo'}.dart';
+''', [
+      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 15, 15),
+    ]);
+
+    final node = findNode.augmentationImportDirective('foo');
+    assertResolvedNodeText(node, r'''
+AugmentationImportDirective
+  importKeyword: import
+  augmentKeyword: augment
+  uri: StringInterpolation
+    elements
+      InterpolationString
+        contents: '
+      InterpolationExpression
+        leftBracket: ${
+        expression: SimpleStringLiteral
+          literal: 'foo'
+        rightBracket: }
+      InterpolationString
+        contents: .dart'
+    staticType: String
+    stringValue: null
+  semicolon: ;
+  element: AugmentationImportElement
+    uri: DirectiveUri
+  uriContent: null
+  uriElement: <null>
+  uriSource: <null>
+''');
+  }
+
+  test_inLibrary_notAugmentation_noSource() async {
+    await assertErrorsInCode(r'''
+import augment 'foo:bar';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 15, 9),
+    ]);
+
+    final node = findNode.augmentationImportDirective('foo:bar');
+    assertResolvedNodeText(node, r'''
+AugmentationImportDirective
+  importKeyword: import
+  augmentKeyword: augment
+  uri: SimpleStringLiteral
+    literal: 'foo:bar'
+  semicolon: ;
+  element: AugmentationImportElement
+    uri: DirectiveUriWithRelativeUri
+      relativeUri: foo:bar
+  uriContent: foo:bar
+  uriElement: <null>
+  uriSource: <null>
 ''');
   }
 

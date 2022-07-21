@@ -949,12 +949,11 @@ ObjectPtr ActivationFrame::GetParameter(intptr_t index) {
     return Object::null();
   }
 
-  if (function().NumOptionalParameters() > 0) {
-    // If the function has optional parameters, the first positional parameter
-    // can be in a number of places in the caller's frame depending on how many
-    // were actually supplied at the call site, but they are copied to a fixed
-    // place in the callee's frame.
-
+  if (function().MakesCopyOfParameters()) {
+    // Function parameters are copied to a fixed place in the callee's frame.
+    if (function().IsSuspendableFunction()) {
+      ++index;  // Skip slot reserved for :suspend_state variable.
+    }
     return GetVariableValue(LocalVarAddress(
         fp(), runtime_frame_layout.FrameSlotForVariableIndex(-index)));
   } else {

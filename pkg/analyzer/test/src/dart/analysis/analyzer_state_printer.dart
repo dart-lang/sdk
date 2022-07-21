@@ -112,10 +112,12 @@ class AnalyzerStatePrinter {
           }
           sink.writeln();
         } else if (import is AugmentationImportWithUri) {
+          _writelnWithIndent('uri: ${import.uri.relativeUri}');
+        } else if (import is AugmentationImportWithUriStr) {
           final uriStr = _stringOfUriStr(import.uri.relativeUriStr);
-          _writelnWithIndent('uri: $uriStr');
+          _writelnWithIndent('uriStr: $uriStr');
         } else {
-          _writelnWithIndent('noUri');
+          _writelnWithIndent('noUriStr');
         }
       },
     );
