@@ -20,6 +20,7 @@ import '../world.dart';
 import 'namer.dart';
 import 'native_data.dart';
 import 'runtime_types_codegen.dart' show RuntimeTypesSubstitutions;
+import 'runtime_types_new_interfaces.dart' as interfaces;
 
 class RecipeEncoding {
   final jsAst.Literal recipe;
@@ -28,13 +29,16 @@ class RecipeEncoding {
   const RecipeEncoding(this.recipe, this.typeVariables);
 }
 
-abstract class RecipeEncoder {
+abstract class RecipeEncoder implements interfaces.RecipeEncoder {
   /// Returns a [RecipeEncoding] representing the given [recipe] to be
   /// evaluated against a type environment with shape [structure].
   RecipeEncoding encodeRecipe(ModularEmitter emitter,
       TypeEnvironmentStructure environmentStructure, TypeRecipe recipe);
 
-  jsAst.Literal encodeGroundRecipe(ModularEmitter emitter, TypeRecipe recipe);
+  @override
+  // TODO(48820): Remove covariant when ModularEmitter is migrated.
+  jsAst.Literal encodeGroundRecipe(
+      covariant ModularEmitter emitter, TypeRecipe recipe);
 
   /// Returns a [jsAst.Literal] representing [supertypeArgument] to be evaluated
   /// against a [FullTypeEnvironmentStructure] representing [declaringType]. Any

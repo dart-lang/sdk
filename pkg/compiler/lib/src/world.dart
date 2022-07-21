@@ -27,7 +27,7 @@ import 'universe/selector.dart' show Selector;
 
 import 'world_interfaces.dart' as interfaces;
 
-export 'world_interfaces.dart' show World;
+export 'world_interfaces.dart' show World, BuiltWorld;
 
 /// The [JClosedWorld] represents the information known about a program when
 /// compiling with closed-world semantics.
@@ -227,57 +227,4 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
 
   /// Registers [interface] as a type argument to `extractTypeArguments`.
   void registerExtractTypeArguments(ClassEntity interface);
-}
-
-/// A [BuiltWorld] is an immutable result of a [WorldBuilder].
-abstract class BuiltWorld {
-  ClassHierarchy get classHierarchy;
-
-  /// Calls [f] for each live generic method.
-  void forEachGenericMethod(void Function(FunctionEntity) f);
-
-  /// All types that are checked either through is, as or checked mode checks.
-  Iterable<DartType> get isChecks;
-
-  /// All type variables named in recipes.
-  Set<TypeVariableType> get namedTypeVariablesNewRti;
-
-  /// All directly instantiated types, that is, the types of
-  /// [directlyInstantiatedClasses].
-  // TODO(johnniwinther): Improve semantic precision.
-  Iterable<InterfaceType> get instantiatedTypes;
-
-  // TODO(johnniwinther): Clean up these getters.
-  /// Methods in instantiated classes that are potentially closurized.
-  Iterable<FunctionEntity> get closurizedMembers;
-
-  /// Static or top level methods that are closurized.
-  Iterable<FunctionEntity> get closurizedStatics;
-
-  /// Properties (fields and getters) which can be called as generic functions.
-  Map<MemberEntity, DartType> get genericCallableProperties;
-
-  /// Type variables used as type literals.
-  Iterable<TypeVariableType> get typeVariableTypeLiterals;
-
-  /// Live user-defined 'noSuchMethod' implementations.
-  Iterable<FunctionEntity> get userNoSuchMethods;
-
-  AnnotationsData get annotationsData;
-
-  /// Calls [f] for each live generic instance methods.
-  void forEachGenericInstanceMethod(void Function(FunctionEntity) f);
-
-  /// Live generic local functions.
-  Iterable<Local> get genericLocalFunctions;
-
-  /// Call [f] for each generic [function] with the type arguments passed
-  /// through static calls to [function].
-  void forEachStaticTypeArgument(
-      void f(Entity function, Set<DartType> typeArguments));
-
-  /// Call [f] for each generic [selector] with the type arguments passed
-  /// through dynamic calls to [selector].
-  void forEachDynamicTypeArgument(
-      void f(Selector selector, Set<DartType> typeArguments));
 }

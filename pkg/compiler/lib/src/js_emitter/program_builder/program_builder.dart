@@ -200,7 +200,7 @@ class ProgramBuilder {
     _classes.forEach((ClassEntity cls, Class c) {
       ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
       if (superclass != null) {
-        c.setSuperclass(_classes[superclass]);
+        c.superclass = _classes[superclass];
         assert(
             c.onlyForConstructor || c.superclass != null,
             failedAt(
@@ -211,7 +211,7 @@ class ProgramBuilder {
       if (c.isSimpleMixinApplication || c.isMixinApplicationWithMembers) {
         ClassEntity effectiveMixinClass =
             _elementEnvironment.getEffectiveMixinClass(cls);
-        c.setMixinClass(_classes[effectiveMixinClass]);
+        c.mixinClass = _classes[effectiveMixinClass];
         assert(
             c.mixinClass != null,
             failedAt(

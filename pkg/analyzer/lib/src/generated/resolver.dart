@@ -1891,6 +1891,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    elementResolver.visitLibraryAugmentationDirective(node);
+  }
+
+  @override
   void visitLibraryDirective(LibraryDirective node) {
     checkUnreachableNode(node);
     node.visitChildren(this);

@@ -142,7 +142,10 @@ class FakeFlutter {
 
     var assist = await assertHasAssist(expected);
 
-    expect(assist.selection!.offset, expected.indexOf('child: '));
+    expect(
+      assist.selection!.offset,
+      normalizeSource(expected).indexOf('child: '),
+    );
     expect(assist.selectionLength, 0);
   }
 

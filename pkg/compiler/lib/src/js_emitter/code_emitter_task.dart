@@ -26,6 +26,7 @@ import 'program_builder/program_builder.dart';
 import 'startup_emitter/emitter.dart' as startup_js_emitter;
 import 'startup_emitter/fragment_merger.dart';
 
+import 'code_emitter_task_interfaces.dart' as interfaces;
 import 'metadata_collector.dart' show MetadataCollector;
 import 'model.dart';
 import 'native_emitter.dart' show NativeEmitter;
@@ -155,7 +156,7 @@ class CodeEmitterTask extends CompilerTask {
 ///
 /// Note that the emission phase is not itself modular but performed on
 /// the closed world computed by the codegen enqueuer.
-abstract class ModularEmitter {
+abstract class ModularEmitter implements interfaces.ModularEmitter {
   /// Returns the JS prototype of the given class [e].
   jsAst.Expression prototypeAccess(ClassEntity e);
 

@@ -37,9 +37,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
 
   @override
   void addTestSource(String code) {
-    if (useLineEndingsForPlatform) {
-      code = normalizeNewlinesForPlatform(code);
-    }
+    code = normalizeSource(code);
     final eol = code.contains('\r\n') ? '\r\n' : '\n';
     var offset = code.indexOf('/*caret*/');
     if (offset >= 0) {
@@ -122,9 +120,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   /// given [snippet] which produces the [expected] code when applied to [testCode].
   Future<void> assertHasAssistAt(String snippet, String expected,
       {int length = 0}) async {
-    if (useLineEndingsForPlatform) {
-      expected = normalizeNewlinesForPlatform(expected);
-    }
+    expected = normalizeSource(expected);
     _offset = findOffset(snippet);
     _length = length;
     var assist = await _assertHasAssist();

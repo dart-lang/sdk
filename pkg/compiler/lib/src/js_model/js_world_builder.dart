@@ -318,8 +318,8 @@ class JsClosedWorldBuilder {
         classesNeedingTypeArguments,
         methodsNeedingSignature,
         methodsNeedingTypeArguments,
-        null,
-        null,
+        const {},
+        const {},
         selectorsNeedingTypeArguments,
         rtiNeed.instantiationsNeedingTypeArguments);
   }

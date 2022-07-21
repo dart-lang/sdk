@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.59
+# Dart VM Service Protocol 3.60
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.58_ of the Dart VM Service Protocol. This
+This document describes of _version 3.60_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -2226,6 +2226,12 @@ class Event extends Response {
   // This is provided for the Inspect event.
   @Instance inspectee [optional];
 
+  // The garbage collection (GC) operation performed.
+  //
+  // This is provided for the event kinds:
+  //   GC
+  string gcType [optional];
+
   // The RPC name of the extension that was added.
   //
   // This is provided for the ServiceExtensionAdded event.
@@ -4379,5 +4385,6 @@ version | comments
 3.57 | Added optional `libraryFilters` parameter to `getSourceReport` RPC.
 3.58 | Added optional `local` parameter to `lookupResolvedPackageUris` RPC.
 3.59 | Added `abstract` property to `@Function` and `Function`.
+3.60 | Added `gcType` property to `Event`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

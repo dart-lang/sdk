@@ -1135,10 +1135,8 @@ abstract class ElementVisitor<R> {
 
   R? visitConstructorElement(ConstructorElement element);
 
-  @Deprecated('Override visitExportElement2() instead')
+  @Deprecated('Override visitLibraryExportElement() instead')
   R? visitExportElement(ExportElement element);
-
-  R? visitExportElement2(LibraryExportElement element);
 
   R? visitExtensionElement(ExtensionElement element);
 
@@ -1150,16 +1148,18 @@ abstract class ElementVisitor<R> {
 
   R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element);
 
-  @Deprecated('Override visitImportElement2() instead')
+  @Deprecated('Override visitLibraryImportElement() instead')
   R? visitImportElement(ImportElement element);
-
-  R? visitImportElement2(LibraryImportElement element);
 
   R? visitLabelElement(LabelElement element);
 
   R? visitLibraryAugmentationElement(LibraryAugmentationElement element);
 
   R? visitLibraryElement(LibraryElement element);
+
+  R? visitLibraryExportElement(LibraryExportElement element);
+
+  R? visitLibraryImportElement(LibraryImportElement element);
 
   R? visitLocalVariableElement(LocalVariableElement element);
 

@@ -53,7 +53,7 @@ class FakeFlutter {
     var editGroup = assist.linkedEditGroups.first;
     expect(editGroup.length, 'widget'.length);
     var pos = editGroup.positions.single;
-    expect(pos.offset, expected.indexOf('widget('));
+    expect(pos.offset, normalizeSource(expected).indexOf('widget('));
   }
 
   Future<void> test_minimal() async {

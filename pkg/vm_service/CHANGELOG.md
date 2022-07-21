@@ -1,5 +1,9 @@
 # Changelog
 
+## 9.3.0
+- Update to version `3.60` of the spec.
+- Add `gcType` property to `Event`.
+
 ## 9.2.0
 - Update to version `3.59` of the spec.
 - Add `abstract` flag to `FuncRef`.

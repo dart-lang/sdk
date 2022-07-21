@@ -768,6 +768,14 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kSentinelCid;
     } else if (type_->IsFunctionType() || type_->IsDartFunctionType()) {
       cid_ = kClosureCid;
+    } else if (type_->IsDoubleType()) {
+      cid_ = kDoubleCid;  // double's only implementor is _Double.
+    } else if (type_->IsFloat32x4Type()) {
+      cid_ = kFloat32x4Cid;  // Float32x4's only implementor is _Float32x4.
+    } else if (type_->IsFloat64x2Type()) {
+      cid_ = kFloat64x2Cid;  // Float64x2's only implementor is _Float64x2.
+    } else if (type_->IsInt32x4Type()) {
+      cid_ = kInt32x4Cid;  // Int32x4's only implementor is _Int32x4.
     } else if (type_->type_class_id() != kIllegalCid) {
       const Class& type_class = Class::Handle(type_->type_class());
       Thread* thread = Thread::Current();

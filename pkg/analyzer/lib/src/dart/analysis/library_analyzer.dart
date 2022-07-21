@@ -530,23 +530,12 @@ class LibraryAnalyzer {
 
   /// Parse and resolve all files in [_library].
   Map<FileState, CompilationUnitImpl> _parseAndResolve() {
-    // Parse all files.
-    final libraryFile = _library.file;
-    final libraryUnit = _parse(libraryFile);
-    final units = <FileState, CompilationUnitImpl>{
-      libraryFile: libraryUnit,
-    };
-    for (final part in _library.parts) {
-      if (part is PartWithFile) {
-        final partFile = part.includedPart?.file;
-        if (partFile != null) {
-          units[partFile] = _parse(partFile);
-        }
-      }
-    }
-
-    // Resolve URIs in directives to corresponding sources.
-    _resolveDirectives(units, libraryUnit);
+    final units = <FileState, CompilationUnitImpl>{};
+    _resolveDirectives(
+      containerKind: _library,
+      containerElement: _libraryElement,
+      units: units,
+    );
 
     units.forEach((file, unit) {
       _resolveFile(file, unit);
@@ -561,132 +550,160 @@ class LibraryAnalyzer {
     required AugmentationImportDirectiveImpl directive,
     required AugmentationImportElement element,
     required AugmentationImportState state,
-    // TODO(scheglov) wrong value, wrong name
-    required ErrorReporter libraryErrorReporter,
+    required ErrorReporter errorReporter,
     required Set<AugmentationFileKind> seenAugmentations,
+    required Map<FileState, CompilationUnitImpl> units,
   }) {
     directive.element = element;
 
-    final primaryUriState = state.uri;
-    if (primaryUriState is DirectiveUriWithString) {
-      directive.uriContent = primaryUriState.relativeUriStr;
-      directive.uriSource = primaryUriState.source;
+    final uriState = state.uri;
+    if (uriState is DirectiveUriWithString) {
+      directive.uriContent = uriState.relativeUriStr;
+      directive.uriSource = uriState.source;
     }
 
+    final AugmentationFileKind? importedAugmentationKind;
     if (state is AugmentationImportWithUri) {
       if (state.importedSource == null) {
         // TODO(scheglov) When do we have a valid URI here and in imports?
         final errorCode = state.uri.isValid
             ? CompileTimeErrorCode.URI_DOES_NOT_EXIST
             : CompileTimeErrorCode.INVALID_URI;
-        libraryErrorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           errorCode,
           directive.uri,
           [state.uri.relativeUriStr],
         );
+        return;
       } else if (state is AugmentationImportWithFile) {
-        final importedAugmentation = state.importedAugmentation;
+        importedAugmentationKind = state.importedAugmentation;
         if (!state.importedFile.exists) {
           final errorCode = isGeneratedSource(state.importedSource)
               ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
               : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
-          libraryErrorReporter.reportErrorForNode(
+          errorReporter.reportErrorForNode(
             errorCode,
             directive.uri,
             [state.importedFile.uriStr],
           );
-        } else if (importedAugmentation == null) {
-          libraryErrorReporter.reportErrorForNode(
+          return;
+        } else if (importedAugmentationKind == null) {
+          errorReporter.reportErrorForNode(
             CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION,
             directive.uri,
             [state.importedFile.uriStr],
           );
-        } else if (!seenAugmentations.add(importedAugmentation)) {
-          libraryErrorReporter.reportErrorForNode(
+          return;
+        } else if (!seenAugmentations.add(importedAugmentationKind)) {
+          errorReporter.reportErrorForNode(
             CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT,
             directive.uri,
             [state.importedFile.uriStr],
           );
+          return;
         }
+      } else {
+        return;
       }
     } else {
-      libraryErrorReporter.reportErrorForNode(
+      errorReporter.reportErrorForNode(
         CompileTimeErrorCode.URI_WITH_INTERPOLATION,
         directive.uri,
       );
+      return;
     }
-  }
 
-  void _resolveDirectives(
-    Map<FileState, CompilationUnitImpl> units,
-    CompilationUnitImpl libraryUnit,
-  ) {
-    libraryUnit.element = _libraryElement.definingCompilationUnit;
+    final augmentationFile = importedAugmentationKind.file;
+    final augmentationUnit = _parse(augmentationFile);
+    units[augmentationFile] = augmentationUnit;
 
-    ErrorReporter libraryErrorReporter = _getErrorReporter(_library.file);
+    final importedAugmentation = element.importedAugmentation!;
+    directive.uriSource = importedAugmentation.source;
+    augmentationUnit.element = importedAugmentation.definingCompilationUnit;
 
-    var augmentationImportIndex = 0;
-    var libraryImportIndex = 0;
-    var libraryExportIndex = 0;
-
-    LibraryIdentifier? libraryNameNode;
-    final seenAugmentations = <AugmentationFileKind>{};
-    var seenPartSources = <Source>{};
-    var directivesToResolve = <DirectiveImpl>[];
-    final partIndexes = _PartDirectiveIndexes();
-    for (Directive directive in libraryUnit.directives) {
-      if (directive is LibraryDirectiveImpl) {
-        libraryNameNode = directive.name;
-        directivesToResolve.add(directive);
-      } else if (directive is AugmentationImportDirectiveImpl) {
-        final index = augmentationImportIndex++;
-        _resolveAugmentationImportDirective(
-          directive: directive,
-          // TODO(scheglov) Not only in the library.
-          element: _libraryElement.augmentationImports[index],
-          // TODO(scheglov) Not only in the library.
-          state: _library.augmentationImports[index],
-          // TODO(scheglov) Not only in the library.
-          libraryErrorReporter: libraryErrorReporter,
-          seenAugmentations: seenAugmentations,
-        );
-      } else if (directive is ImportDirectiveImpl) {
-        _resolveLibraryImportDirective(
-          directive: directive,
-          importElement: _libraryElement.libraryImports[libraryImportIndex],
-          importState: _library.libraryImports[libraryImportIndex],
-          libraryErrorReporter: libraryErrorReporter,
-        );
-        libraryImportIndex++;
-      } else if (directive is ExportDirectiveImpl) {
-        _resolveLibraryExportDirective(
-          directive: directive,
-          exportElement: _libraryElement.libraryExports[libraryExportIndex],
-          exportState: _library.libraryExports[libraryExportIndex],
-          libraryErrorReporter: libraryErrorReporter,
-        );
-        libraryExportIndex++;
-      } else if (directive is PartDirectiveImpl) {
-        _resolvePartDirective(
-          directive: directive,
-          partIndexes: partIndexes,
-          libraryErrorReporter: libraryErrorReporter,
-          libraryNameNode: libraryNameNode,
-          units: units,
-          directivesToResolve: directivesToResolve,
-          seenPartSources: seenPartSources,
-        );
+    for (final directive in augmentationUnit.directives) {
+      if (directive is AugmentationImportDirectiveImpl) {
+        directive.element = importedAugmentation;
       }
     }
 
-    // TODO(brianwilkerson) Report the error
-    // ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART
+    _resolveDirectives(
+      containerKind: importedAugmentationKind,
+      containerElement: importedAugmentation,
+      units: units,
+    );
+  }
 
-    //
-    // Resolve the relevant directives to the library element.
-    //
-    for (var directive in directivesToResolve) {
-      directive.element = _libraryElement;
+  /// Parses the file of [containerKind], and resolves directives.
+  /// Recursively parses augmentations and parts.
+  void _resolveDirectives({
+    required LibraryOrAugmentationFileKind containerKind,
+    required LibraryOrAugmentationElement containerElement,
+    required Map<FileState, CompilationUnitImpl> units,
+  }) {
+    final containerFile = containerKind.file;
+    final containerUnit = _parse(containerFile);
+    containerUnit.element = containerElement.definingCompilationUnit;
+    units[containerFile] = containerUnit;
+
+    final containerErrorReporter = _getErrorReporter(containerFile);
+
+    var augmentationImportIndex = 0;
+    var libraryExportIndex = 0;
+    var libraryImportIndex = 0;
+    var partIndex = 0;
+
+    LibraryIdentifier? libraryNameNode;
+    final seenAugmentations = <AugmentationFileKind>{};
+    final seenPartSources = <Source>{};
+    for (Directive directive in containerUnit.directives) {
+      if (directive is AugmentationImportDirectiveImpl) {
+        final index = augmentationImportIndex++;
+        _resolveAugmentationImportDirective(
+          directive: directive,
+          element: containerElement.augmentationImports[index],
+          state: containerKind.augmentationImports[index],
+          errorReporter: containerErrorReporter,
+          seenAugmentations: seenAugmentations,
+          units: units,
+        );
+      } else if (directive is ExportDirectiveImpl) {
+        final index = libraryExportIndex++;
+        _resolveLibraryExportDirective(
+          directive: directive,
+          exportElement: containerElement.libraryExports[index],
+          exportState: containerKind.libraryExports[index],
+          errorReporter: containerErrorReporter,
+        );
+      } else if (directive is ImportDirectiveImpl) {
+        final index = libraryImportIndex++;
+        _resolveLibraryImportDirective(
+          directive: directive,
+          importElement: containerElement.libraryImports[index],
+          importState: containerKind.libraryImports[index],
+          errorReporter: containerErrorReporter,
+        );
+      } else if (directive is LibraryAugmentationDirectiveImpl) {
+        // TODO(scheglov) test
+        directive.element = containerElement;
+      } else if (directive is LibraryDirectiveImpl) {
+        directive.element = containerElement;
+        libraryNameNode = directive.name;
+      } else if (directive is PartDirectiveImpl) {
+        if (containerKind is LibraryFileKind &&
+            containerElement is LibraryElementImpl) {
+          final index = partIndex++;
+          _resolvePartDirective(
+            directive: directive,
+            partState: containerKind.parts[index],
+            partElement: containerElement.parts2[index],
+            errorReporter: containerErrorReporter,
+            libraryNameNode: libraryNameNode,
+            units: units,
+            seenPartSources: seenPartSources,
+          );
+        }
+      }
     }
   }
 
@@ -732,7 +749,7 @@ class LibraryAnalyzer {
     required ExportDirectiveImpl directive,
     required LibraryExportElement exportElement,
     required LibraryExportState exportState,
-    required ErrorReporter libraryErrorReporter,
+    required ErrorReporter errorReporter,
   }) {
     directive.element = exportElement;
     _resolveNamespaceDirective(
@@ -746,7 +763,7 @@ class LibraryAnalyzer {
     if (exportState is LibraryExportWithUri) {
       final selectedUriStr = exportState.selectedUri.relativeUriStr;
       if (selectedUriStr.startsWith('dart-ext:')) {
-        libraryErrorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
           directive.uri,
         );
@@ -754,7 +771,7 @@ class LibraryAnalyzer {
         final errorCode = exportState.selectedUri.isValid
             ? CompileTimeErrorCode.URI_DOES_NOT_EXIST
             : CompileTimeErrorCode.INVALID_URI;
-        libraryErrorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           errorCode,
           directive.uri,
           [selectedUriStr],
@@ -764,20 +781,20 @@ class LibraryAnalyzer {
         final errorCode = isGeneratedSource(exportState.exportedSource)
             ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
             : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
-        libraryErrorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           errorCode,
           directive.uri,
           [selectedUriStr],
         );
       } else if (exportState.exportedLibrarySource == null) {
-        libraryErrorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
           directive.uri,
           [selectedUriStr],
         );
       }
     } else {
-      libraryErrorReporter.reportErrorForNode(
+      errorReporter.reportErrorForNode(
         CompileTimeErrorCode.URI_WITH_INTERPOLATION,
         directive.uri,
       );
@@ -788,7 +805,7 @@ class LibraryAnalyzer {
     required ImportDirectiveImpl directive,
     required LibraryImportElement importElement,
     required LibraryImportState importState,
-    required ErrorReporter libraryErrorReporter,
+    required ErrorReporter errorReporter,
   }) {
     directive.element = importElement;
     directive.prefix?.staticElement = importElement.prefix?.element;
@@ -803,7 +820,7 @@ class LibraryAnalyzer {
     if (importState is LibraryImportWithUri) {
       final selectedUriStr = importState.selectedUri.relativeUriStr;
       if (selectedUriStr.startsWith('dart-ext:')) {
-        libraryErrorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
           directive.uri,
         );
@@ -811,7 +828,7 @@ class LibraryAnalyzer {
         final errorCode = importState.selectedUri.isValid
             ? CompileTimeErrorCode.URI_DOES_NOT_EXIST
             : CompileTimeErrorCode.INVALID_URI;
-        libraryErrorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           errorCode,
           directive.uri,
           [selectedUriStr],
@@ -821,20 +838,20 @@ class LibraryAnalyzer {
         final errorCode = isGeneratedSource(importState.importedSource)
             ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
             : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
-        libraryErrorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           errorCode,
           directive.uri,
           [selectedUriStr],
         );
       } else if (importState.importedLibrarySource == null) {
-        libraryErrorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
           directive.uri,
           [selectedUriStr],
         );
       }
     } else {
-      libraryErrorReporter.reportErrorForNode(
+      errorReporter.reportErrorForNode(
         CompileTimeErrorCode.URI_WITH_INTERPOLATION,
         directive.uri,
       );
@@ -868,25 +885,20 @@ class LibraryAnalyzer {
 
   void _resolvePartDirective({
     required PartDirectiveImpl directive,
-    required _PartDirectiveIndexes partIndexes,
-    required ErrorReporter libraryErrorReporter,
+    required PartState partState,
+    required PartElement partElement,
+    required ErrorReporter errorReporter,
     required LibraryIdentifier? libraryNameNode,
     required Map<FileState, CompilationUnitImpl> units,
-    required List<DirectiveImpl> directivesToResolve,
     required Set<Source> seenPartSources,
   }) {
     StringLiteral partUri = directive.uri;
 
-    final index = partIndexes.directive++;
-
-    final partState = _library.parts[index];
     directive.uriSource = partState.includedSource;
-
-    final partElement = _libraryElement.parts2[index];
     directive.element = partElement;
 
     if (partState is! PartWithUri) {
-      libraryErrorReporter.reportErrorForNode(
+      errorReporter.reportErrorForNode(
         CompileTimeErrorCode.URI_WITH_INTERPOLATION,
         directive.uri,
       );
@@ -897,7 +909,7 @@ class LibraryAnalyzer {
       final errorCode = partState.uri.isValid
           ? CompileTimeErrorCode.URI_DOES_NOT_EXIST
           : CompileTimeErrorCode.INVALID_URI;
-      libraryErrorReporter.reportErrorForNode(
+      errorReporter.reportErrorForNode(
         errorCode,
         directive.uri,
         [partState.uri.relativeUriStr],
@@ -909,7 +921,7 @@ class LibraryAnalyzer {
 
     if (includedKind is! PartFileKind) {
       if (includedFile.exists) {
-        libraryErrorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           CompileTimeErrorCode.PART_OF_NON_PART,
           partUri,
           [partUri.toSource()],
@@ -918,7 +930,7 @@ class LibraryAnalyzer {
         final errorCode = isGeneratedSource(includedFile.source)
             ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
             : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
-        libraryErrorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           errorCode,
           directive.uri,
           [partUri.toSource()],
@@ -931,13 +943,13 @@ class LibraryAnalyzer {
       if (!includedKind.libraries.contains(_library)) {
         final name = includedKind.unlinked.name;
         if (libraryNameNode == null) {
-          libraryErrorReporter.reportErrorForNode(
+          errorReporter.reportErrorForNode(
             CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY,
             partUri,
             [name],
           );
         } else {
-          libraryErrorReporter.reportErrorForNode(
+          errorReporter.reportErrorForNode(
             CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
             partUri,
             [libraryNameNode.name, name],
@@ -946,7 +958,7 @@ class LibraryAnalyzer {
         return;
       }
     } else if (includedKind.library != _library) {
-      libraryErrorReporter.reportErrorForNode(
+      errorReporter.reportErrorForNode(
         CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
         partUri,
         [_library.file.uriStr, includedFile.uriStr],
@@ -954,7 +966,9 @@ class LibraryAnalyzer {
       return;
     }
 
-    var partUnit = units[includedFile]!;
+    final partUnit = _parse(includedFile);
+    units[includedFile] = partUnit;
+
     final partElementUri = partElement.uri;
     if (partElementUri is DirectiveUriWithUnit) {
       partUnit.element = partElementUri.unit;
@@ -965,7 +979,7 @@ class LibraryAnalyzer {
 
     for (final directive in partUnit.directives) {
       if (directive is PartOfDirectiveImpl) {
-        directivesToResolve.add(directive);
+        directive.element = _libraryElement;
       }
     }
 
@@ -973,7 +987,7 @@ class LibraryAnalyzer {
     // Validate that the part source is unique in the library.
     //
     if (!seenPartSources.add(partSource)) {
-      libraryErrorReporter.reportErrorForNode(
+      errorReporter.reportErrorForNode(
           CompileTimeErrorCode.DUPLICATE_PART, partUri, [partSource.uri]);
     }
   }
@@ -1074,9 +1088,4 @@ class UnitAnalysisResult {
   final List<AnalysisError> errors;
 
   UnitAnalysisResult(this.file, this.unit, this.errors);
-}
-
-class _PartDirectiveIndexes {
-  int directive = 0;
-  int element = 0;
 }

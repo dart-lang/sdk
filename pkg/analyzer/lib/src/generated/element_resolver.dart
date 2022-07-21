@@ -266,6 +266,10 @@ class ElementResolver {
     }
   }
 
+  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    _resolveAnnotations(node.metadata);
+  }
+
   void visitLibraryDirective(LibraryDirective node) {
     _resolveAnnotations(node.metadata);
   }
