@@ -256,7 +256,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       thisLocal = paramLocals[0];
       w.RefType thisType = info.nonNullableType;
       if (translator.needsConversion(paramLocals[0].type, thisType) &&
-          !(cls == translator.ffiPointerClass ||
+          !(cls == translator.objectInfo.cls ||
+              cls == translator.ffiPointerClass ||
               translator.isFfiCompound(cls))) {
         preciseThisLocal = addLocal(thisType);
         b.local_get(paramLocals[0]);
