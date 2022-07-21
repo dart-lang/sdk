@@ -17,7 +17,7 @@ main() {
 class InvalidUriTest extends PubPackageResolutionTest {
   test_augmentationImport_invalidScheme() async {
     await assertErrorsInCode('''
-import augment 'ht:';
+import augment ':da';
 ''', [
       error(CompileTimeErrorCode.INVALID_URI, 15, 5),
     ]);

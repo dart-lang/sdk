@@ -562,49 +562,49 @@ class LibraryAnalyzer {
       directive.uriSource = uriState.source;
     }
 
+    // TODO(scheglov) Similarly restructure imports/exports.
     final AugmentationFileKind? importedAugmentationKind;
-    if (state is AugmentationImportWithUri) {
-      if (state.importedSource == null) {
-        // TODO(scheglov) When do we have a valid URI here and in imports?
-        final errorCode = state.uri.isValid
-            ? CompileTimeErrorCode.URI_DOES_NOT_EXIST
-            : CompileTimeErrorCode.INVALID_URI;
+    if (state is AugmentationImportWithFile) {
+      importedAugmentationKind = state.importedAugmentation;
+      if (!state.importedFile.exists) {
+        final errorCode = isGeneratedSource(state.importedSource)
+            ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
+            : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
         errorReporter.reportErrorForNode(
           errorCode,
           directive.uri,
-          [state.uri.relativeUriStr],
+          [state.importedFile.uriStr],
         );
         return;
-      } else if (state is AugmentationImportWithFile) {
-        importedAugmentationKind = state.importedAugmentation;
-        if (!state.importedFile.exists) {
-          final errorCode = isGeneratedSource(state.importedSource)
-              ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
-              : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
-          errorReporter.reportErrorForNode(
-            errorCode,
-            directive.uri,
-            [state.importedFile.uriStr],
-          );
-          return;
-        } else if (importedAugmentationKind == null) {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION,
-            directive.uri,
-            [state.importedFile.uriStr],
-          );
-          return;
-        } else if (!seenAugmentations.add(importedAugmentationKind)) {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT,
-            directive.uri,
-            [state.importedFile.uriStr],
-          );
-          return;
-        }
-      } else {
+      } else if (importedAugmentationKind == null) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION,
+          directive.uri,
+          [state.importedFile.uriStr],
+        );
+        return;
+      } else if (!seenAugmentations.add(importedAugmentationKind)) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT,
+          directive.uri,
+          [state.importedFile.uriStr],
+        );
         return;
       }
+    } else if (state is AugmentationImportWithUri) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+        directive.uri,
+        [state.uri.relativeUriStr],
+      );
+      return;
+    } else if (state is AugmentationImportWithUriStr) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INVALID_URI,
+        directive.uri,
+        [state.uri.relativeUriStr],
+      );
+      return;
     } else {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.URI_WITH_INTERPOLATION,

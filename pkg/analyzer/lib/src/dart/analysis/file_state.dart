@@ -115,8 +115,17 @@ class AugmentationImportWithFile
 
 /// [AugmentationImportState] that has a valid URI.
 class AugmentationImportWithUri<U extends DirectiveUriWithUri>
-    extends AugmentationImportState<U> {
+    extends AugmentationImportWithUriStr<U> {
   AugmentationImportWithUri({
+    required super.unlinked,
+    required super.uri,
+  });
+}
+
+/// [AugmentationImportState] that has a relative URI string.
+class AugmentationImportWithUriStr<U extends DirectiveUriWithString>
+    extends AugmentationImportState<U> {
+  AugmentationImportWithUriStr({
     required super.unlinked,
     required super.uri,
   });
@@ -1880,6 +1889,11 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
         );
       } else if (uri is DirectiveUriWithUri) {
         return AugmentationImportWithUri(
+          unlinked: unlinked,
+          uri: uri,
+        );
+      } else if (uri is DirectiveUriWithString) {
+        return AugmentationImportWithUriStr(
           unlinked: unlinked,
           uri: uri,
         );

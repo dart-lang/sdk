@@ -15,14 +15,6 @@ main() {
 
 @reflectiveTest
 class UriDoesNotExistTest extends PubPackageResolutionTest {
-  test_augmentationImport() async {
-    await assertErrorsInCode('''
-import augment 'unknown.dart';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 15, 14),
-    ]);
-  }
-
   test_libraryExport() async {
     await assertErrorsInCode('''
 export 'unknown.dart';
