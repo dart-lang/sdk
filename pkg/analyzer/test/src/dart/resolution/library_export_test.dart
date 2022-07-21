@@ -49,6 +49,148 @@ ExportDirective
 ''');
   }
 
+  test_inAugmentation_library_fileDoesNotExist() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+export 'c.dart';
+''');
+
+    await resolveFile2(b.path);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 33, 8),
+    ]);
+
+    final node = findNode.export('c.dart');
+    assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: SimpleStringLiteral
+    literal: 'c.dart'
+  semicolon: ;
+  element: LibraryExportElement
+    uri: DirectiveUriWithLibrary
+      uri: package:test/c.dart
+  selectedSource: package:test/c.dart
+  selectedUriContent: c.dart
+  uriContent: c.dart
+  uriElement: package:test/c.dart
+  uriSource: package:test/c.dart
+''');
+  }
+
+  test_inAugmentation_noRelativeUri() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+export ':net';
+''');
+
+    await resolveFile2(b.path);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.INVALID_URI, 33, 6),
+    ]);
+
+    final node = findNode.export('export');
+    assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: SimpleStringLiteral
+    literal: ':net'
+  semicolon: ;
+  element: LibraryExportElement
+    uri: DirectiveUriWithRelativeUriString
+      relativeUriString: :net
+  selectedSource: <null>
+  selectedUriContent: :net
+  uriContent: :net
+  uriElement: <null>
+  uriSource: <null>
+''');
+  }
+
+  test_inAugmentation_noRelativeUriStr() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+export '${'foo'}.dart';
+''');
+
+    await resolveFile2(b.path);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 33, 15),
+    ]);
+
+    final node = findNode.export('export');
+    assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: StringInterpolation
+    elements
+      InterpolationString
+        contents: '
+      InterpolationExpression
+        leftBracket: ${
+        expression: SimpleStringLiteral
+          literal: 'foo'
+        rightBracket: }
+      InterpolationString
+        contents: .dart'
+    staticType: String
+    stringValue: null
+  semicolon: ;
+  element: LibraryExportElement
+    uri: DirectiveUri
+  selectedSource: <null>
+  selectedUriContent: null
+  uriContent: null
+  uriElement: <null>
+  uriSource: <null>
+''');
+  }
+
+  test_inAugmentation_noSource() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+export 'foo:bar';
+''');
+
+    await resolveFile2(b.path);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 33, 9),
+    ]);
+
+    final node = findNode.export('export');
+    assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: SimpleStringLiteral
+    literal: 'foo:bar'
+  semicolon: ;
+  element: LibraryExportElement
+    uri: DirectiveUriWithRelativeUri
+      relativeUri: foo:bar
+  selectedSource: <null>
+  selectedUriContent: foo:bar
+  uriContent: foo:bar
+  uriElement: <null>
+  uriSource: <null>
+''');
+  }
+
   test_inAugmentation_notLibrary_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'b.dart';
@@ -385,6 +527,56 @@ ExportDirective
 ''');
   }
 
+  test_inLibrary_library() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertNoErrorsInCode(r'''
+export 'a.dart';
+''');
+
+    final node = findNode.export('a.dart');
+    assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  semicolon: ;
+  element: LibraryExportElement
+    uri: DirectiveUriWithLibrary
+      uri: package:test/a.dart
+  selectedSource: package:test/a.dart
+  selectedUriContent: a.dart
+  uriContent: a.dart
+  uriElement: package:test/a.dart
+  uriSource: package:test/a.dart
+''');
+  }
+
+  test_inLibrary_library_fileDoesNotExist() async {
+    await assertErrorsInCode(r'''
+export 'a.dart';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
+    ]);
+
+    final node = findNode.export('a.dart');
+    assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  semicolon: ;
+  element: LibraryExportElement
+    uri: DirectiveUriWithLibrary
+      uri: package:test/a.dart
+  selectedSource: package:test/a.dart
+  selectedUriContent: a.dart
+  uriContent: a.dart
+  uriElement: package:test/a.dart
+  uriSource: package:test/a.dart
+''');
+  }
+
   /// Test that both getter and setter are in the export namespace.
   test_inLibrary_namespace_getter_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
@@ -397,6 +589,31 @@ export 'a.dart';
     var exportNamespace = result.libraryElement.exportNamespace;
     expect(exportNamespace.get('f'), isNotNull);
     expect(exportNamespace.get('f='), isNotNull);
+  }
+
+  test_inLibrary_noRelativeUri() async {
+    await assertErrorsInCode(r'''
+export ':net';
+''', [
+      error(CompileTimeErrorCode.INVALID_URI, 7, 6),
+    ]);
+
+    final node = findNode.export('export');
+    assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: SimpleStringLiteral
+    literal: ':net'
+  semicolon: ;
+  element: LibraryExportElement
+    uri: DirectiveUriWithRelativeUriString
+      relativeUriString: :net
+  selectedSource: <null>
+  selectedUriContent: :net
+  uriContent: :net
+  uriElement: <null>
+  uriSource: <null>
+''');
   }
 
   test_inLibrary_noRelativeUriStr() async {

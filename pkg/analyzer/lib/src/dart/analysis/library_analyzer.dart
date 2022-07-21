@@ -671,16 +671,16 @@ class LibraryAnalyzer {
         final index = libraryExportIndex++;
         _resolveLibraryExportDirective(
           directive: directive,
-          exportElement: containerElement.libraryExports[index],
-          exportState: containerKind.libraryExports[index],
+          element: containerElement.libraryExports[index],
+          state: containerKind.libraryExports[index],
           errorReporter: containerErrorReporter,
         );
       } else if (directive is ImportDirectiveImpl) {
         final index = libraryImportIndex++;
         _resolveLibraryImportDirective(
           directive: directive,
-          importElement: containerElement.libraryImports[index],
-          importState: containerKind.libraryImports[index],
+          element: containerElement.libraryImports[index],
+          state: containerKind.libraryImports[index],
           errorReporter: containerErrorReporter,
         );
       } else if (directive is LibraryAugmentationDirectiveImpl) {
@@ -746,38 +746,34 @@ class LibraryAnalyzer {
 
   void _resolveLibraryExportDirective({
     required ExportDirectiveImpl directive,
-    required LibraryExportElement exportElement,
-    required LibraryExportState exportState,
+    required LibraryExportElement element,
+    required LibraryExportState state,
     required ErrorReporter errorReporter,
   }) {
-    directive.element = exportElement;
+    directive.element = element;
     _resolveNamespaceDirective(
       directive: directive,
       primaryUriNode: directive.uri,
-      primaryUriState: exportState.uris.primary,
+      primaryUriState: state.uris.primary,
       configurationNodes: directive.configurations,
-      configurationUris: exportState.uris.configurations,
-      selectedUriState: exportState.selectedUri,
+      configurationUris: state.uris.configurations,
+      selectedUriState: state.selectedUri,
     );
-    if (exportState is LibraryExportWithUri) {
-      final selectedUriStr = exportState.selectedUri.relativeUriStr;
+    if (state is LibraryExportWithUri) {
+      final selectedUriStr = state.selectedUri.relativeUriStr;
       if (selectedUriStr.startsWith('dart-ext:')) {
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
           directive.uri,
         );
-      } else if (exportState.exportedSource == null) {
-        final errorCode = exportState.selectedUri.isValid
-            ? CompileTimeErrorCode.URI_DOES_NOT_EXIST
-            : CompileTimeErrorCode.INVALID_URI;
+      } else if (state.exportedSource == null) {
         errorReporter.reportErrorForNode(
-          errorCode,
+          CompileTimeErrorCode.URI_DOES_NOT_EXIST,
           directive.uri,
           [selectedUriStr],
         );
-      } else if (exportState is LibraryExportWithFile &&
-          !exportState.exportedFile.exists) {
-        final errorCode = isGeneratedSource(exportState.exportedSource)
+      } else if (state is LibraryExportWithFile && !state.exportedFile.exists) {
+        final errorCode = isGeneratedSource(state.exportedSource)
             ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
             : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
         errorReporter.reportErrorForNode(
@@ -785,13 +781,19 @@ class LibraryAnalyzer {
           directive.uri,
           [selectedUriStr],
         );
-      } else if (exportState.exportedLibrarySource == null) {
+      } else if (state.exportedLibrarySource == null) {
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
           directive.uri,
           [selectedUriStr],
         );
       }
+    } else if (state is LibraryExportWithUriStr) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INVALID_URI,
+        directive.uri,
+        [state.selectedUri.relativeUriStr],
+      );
     } else {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.URI_WITH_INTERPOLATION,
@@ -802,39 +804,35 @@ class LibraryAnalyzer {
 
   void _resolveLibraryImportDirective({
     required ImportDirectiveImpl directive,
-    required LibraryImportElement importElement,
-    required LibraryImportState importState,
+    required LibraryImportElement element,
+    required LibraryImportState state,
     required ErrorReporter errorReporter,
   }) {
-    directive.element = importElement;
-    directive.prefix?.staticElement = importElement.prefix?.element;
+    directive.element = element;
+    directive.prefix?.staticElement = element.prefix?.element;
     _resolveNamespaceDirective(
       directive: directive,
       primaryUriNode: directive.uri,
-      primaryUriState: importState.uris.primary,
+      primaryUriState: state.uris.primary,
       configurationNodes: directive.configurations,
-      configurationUris: importState.uris.configurations,
-      selectedUriState: importState.selectedUri,
+      configurationUris: state.uris.configurations,
+      selectedUriState: state.selectedUri,
     );
-    if (importState is LibraryImportWithUri) {
-      final selectedUriStr = importState.selectedUri.relativeUriStr;
+    if (state is LibraryImportWithUri) {
+      final selectedUriStr = state.selectedUri.relativeUriStr;
       if (selectedUriStr.startsWith('dart-ext:')) {
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
           directive.uri,
         );
-      } else if (importState.importedSource == null) {
-        final errorCode = importState.selectedUri.isValid
-            ? CompileTimeErrorCode.URI_DOES_NOT_EXIST
-            : CompileTimeErrorCode.INVALID_URI;
+      } else if (state.importedSource == null) {
         errorReporter.reportErrorForNode(
-          errorCode,
+          CompileTimeErrorCode.URI_DOES_NOT_EXIST,
           directive.uri,
           [selectedUriStr],
         );
-      } else if (importState is LibraryImportWithFile &&
-          !importState.importedFile.exists) {
-        final errorCode = isGeneratedSource(importState.importedSource)
+      } else if (state is LibraryImportWithFile && !state.importedFile.exists) {
+        final errorCode = isGeneratedSource(state.importedSource)
             ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
             : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
         errorReporter.reportErrorForNode(
@@ -842,13 +840,19 @@ class LibraryAnalyzer {
           directive.uri,
           [selectedUriStr],
         );
-      } else if (importState.importedLibrarySource == null) {
+      } else if (state.importedLibrarySource == null) {
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
           directive.uri,
           [selectedUriStr],
         );
       }
+    } else if (state is LibraryImportWithUriStr) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INVALID_URI,
+        directive.uri,
+        [state.selectedUri.relativeUriStr],
+      );
     } else {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.URI_WITH_INTERPOLATION,
@@ -896,7 +900,7 @@ class LibraryAnalyzer {
     directive.uriSource = partState.includedSource;
     directive.element = partElement;
 
-    if (partState is! PartWithUri) {
+    if (partState is! PartWithUriStr) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.URI_WITH_INTERPOLATION,
         directive.uri,
@@ -904,37 +908,41 @@ class LibraryAnalyzer {
       return;
     }
 
-    if (partState is! PartWithFile) {
-      final errorCode = partState.uri.isValid
-          ? CompileTimeErrorCode.URI_DOES_NOT_EXIST
-          : CompileTimeErrorCode.INVALID_URI;
+    if (partState is! PartWithUri) {
       errorReporter.reportErrorForNode(
-        errorCode,
+        CompileTimeErrorCode.INVALID_URI,
         directive.uri,
         [partState.uri.relativeUriStr],
       );
       return;
     }
+
+    if (partState is! PartWithFile) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+        directive.uri,
+        [partState.uri.relativeUriStr],
+      );
+      return;
+    }
+
     final includedFile = partState.includedFile;
     final includedKind = includedFile.kind;
 
     if (includedKind is! PartFileKind) {
+      final ErrorCode errorCode;
       if (includedFile.exists) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.PART_OF_NON_PART,
-          partUri,
-          [partUri.toSource()],
-        );
+        errorCode = CompileTimeErrorCode.PART_OF_NON_PART;
+      } else if (isGeneratedSource(includedFile.source)) {
+        errorCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
       } else {
-        final errorCode = isGeneratedSource(includedFile.source)
-            ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
-            : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
-        errorReporter.reportErrorForNode(
-          errorCode,
-          directive.uri,
-          [partUri.toSource()],
-        );
+        errorCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
       }
+      errorReporter.reportErrorForNode(
+        errorCode,
+        partUri,
+        [includedFile.uriStr],
+      );
       return;
     }
 
