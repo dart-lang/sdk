@@ -107,7 +107,8 @@ runTest(
     Uri librariesSpecificationUri,
     List<String> options,
     SerializationStrategy strategy: const BytesInMemorySerializationStrategy(),
-    bool useDataKinds: false}) async {
+    bool useDataKinds: false,
+    bool doCodegen: false}) async {
   var commonOptions = options + ['--out=out.js'];
   OutputCollector collector = new OutputCollector();
   CompilationResult result = await runCompiler(
@@ -157,10 +158,11 @@ runTest(
 
   Directory dir =
       await Directory.systemTemp.createTemp('serialization_test_helper');
-  var dillFileUri = dir.uri.resolve('out.dill');
-  var closedWorldFileUri = dir.uri.resolve('world.data');
-  var dillBytes = collector3a.binaryOutputMap[dillUri].list;
-  var closedWorldBytes = collector3a.binaryOutputMap[closedWorldUri].list;
+  final dillFileUri = dir.uri.resolve('out.dill');
+  final closedWorldFileUri = dir.uri.resolve('world.data');
+  final globalDataUri = Uri.parse('global.data');
+  final dillBytes = collector3a.binaryOutputMap[dillUri].list;
+  final closedWorldBytes = collector3a.binaryOutputMap[closedWorldUri].list;
   File(dillFileUri.path).writeAsBytesSync(dillBytes);
   File(closedWorldFileUri.path).writeAsBytesSync(closedWorldBytes);
   OutputCollector collector3b = new OutputCollector();
@@ -173,7 +175,7 @@ runTest(
           [
             '${Flags.inputDill}=$dillFileUri',
             '${Flags.readClosedWorld}=$closedWorldFileUri',
-            '${Flags.writeData}=global.data'
+            '${Flags.writeData}=$globalDataUri'
           ],
       outputProvider: collector3b,
       beforeRun: (Compiler compiler) {
@@ -182,12 +184,45 @@ runTest(
       });
   Expect.isTrue(result3b.isSuccess);
 
+  final globalDataFileUri = dir.uri.resolve('global.data');
+
+  // We must write the global data bytes before calling
+  // `finishCompileAndCompare` below as that clears the collector.
+  if (doCodegen) {
+    Expect.isTrue(collector3b.binaryOutputMap.containsKey(globalDataUri));
+
+    final globalDataBytes = collector3b.binaryOutputMap[globalDataUri].list;
+    File(globalDataFileUri.path).writeAsBytesSync(globalDataBytes);
+  }
+
   await finishCompileAndCompare(
       expectedOutput, collector2, result2.compiler, strategy,
       stoppedAfterClosedWorld: true);
   await finishCompileAndCompare(
       expectedOutput, collector3b, result3b.compiler, strategy,
       stoppedAfterTypeInference: true);
+
+  if (doCodegen) {
+    OutputCollector collector4 = new OutputCollector();
+    CompilationResult result4 = await runCompiler(
+        entryPoint: entryPoint,
+        memorySourceFiles: memorySourceFiles,
+        packageConfig: packageConfig,
+        librariesSpecificationUri: librariesSpecificationUri,
+        options: commonOptions +
+            [
+              '${Flags.inputDill}=$dillFileUri',
+              '${Flags.readClosedWorld}=$closedWorldFileUri',
+              '${Flags.readData}=$globalDataFileUri',
+              '--out=out.js'
+            ],
+        outputProvider: collector4,
+        beforeRun: (Compiler compiler) {
+          compiler.forceSerializationForTesting = true;
+        });
+    Expect.isTrue(result4.isSuccess);
+  }
+
   await dir.delete(recursive: true);
 }
 
