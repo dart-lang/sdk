@@ -48,6 +48,15 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
   /// debugging).
   late final Duration completionBudgetDuration;
 
+  /// A cancellation token for the previous completion request.
+  ///
+  /// A new completion request will cancel the previous request. We do not allow
+  /// concurrent completion requests.
+  ///
+  /// `null` if there is no previous request. It the previous request has
+  /// already completed, cancelling this token will not do anything.
+  CancelableToken? previousRequestCancellationToken;
+
   CompletionHandler(super.server, LspInitializationOptions options)
       : suggestFromUnimportedLibraries = options.suggestFromUnimportedLibraries,
         previewNotImportedCompletions = options.previewNotImportedCompletions {
@@ -72,6 +81,12 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
     }
+
+    // Cancel any existing in-progress completion request in case the client did
+    // not do it explicitly, because the results will not be useful and it may
+    // delay processing this one.
+    previousRequestCancellationToken?.cancel();
+    previousRequestCancellationToken = token.asCancelable();
 
     final requestLatency = message.timeSinceRequest;
     final triggerCharacter = params.context?.triggerCharacter;

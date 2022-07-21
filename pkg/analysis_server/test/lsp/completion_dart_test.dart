@@ -735,6 +735,27 @@ final a = Stri^
         request, throwsA(isResponseError(ErrorCodes.InvalidParams)));
   }
 
+  Future<void> test_concurrentRequestsCancellation() async {
+    // We expect a new completion request to cancel any in-flight request so
+    // send multiple without awaiting, then check only the last one completes.
+    final content = '^';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final position = positionFromMarker(content);
+    final responseFutures = [
+      getCompletion(mainFileUri, position),
+      getCompletion(mainFileUri, position),
+      getCompletion(mainFileUri, position),
+    ];
+    expect(responseFutures[0],
+        throwsA(isResponseError(ErrorCodes.RequestCancelled)));
+    expect(responseFutures[1],
+        throwsA(isResponseError(ErrorCodes.RequestCancelled)));
+    final results = await responseFutures[2];
+    expect(results, isNotEmpty);
+  }
+
   Future<void> test_filterTextNotIncludeAdditionalText() async {
     // Some completions (eg. overrides) have additional text that is not part
     // of the label. That text should _not_ appear in filterText as it will
