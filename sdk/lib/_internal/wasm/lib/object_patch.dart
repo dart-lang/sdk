@@ -39,7 +39,7 @@ class Object {
 
   /// Concrete subclasses of [Object] will have overrides of [_typeArguments]
   /// which return their type arguments.
-  List<Type> get _typeArguments => const [];
+  List<_Type> get _typeArguments => const [];
 
   /// We use [_runtimeType] for internal type testing, because objects can
   /// override [runtimeType].
