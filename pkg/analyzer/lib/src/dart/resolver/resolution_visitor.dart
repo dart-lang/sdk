@@ -150,6 +150,18 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitAugmentationImportDirective(AugmentationImportDirective node) {
+    final element = node.element;
+    if (element is AugmentationImportElementImpl) {
+      _setOrCreateMetadataElements(element, node.metadata);
+    }
+
+    _withElementWalker(null, () {
+      super.visitAugmentationImportDirective(node);
+    });
+  }
+
+  @override
   void visitBlock(Block node) {
     var outerScope = _nameScope;
     try {
@@ -812,6 +824,18 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     } finally {
       _labelScope = outerScope;
     }
+  }
+
+  @override
+  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    final element = node.element;
+    if (element is LibraryOrAugmentationElementImpl) {
+      _setOrCreateMetadataElements(element, node.metadata);
+    }
+
+    _withElementWalker(null, () {
+      super.visitLibraryAugmentationDirective(node);
+    });
   }
 
   @override

@@ -810,7 +810,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var buffer = StringBuffer();
     node.accept(
       ResolvedAstPrinter(
-        selfUriStr: result.uri.toString(),
+        selfUriStr: '${result.libraryElement.source.uri}',
         sink: buffer,
         indent: '',
         skipArgumentList: skipArgumentList,

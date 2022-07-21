@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -43,72 +44,7 @@ int 42
 ''');
   }
 
-  test_location_partDirective() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-''');
-
-    await assertNoErrorsInCode(r'''
-@foo
-part 'a.dart';
-const foo = 42;
-''');
-
-    var annotation = findNode.annotation('@foo');
-    assertResolvedNodeText(annotation, r'''
-Annotation
-  atSign: @
-  name: SimpleIdentifier
-    token: foo
-    staticElement: self::@getter::foo
-    staticType: null
-  element: self::@getter::foo
-''');
-
-    var annotationElement = annotation.elementAnnotation!;
-    _assertElementAnnotationValueText(annotationElement, r'''
-int 42
-  variable: self::@variable::foo
-''');
-  }
-
-  test_location_partOfDirective() async {
-    var libPath = newFile('$testPackageLibPath/lib.dart', r'''
-part 'part.dart';
-''').path;
-
-    var partPath = newFile('$testPackageLibPath/part.dart', r'''
-@foo
-part of 'lib.dart';
-const foo = 42;
-void f() {}
-''').path;
-
-    // Resolve the library, so that the part knows its library.
-    await resolveFile2(libPath);
-
-    await resolveFile2(partPath);
-    assertNoErrorsInResult();
-
-    var annotation = findNode.annotation('@foo');
-    assertResolvedNodeText(annotation, r'''
-Annotation
-  atSign: @
-  name: SimpleIdentifier
-    token: foo
-    staticElement: package:test/lib.dart::@getter::foo
-    staticType: null
-  element: package:test/lib.dart::@getter::foo
-''');
-
-    var annotationElement = annotation.elementAnnotation!;
-    _assertElementAnnotationValueText(annotationElement, r'''
-int 42
-  variable: self::@variable::foo
-''');
-  }
-
-  test_onEnumConstant() async {
+  test_location_enumConstant() async {
     await assertNoErrorsInCode(r'''
 enum E {
   @v
@@ -135,7 +71,19 @@ E
 ''');
   }
 
-  test_onFieldFormal() async {
+  test_location_exportLibraryDirective() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertNoErrorsInCode(r'''
+@foo
+export 'a.dart';
+const foo = 42;
+''');
+
+    _assertAtFoo42();
+  }
+
+  test_location_fieldFormal() async {
     await assertNoErrorsInCode(r'''
 class A {
   final Object f;
@@ -187,7 +135,60 @@ A
 ''');
   }
 
-  test_onLocalVariable() async {
+  test_location_importAugmentationDirective() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+''');
+
+    await assertNoErrorsInCode(r'''
+@foo
+import augment 'a.dart';
+const foo = 42;
+''');
+
+    _assertAtFoo42();
+  }
+
+  test_location_importLibraryDirective() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertNoErrorsInCode(r'''
+@foo
+import 'a.dart'; // ignore:unused_import
+const foo = 42;
+''');
+
+    _assertAtFoo42();
+  }
+
+  test_location_libraryAugmentationDirective() async {
+    newFile('$testPackageLibPath/test.dart', r'''
+import augment 'a.dart';
+const foo = 42;
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+@foo
+library augment 'test.dart';
+''');
+
+    await resolveFile2(a.path);
+    assertNoErrorsInResult();
+
+    _assertAtFoo42();
+  }
+
+  test_location_libraryDirective() async {
+    await assertNoErrorsInCode(r'''
+@foo
+library my;
+const foo = 42;
+''');
+
+    _assertAtFoo42();
+  }
+
+  test_location_localVariable() async {
     await assertNoErrorsInCode(r'''
 class A {
   final int a;
@@ -226,6 +227,49 @@ Annotation
 A
   a: int 3
 ''');
+  }
+
+  test_location_partDirective() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+''');
+
+    await assertNoErrorsInCode(r'''
+@foo
+part 'a.dart';
+const foo = 42;
+''');
+
+    _assertAtFoo42();
+  }
+
+  test_location_partDirective_fileDoesNotExist() async {
+    await assertErrorsInCode(r'''
+@foo
+part 'a.dart';
+const foo = 42;
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 10, 8),
+    ]);
+
+    _assertAtFoo42();
+  }
+
+  test_location_partOfDirective() async {
+    newFile('$testPackageLibPath/test.dart', r'''
+part 'a.dart';
+const foo = 42;
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+@foo
+part of 'test.dart';
+''');
+
+    await resolveFile2(a.path);
+    assertNoErrorsInResult();
+
+    _assertAtFoo42();
   }
 
   test_optIn_fromOptOut_class() async {
@@ -2568,6 +2612,25 @@ A
   void _assertAnnotationValueText(Annotation annotation, String expected) {
     var elementAnnotation = annotation.elementAnnotation!;
     _assertElementAnnotationValueText(elementAnnotation, expected);
+  }
+
+  void _assertAtFoo42() {
+    final node = findNode.annotation('@foo');
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: foo
+    staticElement: self::@getter::foo
+    staticType: null
+  element: self::@getter::foo
+''');
+
+    final element = node.elementAnnotation!;
+    _assertElementAnnotationValueText(element, r'''
+int 42
+  variable: self::@variable::foo
+''');
   }
 
   void _assertElementAnnotationValueText(

@@ -45,7 +45,7 @@ AugmentationImportDirective
     uri: DirectiveUriWithAugmentation
       uri: package:test/c.dart
   uriContent: c.dart
-  uriElement: package:test/a.dart::@augmentation::package:test/c.dart
+  uriElement: self::@augmentation::package:test/c.dart
   uriSource: package:test/c.dart
 ''');
   }
@@ -82,7 +82,7 @@ AugmentationImportDirective
     uri: DirectiveUriWithAugmentation
       uri: package:test/c.dart
   uriContent: c.dart
-  uriElement: package:test/a.dart::@augmentation::package:test/c.dart
+  uriElement: self::@augmentation::package:test/c.dart
   uriSource: package:test/c.dart
 ''');
   }
