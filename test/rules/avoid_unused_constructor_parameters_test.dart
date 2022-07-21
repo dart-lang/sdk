@@ -15,11 +15,6 @@ main() {
 @reflectiveTest
 class AvoidUnusedConstructorParametersTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.super_parameters,
-      ];
-
-  @override
   String get lintRule => 'avoid_unused_constructor_parameters';
 
   test_super() async {

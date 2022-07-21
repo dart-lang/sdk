@@ -15,11 +15,6 @@ main() {
 @reflectiveTest
 class AvoidRenamingMethodParametersTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.enhanced_enums,
-      ];
-
-  @override
   String get lintRule => 'avoid_renaming_method_parameters';
 
   test_rename() async {

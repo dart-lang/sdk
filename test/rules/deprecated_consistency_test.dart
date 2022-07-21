@@ -15,11 +15,6 @@ main() {
 @reflectiveTest
 class DeprecatedConsistencyTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.super_parameters,
-      ];
-
-  @override
   String get lintRule => 'deprecated_consistency';
 
   test_superInit() async {

@@ -15,11 +15,6 @@ main() {
 @reflectiveTest
 class AvoidSettersWithoutGettersTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.enhanced_enums,
-      ];
-
-  @override
   String get lintRule => 'avoid_setters_without_getters';
 
   test_enum() async {

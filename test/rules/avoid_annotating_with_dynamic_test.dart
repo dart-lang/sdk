@@ -15,11 +15,6 @@ main() {
 @reflectiveTest
 class AvoidAnnotatingWithDynamicTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.super_parameters,
-      ];
-
-  @override
   String get lintRule => 'avoid_annotating_with_dynamic';
 
   test_fieldFormals() async {

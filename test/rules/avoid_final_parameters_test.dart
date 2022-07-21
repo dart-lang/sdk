@@ -17,11 +17,6 @@ class AvoidFinalParametersTest extends LintRuleTest {
   @override
   String get lintRule => 'avoid_final_parameters';
 
-  @override
-  List<String> get experiments => [
-        EnableString.super_parameters,
-      ];
-
   test_super() async {
     await assertDiagnostics(r'''
 class A {

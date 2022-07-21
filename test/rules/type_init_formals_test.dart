@@ -16,11 +16,6 @@ main() {
 @reflectiveTest
 class TypeInitFormalsSuperTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.super_parameters,
-      ];
-
-  @override
   String get lintRule => 'type_init_formals';
 
   test_super() async {

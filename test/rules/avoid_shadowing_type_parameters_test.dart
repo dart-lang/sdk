@@ -16,11 +16,6 @@ main() {
 @reflectiveTest
 class AvoidShadowingTypeParametersEnumTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.enhanced_enums,
-      ];
-
-  @override
   String get lintRule => 'avoid_shadowing_type_parameters';
 
   test_enum() async {

@@ -15,11 +15,6 @@ main() {
 @reflectiveTest
 class HashAndEqualsTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.enhanced_enums,
-      ];
-
-  @override
   String get lintRule => 'hash_and_equals';
 
   test_enum_missingHash() async {

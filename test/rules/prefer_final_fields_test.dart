@@ -15,11 +15,6 @@ main() {
 @reflectiveTest
 class PreferFinalFieldsTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.enhanced_enums,
-      ];
-
-  @override
   String get lintRule => 'prefer_final_fields';
 
   test_enum() async {

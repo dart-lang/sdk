@@ -15,11 +15,6 @@ main() {
 @reflectiveTest
 class SortUnnamedConstructorsFirstTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.enhanced_enums,
-      ];
-
-  @override
   String get lintRule => 'sort_unnamed_constructors_first';
 
   test_ok() async {

@@ -16,11 +16,6 @@ main() {
 @reflectiveTest
 class LibraryPrivateTypesInPublicApiEnumTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.enhanced_enums,
-      ];
-
-  @override
   String get lintRule => 'library_private_types_in_public_api';
 
   test_enum() async {
@@ -42,11 +37,6 @@ enum E {
 
 @reflectiveTest
 class LibraryPrivateTypesInPublicApiSuperParamTest extends LintRuleTest {
-  @override
-  List<String> get experiments => [
-        EnableString.super_parameters,
-      ];
-
   @override
   String get lintRule => 'library_private_types_in_public_api';
 

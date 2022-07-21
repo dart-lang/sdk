@@ -15,11 +15,6 @@ main() {
 @reflectiveTest
 class UseEnumsTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.enhanced_enums,
-      ];
-
-  @override
   String get lintRule => 'use_enums';
 
   test_constructor_private() async {

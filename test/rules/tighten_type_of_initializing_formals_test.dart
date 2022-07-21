@@ -15,11 +15,6 @@ main() {
 @reflectiveTest
 class TightenTypeOfInitializingFormalsTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.super_parameters,
-      ];
-
-  @override
   String get lintRule => 'tighten_type_of_initializing_formals';
 
   test_superInit() async {

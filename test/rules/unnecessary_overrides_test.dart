@@ -15,11 +15,6 @@ main() {
 @reflectiveTest
 class UnnecessaryOverridesTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.enhanced_enums,
-      ];
-
-  @override
   String get lintRule => 'unnecessary_overrides';
 
   test_field() async {

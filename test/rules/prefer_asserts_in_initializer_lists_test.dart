@@ -16,11 +16,6 @@ main() {
 @reflectiveTest
 class PreferAssertsInInitializerListsSuperTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.super_parameters,
-      ];
-
-  @override
   String get lintRule => 'prefer_asserts_in_initializer_lists';
 
   test_super() async {

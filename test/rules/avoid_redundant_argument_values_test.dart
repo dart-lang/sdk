@@ -16,9 +16,6 @@ main() {
 @reflectiveTest
 class AvoidRedundantArgumentValuesNamedArgsAnywhereTest extends LintRuleTest {
   @override
-  List<String> get experiments => [EnableString.named_arguments_anywhere];
-
-  @override
   String get lintRule => 'avoid_redundant_argument_values';
 
   test_namedArgumentBeforePositional() async {

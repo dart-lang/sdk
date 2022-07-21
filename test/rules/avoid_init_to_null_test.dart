@@ -16,9 +16,6 @@ main() {
 @reflectiveTest
 class AvoidInitToNullSuperFormalsTest extends LintRuleTest {
   @override
-  List<String> get experiments => [EnableString.super_parameters];
-
-  @override
   String get lintRule => 'avoid_init_to_null';
 
   test_nullableStringInit() async {

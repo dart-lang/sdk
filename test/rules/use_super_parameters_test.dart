@@ -15,11 +15,6 @@ main() {
 @reflectiveTest
 class UseSuperParametersTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.super_parameters,
-      ];
-
-  @override
   String get lintRule => 'use_super_parameters';
 
   test_functionTypedFormalParameter() async {

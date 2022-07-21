@@ -232,9 +232,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
-  List<String> get experiments => [
-        EnableString.constructor_tearoffs,
-      ];
+  List<String> get experiments => [];
 
   /// The path that is not in [workspaceRootPath], contains external packages.
   String get packagesRootPath => '/packages';
@@ -254,6 +252,14 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   @mustCallSuper
   void setUp() {
     super.setUp();
+    // Check for any needlessly enabled experiments.
+    for (var experiment in experiments) {
+      var feature = ExperimentStatus.knownFeatures[experiment];
+      if (feature?.isEnabledByDefault ?? false) {
+        fail("The '$experiment' experiment is enabled by default, "
+            'try removing it from `experiments`.');
+      }
+    }
 
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(

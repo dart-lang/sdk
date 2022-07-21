@@ -16,12 +16,6 @@ main() {
 class AvoidEqualsAndHashCodeOnMutableClassesTest extends LintRuleTest {
   @override
   bool get addMetaPackageDep => true;
-
-  @override
-  List<String> get experiments => [
-        EnableString.enhanced_enums,
-      ];
-
   @override
   String get lintRule => 'avoid_equals_and_hash_code_on_mutable_classes';
 

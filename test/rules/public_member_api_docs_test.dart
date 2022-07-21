@@ -15,11 +15,6 @@ main() {
 @reflectiveTest
 class PublicMemberApiDocsTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.enhanced_enums,
-      ];
-
-  @override
   String get lintRule => 'public_member_api_docs';
 
   test_enum() async {

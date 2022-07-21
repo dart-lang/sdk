@@ -15,11 +15,6 @@ main() {
 @reflectiveTest
 class AvoidReturningThisTest extends LintRuleTest {
   @override
-  List<String> get experiments => [
-        EnableString.enhanced_enums,
-      ];
-
-  @override
   String get lintRule => 'avoid_returning_this';
 
   test_method() async {
