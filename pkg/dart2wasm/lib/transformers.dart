@@ -51,10 +51,25 @@ class _WasmTransformer extends Transformer {
     return result;
   }
 
-  /// We can reuse a superclass' `_typeArguments` method if the subclass and the
-  /// superclass have the exact same type parameters in the exact same order.
+  /// Checks to see if it is safe to reuse `super._typeArguments`.
   bool canReuseSuperMethod(Class cls) {
-    Supertype supertype = cls.supertype!;
+    // We search for the first non-abstract super in [cls]'s inheritance chain
+    // to see if we can reuse its `_typeArguments` method.
+    Class classIter = cls;
+    late Supertype supertype;
+    while (classIter.supertype != null) {
+      Supertype supertypeIter = classIter.supertype!;
+      Class superclass = supertypeIter.classNode;
+      if (!superclass.isAbstract) {
+        supertype = supertypeIter;
+        break;
+      }
+      classIter = classIter.supertype!.classNode;
+    }
+
+    // We can reuse a superclass' `_typeArguments` method if the subclass and
+    // the superclass have the exact same type parameters in the exact same
+    // order.
     if (cls.typeParameters.length != supertype.typeArguments.length) {
       return false;
     }
