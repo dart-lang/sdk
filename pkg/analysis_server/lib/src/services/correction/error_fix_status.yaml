@@ -125,9 +125,7 @@ CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER:
 CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE:
   status: hasFix
 CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the assert.
+  status: hasFix
 CompileTimeErrorCode.ASSIGNMENT_TO_CONST:
   status: noFix
   notes: |-

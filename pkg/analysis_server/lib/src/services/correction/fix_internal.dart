@@ -109,6 +109,7 @@ import 'package:analysis_server/src/services/correction/dart/qualify_reference.d
 import 'package:analysis_server/src/services/correction/dart/remove_abstract.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_assertion.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_comparison.dart';
@@ -871,6 +872,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER: [
       RemoveAbstract.new,
       RemoveInitializer.new,
+    ],
+    CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR: [
+      RemoveAssertion.new,
     ],
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL: [
       MakeFieldNotFinal.new,
