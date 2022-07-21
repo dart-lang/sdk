@@ -82,6 +82,19 @@ abstract class A {
 ''');
   }
 
+  Future<void> test_abstract_field_initializer() async {
+    await resolveTestCode('''
+abstract class A {
+  abstract int x = 0;
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  int x = 0;
+}
+''');
+  }
+
   Future<void> test_extension() async {
     await resolveTestCode('''
 extension E on String {

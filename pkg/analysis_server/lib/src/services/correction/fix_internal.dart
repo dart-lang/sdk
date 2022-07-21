@@ -864,6 +864,10 @@ class FixProcessor extends BaseProcessor {
   /// those diagnostics. The generators used for lint rules are in the
   /// [lintProducerMap].
   static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
+    CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER: [
+      RemoveAbstract.new,
+      RemoveInitializer.new,
+    ],
     CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER: [
       RemoveAbstract.new,
       RemoveInitializer.new,

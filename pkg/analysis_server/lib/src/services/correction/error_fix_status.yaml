@@ -91,10 +91,7 @@ AnalysisOptionsWarningCode.UNSUPPORTED_VALUE:
 CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER:
   status: hasFix
 CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER:
-  status: needsFix
-  notes: |-
-    1. Remove the initializer.
-    2. Remove the `abstract` keyword.
+  status: hasFix
 CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE:
   status: noFix
   notes: |-
