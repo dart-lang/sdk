@@ -2,13 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: constant_identifier_names
+
+import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'constants.dart' as constants;
+import 'dwarf_container.dart';
 import 'elf.dart';
+import 'macho.dart';
 import 'reader.dart';
+
+const String _debugStringTableKey = 'debugStringTable';
+const String _debugLineStringTableKey = 'debugLineStringTable';
 
 int _initialLengthValue(Reader reader) {
   final length = reader.readBytes(4);
@@ -21,106 +28,189 @@ int _initialLengthValue(Reader reader) {
 }
 
 enum _Tag {
-  compileUnit,
-  inlinedSubroutine,
-  subprogram,
+  // Snake case used to match DWARF specification.
+  compile_unit(0x11),
+  inlined_subroutine(0x1d),
+  subprogram(0x2e);
+
+  final int code;
+
+  const _Tag(this.code);
+
+  static const _prefix = 'DW_TAG';
+
+  static _Tag fromReader(Reader reader) {
+    final code = reader.readLEB128EncodedInteger();
+    for (final name in values) {
+      if (name.code == code) {
+        return name;
+      }
+    }
+    throw FormatException(
+        'Unexpected $_prefix code 0x${code.toRadixString(16)}');
+  }
+
+  @override
+  String toString() => '${_prefix}_$name';
 }
-
-const _tags = <int, _Tag>{
-  0x11: _Tag.compileUnit,
-  0x1d: _Tag.inlinedSubroutine,
-  0x2e: _Tag.subprogram,
-};
-
-const _tagStrings = <_Tag, String>{
-  _Tag.compileUnit: 'DW_TAG_compile_unit',
-  _Tag.inlinedSubroutine: 'DW_TAG_inlined_subroutine',
-  _Tag.subprogram: 'DW_TAG_subroutine',
-};
 
 enum _AttributeName {
-  abstractOrigin,
-  artificial,
-  callColumn,
-  callFile,
-  callLine,
-  compilationDirectory,
-  declarationColumn,
-  declarationFile,
-  declarationLine,
-  highProgramCounter,
-  lowProgramCounter,
-  inline,
-  name,
-  producer,
-  sibling,
-  statementList,
+  // Snake case used to match DWARF specification.
+  sibling(0x01),
+  // Avoiding conflict with enum 'name' property
+  nameValue(0x03),
+  stmt_list(0x10),
+  low_pc(0x11),
+  high_pc(0x12),
+  comp_dir(0x1b),
+  inline(0x20),
+  producer(0x25),
+  abstract_origin(0x31),
+  artificial(0x34),
+  decl_column(0x39),
+  decl_file(0x3a),
+  decl_line(0x3b),
+  call_column(0x57),
+  call_file(0x58),
+  call_line(0x59);
+
+  final int code;
+
+  const _AttributeName(this.code);
+
+  static const _prefix = 'DW_AT';
+
+  static _AttributeName? fromReader(Reader reader) {
+    final code = reader.readLEB128EncodedInteger();
+    if (code == 0x00) return null; // Used as end marker in some cases.
+    for (final name in values) {
+      if (name.code == code) {
+        return name;
+      }
+    }
+    throw FormatException(
+        'Unexpected $_prefix code 0x${code.toRadixString(16)}');
+  }
+
+  @override
+  String toString() => '${_prefix}_${this == nameValue ? 'name' : name}';
 }
-
-const _attributeNames = <int, _AttributeName>{
-  0x01: _AttributeName.sibling,
-  0x03: _AttributeName.name,
-  0x10: _AttributeName.statementList,
-  0x11: _AttributeName.lowProgramCounter,
-  0x12: _AttributeName.highProgramCounter,
-  0x1b: _AttributeName.compilationDirectory,
-  0x20: _AttributeName.inline,
-  0x25: _AttributeName.producer,
-  0x31: _AttributeName.abstractOrigin,
-  0x34: _AttributeName.artificial,
-  0x39: _AttributeName.declarationColumn,
-  0x3a: _AttributeName.declarationFile,
-  0x3b: _AttributeName.declarationLine,
-  0x57: _AttributeName.callColumn,
-  0x58: _AttributeName.callFile,
-  0x59: _AttributeName.callLine,
-};
-
-const _attributeNameStrings = <_AttributeName, String>{
-  _AttributeName.sibling: 'DW_AT_sibling',
-  _AttributeName.name: 'DW_AT_name',
-  _AttributeName.statementList: 'DW_AT_stmt_list',
-  _AttributeName.lowProgramCounter: 'DW_AT_low_pc',
-  _AttributeName.highProgramCounter: 'DW_AT_high_pc',
-  _AttributeName.compilationDirectory: 'DW_AT_comp_dir',
-  _AttributeName.inline: 'DW_AT_inline',
-  _AttributeName.producer: 'DW_AT_producer',
-  _AttributeName.abstractOrigin: 'DW_AT_abstract_origin',
-  _AttributeName.artificial: 'DW_AT_artificial',
-  _AttributeName.declarationColumn: 'DW_AT_decl_column',
-  _AttributeName.declarationFile: 'DW_AT_decl_file',
-  _AttributeName.declarationLine: 'DW_AT_decl_line',
-  _AttributeName.callColumn: 'DW_AT_call_column',
-  _AttributeName.callFile: 'DW_AT_call_file',
-  _AttributeName.callLine: 'DW_AT_call_line',
-};
 
 enum _AttributeForm {
-  address,
-  constant,
-  flag,
-  reference4,
-  sectionOffset,
-  string,
+  // Snake case used to match DWARF specification.
+  addr(0x01),
+  data2(0x05),
+  data4(0x06),
+  data8(0x07),
+  string(0x08),
+  data1(0x0b),
+  flag(0x0c),
+  strp(0x0e),
+  udata(0x0f),
+  ref4(0x13),
+  sec_offset(0x17),
+  data16(0x1e),
+  line_strp(0x1f);
+
+  final int code;
+
+  const _AttributeForm(this.code);
+
+  static const _prefix = 'DW_FORM';
+
+  static _AttributeForm? fromReader(Reader reader) {
+    final code = reader.readLEB128EncodedInteger();
+    if (code == 0x00) return null; // Used as end marker in some cases.
+    for (final name in values) {
+      if (name.code == code) {
+        return name;
+      }
+    }
+    throw FormatException('Unexpected $_prefix code '
+        '0x${code.toRadixString(16)}');
+  }
+
+  Object read(Reader reader, {int? addressSize}) {
+    switch (this) {
+      case _AttributeForm.string:
+        return reader.readNullTerminatedString();
+      case _AttributeForm.strp:
+        final offset = reader.readBytes(4); // Assumed 32-bit DWARF
+        final debugStringTable =
+            Zone.current[_debugStringTableKey] as DwarfContainerStringTable?;
+        if (debugStringTable == null) {
+          throw FormatException('No .debug_str available');
+        }
+        return debugStringTable[offset]!;
+      case _AttributeForm.line_strp:
+        final offset = reader.readBytes(4); // Assumed 32-bit DWARF
+        final debugLineStringTable = Zone.current[_debugLineStringTableKey]
+            as DwarfContainerStringTable?;
+        if (debugLineStringTable == null) {
+          throw FormatException('No .debug_line_str available');
+        }
+        return debugLineStringTable[offset]!;
+      case _AttributeForm.flag:
+        return reader.readByte() != 0;
+      case _AttributeForm.addr:
+        if (addressSize == null) {
+          throw FormatException('No address size available');
+        }
+        return reader.readBytes(addressSize);
+      case _AttributeForm.data1:
+        return reader.readByte();
+      case _AttributeForm.data2:
+        return reader.readBytes(2);
+      case _AttributeForm.sec_offset: // Assumed 32-bit DWARF
+      case _AttributeForm.data4:
+      case _AttributeForm.ref4:
+        return reader.readBytes(4);
+      case _AttributeForm.data8:
+        return reader.readBytes(8);
+      case _AttributeForm.udata:
+        return reader.readLEB128EncodedInteger();
+      case _AttributeForm.data16:
+        return reader.readRawBytes(16);
+    }
+  }
+
+  String valueToString(Object value,
+      {CompilationUnit? unit, int? addressSize}) {
+    switch (this) {
+      case _AttributeForm.string:
+      case _AttributeForm.strp:
+      case _AttributeForm.line_strp:
+        return value as String;
+      case _AttributeForm.flag:
+        return value.toString();
+      case _AttributeForm.addr:
+        return '0x${paddedHex(value as int, addressSize ?? 0)}';
+      case _AttributeForm.sec_offset:
+        return paddedHex(value as int, 4); // Assumed 32-bit DWARF
+      case _AttributeForm.data1:
+      case _AttributeForm.data2:
+      case _AttributeForm.data4:
+      case _AttributeForm.data8:
+      case _AttributeForm.udata:
+        return value.toString();
+      case _AttributeForm.ref4:
+        final intValue = value as int;
+        final unresolvedValue = paddedHex(intValue, 4);
+        final name = unit?.nameOfOrigin(intValue) ?? '<unresolved>';
+        return '0x$unresolvedValue (origin: $name)';
+      case _AttributeForm.data16:
+        final bdata = value as ByteData;
+        final buffer = StringBuffer();
+        for (int i = 0; i < 16; i++) {
+          buffer.write(bdata.getUint8(i).toRadixString(16));
+        }
+        return buffer.toString();
+    }
+  }
+
+  @override
+  String toString() => '${_prefix}_$name';
 }
-
-const _attributeForms = <int, _AttributeForm>{
-  0x01: _AttributeForm.address,
-  0x08: _AttributeForm.string,
-  0x0c: _AttributeForm.flag,
-  0x0f: _AttributeForm.constant,
-  0x13: _AttributeForm.reference4,
-  0x17: _AttributeForm.sectionOffset,
-};
-
-const _attributeFormStrings = <_AttributeForm, String>{
-  _AttributeForm.address: 'DW_FORM_addr',
-  _AttributeForm.string: 'DW_FORM_string',
-  _AttributeForm.flag: 'DW_FORM_flag',
-  _AttributeForm.constant: 'DW_FORM_udata',
-  _AttributeForm.reference4: 'DW_FORM_ref4',
-  _AttributeForm.sectionOffset: 'DW_FORM_sec_offset',
-};
 
 class _Attribute {
   final _AttributeName name;
@@ -129,54 +219,22 @@ class _Attribute {
   _Attribute._(this.name, this.form);
 
   static _Attribute? fromReader(Reader reader) {
-    final nameInt = reader.readLEB128EncodedInteger();
-    final formInt = reader.readLEB128EncodedInteger();
-    if (nameInt == 0 && formInt == 0) return null;
-    if (!_attributeNames.containsKey(nameInt)) {
-      throw FormatException('Unexpected DW_AT value 0x${paddedHex(nameInt)}');
+    final name = _AttributeName.fromReader(reader);
+    final form = _AttributeForm.fromReader(reader);
+    if (name == null || form == null) {
+      // If one is null, the other should be null.
+      assert(name == null && form == null);
+      return null;
     }
-    if (!_attributeForms.containsKey(formInt)) {
-      throw FormatException('Unexpected DW_FORM value 0x${paddedHex(formInt)}');
-    }
-    return _Attribute._(_attributeNames[nameInt]!, _attributeForms[formInt]!);
+    return _Attribute._(name, form);
   }
 
-  Object read(Reader reader, CompilationUnitHeader header) {
-    switch (form) {
-      case _AttributeForm.string:
-        return reader.readNullTerminatedString();
-      case _AttributeForm.flag:
-        return reader.readByte() != 0;
-      case _AttributeForm.address:
-        return reader.readBytes(header.addressSize);
-      case _AttributeForm.sectionOffset:
-        return reader.readBytes(4);
-      case _AttributeForm.constant:
-        return reader.readLEB128EncodedInteger();
-      case _AttributeForm.reference4:
-        return reader.readBytes(4);
-    }
-  }
+  Object read(Reader reader, {int? addressSize}) =>
+      form.read(reader, addressSize: addressSize);
 
-  String valueToString(Object value, [CompilationUnit? unit]) {
-    switch (form) {
-      case _AttributeForm.string:
-        return value as String;
-      case _AttributeForm.flag:
-        return value.toString();
-      case _AttributeForm.address:
-        return '0x${paddedHex(value as int, unit?.header.addressSize ?? 0)}';
-      case _AttributeForm.sectionOffset:
-        return paddedHex(value as int, 4);
-      case _AttributeForm.constant:
-        return value.toString();
-      case _AttributeForm.reference4:
-        final intValue = value as int;
-        final unresolvedValue = paddedHex(intValue, 4);
-        final name = unit?.nameOfOrigin(intValue) ?? '<unresolved>';
-        return '0x$unresolvedValue (origin: $name)';
-    }
-  }
+  String valueToString(Object value,
+          {CompilationUnit? unit, int? addressSize}) =>
+      form.valueToString(value, unit: unit, addressSize: addressSize);
 }
 
 class _Abbreviation {
@@ -194,11 +252,7 @@ class _Abbreviation {
   static _Abbreviation? fromReader(Reader reader) {
     final code = reader.readLEB128EncodedInteger();
     if (code == 0) return null;
-    final tagInt = reader.readLEB128EncodedInteger();
-    if (!_tags.containsKey(tagInt)) {
-      throw FormatException('Unexpected DW_TAG value 0x${paddedHex(tagInt)}');
-    }
-    final tag = _tags[tagInt]!;
+    final tag = _Tag.fromReader(reader);
     final childrenByte = reader.readByte();
     if (childrenByte != _dwChildrenNo && childrenByte != _dwChildrenYes) {
       throw FormatException('Expected DW_CHILDREN_no or DW_CHILDREN_yes: '
@@ -212,16 +266,16 @@ class _Abbreviation {
   void writeToStringBuffer(StringBuffer buffer) {
     buffer
       ..write('    Tag: ')
-      ..writeln(_tagStrings[tag])
+      ..writeln(tag)
       ..write('    Children: ')
       ..writeln(children ? 'DW_CHILDREN_yes' : 'DW_CHILDREN_no')
       ..writeln('    Attributes:');
     for (final attribute in attributes) {
       buffer
         ..write('      ')
-        ..write(_attributeNameStrings[attribute.name]!)
+        ..write(attribute.name)
         ..write(': ')
-        ..writeln(_attributeFormStrings[attribute.form]!);
+        ..writeln(attribute.form);
     }
   }
 
@@ -291,7 +345,8 @@ class DebugInformationEntry {
     final abbreviation = header.abbreviations[code]!;
     final attributes = <_Attribute, Object>{};
     for (final attribute in abbreviation.attributes) {
-      attributes[attribute] = attribute.read(reader, header);
+      attributes[attribute] =
+          attribute.read(reader, addressSize: header.addressSize);
     }
     final children = <int, DebugInformationEntry>{};
     if (abbreviation.children) {
@@ -317,26 +372,26 @@ class DebugInformationEntry {
   // ignore: library_private_types_in_public_api
   Object? operator [](_AttributeName name) => attributes[_namedAttribute(name)];
 
-  int? get sectionOffset => this[_AttributeName.statementList] as int?;
+  int? get sectionOffset => this[_AttributeName.stmt_list] as int?;
 
-  int? get abstractOrigin => this[_AttributeName.abstractOrigin] as int?;
+  int? get abstractOrigin => this[_AttributeName.abstract_origin] as int?;
 
-  int? get lowPC => this[_AttributeName.lowProgramCounter] as int?;
+  int? get lowPC => this[_AttributeName.low_pc] as int?;
 
-  int? get highPC => this[_AttributeName.highProgramCounter] as int?;
+  int? get highPC => this[_AttributeName.high_pc] as int?;
 
   bool get isArtificial => (this[_AttributeName.artificial] ?? false) as bool;
 
   bool containsPC(int virtualAddress) =>
       (lowPC ?? 0) <= virtualAddress && virtualAddress < (highPC ?? -1);
 
-  String? get name => this[_AttributeName.name] as String?;
+  String? get name => this[_AttributeName.nameValue] as String?;
 
-  int? get callFileIndex => this[_AttributeName.callFile] as int?;
+  int? get callFileIndex => this[_AttributeName.call_file] as int?;
 
-  int? get callLine => this[_AttributeName.callLine] as int?;
+  int? get callLine => this[_AttributeName.call_line] as int?;
 
-  int? get callColumn => this[_AttributeName.callColumn] as int?;
+  int? get callColumn => this[_AttributeName.call_column] as int?;
 
   List<CallInfo>? callInfo(
       CompilationUnit unit, LineNumberProgram lineNumberProgram, int address) {
@@ -345,12 +400,12 @@ class DebugInformationEntry {
     if (!containsPC(address)) return null;
 
     final tag = unit.header.abbreviations[code]!.tag;
-    final inlined = tag == _Tag.inlinedSubroutine;
+    final inlined = tag == _Tag.inlined_subroutine;
     for (final child in children.values) {
       final callInfo = child.callInfo(unit, lineNumberProgram, address);
       if (callInfo == null) continue;
 
-      if (tag == _Tag.compileUnit) return callInfo;
+      if (tag == _Tag.compile_unit) return callInfo;
 
       return callInfo
         ..add(DartCallInfo(
@@ -362,7 +417,7 @@ class DebugInformationEntry {
             column: child.callColumn ?? 0));
     }
 
-    if (tag == _Tag.compileUnit) return null;
+    if (tag == _Tag.compile_unit) return null;
 
     final filename = lineNumberProgram.filename(address)!;
     final line = lineNumberProgram.lineNumber(address)!;
@@ -389,9 +444,9 @@ class DebugInformationEntry {
       buffer
         ..write(indent)
         ..write('  ')
-        ..write(_attributeNameStrings[attribute.name]!)
+        ..write(attribute.name)
         ..write(' => ')
-        ..writeln(attribute.valueToString(value, unit));
+        ..writeln(attribute.valueToString(value, unit: unit));
     });
     if (children.isNotEmpty) {
       buffer
@@ -531,7 +586,7 @@ class CompilationUnit {
       throw ArgumentError(
           '${paddedHex(offset)} is not the offset of an abbreviated unit');
     }
-    return origin[_AttributeName.name] as String;
+    return origin[_AttributeName.nameValue] as String;
   }
 
   void writeToStringBuffer(StringBuffer buffer) {
@@ -594,6 +649,73 @@ class DebugInfo {
   }
 }
 
+enum _LineNumberContentType {
+  path(0x01),
+  directory_index(0x02),
+  timestamp(0x03),
+  size(0x04),
+  md5(0x05);
+
+  final int code;
+
+  const _LineNumberContentType(this.code);
+
+  static const String _prefix = 'DW_LNCT';
+
+  static _LineNumberContentType fromReader(Reader reader) {
+    final code = reader.readLEB128EncodedInteger();
+    for (final type in values) {
+      if (type.code == code) {
+        return type;
+      }
+    }
+    throw FormatException('Unexpected $_prefix code '
+        '0x${code.toRadixString(16)}');
+  }
+
+  void validate(_AttributeForm form) {
+    switch (this) {
+      case _LineNumberContentType.path:
+        if (form == _AttributeForm.string || form == _AttributeForm.line_strp) {
+          return;
+        }
+        break;
+      case _LineNumberContentType.directory_index:
+        if (form == _AttributeForm.data1 ||
+            form == _AttributeForm.data2 ||
+            form == _AttributeForm.udata) {
+          return;
+        }
+        break;
+      case _LineNumberContentType.timestamp:
+        if (form == _AttributeForm.data4 ||
+            form == _AttributeForm.data8 ||
+            form == _AttributeForm.udata) {
+          return;
+        }
+        break;
+      case _LineNumberContentType.size:
+        if (form == _AttributeForm.data1 ||
+            form == _AttributeForm.data2 ||
+            form == _AttributeForm.data4 ||
+            form == _AttributeForm.data8 ||
+            form == _AttributeForm.udata) {
+          return;
+        }
+        break;
+      case _LineNumberContentType.md5:
+        if (form == _AttributeForm.data16) {
+          return;
+        }
+        break;
+    }
+    throw FormatException('Unexpected form $form for $this');
+  }
+
+  @override
+  String toString() => '${_prefix}_${this == md5 ? 'MD5' : name}';
+}
+
 class FileEntry {
   final String name;
   final int directoryIndex;
@@ -630,6 +752,81 @@ class FileInfo {
     for (var i = 0; i < offsetFiles.length; i++) {
       // File entries are one-based, not zero-based.
       files[i + 1] = offsetFiles[i];
+    }
+    return FileInfo._(files);
+  }
+
+  static FileInfo fromReaderDwarf5(Reader reader, {int? addressSize}) {
+    final entryFormatCount = reader.readByte();
+    final entryFormatTypes = <_LineNumberContentType>[];
+    final entryFormatForms = <_AttributeForm>[];
+    int? sizeIndex;
+    int? directoryIndexIndex;
+    int? timestampIndex;
+    int? nameIndex;
+
+    for (int i = 0; i < entryFormatCount; i++) {
+      final type = _LineNumberContentType.fromReader(reader);
+      final form = _AttributeForm.fromReader(reader)!;
+      type.validate(form);
+      entryFormatTypes.add(type);
+      entryFormatForms.add(form);
+      switch (type) {
+        case _LineNumberContentType.path:
+          if (nameIndex != null) {
+            throw FormatException('Multiple $type entries in format');
+          }
+          nameIndex = i;
+          break;
+        case _LineNumberContentType.directory_index:
+          if (directoryIndexIndex != null) {
+            throw FormatException('Multiple $type entries in format');
+          }
+          directoryIndexIndex = i;
+          break;
+        case _LineNumberContentType.timestamp:
+          if (timestampIndex != null) {
+            throw FormatException('Multiple $type entries in format');
+          }
+          timestampIndex = i;
+          break;
+        case _LineNumberContentType.size:
+          if (sizeIndex != null) {
+            throw FormatException('Multiple $type entries in format');
+          }
+          sizeIndex = i;
+          break;
+        case _LineNumberContentType.md5:
+          break;
+      }
+    }
+    if (nameIndex == null) {
+      throw FormatException(
+          'Missing ${_LineNumberContentType.path} entry in format');
+    }
+
+    final fileNamesCount = reader.readLEB128EncodedInteger();
+    if (entryFormatCount == 0 && fileNamesCount != 0) {
+      throw FormatException('Missing entry format(s)');
+    }
+    final files = <int, FileEntry>{};
+    for (int i = 0; i < fileNamesCount; i++) {
+      final values = <Object>[];
+      for (int j = 0; j < entryFormatCount; j++) {
+        final form = entryFormatForms[j];
+        final value = form.read(reader, addressSize: addressSize);
+        values.add(value);
+      }
+      final name = values[nameIndex] as String;
+      // For any missing values, just use 0.
+      final size = sizeIndex == null ? 0 : values[sizeIndex] as int;
+      final directoryIndex =
+          directoryIndexIndex == null ? 0 : values[directoryIndexIndex] as int;
+      final timestamp =
+          timestampIndex == null ? 0 : values[timestampIndex] as int;
+      // In DWARF5, file entries are zero-based, as the current compilation file
+      // name is provided first instead of implicit.
+      files[i] = FileEntry._(name, directoryIndex, timestamp, size);
     }
     return FileInfo._(files);
   }
@@ -716,12 +913,17 @@ class LineNumberState {
   final bool defaultIsStatement;
 
   late int address;
+  late int opIndex;
   late int fileIndex;
   late int line;
   late int column;
   late bool isStatement;
   late bool basicBlock;
   late bool endSequence;
+  late bool prologueEnd;
+  late bool epilogueBegin;
+  late int isa;
+  late int discriminator;
 
   LineNumberState(this.defaultIsStatement) {
     reset();
@@ -729,35 +931,50 @@ class LineNumberState {
 
   void reset() {
     address = 0;
+    opIndex = 0;
     fileIndex = 1;
     line = 1;
     column = 0;
     isStatement = defaultIsStatement;
     basicBlock = false;
     endSequence = false;
+    prologueEnd = false;
+    epilogueBegin = false;
+    isa = 0;
+    discriminator = 0;
   }
 
   LineNumberState clone() {
     final clone = LineNumberState(defaultIsStatement);
     clone.address = address;
+    clone.opIndex = opIndex;
     clone.fileIndex = fileIndex;
     clone.line = line;
     clone.column = column;
     clone.isStatement = isStatement;
     clone.basicBlock = basicBlock;
     clone.endSequence = endSequence;
+    clone.prologueEnd = prologueEnd;
+    clone.epilogueBegin = epilogueBegin;
+    clone.isa = isa;
+    clone.discriminator = discriminator;
     return clone;
   }
 
   @override
   String toString() => 'Current line number state machine registers:\n'
       '  Address: ${paddedHex(address)}\n'
+      '  Op index: $opIndex\n'
       '  File index: $fileIndex\n'
       '  Line number: $line\n'
       '  Column number: $column\n'
       "  Is ${isStatement ? "" : "not "}a statement.\n"
       "  Is ${basicBlock ? "" : "not "}at the beginning of a basic block.\n"
-      "  Is ${endSequence ? "" : "not "}just after the end of a sequence.";
+      "  Is ${endSequence ? "" : "not "}just after the end of a sequence.\n"
+      "  Is ${prologueEnd ? "" : "not "}at a function entry breakpoint.\n"
+      "  Is ${epilogueBegin ? "" : "not "}at a function exit breakpoint.\n"
+      '  Applicable instruction set architecture: $isa\n'
+      '  Block discrimator: $discriminator\n';
 }
 
 class LineNumberProgramHeader {
@@ -772,6 +989,7 @@ class LineNumberProgramHeader {
   final Map<int, int> standardOpcodeLengths;
   final List<String> includeDirectories;
   final FileInfo filesInfo;
+  final int _fullHeaderSize;
 
   LineNumberProgramHeader._(
       this.size,
@@ -784,17 +1002,29 @@ class LineNumberProgramHeader {
       this.opcodeBase,
       this.standardOpcodeLengths,
       this.includeDirectories,
-      this.filesInfo);
+      this.filesInfo,
+      this._fullHeaderSize);
 
   static LineNumberProgramHeader? fromReader(Reader reader) {
     final size = _initialLengthValue(reader);
     if (size == 0) return null;
+    final headerStart = reader.offset;
     final version = reader.readBytes(2);
+
+    // Only used for DWARF5.
+    int? addressSize;
+    if (version == 5) {
+      // These fields are DWARF5 specific.
+      addressSize = reader.readByte();
+      final segmentSelectorSize = reader.readByte();
+      // We don't support segmented memory addresses here;
+      assert(segmentSelectorSize == 0);
+    }
 
     final headerLength = reader.readBytes(4);
     // We'll need this later as a double-check that we've read the entire
     // header.
-    final headerStart = reader.offset;
+    final offsetAfterHeaderLength = reader.offset;
     final minimumInstructionLength = reader.readByte();
     final isStmtByte = reader.readByte();
     if (isStmtByte < 0 || isStmtByte > 1) {
@@ -811,22 +1041,46 @@ class LineNumberProgramHeader {
       standardOpcodeLengths[i] = reader.readLEB128EncodedInteger();
     }
     final includeDirectories = <String>[];
-    while (!reader.done) {
-      final directory = reader.readNullTerminatedString();
-      if (directory == '') break;
-      includeDirectories.add(directory);
+    if (version == 5) {
+      final directoryEntryFormatCount = reader.readByte();
+      if (directoryEntryFormatCount > 1) {
+        throw FormatException(
+            'Multiple directory formats not currently handled');
+      }
+      final contentType = _LineNumberContentType.fromReader(reader);
+      if (contentType != _LineNumberContentType.path) {
+        throw FormatException('Unexpected content type $contentType');
+      }
+      final form = _AttributeForm.fromReader(reader)!;
+      contentType.validate(form);
+      final directoryCount = reader.readLEB128EncodedInteger();
+      for (int i = 0; i < directoryCount; i++) {
+        final value = form.read(reader, addressSize: addressSize);
+        includeDirectories.add(value as String);
+      }
+    } else {
+      while (!reader.done) {
+        final directory = reader.readNullTerminatedString();
+        if (directory == '') break;
+        includeDirectories.add(directory);
+      }
+      if (reader.done) {
+        throw FormatException('Unterminated directory entry');
+      }
     }
-    if (reader.done) {
-      throw FormatException('Unterminated directory entry');
-    }
-    final filesInfo = FileInfo.fromReader(reader);
+    final filesInfo = version == 5
+        ? FileInfo.fromReaderDwarf5(reader, addressSize: addressSize)
+        : FileInfo.fromReader(reader);
 
-    // Header length doesn't include the 2-byte version or 4-byte length fields.
-    if (reader.offset != headerStart + headerLength) {
+    // Header length doesn't include anything up to the header length field.
+    if (reader.offset != offsetAfterHeaderLength + headerLength) {
       throw FormatException('At offset ${reader.offset} after header, '
           'expected to be at offset ${headerStart + headerLength}');
     }
 
+    // We also keep note of the full header size internally so we can adjust
+    // readers as necessary later.
+    final fullHeaderSize = reader.offset - headerStart;
     return LineNumberProgramHeader._(
         size,
         version,
@@ -838,7 +1092,8 @@ class LineNumberProgramHeader {
         opcodeBase,
         standardOpcodeLengths,
         includeDirectories,
-        filesInfo);
+        filesInfo,
+        fullHeaderSize);
   }
 
   void writeToStringBuffer(StringBuffer buffer) {
@@ -902,26 +1157,36 @@ class LineNumberProgram {
     final header = LineNumberProgramHeader.fromReader(reader);
     if (header == null) return null;
     final calculatedMatrix = _readOpcodes(reader, header).toList();
-    if (calculatedMatrix.isEmpty) {
-      throw FormatException('No line number information generated by program');
-    }
+    // Sometimes the assembler will generate an empty DWARF LNP, so don't check
+    // for non-empty LNPs.
     return LineNumberProgram._(header, calculatedMatrix);
   }
 
   static Iterable<LineNumberState> _readOpcodes(
-      Reader reader, LineNumberProgramHeader header) sync* {
+      Reader originalReader, LineNumberProgramHeader header) sync* {
     final state = LineNumberState(header.defaultIsStatement);
+    final programSize = header.size - header._fullHeaderSize;
+    final reader = originalReader.refocusedCopy(
+        originalReader.start + originalReader.offset, programSize);
 
     void applySpecialOpcode(int opcode) {
       final adjustedOpcode = opcode - header.opcodeBase;
-      state.address = adjustedOpcode ~/ header.lineRange;
-      state.line += header.lineBase + (adjustedOpcode % header.lineRange);
+      final addrDiff = (adjustedOpcode ~/ header.lineRange) *
+          header.minimumInstructionLength;
+      final lineDiff = header.lineBase + (adjustedOpcode % header.lineRange);
+      state.address += addrDiff;
+      state.line += lineDiff;
     }
 
     while (!reader.done) {
       final opcode = reader.readByte();
       if (opcode >= header.opcodeBase) {
         applySpecialOpcode(opcode);
+        yield state.clone();
+        state.basicBlock = false;
+        state.prologueEnd = false;
+        state.epilogueBegin = false;
+        state.discriminator = 0;
         continue;
       }
       switch (opcode) {
@@ -935,7 +1200,7 @@ class LineNumberProgram {
               state.endSequence = true;
               yield state.clone();
               state.reset();
-              break;
+              continue;
             case 2: // DW_LNE_set_address
               // The length includes the subopcode.
               final valueLength = extendedLength - 1;
@@ -954,6 +1219,9 @@ class LineNumberProgram {
         case 1: // DW_LNS_copy
           yield state.clone();
           state.basicBlock = false;
+          state.prologueEnd = false;
+          state.epilogueBegin = false;
+          state.discriminator = 0;
           break;
         case 2: // DW_LNS_advance_pc
           final increment = reader.readLEB128EncodedInteger();
@@ -975,15 +1243,27 @@ class LineNumberProgram {
           state.basicBlock = true;
           break;
         case 8: // DW_LNS_const_add_pc
-          applySpecialOpcode(255);
+          state.address += ((255 - header.opcodeBase) ~/ header.lineRange) *
+              header.minimumInstructionLength;
           break;
         case 9: // DW_LNS_fixed_advance_pc
           state.address += reader.readBytes(2);
+          break;
+        case 10: // DW_LNS_set_prologue_end (DWARF5)
+          state.prologueEnd = true;
+          break;
+        case 11: // DW_LNS_set_epilogue_begin (DWARF5)
+          state.epilogueBegin = true;
+          break;
+        case 12: // DW_LNS_set_isa (DWARF5)
+          state.isa = reader.readLEB128EncodedInteger();
           break;
         default:
           throw FormatException('Standard opcode $opcode not in DWARF 2');
       }
     }
+    // Adjust the original reader to be at the same offset.
+    originalReader.seek(programSize);
   }
 
   bool containsKey(int address) {
@@ -1200,12 +1480,12 @@ class PCOffset {
       other is PCOffset && offset == other.offset && section == other.section;
 
   @override
-  String toString() => 'PCOffset($section, $offset)';
+  String toString() => 'PCOffset($section, 0x${offset.toRadixString(16)})';
 }
 
 /// The DWARF debugging information for a Dart snapshot.
 class Dwarf {
-  final Elf _elf;
+  final DwarfContainer _container;
   final Map<int, _AbbreviationsTable> _abbreviationsTables;
   final DebugInfo _debugInfo;
   final LineNumberInfo _lineNumberInfo;
@@ -1218,17 +1498,48 @@ class Dwarf {
   /// DWARF information.
   final int isolateStartAddress;
 
-  Dwarf._(this._elf, this._abbreviationsTables, this._debugInfo,
+  Dwarf._(this._container, this._abbreviationsTables, this._debugInfo,
       this._lineNumberInfo, this.vmStartAddress, this.isolateStartAddress);
+
+  static Dwarf fromDwarfContainer(Reader reader, DwarfContainer container) =>
+      // We use Zone values to pass around the string tables that may be used
+      // when parsing different sections.
+      runZoned(() {
+        final abbrevReader = container.abbreviationsTableReader(reader);
+        final abbreviationsTables = Map.fromEntries(abbrevReader
+            .readRepeatedWithOffsets(_AbbreviationsTable.fromReader));
+
+        final debugInfo = DebugInfo.fromReader(
+            container.debugInfoReader(reader), abbreviationsTables);
+
+        final lineNumberInfo =
+            LineNumberInfo.fromReader(container.lineNumberInfoReader(reader));
+
+        return Dwarf._(
+            container,
+            abbreviationsTables,
+            debugInfo,
+            lineNumberInfo,
+            container.vmStartAddress,
+            container.isolateStartAddress);
+      }, zoneValues: {
+        _debugStringTableKey: container.debugStringTable,
+        _debugLineStringTableKey: container.debugLineStringTable,
+      });
 
   /// Attempts to load the DWARF debugging information from the reader.
   ///
   /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
   static Dwarf? fromReader(Reader reader) {
-    // Currently, the only DWARF-containing format we recognize is ELF.
     final elf = Elf.fromReader(reader);
-    if (elf == null) return null;
-    return Dwarf._loadSectionsFromElf(reader, elf);
+    if (elf != null) {
+      return Dwarf.fromDwarfContainer(reader, elf);
+    }
+    final macho = MachO.fromReader(reader);
+    if (macho != null) {
+      return Dwarf.fromDwarfContainer(reader, macho);
+    }
+    return null;
   }
 
   /// Attempts to load the DWARF debugging information from the given bytes.
@@ -1241,54 +1552,12 @@ class Dwarf {
   ///
   /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
   static Dwarf? fromFile(String path) =>
-      Dwarf.fromReader(Reader.fromFile(path));
-
-  static Dwarf _loadSectionsFromElf(Reader reader, Elf elf) {
-    final abbrevSection = elf.namedSections('.debug_abbrev').single;
-    final abbrevReader = abbrevSection.refocusedCopy(reader);
-    final abbreviationsTables = Map.fromEntries(
-        abbrevReader.readRepeatedWithOffsets(_AbbreviationsTable.fromReader));
-
-    final lineNumberSection = elf.namedSections('.debug_line').single;
-    final lineNumberInfo =
-        LineNumberInfo.fromReader(lineNumberSection.refocusedCopy(reader));
-
-    final infoSection = elf.namedSections('.debug_info').single;
-    final debugInfo = DebugInfo.fromReader(
-        infoSection.refocusedCopy(reader), abbreviationsTables);
-
-    final vmStartSymbol = elf.dynamicSymbolFor(constants.vmSymbolName);
-    if (vmStartSymbol == null) {
-      throw FormatException(
-          'Expected a dynamic symbol with name ${constants.vmSymbolName}');
-    }
-    final vmStartAddress = vmStartSymbol.value;
-
-    final isolateStartSymbol =
-        elf.dynamicSymbolFor(constants.isolateSymbolName);
-    if (isolateStartSymbol == null) {
-      throw FormatException(
-          'Expected a dynamic symbol with name ${constants.isolateSymbolName}');
-    }
-    final isolateStartAddress = isolateStartSymbol.value;
-
-    return Dwarf._(elf, abbreviationsTables, debugInfo, lineNumberInfo,
-        vmStartAddress, isolateStartAddress);
-  }
+      Dwarf.fromReader(Reader.fromFile(MachO.handleDSYM(path)));
 
   /// The build ID for the debugging information.
   ///
   /// Returns null if there is no build ID information recorded.
-  String? get buildId {
-    final sections = _elf.namedSections(constants.buildIdSectionName);
-    if (sections.isEmpty) return null;
-    final note = sections.single as Note;
-    if (note.type != constants.buildIdNoteType) return null;
-    if (note.name != constants.buildIdNoteName) return null;
-    return note.description
-        .map((i) => i.toRadixString(16).padLeft(2, '0'))
-        .join();
-  }
+  String? get buildId => _container.buildId;
 
   /// The call information for the given virtual address. There may be
   /// multiple [CallInfo] objects returned for a single virtual address when
@@ -1302,7 +1571,7 @@ class Dwarf {
       {bool includeInternalFrames = false}) {
     var calls = _debugInfo.callInfo(_lineNumberInfo, address);
     if (calls == null) {
-      final symbol = _elf.staticSymbolAt(address);
+      final symbol = _container.staticSymbolAt(address);
       if (symbol != null) {
         final offset = address - symbol.value;
         calls = <CallInfo>[StubCallInfo(name: symbol.name, offset: offset)];
@@ -1358,7 +1627,7 @@ class Dwarf {
 
   String dumpFileInfo() {
     final buffer = StringBuffer();
-    _elf.writeToStringBuffer(buffer);
+    _container.writeToStringBuffer(buffer);
     buffer.writeln();
     writeToStringBuffer(buffer);
     return buffer.toString();
