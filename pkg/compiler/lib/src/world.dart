@@ -48,6 +48,7 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
 
   InterceptorData get interceptorData;
 
+  @override
   JElementEnvironment get elementEnvironment;
 
   @override
@@ -105,6 +106,7 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
   Iterable<ClassEntity> mixinUsesOf(ClassEntity cls);
 
   /// Returns `true` if [cls] is mixed into a live class.
+  @override
   bool isUsedAsMixin(ClassEntity cls);
 
   /// Returns `true` if any live class that mixes in [cls] implements [type].

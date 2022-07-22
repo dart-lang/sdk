@@ -23,9 +23,13 @@ abstract class JClosedWorld implements World {
 
   DartTypes get dartTypes;
 
+  ElementEnvironment get elementEnvironment;
+
   NativeData get nativeData;
 
   AnnotationsData get annotationsData;
+
+  bool isUsedAsMixin(ClassEntity cls);
 
   bool includesClosureCall(Selector selector, AbstractValue? receiver);
 
