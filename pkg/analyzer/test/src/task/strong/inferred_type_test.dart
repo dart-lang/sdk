@@ -2941,7 +2941,7 @@ main() {
       error(HintCode.UNUSED_ELEMENT, 177, 2),
       error(HintCode.UNUSED_ELEMENT, 194, 2),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 203, 2,
-          contextMessages: [message(testFilePath, 211, 2)]),
+          contextMessages: [message(testFile.path, 211, 2)]),
     ]);
 
     void assertLocalFunctionType(String name, String expected) {

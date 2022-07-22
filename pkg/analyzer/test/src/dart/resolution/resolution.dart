@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -78,7 +79,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   InterfaceType get stringType => typeProvider.stringType;
 
-  String get testFilePath => '/test/lib/test.dart';
+  File get testFile;
 
   TypeProvider get typeProvider => result.typeProvider;
 
@@ -87,7 +88,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   VoidType get voidType => VoidTypeImpl.instance;
 
   void addTestFile(String content) {
-    newFile(testFilePath, content);
+    newFile(testFile.path, content);
   }
 
   /// Assert that the given [identifier] is a reference to a class, in the
@@ -762,7 +763,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   Future<void> resolveTestFile() {
-    return resolveFile2(testFilePath);
+    return resolveFile2(testFile.path);
   }
 
   /// Choose the type display string, depending on whether the [result] is

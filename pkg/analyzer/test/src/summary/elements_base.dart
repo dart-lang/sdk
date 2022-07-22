@@ -26,7 +26,7 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
     bool dumpSummaries = false,
     List<Set<String>>? preBuildSequence,
   }) async {
-    final file = newFile(testFilePath, text);
+    final file = newFile(testFile.path, text);
     final analysisContext = contextFor(file.path);
     final analysisSession = analysisContext.currentSession;
 

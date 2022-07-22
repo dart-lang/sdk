@@ -64,7 +64,7 @@ class ExpectedResult {
 
 @reflectiveTest
 class SearchTest extends PubPackageResolutionTest {
-  AnalysisDriver get driver => driverFor(testFilePath);
+  AnalysisDriver get driver => driverFor(testFile.path);
 
   CompilationUnitElement get resultUnitElement => result.unit.declaredElement!;
 
@@ -1118,7 +1118,7 @@ Random bar() => null;
         ..add(name: 'aaa', rootPath: aaaPackageRootPath),
     );
 
-    pathForContextSelection = testFilePath;
+    pathForContextSelection = testFile.path;
 
     await resolveFileCode(aaaFilePath, '''
 import 'dart:math' show max, pi, Random hide min;
@@ -1322,7 +1322,7 @@ part 'unitB.dart';
     newFile(partPathA, codeA);
     newFile(partPathB, codeB);
 
-    pathForContextSelection = testFilePath;
+    pathForContextSelection = testFile.path;
 
     await resolveFileCode(libPath, '''
 library lib;
@@ -1395,7 +1395,7 @@ main() {
         ..add(name: 'aaa', rootPath: aaaPackageRootPath),
     );
 
-    pathForContextSelection = testFilePath;
+    pathForContextSelection = testFile.path;
 
     await resolveFileCode(testPath, '''
 main() {
@@ -1865,7 +1865,7 @@ main() {
         ..add(name: 'aaa', rootPath: aaaPackageRootPath),
     );
 
-    pathForContextSelection = testFilePath;
+    pathForContextSelection = testFile.path;
 
     var libPath = convertPath('$aaaPackageRootPath/lib/a.dart');
     var partPath = convertPath('$aaaPackageRootPath/lib/my_part.dart');
@@ -1978,7 +1978,7 @@ _C v1;
         ..add(name: 'aaa', rootPath: aaaPackageRootPath),
     );
 
-    pathForContextSelection = testFilePath;
+    pathForContextSelection = this.testFile.path;
 
     String testCode = '''
 library lib;
@@ -2408,7 +2408,7 @@ class F {}
     var aUri = 'package:aaa/a.dart';
     var bUri = 'package:bbb/b.dart';
 
-    newFile(testFilePath, r'''
+    addTestFile(r'''
 import 'package:aaa/a.dart';
 
 class T1 extends A {
@@ -2476,7 +2476,7 @@ class A {
         ..add(name: 'bbb', rootPath: bbbPackageRootPath),
     );
 
-    newFile(testFilePath, 'class T implements List {}');
+    addTestFile('class T implements List {}');
     newFile(aaaFilePath, 'class A implements List {}');
     newFile(bbbFilePath, 'class B implements List {}');
     newFile(cccFilePath, 'class C implements List {}');
@@ -2496,7 +2496,7 @@ class A {
       expect(results, not ? isNot(matcher) : matcher);
     }
 
-    assertHasResult(convertPath(testFilePath), 'T');
+    assertHasResult(testFile.path, 'T');
     assertHasResult(aaaFilePath, 'A');
     assertHasResult(bbbFilePath, 'B');
     assertHasResult(cccFilePath, 'C', not: true);
