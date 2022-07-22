@@ -64,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         //   static const a = A();
         //   static const b = A();
         // }
-        if (nodeField?.enclosingElement == element) return;
+        if (nodeField?.enclosingElement2 == element) return;
 
         var library = (node.root as CompilationUnit).declaredElement?.library;
         if (library == null) return;

@@ -154,7 +154,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     bool containsOverriddenMember(InterfaceType i) =>
         i.accessors.any(isOverriddenMember);
-    var enclosingElement = member.enclosingElement;
+    var enclosingElement = member.enclosingElement2;
     if (enclosingElement is! ClassElement) {
       return null;
     }

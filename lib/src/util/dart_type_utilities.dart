@@ -269,7 +269,7 @@ class DartTypeUtilities {
           required String constructorName}) =>
       element != null &&
       element.library.name == uriStr &&
-      element.enclosingElement.name == className &&
+      element.enclosingElement2.name == className &&
       element.name == constructorName;
 
   static bool isInterface(
@@ -287,7 +287,7 @@ class DartTypeUtilities {
     if (declaredElement == null) {
       return null;
     }
-    var parent = declaredElement.enclosingElement;
+    var parent = declaredElement.enclosingElement2;
     if (parent is ClassElement) {
       return parent.lookUpGetter(node.name.name, declaredElement.library);
     }
@@ -303,7 +303,7 @@ class DartTypeUtilities {
     if (declaredElement == null) {
       return null;
     }
-    var parent = declaredElement.enclosingElement;
+    var parent = declaredElement.enclosingElement2;
     if (parent is ClassElement) {
       return parent.lookUpInheritedConcreteGetter(
           node.name.name, declaredElement.library);
@@ -315,7 +315,7 @@ class DartTypeUtilities {
   static MethodElement? lookUpInheritedConcreteMethod(MethodDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement;
+      var parent = declaredElement.enclosingElement2;
       if (parent is ClassElement) {
         return parent.lookUpInheritedConcreteMethod(
             node.name.name, declaredElement.library);
@@ -329,7 +329,7 @@ class DartTypeUtilities {
       MethodDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement;
+      var parent = declaredElement.enclosingElement2;
       if (parent is ClassElement) {
         return parent.lookUpInheritedConcreteSetter(
             node.name.name, declaredElement.library);
@@ -342,7 +342,7 @@ class DartTypeUtilities {
   static MethodElement? lookUpInheritedMethod(MethodDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement;
+      var parent = declaredElement.enclosingElement2;
       if (parent is ClassElement) {
         return parent.lookUpInheritedMethod(
             node.name.name, declaredElement.library);
@@ -354,7 +354,7 @@ class DartTypeUtilities {
   static PropertyAccessorElement? lookUpSetter(MethodDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement;
+      var parent = declaredElement.enclosingElement2;
       if (parent is ClassElement) {
         return parent.lookUpSetter(node.name.name, declaredElement.library);
       }

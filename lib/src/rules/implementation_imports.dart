@@ -83,7 +83,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitImportDirective(ImportDirective node) {
     var importUri = node.uriSource?.uri;
-    var sourceUri = node.element?.source.uri;
+    var sourceUri = node.element2?.source.uri;
 
     // Test for 'package:*/src/'.
     if (!isImplementation(importUri)) {

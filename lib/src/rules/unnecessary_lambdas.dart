@@ -207,7 +207,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (target is SimpleIdentifier) {
         var element = target.staticElement;
         if (element is PrefixElement) {
-          for (var import in element.imports) {
+          for (var import in element.imports2) {
             if (import.isDeferred) {
               return;
             }
@@ -240,4 +240,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
   }
+}
+
+extension LibraryImportElementExtension on LibraryImportElement {
+  bool get isDeferred => prefix is DeferredImportElementPrefix;
 }

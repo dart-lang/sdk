@@ -123,7 +123,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   static bool _overridesEquals(ClassElement element) {
     var method = element.lookUpConcreteMethod('==', element.library);
-    var enclosing = method?.enclosingElement;
+    var enclosing = method?.enclosingElement2;
     return enclosing is ClassElement && !enclosing.isDartCoreObject;
   }
 }

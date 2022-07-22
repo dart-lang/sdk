@@ -276,10 +276,10 @@ bool _checkForSimpleGetter(MethodDeclaration getter, Expression? expression) {
   if (expression is SimpleIdentifier) {
     var staticElement = expression.staticElement;
     if (staticElement is PropertyAccessorElement) {
-      var enclosingElement = getter.declaredElement?.enclosingElement;
+      var enclosingElement = getter.declaredElement?.enclosingElement2;
       // Skipping library level getters, test that the enclosing element is
       // the same
-      if (staticElement.enclosingElement == enclosingElement) {
+      if (staticElement.enclosingElement2 == enclosingElement) {
         return staticElement.isSynthetic && staticElement.variable.isPrivate;
       }
     }

@@ -87,7 +87,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      if (element.enclosingElement.isDartCoreObject) {
+      if (element.enclosingElement2.isDartCoreObject) {
         // Skip lint for `new Object()`, because it can be used for Id creation.
         return;
       }
