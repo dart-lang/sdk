@@ -78,6 +78,9 @@ class AllInfo {
   /// Summary information about the program.
   ProgramInfo? program;
 
+  /// Information about each package in the program.
+  List<PackageInfo> packages = <PackageInfo>[];
+
   /// Information about each library processed by the compiler.
   List<LibraryInfo> libraries = <LibraryInfo>[];
 
@@ -183,6 +186,31 @@ class ProgramInfo {
       required this.minified});
 
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitProgram(this);
+}
+
+/// Info associated with a package element.
+///
+/// Note that PackageInfo is only used for converting dart2js info to
+/// vm_snapshot_analysis ProgramInfo and is not expected for --dump-info output.
+class PackageInfo extends BasicInfo {
+  /// Canonical uri that identifies the package
+  late final Uri uri;
+
+  /// All libraries defined within the package
+  List<LibraryInfo> libraries = <LibraryInfo>[];
+
+  PackageInfo(String name, this.uri, OutputUnitInfo outputUnit, int size)
+      : super(InfoKind.package, name, outputUnit, size, null);
+
+  @override
+  T accept<T>(InfoVisitor<T> visitor) {
+    if (visitor is VMProgramInfoVisitor<T>) {
+      return visitor.visitPackage(this);
+    } else {
+      throw ArgumentError(
+          "PackageInfo can only be visited by a VMProgramInfoVisitor");
+    }
+  }
 }
 
 /// Info associated with a library element.
@@ -513,6 +541,7 @@ class FunctionModifiers {
 
 /// Possible values of the `kind` field in the serialized infos.
 enum InfoKind {
+  package,
   library,
   clazz,
   classType,
@@ -587,6 +616,12 @@ abstract class InfoVisitor<T> {
   T visitTypedef(TypedefInfo info);
   T visitClosure(ClosureInfo info);
   T visitOutput(OutputUnitInfo info);
+}
+
+/// A visitor that adds implementation for PackageInfo specifically for building
+/// the VM ProgramInfo Tree from a Dart2js info tree.
+abstract class VMProgramInfoVisitor<T> extends InfoVisitor<T> {
+  T visitPackage(PackageInfo info);
 }
 
 /// A visitor that recursively walks each portion of the program. Because the

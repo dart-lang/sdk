@@ -267,6 +267,9 @@ class BinaryReader {
         return readTypedef();
       case InfoKind.closure:
         return readClosure();
+      case InfoKind.package:
+        throw StateError('Binary serialization is not supported for '
+            'PackageInfo');
     }
   }
 
