@@ -169,6 +169,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (invocation.parent is AssignmentExpression) return false;
     if (invocation.methodName.name != 'indexOf') return false;
 
+    var args = invocation.argumentList.arguments;
+    if (args.length == 2) {
+      var start = args[1];
+      if (getIntValue(start, context) != 0) return false;
+    }
+
     var parentType = invocation.target?.staticType;
     return parentType != null &&
         DartTypeUtilities.implementsAnyInterface(parentType, [
