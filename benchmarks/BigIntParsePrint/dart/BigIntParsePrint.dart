@@ -310,7 +310,7 @@ void main() {
     selectFormatNativeBigIntBenchmark('JsBigInt.toString.4096.bits', 4096),
   ];
 
-  // Warm up all benchmarks to ensure consistent behaviour of shared code.
+  // Warm up all benchmarks to ensure consistent behavior of shared code.
   benchmarks.forEach((bm) => bm()
     ..setup()
     ..run()
