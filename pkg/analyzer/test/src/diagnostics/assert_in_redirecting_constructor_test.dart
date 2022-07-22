@@ -17,42 +17,38 @@ main() {
 class AssertInRedirectingConstructorTest extends PubPackageResolutionTest {
   test_class_assertBeforeRedirection() async {
     await assertErrorsInCode(r'''
-class A {}
-class B {
-  B(int x) : assert(x > 0), this.name();
-  B.name() {}
+class A {
+  A(int x) : assert(x > 0), this.name();
+  A.name() {}
 }
-''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 34, 13)]);
+''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 23, 13)]);
   }
 
   test_class_justAssert() async {
     await assertNoErrorsInCode(r'''
-class A {}
-class B {
-  B(int x) : assert(x > 0);
-  B.name() {}
+class A {
+  A(int x) : assert(x > 0);
+  A.name() {}
 }
 ''');
   }
 
   test_class_justRedirection() async {
     await assertNoErrorsInCode(r'''
-class A {}
-class B {
-  B(int x) : this.name();
-  B.name() {}
+class A {
+  A(int x) : this.name();
+  A.name() {}
 }
 ''');
   }
 
   test_class_redirectionBeforeAssert() async {
     await assertErrorsInCode(r'''
-class A {}
-class B {
-  B(int x) : this.name(), assert(x > 0);
-  B.name() {}
+class A {
+  A(int x) : this.name(), assert(x > 0);
+  A.name() {}
 }
-''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 47, 13)]);
+''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 36, 13)]);
   }
 
   test_enum_assertBeforeRedirection() async {

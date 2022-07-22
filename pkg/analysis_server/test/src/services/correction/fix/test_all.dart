@@ -135,6 +135,7 @@ import 'qualify_reference_test.dart' as qualify_reference;
 import 'remove_abstract_test.dart' as remove_abstract;
 import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_argument_test.dart' as remove_argument;
+import 'remove_assertion_test.dart' as remove_assertion;
 import 'remove_assignment_test.dart' as remove_assignment;
 import 'remove_await_test.dart' as remove_await;
 import 'remove_comparison_test.dart' as remove_comparison;
@@ -356,6 +357,7 @@ void main() {
     remove_abstract.main();
     remove_annotation.main();
     remove_argument.main();
+    remove_assertion.main();
     remove_assignment.main();
     remove_await.main();
     remove_comparison.main();

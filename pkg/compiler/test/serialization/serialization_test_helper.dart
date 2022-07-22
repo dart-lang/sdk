@@ -107,8 +107,7 @@ runTest(
     Uri librariesSpecificationUri,
     List<String> options,
     SerializationStrategy strategy: const BytesInMemorySerializationStrategy(),
-    bool useDataKinds: false,
-    bool doCodegen: false}) async {
+    bool useDataKinds: false}) async {
   var commonOptions = options + ['--out=out.js'];
   OutputCollector collector = new OutputCollector();
   CompilationResult result = await runCompiler(
@@ -183,17 +182,15 @@ runTest(
         compiler.stopAfterGlobalTypeInferenceForTesting = true;
       });
   Expect.isTrue(result3b.isSuccess);
+  Expect.isTrue(collector3b.binaryOutputMap.containsKey(globalDataUri));
 
   final globalDataFileUri = dir.uri.resolve('global.data');
 
   // We must write the global data bytes before calling
   // `finishCompileAndCompare` below as that clears the collector.
-  if (doCodegen) {
-    Expect.isTrue(collector3b.binaryOutputMap.containsKey(globalDataUri));
 
-    final globalDataBytes = collector3b.binaryOutputMap[globalDataUri].list;
-    File(globalDataFileUri.path).writeAsBytesSync(globalDataBytes);
-  }
+  final globalDataBytes = collector3b.binaryOutputMap[globalDataUri].list;
+  File(globalDataFileUri.path).writeAsBytesSync(globalDataBytes);
 
   await finishCompileAndCompare(
       expectedOutput, collector2, result2.compiler, strategy,
@@ -202,26 +199,25 @@ runTest(
       expectedOutput, collector3b, result3b.compiler, strategy,
       stoppedAfterTypeInference: true);
 
-  if (doCodegen) {
-    OutputCollector collector4 = new OutputCollector();
-    CompilationResult result4 = await runCompiler(
-        entryPoint: entryPoint,
-        memorySourceFiles: memorySourceFiles,
-        packageConfig: packageConfig,
-        librariesSpecificationUri: librariesSpecificationUri,
-        options: commonOptions +
-            [
-              '${Flags.inputDill}=$dillFileUri',
-              '${Flags.readClosedWorld}=$closedWorldFileUri',
-              '${Flags.readData}=$globalDataFileUri',
-              '--out=out.js'
-            ],
-        outputProvider: collector4,
-        beforeRun: (Compiler compiler) {
-          compiler.forceSerializationForTesting = true;
-        });
-    Expect.isTrue(result4.isSuccess);
-  }
+  final jsOutUri = Uri.parse('out.js');
+  OutputCollector collector4 = new OutputCollector();
+  CompilationResult result4 = await runCompiler(
+      entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
+      packageConfig: packageConfig,
+      librariesSpecificationUri: librariesSpecificationUri,
+      options: commonOptions +
+          [
+            '${Flags.inputDill}=$dillFileUri',
+            '${Flags.readClosedWorld}=$closedWorldFileUri',
+            '${Flags.readData}=$globalDataFileUri',
+            '--out=$jsOutUri'
+          ],
+      outputProvider: collector4,
+      beforeRun: (Compiler compiler) {
+        compiler.forceSerializationForTesting = true;
+      });
+  Expect.isTrue(result4.isSuccess);
 
   await dir.delete(recursive: true);
 }

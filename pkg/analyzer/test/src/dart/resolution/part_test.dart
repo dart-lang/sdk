@@ -15,14 +15,59 @@ main() {
 
 @reflectiveTest
 class PartDirectiveResolutionTest extends PubPackageResolutionTest {
-  test_withoutString() async {
+  test_fileDoesNotExist() async {
+    await assertErrorsInCode(r'''
+part 'a.dart';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
+    ]);
+
+    final node = findNode.part('part');
+    assertResolvedNodeText(node, r'''
+PartDirective
+  partKeyword: part
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  semicolon: ;
+  element: DirectiveUriWithSource
+    source: package:test/a.dart
+  uriContent: null
+  uriElement: notUnitElement
+  uriSource: package:test/a.dart
+''');
+  }
+
+  test_noRelativeUri() async {
+    await assertErrorsInCode(r'''
+part ':net';
+''', [
+      error(CompileTimeErrorCode.INVALID_URI, 5, 6),
+    ]);
+
+    final node = findNode.part('part');
+    assertResolvedNodeText(node, r'''
+PartDirective
+  partKeyword: part
+  uri: SimpleStringLiteral
+    literal: ':net'
+  semicolon: ;
+  element: DirectiveUriWithRelativeUriString
+    relativeUriString: :net
+  uriContent: null
+  uriElement: notUnitElement
+  uriSource: <null>
+''');
+  }
+
+  test_noRelativeUriStr() async {
     await assertErrorsInCode(r'''
 part '${'foo'}.dart';
 ''', [
       error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 5, 15),
     ]);
 
-    assertResolvedNodeText(findNode.part('.dart'), r'''
+    final node = findNode.part('part');
+    assertResolvedNodeText(node, r'''
 PartDirective
   partKeyword: part
   uri: StringInterpolation
@@ -40,6 +85,28 @@ PartDirective
     stringValue: null
   semicolon: ;
   element: DirectiveUri
+  uriContent: null
+  uriElement: notUnitElement
+  uriSource: <null>
+''');
+  }
+
+  test_noSource() async {
+    await assertErrorsInCode(r'''
+part 'foo:bar';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 9),
+    ]);
+
+    final node = findNode.part('part');
+    assertResolvedNodeText(node, r'''
+PartDirective
+  partKeyword: part
+  uri: SimpleStringLiteral
+    literal: 'foo:bar'
+  semicolon: ;
+  element: DirectiveUriWithRelativeUri
+    relativeUri: foo:bar
   uriContent: null
   uriElement: notUnitElement
   uriSource: <null>

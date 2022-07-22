@@ -64,7 +64,6 @@ Future checkTests(Directory dataDir,
         Uri.parse('memory:$commonTestPath/dart2js_native/main.dart');
     String mainCode = await new File.fromUri(entity.uri).readAsString();
     Map<String, String> memorySourceFiles = {entryPoint.path: mainCode};
-    final doCodegen = mainCode.contains('@doCodegen');
 
     if (libDirectory != null) {
       print('Supporting libraries:');
@@ -85,8 +84,7 @@ Future checkTests(Directory dataDir,
         entryPoint: entryPoint,
         memorySourceFiles: memorySourceFiles,
         options: testOptions,
-        strategy: strategy,
-        doCodegen: doCodegen);
+        strategy: strategy);
   }
   Expect.isFalse(hasFailures, 'Errors found.');
   Expect.isTrue(testCount > 0, "No files were tested.");

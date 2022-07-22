@@ -481,10 +481,12 @@ class AnalyzerStatePrinter {
           }
           sink.writeln();
         } else if (export is LibraryExportWithUri) {
+          _writelnWithIndent('uri: ${export.selectedUri.relativeUri}');
+        } else if (export is LibraryExportWithUriStr) {
           final uriStr = _stringOfUriStr(export.selectedUri.relativeUriStr);
-          _writelnWithIndent('uri: $uriStr');
+          _writelnWithIndent('uriStr: $uriStr');
         } else {
-          _writelnWithIndent('noUri');
+          _writelnWithIndent('noUriStr');
         }
       },
     );
@@ -532,15 +534,22 @@ class AnalyzerStatePrinter {
           }
           sink.writeln();
         } else if (import is LibraryImportWithUri) {
+          sink.write(_indent);
+          sink.write('uri: ${import.selectedUri.relativeUri}');
+          if (import.isSyntheticDartCore) {
+            sink.write(' synthetic');
+          }
+          sink.writeln();
+        } else if (import is LibraryImportWithUriStr) {
           final uriStr = _stringOfUriStr(import.selectedUri.relativeUriStr);
           sink.write(_indent);
-          sink.write('uri: $uriStr');
+          sink.write('uriStr: $uriStr');
           if (import.isSyntheticDartCore) {
             sink.write(' synthetic');
           }
           sink.writeln();
         } else {
-          _writelnWithIndent('noUri');
+          _writelnWithIndent('noUriStr');
         }
       },
     );

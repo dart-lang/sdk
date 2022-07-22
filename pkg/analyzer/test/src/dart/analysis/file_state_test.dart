@@ -2023,9 +2023,9 @@ elementFactory
 ''');
   }
 
-  test_newFile_library_exports_invalidUri_cannotParse() async {
+  test_newFile_library_exports_noRelativeUri() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
-export 'net:';
+export ':net';
 ''');
 
     fileStateFor(a);
@@ -2040,7 +2040,7 @@ files
         libraryImports
           library_1 dart:core synthetic
         libraryExports
-          uri: net:
+          uriStr: :net
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2051,7 +2051,7 @@ elementFactory
 ''');
   }
 
-  test_newFile_library_exports_invalidUri_interpolation() async {
+  test_newFile_library_exports_noRelativeUriStr() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
 export '${'foo.dart'}';
 ''');
@@ -2068,7 +2068,35 @@ files
         libraryImports
           library_1 dart:core synthetic
         libraryExports
-          noUri
+          noUriStr
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_newFile_library_exports_noSource() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+export 'foo:bar';
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_1 dart:core synthetic
+        libraryExports
+          uri: foo:bar
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2252,60 +2280,6 @@ files
           libraries: library_0
           apiSignature_0
       referencingFiles: file_0
-      unlinkedKey: k00
-libraryCycles
-elementFactory
-''');
-  }
-
-  test_newFile_library_imports_invalidUri_cannotParse() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
-import 'da:';
-''');
-
-    fileStateFor(a);
-
-    assertDriverStateString(testFile, r'''
-files
-  /home/test/lib/a.dart
-    uri: package:test/a.dart
-    current
-      id: file_0
-      kind: library_0
-        libraryImports
-          uri: da:
-          library_1 dart:core synthetic
-        cycle_0
-          dependencies: dart:core
-          libraries: library_0
-          apiSignature_0
-      unlinkedKey: k00
-libraryCycles
-elementFactory
-''');
-  }
-
-  test_newFile_library_imports_invalidUri_interpolation() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
-import '${'foo.dart'}';
-''');
-
-    fileStateFor(a);
-
-    assertDriverStateString(testFile, r'''
-files
-  /home/test/lib/a.dart
-    uri: package:test/a.dart
-    current
-      id: file_0
-      kind: library_0
-        libraryImports
-          noUri
-          library_1 dart:core synthetic
-        cycle_0
-          dependencies: dart:core
-          libraries: library_0
-          apiSignature_0
       unlinkedKey: k00
 libraryCycles
 elementFactory
@@ -2645,6 +2619,87 @@ files
           libraries: library_1
           apiSignature_1
       unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_newFile_library_imports_noRelativeUri() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import ':net';
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          uriStr: :net
+          library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_newFile_library_imports_noRelativeUriStr() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import '${'foo.dart'}';
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          noUriStr
+          library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_newFile_library_imports_noSource() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import 'foo:bar';
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          uri: foo:bar
+          library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
 libraryCycles
 elementFactory
 ''');

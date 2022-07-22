@@ -100,6 +100,19 @@ abstract class A {
 ''');
   }
 
+  Future<void> test_abstract_field_initializer() async {
+    await resolveTestCode('''
+abstract class A {
+  abstract int x = 0;
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  abstract int x;
+}
+''');
+  }
+
   Future<void> test_field() async {
     await resolveTestCode('''
 class Test {

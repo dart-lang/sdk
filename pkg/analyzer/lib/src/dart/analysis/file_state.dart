@@ -280,10 +280,6 @@ class DirectiveUriWithUri extends DirectiveUriWithString {
     required this.relativeUri,
   });
 
-  bool get isValid {
-    return relativeUri.path.isNotEmpty;
-  }
-
   @override
   String toString() => '$relativeUri';
 }
@@ -1624,8 +1620,18 @@ class LibraryExportWithInSummarySource
 
 /// [LibraryExportState] that has a valid URI.
 class LibraryExportWithUri<U extends DirectiveUriWithUri>
-    extends LibraryExportState<U> {
+    extends LibraryExportWithUriStr<U> {
   LibraryExportWithUri({
+    required super.unlinked,
+    required super.selectedUri,
+    required super.uris,
+  });
+}
+
+/// [LibraryExportState] that has a relative URI string.
+class LibraryExportWithUriStr<U extends DirectiveUriWithString>
+    extends LibraryExportState<U> {
+  LibraryExportWithUriStr({
     required super.unlinked,
     required super.selectedUri,
     required super.uris,
@@ -1710,6 +1716,12 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
         );
       } else if (uri is DirectiveUriWithUri) {
         return PartWithUri(
+          library: this,
+          unlinked: unlinked,
+          uri: uri,
+        );
+      } else if (uri is DirectiveUriWithString) {
+        return PartWithUriStr(
           library: this,
           unlinked: unlinked,
           uri: uri,
@@ -1860,8 +1872,18 @@ class LibraryImportWithInSummarySource
 
 /// [LibraryImportState] that has a valid URI.
 class LibraryImportWithUri<U extends DirectiveUriWithUri>
-    extends LibraryImportState<U> {
+    extends LibraryImportWithUriStr<U> {
   LibraryImportWithUri({
+    required super.unlinked,
+    required super.selectedUri,
+    required super.uris,
+  });
+}
+
+/// [LibraryImportState] that has a relative URI string.
+class LibraryImportWithUriStr<U extends DirectiveUriWithString>
+    extends LibraryImportState<U> {
+  LibraryImportWithUriStr({
     required super.unlinked,
     required super.selectedUri,
     required super.uris,
@@ -1930,6 +1952,12 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
           selectedUri: selectedUri,
           uris: uris,
         );
+      } else if (selectedUri is DirectiveUriWithString) {
+        return LibraryExportWithUriStr(
+          unlinked: unlinked,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
       } else {
         return LibraryExportState(
           unlinked: unlinked,
@@ -1960,6 +1988,12 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
         );
       } else if (selectedUri is DirectiveUriWithUri) {
         return LibraryImportWithUri(
+          unlinked: unlinked,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
+      } else if (selectedUri is DirectiveUriWithString) {
+        return LibraryImportWithUriStr(
           unlinked: unlinked,
           selectedUri: selectedUri,
           uris: uris,
@@ -2249,8 +2283,17 @@ class PartWithFile extends PartWithUri<DirectiveUriWithFile> {
 }
 
 /// [PartState] that has a valid URI.
-class PartWithUri<U extends DirectiveUriWithUri> extends PartState<U> {
+class PartWithUri<U extends DirectiveUriWithUri> extends PartWithUriStr<U> {
   PartWithUri({
+    required super.library,
+    required super.unlinked,
+    required super.uri,
+  });
+}
+
+/// [PartState] that has a relative URI string.
+class PartWithUriStr<U extends DirectiveUriWithString> extends PartState<U> {
+  PartWithUriStr({
     required super.library,
     required super.unlinked,
     required super.uri,

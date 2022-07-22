@@ -91,10 +91,7 @@ AnalysisOptionsWarningCode.UNSUPPORTED_VALUE:
 CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER:
   status: hasFix
 CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER:
-  status: needsFix
-  notes: |-
-    1. Remove the initializer.
-    2. Remove the `abstract` keyword.
+  status: hasFix
 CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE:
   status: noFix
   notes: |-
@@ -128,9 +125,7 @@ CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER:
 CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE:
   status: hasFix
 CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the assert.
+  status: hasFix
 CompileTimeErrorCode.ASSIGNMENT_TO_CONST:
   status: noFix
   notes: |-

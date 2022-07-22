@@ -1,5 +1,4 @@
 // @dart=2.7
-// @doCodegen
 
 // Introduce a named parameter with a given string name.
 typedef Bar = String Function({String someString});

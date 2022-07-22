@@ -864,6 +864,11 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove arguments in file',
   );
+  static const REMOVE_ASSERTION = FixKind(
+    'dart.fix.remove.assertion',
+    DartFixKindPriority.DEFAULT,
+    'Remove the assertion',
+  );
   static const REMOVE_ASSIGNMENT = FixKind(
     'dart.fix.remove.assignment',
     DartFixKindPriority.DEFAULT,
