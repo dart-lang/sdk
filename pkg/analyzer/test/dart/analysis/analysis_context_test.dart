@@ -24,7 +24,7 @@ import 'a.dart';
 
     var c = newFile('$testPackageLibPath/c.dart', '');
 
-    var analysisContext = contextFor(a.path);
+    var analysisContext = contextFor(a);
 
     // Ask for files, so that they are known.
     var analysisSession = analysisContext.currentSession;
@@ -55,7 +55,7 @@ import 'a.dart';
 
     var d = newFile('$testPackageLibPath/d.dart', '');
 
-    var analysisContext = contextFor(a.path);
+    var analysisContext = contextFor(a);
 
     // Ask for files, so that they are known.
     var analysisSession = analysisContext.currentSession;

@@ -59,7 +59,7 @@ import 'target.dart';
     // Remove the overlay in the same way as AnalysisServer.
     deleteFile(filePath);
 
-    var analysisDriver = driverFor(testFile.path);
+    var analysisDriver = driverFor(testFile);
     analysisDriver.removeFile(filePath);
     await analysisDriver.applyPendingFileChanges();
 

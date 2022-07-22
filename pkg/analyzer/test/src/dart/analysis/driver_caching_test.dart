@@ -29,7 +29,7 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
   bool get retainDataForTesting => true;
 
   List<Set<String>> get _linkedCycles {
-    var driver = driverFor(testFile.path);
+    var driver = driverFor(testFile);
     return driver.testView!.libraryContext.linkedCycles;
   }
 
@@ -82,7 +82,7 @@ class A {
 }
 ''');
 
-    var analysisDriver = driverFor(testFile.path);
+    var analysisDriver = driverFor(testFile);
     analysisDriver.changeFile(testFile.path);
     await analysisDriver.applyPendingFileChanges();
 
@@ -101,7 +101,7 @@ class A {
 }
 ''');
 
-    var analysisDriver = driverFor(testFile.path);
+    var analysisDriver = driverFor(testFile);
     analysisDriver.changeFile(testFile.path);
     await analysisDriver.applyPendingFileChanges();
 
@@ -120,7 +120,7 @@ class A {
 }
 ''');
 
-    var analysisDriver = driverFor(testFile.path);
+    var analysisDriver = driverFor(testFile);
     analysisDriver.changeFile(testFile.path);
     await analysisDriver.applyPendingFileChanges();
 
@@ -214,7 +214,7 @@ void f() {
 import 'a.dart';
 ''');
 
-    var driver = driverFor(testFile.path);
+    var driver = driverFor(testFile);
 
     // Link both libraries, keep them.
     await driver.getLibraryByUri('package:test/a.dart');
@@ -370,7 +370,7 @@ class A {}
 export 'a.dart';
 ''');
 
-    final analysisContext = contextFor(macroFile.path);
+    final analysisContext = contextFor(macroFile);
 
     Future<LibraryElement> getLibrary(String uriStr) async {
       final result = await analysisContext.currentSession
@@ -445,8 +445,8 @@ class A {}
 void f(MacroA a) {}
 ''');
 
-    var analysisContext = contextFor(a.path);
-    var analysisDriver = driverFor(a.path);
+    var analysisContext = contextFor(a);
+    var analysisDriver = driverFor(a);
 
     var userErrors = analysisDriver.results
         .whereType<ErrorsResult>()
@@ -503,8 +503,8 @@ class A {}
 void f(MacroA a) {}
 ''');
 
-    var analysisContext = contextFor(a.path);
-    var analysisDriver = driverFor(a.path);
+    var analysisContext = contextFor(a);
+    var analysisDriver = driverFor(a);
 
     var userErrors = analysisDriver.results
         .whereType<ErrorsResult>()
@@ -542,8 +542,8 @@ class A {}
 void f(MacroA a) {}
 ''');
 
-    var analysisContext = contextFor(user.path);
-    var analysisDriver = driverFor(user.path);
+    var analysisContext = contextFor(user);
+    var analysisDriver = driverFor(user);
 
     var userErrors = analysisDriver.results
         .whereType<ErrorsResult>()
@@ -605,7 +605,7 @@ String getClassName() => 'MacroB';
 ''');
 
     // Notify about changes.
-    var analysisContext = contextFor(a.path);
+    var analysisContext = contextFor(a);
     analysisContext.changeFile(a.path);
     await analysisContext.applyPendingFileChanges();
 
@@ -645,7 +645,7 @@ String getClassName() => 'MacroB';
   /// But this method is used to check returning errors from the cache, or
   /// recomputing when the cache key is expected to be different.
   Future<List<AnalysisError>> _computeTestFileErrors() async {
-    var errorsResult = await contextFor(testFile.path)
+    var errorsResult = await contextFor(testFile)
         .currentSession
         .getErrors(testFile.path) as ErrorsResult;
     return errorsResult.errors;

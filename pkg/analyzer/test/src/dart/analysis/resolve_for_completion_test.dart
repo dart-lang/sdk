@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class ResolveForCompletionTest extends PubPackageResolutionTest {
   AnalysisDriver get testDriver {
-    return driverFor(testFile.path);
+    return driverFor(testFile);
   }
 
   test_class__fieldDeclaration_type_namedType_name() async {

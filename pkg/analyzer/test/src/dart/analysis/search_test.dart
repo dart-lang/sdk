@@ -64,7 +64,7 @@ class ExpectedResult {
 
 @reflectiveTest
 class SearchTest extends PubPackageResolutionTest {
-  AnalysisDriver get driver => driverFor(testFile.path);
+  AnalysisDriver get driver => driverFor(testFile);
 
   CompilationUnitElement get resultUnitElement => result.unit.declaredElement!;
 
@@ -1118,7 +1118,7 @@ Random bar() => null;
         ..add(name: 'aaa', rootPath: aaaPackageRootPath),
     );
 
-    pathForContextSelection = testFile.path;
+    fileForContextSelection = testFile;
 
     await resolveFileCode(aaaFilePath, '''
 import 'dart:math' show max, pi, Random hide min;
@@ -1322,7 +1322,7 @@ part 'unitB.dart';
     newFile(partPathA, codeA);
     newFile(partPathB, codeB);
 
-    pathForContextSelection = testFile.path;
+    fileForContextSelection = testFile;
 
     await resolveFileCode(libPath, '''
 library lib;
@@ -1395,7 +1395,7 @@ main() {
         ..add(name: 'aaa', rootPath: aaaPackageRootPath),
     );
 
-    pathForContextSelection = testFile.path;
+    fileForContextSelection = testFile;
 
     await resolveFileCode(testPath, '''
 main() {
@@ -1865,7 +1865,7 @@ main() {
         ..add(name: 'aaa', rootPath: aaaPackageRootPath),
     );
 
-    pathForContextSelection = testFile.path;
+    fileForContextSelection = testFile;
 
     var libPath = convertPath('$aaaPackageRootPath/lib/a.dart');
     var partPath = convertPath('$aaaPackageRootPath/lib/my_part.dart');
@@ -1978,7 +1978,7 @@ _C v1;
         ..add(name: 'aaa', rootPath: aaaPackageRootPath),
     );
 
-    pathForContextSelection = this.testFile.path;
+    fileForContextSelection = this.testFile;
 
     String testCode = '''
 library lib;

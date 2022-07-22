@@ -130,8 +130,8 @@ abstract class ContextResolutionTest
   AnalysisContextCollectionImpl? _analysisContextCollection;
 
   /// If not `null`, [resolveFile] will use the context that corresponds
-  /// to this path, instead of the given path.
-  String? pathForContextSelection;
+  /// to this file, instead of the given file.
+  File? fileForContextSelection;
 
   /// Optional Dart SDK summary file, to be used instead of [sdkRoot].
   File? sdkSummaryFile;
@@ -158,12 +158,12 @@ abstract class ContextResolutionTest
   Folder get sdkRoot => newFolder('/sdk');
 
   void assertBasicWorkspaceFor(File file) {
-    var workspace = contextFor(file.path).contextRoot.workspace;
+    var workspace = contextFor(file).contextRoot.workspace;
     expect(workspace, TypeMatcher<BasicWorkspace>());
   }
 
   void assertBazelWorkspaceFor(File file) {
-    var workspace = contextFor(file.path).contextRoot.workspace;
+    var workspace = contextFor(file).contextRoot.workspace;
     expect(workspace, TypeMatcher<BazelWorkspace>());
   }
 
@@ -172,7 +172,7 @@ abstract class ContextResolutionTest
     String expected, {
     bool omitSdkFiles = true,
   }) {
-    final analysisDriver = driverFor(file.path);
+    final analysisDriver = driverFor(file);
 
     final buffer = StringBuffer();
     AnalyzerStatePrinter(
@@ -194,22 +194,22 @@ abstract class ContextResolutionTest
   }
 
   void assertGnWorkspaceFor(File file) {
-    var workspace = contextFor(file.path).contextRoot.workspace;
+    var workspace = contextFor(file).contextRoot.workspace;
     expect(workspace, TypeMatcher<GnWorkspace>());
   }
 
   void assertPackageBuildWorkspaceFor(File file) {
-    var workspace = contextFor(file.path).contextRoot.workspace;
+    var workspace = contextFor(file).contextRoot.workspace;
     expect(workspace, TypeMatcher<PackageBuildWorkspace>());
   }
 
-  void assertPubWorkspaceFor(String path) {
-    var workspace = contextFor(path).contextRoot.workspace;
+  void assertPubWorkspaceFor(File file) {
+    var workspace = contextFor(file).contextRoot.workspace;
     expect(workspace, TypeMatcher<PubWorkspace>());
   }
 
-  AnalysisContext contextFor(String path) {
-    return _contextFor(path);
+  AnalysisContext contextFor(File file) {
+    return _contextFor(file);
   }
 
   Future<void> disposeAnalysisContextCollection() async {
@@ -222,8 +222,8 @@ abstract class ContextResolutionTest
     }
   }
 
-  AnalysisDriver driverFor(String path) {
-    return _contextFor(path).driver;
+  AnalysisDriver driverFor(File file) {
+    return _contextFor(file).driver;
   }
 
   @override
@@ -237,7 +237,8 @@ abstract class ContextResolutionTest
 
   @override
   Future<ResolvedUnitResult> resolveFile(String path) async {
-    var analysisContext = contextFor(pathForContextSelection ?? path);
+    final file = getFile(path); // TODO(scheglov) migrate to File
+    var analysisContext = contextFor(fileForContextSelection ?? file);
     var session = analysisContext.currentSession;
     return await session.getResolvedUnit(path) as ResolvedUnitResult;
   }
@@ -280,11 +281,10 @@ abstract class ContextResolutionTest
 
   void verifyCreatedCollection() {}
 
-  DriverBasedAnalysisContext _contextFor(String path) {
+  DriverBasedAnalysisContext _contextFor(File file) {
     _createAnalysisContexts();
 
-    path = convertPath(path);
-    return _analysisContextCollection!.contextFor(path);
+    return _analysisContextCollection!.contextFor(file.path);
   }
 
   /// Create all analysis contexts in [collectionIncludedPaths].
@@ -312,8 +312,7 @@ abstract class ContextResolutionTest
 
 class PubPackageResolutionTest extends ContextResolutionTest {
   AnalysisOptionsImpl get analysisOptions {
-    var path = convertPath(testPackageRootPath);
-    return contextFor(path).analysisOptions as AnalysisOptionsImpl;
+    return contextFor(testFile).analysisOptions as AnalysisOptionsImpl;
   }
 
   @override

@@ -47,7 +47,7 @@ class FileSystemState_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
     // This generated file should be used instead of the writable.
     newFile(generatedPath, '');
 
-    var analysisDriver = driverFor(testFile.path);
+    var analysisDriver = driverFor(testFile);
 
     var fsState = analysisDriver.fsState;
 
@@ -75,7 +75,7 @@ class FileSystemState_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
     // This generated file should be used instead of the writable.
     newFile(generatedPath, '');
 
-    var analysisDriver = driverFor(testFile.path);
+    var analysisDriver = driverFor(testFile);
 
     var fsState = analysisDriver.fsState;
 
@@ -96,13 +96,13 @@ class FileSystemState_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
   }
 
   void test_getFileForUri_nestedLib_notCanonicalUri() async {
-    var outerPath = convertPath('$workspaceRootPath/my/outer/lib/a.dart');
+    var outer = getFile('$workspaceRootPath/my/outer/lib/a.dart');
     var outerUri = Uri.parse('package:my.outer/a.dart');
 
-    var innerPath = convertPath('/workspace/my/outer/lib/inner/lib/b.dart');
+    var inner = getFile('/workspace/my/outer/lib/inner/lib/b.dart');
     var innerUri = Uri.parse('package:my.outer.lib.inner/b.dart');
 
-    var analysisDriver = driverFor(outerPath);
+    var analysisDriver = driverFor(outer);
     var fsState = analysisDriver.fsState;
 
     // User code might use such relative URI.
@@ -111,7 +111,7 @@ class FileSystemState_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
 
     // However the returned file must use the canonical URI.
     var innerFile = fsState.getFileForUri(innerUri2).t1!;
-    expect(innerFile.path, innerPath);
+    expect(innerFile.path, inner.path);
     expect(innerFile.uri, innerUri);
   }
 }
@@ -135,7 +135,7 @@ class FileSystemState_PubPackageTest extends PubPackageResolutionTest {
   }
 
   FileSystemState fsStateFor(File file) {
-    return driverFor(file.path).fsState;
+    return driverFor(file).fsState;
   }
 
   test_libraryCycle() {
@@ -1850,8 +1850,7 @@ elementFactory
     final librarySummaryFiles = <File>[];
     {
       final fooRoot = getFolder('$workspaceRootPath/foo');
-
-      newFile('${fooRoot.path}/lib/foo.dart', 'class F {}');
+      final foo = newFile('${fooRoot.path}/lib/foo.dart', 'class F {}');
 
       final fooPackageConfigFile = getFile(
         '${fooRoot.path}/.dart_tool/package_config.json',
@@ -1862,7 +1861,7 @@ elementFactory
         PackageConfigFileBuilder()..add(name: 'foo', rootPath: fooRoot.path),
       );
 
-      final analysisDriver = driverFor(fooRoot.path);
+      final analysisDriver = driverFor(foo);
       final bundleBytes = await analysisDriver.buildPackageBundle(
         uriList: [
           Uri.parse('package:foo/foo.dart'),
@@ -1938,7 +1937,7 @@ elementFactory
     {
       final fooRoot = getFolder('$workspaceRootPath/foo');
 
-      newFile('${fooRoot.path}/lib/foo.dart', r'''
+      final foo = newFile('${fooRoot.path}/lib/foo.dart', r'''
 part 'foo2.dart';
 ''');
 
@@ -1955,7 +1954,7 @@ part of 'foo.dart';
         PackageConfigFileBuilder()..add(name: 'foo', rootPath: fooRoot.path),
       );
 
-      final analysisDriver = driverFor(fooRoot.path);
+      final analysisDriver = driverFor(foo);
       final bundleBytes = await analysisDriver.buildPackageBundle(
         uriList: [
           Uri.parse('package:foo/foo.dart'),
@@ -2349,7 +2348,7 @@ elementFactory
     {
       final fooRoot = getFolder('$workspaceRootPath/foo');
 
-      newFile('${fooRoot.path}/lib/foo.dart', 'class F {}');
+      final foo = newFile('${fooRoot.path}/lib/foo.dart', 'class F {}');
 
       final fooPackageConfigFile = getFile(
         '${fooRoot.path}/.dart_tool/package_config.json',
@@ -2360,7 +2359,7 @@ elementFactory
         PackageConfigFileBuilder()..add(name: 'foo', rootPath: fooRoot.path),
       );
 
-      final analysisDriver = driverFor(fooRoot.path);
+      final analysisDriver = driverFor(foo);
       final bundleBytes = await analysisDriver.buildPackageBundle(
         uriList: [
           Uri.parse('package:foo/foo.dart'),
@@ -2435,7 +2434,7 @@ elementFactory
     {
       final fooRoot = getFolder('$workspaceRootPath/foo');
 
-      newFile('${fooRoot.path}/lib/foo.dart', r'''
+      final foo = newFile('${fooRoot.path}/lib/foo.dart', r'''
 part 'foo2.dart';
 ''');
 
@@ -2452,7 +2451,7 @@ part of 'foo.dart';
         PackageConfigFileBuilder()..add(name: 'foo', rootPath: fooRoot.path),
       );
 
-      final analysisDriver = driverFor(fooRoot.path);
+      final analysisDriver = driverFor(foo);
       final bundleBytes = await analysisDriver.buildPackageBundle(
         uriList: [
           Uri.parse('package:foo/foo.dart'),

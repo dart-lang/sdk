@@ -23,7 +23,7 @@ class AnalysisSessionHelperTest extends PubPackageResolutionTest {
   @override
   void setUp() {
     super.setUp();
-    var session = contextFor(testFile.path).currentSession;
+    var session = contextFor(testFile).currentSession;
     helper = AnalysisSessionHelper(session);
   }
 
