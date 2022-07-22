@@ -58,15 +58,14 @@ class AnalysisDriver_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
   void test_nestedLib_notCanonicalUri() async {
     var outerLibPath = '$workspaceRootPath/my/outer/lib';
 
-    var innerPath = convertPath('$outerLibPath/inner/lib/b.dart');
+    var innerFile = newFile('$outerLibPath/inner/lib/b.dart', 'class B {}');
     var innerUri = Uri.parse('package:my.outer.lib.inner/b.dart');
-    newFile(innerPath, 'class B {}');
 
-    var analysisSession = contextFor(innerPath).currentSession;
+    var analysisSession = contextFor(innerFile).currentSession;
 
     void assertInnerUri(ResolvedUnitResult result) {
       var innerLibrary = result.libraryElement.importedLibraries
-          .where((e) => e.source.fullName == innerPath)
+          .where((e) => e.source.fullName == innerFile.path)
           .single;
       expect(innerLibrary.source.uri, innerUri);
     }
@@ -112,7 +111,7 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
   }
 
   test_getLibraryByUri_cannotResolveUri() async {
-    final driver = driverFor(testFile.path);
+    final driver = driverFor(testFile);
     expect(
       await driver.getLibraryByUri('foo:bar'),
       isA<CannotResolveUriResult>(),
@@ -124,7 +123,7 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
 library augment 'b.dart';
 ''');
 
-    final driver = driverFor(a.path);
+    final driver = driverFor(a);
     expect(
       await driver.getLibraryByUri('package:test/a.dart'),
       isA<NotLibraryButAugmentationResult>(),
@@ -136,7 +135,7 @@ library augment 'b.dart';
 part of 'b.dart';
 ''');
 
-    final driver = driverFor(a.path);
+    final driver = driverFor(a);
     expect(
       await driver.getLibraryByUri('package:test/a.dart'),
       isA<NotLibraryButPartResult>(),
@@ -144,7 +143,7 @@ part of 'b.dart';
   }
 
   test_getParsedLibraryByUri_cannotResolveUri() async {
-    final driver = driverFor(testFile.path);
+    final driver = driverFor(testFile);
     final uri = Uri.parse('foo:bar');
     expect(
       driver.getParsedLibraryByUri(uri),
@@ -157,7 +156,7 @@ part of 'b.dart';
 library augment 'b.dart';
 ''');
 
-    final driver = driverFor(a.path);
+    final driver = driverFor(a);
     final uri = Uri.parse('package:test/a.dart');
     expect(
       driver.getParsedLibraryByUri(uri),
@@ -170,7 +169,7 @@ library augment 'b.dart';
 part of 'b.dart';
 ''');
 
-    final driver = driverFor(a.path);
+    final driver = driverFor(a);
     final uri = Uri.parse('package:test/a.dart');
     expect(
       driver.getParsedLibraryByUri(uri),
@@ -183,7 +182,7 @@ part of 'b.dart';
 library augment 'b.dart';
 ''');
 
-    final driver = driverFor(a.path);
+    final driver = driverFor(a);
     expect(
       await driver.getResolvedLibrary(a.path),
       isA<NotLibraryButAugmentationResult>(),
@@ -195,7 +194,7 @@ library augment 'b.dart';
 part of 'b.dart';
 ''');
 
-    final driver = driverFor(a.path);
+    final driver = driverFor(a);
     expect(
       await driver.getResolvedLibrary(a.path),
       isA<NotLibraryButPartResult>(),
@@ -203,7 +202,7 @@ part of 'b.dart';
   }
 
   test_getResolvedLibraryByUri_cannotResolveUri() async {
-    final driver = driverFor(testFile.path);
+    final driver = driverFor(testFile);
     final uri = Uri.parse('foo:bar');
     expect(
       await driver.getResolvedLibraryByUri(uri),
@@ -216,7 +215,7 @@ part of 'b.dart';
 library augment 'b.dart';
 ''');
 
-    final driver = driverFor(a.path);
+    final driver = driverFor(a);
     final uri = Uri.parse('package:test/a.dart');
     expect(
       await driver.getResolvedLibraryByUri(uri),
@@ -229,7 +228,7 @@ library augment 'b.dart';
 part of 'b.dart';
 ''');
 
-    final driver = driverFor(a.path);
+    final driver = driverFor(a);
     final uri = Uri.parse('package:test/a.dart');
     expect(
       await driver.getResolvedLibraryByUri(uri),

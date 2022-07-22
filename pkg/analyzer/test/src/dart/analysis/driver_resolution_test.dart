@@ -282,7 +282,7 @@ const a = 1;
 ''');
 
     // Make sure that the part knows its library.
-    contextFor(a.path).currentSession.getParsedUnit(a.path);
+    contextFor(a).currentSession.getParsedUnit(a.path);
 
     await resolveTestFile();
 

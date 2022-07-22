@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -432,14 +433,15 @@ class GetElementDeclarationParsedTest extends PubPackageResolutionTest
   @override
   Future<ElementDeclarationResult?> getElementDeclaration(
       Element element) async {
-    var libraryPath = element.library!.source.fullName;
-    var library = await _getParsedLibrary(libraryPath);
+    final path = element.library!.source.fullName;
+    final file = getFile(path);
+    final library = await _getParsedLibrary(file);
     return library.getElementDeclaration(element);
   }
 
-  Future<ParsedLibraryResult> _getParsedLibrary(String path) async {
-    var session = contextFor(path).currentSession;
-    return session.getParsedLibrary(path) as ParsedLibraryResult;
+  Future<ParsedLibraryResult> _getParsedLibrary(File file) async {
+    var session = contextFor(file).currentSession;
+    return session.getParsedLibrary(file.path) as ParsedLibraryResult;
   }
 }
 
@@ -449,13 +451,14 @@ class GetElementDeclarationResolvedTest extends PubPackageResolutionTest
   @override
   Future<ElementDeclarationResult?> getElementDeclaration(
       Element element) async {
-    var libraryPath = element.library!.source.fullName;
-    var library = await _getResolvedLibrary(libraryPath);
+    final path = element.library!.source.fullName;
+    final file = getFile(path);
+    final library = await _getResolvedLibrary(file);
     return library.getElementDeclaration(element);
   }
 
-  Future<ResolvedLibraryResult> _getResolvedLibrary(String path) async {
-    var session = contextFor(path).currentSession;
-    return await session.getResolvedLibrary(path) as ResolvedLibraryResult;
+  Future<ResolvedLibraryResult> _getResolvedLibrary(File file) async {
+    var session = contextFor(file).currentSession;
+    return await session.getResolvedLibrary(file.path) as ResolvedLibraryResult;
   }
 }

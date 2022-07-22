@@ -27,7 +27,7 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
     List<Set<String>>? preBuildSequence,
   }) async {
     final file = newFile(testFile.path, text);
-    final analysisContext = contextFor(file.path);
+    final analysisContext = contextFor(file);
     final analysisSession = analysisContext.currentSession;
 
     final uriStr = 'package:test/test.dart';
