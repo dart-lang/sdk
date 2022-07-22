@@ -7,11 +7,17 @@
 library dart2js.kernel.frontend_strategy.facades;
 
 import '../common.dart' show SourceSpan, Spannable;
-import '../common/elements.dart' show KCommonElements;
+import '../common/elements.dart' show KCommonElements, KElementEnvironment;
 import '../elements/entities.dart' show Entity;
 
-/// Facade interface for KernelFrontendStrategy.
+/// Facade interface used by backend usage.
 abstract class KernelFrontendStrategyForBackendUsage {
   KCommonElements get commonElements;
   SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement);
+}
+
+/// Facade interface used by deferred loading.
+abstract class KernelFrontendStrategyForDeferredLoading {
+  KCommonElements get commonElements;
+  KElementEnvironment get elementEnvironment;
 }

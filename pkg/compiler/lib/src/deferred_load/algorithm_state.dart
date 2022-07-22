@@ -2,18 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'entity_data.dart';
 import 'entity_data_info.dart';
 import 'import_set.dart';
 import 'work_queue.dart';
 
 import '../common.dart';
-import '../compiler.dart' show Compiler;
+import '../compiler_interfaces.dart' show CompilerDeferredLoadingFacade;
 import '../elements/entities.dart';
-import '../kernel/element_map.dart';
-import '../kernel/kernel_world.dart';
+import '../kernel/element_map_interfaces.dart'
+    show KernelToElementMapForDeferredLoading;
+import '../kernel/kernel_world_interfaces.dart' show KClosedWorld;
+
+// TODO(48820): delete typedef after the migration is complete.
+typedef Compiler = CompilerDeferredLoadingFacade;
+typedef KernelToElementMap = KernelToElementMapForDeferredLoading;
 
 /// Manages the state of the [EntityData] model. Every class, member, constant,
 /// etc, is wrapped in the deferred loading algorithm by an [EntityData] which
@@ -109,7 +112,7 @@ class AlgorithmState {
   void _updateDependencies(
       EntityData entityData, ImportSet oldSet, ImportSet newSet) {
     assert(directDependencies.containsKey(entityData));
-    var directDependenciesList = directDependencies[entityData];
+    var directDependenciesList = directDependencies[entityData]!;
     for (var entity in directDependenciesList) {
       update(entity, oldSet, newSet);
     }
@@ -148,7 +151,7 @@ class AlgorithmState {
     var imports = entityToSet.values.toSet();
     var finalTransitions = importSets.computeFinalTransitions(imports);
     for (var key in entityToSet.keys) {
-      entityToSet[key] = finalTransitions[entityToSet[key]];
+      entityToSet[key] = finalTransitions[entityToSet[key]]!;
     }
   }
 }

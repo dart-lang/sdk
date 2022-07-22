@@ -61,7 +61,8 @@ import 'element_map_interfaces.dart' as interfaces
         KernelElementEnvironment,
         KernelToElementMapForClassHierarchy,
         KernelToElementMapForImpactData,
-        KernelToElementMapForNativeData;
+        KernelToElementMapForNativeData,
+        KernelToElementMapForDeferredLoading;
 import 'env.dart';
 import 'kelements.dart';
 import 'kernel_impact.dart';
@@ -73,6 +74,7 @@ class KernelToElementMap
         interfaces.KernelToElementMapForClassHierarchy,
         interfaces.KernelToElementMapForImpactData,
         interfaces.KernelToElementMapForNativeData,
+        interfaces.KernelToElementMapForDeferredLoading,
         IrToElementMap {
   @override
   final CompilerOptions options;
@@ -839,6 +841,7 @@ class KernelToElementMap
   }
 
   /// Returns the defining node for [member].
+  @override
   ir.Member getMemberNode(covariant IndexedMember member) {
     assert(checkFamily(member));
     return members.getData(member).node;
@@ -851,6 +854,7 @@ class KernelToElementMap
   }
 
   /// Return the [ImportEntity] corresponding to [node].
+  @override
   ImportEntity getImport(ir.LibraryDependency node) {
     if (node == null) return null;
     ir.Library library = node.parent;
@@ -870,6 +874,7 @@ class KernelToElementMap
   ir.ClassHierarchy get classHierarchy =>
       _classHierarchy ??= ir.ClassHierarchy(env.mainComponent, coreTypes);
 
+  @override
   ir.StaticTypeContext getStaticTypeContext(MemberEntity member) {
     // TODO(johnniwinther): Cache the static type context.
     return ir.StaticTypeContext(getMemberNode(member), typeEnvironment);
@@ -1154,6 +1159,7 @@ class KernelToElementMap
   }
 
   /// Computes the [ConstantValue] for the constant [expression].
+  @override
   ConstantValue getConstantValue(
       ir.StaticTypeContext staticTypeContext, ir.Expression node,
       {bool requireConstant = true,
