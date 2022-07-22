@@ -15,6 +15,10 @@ import '../options.dart';
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 
+/// `@pragma('dart2js:...')` annotations understood by dart2js.
+///
+/// Some of these annotations are (documented
+/// elsewhere)[pkg/compiler/doc/pragmas.md].
 class PragmaAnnotation {
   final int _index;
   final String name;
@@ -171,6 +175,13 @@ class PragmaAnnotation {
     noThrows: {noInline},
     noSideEffects: {noInline},
   };
+
+  static final Map<String, PragmaAnnotation> lookupMap = {
+    for (final annotation in values) annotation.name: annotation,
+    // Aliases
+    'never-inline': noInline,
+    'prefer-inline': tryInline,
+  };
 }
 
 ir.Library _enclosingLibrary(ir.TreeNode node) {
@@ -196,46 +207,41 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
   for (PragmaAnnotationData data in pragmaAnnotationData) {
     String name = data.name;
     String suffix = data.suffix;
-    bool found = false;
-    for (PragmaAnnotation annotation in PragmaAnnotation.values) {
-      if (annotation.name == suffix) {
-        found = true;
-        annotations.add(annotation);
+    final annotation = PragmaAnnotation.lookupMap[suffix];
+    if (annotation != null) {
+      annotations.add(annotation);
 
-        if (data.hasOptions) {
-          reporter.reportErrorMessage(
-              computeSourceSpanFromTreeNode(node),
-              MessageKind.GENERIC,
-              {'text': "@pragma('$name') annotation does not take options"});
-        }
-        if (annotation.forFunctionsOnly) {
-          if (node is! ir.Procedure && node is! ir.Constructor) {
-            reporter.reportErrorMessage(
-                computeSourceSpanFromTreeNode(node), MessageKind.GENERIC, {
-              'text': "@pragma('$name') annotation is only supported "
-                  "for methods and constructors."
-            });
-          }
-        }
-        if (annotation.forFieldsOnly) {
-          if (node is! ir.Field) {
-            reporter.reportErrorMessage(
-                computeSourceSpanFromTreeNode(node), MessageKind.GENERIC, {
-              'text': "@pragma('$name') annotation is only supported "
-                  "for fields."
-            });
-          }
-        }
-        if (annotation.internalOnly && !platformAnnotationsAllowed) {
-          reporter.reportErrorMessage(
-              computeSourceSpanFromTreeNode(node),
-              MessageKind.GENERIC,
-              {'text': "Unrecognized dart2js pragma @pragma('$name')"});
-        }
-        break;
+      if (data.hasOptions) {
+        reporter.reportErrorMessage(
+            computeSourceSpanFromTreeNode(node),
+            MessageKind.GENERIC,
+            {'text': "@pragma('$name') annotation does not take options"});
       }
-    }
-    if (!found) {
+      if (annotation.forFunctionsOnly) {
+        if (node is! ir.Procedure && node is! ir.Constructor) {
+          reporter.reportErrorMessage(
+              computeSourceSpanFromTreeNode(node), MessageKind.GENERIC, {
+            'text': "@pragma('$name') annotation is only supported "
+                "for methods and constructors."
+          });
+        }
+      }
+      if (annotation.forFieldsOnly) {
+        if (node is! ir.Field) {
+          reporter.reportErrorMessage(
+              computeSourceSpanFromTreeNode(node), MessageKind.GENERIC, {
+            'text': "@pragma('$name') annotation is only supported "
+                "for fields."
+          });
+        }
+      }
+      if (annotation.internalOnly && !platformAnnotationsAllowed) {
+        reporter.reportErrorMessage(
+            computeSourceSpanFromTreeNode(node),
+            MessageKind.GENERIC,
+            {'text': "Unrecognized dart2js pragma @pragma('$name')"});
+      }
+    } else {
       reporter.reportErrorMessage(
           computeSourceSpanFromTreeNode(node),
           MessageKind.GENERIC,
