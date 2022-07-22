@@ -35,7 +35,7 @@ class ResolutionEnqueuer extends Enqueuer {
 
   final Set<ClassEntity> _recentClasses = Setlet<ClassEntity>();
   bool _recentConstants = false;
-  final ResolutionWorldBuilderForEnqueuer worldBuilder;
+  final ResolutionWorldBuilder worldBuilder;
   WorkItemBuilder? _workItemBuilder;
   final DiagnosticReporter _reporter;
   final AnnotationsData _annotationsData;

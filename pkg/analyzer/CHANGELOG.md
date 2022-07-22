@@ -1,7 +1,7 @@
-## 4.3.0-dev
+## 4.3.0
 * Deprecated `Directive.keyword`, use corresponding `xyzToken` in specific directives.
 * Deprecated `LibraryElement.parts`, use `parts2` instead.
-* Deprecated `LibraryElement.exports`, use `libraryexports` instead.
+* Deprecated `LibraryElement.exports`, use `libraryExports` instead.
 * Deprecated `LibraryElement.imports`, use `libraryImports` instead.
 * Deprecated `Element.enclosingElement`, use `enclosingElement2` instead.
 * `Member` is not equal to `ElementImpl`, use `Element.declaration`.

@@ -492,7 +492,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       types.makeType(
           this, TypeParameterType(typeParam, Nullability.nonNullable));
     }
-    _visitArguments(node.arguments, node.targetReference, 1);
+    _visitArguments(
+        node.arguments, node.targetReference, 1 + cls.typeParameters.length);
     call(node.targetReference);
   }
 

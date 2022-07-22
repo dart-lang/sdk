@@ -298,6 +298,28 @@ class Translator {
     };
   }
 
+  // Finds the `main` method for a given library which is assumed to contain
+  // `main`, either directly or indirectly.
+  Procedure _findMainMethod(Library entryLibrary) {
+    // First check to see if the library itself contains main.
+    for (final procedure in entryLibrary.procedures) {
+      if (procedure.name.text == 'main') {
+        return procedure;
+      }
+    }
+
+    // In some cases, a main method is defined in another file, and then
+    // exported. In these cases, we search for the main method in
+    // [additionalExports].
+    for (final export in entryLibrary.additionalExports) {
+      if (export.node is Procedure && export.asProcedure.name.text == 'main') {
+        return export.asProcedure;
+      }
+    }
+    throw ArgumentError(
+        'Entry uri ${entryLibrary.fileUri} has no main method.');
+  }
+
   Uint8List translate() {
     m = w.Module(watchPoints: options.watchPoints);
     voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
@@ -305,8 +327,7 @@ class Translator {
     classInfoCollector.collect();
 
     functions.collectImportsAndExports();
-    mainFunction =
-        libraries.first.procedures.firstWhere((p) => p.name.text == "main");
+    mainFunction = _findMainMethod(libraries.first);
     functions.addExport(mainFunction.reference, "main");
 
     initFunction = m.addFunction(functionType(const [], const []), "#init");
