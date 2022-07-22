@@ -4,10 +4,12 @@
 
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../ir/class_relation.dart';
 import 'member_usage.dart';
 import 'use.dart';
+import '../world_interfaces.dart';
 
-abstract class ResolutionWorldBuilderForEnqueuer {
+abstract class ResolutionWorldBuilder implements World {
   Iterable<ClassEntity> get directlyInstantiatedClasses;
 
   Iterable<MemberEntity> get processedMembers;
@@ -18,6 +20,9 @@ abstract class ResolutionWorldBuilderForEnqueuer {
 
   void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
       {bool checkEnqueuerConsistency = false});
+
+  bool isInheritedIn(
+      MemberEntity member, ClassEntity type, ClassRelation relation);
 
   void registerDynamicUse(DynamicUse dynamicUse, MemberUsedCallback memberUsed);
 

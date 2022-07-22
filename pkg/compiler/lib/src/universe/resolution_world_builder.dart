@@ -193,7 +193,7 @@ class InstantiationInfo {
 }
 
 class ResolutionWorldBuilder extends WorldBuilder
-    implements World, interfaces.ResolutionWorldBuilderForEnqueuer {
+    implements World, interfaces.ResolutionWorldBuilder {
   /// Instantiation information for all classes with instantiated types.
   ///
   /// Invariant: Elements are declaration elements.
@@ -921,6 +921,7 @@ class ResolutionWorldBuilder extends WorldBuilder
   /// Here `A.m` is inherited into `A`, `B`, and `C`. Because `B` and
   /// `C` implement `I`, `isInheritedInSubtypeOf(A.m, I)` is true, but
   /// `isInheritedInSubtypeOf(A.m, J)` is false.
+  @override
   bool isInheritedIn(
       MemberEntity member, ClassEntity type, ClassRelation relation) {
     // TODO(johnniwinther): Use the [member] itself to avoid enqueueing members
