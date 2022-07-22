@@ -30,12 +30,14 @@ import 'code_emitter_task_interfaces.dart' as interfaces;
 import 'metadata_collector.dart' show MetadataCollector;
 import 'model.dart';
 import 'native_emitter.dart' show NativeEmitter;
+import 'interfaces.dart' as interfaces;
 
 /// Generates the code for all used classes in the program. Static fields (even
 /// in classes) are ignored, since they can be treated as non-class elements.
 ///
 /// The code for the containing (used) methods must exist in the `universe`.
-class CodeEmitterTask extends CompilerTask {
+class CodeEmitterTask extends CompilerTask
+    implements interfaces.CodeEmitterTask {
   RuntimeTypesChecks _rtiChecks;
   NativeEmitter _nativeEmitter;
   MetadataCollector metadataCollector;
@@ -61,6 +63,7 @@ class CodeEmitterTask extends CompilerTask {
   CodeEmitterTask(this._compiler, this._generateSourceMap)
       : super(_compiler.measurer);
 
+  @override
   NativeEmitter get nativeEmitter {
     assert(
         _nativeEmitter != null,
