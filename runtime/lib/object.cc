@@ -318,6 +318,22 @@ DEFINE_NATIVE_ENTRY(Internal_deoptimizeFunctionsOnStack, 0, 0) {
   return Object::null();
 }
 
+DEFINE_NATIVE_ENTRY(Internal_randomInstructionsOffsetInsideAllocateObjectStub,
+                    0,
+                    0) {
+  auto& stub = Code::Handle(
+      zone, isolate->group()->object_store()->allocate_object_stub());
+  const uword entry = stub.EntryPoint();
+  const uword random_offset = isolate->random()->NextUInt32() % stub.Size();
+  // We return the offset into the isolate instructions instead of the full
+  // address because that fits into small Smis on 32-bit architectures or
+  // compressed pointer builds.
+  const uword instructions_start =
+      reinterpret_cast<uword>(isolate->source()->snapshot_instructions);
+  ASSERT(entry >= instructions_start);
+  return Smi::New((entry - instructions_start) + random_offset);
+}
+
 static bool ExtractInterfaceTypeArgs(Zone* zone,
                                      const Class& instance_cls,
                                      const TypeArguments& instance_type_args,

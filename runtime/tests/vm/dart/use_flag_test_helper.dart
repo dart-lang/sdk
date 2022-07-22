@@ -38,7 +38,8 @@ String? get clangBuildToolsDir {
   return Directory(clangDir).existsSync() ? clangDir : null;
 }
 
-Future<void> assembleSnapshot(String assemblyPath, String snapshotPath) async {
+Future<void> assembleSnapshot(String assemblyPath, String snapshotPath,
+    {bool debug = false}) async {
   if (!Platform.isLinux && !Platform.isMacOS) {
     throw "Unsupported platform ${Platform.operatingSystem} for assembling";
   }
@@ -48,9 +49,7 @@ Future<void> assembleSnapshot(String assemblyPath, String snapshotPath) async {
   String cc = 'gcc';
   String shared = '-shared';
 
-  if (Platform.isMacOS) {
-    cc = 'clang';
-  } else if (buildDir.endsWith('SIMARM') || buildDir.endsWith('SIMARM64')) {
+  if (buildDir.endsWith('SIMARM') || buildDir.endsWith('SIMARM64')) {
     final clangBuildTools = clangBuildToolsDir;
     if (clangBuildTools != null) {
       cc = path.join(clangBuildTools, 'clang');
@@ -58,20 +57,30 @@ Future<void> assembleSnapshot(String assemblyPath, String snapshotPath) async {
       throw 'Cannot assemble for ${path.basename(buildDir)} '
           'without //buildtools on ${Platform.operatingSystem}';
     }
+  } else if (Platform.isMacOS) {
+    cc = 'clang';
   }
 
-  if (Platform.isMacOS) {
-    shared = '-dynamiclib';
-    // Tell Mac linker to give up generating eh_frame from dwarf.
-    ldFlags.add('-Wl,-no_compact_unwind');
-  } else if (buildDir.endsWith('SIMARM')) {
+  if (buildDir.endsWith('SIMARM')) {
     ccFlags.add('--target=armv7-linux-gnueabihf');
   } else if (buildDir.endsWith('SIMARM64')) {
     ccFlags.add('--target=aarch64-linux-gnu');
+  } else if (Platform.isMacOS) {
+    shared = '-dynamiclib';
+    if (buildDir.endsWith('ARM64')) {
+      // ld: dynamic main executables must link with libSystem.dylib for
+      // architecture arm64
+      ldFlags.add('-lSystem');
+    }
+    // Tell Mac linker to give up generating eh_frame from dwarf.
+    ldFlags.add('-Wl,-no_compact_unwind');
   }
 
   if (buildDir.endsWith('X64') || buildDir.endsWith('SIMARM64')) {
     ccFlags.add('-m64');
+  }
+  if (debug) {
+    ccFlags.add('-g');
   }
 
   await run(cc, <String>[
@@ -93,8 +102,8 @@ Future<void> stripSnapshot(String snapshotPath, String strippedPath,
 
   var strip = 'strip';
 
-  if ((Platform.isLinux &&
-          (buildDir.endsWith('SIMARM') || buildDir.endsWith('SIMARM64'))) ||
+  if (buildDir.endsWith('SIMARM') ||
+      buildDir.endsWith('SIMARM64') ||
       (Platform.isMacOS && forceElf)) {
     final clangBuildTools = clangBuildToolsDir;
     if (clangBuildTools != null) {
@@ -158,9 +167,7 @@ Future<List<String>> runOutput(String executable, List<String> args) async {
   Expect.isTrue(result.stdout.isNotEmpty);
   Expect.isTrue(result.stderr.isEmpty);
 
-  return await Stream.value(result.stdout as String)
-      .transform(const LineSplitter())
-      .toList();
+  return LineSplitter.split(result.stdout).toList(growable: false);
 }
 
 Future<List<String>> runError(String executable, List<String> args) async {
@@ -172,9 +179,7 @@ Future<List<String>> runError(String executable, List<String> args) async {
   Expect.isTrue(result.stdout.isEmpty);
   Expect.isTrue(result.stderr.isNotEmpty);
 
-  return await Stream.value(result.stderr as String)
-      .transform(const LineSplitter())
-      .toList();
+  return LineSplitter.split(result.stderr).toList(growable: false);
 }
 
 const keepTempKey = 'KEEP_TEMPORARY_DIRECTORIES';

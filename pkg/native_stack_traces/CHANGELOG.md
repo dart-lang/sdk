@@ -1,3 +1,11 @@
+## 0.5.0
+
+- Require Dart >= 2.17 (enhanced enum support)
+- Add support for parsing DWARF in Mach-O files and dSYM directories.
+- Add some support for DWARF5.
+- Add `dump` command to replace the old `--dump_debug_file_contents`
+  flag to `find` and `translate`.
+
 ## 0.4.6
 
 - Upgrade to `package:lints` 2.0.
