@@ -27446,6 +27446,31 @@ library
 ''');
   }
 
+  test_metadata_augmentation_libraryAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+@deprecated
+library augment 'test.dart';
+''');
+    final library = await buildLibrary('''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      metadata
+        Annotation
+          atSign: @ @0
+          name: SimpleIdentifier
+            token: deprecated @1
+            staticElement: dart:core::@getter::deprecated
+            staticType: null
+          element: dart:core::@getter::deprecated
+      definingUnit
+  definingUnit
+''');
+  }
+
   test_metadata_class_field_first() async {
     var library = await buildLibrary(r'''
 const a = 0;

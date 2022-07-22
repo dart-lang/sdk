@@ -73,3 +73,16 @@ class _TypeError extends _Error implements TypeError {
     return _throwObjectWithStackTrace(typeError, stackTrace);
   }
 }
+
+/// Used by Fasta to report a runtime error when a final field with an
+/// initializer is also initialized in a generative constructor.
+///
+/// Note: In strong mode, this is a compile-time error, but the CFE still needs
+/// this class to exist in `dart:core`.
+class _DuplicatedFieldInitializerError extends Error {
+  final String _name;
+
+  _DuplicatedFieldInitializerError(this._name);
+
+  toString() => "Error: field '$_name' is already initialized.";
+}

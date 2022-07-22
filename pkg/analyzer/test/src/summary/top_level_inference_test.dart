@@ -6163,11 +6163,10 @@ library
   }
 
   Future<LibraryElement> _encodeDecodeLibrary(String text) async {
-    newFile(testFilePath, text);
+    newFile(testFile.path, text);
 
-    var path = convertPath(testFilePath);
-    var analysisSession = contextFor(path).currentSession;
-    var result = await analysisSession.getUnitElement(path);
+    var analysisSession = contextFor(testFile.path).currentSession;
+    var result = await analysisSession.getUnitElement(testFile.path);
     result as UnitElementResult;
     return result.element.library;
   }

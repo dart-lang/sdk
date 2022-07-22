@@ -19,10 +19,8 @@ main() {
 @reflectiveTest
 class ResolveForCompletionTest extends PubPackageResolutionTest {
   AnalysisDriver get testDriver {
-    return driverFor(testFilePathPlatform);
+    return driverFor(testFile.path);
   }
-
-  String get testFilePathPlatform => convertPath(testFilePath);
 
   test_class__fieldDeclaration_type_namedType_name() async {
     var result = await _resolveTestCode(r'''
@@ -489,10 +487,10 @@ mixin M on foo^ {}
   }
 
   test_processPendingChanges() async {
-    newFile(testFilePath, 'class A {}');
+    addTestFile('class A {}');
 
     // Read the file.
-    testDriver.getFileSync(testFilePathPlatform);
+    testDriver.getFileSync(testFile.path);
 
     // Should call `changeFile()`, and the driver must re-read the file.
     var result = await _resolveTestCode(r'''
@@ -598,7 +596,7 @@ void f<T^>() {
   Future<ResolvedForCompletionResultImpl> _resolveTestCode(
     String content,
   ) async {
-    var path = testFilePathPlatform;
+    var path = testFile.path;
     var offset = _newFileWithOffset(path, content);
 
     testDriver.changeFile(path);

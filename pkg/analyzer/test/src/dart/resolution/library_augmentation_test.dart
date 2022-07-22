@@ -37,7 +37,7 @@ LibraryAugmentationDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: package:test/a.dart::@augmentation::package:test/b.dart
+  element: self::@augmentation::package:test/b.dart
 ''');
   }
 }

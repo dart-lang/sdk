@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -324,7 +325,7 @@ void f(A a) {
   @override
   void verifyCreatedCollection() {
     super.verifyCreatedCollection();
-    assertBasicWorkspaceFor(testFilePath);
+    assertBasicWorkspaceFor(testFile);
   }
 }
 
@@ -352,7 +353,7 @@ void f(A a) {}
 class A {}
 ''');
 
-    assertBazelWorkspaceFor(testFilePath);
+    assertBazelWorkspaceFor(testFile);
 
     await assertErrorsInCode(r'''
 import 'package:aaa/a.dart';
@@ -374,7 +375,7 @@ class DeprecatedMemberUse_GnWorkspaceTest extends ContextResolutionTest {
   String get myPackageRootPath => '$workspaceRootPath/my';
 
   @override
-  String get testFilePath => '$myPackageLibPath/my.dart';
+  File get testFile => getFile('$myPackageLibPath/my.dart');
 
   String get workspaceRootPath => '/workspace';
 
@@ -435,7 +436,7 @@ void f(A a) {}
   @override
   void verifyCreatedCollection() {
     super.verifyCreatedCollection();
-    assertGnWorkspaceFor(testFilePath);
+    assertGnWorkspaceFor(testFile);
   }
 
   void _writeWorkspacePackagesFile(Map<String, String> nameToLibPath) {
@@ -1625,7 +1626,7 @@ class _PackageBuildWorkspaceBase extends PubPackageResolutionTest {
   @override
   void verifyCreatedCollection() {
     super.verifyCreatedCollection();
-    assertPackageBuildWorkspaceFor(testFilePath);
+    assertPackageBuildWorkspaceFor(testFile);
   }
 
   void _createTestPackageBuildMarker() {

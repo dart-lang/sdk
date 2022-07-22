@@ -7,12 +7,21 @@
 // element_map_impl.dart.
 
 import 'package:kernel/ast.dart' as ir
-    show Class, DartType, Field, Member, Procedure, ProcedureStubKind;
-
+    show
+        Class,
+        DartType,
+        Field,
+        Member,
+        Procedure,
+        ProcedureStubKind,
+        LibraryDependency,
+        Expression;
+import 'package:kernel/type_environment.dart' as ir show StaticTypeContext;
 import '../common.dart' show DiagnosticReporter;
 import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/entities.dart'
-    show ClassEntity, ConstructorEntity, MemberEntity;
+    show ClassEntity, ConstructorEntity, MemberEntity, ImportEntity;
+import '../constants/values.dart';
 import '../elements/indexed.dart' show IndexedClass;
 import '../elements/types.dart' show DartType, DartTypes, InterfaceType;
 import '../ir/constants.dart' show Dart2jsConstantEvaluator;
@@ -52,6 +61,18 @@ abstract class KernelToElementMapForImpactData {
 
   ConstructorEntity getConstructor(ir.Member node);
   DartType getDartType(ir.DartType type);
+}
+
+abstract class KernelToElementMapForDeferredLoading {
+  CommonElements get commonElements;
+  ConstantValue? getConstantValue(
+      ir.StaticTypeContext staticTypeContext, ir.Expression node,
+      {bool requireConstant = true,
+      bool implicitNull = false,
+      bool checkCasts = true});
+  ImportEntity getImport(ir.LibraryDependency? node);
+  ir.Member getMemberNode(MemberEntity member);
+  ir.StaticTypeContext getStaticTypeContext(MemberEntity member);
 }
 
 // Members which dart2js ignores.

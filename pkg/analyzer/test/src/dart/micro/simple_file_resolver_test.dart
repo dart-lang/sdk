@@ -1316,7 +1316,7 @@ var foo = 0;
   }
 
   test_getErrors_reuse() async {
-    newFile(testFilePath, 'var a = b;');
+    addTestFile('var a = b;');
 
     // No resolved files yet.
     _assertResolvedFiles([]);
@@ -1330,7 +1330,7 @@ var foo = 0;
     _assertResolvedFiles([]);
 
     // Change the file, will be resolved again.
-    newFile(testFilePath, 'var a = c;');
+    addTestFile('var a = c;');
     fileResolver.changeFiles([testFile.path]);
     expect((await getTestErrors()).errors, hasLength(1));
     _assertResolvedFiles([testFile]);
@@ -1341,7 +1341,7 @@ var foo = 0;
 var a = 0;
 ''');
 
-    newFile(testFilePath, r'''
+    addTestFile(r'''
 import 'a.dart';
 var b = a.foo;
 ''');
@@ -2369,7 +2369,7 @@ void func() {
   }
 
   test_resolveFile_cache() async {
-    newFile(testFilePath, 'var a = 0;');
+    addTestFile('var a = 0;');
 
     // No resolved files yet.
     _assertResolvedFiles([]);

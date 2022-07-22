@@ -97,7 +97,7 @@ class BazelWorkspaceResolutionTest extends ContextResolutionTest {
   String get myPackageRootPath => '$workspaceRootPath/dart/my';
 
   @override
-  String get testFilePath => '$myPackageLibPath/my.dart';
+  File get testFile => getFile('$myPackageLibPath/my.dart');
 
   String get workspaceRootPath => '/workspace';
 
@@ -115,7 +115,7 @@ class BazelWorkspaceResolutionTest extends ContextResolutionTest {
   @override
   void verifyCreatedCollection() {
     super.verifyCreatedCollection();
-    assertBazelWorkspaceFor(testFilePath);
+    assertBazelWorkspaceFor(testFile);
   }
 }
 
@@ -157,13 +157,13 @@ abstract class ContextResolutionTest
 
   Folder get sdkRoot => newFolder('/sdk');
 
-  void assertBasicWorkspaceFor(String path) {
-    var workspace = contextFor(path).contextRoot.workspace;
+  void assertBasicWorkspaceFor(File file) {
+    var workspace = contextFor(file.path).contextRoot.workspace;
     expect(workspace, TypeMatcher<BasicWorkspace>());
   }
 
-  void assertBazelWorkspaceFor(String path) {
-    var workspace = contextFor(path).contextRoot.workspace;
+  void assertBazelWorkspaceFor(File file) {
+    var workspace = contextFor(file.path).contextRoot.workspace;
     expect(workspace, TypeMatcher<BazelWorkspace>());
   }
 
@@ -193,13 +193,13 @@ abstract class ContextResolutionTest
     expect(actual, expected);
   }
 
-  void assertGnWorkspaceFor(String path) {
-    var workspace = contextFor(path).contextRoot.workspace;
+  void assertGnWorkspaceFor(File file) {
+    var workspace = contextFor(file.path).contextRoot.workspace;
     expect(workspace, TypeMatcher<GnWorkspace>());
   }
 
-  void assertPackageBuildWorkspaceFor(String path) {
-    var workspace = contextFor(path).contextRoot.workspace;
+  void assertPackageBuildWorkspaceFor(File file) {
+    var workspace = contextFor(file.path).contextRoot.workspace;
     expect(workspace, TypeMatcher<PackageBuildWorkspace>());
   }
 
@@ -332,10 +332,8 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   /// The path that is not in [workspaceRootPath], contains external packages.
   String get packagesRootPath => '/packages';
 
-  File get testFile => getFile(testFilePath);
-
   @override
-  String get testFilePath => '$testPackageLibPath/test.dart';
+  File get testFile => getFile('$testPackageLibPath/test.dart');
 
   /// The language version to use by default for `package:test`.
   String? get testPackageLanguageVersion => null;

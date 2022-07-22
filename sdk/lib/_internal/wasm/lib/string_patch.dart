@@ -169,9 +169,11 @@ abstract class _StringBase implements String {
     if (charCodes is EfficientLengthIterable) {
       int length = charCodes.length;
       final endVal = RangeError.checkValidRange(start, end, length);
-      final charCodeList = new List<int>.from(
-          charCodes.take(endVal).skip(start),
-          growable: false);
+      final Uint16List charCodeList = Uint16List(endVal - start);
+      int i = 0;
+      for (final char in charCodes.take(endVal).skip(start)) {
+        charCodeList[i++] = char;
+      }
       return createFromCharCodes(charCodeList, 0, charCodeList.length, null);
     }
     // Don't know length of iterable, so iterate and see if all the values

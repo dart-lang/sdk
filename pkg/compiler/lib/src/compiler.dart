@@ -20,13 +20,13 @@ import 'common/metrics.dart' show Metric;
 import 'common/names.dart' show Selectors;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show WorkItem;
+import 'compiler_interfaces.dart'
+    show CompilerDeferredLoadingFacade, CompilerDiagnosticsFacade;
 import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
 import 'deferred_load/output_unit.dart' show OutputUnitData;
 import 'deferred_load/program_split_constraints/nodes.dart' as psc
     show ConstraintData;
 import 'deferred_load/program_split_constraints/parser.dart' as psc show Parser;
-import 'diagnostics/compiler_diagnostics_facade.dart'
-    show CompilerDiagnosticsFacade;
 import 'diagnostics/messages.dart' show Message;
 import 'dump_info.dart' show DumpInfoStateData, DumpInfoTask;
 import 'elements/entities.dart';
@@ -65,11 +65,14 @@ import 'world.dart' show JClosedWorld;
 
 /// Implementation of the compiler using  a [api.CompilerInput] for supplying
 /// the sources.
-class Compiler implements CompilerDiagnosticsFacade {
+class Compiler
+    implements CompilerDiagnosticsFacade, CompilerDeferredLoadingFacade {
+  @override
   final Measurer measurer;
   final api.CompilerInput provider;
   final api.CompilerDiagnostics handler;
 
+  @override
   KernelFrontendStrategy frontendStrategy;
   JsBackendStrategy backendStrategy;
   /*late*/ DiagnosticReporter _reporter;
@@ -89,6 +92,7 @@ class Compiler implements CompilerDiagnosticsFacade {
   /// Output provider from user of Compiler API.
   api.CompilerOutput _outputProvider;
 
+  @override
   api.CompilerOutput get outputProvider => _outputProvider;
 
   ir.Component componentForTesting;
@@ -100,7 +104,9 @@ class Compiler implements CompilerDiagnosticsFacade {
 
   ir.Component untrimmedComponentForDumpInfo;
 
+  @override
   DiagnosticReporter get reporter => _reporter;
+  @override
   Map<Entity, WorldImpact> get impactCache => _impactCache;
 
   final Environment environment;
@@ -132,6 +138,7 @@ class Compiler implements CompilerDiagnosticsFacade {
   @override // CompilerDiagnosticsFacade
   bool compilationFailed = false;
 
+  @override
   psc.ConstraintData programSplitConstraintsData;
 
   // Callback function used for testing resolution enqueuing.

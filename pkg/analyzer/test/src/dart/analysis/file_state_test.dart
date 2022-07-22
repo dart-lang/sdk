@@ -47,7 +47,7 @@ class FileSystemState_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
     // This generated file should be used instead of the writable.
     newFile(generatedPath, '');
 
-    var analysisDriver = driverFor(convertPath(testFilePath));
+    var analysisDriver = driverFor(testFile.path);
 
     var fsState = analysisDriver.fsState;
 
@@ -75,7 +75,7 @@ class FileSystemState_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
     // This generated file should be used instead of the writable.
     newFile(generatedPath, '');
 
-    var analysisDriver = driverFor(convertPath(testFilePath));
+    var analysisDriver = driverFor(testFile.path);
 
     var fsState = analysisDriver.fsState;
 

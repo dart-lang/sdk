@@ -28,8 +28,6 @@ import '../resolution/resolution.dart';
 
 /// [FileResolver] based implementation of [ResolutionTest].
 class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
-  static final String _testFile = '/workspace/dart/test/lib/test.dart';
-
   final MemoryByteStore byteStore = MemoryByteStore();
 
   final FileResolverTestData testData = FileResolverTestData();
@@ -49,10 +47,8 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   Folder get sdkRoot => newFolder('/sdk');
 
-  File get testFile => getFile(testFilePath);
-
   @override
-  String get testFilePath => _testFile;
+  File get testFile => getFile('$testPackageLibPath/test.dart');
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
@@ -62,7 +58,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   @override
   void addTestFile(String content) {
-    newFile(_testFile, content);
+    newFile(testFile.path, content);
   }
 
   void assertStateString(
@@ -94,7 +90,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   void createFileResolver() {
     var workspace = BazelWorkspace.find(
       resourceProvider,
-      convertPath(_testFile),
+      testFile.path,
     )!;
 
     fileResolver = FileResolver(
@@ -114,8 +110,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   }
 
   Future<ErrorsResult> getTestErrors() async {
-    var path = convertPath(_testFile);
-    return fileResolver.getErrors2(path: path);
+    return fileResolver.getErrors2(path: testFile.path);
   }
 
   @override
@@ -132,8 +127,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   @override
   Future<void> resolveTestFile() async {
-    var path = convertPath(_testFile);
-    result = await resolveFile(path);
+    result = await resolveFile(testFile.path);
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);
   }

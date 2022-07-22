@@ -51,7 +51,10 @@ import 'native_basic_data.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
-class KernelFrontendStrategy implements KernelFrontendStrategyForBackendUsage {
+class KernelFrontendStrategy
+    implements
+        KernelFrontendStrategyForBackendUsage,
+        KernelFrontendStrategyForDeferredLoading {
   final CompilerOptions _options;
   final CompilerTask _compilerTask;
   /*late*/ KernelToElementMap _elementMap;
@@ -245,6 +248,7 @@ class KernelFrontendStrategy implements KernelFrontendStrategyForBackendUsage {
 
   /// Returns the [ElementEnvironment] for the element model used in this
   /// strategy.
+  @override
   KernelElementEnvironment get elementEnvironment =>
       _elementMap.elementEnvironment;
 

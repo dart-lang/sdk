@@ -890,6 +890,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
+    // If we have an empty switch, just evaluate the expression for any
+    // potential side effects. In this case, the return type does not matter.
+    if (node.cases.isEmpty) {
+      wrap(node.expression, voidMarker);
+      return;
+    }
     bool check<L extends Expression, C extends Constant>() =>
         node.cases.expand((c) => c.expressions).every((e) =>
             e is L ||
