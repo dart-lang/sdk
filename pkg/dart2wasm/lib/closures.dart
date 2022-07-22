@@ -233,6 +233,18 @@ class CaptureFinder extends RecursiveVisitor {
   }
 
   @override
+  void visitSuperPropertyGet(SuperPropertyGet node) {
+    _visitThis();
+    super.visitSuperPropertyGet(node);
+  }
+
+  @override
+  void visitSuperPropertySet(SuperPropertySet node) {
+    _visitThis();
+    super.visitSuperPropertySet(node);
+  }
+
+  @override
   void visitTypeParameterType(TypeParameterType node) {
     if (node.parameter.parent == member.enclosingClass) {
       _visitThis();
