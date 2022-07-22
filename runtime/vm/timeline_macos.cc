@@ -40,28 +40,18 @@ void TimelineEventMacosRecorder::OnEvent(TimelineEvent* event) {
                                        buffer, sizeof(buffer));
       break;
     }
-    case TimelineEvent::kBegin: {
-      _os_signpost_emit_with_name_impl(
-          &__dso_handle, log, OS_SIGNPOST_INTERVAL_BEGIN,
-          OS_SIGNPOST_ID_EXCLUSIVE, label, "", buffer, sizeof(buffer));
-      break;
-    }
-    case TimelineEvent::kEnd: {
-      _os_signpost_emit_with_name_impl(
-          &__dso_handle, log, OS_SIGNPOST_INTERVAL_END,
-          OS_SIGNPOST_ID_EXCLUSIVE, label, "", buffer, sizeof(buffer));
-      break;
-    }
+    case TimelineEvent::kBegin:
     case TimelineEvent::kAsyncBegin: {
-      _os_signpost_emit_with_name_impl(
-          &__dso_handle, log, OS_SIGNPOST_INTERVAL_BEGIN, event->AsyncId(),
-          label, "", buffer, sizeof(buffer));
+      _os_signpost_emit_with_name_impl(&__dso_handle, log,
+                                       OS_SIGNPOST_INTERVAL_BEGIN, event->Id(),
+                                       label, "", buffer, sizeof(buffer));
       break;
     }
+    case TimelineEvent::kEnd:
     case TimelineEvent::kAsyncEnd: {
-      _os_signpost_emit_with_name_impl(
-          &__dso_handle, log, OS_SIGNPOST_INTERVAL_END, event->AsyncId(), label,
-          "", buffer, sizeof(buffer));
+      _os_signpost_emit_with_name_impl(&__dso_handle, log,
+                                       OS_SIGNPOST_INTERVAL_END, event->Id(),
+                                       label, "", buffer, sizeof(buffer));
       break;
     }
     case TimelineEvent::kCounter: {
@@ -69,8 +59,8 @@ void TimelineEventMacosRecorder::OnEvent(TimelineEvent* event) {
       Utils::SNPrint(reinterpret_cast<char*>(buffer), sizeof(buffer), fmt,
                      event->arguments()[0].value);
       _os_signpost_emit_with_name_impl(&__dso_handle, log, OS_SIGNPOST_EVENT,
-                                       event->AsyncId(), label, fmt, buffer,
-                                       sizeof(buffer));
+                                       OS_SIGNPOST_ID_EXCLUSIVE, label, fmt,
+                                       buffer, sizeof(buffer));
       break;
     }
     default:

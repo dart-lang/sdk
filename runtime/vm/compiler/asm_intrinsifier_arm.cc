@@ -1900,6 +1900,23 @@ void AsmIntrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
 #endif
 }
 
+void AsmIntrinsifier::Timeline_getNextTaskId(Assembler* assembler,
+                                             Label* normal_ir_body) {
+#if !defined(SUPPORT_TIMELINE)
+  __ LoadImmediate(R0, target::ToRawSmi(0));
+  __ Ret();
+#else
+  __ ldr(R1, Address(THR, target::Thread::next_task_id_offset()));
+  __ ldr(R2, Address(THR, target::Thread::next_task_id_offset() + 4));
+  __ SmiTag(R0, R1);  // Ignore loss of precision.
+  __ adds(R1, R1, Operand(1));
+  __ adcs(R2, R2, Operand(0));
+  __ str(R1, Address(THR, target::Thread::next_task_id_offset()));
+  __ str(R2, Address(THR, target::Thread::next_task_id_offset() + 4));
+  __ Ret();
+#endif
+}
+
 #undef __
 
 }  // namespace compiler

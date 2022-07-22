@@ -9413,7 +9413,29 @@ TEST_CASE(DartAPI_TimelineDuration) {
   // Make sure it is enabled.
   stream->set_enabled(true);
   // Add a duration event.
-  Dart_TimelineEvent("testDurationEvent", 0, 1, Dart_Timeline_Event_Duration, 0,
+  Dart_TimelineEvent("testDurationEvent", 500, 1500,
+                     Dart_Timeline_Event_Duration, 0, NULL, NULL);
+  // Check that it is in the output.
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  Timeline::ReclaimCachedBlocksFromThreads();
+  JSONStream js;
+  IsolateTimelineEventFilter filter(isolate->main_port());
+  recorder->PrintJSON(&js, &filter);
+  const char* json = js.ToCString();
+  EXPECT_SUBSTRING("\"name\":\"testDurationEvent\"", json);
+  EXPECT_SUBSTRING("\"ph\":\"X\"", json);
+  EXPECT_SUBSTRING("\"ts\":500", json);
+  EXPECT_SUBSTRING("\"dur\":1000", json);
+}
+
+TEST_CASE(DartAPI_TimelineBegin) {
+  Isolate* isolate = Isolate::Current();
+  // Grab embedder stream.
+  TimelineStream* stream = Timeline::GetEmbedderStream();
+  // Make sure it is enabled.
+  stream->set_enabled(true);
+  // Add a begin event.
+  Dart_TimelineEvent("testBeginEvent", 1000, 1, Dart_Timeline_Event_Begin, 0,
                      NULL, NULL);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
@@ -9421,7 +9443,31 @@ TEST_CASE(DartAPI_TimelineDuration) {
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
-  EXPECT_SUBSTRING("testDurationEvent", js.ToCString());
+  const char* json = js.ToCString();
+  EXPECT_SUBSTRING("\"name\":\"testBeginEvent\"", json);
+  EXPECT_SUBSTRING("\"ph\":\"B\"", json);
+  EXPECT_SUBSTRING("\"ts\":1000", json);
+}
+
+TEST_CASE(DartAPI_TimelineEnd) {
+  Isolate* isolate = Isolate::Current();
+  // Grab embedder stream.
+  TimelineStream* stream = Timeline::GetEmbedderStream();
+  // Make sure it is enabled.
+  stream->set_enabled(true);
+  // Add a begin event.
+  Dart_TimelineEvent("testEndEvent", 1000, 1, Dart_Timeline_Event_End, 0, NULL,
+                     NULL);
+  // Check that it is in the output.
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  Timeline::ReclaimCachedBlocksFromThreads();
+  JSONStream js;
+  IsolateTimelineEventFilter filter(isolate->main_port());
+  recorder->PrintJSON(&js, &filter);
+  const char* json = js.ToCString();
+  EXPECT_SUBSTRING("\"name\":\"testEndEvent\"", json);
+  EXPECT_SUBSTRING("\"ph\":\"E\"", json);
+  EXPECT_SUBSTRING("\"ts\":1000", json);
 }
 
 TEST_CASE(DartAPI_TimelineInstant) {
@@ -9430,15 +9476,18 @@ TEST_CASE(DartAPI_TimelineInstant) {
   TimelineStream* stream = Timeline::GetEmbedderStream();
   // Make sure it is enabled.
   stream->set_enabled(true);
-  Dart_TimelineEvent("testInstantEvent", 0, 1, Dart_Timeline_Event_Instant, 0,
-                     NULL, NULL);
+  Dart_TimelineEvent("testInstantEvent", 1000, 1, Dart_Timeline_Event_Instant,
+                     0, NULL, NULL);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
   Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
-  EXPECT_SUBSTRING("testInstantEvent", js.ToCString());
+  const char* json = js.ToCString();
+  EXPECT_SUBSTRING("\"name\":\"testInstantEvent\"", json);
+  EXPECT_SUBSTRING("\"ph\":\"i\"", json);
+  EXPECT_SUBSTRING("\"ts\":1000", json);
 }
 
 TEST_CASE(DartAPI_TimelineAsyncDisabled) {
@@ -9465,7 +9514,7 @@ TEST_CASE(DartAPI_TimelineAsync) {
   // Make sure it is enabled.
   stream->set_enabled(true);
   int64_t async_id = 99;
-  Dart_TimelineEvent("testAsyncEvent", 0, async_id,
+  Dart_TimelineEvent("testAsyncEvent", 1000, async_id,
                      Dart_Timeline_Event_Async_Begin, 0, NULL, NULL);
 
   // Check that it is in the output.
@@ -9474,7 +9523,11 @@ TEST_CASE(DartAPI_TimelineAsync) {
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
-  EXPECT_SUBSTRING("testAsyncEvent", js.ToCString());
+  const char* json = js.ToCString();
+  EXPECT_SUBSTRING("\"name\":\"testAsyncEvent\"", json);
+  EXPECT_SUBSTRING("\"ph\":\"b\"", json);
+  EXPECT_SUBSTRING("\"ts\":1000", json);
+  EXPECT_SUBSTRING("\"id\":\"63\"", json);  // Hex for some reason.
 }
 
 TEST_CASE(DartAPI_TimelineClock) {
