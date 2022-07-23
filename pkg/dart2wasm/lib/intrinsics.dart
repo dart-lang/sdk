@@ -593,7 +593,8 @@ class Intrinsifier {
     if (className != null) {
       List<String> libAndClass = className.split("#");
       Class cls = translator.libraries
-          .firstWhere((l) => l.name == libAndClass[0])
+          .firstWhere(
+              (l) => l.name == libAndClass[0] && l.importUri.scheme == 'dart')
           .classes
           .firstWhere((c) => c.name == libAndClass[1]);
       int classId = translator.classInfo[cls]!.classId;
@@ -682,6 +683,8 @@ class Intrinsifier {
           return translator.types.makeTypeRulesSupers(b);
         case "_getTypeRulesSubstitutions":
           return translator.types.makeTypeRulesSubstitutions(b);
+        case "_getTypeNames":
+          return translator.types.makeTypeNames(b);
         case "_getInterfaceTypeRuntimeType":
           Expression object = node.arguments.positional[0];
           Expression typeArguments = node.arguments.positional[1];
@@ -793,6 +796,26 @@ class Intrinsifier {
           return w.NumType.f64;
         case "getID":
           return getID(node.arguments.positional.single);
+        case "makeListFixedLength":
+          ClassInfo receiverInfo =
+              translator.classInfo[translator.listBaseClass]!;
+          codeGen.wrap(
+              node.arguments.positional.single, receiverInfo.nonNullableType);
+          w.Local receiverLocal =
+              codeGen.function.addLocal(receiverInfo.nullableType);
+          b.local_tee(receiverLocal);
+          // We ignore the type argument and just update the classID of the
+          // receiver.
+          // TODO(joshualitt): If the amount of free space is significant, it
+          // might be worth doing a copy here.
+          ClassInfo topInfo = translator.topInfo;
+          ClassInfo fixedLengthListInfo =
+              translator.classInfo[translator.fixedLengthListClass]!;
+          b.i32_const(fixedLengthListInfo.classId);
+          b.struct_set(topInfo.struct, FieldIndex.classId);
+          b.local_get(receiverLocal);
+          b.ref_as_non_null();
+          return fixedLengthListInfo.nonNullableType;
       }
     }
 

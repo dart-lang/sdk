@@ -63,6 +63,9 @@ class Types {
   late final List<List<List<DartType>>> typeRulesSubstitutions =
       _buildTypeRulesSubstitutions();
 
+  /// A list which maps class ID to the classes [String] name.
+  late final List<String> typeNames = _buildTypeNames();
+
   Types(this.translator);
 
   w.ValueType classAndFieldToType(Class cls, int fieldIndex) =>
@@ -100,8 +103,14 @@ class Types {
       if (superclassInfo.cls == null ||
           superclassInfo.cls == coreTypes.objectClass) continue;
       Class superclass = superclassInfo.cls!;
-      Iterable<Class> subclasses =
-          _getConcreteSubtypes(superclass).where((cls) => cls != superclass);
+
+      // TODO(joshualitt): This includes abstract types that can't be
+      // instantiated, but might be needed for subtype checks. The majority of
+      // abstract classes are probably unnecessary though. We should filter
+      // these cases to reduce the size of the type rules.
+      Iterable<Class> subclasses = translator.subtypes
+          .getSubtypesOf(superclass)
+          .where((cls) => cls != superclass);
       Iterable<InterfaceType> subtypes = subclasses.map(
           (Class cls) => cls.getThisType(coreTypes, Nullability.nonNullable));
       for (InterfaceType subtype in subtypes) {
@@ -142,6 +151,17 @@ class Types {
       }
     }
     return typeRulesSubstitutions;
+  }
+
+  List<String> _buildTypeNames() {
+    // This logic assumes `translator.classes` returns the classes indexed by
+    // class ID. If we ever change that logic, we will need to change this code.
+    List<String> typeNames = [];
+    for (ClassInfo classInfo in translator.classes) {
+      String className = classInfo.cls?.name ?? '';
+      typeNames.add(className);
+    }
+    return typeNames;
   }
 
   /// Builds a map of subclasses to the transitive set of superclasses they
@@ -202,6 +222,25 @@ class Types {
         b,
         ListConstant(listListListTypeType, substitutionsConstantL0),
         expectedType);
+    return expectedType;
+  }
+
+  /// Returns a list of string type names for pretty printing types.
+  w.ValueType makeTypeNames(w.Instructions b) {
+    w.ValueType expectedType =
+        translator.classInfo[translator.immutableListClass]!.nonNullableType;
+    DartType stringType = InterfaceType(
+        translator.stringBaseClass,
+        Nullability.nonNullable,
+        [translator.coreTypes.stringNonNullableRawType]);
+    List<StringConstant> listStringConstant = [];
+    for (String name in typeNames) {
+      listStringConstant.add(StringConstant(name));
+    }
+    DartType listStringType = InterfaceType(
+        translator.immutableListClass, Nullability.nonNullable, [stringType]);
+    translator.constants.instantiateConstant(null, b,
+        ListConstant(listStringType, listStringConstant), expectedType);
     return expectedType;
   }
 
@@ -358,7 +397,11 @@ class Types {
         type is FutureOrType ||
         type is FunctionType);
     if (type is TypeParameterType) {
-      return codeGen.instantiateTypeParameter(type.parameter);
+      codeGen.instantiateTypeParameter(type.parameter);
+      if (type.declaredNullability == Nullability.nullable) {
+        codeGen.call(translator.typeAsNullable.reference);
+      }
+      return nonNullableTypeType;
     }
     ClassInfo info = translator.classInfo[classForType(type)]!;
     translator.functions.allocateClass(info.classId);
@@ -390,14 +433,18 @@ class Types {
   void emitTypeTest(CodeGenerator codeGen, DartType type, DartType operandType,
       TreeNode node) {
     w.Instructions b = codeGen.b;
-    if (type is! InterfaceType) {
-      // TODO(joshualitt): We can enable this after fixing `.runtimeType`.
-      // makeType(codeGen, type);
-      // codeGen.call(translator.isSubtype.reference);
-      print("Not implemented: Type test with non-interface type $type"
+    if (type is FunctionType) {
+      // TODO(joshualitt): We can enable type tests for [FunctionType] after
+      // enabling `.runtimeType` for [FunctionType].
+      print("Not implemented: Type test with function type $type"
           " at ${node.location}");
       b.drop();
       b.i32_const(1);
+      return;
+    }
+    if (type is! InterfaceType) {
+      makeType(codeGen, type);
+      codeGen.call(translator.isSubtype.reference);
       return;
     }
     bool isPotentiallyNullable = operandType.isPotentiallyNullable;
@@ -412,6 +459,15 @@ class Types {
       b.local_get(operand);
       b.br_on_null(nullLabel);
     }
+    void _endPotentiallyNullableBlock() {
+      if (isPotentiallyNullable) {
+        b.br(resultLabel!);
+        b.end(); // nullLabel
+        encodeNullability(b, type);
+        b.end(); // resultLabel
+      }
+    }
+
     if (type.typeArguments.any((t) => t is! DynamicType)) {
       // If the tested-against type as an instance of the static operand type
       // has the same type arguments as the static operand type, it is not
@@ -421,8 +477,10 @@ class Types {
           .getTypeAsInstanceOf(type, cls, codeGen.member.enclosingLibrary)
           ?.withDeclaredNullability(operandType.declaredNullability);
       if (base != operandType) {
-        print("Not implemented: Type test with type arguments"
-            " at ${node.location}");
+        makeType(codeGen, type);
+        codeGen.call(translator.isSubtype.reference);
+        _endPotentiallyNullableBlock();
+        return;
       }
     }
     List<Class> concrete = _getConcreteSubtypes(type.classNode).toList();
@@ -454,12 +512,7 @@ class Types {
       b.i32_const(0);
       b.end(); // done
     }
-    if (isPotentiallyNullable) {
-      b.br(resultLabel!);
-      b.end(); // nullLabel
-      encodeNullability(b, type);
-      b.end(); // resultLabel
-    }
+    _endPotentiallyNullableBlock();
   }
 
   /// Returns true if a given type is nullable, and false otherwise. This

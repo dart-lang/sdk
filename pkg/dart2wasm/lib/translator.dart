@@ -127,6 +127,7 @@ class Translator {
   late final Procedure hashImmutableIndexNullable;
   late final Procedure isSubtype;
   late final Procedure objectRuntimeType;
+  late final Procedure typeAsNullable;
   late final Map<Class, w.StorageType> builtinTypes;
   late final Map<w.ValueType, Class> boxedClasses;
 
@@ -272,6 +273,9 @@ class Translator {
     objectRuntimeType = lookupCore("Object")
         .procedures
         .firstWhere((p) => p.name.text == "_runtimeType");
+    typeAsNullable = lookupCore("_Type")
+        .procedures
+        .firstWhere((p) => p.name.text == "asNullable");
     builtinTypes = {
       coreTypes.boolClass: w.NumType.i32,
       coreTypes.intClass: w.NumType.i64,

@@ -297,7 +297,8 @@ class JsUtilWasmOptimizer extends Transformer {
   Expression getObjectOffGlobalThis(Procedure node, List<String> selectors) {
     Expression currentTarget = _globalThis;
     for (String selector in selectors) {
-      currentTarget = _getProperty(node, currentTarget, selector);
+      currentTarget = _getProperty(node, currentTarget, selector,
+          typeArgument: _nonNullableObjectType);
     }
     return currentTarget;
   }
@@ -315,8 +316,9 @@ class JsUtilWasmOptimizer extends Transformer {
         type: _nonNullableObjectType);
     body.add(object);
     for (VariableDeclaration variable in node.function.namedParameters) {
-      body.add(ExpressionStatement(
-          _setProperty(node, VariableGet(object), variable.name!, variable)));
+      body.add(ExpressionStatement(_setProperty(
+          node, VariableGet(object), variable.name!, variable,
+          typeArgument: variable.type)));
     }
     body.add(ReturnStatement(VariableGet(object)));
     return Block(body);
@@ -349,12 +351,12 @@ class JsUtilWasmOptimizer extends Transformer {
   ///
   /// The new [Expression] is equivalent to:
   /// `js_util.getProperty([object], [getterName])`.
-  Expression _getProperty(
-          Procedure node, Expression object, String getterName) =>
+  Expression _getProperty(Procedure node, Expression object, String getterName,
+          {DartType? typeArgument}) =>
       StaticInvocation(
           _getPropertyTarget,
           Arguments([object, StringLiteral(getterName)],
-              types: [node.function.returnType]))
+              types: [typeArgument ?? node.function.returnType]))
         ..fileOffset = node.fileOffset;
 
   /// Returns a new function body for the given [node] external getter.
@@ -377,11 +379,11 @@ class JsUtilWasmOptimizer extends Transformer {
   /// The new [Expression] is equivalent to:
   /// `js_util.setProperty([object], [setterName], [value])`.
   Expression _setProperty(Procedure node, Expression object, String setterName,
-          VariableDeclaration value) =>
+          VariableDeclaration value, {DartType? typeArgument}) =>
       StaticInvocation(
           _setPropertyTarget,
           Arguments([object, StringLiteral(setterName), VariableGet(value)],
-              types: [node.function.returnType]))
+              types: [typeArgument ?? node.function.returnType]))
         ..fileOffset = node.fileOffset;
 
   /// Returns a new function body for the given [node] external setter.
