@@ -467,7 +467,7 @@ class List<E> implements Iterable<E> {
   void addAll(Iterable<E> iterable) {}
   Map<int, E> asMap() => throw 0;
   void clear() {}
-  int indexOf(Object element);
+  int indexOf(E element, [int start = 0]);
   bool remove(Object? value);
   E removeLast() => throw 0;
 
