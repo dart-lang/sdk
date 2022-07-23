@@ -1250,6 +1250,11 @@ class Intrinsifier {
         ClassInfo info = translator.classInfo[cls]!;
         b.local_get(paramLocals[0]);
         translator.ref_cast(b, info);
+        // TODO(joshualitt): Because we currently merge getters to support
+        // dynamic calls, the return types of `.length` and `.offsetInBytes` can
+        // change. Should we decide to stop merging getters, we should remove
+        // the conversions below.
+        w.ValueType outputType = function.type.outputs.single;
         switch (name) {
           case "length":
             assert(cls == translator.typedListBaseClass ||
@@ -1260,6 +1265,7 @@ class Intrinsifier {
               b.struct_get(info.struct, FieldIndex.byteDataViewLength);
             }
             b.i64_extend_i32_u();
+            translator.convertType(function, intType, outputType);
             return true;
           case "offsetInBytes":
             assert(cls == translator.typedListViewClass ||
@@ -1270,6 +1276,7 @@ class Intrinsifier {
               b.struct_get(info.struct, FieldIndex.byteDataViewOffsetInBytes);
             }
             b.i64_extend_i32_u();
+            translator.convertType(function, intType, outputType);
             return true;
           case "_typedData":
             assert(cls == translator.typedListViewClass ||
