@@ -78,19 +78,19 @@ void TimelineEventFuchsiaRecorder::OnEvent(TimelineEvent* event) {
           args, num_args);
       break;
     case TimelineEvent::kAsyncBegin:
-      trace_context_write_async_begin_event_record(
-          context, start_time, &thread, &category, &name, event->AsyncId(),
-          args, num_args);
+      trace_context_write_async_begin_event_record(context, start_time, &thread,
+                                                   &category, &name,
+                                                   event->Id(), args, num_args);
       break;
     case TimelineEvent::kAsyncEnd:
-      trace_context_write_async_end_event_record(
-          context, end_time, &thread, &category, &name, event->AsyncId(), args,
-          num_args);
+      trace_context_write_async_end_event_record(context, end_time, &thread,
+                                                 &category, &name, event->Id(),
+                                                 args, num_args);
       break;
     case TimelineEvent::kAsyncInstant:
       trace_context_write_async_instant_event_record(
-          context, start_time, &thread, &category, &name, event->AsyncId(),
-          args, num_args);
+          context, start_time, &thread, &category, &name, event->Id(), args,
+          num_args);
       break;
     case TimelineEvent::kDuration:
       trace_context_write_duration_event_record(context, start_time, end_time,
@@ -98,19 +98,19 @@ void TimelineEventFuchsiaRecorder::OnEvent(TimelineEvent* event) {
                                                 num_args);
       break;
     case TimelineEvent::kFlowBegin:
-      trace_context_write_flow_begin_event_record(
-          context, start_time, &thread, &category, &name, event->AsyncId(),
-          args, num_args);
+      trace_context_write_flow_begin_event_record(context, start_time, &thread,
+                                                  &category, &name, event->Id(),
+                                                  args, num_args);
       break;
     case TimelineEvent::kFlowStep:
-      trace_context_write_flow_step_event_record(
-          context, start_time, &thread, &category, &name, event->AsyncId(),
-          args, num_args);
+      trace_context_write_flow_step_event_record(context, start_time, &thread,
+                                                 &category, &name, event->Id(),
+                                                 args, num_args);
       break;
     case TimelineEvent::kFlowEnd:
-      trace_context_write_flow_end_event_record(
-          context, start_time, &thread, &category, &name, event->AsyncId(),
-          args, num_args);
+      trace_context_write_flow_end_event_record(context, start_time, &thread,
+                                                &category, &name, event->Id(),
+                                                args, num_args);
       break;
     default:
       // TODO(zra): Figure out what to do with kCounter and kMetadata.

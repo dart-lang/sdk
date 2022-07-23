@@ -19,6 +19,7 @@ import 'src/live_code_size_analysis.dart';
 import 'src/runtime_coverage_analysis.dart';
 import 'src/show_inferred_types.dart';
 import 'src/text_print.dart';
+import 'src/to_devtools_format.dart';
 
 /// Entrypoint to run all dart2js_info tools.
 void main(args) {
@@ -38,6 +39,7 @@ void main(args) {
     ..addCommand(LiveCodeAnalysisCommand())
     ..addCommand(RuntimeCoverageAnalysisCommand())
     ..addCommand(ShowInferredTypesCommand())
-    ..addCommand(ShowCommand());
+    ..addCommand(ShowCommand())
+    ..addCommand(DevtoolsFormatCommand());
   commandRunner.run(args);
 }
