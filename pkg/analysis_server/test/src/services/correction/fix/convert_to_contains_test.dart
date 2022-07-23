@@ -242,4 +242,30 @@ bool f(List<int> list, int value) {
 }
 ''');
   }
+
+  Future<void> test_twoArguments_left() async {
+    await resolveTestCode('''
+bool f(List<int> list, int value) {
+  return list.indexOf(value, 0) >= 0;
+}
+''');
+    await assertHasFix('''
+bool f(List<int> list, int value) {
+  return list.contains(value);
+}
+''');
+  }
+
+  Future<void> test_twoArguments_right() async {
+    await resolveTestCode('''
+bool f(List<int> list, int value) {
+  return 0 <= list.indexOf(value, 0);
+}
+''');
+    await assertHasFix('''
+bool f(List<int> list, int value) {
+  return list.contains(value);
+}
+''');
+  }
 }
