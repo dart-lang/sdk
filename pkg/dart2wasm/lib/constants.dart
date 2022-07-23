@@ -803,8 +803,14 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       return createConstant(constant, info.nonNullableType, (function, b) {
         b.i32_const(info.classId);
         b.i32_const(initialIdentityHash);
-        types.encodeNullability(b, type);
-        b.i32_const(environmentIndex);
+
+        // A type parameter's type nullability is undetermined when it's
+        // syntactically not declared nullable and the bound of the type
+        // parameter is nullable. Because we are encoding the declared
+        // nullability, we only declare a type parameter to be nullable if it is
+        // explicitly declared to be nullabe.
+        b.i32_const(type.declaredNullability == Nullability.nullable ? 1 : 0);
+        b.i64_const(environmentIndex);
         translator.struct_new(b, info);
       });
     } else {

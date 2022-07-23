@@ -45,6 +45,8 @@ class Object {
   /// override [runtimeType].
   @patch
   external Type get runtimeType;
+
+  @pragma("wasm:entry-point")
   _Type get _runtimeType => _getInterfaceTypeRuntimeType(this, _typeArguments);
 
   @patch
