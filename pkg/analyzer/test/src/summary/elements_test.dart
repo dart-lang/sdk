@@ -15646,11 +15646,11 @@ library
           SymbolLiteral
             poundSign: # @382
             components
-              components: aaa
+              aaa
                 offset: 383
-              components: bbb
+              bbb
                 offset: 387
-              components: ccc
+              ccc
                 offset: 391
     accessors
       synthetic static get vNull @-1
