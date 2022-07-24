@@ -1643,13 +1643,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
   }
 
-  /// TODO(scheglov) maybe inline?
   void _writeTokenList(String name, List<Token> tokens) {
     if (tokens.isNotEmpty) {
       _writelnWithIndent(name);
       _withIndent(() {
         for (var token in tokens) {
-          _writelnWithIndent('$name: $token');
+          _writelnWithIndent(token.lexeme);
           _withIndent(() {
             _writeOffset('offset', token.offset);
           });
