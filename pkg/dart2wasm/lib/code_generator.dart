@@ -1512,10 +1512,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     } else {
       w.BaseFunction targetFunction =
           translator.functions.getFunction(target.reference);
-      wrap(node.value, targetFunction.type.inputs.single);
+      w.ValueType paramType = targetFunction.type.inputs.single;
+      wrap(node.value, paramType);
       w.Local? temp;
       if (preserved) {
-        temp = addLocal(translateType(dartTypeOf(node.value)));
+        temp = addLocal(paramType);
         b.local_tee(temp);
       }
       call(target.reference);
