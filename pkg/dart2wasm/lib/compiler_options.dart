@@ -13,6 +13,7 @@ class CompilerOptions {
   Uri? platformPath;
   Uri mainUri;
   String outputFile;
+  Map<String, String> environment = const {};
 
   factory CompilerOptions.defaultOptions() =>
       CompilerOptions(mainUri: Uri(), outputFile: '');

@@ -60,7 +60,19 @@ final List<Option> options = [
   UriOption("platform", (o, value) => o.platformPath = value),
   IntMultiOption(
       "watch", (o, values) => o.translatorOptions.watchPoints = values),
+  StringMultiOption(
+      "define", (o, values) => o.environment = processEnvironment(values),
+      abbr: "D")
 ];
+
+Map<String, String> processEnvironment(List<String> defines) =>
+    Map<String, String>.fromEntries(defines.map((d) {
+      List<String> keyAndValue = d.split('=');
+      if (keyAndValue.length != 2) {
+        throw ArgumentError('Bad define string: $d');
+      }
+      return MapEntry<String, String>(keyAndValue[0], keyAndValue[1]);
+    }));
 
 CompilerOptions parseArguments(List<String> arguments) {
   args.ArgParser parser = args.ArgParser();
