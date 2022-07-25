@@ -1,4 +1,4 @@
-## 4.3.1-dev
+## 4.3.1
 * Fix `identifier` for `LibraryExportElement` and `LibraryImportElement`.
 
 ## 4.3.0
