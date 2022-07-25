@@ -4425,6 +4425,9 @@ class LibraryExportElementImpl extends _ExistingElementImpl
   int get hashCode => identityHashCode(this);
 
   @override
+  String get identifier => 'export@$nameOffset';
+
+  @override
   ElementKind get kind => ElementKind.EXPORT;
 
   @override
@@ -4468,6 +4471,9 @@ class LibraryImportElementImpl extends _ExistingElementImpl
 
   @override
   int get hashCode => identityHashCode(this);
+
+  @override
+  String get identifier => 'import@$nameOffset';
 
   @override
   LibraryElement? get importedLibrary {

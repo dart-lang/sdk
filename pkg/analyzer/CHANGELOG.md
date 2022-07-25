@@ -1,3 +1,6 @@
+## 4.3.1-dev
+* Fix `identifier` for `LibraryExportElement` and `LibraryImportElement`.
+
 ## 4.3.0
 * Deprecated `Directive.keyword`, use corresponding `xyzToken` in specific directives.
 * Deprecated `LibraryElement.parts`, use `parts2` instead.
