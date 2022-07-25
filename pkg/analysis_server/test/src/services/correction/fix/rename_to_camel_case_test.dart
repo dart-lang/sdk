@@ -104,6 +104,19 @@ void f(int myIntegerVariable) {
 ''');
   }
 
+  Future<void> test_parameter_function_screamingCaps() async {
+    await resolveTestCode('''
+void f(int FIRST_PARAMETER) {
+  print(FIRST_PARAMETER);
+}
+''');
+    await assertHasFix('''
+void f(int firstParameter) {
+  print(firstParameter);
+}
+''');
+  }
+
   Future<void> test_parameter_method() async {
     await resolveTestCode('''
 class A {
