@@ -15,6 +15,34 @@
 
 namespace dart {
 
+#if defined(USING_SIMULATOR)
+
+DART_NORETURN static void SimulatorUnsupported() {
+  Exceptions::ThrowUnsupportedError(
+      "Not supported on simulated architectures.");
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_dl_open, 0, 1) {
+  SimulatorUnsupported();
+}
+DEFINE_NATIVE_ENTRY(Ffi_dl_processLibrary, 0, 0) {
+  SimulatorUnsupported();
+}
+DEFINE_NATIVE_ENTRY(Ffi_dl_executableLibrary, 0, 0) {
+  SimulatorUnsupported();
+}
+DEFINE_NATIVE_ENTRY(Ffi_dl_lookup, 1, 2) {
+  SimulatorUnsupported();
+}
+DEFINE_NATIVE_ENTRY(Ffi_dl_getHandle, 0, 1) {
+  SimulatorUnsupported();
+}
+DEFINE_NATIVE_ENTRY(Ffi_dl_providesSymbol, 0, 2) {
+  SimulatorUnsupported();
+}
+
+#else  // defined(USING_SIMULATOR)
+
 static void* LoadDynamicLibrary(const char* library_file) {
   char* error = nullptr;
   void* handle = Utils::LoadDynamicLibrary(library_file, &error);
@@ -63,11 +91,8 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_processLibrary, 0, 0) {
     defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
   return DynamicLibrary::New(RTLD_DEFAULT);
 #else
-  const Array& args = Array::Handle(Array::New(1));
-  args.SetAt(0,
-             String::Handle(String::New(
-                 "DynamicLibrary.process is not available on this platform.")));
-  Exceptions::ThrowByType(Exceptions::kUnsupported, args);
+  Exceptions::ThrowUnsupportedError(
+      "DynamicLibrary.process is not available on this platform.");
 #endif
 }
 
@@ -104,5 +129,7 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_providesSymbol, 0, 2) {
   void* handle = dlib.GetHandle();
   return Bool::Get(SymbolExists(handle, argSymbolName.ToCString())).ptr();
 }
+
+#endif  // defined(USING_SIMULATOR)
 
 }  // namespace dart
