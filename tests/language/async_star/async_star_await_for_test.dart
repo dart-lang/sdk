@@ -54,7 +54,7 @@ Stream<int> consume(List<String> log,
     if (event == yieldAt) {
       log.add("y$event[");
       // Yield may cause subscription to pause or cancel.
-      // This loop should stay at the yield until the event has been delieverd.
+      // This loop should stay at the yield until the event has been delivered.
       // If the receiver pauses or cancels, we delay or break the loop here.
       yield event;
       log.add("]");

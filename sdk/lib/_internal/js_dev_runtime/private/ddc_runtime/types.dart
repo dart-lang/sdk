@@ -273,7 +273,7 @@ packageJSType(String name) {
 /// denote *some* package:js type in our subtyping logic.
 ///
 /// Used only when a concrete PackageJSType is not available i.e. when neither
-/// the object nor the target type is a PackageJSType. Avoids initializating a
+/// the object nor the target type is a PackageJSType. Avoids initializing a
 /// new PackageJSType every time. Note that we don't add it to the set of JS
 /// types, since it's not an actual JS class.
 final _pkgJSTypeForSubtyping = PackageJSType('');

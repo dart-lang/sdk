@@ -266,8 +266,9 @@ class TestDriver {
     }
 
     // Connect to the first 'normal' tab.
-    var tab = await chrome.chromeConnection
-        .getTab((tab) => !tab.isBackgroundPage && !tab.isChromeExtension);
+    var tab = await chrome.chromeConnection.getTab(
+        (tab) => !tab.isBackgroundPage && !tab.isChromeExtension,
+        retryFor: Duration(seconds: 5));
     if (tab == null) {
       throw Exception('Unable to connect to Chrome tab');
     }

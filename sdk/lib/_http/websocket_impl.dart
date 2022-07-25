@@ -647,7 +647,7 @@ class _WebSocketPerMessageDeflate {
     }
 
     // RFC 7692 7.2.3.6. "Generating an Empty Fragment" says that if the
-    // compression library doesn't generate any data when the bufer is empty,
+    // compression library doesn't generate any data when the buffer is empty,
     // then an empty uncompressed deflate block is used for this purpose. The
     // 0x00 block has the BFINAL header bit set to 0 and the BTYPE header set to
     // 00 along with 5 bits of padding. This block decodes to zero bytes.

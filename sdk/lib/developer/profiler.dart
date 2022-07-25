@@ -44,7 +44,7 @@ abstract class Metric {
 
   Metric(this.name, this.description) {
     if ((name == 'vm') || name.contains('/')) {
-      throw new ArgumentError('Invalid Metric name.');
+      throw ArgumentError('Invalid Metric name.');
     }
   }
 
@@ -74,7 +74,7 @@ class Gauge extends Metric {
     // TODO: When NNBD is complete, delete the following two lines.
     ArgumentError.checkNotNull(min, 'min');
     ArgumentError.checkNotNull(max, 'max');
-    if (!(min < max)) throw new ArgumentError('min must be less than max');
+    if (!(min < max)) throw ArgumentError('min must be less than max');
   }
 
   Map _toJSON() {
@@ -113,23 +113,25 @@ class Counter extends Metric {
   }
 }
 
+/// Register and deregister custom [Metric]s to be displayed in developer
+/// tooling.
 class Metrics {
   /// The current set of registered [Metric]s.
   static UnmodifiableMapView<String, Metric> get current =>
       UnmodifiableMapView<String, Metric>(_metrics);
   static final _metrics = <String, Metric>{};
 
-  /// Register [Metric]s to make them visible to Observatory.
+  /// Register [Metric]s to make them visible to developer tooling.
   static void register(Metric metric) {
     // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(metric, 'metric');
     if (_metrics[metric.name] != null) {
-      throw new ArgumentError('Registered metrics have unique names');
+      throw ArgumentError('Registered metrics have unique names');
     }
     _metrics[metric.name] = metric;
   }
 
-  /// Deregister [Metric]s to make them not visible to Observatory.
+  /// Deregister [Metric]s to make them not visible to developer tooling.
   static void deregister(Metric metric) {
     // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(metric, 'metric');

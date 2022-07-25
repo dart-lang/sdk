@@ -368,6 +368,12 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
     }
   }
 
+  /// Shuts down the debug adapter by closing the underlying communication
+  /// channel.
+  void shutdown() {
+    _channel.close();
+  }
+
   /// Helpers for requests that have `void` arguments. The supplied args are
   /// ignored.
   void _voidArgs(Map<String, Object?>? args) {}

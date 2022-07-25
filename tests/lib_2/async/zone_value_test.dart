@@ -140,7 +140,7 @@ main() {
 }
 
 // Class of objects that consider themselves equal to their originals.
-// Sees through mimickry.
+// Sees through mimicry.
 class Mimic {
   final Object original;
   Mimic(this.original);

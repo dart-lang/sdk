@@ -559,7 +559,7 @@ class _Substitution extends DartTypeSubstitutionVisitor<Null> {
     int count = _counts[variable] = (_counts[variable] ?? 0) + 1;
     if (count > 1) {
       // If the replacement is 'big', duplicating it can grow the term, perhaps
-      // exponentially given a sufficently pathological input.
+      // exponentially given a sufficiently pathological input.
       // TODO(sra): Fix exponential terms by encoding a DAG in recipes to avoid
       // linearization.
       if (replacement is FunctionType ||

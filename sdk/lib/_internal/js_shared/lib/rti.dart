@@ -2224,7 +2224,7 @@ class _Universe {
 ///   ToType(Rti): Same Rti
 ///
 ///
-/// Notes on enviroments and indexing.
+/// Notes on environments and indexing.
 ///
 /// To avoid creating a binding Rti for a single function type parameter, the
 /// type is passed without creating a 1-tuple object. This means that the

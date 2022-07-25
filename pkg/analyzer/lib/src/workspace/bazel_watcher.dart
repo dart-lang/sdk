@@ -432,7 +432,7 @@ abstract class PollTrigger {
 ///
 /// The idea here is to detect when Bazel finished running and use that to
 /// trigger polling. To detect that we use the `command.log` file that bazel
-/// contiuously updates as the build progresses. We find that file based on [1]:
+/// continuously updates as the build progresses. We find that file based on [1]:
 ///
 /// - In the workspace directory there should be a `bazel-out` symlink whose
 ///   target should be of the form:

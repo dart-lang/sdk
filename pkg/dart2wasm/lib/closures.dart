@@ -246,7 +246,8 @@ class CaptureFinder extends RecursiveVisitor {
 
   @override
   void visitTypeParameterType(TypeParameterType node) {
-    if (node.parameter.parent == member.enclosingClass) {
+    if (node.parameter.parent != null &&
+        node.parameter.parent == member.enclosingClass) {
       _visitThis();
     } else if (node.parameter.parent is FunctionNode) {
       _visitVariableUse(node.parameter);

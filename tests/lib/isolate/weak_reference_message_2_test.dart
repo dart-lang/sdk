@@ -59,10 +59,10 @@ Future<void> runHelper(SendPort port) async {
   expando4[key4] = object4;
 
   final message = <dynamic>[
-    weakRef1, // Does not have its target inluded.
+    weakRef1, // Does not have its target included.
     weakRef2, // Has its target included later than itself.
     object2,
-    weakRef3, // Does not have its target inluded.
+    weakRef3, // Does not have its target included.
     expando3,
     weakRef4, // Has its target included due to expando.
     expando4,

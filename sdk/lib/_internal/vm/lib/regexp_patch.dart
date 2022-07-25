@@ -53,7 +53,7 @@ class RegExp {
   static int _findEscapeChar(String text, int start) {
     // Table where each character in the range U+0000 to U+007f is represented
     // by whether it needs to be escaped in a regexp.
-    // The \x00 characters means escacped, and \x01 means non-escaped.
+    // The \x00 characters means escaped, and \x01 means non-escaped.
     const escapes =
         "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
         "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"

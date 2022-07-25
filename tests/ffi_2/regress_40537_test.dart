@@ -31,14 +31,14 @@ final regress40537 = ffiTestFunctions
 
 variant1Negative() {
   // 0xF9 =  -7 in 2s complement.
-  // 0xF9 = 249 in unsinged.
+  // 0xF9 = 249 in unsigned.
   final result = regress40537(-7);
   print(result);
   Expect.equals(1, result);
 }
 
 variant1Positive() {
-  // 0xF9 = 249 in unsinged.
+  // 0xF9 = 249 in unsigned.
   final result = regress40537(0xFFFFFFF9);
   print(result);
   Expect.equals(1, result);

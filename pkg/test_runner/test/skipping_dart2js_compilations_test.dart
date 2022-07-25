@@ -29,7 +29,7 @@ import 'package:test_runner/src/test_case.dart';
 
 import 'utils.dart';
 
-/// This class is reponsible for setting up the files necessary for this test
+/// This class is responsible for setting up the files necessary for this test
 /// as well as touching a file.
 class FileUtils {
   late Directory tempDir;

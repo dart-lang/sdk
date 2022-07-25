@@ -1014,7 +1014,7 @@ bool GuardFieldTypeInstr::AttributesEqual(const Instruction& other) const {
 }
 
 Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
-  // If all inputs needed to check instantation are constant, instantiate the
+  // If all inputs needed to check instantiation are constant, instantiate the
   // sub and super type and remove the instruction if the subtype test succeeds.
   if (super_type()->BindsToConstant() && sub_type()->BindsToConstant() &&
       instantiator_type_arguments()->BindsToConstant() &&

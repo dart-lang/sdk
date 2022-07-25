@@ -311,7 +311,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// The DDS instance that was started and that [vmService] is connected to.
   ///
   /// `null` if the session is running in noDebug mode of the connection has not
-  /// yet been made.
+  /// yet been made or has been shut down.
   DartDevelopmentService? _dds;
 
   /// The [InitializeRequestArguments] provided by the client in the
@@ -786,8 +786,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     isTerminating = true;
 
     await disconnectImpl();
-    await shutdown();
+    await shutdownDebugee();
     sendResponse();
+
+    await shutdown();
   }
 
   /// evaluateRequest is called by the client to evaluate a string expression.
@@ -1227,16 +1229,38 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     sendResponse(SetExceptionBreakpointsResponseBody());
   }
 
-  /// Shuts down and cleans up.
+  /// Shuts down/detatches from the debugee and cleans up.
   ///
   /// This is called by [disconnectRequest] and [terminateRequest] but may also
   /// be called if the client just disconnects from the server without calling
   /// either.
   ///
   /// This method must tolerate being called multiple times.
-  @mustCallSuper
-  Future<void> shutdown() async {
+  @nonVirtual
+  Future<void> shutdownDebugee() async {
     await _dds?.shutdown();
+    _dds = null;
+  }
+
+  /// Shuts down the debug adapter, including terminating/detatching from the
+  /// debugee if required.
+  @nonVirtual
+  Future<void> shutdown() async {
+    await _waitForPendingOutputEvents();
+    await shutdownDebugee();
+
+    // Delay the shutdown slightly to allow any pending responses (such as the
+    // terminate response) to be sent.
+    //
+    // If we don't wait long enough here, the client may miss events like the
+    // TerminatedEvent. Waiting too long is generally not an issue, as the
+    // client can terminate the process itself once it processes the
+    // TerminatedEvent.
+
+    Future.delayed(
+      Duration(milliseconds: 500),
+      () => super.shutdown(),
+    );
   }
 
   /// [sourceRequest] is called by the client to request source code for a given
@@ -1445,8 +1469,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     isTerminating = true;
 
     await terminateImpl();
-    await shutdown();
+    await shutdownDebugee();
     sendResponse();
+
+    await shutdown();
   }
 
   /// Handles a request from the client for the list of threads.

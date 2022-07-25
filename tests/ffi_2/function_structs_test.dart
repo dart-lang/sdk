@@ -58,7 +58,7 @@ void testFunctionWithStruct({bool isLeaf: false}) {
   calloc.free(c2);
 }
 
-/// pass an array of structs to a c funtion
+/// pass an array of structs to a c function
 void testFunctionWithStructArray({bool isLeaf: false}) {
   Pointer<NativeFunction<NativeCoordinateOp>> p1 =
       ffiTestFunctions.lookup("CoordinateElemAt1");

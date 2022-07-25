@@ -610,6 +610,15 @@ class Intrinsifier {
       return w.NumType.i32;
     }
 
+    if (target.enclosingLibrary.name == "dart.core" &&
+        target.name.text == "_isIntrinsified") {
+      // This is part of the VM's [BigInt] implementation. We just return false.
+      // TODO(joshualitt): Can we find another way to reuse this patch file
+      // without hardcoding this case?
+      b.i32_const(0);
+      return w.NumType.i32;
+    }
+
     return null;
   }
 

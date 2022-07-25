@@ -701,8 +701,8 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     // If either of addStream's cancel or `onCancel` returns a future,
     // we wait for it before continuing.
     // Any error during this process ends up in the returned future.
-    // If more errors happen, we act as if it happens inside nested try/finallys
-    // or whenComplete calls, and only the last error ends up in the
+    // If more errors happen, we act as if it happens inside nested try/finally
+    // blocks or whenComplete calls, and only the last error ends up in the
     // returned future.
     Future<void>? result;
     if (_isAddingStream) {

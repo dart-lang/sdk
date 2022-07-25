@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 
 import 'test_client.dart';
 import 'test_scripts.dart';
+import 'test_server.dart';
 import 'test_support.dart';
 
 main() {
@@ -311,6 +312,12 @@ main() {
           .firstWhere((event) => event.output.trim() == newText);
 
       await dap.client.terminate();
+
+      // If we're running out of process, ensure the server process terminates.
+      final server = dap.server;
+      if (server is OutOfProcessDapTestServer) {
+        await server.exitCode;
+      }
     });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);

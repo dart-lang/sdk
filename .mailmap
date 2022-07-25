@@ -1,4 +1,4 @@
-# This file contains name to mail address mappings that are usefull
+# This file contains name to mail address mappings that are useful
 # for old svn based commits (to get nice names instead of mail in blame and
 # other tools)
 Adam Klein <adamk@google.com>

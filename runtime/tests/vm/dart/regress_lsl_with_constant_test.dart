@@ -13,7 +13,7 @@ const int N = 10;
 
 @pragma('vm:never-inline')
 void test(Int32List v) {
-  // The shape of the code here is choosen to trigger Int64->Int32
+  // The shape of the code here is chosen to trigger Int64->Int32
   // narrowing in the range analysis.
   v[0] = (v[0] & 0xFF) << (N - 1);
 }

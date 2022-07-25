@@ -472,7 +472,8 @@ abstract class Member implements Element {
   Member(this._typeProvider, this._declaration, this._substitution,
       this.isLegacy) {
     if (_declaration is Member) {
-      throw StateError('Members must be created from a declarations.');
+      throw StateError('Members must be created from a declaration, but is '
+          '(${_declaration.runtimeType}) "$_declaration".');
     }
     if (_typeProvider == null && isLegacy) {
       throw StateError(

@@ -111,7 +111,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     }
   }
 
-  /// Verifies that migraiton of the single file with the given [content]
+  /// Verifies that migration of the single file with the given [content]
   /// produces the [expected] output.
   ///
   /// Optional parameter [removeViaComments] indicates whether dead code should

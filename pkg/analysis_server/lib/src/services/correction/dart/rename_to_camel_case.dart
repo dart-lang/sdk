@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analysis_server/src/utilities/strings.dart';
+import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -39,11 +39,11 @@ class RenameToCamelCase extends CorrectionProducer {
     }
 
     // Prepare the new name.
-    var words = identifier.name.split('_');
-    if (words.length < 2) {
+    var newName = identifier.name.toLowerCamelCase;
+    if (newName == null) {
       return;
     }
-    _newName = words.first + words.skip(1).map((w) => capitalize(w)).join();
+    _newName = newName;
 
     // Find references to the identifier.
     List<SimpleIdentifier>? references;

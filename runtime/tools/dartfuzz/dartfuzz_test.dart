@@ -343,7 +343,10 @@ class DartFuzzTest {
   bool ffiCapable(String mode1, String mode2) =>
       mode1.startsWith('jit') &&
       mode2.startsWith('jit') &&
-      (!mode1.contains('arm') && !mode2.contains('arm'));
+      !mode1.contains('arm') &&
+      !mode2.contains('arm') &&
+      !mode1.contains('riscv') &&
+      !mode2.contains('riscv');
 
   bool nestedTypesAllowed(String mode1, String mode2) =>
       (!mode1.contains('arm') && !mode2.contains('arm'));

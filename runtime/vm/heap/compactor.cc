@@ -51,7 +51,7 @@ class ForwardingBlock {
   // Marks a range of allocation units belonging to an object live by setting
   // the corresponding bits in this ForwardingBlock.  Does not update the
   // new_address_ field; that is done after the total live size of the block is
-  // known and forwarding location is choosen. Does not mark words in subsequent
+  // known and forwarding location is chosen. Does not mark words in subsequent
   // ForwardingBlocks live for objects that extend into the next block.
   void RecordLive(uword old_addr, intptr_t size) {
     intptr_t size_in_units = size >> kObjectAlignmentLog2;

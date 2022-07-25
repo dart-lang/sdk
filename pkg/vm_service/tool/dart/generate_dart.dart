@@ -292,7 +292,7 @@ class RPCError implements Exception {
 
   String? get details => data == null ? null : data!['details'];
 
-  /// Return a map representation of this error suitable for converstion to
+  /// Return a map representation of this error suitable for conversion to
   /// json.
   Map<String, dynamic> toMap() {
     Map<String, dynamic> map = {

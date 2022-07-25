@@ -198,7 +198,7 @@ class EnumListParameter : public MethodParameter {
     intptr_t element_pos = 0;
 
     // Allocate our element array.  +1 for NULL terminator.
-    // The caller is reponsible for deleting this memory.
+    // The caller is responsible for deleting this memory.
     char** elements = new char*[element_count + 1];
     elements[element_count] = NULL;
 
@@ -296,7 +296,7 @@ class EnumListParameter : public MethodParameter {
 #if defined(SUPPORT_TIMELINE)
 static const char* const timeline_streams_enum_names[] = {
     "all",
-#define DEFINE_NAME(name, unused) #name,
+#define DEFINE_NAME(name, ...) #name,
     TIMELINE_STREAM_LIST(DEFINE_NAME)
 #undef DEFINE_NAME
         NULL};
@@ -328,7 +328,7 @@ bool Service::EnableTimelineStreams(char* categories_list) {
     return false;
   }
 
-#define SET_ENABLE_STREAM(name, unused)                                        \
+#define SET_ENABLE_STREAM(name, ...)                                           \
   Timeline::SetStream##name##Enabled(HasStream(streams, #name));
   TIMELINE_STREAM_LIST(SET_ENABLE_STREAM);
 #undef SET_ENABLE_STREAM
