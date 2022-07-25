@@ -1645,6 +1645,8 @@ DART_EXPORT bool Dart_HasLivePorts(void);
  *
  * Requires there to be a current isolate.
  *
+ * For posting messages outside of an isolate see \ref Dart_PostCObject.
+ *
  * \param port_id The destination port.
  * \param object An object from the current isolate.
  *
