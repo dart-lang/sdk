@@ -19,10 +19,6 @@
 #include "vm/snapshot.h"
 #include "vm/version.h"
 
-#if defined(DEBUG)
-#define SNAPSHOT_BACKTRACE
-#endif
-
 namespace dart {
 
 // For full snapshots, we use a clustered snapshot format that trades longer
@@ -244,7 +240,8 @@ class Serializer : public ThreadStackResource {
 
   void UnexpectedObject(ObjectPtr object, const char* message);
 #if defined(SNAPSHOT_BACKTRACE)
-  ObjectPtr ParentOf(const Object& object);
+  ObjectPtr ParentOf(ObjectPtr object) const;
+  ObjectPtr ParentOf(const Object& object) const;
 #endif
 
   SerializationCluster* NewClusterForClass(intptr_t cid, bool is_canonical);
