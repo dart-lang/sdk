@@ -37,6 +37,10 @@ class NativeClassy extends NativeFieldWrapperClass1 {
   // Error: Missing receiver in FfiNative annotation.
   @FfiNative<Void Function(IntPtr)>('doesntmatter') //# 05: compile-time error
   external void badMissingReceiver(int v); //# 05: compile-time error
+
+  // Error: wrong return type.
+  @FfiNative<Handle Function(Pointer<Void>, Uint32, Uint32, Handle)>('doesntmatter') //# 49471: compile-time error
+  external void toImageSync(int width, int height, Object outImage);  //# 49471: compile-time error
 }
 
 // Error: Too many FfiNative parameters.
