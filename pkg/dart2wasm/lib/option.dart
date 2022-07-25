@@ -34,7 +34,7 @@ class Flag extends Option<bool> {
                 defaultsTo: defaultsTo,
                 negatable: negatable),
             applyToOptions,
-            (v) => v == 'true' ? true : false);
+            (v) => v);
 }
 
 class ValueOption<T> extends Option<T> {
