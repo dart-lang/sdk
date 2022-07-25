@@ -34,8 +34,9 @@ class InheritanceOverrideVerifier {
   void verifyUnit(CompilationUnit unit) {
     var library = unit.declaredElement!.library as LibraryElementImpl;
     for (var declaration in unit.declarations) {
+      _ClassVerifier verifier;
       if (declaration is ClassDeclaration) {
-        _ClassVerifier(
+        verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
           inheritance: _inheritance,
@@ -47,9 +48,9 @@ class InheritanceOverrideVerifier {
           members: declaration.members,
           superclass: declaration.extendsClause?.superclass,
           withClause: declaration.withClause,
-        ).verify();
+        );
       } else if (declaration is ClassTypeAlias) {
-        _ClassVerifier(
+        verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
           inheritance: _inheritance,
@@ -60,9 +61,9 @@ class InheritanceOverrideVerifier {
           implementsClause: declaration.implementsClause,
           superclass: declaration.superclass,
           withClause: declaration.withClause,
-        ).verify();
+        );
       } else if (declaration is EnumDeclaration) {
-        _ClassVerifier(
+        verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
           inheritance: _inheritance,
@@ -73,9 +74,9 @@ class InheritanceOverrideVerifier {
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           withClause: declaration.withClause,
-        ).verify();
+        );
       } else if (declaration is MixinDeclaration) {
-        _ClassVerifier(
+        verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
           inheritance: _inheritance,
@@ -86,8 +87,16 @@ class InheritanceOverrideVerifier {
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           onClause: declaration.onClause,
-        ).verify();
+        );
+      } else {
+        continue;
       }
+
+      if (verifier.verify()) {
+        continue;
+      }
+
+      verifier._verifyMustBeOverridden();
     }
   }
 
@@ -139,9 +148,11 @@ class _ClassVerifier {
 
   bool get _isNonNullableByDefault => typeSystem.isNonNullableByDefault;
 
-  void verify() {
+  /// Verify inheritance overrides, and return `true` if an error was
+  /// reported which should prevent follow on diagnostics from being reported.
+  bool verify() {
     if (_checkDirectSuperTypes()) {
-      return;
+      return true;
     }
 
     if (!classElement.isEnum &&
@@ -151,11 +162,11 @@ class _ClassVerifier {
         CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE,
         classNameNode,
       );
-      return;
+      return true;
     }
 
     if (_checkForRecursiveInterfaceInheritance(classElement)) {
-      return;
+      return true;
     }
 
     // Compute the interface of the class.
@@ -188,7 +199,7 @@ class _ClassVerifier {
 
     directSuperInterfaces.addAll(classElement.interfaces);
 
-    // Check the members if the class itself, against all the previously
+    // Check the members of the class itself, against all the previously
     // collected superinterfaces of the supertype, mixins, and interfaces.
     for (var member in members) {
       if (member is FieldDeclaration) {
@@ -289,6 +300,8 @@ class _ClassVerifier {
 
       _reportInheritedAbstractMembers(inheritedAbstract);
     }
+
+    return false;
   }
 
   /// Check that the given [member] is a valid override of the corresponding
@@ -910,6 +923,90 @@ class _ClassVerifier {
       }
     }
     return false;
+  }
+
+  /// Verify that [classElement] complies with all `@mustBeOverridden`-annotated
+  /// members in all of its supertypes.
+  void _verifyMustBeOverridden() {
+    final noSuchMethodDeclaration =
+        classElement.getMethod(FunctionElement.NO_SUCH_METHOD_METHOD_NAME);
+    if (noSuchMethodDeclaration != null &&
+        !noSuchMethodDeclaration.isAbstract) {
+      return;
+    }
+    final notOverriddenNames = <String>{};
+    for (var supertype in classElement.allSupertypes) {
+      // TODO(srawlins): This looping may be expensive. Since the vast majority
+      // of classes will have zero elements annotated with `@mustBeOverridden`,
+      // we could store a bit on ClassElement (included in summaries) which
+      // denotes whether any declared element has been so annotated. Then the
+      // expensive looping is deferred until we have such a class.
+      for (var method in supertype.methods) {
+        if (method.isPrivate && method.library != classElement.library) {
+          continue;
+        }
+        if (method.isStatic) {
+          continue;
+        }
+        if (method.hasMustBeOverridden) {
+          var methodDeclaration = classElement.getMethod(method.name);
+          if (methodDeclaration == null || methodDeclaration.isAbstract) {
+            notOverriddenNames.add(method.name);
+          }
+        }
+      }
+      for (var accessor in supertype.accessors) {
+        if (accessor.isPrivate && accessor.library != classElement.library) {
+          continue;
+        }
+        if (accessor.isStatic) {
+          continue;
+        }
+        if (accessor.hasMustBeOverridden ||
+            accessor.variable.hasMustBeOverridden) {
+          final PropertyAccessorElement? accessorDeclaration;
+          if (accessor.isGetter) {
+            accessorDeclaration = classElement.getGetter(accessor.name);
+          } else if (accessor.isSetter) {
+            accessorDeclaration = classElement.getSetter(accessor.name);
+          } else {
+            continue;
+          }
+          if (accessorDeclaration == null || accessorDeclaration.isAbstract) {
+            notOverriddenNames.add(accessor.name);
+          }
+        }
+      }
+    }
+    if (notOverriddenNames.isEmpty) {
+      return;
+    }
+
+    final namesForError = notOverriddenNames.toList();
+
+    if (namesForError.length == 1) {
+      reporter.reportErrorForNode(
+        HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE,
+        classNameNode,
+        namesForError,
+      );
+    } else if (namesForError.length == 2) {
+      reporter.reportErrorForNode(
+        HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO,
+        classNameNode,
+        namesForError,
+      );
+    } else {
+      reporter.reportErrorForNode(
+        HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS,
+        classNameNode,
+        [
+          namesForError[0],
+          namesForError[1],
+          (namesForError.length - 2).toString(),
+        ],
+      );
+    }
   }
 
   static bool _constantValuesEqual(DartObject? x, DartObject? y) {

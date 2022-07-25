@@ -680,6 +680,37 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the member
+  static const HintCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE = HintCode(
+    'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+    "Missing concrete override implementation of '{0}'.",
+    correctionMessage: "Try overriding the missing member.",
+    uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the first member
+  ///  1: the name of the second member
+  ///  2: the number of additional missing members that aren't listed
+  static const HintCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS =
+      HintCode(
+    'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+    "Missing concrete override implementation of '{0}', '{1}', and {2} more.",
+    correctionMessage: "Try overriding the missing members.",
+    uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the first member
+  ///  1: the name of the second member
+  static const HintCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO = HintCode(
+    'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+    "Missing concrete override implementation of '{0}' and '{1}'.",
+    correctionMessage: "Try overriding the missing members.",
+    uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO',
+  );
+
   ///  Generate a hint for a constructor, function or method invocation where a
   ///  required parameter is missing.
   ///
