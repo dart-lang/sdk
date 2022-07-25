@@ -14,7 +14,7 @@ class C {
   const C(this.v);
 
   // Redirecting generative constructor invocation parameters,
-  // must be potenentially constant.
+  // must be potentially constant.
   const C.r1() : this(const C(null));
 
   // Only evaluates the true branch when passed `true` as argument.

@@ -1370,7 +1370,7 @@ class MyDartClass extends TheirJSClass {
   final int x = 1;
   int y, z;
   factory MyDartClass(int y, int z) {
-    // super constructpr parameters passed here?
+    // super constructor parameters passed here?
     var self = createJS<MyDartClass>(); 
     self.y = y;
     self.z = z;

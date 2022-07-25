@@ -34,7 +34,7 @@ class StrongComponents {
   /// The Component that is being compiled.
   ///
   /// On incremental compiles, this will only contain the invalidated
-  /// lbraries.
+  /// libraries.
   final Component component;
 
   /// The libraries loaded from a dill file that should not be processed.

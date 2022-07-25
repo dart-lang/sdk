@@ -27,7 +27,7 @@ body:
     id: issue_description
     attributes:
       label: Issue Description
-      description: Brief description of the issue.  What is the issue? What platforms are the problems occuring on?
+      description: Brief description of the issue.  What is the issue? What platforms are the problems occurring on?
     validations:
       required: true
   - type: textarea

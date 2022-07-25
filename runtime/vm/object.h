@@ -8070,7 +8070,7 @@ class TypeArguments : public Instance {
     kSizeInWords,
   };
 
-  // The array is terminated by the value kNoInstantiator occuring in place of
+  // The array is terminated by the value kNoInstantiator occurring in place of
   // the instantiator type args of the 4-tuple that would otherwise follow.
   // Therefore, kNoInstantiator must be distinct from any type arguments vector,
   // even a null one. Since arrays are initialized with 0, the instantiations_
@@ -8276,7 +8276,7 @@ class AbstractType : public Instance {
   // type arguments, if any.
   void PrintName(NameVisibility visibility, BaseTextBuffer* printer) const;
 
-  // Add the class name and URI of each occuring type to the uris
+  // Add the class name and URI of each occurring type to the uris
   // list and mark ambiguous triplets to be printed.
   virtual void EnumerateURIs(URIs* uris) const;
 

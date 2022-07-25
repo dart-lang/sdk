@@ -727,10 +727,10 @@ class SendReceiveTest extends SendReceiveTestBase {
 
     {
       final result = await sendReceive([
-        weakRef1, // Does not have its target inluded.
+        weakRef1, // Does not have its target included.
         weakRef2, // Has its target included later than itself.
         object2,
-        weakRef3, // Does not have its target inluded.
+        weakRef3, // Does not have its target included.
         expando3,
         weakRef4, // Has its target included due to expando.
         expando4,
@@ -749,11 +749,11 @@ class SendReceiveTest extends SendReceiveTestBase {
 
     {
       final result = await sendReceive([
-        weakRef1, // Does not have its target inluded.
+        weakRef1, // Does not have its target included.
         weakRef2, // Has its target included later than itself.
         notAllocatableInTLAB,
         object2,
-        weakRef3, // Does not have its target inluded.
+        weakRef3, // Does not have its target included.
         expando3,
         weakRef4, // Has its target included due to expando.
         expando4,

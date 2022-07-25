@@ -569,7 +569,7 @@ class TypeSystem {
     return _addPhi(node, variable, inputType, isTry);
   }
 
-  /// Simplies the phi representing [element] and of the type
+  /// Simplifies the phi representing [element] and of the type
   /// [phiType]. For example, if this phi has one incoming input, an
   /// implementation of this method could just return that incoming
   /// input type.

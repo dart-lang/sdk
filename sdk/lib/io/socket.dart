@@ -904,7 +904,7 @@ abstract class ResourceHandle {
 /// [RawSocket.readMessage].
 ///
 /// Control messages could carry different information including
-/// [ResourceHandle]. If [ResourceHandle]s are availabe as part of this message,
+/// [ResourceHandle]. If [ResourceHandle]s are available as part of this message,
 /// they can be extracted via [extractHandles].
 abstract class SocketControlMessage {
   /// Creates a control message containing the provided [handles].

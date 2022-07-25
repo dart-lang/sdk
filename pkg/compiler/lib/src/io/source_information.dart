@@ -66,7 +66,7 @@ abstract class SourceInformation extends JavaScriptNodeSourceInformation {
 /// Context information about inlined calls.
 ///
 /// This is associated with SourceInformation objects to be able to emit
-/// precise data about inlining that can then be used by defobuscation tools
+/// precise data about inlining that can then be used by deobfuscation tools
 /// when reconstructing a source stack from a production stack trace.
 class FrameContext {
   static const String tag = 'frame-context';

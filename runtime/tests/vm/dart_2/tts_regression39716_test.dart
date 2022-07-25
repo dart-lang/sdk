@@ -16,7 +16,7 @@ main() {
   // `A`, both have type argument vector at a different offset, so it wouldn't
   // know where to load it from)
 
-  // Populate the SubtypeTestCache with successfull `add(I<String>())`.
+  // Populate the SubtypeTestCache with successful `add(I<String>())`.
   final x = <dynamic>[<A<String>>[]];
   x.single.add(I<String>());
 

@@ -390,7 +390,7 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
       }
 
       // TODO(sra): There are other contexts that would be beneficial, e.g. a
-      // type reference occuring only in a throw expression.
+      // type reference occurring only in a throw expression.
 
       String suggestedName = _RecipeToIdentifier().run(referenceSet.recipe);
       if (usedNames.contains(suggestedName)) {

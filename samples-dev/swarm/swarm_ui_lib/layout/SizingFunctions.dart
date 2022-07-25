@@ -27,7 +27,7 @@ class SizingFunction {
 }
 
 /**
- * Fixed size reprensents a length as defined by CSS3 Values spec.
+ * Fixed size represents a length as defined by CSS3 Values spec.
  * Can also be a percentage of the Grid element's logical width (for columns)
  * or logical height (for rows). When the width or height of the Grid element
  * is undefined, the percentage is ignored and the Grid Track will be

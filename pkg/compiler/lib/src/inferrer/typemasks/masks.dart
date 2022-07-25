@@ -352,7 +352,7 @@ class CommonMasks implements AbstractValueDomain {
         // type and is maximal (i.e. instantiated to bounds), the typemask,
         // which is based on the class element, is still precise. We check
         // against Top for the parameter arguments since we don't have a
-        // convenient check for instantation to bounds.
+        // convenient check for instantiation to bounds.
         //
         // TODO(sra): Check arguments against bounds.
         // TODO(sra): Handle other variances.
