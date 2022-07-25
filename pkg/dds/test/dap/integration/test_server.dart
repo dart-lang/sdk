@@ -77,6 +77,7 @@ class OutOfProcessDapTestServer extends DapTestServer {
   var _isShuttingDown = false;
   final Process _process;
 
+  Future<int> get exitCode => _process.exitCode;
   StreamSink<List<int>> get sink => _process.stdin;
   Stream<List<int>> get stream => _process.stdout;
 
