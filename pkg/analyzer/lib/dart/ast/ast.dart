@@ -263,10 +263,10 @@ abstract class AstNode implements SyntacticEntity {
   /// Return the offset of the character immediately following the last
   /// character of this node's source range.
   ///
-  /// This is equivalent to `node.getOffset() + node.getLength()`. For a
-  /// compilation unit this will be equal to the length of the unit's source.
-  /// For synthetic nodes this will be equivalent to the node's offset (because
-  /// the length is zero (0) by definition).
+  /// This is equivalent to `node.offset + node.length`. For a compilation unit
+  /// this will be equal to the length of the unit's source. For synthetic nodes
+  /// this will be equivalent to the node's offset (because the length is zero
+  /// (0) by definition).
   @override
   int get end;
 
