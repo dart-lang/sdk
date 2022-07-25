@@ -195,6 +195,7 @@
         "patches": [
           "_internal/wasm/lib/core_patch.dart",
           "_internal/vm/lib/array_patch.dart",
+          "_internal/vm/lib/bigint_patch.dart",
           "_internal/wasm/lib/bool.dart",
           "_internal/vm/lib/bool_patch.dart",
           "_internal/wasm/lib/date_patch.dart",
