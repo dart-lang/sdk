@@ -30,39 +30,45 @@ void TimelineEventMacosRecorder::OnEvent(TimelineEvent* event) {
   }
 
   const char* label = event->label();
+  bool is_static_label = event->stream_->has_static_labels();
   uint8_t _Alignas(16) buffer[64];
   buffer[0] = 0;
 
   switch (event->event_type()) {
-    case TimelineEvent::kInstant: {
-      _os_signpost_emit_with_name_impl(&__dso_handle, log, OS_SIGNPOST_EVENT,
-                                       OS_SIGNPOST_ID_EXCLUSIVE, label, "",
-                                       buffer, sizeof(buffer));
+    case TimelineEvent::kInstant:
+      if (is_static_label) {
+        _os_signpost_emit_with_name_impl(&__dso_handle, log, OS_SIGNPOST_EVENT,
+                                         OS_SIGNPOST_ID_EXCLUSIVE, label, "",
+                                         buffer, sizeof(buffer));
+      } else {
+        os_signpost_event_emit(log, OS_SIGNPOST_ID_EXCLUSIVE, "Event", "%s",
+                               label);
+      }
       break;
-    }
     case TimelineEvent::kBegin:
-    case TimelineEvent::kAsyncBegin: {
-      _os_signpost_emit_with_name_impl(&__dso_handle, log,
-                                       OS_SIGNPOST_INTERVAL_BEGIN, event->Id(),
-                                       label, "", buffer, sizeof(buffer));
+    case TimelineEvent::kAsyncBegin:
+      if (is_static_label) {
+        _os_signpost_emit_with_name_impl(
+            &__dso_handle, log, OS_SIGNPOST_INTERVAL_BEGIN, event->Id(), label,
+            "", buffer, sizeof(buffer));
+      } else {
+        os_signpost_interval_begin(log, event->Id(), "Event", "%s", label);
+      }
       break;
-    }
     case TimelineEvent::kEnd:
-    case TimelineEvent::kAsyncEnd: {
-      _os_signpost_emit_with_name_impl(&__dso_handle, log,
-                                       OS_SIGNPOST_INTERVAL_END, event->Id(),
-                                       label, "", buffer, sizeof(buffer));
+    case TimelineEvent::kAsyncEnd:
+      if (is_static_label) {
+        _os_signpost_emit_with_name_impl(&__dso_handle, log,
+                                         OS_SIGNPOST_INTERVAL_END, event->Id(),
+                                         label, "", buffer, sizeof(buffer));
+      } else {
+        os_signpost_interval_end(log, event->Id(), "Event");
+      }
       break;
-    }
-    case TimelineEvent::kCounter: {
-      const char* fmt = "%s";
-      Utils::SNPrint(reinterpret_cast<char*>(buffer), sizeof(buffer), fmt,
-                     event->arguments()[0].value);
-      _os_signpost_emit_with_name_impl(&__dso_handle, log, OS_SIGNPOST_EVENT,
-                                       OS_SIGNPOST_ID_EXCLUSIVE, label, fmt,
-                                       buffer, sizeof(buffer));
+    case TimelineEvent::kCounter:
+      os_signpost_event_emit(log, OS_SIGNPOST_ID_EXCLUSIVE, "Counter", "%s=%s",
+                             label, event->arguments()[0].value);
       break;
-    }
     default:
       break;
   }

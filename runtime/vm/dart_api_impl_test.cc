@@ -9553,8 +9553,7 @@ TEST_CASE(DartAPI_TimelineCategories) {
     JSONArray jstream(&obj, "available");
     Timeline::PrintFlagsToJSONArray(&jstream);
     const char* js_str = js.ToCString();
-#define TIMELINE_STREAM_CHECK(name, fuchsia_name)                              \
-  EXPECT_SUBSTRING(#name, js_str);
+#define TIMELINE_STREAM_CHECK(name, ...) EXPECT_SUBSTRING(#name, js_str);
     TIMELINE_STREAM_LIST(TIMELINE_STREAM_CHECK)
 #undef TIMELINE_STREAM_CHECK
   }
