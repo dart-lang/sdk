@@ -49,18 +49,25 @@ class RuntimeCoverageAnalysisCommand extends Command<void>
   RuntimeCoverageAnalysisCommand() {
     argParser.addFlag('show-packages',
         defaultsTo: false, help: "Show coverage details at the package level.");
+    argParser.addOption('class-filter',
+        defaultsTo: '', help: "Show coverage details filtered by class.");
   }
 
   @override
   void run() async {
-    final argRes = argResults!;
-    final args = argRes.rest;
+    var args = argResults!.rest;
     if (args.length < 2) {
       usageException('Missing arguments, expected: info.data coverage.json');
     }
-    final showPackages = argRes['show-packages'];
+    var showPackages = argResults!['show-packages'] as bool;
+    var filterFile = argResults!['class-filter'] as String;
+    if (showPackages && filterFile.isNotEmpty) {
+      throw StateError('Cannot specify both packages view and filtered view.');
+    }
     if (showPackages) {
       await _reportWithPackages(args[0], args[1]);
+    } else if (filterFile.isNotEmpty) {
+      _reportWithClassFilter(args[0], args[1], filterFile);
     } else {
       await _report(args[0], args[1]);
     }
@@ -71,10 +78,26 @@ Future<void> _report(
   String infoFile,
   String coverageFile,
 ) async {
-  var info = await infoFromFile(infoFile);
-  var coverageRaw = jsonDecode(File(coverageFile).readAsStringSync());
+  final info = await infoFromFile(infoFile);
+  final coverageRaw = jsonDecode(File(coverageFile).readAsStringSync());
   // The value associated with each coverage item isn't used for now.
-  var coverage = coverageRaw.keys.toSet();
+  final coverage = coverageRaw.keys.toSet();
+
+  // Ensure that a used class's super, mixed in, and implemented classes are
+  // correctly marked as used.
+  final seen = <ClassInfo>{};
+  void collectSupers(ClassInfo c) {
+    if (seen.contains(c)) return;
+    seen.add(c);
+    coverage.add(qualifiedName(c));
+    c.supers.forEach(collectSupers);
+  }
+
+  for (final c in info.classes) {
+    if (coverage.contains(qualifiedName(c))) {
+      c.supers.forEach(collectSupers);
+    }
+  }
 
   int totalProgramSize = info.program!.size;
   int totalLibSize = info.libraries.fold(0, (n, lib) => n + lib.size);
@@ -120,22 +143,39 @@ Future<void> _report(
   }
 }
 
+/// Generates a report aggregated at the package level.
 Future<void> _reportWithPackages(
   String infoFile,
   String coverageFile,
 ) async {
-  var info = await infoFromFile(infoFile);
-  var coverageRaw = jsonDecode(File(coverageFile).readAsStringSync());
+  final info = await infoFromFile(infoFile);
+  final coverageRaw = jsonDecode(File(coverageFile).readAsStringSync());
   // The value associated with each coverage item isn't used for now.
-  var coverage = coverageRaw.keys.toSet();
+  final coverage = coverageRaw.keys.toSet();
+
+  // Ensure that a used class's super, mixed in, and implemented classes are
+  // correctly marked as used.
+  final seen = <ClassInfo>{};
+  void collectSupers(ClassInfo c) {
+    if (seen.contains(c)) return;
+    seen.add(c);
+    coverage.add(qualifiedName(c));
+    c.supers.forEach(collectSupers);
+  }
+
+  for (final c in info.classes) {
+    if (coverage.contains(qualifiedName(c))) {
+      c.supers.forEach(collectSupers);
+    }
+  }
 
   int totalProgramSize = info.program!.size;
   int totalLibSize = info.libraries.fold(0, (n, lib) => n + lib.size);
 
   int totalCode = 0;
   int usedCode = 0;
-  final packageData = <String?, PackageInfo>{};
-  final unused = PriorityQueue<Info>((a, b) => b.size.compareTo(a.size));
+  var packageData = <String, RuntimePackageInfo>{};
+  var unused = PriorityQueue<Info>((a, b) => b.size.compareTo(a.size));
 
   void tallyCode(BasicInfo i) {
     totalCode += i.size;
@@ -143,7 +183,8 @@ Future<void> _reportWithPackages(
     var used = coverage.contains(name);
 
     var groupName = libraryGroupName(i);
-    (packageData[groupName] ??= PackageInfo()).add(i, used: used);
+    packageData.putIfAbsent(groupName!, () => RuntimePackageInfo());
+    packageData[groupName]!.add(i, used: used);
 
     if (used) {
       usedCode += i.size;
@@ -225,6 +266,165 @@ Future<void> _reportWithPackages(
   }
 }
 
+/// Generates a report filtered by class.
+Future<void> _reportWithClassFilter(
+    String infoFile, String coverageFile, String filterFile,
+    {bool showUncategorizedClasses = false}) async {
+  final info = await infoFromFile(infoFile);
+  final coverageRaw = jsonDecode(File(coverageFile).readAsStringSync());
+  // The value associated with each coverage item isn't used for now.
+  Set<String> coverage = coverageRaw.keys.toSet();
+
+  final classFilterData = <String, RuntimeClassInfo>{};
+  for (final runtimeClassInfo in File(filterFile)
+      .readAsLinesSync()
+      .map((l) => RuntimeClassInfo.fromAngularInfo(l))) {
+    classFilterData[runtimeClassInfo.key] = runtimeClassInfo;
+  }
+
+  // Ensure that a used class's super, mixed in, and implemented classes are
+  // correctly marked as used.
+  final seen = <ClassInfo>{};
+  void collectSupers(ClassInfo c) {
+    if (seen.contains(c)) return;
+    seen.add(c);
+    coverage.add(qualifiedName(c));
+    c.supers.forEach(collectSupers);
+  }
+
+  for (final c in info.classes) {
+    if (coverage.contains(qualifiedName(c))) {
+      c.supers.forEach(collectSupers);
+    }
+  }
+
+  int totalProgramSize = info.program!.size;
+  int totalLibSize = info.libraries.fold(0, (n, lib) => n + lib.size);
+
+  int usedCode = 0;
+  int filterTotalCode = 0;
+  int filterUsedCode = 0;
+  int usedProcessedCode = 0;
+
+  final uncategorizedClasses = <ClassInfo>{};
+  final categorizedClasses = <ClassInfo>{};
+
+  void processInfoForClass(ClassInfo info) {
+    final name = qualifiedName(info);
+    final used = coverage.contains(name);
+    final nameWithoutPrefix =
+        name.substring(name.indexOf(':') + 1, name.length);
+    if (used) {
+      usedCode += info.size;
+    }
+
+    final runtimeClassInfo = classFilterData[nameWithoutPrefix];
+    if (runtimeClassInfo == null) {
+      uncategorizedClasses.add(info);
+      return;
+    }
+    if (categorizedClasses.contains(info)) {
+      runtimeClassInfo.annotateWithClassInfo(info, used: used);
+      return;
+    }
+    categorizedClasses.add(info);
+    runtimeClassInfo.annotateWithClassInfo(info, used: used);
+    filterTotalCode += info.size;
+
+    if (used) {
+      usedProcessedCode += 1;
+      filterUsedCode += info.size;
+    }
+  }
+
+  info.classes.forEach(processInfoForClass);
+
+  int totalCode = 0;
+
+  for (final closure in info.closures) {
+    totalCode += closure.size;
+    final name = qualifiedName(closure);
+    final used = coverage.contains(name);
+    if (used) {
+      usedCode += closure.size;
+    }
+  }
+
+  for (final classInfo in uncategorizedClasses) {
+    totalCode += classInfo.size;
+    final name = qualifiedName(classInfo);
+    final used = coverage.contains(name);
+    if (used) {
+      usedCode += classInfo.size;
+    }
+  }
+
+  for (final classInfo in categorizedClasses) {
+    totalCode += classInfo.size;
+    final name = qualifiedName(classInfo);
+    final used = coverage.contains(name);
+    if (used) {
+      usedCode += classInfo.size;
+    }
+  }
+
+  _section('Runtime Coverage Summary');
+  _showHeader('', 'bytes', '%');
+  _show('Program size', totalProgramSize, totalProgramSize);
+  _show('Libraries (excluding statics)', totalLibSize, totalProgramSize);
+  _show('Code (classes + closures)', totalCode, totalProgramSize);
+  _show('Used', usedCode, totalProgramSize);
+
+  print('');
+  final unusedTotal = totalCode - usedCode;
+  _section('Runtime Coverage Breakdown (filtered)', size: unusedTotal);
+  print('Filtered Breakdown:');
+  print('Total (count): ${categorizedClasses.length}');
+  print('Used  (count): $usedProcessedCode '
+      '(${usedProcessedCode / categorizedClasses.length * 100}%)');
+  print('Total (bytes): $filterTotalCode');
+  print('Used  (bytes): $filterUsedCode '
+      '(${filterUsedCode / filterTotalCode * 100}%)');
+  for (final runtimeClassInfo in classFilterData.values
+      .sortedBy((v) => v.annotated ? (v.used ? v.size : -v.size) : 0)) {
+    if (!runtimeClassInfo.annotated) continue;
+    final classInfo = runtimeClassInfo.info;
+    final percent = (classInfo.size * 100 / filterTotalCode).toStringAsFixed(2);
+    final name = qualifiedName(classInfo);
+    final used = coverage.contains(name);
+    final usedTick = used ? '+' : '-';
+    final mainUnitTick = classInfo.outputUnit?.name == 'main' ? 'M' : 'D';
+    _leftPadded('    [$usedTick$mainUnitTick] ${qualifiedName(classInfo)}:',
+        '${classInfo.size} bytes ($percent% of filtered items)');
+  }
+
+  print('');
+  print('Unaccounted classes in filter:');
+  for (final runtimeClassInfo
+      in classFilterData.values.where((v) => !v.annotated)) {
+    print('    ${runtimeClassInfo.key}');
+  }
+
+  if (showUncategorizedClasses) {
+    int uncategorizedSize = 0;
+    for (final info in uncategorizedClasses) {
+      uncategorizedSize += info.size;
+    }
+    _section('Uncategorized Info', size: uncategorizedSize);
+    for (var info in uncategorizedClasses) {
+      final percent = (info.size * 100 / totalProgramSize).toStringAsFixed(2);
+      final name = qualifiedName(info);
+      final used = coverage.contains(name);
+      final usedTick = used ? '+' : '-';
+      final mainUnitTick = info.outputUnit?.name == 'main' ? 'M' : 'D';
+      _leftPadded('    [$usedTick$mainUnitTick] $name:',
+          '${info.size} bytes ($percent% of program)');
+    }
+  }
+
+  print('');
+}
+
 void _section(String title, {int? size}) {
   if (size == null) {
     print(title);
@@ -247,7 +447,7 @@ _leftPadded(String msg1, String msg2) {
   print(' ${pad(msg1, 50, right: true)} $msg2');
 }
 
-class PackageInfo {
+class RuntimePackageInfo {
   final elements = PriorityQueue<BasicInfo>((a, b) => b.size.compareTo(a.size));
 
   num mainUnitSize = 0;
@@ -257,7 +457,7 @@ class PackageInfo {
   num usedRatio = 0;
   num usedSize = 0;
 
-  PackageInfo();
+  RuntimePackageInfo();
 
   void add(BasicInfo i, {bool used = true}) {
     totalSize += i.size;
@@ -274,5 +474,60 @@ class PackageInfo {
     }
     elements.add(i);
     usedRatio = usedSize / totalSize;
+  }
+}
+
+class RuntimeClassInfo {
+  late String scheme;
+  late String package;
+  late String? path;
+  late String name;
+
+  late num size;
+  late bool used;
+  late bool inMainUnit;
+  late ClassInfo info;
+
+  bool annotated = false;
+
+  RuntimeClassInfo();
+
+  /// Ingests the output from Angular's info generator.
+  ///
+  /// Example: 'fully:qualified/path/to/file.dart - ClassName'
+  RuntimeClassInfo.fromAngularInfo(String input) {
+    final colonIndex = input.indexOf(':');
+    if (colonIndex < 0) {
+      throw ArgumentError('AngularInfo format cannot accept undefined schemes.'
+          ' No scheme found for: $input');
+    }
+    final slashIndex = input.indexOf('/');
+    final spaceIndex = input.indexOf(' ');
+    final separatorSize = ' - '.length;
+    scheme = input.substring(0, colonIndex);
+    if (slashIndex < 0) {
+      path = null;
+      package = input.substring(colonIndex + 1, spaceIndex);
+    } else {
+      package = input.substring(colonIndex + 1, slashIndex);
+      path = input.substring(slashIndex + 1, spaceIndex);
+    }
+    name = input.substring(spaceIndex + separatorSize, input.length);
+  }
+
+  String get key =>
+      '$package${path == null ? '' : '/$path'}:$name'.replaceAll('/lib/', '/');
+
+  void annotateWithClassInfo(ClassInfo i, {bool used = true}) {
+    size = i.size;
+    this.used = used;
+    inMainUnit = i.outputUnit!.name == 'main';
+    info = i;
+    annotated = true;
+  }
+
+  @override
+  String toString() {
+    return '$package/$path - $name';
   }
 }
