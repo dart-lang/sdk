@@ -7,6 +7,7 @@ environment:
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   _js_interop_checks: any
+  args: any
   front_end: any
   kernel: any
   vm: any
