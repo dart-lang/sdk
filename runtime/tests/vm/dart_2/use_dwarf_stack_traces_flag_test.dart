@@ -112,12 +112,10 @@ main(List<String> args) async {
     // Check with DWARF in generated snapshot.
     await compareTraces(nonDwarfTrace1, output1, output2, scriptDwarfSnapshot);
 
-    // Currently there are no appropriate buildtools on the SIMARM and SIMARM64
-    // trybots as normally they compile to ELF and don't need them for compiling
-    // assembly snapshots.
-    if ((Platform.isLinux || Platform.isMacOS) &&
-        !buildDir.endsWith('SIMARM') &&
-        !buildDir.endsWith('SIMARM64')) {
+    // Currently there are no appropriate buildtools on the simulator trybots as
+    // normally they compile to ELF and don't need them for compiling assembly
+    // snapshots.
+    if ((Platform.isLinux || Platform.isMacOS) && !isSimulator) {
       final scriptAssembly = path.join(tempDir, 'dwarf_assembly.S');
       final scriptDwarfAssemblyDebugInfo =
           path.join(tempDir, 'dwarf_assembly_info.so');

@@ -26,6 +26,7 @@ final genSnapshot = File(path.join(buildDir, _genSnapshotBase)).existsSync()
     : path.join(buildDir + '_X64', _genSnapshotBase);
 final aotRuntime = path.join(
     buildDir, 'dart_precompiled_runtime' + (Platform.isWindows ? '.exe' : ''));
+final isSimulator = path.basename(buildDir).contains('SIM');
 
 String get clangBuildToolsDir {
   String archDir;
@@ -51,7 +52,7 @@ Future<void> assembleSnapshot(String assemblyPath, String snapshotPath,
   String cc = 'gcc';
   String shared = '-shared';
 
-  if (buildDir.endsWith('SIMARM') || buildDir.endsWith('SIMARM64')) {
+  if (isSimulator) {
     final clangBuildTools = clangBuildToolsDir;
     if (clangBuildTools != null) {
       cc = path.join(clangBuildTools, 'clang');
@@ -63,6 +64,7 @@ Future<void> assembleSnapshot(String assemblyPath, String snapshotPath,
     cc = 'clang';
   }
 
+  // TODO(49519): What do we need to change for SIMRISCV64?
   if (buildDir.endsWith('SIMARM')) {
     ccFlags.add('--target=armv7-linux-gnueabihf');
   } else if (buildDir.endsWith('SIMARM64')) {
@@ -104,9 +106,7 @@ Future<void> stripSnapshot(String snapshotPath, String strippedPath,
 
   var strip = 'strip';
 
-  if (buildDir.endsWith('SIMARM') ||
-      buildDir.endsWith('SIMARM64') ||
-      (Platform.isMacOS && forceElf)) {
+  if (isSimulator || (Platform.isMacOS && forceElf)) {
     if (clangBuildToolsDir != null) {
       strip = path.join(clangBuildToolsDir, 'llvm-strip');
     } else {

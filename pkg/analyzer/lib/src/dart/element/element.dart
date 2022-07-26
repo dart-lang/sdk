@@ -1861,6 +1861,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static const String _META_META_LIB_NAME = "meta_meta";
 
   /// The name of the top-level variable used to mark a method as requiring
+  /// subclasses to override this method.
+  static const String _MUST_BE_OVERRIDDEN = "mustBeOverridden";
+
+  /// The name of the top-level variable used to mark a method as requiring
   /// overriders to call super.
   static const String _MUST_CALL_SUPER_VARIABLE_NAME = "mustCallSuper";
 
@@ -1986,6 +1990,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isLiteral => _isPackageMetaGetter(_LITERAL_VARIABLE_NAME);
+
+  @override
+  bool get isMustBeOverridden => _isPackageMetaGetter(_MUST_BE_OVERRIDDEN);
 
   @override
   bool get isMustCallSuper =>
@@ -2315,6 +2322,18 @@ abstract class ElementImpl implements Element {
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isLiteral) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasMustBeOverridden {
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isMustBeOverridden) {
         return true;
       }
     }
@@ -4425,6 +4444,9 @@ class LibraryExportElementImpl extends _ExistingElementImpl
   int get hashCode => identityHashCode(this);
 
   @override
+  String get identifier => 'export@$nameOffset';
+
+  @override
   ElementKind get kind => ElementKind.EXPORT;
 
   @override
@@ -4468,6 +4490,9 @@ class LibraryImportElementImpl extends _ExistingElementImpl
 
   @override
   int get hashCode => identityHashCode(this);
+
+  @override
+  String get identifier => 'import@$nameOffset';
 
   @override
   LibraryElement? get importedLibrary {
@@ -5036,6 +5061,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasLiteral => false;
+
+  @override
+  bool get hasMustBeOverridden => false;
 
   @override
   bool get hasMustCallSuper => false;

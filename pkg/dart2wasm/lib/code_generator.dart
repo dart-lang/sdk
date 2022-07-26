@@ -291,7 +291,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         b.struct_set(info.struct, translator.typeParameterIndex[typeParam]!);
       }
       for (Field field in cls.fields) {
-        if (field.isInstanceMember && field.initializer != null) {
+        if (field.isInstanceMember &&
+            field.initializer != null &&
+            field.type is! VoidType) {
           int fieldIndex = translator.fieldIndex[field]!;
           b.local_get(thisLocal!);
           wrap(
@@ -1420,6 +1422,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitVariableGet(VariableGet node, w.ValueType expectedType) {
+    // Return `void` for a void [VariableGet].
+    if (node.variable.type is VoidType) {
+      return voidMarker;
+    }
     w.Local? local = locals[node.variable];
     Capture? capture = closures.captures[node.variable];
     if (capture != null) {
@@ -1442,6 +1448,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitVariableSet(VariableSet node, w.ValueType expectedType) {
+    // Return `void` for a void [VariableSet].
+    if (node.variable.type is VoidType) {
+      return wrap(node.value, voidMarker);
+    }
     w.Local? local = locals[node.variable];
     Capture? capture = closures.captures[node.variable];
     bool preserved = expectedType != voidMarker;
@@ -1512,10 +1522,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     } else {
       w.BaseFunction targetFunction =
           translator.functions.getFunction(target.reference);
-      wrap(node.value, targetFunction.type.inputs.single);
+      w.ValueType paramType = targetFunction.type.inputs.single;
+      wrap(node.value, paramType);
       w.Local? temp;
       if (preserved) {
-        temp = addLocal(translateType(dartTypeOf(node.value)));
+        temp = addLocal(paramType);
         b.local_tee(temp);
       }
       call(target.reference);

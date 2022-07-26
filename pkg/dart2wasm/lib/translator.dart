@@ -538,17 +538,13 @@ class Translator {
       return typeForInfo(
           classInfo[type.classNode]!, type.isPotentiallyNullable);
     }
-    if (type is DynamicType) {
+    if (type is DynamicType || type is VoidType) {
       return topInfo.nullableType;
     }
-    if (type is NullType) {
+    // TODO(joshualitt): When we add support to `wasm_builder` for bottom heap
+    // types, we should return bottom heap type here.
+    if (type is NullType || type is NeverType) {
       return topInfo.nullableType;
-    }
-    if (type is NeverType) {
-      return topInfo.nullableType;
-    }
-    if (type is VoidType) {
-      return voidMarker;
     }
     if (type is TypeParameterType) {
       return translateStorageType(type.isPotentiallyNullable

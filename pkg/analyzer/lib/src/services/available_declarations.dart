@@ -1579,7 +1579,7 @@ class _File {
 
       if (node is ClassDeclaration) {
         var classDeclaration = addDeclaration(
-          isAbstract: node.isAbstract,
+          isAbstract: node.abstractKeyword != null,
           isDeprecated: isDeprecated,
           kind: DeclarationKind.CLASS,
           name: node.name,

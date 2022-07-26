@@ -63,9 +63,13 @@ class MultiValueOption<T> extends Option<List<T>> {
       String name,
       void Function(CompilerOptions o, List<T> v) applyToOptions,
       T converter(dynamic v),
-      {Iterable<String>? defaultsTo})
-      : super(name, (a) => a.addMultiOption(name, defaultsTo: defaultsTo),
-            applyToOptions, (vs) => vs.map(converter).cast<T>().toList());
+      {Iterable<String>? defaultsTo,
+      String? abbr})
+      : super(
+            name,
+            (a) => a.addMultiOption(name, abbr: abbr, defaultsTo: defaultsTo),
+            applyToOptions,
+            (vs) => vs.map(converter).cast<T>().toList());
 }
 
 class IntMultiOption extends MultiValueOption<int> {
@@ -73,4 +77,12 @@ class IntMultiOption extends MultiValueOption<int> {
       {Iterable<String>? defaultsTo})
       : super(name, applyToOptions, (v) => int.parse(v),
             defaultsTo: defaultsTo);
+}
+
+class StringMultiOption extends MultiValueOption<String> {
+  StringMultiOption(
+      name, void applyToOptions(CompilerOptions o, List<String> v),
+      {String? abbr, Iterable<String>? defaultsTo})
+      : super(name, applyToOptions, (v) => v,
+            abbr: abbr, defaultsTo: defaultsTo);
 }

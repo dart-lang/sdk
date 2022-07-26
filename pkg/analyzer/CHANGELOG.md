@@ -1,3 +1,10 @@
+## 4.4.0-dev
+* Deprecated `ClassDeclaration.isAbstract`, use `abstractKeyword` instead.
+* Deprecated `ClassTypeAlias.isAbstract`, use `abstractKeyword` instead.
+
+## 4.3.1
+* Fix `identifier` for `LibraryExportElement` and `LibraryImportElement`.
+
 ## 4.3.0
 * Deprecated `Directive.keyword`, use corresponding `xyzToken` in specific directives.
 * Deprecated `LibraryElement.parts`, use `parts2` instead.

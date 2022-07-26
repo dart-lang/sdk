@@ -504,6 +504,8 @@ class _ElementWriter {
   }
 
   void _writeExportElement(LibraryExportElement e) {
+    e.location;
+
     _writeIndentedLine(() {
       _writeDirectiveUri(e.uri);
     });
@@ -587,6 +589,8 @@ class _ElementWriter {
   }
 
   void _writeImportElement(LibraryImportElement e) {
+    e.location;
+
     _writeIndentedLine(() {
       _writeDirectiveUri(e.uri);
       _writeIf(e.isSynthetic, ' synthetic');

@@ -108,6 +108,7 @@ class ClassDeclarationTest extends ParserTestCase {
     expect(clazz.getMethod("noSuchMethod"), isNull);
   }
 
+  @Deprecated('Use abstractKeyword instead')
   void test_isAbstract() {
     expect(
         AstTestFactory.classDeclaration(null, "A", null, null, null, null)
@@ -123,6 +124,7 @@ class ClassDeclarationTest extends ParserTestCase {
 
 @reflectiveTest
 class ClassTypeAliasTest extends ParserTestCase {
+  @Deprecated('Use abstractKeyword instead')
   void test_isAbstract() {
     expect(
         AstTestFactory.classTypeAlias(

@@ -140,14 +140,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     AstNode parent = node.parent;
-    if (element.isFactory == true) {
+    if (element.isFactory) {
       if (parent is MethodDeclaration) {
         _checkForInvalidFactory(parent);
       } else {
         _errorReporter
             .reportErrorForNode(HintCode.INVALID_FACTORY_ANNOTATION, node, []);
       }
-    } else if (element.isImmutable == true) {
+    } else if (element.isImmutable) {
       if (parent is! ClassOrMixinDeclaration && parent is! ClassTypeAlias) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_IMMUTABLE_ANNOTATION, node, []);
@@ -183,12 +183,28 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _errorReporter
             .reportErrorForNode(HintCode.INVALID_INTERNAL_ANNOTATION, node, []);
       }
-    } else if (element.isLiteral == true) {
+    } else if (element.isLiteral) {
       if (parent is! ConstructorDeclaration || parent.constKeyword == null) {
         _errorReporter
             .reportErrorForNode(HintCode.INVALID_LITERAL_ANNOTATION, node, []);
       }
-    } else if (element.isNonVirtual == true) {
+    } else if (element.isMustBeOverridden) {
+      if ((parent is MethodDeclaration && parent.isStatic) ||
+          (parent is FieldDeclaration && parent.isStatic)) {
+        _errorReporter.reportErrorForNode(
+          HintCode.INVALID_ANNOTATION_TARGET,
+          node,
+          [node.name.name, 'instance members of classes and mixins'],
+        );
+      } else if (parent.parent is ExtensionDeclaration ||
+          parent.parent is EnumDeclaration) {
+        _errorReporter.reportErrorForNode(
+          HintCode.INVALID_ANNOTATION_TARGET,
+          node,
+          [node.name.name, 'instance members of classes and mixins'],
+        );
+      }
+    } else if (element.isNonVirtual) {
       if (parent is FieldDeclaration) {
         if (parent.isStatic) {
           _errorReporter.reportErrorForNode(
@@ -205,14 +221,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_NON_VIRTUAL_ANNOTATION, node);
       }
-    } else if (element.isSealed == true) {
+    } else if (element.isSealed) {
       if (!(parent is ClassDeclaration || parent is ClassTypeAlias)) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_SEALED_ANNOTATION, node);
       }
-    } else if (element.isVisibleForTemplate == true ||
-        element.isVisibleForTesting == true ||
-        element.isVisibleForOverriding == true) {
+    } else if (element.isVisibleForTemplate ||
+        element.isVisibleForTesting ||
+        element.isVisibleForOverriding) {
       if (parent is Declaration) {
         void reportInvalidAnnotation(Element declaredElement) {
           // This method is only called on named elements, so it is safe to

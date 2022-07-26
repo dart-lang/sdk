@@ -674,10 +674,15 @@ abstract class Element implements AnalysisTarget {
   /// Return `true` if this element has an annotation of the form `@literal`.
   bool get hasLiteral;
 
-  /// Return  `true` if this element has an annotation of the form `@mustCallSuper`.
+  /// Return `true` if this element has an annotation of the form
+  /// `@mustBeOverridden`.
+  bool get hasMustBeOverridden;
+
+  /// Return `true` if this element has an annotation of the form
+  /// `@mustCallSuper`.
   bool get hasMustCallSuper;
 
-  /// Return  `true` if this element has an annotation of the form `@nonVirtual`.
+  /// Return `true` if this element has an annotation of the form `@nonVirtual`.
   bool get hasNonVirtual;
 
   /// Return `true` if this element has an annotation of the form
@@ -900,6 +905,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// Return `true` if this annotation marks the associated constructor as
   /// being literal.
   bool get isLiteral;
+
+  /// Return `true` if this annotation marks the associated member as requiring
+  /// subclasses to override this member.
+  bool get isMustBeOverridden;
 
   /// Return `true` if this annotation marks the associated member as requiring
   /// overriding methods to call super.
