@@ -98,12 +98,12 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
     } else if (parent is LibraryIdentifier) {
       var grandParent = parent.parent;
       if (grandParent is PartOfDirective) {
-        var element = grandParent.element;
+        var element = grandParent.element2;
         if (element is LibraryElement) {
           return element.definingCompilationUnit;
         }
       } else if (grandParent is LibraryDirective) {
-        return grandParent.element;
+        return grandParent.element2;
       }
     }
     return node.writeOrReadElement;
@@ -126,7 +126,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitLibraryDirective(LibraryDirective node) {
-    return node.element;
+    return node.element2;
   }
 
   @override
@@ -141,7 +141,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitPartOfDirective(PartOfDirective node) {
-    return node.element;
+    return node.element2;
   }
 
   @override

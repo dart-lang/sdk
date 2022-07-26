@@ -96,7 +96,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     } else if (node is InstanceCreationExpression) {
       properties['static type'] = node.staticType;
     } else if (node is LibraryDirective) {
-      properties['element'] = node.element;
+      properties['element'] = node.element2;
     } else if (node is MethodDeclaration) {
       properties['declaredElement'] = node.declaredElement;
       properties['external keyword'] = node.externalKeyword;
@@ -107,10 +107,10 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['static invoke type'] = node.staticInvokeType;
       properties['static type'] = node.staticType;
     } else if (node is PartDirective) {
-      properties['element'] = node.element;
+      properties['element'] = node.element2;
       properties['uriSource'] = node.uriSource;
     } else if (node is PartOfDirective) {
-      properties['element'] = node.element;
+      properties['element'] = node.element2;
     } else if (node is PostfixExpression) {
       properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;

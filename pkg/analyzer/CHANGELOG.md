@@ -4,6 +4,7 @@
 * Deprecated `ClassOrMixinDeclaration.getField`, filter `members` instead.
 * Deprecated `ClassOrMixinDeclaration.getMethod`, filter `members` instead.
 * Deprecated `ClassDeclaration.getConstructor`, filter `members` instead.
+* Deprecated `Directive.element`, use `element2` instead.
 
 ## 4.3.1
 * Fix `identifier` for `LibraryExportElement` and `LibraryImportElement`.

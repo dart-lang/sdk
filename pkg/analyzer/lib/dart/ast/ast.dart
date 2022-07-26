@@ -630,8 +630,7 @@ abstract class AugmentationImportDirective implements UriBasedDirective {
   /// The token representing the 'augment' keyword.
   Token get augmentKeyword;
 
-  /// Return the element associated with this directive, or `null` if the AST
-  /// structure has not been resolved.
+  @Deprecated('Use element2 instead')
   @override
   AugmentationImportElement? get element;
 
@@ -1526,7 +1525,12 @@ abstract class Directive implements AnnotatedNode {
   /// Return the element associated with this directive, or `null` if the AST
   /// structure has not been resolved or if this directive could not be
   /// resolved.
+  @Deprecated('Use element2 instead')
   Element? get element;
+
+  /// Return the element associated with this directive, or `null` if the AST
+  /// structure has not been resolved.
+  Element? get element2;
 
   /// Return the token representing the keyword that introduces this directive
   /// ('import', 'export', 'library' or 'part').
@@ -1714,6 +1718,7 @@ abstract class ExportDirective implements NamespaceDirective {
 
   /// Return the element associated with this directive, or `null` if the AST
   /// structure has not been resolved.
+  @override
   LibraryExportElement? get element2;
 
   /// The token representing the 'export' keyword.
@@ -2893,6 +2898,7 @@ abstract class ImportDirective implements NamespaceDirective {
 
   /// Return the element associated with this directive, or `null` if the AST
   /// structure has not been resolved.
+  @override
   LibraryImportElement? get element2;
 
   /// The token representing the 'import' keyword.
@@ -3644,6 +3650,9 @@ abstract class ParenthesizedExpression implements Expression {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PartDirective implements UriBasedDirective {
+  @override
+  PartElement? get element2;
+
   /// Return the token representing the 'part' keyword.
   Token get partKeyword;
 

@@ -129,7 +129,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('AugmentationImportDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element);
+      _writeElement('element', node.element2);
       _writeRaw('uriContent', node.uriContent);
       _writeElement('uriElement', node.uriElement);
       _writeSource('uriSource', node.uriSource);
@@ -774,7 +774,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('LibraryAugmentationDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element);
+      _writeElement('element', node.element2);
     });
   }
 
@@ -783,7 +783,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('LibraryDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element);
+      _writeElement('element', node.element2);
     });
   }
 
@@ -901,7 +901,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('PartDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element);
+      _writeElement('element', node.element2);
       _writeRaw('uriContent', node.uriContent);
       _writePartUnitElement('uriElement', node.uriElement);
       _writeSource('uriSource', node.uriSource);
@@ -913,7 +913,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('PartOfDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element);
+      _writeElement('element', node.element2);
     });
   }
 
