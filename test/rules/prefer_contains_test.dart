@@ -27,6 +27,7 @@ condition() {
 ''', [
       // No lint
       error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 4),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 77, 3),
     ]);
   }
 
