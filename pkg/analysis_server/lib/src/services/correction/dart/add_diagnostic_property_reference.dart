@@ -12,6 +12,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:collection/collection.dart';
 
 class AddDiagnosticPropertyReference extends CorrectionProducer {
   @override
@@ -113,8 +114,10 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
       builder.writeln("$constructorName('${node.name}', ${node.name}));");
     }
 
-    final debugFillProperties =
-        classDeclaration.getMethod('debugFillProperties');
+    final debugFillProperties = classDeclaration.members
+        .whereType<MethodDeclaration>()
+        .where((e) => e.name.name == 'debugFillProperties')
+        .singleOrNull;
     if (debugFillProperties == null) {
       var location = utils.prepareNewMethodLocation(classDeclaration);
       if (location == null) {

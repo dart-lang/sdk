@@ -198,7 +198,7 @@ class RangeFactory_NodeInListTest extends AbstractSingleUnitTest {
   /// return the list of initializers in that constructor.
   NodeList<ConstructorInitializer> get _constructorInitializers {
     var c = testUnit.declarations[0] as ClassDeclaration;
-    var constructor = c.getConstructor(null) as ConstructorDeclaration;
+    var constructor = c.members.whereType<ConstructorDeclaration>().single;
     return constructor.initializers;
   }
 

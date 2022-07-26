@@ -42,6 +42,7 @@ main() {
 
 @reflectiveTest
 class ClassDeclarationTest extends ParserTestCase {
+  @Deprecated('Filter members instead')
   void test_getConstructor() {
     List<ConstructorInitializer> initializers = <ConstructorInitializer>[];
     ConstructorDeclaration defaultConstructor =
@@ -69,6 +70,7 @@ class ClassDeclarationTest extends ParserTestCase {
     expect(clazz.getConstructor("noSuchConstructor"), isNull);
   }
 
+  @Deprecated('Filter members instead')
   void test_getField() {
     VariableDeclaration aVar = AstTestFactory.variableDeclaration("a");
     VariableDeclaration bVar = AstTestFactory.variableDeclaration("b");
@@ -85,6 +87,7 @@ class ClassDeclarationTest extends ParserTestCase {
     expect(clazz.getField("noSuchField"), isNull);
   }
 
+  @Deprecated('Filter members instead')
   void test_getMethod() {
     MethodDeclaration aMethod = AstTestFactory.methodDeclaration(
         null,
