@@ -1102,39 +1102,20 @@ BoolPtr CallSpecializer::InstanceOfAsBool(
 }
 
 // Returns true if checking against this type is a direct class id comparison.
-bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type) {
+bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type,
+                                               intptr_t* type_cid) {
+  *type_cid = kIllegalCid;
   ASSERT(type.IsFinalized());
   // Requires CHA.
   if (!type.IsInstantiated()) return false;
   // Function types have different type checking rules.
   if (type.IsFunctionType()) return false;
+
   const Class& type_class = Class::Handle(type.type_class());
-  // Could be an interface check?
-  if (CHA::IsImplemented(type_class)) return false;
-  // Check if there are subclasses.
-  if (CHA::HasSubclasses(type_class)) {
+  if (!CHA::HasSingleConcreteImplementation(type_class, type_cid)) {
     return false;
   }
 
-  // Private classes cannot be subclassed by later loaded libs.
-  if (!type_class.IsPrivate()) {
-    // In AOT mode we can't use CHA deoptimizations.
-    ASSERT(!CompilerState::Current().is_aot() || !FLAG_use_cha_deopt);
-    if (FLAG_use_cha_deopt || isolate_group()->all_classes_finalized()) {
-      if (FLAG_trace_cha) {
-        THR_Print(
-            "  **(CHA) Typecheck as class equality since no "
-            "subclasses: %s\n",
-            type_class.ToCString());
-      }
-      if (FLAG_use_cha_deopt) {
-        thread()->compiler_state().cha().AddToGuardedClasses(
-            type_class, /*subclass_count=*/0);
-      }
-    } else {
-      return false;
-    }
-  }
   const intptr_t num_type_args = type_class.NumTypeArguments();
   if (num_type_args > 0) {
     // Only raw types can be directly compared, thus disregarding type
@@ -1242,10 +1223,10 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     return;
   }
 
-  if (TypeCheckAsClassEquality(type)) {
+  intptr_t type_cid;
+  if (TypeCheckAsClassEquality(type, &type_cid)) {
     LoadClassIdInstr* left_cid = new (Z) LoadClassIdInstr(new (Z) Value(left));
     InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
-    const intptr_t type_cid = Class::Handle(Z, type.type_class()).id();
     ConstantInstr* cid =
         flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(type_cid)));
 

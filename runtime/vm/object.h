@@ -1110,6 +1110,19 @@ class Class : public Object {
     StoreNonPointer(&untag()->id_, value);
   }
   static intptr_t id_offset() { return OFFSET_OF(UntaggedClass, id_); }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // If the interface of this class has a single concrete implementation, either
+  // via `extends` or by `implements`, returns its CID.
+  // If it has no implementation, returns kIllegalCid.
+  // If it has more than one implementation, returns kDynamicCid.
+  intptr_t implementor_cid() const { return untag()->implementor_cid_; }
+
+  // Returns true if the implementor tracking state changes and so must be
+  // propagated to this class's superclass and interfaces.
+  bool NoteImplementor(const Class& implementor) const;
+#endif
+
   static intptr_t num_type_arguments_offset() {
     return OFFSET_OF(UntaggedClass, num_type_arguments_);
   }
@@ -1531,6 +1544,9 @@ class Class : public Object {
     return RoundedAllocationSize(sizeof(UntaggedClass));
   }
 
+  // Returns true if any class implements this interface via `implements`.
+  // Returns false if all possible implementations of this interface must be
+  // instances of this class or its subclasses.
   bool is_implemented() const { return ImplementedBit::decode(state_bits()); }
   void set_is_implemented() const;
   void set_is_implemented_unsafe() const;
@@ -1874,6 +1890,7 @@ class Class : public Object {
   void set_user_name(const String& value) const;
   const char* GenerateUserVisibleName() const;
   void set_state_bits(intptr_t bits) const;
+  void set_implementor_cid(intptr_t value) const;
 
   FunctionPtr CreateInvocationDispatcher(const String& target_name,
                                          const Array& args_desc,

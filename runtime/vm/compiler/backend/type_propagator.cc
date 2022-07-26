@@ -768,38 +768,12 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kSentinelCid;
     } else if (type_->IsFunctionType() || type_->IsDartFunctionType()) {
       cid_ = kClosureCid;
-    } else if (type_->IsDoubleType()) {
-      cid_ = kDoubleCid;  // double's only implementor is _Double.
-    } else if (type_->IsFloat32x4Type()) {
-      cid_ = kFloat32x4Cid;  // Float32x4's only implementor is _Float32x4.
-    } else if (type_->IsFloat64x2Type()) {
-      cid_ = kFloat64x2Cid;  // Float64x2's only implementor is _Float64x2.
-    } else if (type_->IsInt32x4Type()) {
-      cid_ = kInt32x4Cid;  // Int32x4's only implementor is _Int32x4.
     } else if (type_->type_class_id() != kIllegalCid) {
       const Class& type_class = Class::Handle(type_->type_class());
-      Thread* thread = Thread::Current();
-      CHA& cha = thread->compiler_state().cha();
-      // Don't infer a cid from an abstract type since there can be multiple
-      // compatible classes with different cids.
-      if (!type_class.is_abstract() && !CHA::IsImplemented(type_class) &&
-          !CHA::HasSubclasses(type_class)) {
-        if (type_class.IsPrivate()) {
-          // Type of a private class cannot change through later loaded libs.
-          cid_ = type_class.id();
-        } else if (FLAG_use_cha_deopt ||
-                   thread->isolate_group()->all_classes_finalized()) {
-          if (FLAG_trace_cha) {
-            THR_Print("  **(CHA) Compile type not subclassed: %s\n",
-                      type_class.ToCString());
-          }
-          if (FLAG_use_cha_deopt) {
-            cha.AddToGuardedClasses(type_class, /*subclass_count=*/0);
-          }
-          cid_ = type_class.id();
-        } else {
-          cid_ = kDynamicCid;
-        }
+      intptr_t implementation_cid = kIllegalCid;
+      if (CHA::HasSingleConcreteImplementation(type_class,
+                                               &implementation_cid)) {
+        cid_ = implementation_cid;
       } else {
         cid_ = kDynamicCid;
       }

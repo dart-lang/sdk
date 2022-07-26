@@ -1395,6 +1395,13 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
         }
       }
 #endif
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (obj->IsClass()) {
+        // Won't be able to update read-only VM isolate classes if implementors
+        // are discovered later.
+        static_cast<ClassPtr>(obj)->untag()->implementor_cid_ = kDynamicCid;
+      }
+#endif
     }
   }
 
@@ -2984,6 +2991,7 @@ ClassPtr Class::New(IsolateGroup* isolate_group, bool register_class) {
                                target_next_field_offset);
   COMPILE_ASSERT((FakeObject::kClassId != kInstanceCid));
   result.set_id(FakeObject::kClassId);
+  NOT_IN_PRECOMPILED(result.set_implementor_cid(kIllegalCid));
   result.set_num_type_arguments_unsafe(0);
   result.set_num_native_fields(0);
   result.set_state_bits(0);
@@ -4741,6 +4749,7 @@ ClassPtr Class::NewCommon(intptr_t index) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_id(index);
+  NOT_IN_PRECOMPILED(result.set_implementor_cid(kIllegalCid));
   result.set_num_type_arguments_unsafe(kUnknownNumTypeArguments);
   result.set_num_native_fields(0);
   result.set_state_bits(0);
@@ -4826,6 +4835,7 @@ ClassPtr Class::NewNativeWrapper(const Library& library,
     cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
     cls.set_is_synthesized_class();
+    NOT_IN_PRECOMPILED(cls.set_implementor_cid(kDynamicCid));
     library.AddClass(cls);
     return cls.ptr();
   } else {
@@ -5146,6 +5156,27 @@ void Class::set_token_pos(TokenPosition token_pos) const {
 void Class::set_end_token_pos(TokenPosition token_pos) const {
   ASSERT(!token_pos.IsClassifying());
   StoreNonPointer(&untag()->end_token_pos_, token_pos);
+}
+
+void Class::set_implementor_cid(intptr_t value) const {
+  ASSERT(value >= 0 && value < std::numeric_limits<classid_t>::max());
+  StoreNonPointer(&untag()->implementor_cid_, value);
+}
+
+bool Class::NoteImplementor(const Class& implementor) const {
+  ASSERT(!implementor.is_abstract());
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  if (implementor_cid() == kDynamicCid) {
+    return false;
+  } else if (implementor_cid() == implementor.id()) {
+    return false;
+  } else if (implementor_cid() == kIllegalCid) {
+    set_implementor_cid(implementor.id());
+    return true;  // None -> One
+  } else {
+    set_implementor_cid(kDynamicCid);
+    return true;  // One -> Many
+  }
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
