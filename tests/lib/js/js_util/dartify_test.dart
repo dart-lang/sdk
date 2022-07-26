@@ -30,7 +30,15 @@ main() {
     };
     globalThis.recObjectData = {};
     globalThis.recObjectData = {'foo': globalThis.recObjectData}
-    globalThis.throwData = function() {};
+    globalThis.throwData = new RegExp();
+    globalThis.complexData = {
+      'a': new Date(0),
+      'b': new Promise((resolve, reject) => {}),
+    };
+    globalThis.complexList = [
+      new Date(0),
+      new Promise((resolve, reject) => {}),
+    ];
     """);
 
   test('convert an array', () {
@@ -79,7 +87,22 @@ main() {
     Expect.deepEquals(expectedValues, dartObject);
   });
 
-  test('throws if object is not an object literal or array', () {
+  test('complex types convert in an Object', () {
+    Object? jsObject = js_util.getProperty(js_util.globalThis, 'complexData');
+    Map<Object?, Object?> dartObject =
+        js_util.dartify(jsObject) as Map<Object?, Object?>;
+    Expect.isTrue(dartObject['a']! is DateTime);
+    Expect.isTrue(dartObject['b']! is Future);
+  });
+
+  test('complex types convert in a List', () {
+    Object? jsArray = js_util.getProperty(js_util.globalThis, 'complexList');
+    List<Object?> dartList = js_util.dartify(jsArray) as List<Object?>;
+    Expect.isTrue(dartList[0] is DateTime);
+    Expect.isTrue(dartList[1] is Future);
+  });
+
+  test('throws if object is a regexp', () {
     expect(
         () => js_util
             .dartify(js_util.getProperty(js_util.globalThis, 'throwData')),
