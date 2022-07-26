@@ -1662,6 +1662,7 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
     return abstractKeyword ?? macroKeyword ?? augmentKeyword ?? classKeyword;
   }
 
+  @Deprecated('Use abstractKeyword instead')
   @override
   bool get isAbstract => abstractKeyword != null;
 
@@ -1914,6 +1915,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
         _becomeParentOf(implementsClause as ImplementsClauseImpl?);
   }
 
+  @Deprecated('Use abstractKeyword instead')
   @override
   bool get isAbstract => abstractKeyword != null;
 
@@ -2052,8 +2054,9 @@ class CommentImpl extends AstNodeImpl implements Comment {
   NodeListImpl<CommentReference> get references => _references;
 
   @override
-  ChildEntities get _childEntities =>
-      ChildEntities()..addTokenList('tokens', tokens);
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNodeList('references', references)
+    ..addTokenList('tokens', tokens);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitComment(this);

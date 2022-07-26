@@ -33,6 +33,142 @@ ClassDeclaration
 ''');
   }
 
+  void test_class_commentReferences_beforeAbstract() {
+    var parseResult = parseStringWithErrors(r'''
+/** [String] */ abstract class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.classDeclaration('class A');
+    assertParsedNodeText(
+        node,
+        r'''
+ClassDeclaration
+  documentationComment: Comment
+    references
+      CommentReference
+        expression: SimpleIdentifier
+          token: String @5
+    tokens
+      /** [String] */
+        offset: 0
+  abstractKeyword: abstract @16
+  classKeyword: class @25
+  name: SimpleIdentifier
+    token: A @31
+  leftBracket: { @33
+  rightBracket: } @34
+''',
+        withOffsets: true);
+  }
+
+  void test_class_commentReferences_beforeAnnotation() {
+    var parseResult = parseStringWithErrors(r'''
+/// See [int] and [String]
+/// and [Object].
+@Annotation
+abstract class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.classDeclaration('class A');
+    assertParsedNodeText(
+        node,
+        r'''
+ClassDeclaration
+  documentationComment: Comment
+    references
+      CommentReference
+        expression: SimpleIdentifier
+          token: int @9
+      CommentReference
+        expression: SimpleIdentifier
+          token: String @19
+      CommentReference
+        expression: SimpleIdentifier
+          token: Object @36
+    tokens
+      /// See [int] and [String]
+        offset: 0
+      /// and [Object].
+        offset: 27
+  metadata
+    Annotation
+      atSign: @ @45
+      name: SimpleIdentifier
+        token: Annotation @46
+  abstractKeyword: abstract @57
+  classKeyword: class @66
+  name: SimpleIdentifier
+    token: A @72
+  leftBracket: { @74
+  rightBracket: } @75
+''',
+        withOffsets: true);
+  }
+
+  void test_class_commentReferences_complex() {
+    var parseResult = parseStringWithErrors(r'''
+/// This dartdoc comment [should] be ignored
+@Annotation
+/// This dartdoc comment is [included].
+// a non dartdoc comment [inbetween]
+/// See [int] and [String] but `not [a]`
+/// ```
+/// This [code] block should be ignored
+/// ```
+/// and [Object].
+abstract class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.classDeclaration('class A');
+    assertParsedNodeText(
+        node,
+        r'''
+ClassDeclaration
+  documentationComment: Comment
+    references
+      CommentReference
+        expression: SimpleIdentifier
+          token: included @86
+      CommentReference
+        expression: SimpleIdentifier
+          token: int @143
+      CommentReference
+        expression: SimpleIdentifier
+          token: String @153
+      CommentReference
+        expression: SimpleIdentifier
+          token: Object @240
+    tokens
+      /// This dartdoc comment is [included].
+        offset: 57
+      /// See [int] and [String] but `not [a]`
+        offset: 134
+      /// ```
+        offset: 175
+      /// This [code] block should be ignored
+        offset: 183
+      /// ```
+        offset: 223
+      /// and [Object].
+        offset: 231
+  metadata
+    Annotation
+      atSign: @ @45
+      name: SimpleIdentifier
+        token: Annotation @46
+  abstractKeyword: abstract @249
+  classKeyword: class @258
+  name: SimpleIdentifier
+    token: A @264
+  leftBracket: { @266
+  rightBracket: } @267
+''',
+        withOffsets: true);
+  }
+
   void test_class_macro() {
     var parseResult = parseStringWithErrors(r'''
 macro class A {}

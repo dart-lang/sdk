@@ -18,7 +18,7 @@ void main(List<String> arguments) {
 class ClassReuseVisitor extends ScrapeVisitor {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    if (node.isAbstract) {
+    if (node.abstractKeyword != null) {
       record('Declarations', 'abstract class');
     } else {
       record('Declarations', 'class');

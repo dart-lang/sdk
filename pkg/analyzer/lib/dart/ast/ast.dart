@@ -844,6 +844,7 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   ExtendsClause? get extendsClause;
 
   /// Return `true` if this class is declared to be an abstract class.
+  @Deprecated('Use abstractKeyword instead')
   bool get isAbstract;
 
   /// Return the native clause for this class, or `null` if the class does not
@@ -931,6 +932,7 @@ abstract class ClassTypeAlias implements TypeAlias {
   ImplementsClause? get implementsClause;
 
   /// Return `true` if this class is declared to be an abstract class.
+  @Deprecated('Use abstractKeyword instead')
   bool get isAbstract;
 
   @override

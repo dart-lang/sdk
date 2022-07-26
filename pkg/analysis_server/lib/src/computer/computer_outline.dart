@@ -99,7 +99,7 @@ class DartUnitOutlineComputer {
         Element.makeFlags(
             isPrivate: Identifier.isPrivateName(name),
             isDeprecated: _isDeprecated(node),
-            isAbstract: node.isAbstract),
+            isAbstract: node.abstractKeyword != null),
         location: _getLocationNode(nameNode),
         typeParameters: _getTypeParametersStr(node.typeParameters));
     return _nodeOutline(node, element, classContents);
@@ -114,7 +114,7 @@ class DartUnitOutlineComputer {
         Element.makeFlags(
             isPrivate: Identifier.isPrivateName(name),
             isDeprecated: _isDeprecated(node),
-            isAbstract: node.isAbstract),
+            isAbstract: node.abstractKeyword != null),
         location: _getLocationNode(nameNode),
         typeParameters: _getTypeParametersStr(node.typeParameters));
     return _nodeOutline(node, element);

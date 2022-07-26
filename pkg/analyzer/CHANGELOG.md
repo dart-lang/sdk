@@ -1,3 +1,7 @@
+## 4.4.0-dev
+* Deprecated `ClassDeclaration.isAbstract`, use `abstractKeyword` instead.
+* Deprecated `ClassTypeAlias.isAbstract`, use `abstractKeyword` instead.
+
 ## 4.3.1
 * Fix `identifier` for `LibraryExportElement` and `LibraryImportElement`.
 
