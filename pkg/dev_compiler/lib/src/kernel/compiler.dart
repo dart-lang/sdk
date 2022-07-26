@@ -3646,7 +3646,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           runtimeCall('nullFailed(#, #, #, #)', [
             location != null
                 ? _cacheUri(location.file.toString())
-                : NullLiteral(),
+                : js_ast.LiteralNull(),
             js.number(location?.line ?? -1),
             js.number(location?.column ?? -1),
             js.escapedString('${p.name}')
