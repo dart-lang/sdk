@@ -390,7 +390,7 @@ class Foo {
 ''');
     var classDeclaration = unit.declarations.first as ClassDeclaration;
     var constructor =
-        classDeclaration.getConstructor(null) as ConstructorDeclaration;
+        classDeclaration.members.whereType<ConstructorDeclaration>().single;
 
     // Object? o
     var parameter =
@@ -436,7 +436,7 @@ class Foo {
 ''');
     var classDeclaration = unit.declarations.first as ClassDeclaration;
     var constructor =
-        classDeclaration.getConstructor(null) as ConstructorDeclaration;
+        classDeclaration.members.whereType<ConstructorDeclaration>().single;
 
     // Object? o
     var parameter =
@@ -489,7 +489,7 @@ class Foo {
 ''');
     var classDeclaration = unit.declarations.first as ClassDeclaration;
     var constructor =
-        classDeclaration.getConstructor(null) as ConstructorDeclaration;
+        classDeclaration.members.whereType<ConstructorDeclaration>().single;
 
     // Object? o
     var parameter =

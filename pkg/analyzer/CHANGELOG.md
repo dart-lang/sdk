@@ -1,6 +1,9 @@
 ## 4.4.0-dev
 * Deprecated `ClassDeclaration.isAbstract`, use `abstractKeyword` instead.
 * Deprecated `ClassTypeAlias.isAbstract`, use `abstractKeyword` instead.
+* Deprecated `ClassOrMixinDeclaration.getField`, filter `members` instead.
+* Deprecated `ClassOrMixinDeclaration.getMethod`, filter `members` instead.
+* Deprecated `ClassDeclaration.getConstructor`, filter `members` instead.
 
 ## 4.3.1
 * Fix `identifier` for `LibraryExportElement` and `LibraryImportElement`.

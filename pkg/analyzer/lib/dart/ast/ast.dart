@@ -860,6 +860,7 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   ///
   /// If the [name] is `null` then the default constructor will be searched
   /// for.
+  @Deprecated('Filter members instead')
   ConstructorDeclaration? getConstructor(String? name);
 }
 
@@ -900,10 +901,12 @@ abstract class ClassOrMixinDeclaration implements NamedCompilationUnitMember {
 
   /// Returns the field declared in the class/mixin with the given [name], or
   /// `null` if there is no such field.
+  @Deprecated('Filter members instead')
   VariableDeclaration? getField(String name);
 
   /// Returns the method declared in the class/mixin with the given [name], or
   /// `null` if there is no such method.
+  @Deprecated('Filter members instead')
   MethodDeclaration? getMethod(String name);
 }
 

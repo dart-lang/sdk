@@ -1699,6 +1699,7 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitClassDeclaration(this);
 
+  @Deprecated('Filter members instead')
   @override
   ConstructorDeclaration? getConstructor(String? name) {
     int length = _members.length;
@@ -1795,6 +1796,7 @@ abstract class ClassOrMixinDeclarationImpl
     _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
   }
 
+  @Deprecated('Filter members instead')
   @override
   VariableDeclaration? getField(String name) {
     int memberLength = _members.length;
@@ -1816,6 +1818,7 @@ abstract class ClassOrMixinDeclarationImpl
     return null;
   }
 
+  @Deprecated('Filter members instead')
   @override
   MethodDeclaration? getMethod(String name) {
     int length = _members.length;
