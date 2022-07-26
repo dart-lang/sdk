@@ -902,9 +902,15 @@ class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
     _becomeParentOf(_uri);
   }
 
+  @Deprecated('Use element2 instead')
   @override
   AugmentationImportElement? get element {
-    return super.element as AugmentationImportElement?;
+    throw StateError('Use element2 instead');
+  }
+
+  @override
+  AugmentationImportElement? get element2 {
+    return super.element2 as AugmentationImportElement?;
   }
 
   @override
@@ -919,7 +925,7 @@ class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
 
   @override
   LibraryAugmentationElement? get uriElement {
-    return element?.importedAugmentation;
+    return element2?.importedAugmentation;
   }
 
   @override
@@ -3274,6 +3280,7 @@ abstract class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   /// attribute.
   DirectiveImpl(super.comment, super.metadata);
 
+  @Deprecated('Use element2 instead')
   @override
   Element? get element => _element;
 
@@ -3281,6 +3288,9 @@ abstract class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   set element(Element? element) {
     _element = element;
   }
+
+  @override
+  Element? get element2 => _element;
 }
 
 /// A do statement.
@@ -3799,7 +3809,7 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @override
-  LibraryExportElement? get element2 => super.element as LibraryExportElement?;
+  LibraryExportElement? get element2 => super.element2 as LibraryExportElement?;
 
   @override
   Token get firstTokenAfterCommentAndMetadata => exportKeyword;
@@ -6449,7 +6459,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @override
-  LibraryImportElement? get element2 => super.element as LibraryImportElement?;
+  LibraryImportElement? get element2 => super.element2 as LibraryImportElement?;
 
   @override
   Token get firstTokenAfterCommentAndMetadata => importKeyword;
@@ -8796,6 +8806,11 @@ class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
       : super(comment, metadata, partUri);
 
   @override
+  PartElement? get element2 {
+    return super.element2 as PartElement?;
+  }
+
+  @override
   Token get endToken => semicolon;
 
   @override
@@ -8807,8 +8822,7 @@ class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
 
   @override
   CompilationUnitElement? get uriElement {
-    final partElement = element as PartElement?;
-    final partElementUri = partElement?.uri;
+    final partElementUri = element2?.uri;
     if (partElementUri is DirectiveUriWithUnit) {
       return partElementUri.unit;
     }

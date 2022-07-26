@@ -144,7 +144,7 @@ class CallSpecializer : public FlowGraphVisitor {
   const bool should_clone_fields_;
 
  private:
-  bool TypeCheckAsClassEquality(const AbstractType& type);
+  bool TypeCheckAsClassEquality(const AbstractType& type, intptr_t* type_cid);
 
   // Insert a Smi check if needed.
   void AddCheckSmi(Definition* to_check,

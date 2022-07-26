@@ -385,12 +385,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    computer._addRegionForNode(node.name, node.element);
+    computer._addRegionForNode(node.name, node.element2);
   }
 
   @override
   void visitPartDirective(PartDirective node) {
-    final element = node.element;
+    final element = node.element2;
     if (element is PartElement) {
       final uri = element.uri;
       if (uri is DirectiveUriWithUnit) {
@@ -413,7 +413,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    computer._addRegionForNode(node.libraryName ?? node.uri, node.element);
+    computer._addRegionForNode(node.libraryName ?? node.uri, node.element2);
     super.visitPartOfDirective(node);
   }
 

@@ -108,12 +108,13 @@ bool AotCallSpecializer::TryCreateICDataForUniqueTarget(
   }
 
   const Class& cls = Class::Handle(Z, target_function.Owner());
-  if (CHA::IsImplemented(cls) || CHA::HasSubclasses(cls)) {
+  intptr_t implementor_cid = kIllegalCid;
+  if (!CHA::HasSingleConcreteImplementation(cls, &implementor_cid)) {
     return false;
   }
 
   call->SetTargets(
-      CallTargets::CreateMonomorphic(Z, cls.id(), target_function));
+      CallTargets::CreateMonomorphic(Z, implementor_cid, target_function));
   ASSERT(call->Targets().IsMonomorphic());
 
   // If we know that the only noSuchMethod is Object.noSuchMethod then

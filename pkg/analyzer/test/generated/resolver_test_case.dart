@@ -135,7 +135,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    _checkResolved(node, node.element, (node) => node is LibraryElement);
+    _checkResolved(node, node.element2, (node) => node is LibraryElement);
   }
 
   @override
@@ -146,12 +146,12 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitPartDirective(PartDirective node) {
     _checkResolved(
-        node, node.element, (node) => node is CompilationUnitElement);
+        node, node.element2, (node) => node is CompilationUnitElement);
   }
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    _checkResolved(node, node.element, (node) => node is LibraryElement);
+    _checkResolved(node, node.element2, (node) => node is LibraryElement);
   }
 
   @override

@@ -28,14 +28,14 @@ import 'package:analyzer/src/string_source.dart';
 /// query it to get an [AnalysisSession], and then call `getParsedUnit`.
 ///
 /// Callers that don't need the feature set to be strictly correct can pass in
-/// `FeatureSet.fromEnableFlags([])` to enable the default set of features; this
-/// is much more performant than using an analysis session, because it doesn't
-/// require the analyzer to process the SDK.
+/// `FeatureSet.latestLanguageVersion()` to enable the default set of features;
+/// this is much more performant than using an analysis session, because it
+/// doesn't require the analyzer to process the SDK.
 ///
 /// If [throwIfDiagnostics] is `true` (the default), then if any diagnostics are
-/// produced because of syntactic errors in the [content] an `ArgumentError`
-/// will be thrown. If the parameter is `false`, then the caller can check the
-/// result to see whether there are any errors.
+/// produced because of syntactic errors in the file an `ArgumentError` will be
+/// thrown. If the parameter is `false`, then the caller can check the result
+/// to see whether there are any errors.
 ParseStringResult parseFile(
     {required String path,
     ResourceProvider? resourceProvider,

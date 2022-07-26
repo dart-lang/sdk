@@ -1059,6 +1059,7 @@ class UntaggedClass : public UntaggedObject {
 
   NOT_IN_PRECOMPILED(TokenPosition token_pos_);
   NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
+  NOT_IN_PRECOMPILED(classid_t implementor_cid_);
 
   classid_t id_;                // Class Id, also index in the class table.
   int16_t num_type_arguments_;  // Number of type arguments in flattened vector.
@@ -1099,6 +1100,7 @@ class UntaggedClass : public UntaggedObject {
   friend class InstanceSerializationCluster;
   friend class TypeSerializationCluster;
   friend class CidRewriteVisitor;
+  friend class FinalizeVMIsolateVisitor;
   friend class Api;
 };
 

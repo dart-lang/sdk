@@ -114,7 +114,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   int contextBuilds = 0;
 
   /// The subscription to the stream of incoming messages from the client.
-  late StreamSubscription<void> _channelSubscription;
+  late final StreamSubscription<void> _channelSubscription;
 
   /// A completer that tracks in-progress analysis context rebuilds.
   ///
@@ -440,7 +440,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     _channelSubscription.pause(completer.future);
 
     try {
-      // `await` here is imported to ensure `finally` doesn't execute until
+      // `await` here is important to ensure `finally` doesn't execute until
       // `operation()` completes (`whenComplete` is not available on
       // `FutureOr`).
       return await operation();

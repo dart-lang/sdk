@@ -112,6 +112,7 @@ class Translator {
   late final Class byteDataViewClass;
   late final Class typeErrorClass;
   late final Class typeUniverseClass;
+  late final Class symbolClass;
   late final Procedure wasmFunctionCall;
   late final Procedure wasmTableCallIndirect;
   late final Procedure stackTraceCurrent;
@@ -188,6 +189,7 @@ class Translator {
     Class Function(String) lookupCore = makeLookup("dart.core");
     Class Function(String) lookupCollection = makeLookup("dart.collection");
     Class Function(String) lookupFfi = makeLookup("dart.ffi");
+    Class Function(String) lookupInternal = makeLookup("dart._internal");
     Class Function(String) lookupTypedData = makeLookup("dart.typed_data");
     Class Function(String) lookupWasm = makeLookup("dart.wasm");
 
@@ -235,6 +237,7 @@ class Translator {
     typedListClass = lookupTypedData("_TypedList");
     typedListViewClass = lookupTypedData("_TypedListView");
     byteDataViewClass = lookupTypedData("_ByteDataView");
+    symbolClass = lookupInternal("Symbol");
     wasmFunctionCall =
         wasmFunctionClass.procedures.firstWhere((p) => p.name.text == "call");
     wasmTableCallIndirect = wasmTableClass.procedures
