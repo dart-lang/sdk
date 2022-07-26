@@ -826,4 +826,20 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       });
     }
   }
+
+  @override
+  ConstantInfo? visitSymbolConstant(SymbolConstant constant) {
+    ClassInfo info = translator.classInfo[translator.symbolClass]!;
+    translator.functions.allocateClass(info.classId);
+    w.RefType stringType =
+        translator.classInfo[translator.coreTypes.stringClass]!.nonNullableType;
+    StringConstant nameConstant = StringConstant(constant.name);
+    ensureConstant(nameConstant);
+    return createConstant(constant, info.nonNullableType, (function, b) {
+      b.i32_const(info.classId);
+      b.i32_const(initialIdentityHash);
+      constants.instantiateConstant(function, b, nameConstant, stringType);
+      translator.struct_new(b, info);
+    });
+  }
 }

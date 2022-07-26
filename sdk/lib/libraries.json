@@ -168,7 +168,7 @@
           "_internal/wasm/lib/class_id.dart",
           "_internal/wasm/lib/patch.dart",
           "_internal/wasm/lib/print_patch.dart",
-          "_internal/vm/lib/symbol_patch.dart"
+          "_internal/wasm/lib/symbol_patch.dart"
         ]
       },
       "_js_helper": {
