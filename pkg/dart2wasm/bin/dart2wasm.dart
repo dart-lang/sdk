@@ -57,6 +57,8 @@ final List<Option> options = [
       (o, value) => o.translatorOptions.sharedMemoryMaxPages = value),
   UriOption("dart-sdk", (o, value) => o.sdkPath = value,
       defaultsTo: "${_d.sdkPath}"),
+  UriOption("packages", (o, value) => o.packagesPath = value),
+  UriOption("libraries-spec", (o, value) => o.librariesSpecPath = value),
   UriOption("platform", (o, value) => o.platformPath = value),
   IntMultiOption(
       "watch", (o, values) => o.translatorOptions.watchPoints = values),

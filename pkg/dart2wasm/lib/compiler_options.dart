@@ -11,6 +11,8 @@ class CompilerOptions {
 
   Uri sdkPath = Platform.script.resolve("../../../sdk");
   Uri? platformPath;
+  Uri? librariesSpecPath;
+  Uri? packagesPath;
   Uri mainUri;
   String outputFile;
   Map<String, String> environment = const {};
