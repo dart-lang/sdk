@@ -8,12 +8,4 @@ export 'src/constants.dart'
         isolateSymbolName,
         vmDataSymbolName,
         vmSymbolName;
-export 'src/elf.dart'
-    show
-        DynamicTable,
-        DynamicTableTag,
-        Elf,
-        Section,
-        Symbol,
-        SymbolBinding,
-        SymbolType;
+export 'src/elf.dart' show DynamicTable, DynamicTableTag, Elf, Section, Symbol;

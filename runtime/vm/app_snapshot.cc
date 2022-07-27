@@ -7288,11 +7288,7 @@ void Serializer::TraceDataOffset(uint32_t offset) {
 }
 
 uint32_t Serializer::GetDataOffset(ObjectPtr object) const {
-#if defined(SNAPSHOT_BACKTRACE)
-  return image_writer_->GetDataOffsetFor(object, ParentOf(object));
-#else
   return image_writer_->GetDataOffsetFor(object);
-#endif
 }
 
 intptr_t Serializer::GetDataSize() const {
@@ -7397,16 +7393,7 @@ void Serializer::UnexpectedObject(ObjectPtr raw_object, const char* message) {
 }
 
 #if defined(SNAPSHOT_BACKTRACE)
-ObjectPtr Serializer::ParentOf(ObjectPtr object) const {
-  for (intptr_t i = 0; i < parent_pairs_.length(); i += 2) {
-    if (parent_pairs_[i]->ptr() == object) {
-      return parent_pairs_[i + 1]->ptr();
-    }
-  }
-  return Object::null();
-}
-
-ObjectPtr Serializer::ParentOf(const Object& object) const {
+ObjectPtr Serializer::ParentOf(const Object& object) {
   for (intptr_t i = 0; i < parent_pairs_.length(); i += 2) {
     if (parent_pairs_[i]->ptr() == object.ptr()) {
       return parent_pairs_[i + 1]->ptr();
