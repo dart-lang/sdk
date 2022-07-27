@@ -24,19 +24,15 @@ class TypeTestingStubNamer {
   //
   // (only during dart_boostrap).
   const char* StubNameForType(const AbstractType& type) const;
-  void WriteStubNameForTypeTo(BaseTextBuffer* buffer,
-                              const AbstractType& type) const;
 
  private:
-  void StringifyTypeTo(BaseTextBuffer* buffer, const AbstractType& type) const;
-  // Converts the contents of the buffer to an assembly-safe name.
-  static void MakeNameAssemblerSafe(BaseTextBuffer* buffer);
+  const char* StringifyType(const AbstractType& type) const;
+  static const char* AssemblerSafeName(char* cname);
 
   Library& lib_;
   Class& klass_;
   AbstractType& type_;
   String& string_;
-  mutable intptr_t nonce_ = 0;
 };
 
 class TypeTestingStubGenerator {

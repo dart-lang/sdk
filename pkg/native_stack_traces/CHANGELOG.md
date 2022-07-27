@@ -1,7 +1,3 @@
-## 0.5.1
-
-- Exported more ELF utilities for use in Dart tests.
-
 ## 0.5.0
 
 - Require Dart >= 2.17 (enhanced enum support)

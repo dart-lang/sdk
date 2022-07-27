@@ -14,7 +14,6 @@
 #include "vm/stub_code.h"
 #include "vm/timeline.h"
 #include "vm/type_testing_stubs.h"
-#include "vm/zone_text_buffer.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/backend/flow_graph_compiler.h"
@@ -33,60 +32,57 @@ TypeTestingStubNamer::TypeTestingStubNamer()
 
 const char* TypeTestingStubNamer::StubNameForType(
     const AbstractType& type) const {
-  ZoneTextBuffer buffer(Thread::Current()->zone());
-  WriteStubNameForTypeTo(&buffer, type);
-  return buffer.buffer();
+  Zone* Z = Thread::Current()->zone();
+  return OS::SCreate(Z, "TypeTestingStub_%s", StringifyType(type));
 }
 
-void TypeTestingStubNamer::WriteStubNameForTypeTo(
-    BaseTextBuffer* buffer,
+const char* TypeTestingStubNamer::StringifyType(
     const AbstractType& type) const {
-  buffer->AddString("TypeTestingStub_");
-  StringifyTypeTo(buffer, type);
-}
-
-void TypeTestingStubNamer::StringifyTypeTo(BaseTextBuffer* buffer,
-                                           const AbstractType& type) const {
   NoSafepointScope no_safepoint;
+  Zone* Z = Thread::Current()->zone();
   if (type.IsType()) {
     const intptr_t cid = Type::Cast(type).type_class_id();
     ClassTable* class_table = IsolateGroup::Current()->class_table();
     klass_ = class_table->At(cid);
     ASSERT(!klass_.IsNull());
 
+    const char* curl = "";
     lib_ = klass_.library();
     if (!lib_.IsNull()) {
       string_ = lib_.url();
-      buffer->AddString(string_.ToCString());
+      curl = OS::SCreate(Z, "%s_", string_.ToCString());
     } else {
-      buffer->Printf("nolib%" Pd "_", nonce_++);
+      static std::atomic<intptr_t> counter = 0;
+      curl = OS::SCreate(Z, "nolib%" Pd "_", counter++);
     }
 
-    buffer->AddString("_");
-    buffer->AddString(klass_.ScrubbedNameCString());
+    const char* concatenated = AssemblerSafeName(
+        OS::SCreate(Z, "%s_%s", curl, klass_.ScrubbedNameCString()));
 
     const intptr_t type_parameters = klass_.NumTypeParameters();
-    auto& type_arguments = TypeArguments::Handle(type.arguments());
-    if (!type_arguments.IsNull() && type_parameters > 0) {
+    auto& type_arguments = TypeArguments::Handle();
+    if (type.arguments() != TypeArguments::null() && type_parameters > 0) {
       type_arguments = type.arguments();
       ASSERT(type_arguments.Length() >= type_parameters);
       const intptr_t length = type_arguments.Length();
       for (intptr_t i = 0; i < type_parameters; ++i) {
         type_ = type_arguments.TypeAt(length - type_parameters + i);
-        buffer->AddString("__");
-        StringifyTypeTo(buffer, type_);
+        concatenated =
+            OS::SCreate(Z, "%s__%s", concatenated, StringifyType(type_));
       }
     }
+
+    return concatenated;
   } else if (type.IsTypeParameter()) {
-    buffer->AddString(TypeParameter::Cast(type).CanonicalNameCString());
+    return AssemblerSafeName(
+        OS::SCreate(Z, "%s", TypeParameter::Cast(type).CanonicalNameCString()));
   } else {
-    buffer->AddString(type.ToCString());
+    return AssemblerSafeName(OS::SCreate(Z, "%s", type.ToCString()));
   }
-  MakeNameAssemblerSafe(buffer);
 }
 
-void TypeTestingStubNamer::MakeNameAssemblerSafe(BaseTextBuffer* buffer) {
-  char* cursor = buffer->buffer();
+const char* TypeTestingStubNamer::AssemblerSafeName(char* cname) {
+  char* cursor = cname;
   while (*cursor != '\0') {
     char c = *cursor;
     if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
@@ -95,6 +91,7 @@ void TypeTestingStubNamer::MakeNameAssemblerSafe(BaseTextBuffer* buffer) {
     }
     cursor++;
   }
+  return cname;
 }
 
 CodePtr TypeTestingStubGenerator::DefaultCodeForType(
