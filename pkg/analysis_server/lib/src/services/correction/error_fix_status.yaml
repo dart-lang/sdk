@@ -24,10 +24,10 @@
 #   issue created for it.
 #
 # Stats:
-# - 760 "needsEvaluation"
-# -  28 "needsFix"
-# - 273 "hasFix"
-# -  41 "noFix"
+# - 734 "needsEvaluation"
+# -  43 "needsFix"
+# - 284 "hasFix"
+# -  47 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -928,15 +928,27 @@ CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR:
     user really needs to think about what constructor they were trying to invoke
     and why in order to really fix the issue.
 CompileTimeErrorCode.SUPER_IN_EXTENSION:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We could potentially offer a fix to remove the super invocation, but the
+    user really needs to think about what function they were trying to invoke
+    and why in order to really fix the issue.
 CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We could potentially offer a fix to remove the super invocation, but the
+    user really needs to think about what member they were trying to invoke
+    and why in order to really fix the issue.
 CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR:
   status: needsEvaluation
 CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Object is only declared in SDK code; those developers do OK without fixes.
 CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Fixes could include moving super invocation to be last.
 CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY:
   status: hasFix
 CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE:
@@ -955,11 +967,17 @@ CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS:
 CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS:
   status: needsEvaluation
 CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Fixes could include (1) removing the 'static' keyword, (2) changing the type
+    variable to its bound, (3) looking for similarly spelled types.
 CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND:
   status: needsEvaluation
 CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Fixes could include: (1) changing ` is ` to ` == ` and (2) changing the
+    right operand to the static type of the left.
 CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME:
   status: hasFix
 CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE:
@@ -985,7 +1003,10 @@ CompileTimeErrorCode.UNDEFINED_CLASS:
 CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN:
   status: hasFix
 CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Fixes could include (1) adding a declaration for such constructor, (2) look
+    for closely named constructors.
 CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT:
   status: hasFix
 CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT:
@@ -1066,11 +1087,17 @@ CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH:
 CompileTimeErrorCode.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:
   status: needsEvaluation
 CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Fixes could include (1) removing all past the first parameter, and (2)
+    removing all but a singular used parameter, if only one is used.
 CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Fixes could include (1) removing all past the first parameter, and (2)
+    removing all but a singular used parameter, if only one is used.
 CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER:
-  status: needsEvaluation
+  status: needsFix
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS:
   status: hasFix
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION:
@@ -1097,9 +1124,17 @@ CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:
 CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION:
   status: needsEvaluation
 CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Fixes could include: (1) change `yield` to `return` (maybe only if it
+    matches the return type) and (2) change function signature from implicit
+    sync to `sync*` or `async` to `async*`.
 CompileTimeErrorCode.YIELD_IN_NON_GENERATOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Fixes could include: (1) change `yield` to `return` (maybe only if it
+    matches the return type)  and (2) change function signature from implicit
+    sync to `sync*` or `async` to `async*`.
 CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE:
   status: needsEvaluation
 CompileTimeErrorCode.YIELD_OF_INVALID_TYPE:
