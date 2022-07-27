@@ -17037,7 +17037,7 @@ _Invalid context for 'super' invocation._
 #### Description
 
 The analyzer produces this diagnostic when the keyword `super` is used
-outside of a instance method.
+outside of an instance method.
 
 #### Example
 

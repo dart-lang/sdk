@@ -13033,7 +13033,7 @@ CompileTimeErrorCode:
       #### Description
 
       The analyzer produces this diagnostic when the keyword `super` is used
-      outside of a instance method.
+      outside of an instance method.
 
       #### Example
 
@@ -15192,8 +15192,10 @@ CompileTimeErrorCode:
       }
       ```
       TODO(brianwilkerson) It would be good to add a link to the spec or some
-       other documentation that lists the number of parameters for each operator,
-       but I don't know what to link to.
+       other documentation that lists the number of parameters for each
+       operator, but I don't know what to link to.
+      TODO(brianwilkerson) Another reasonable fix is to convert the operator to
+       be a normal method. 
   WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS:
     sharedName: WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
     problemMessage: "Operator '-' should declare 0 or 1 parameter, but {0} found."
