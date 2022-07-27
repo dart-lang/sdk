@@ -5,18 +5,13 @@
 // Generates both the dart and dart2 version of this benchmark.
 
 import 'dart:io';
+import 'dart:math';
 
 import 'package:path/path.dart' as path;
 
 const String benchmarkName = 'InstantiateTypeArgs';
 
-/// How many classes/calls to create for the InstantiateOnce and
-/// RepeatInstantiateOnce benchmarks.
-const int instantiateOnceCount = 1000;
-
-/// How many classes/calls to create for the InstantiateMany and
-/// RepeatInstantiateMany benchmarks.
-const int instantiateManyCount = 1000;
+const List<int> instantiateCounts = [1, 5, 10, 100, 1000];
 
 void generateBenchmarkClassesAndUtilities(IOSink output, {required bool nnbd}) {
   output.writeln('''
@@ -34,130 +29,64 @@ void generateBenchmarkClassesAndUtilities(IOSink output, {required bool nnbd}) {
 ''');
   }
 
-  output.writeln('''
+  output.write('''
 import 'package:benchmark_harness/benchmark_harness.dart';
 
 void main() {
-  // Instantiates a series of types, each type instantiated with a single type.
-  const InstantiateOnce().report();
-  // Repeats the instantiations in InstantiateOnce, this time depending
-  // on the now-filled caches.
-  const RepeatInstantiateOnce().report();
-  // Instantiates a single type many times, each type being a new instantiation.
-  const InstantiateMany().report();
-  // Repeats the instantiations in InstantiateMany, this time depending on the
-  // now-filled cache.
-  const RepeatInstantiateMany().report();
+''');
+  for (final count in instantiateCounts) {
+    output.write('''
+  const Instantiate$count().report();
+''');
+  }
+  output.writeln('''
 }
+''');
 
-class InstantiateOnce extends BenchmarkBase {
-  const InstantiateOnce() : super('$benchmarkName.InstantiateOnce');
+  for (final count in instantiateCounts) {
+    output.write('''
+class Instantiate$count extends BenchmarkBase {
+  const Instantiate$count() : super('$benchmarkName.Instantiate$count');
 
-  // Only call run once, else the remaining runs will have the cached types.
+  // Normalize the cost across the benchmarks by number of instantiations.
   @override
-  void exercise() => run();
+  void report() => emitter.emit(name, measure() / $count);
 
   @override
   void run() {
-    instantiateOnce<B>();
+''');
+
+    for (int i = 0; i < count; i++) {
+      output.write('''
+    D.instantiate<C$i>();
+''');
+    }
+
+    output.writeln('''
   }
 }
-
-class RepeatInstantiateOnce extends BenchmarkBase {
-  const RepeatInstantiateOnce()
-      : super('$benchmarkName.RepeatInstantiateOnce');
-
-  @override
-  void setup() {
-    // Run once to make sure the instantiations are cached, in case this
-    // benchmark is run on its own.
-    instantiateOnce<B>();
+''');
   }
 
-  // Only call run once, so this is directly comparable to InstantiateOnce.
-  @override
-  void exercise() => run();
-
-  @override
-  void run() {
-    instantiateOnce<B>();
-  }
-}
-
-class InstantiateMany extends BenchmarkBase {
-  const InstantiateMany() : super('$benchmarkName.InstantiateMany');
-
-  // Only call run once, else the remaining runs will have the cached types.
-  @override
-  void exercise() => run();
-
-  @override
-  void run() {
-    instantiateMany();
-  }
-}
-
-class RepeatInstantiateMany extends BenchmarkBase {
-  const RepeatInstantiateMany()
-      : super('$benchmarkName.RepeatInstantiateMany');
-
-  @override
-  void setup() {
-    // Run once to make sure the instantiations are cached, in case this
-    // benchmark is run on its own.
-    instantiateMany();
-  }
-
-  // Only call run once, so this is directly comparable to InstantiateMany.
-  @override
-  void exercise() => run();
-
-  @override
-  void run() {
-    instantiateMany();
-  }
-}
-
+  output.write('''
 @pragma('vm:never-inline')
+@pragma('dart2js:never-inline')
 void blackhole<T>() => null;
-
-class B {}
 
 class D<T> {
   @pragma('vm:never-inline')
-  static void instantiate<T>() => blackhole<D<T>>();
+  @pragma('dart2js:never-inline')
+  static void instantiate<S>() => blackhole<D<S>>();
 }
 ''');
-}
 
-void generateInstantiateOnce(IOSink output) {
-  for (int i = 0; i < instantiateOnceCount; i++) {
-    output
-      ..writeln('class A${i}<T> {}')
-      ..writeln('');
-  }
+  final maxCount = instantiateCounts.reduce(((v, e) => max(v, e)));
+  for (int i = 0; i < maxCount; i++) {
+    output.write('''
 
-  output.writeln('void instantiateOnce<T>() {');
-  for (int i = 0; i < instantiateOnceCount; i++) {
-    output.writeln('  blackhole<A${i}<T>>();');
+class C${i} {}
+''');
   }
-  output
-    ..writeln('}')
-    ..writeln('');
-}
-
-void generateInstantiateMany(IOSink output) {
-  for (int i = 0; i < instantiateManyCount; i++) {
-    output
-      ..writeln('class C${i} {}')
-      ..writeln('');
-  }
-
-  output.writeln('void instantiateMany() {');
-  for (int i = 0; i < instantiateOnceCount; i++) {
-    output.writeln('  D.instantiate<C${i}>();');
-  }
-  output.writeln('}');
 }
 
 void main() {
@@ -165,15 +94,11 @@ void main() {
       path.dirname(Platform.script.path), 'dart', '$benchmarkName.dart');
   final dartSink = File(dartFilePath).openWrite();
   generateBenchmarkClassesAndUtilities(dartSink, nnbd: true);
-  generateInstantiateOnce(dartSink);
-  generateInstantiateMany(dartSink);
   dartSink..flush();
 
   final dart2FilePath = path.join(
       path.dirname(Platform.script.path), 'dart2', '$benchmarkName.dart');
   final dart2Sink = File(dart2FilePath).openWrite();
   generateBenchmarkClassesAndUtilities(dart2Sink, nnbd: false);
-  generateInstantiateOnce(dart2Sink);
-  generateInstantiateMany(dart2Sink);
   dart2Sink..flush();
 }
