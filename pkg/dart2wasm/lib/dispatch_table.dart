@@ -121,7 +121,7 @@ class SelectorInfo {
     });
 
     List<w.ValueType> typeParameters = List.filled(paramInfo.typeParamCount,
-        translator.classInfo[translator.typeClass]!.nullableType);
+        translator.classInfo[translator.typeClass]!.nonNullableType);
     List<w.ValueType> inputs = List.generate(
         inputSets.length,
         (i) => translator.typeForInfo(

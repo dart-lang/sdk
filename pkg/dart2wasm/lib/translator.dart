@@ -34,10 +34,8 @@ class TranslatorOptions {
   bool inlining = false;
   int inliningLimit = 3;
   bool lazyConstants = false;
-  bool localNullability = false;
   bool nameSection = true;
   bool nominalTypes = true;
-  bool parameterNullability = true;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
@@ -508,8 +506,7 @@ class Translator {
         return w.NumType.i32;
       }
     }
-    return w.RefType.def(info.repr.struct,
-        nullable: !options.parameterNullability || nullable);
+    return w.RefType.def(info.repr.struct, nullable: nullable);
   }
 
   w.StorageType translateStorageType(DartType type) {
@@ -558,7 +555,7 @@ class Translator {
           : type.bound);
     }
     if (type is FutureOrType) {
-      return topInfo.nullableType;
+      return topInfo.typeWithNullability(type.isPotentiallyNullable);
     }
     if (type is FunctionType) {
       if (type.requiredParameterCount != type.positionalParameters.length ||
@@ -566,8 +563,7 @@ class Translator {
         throw "Function types with optional parameters not supported: $type";
       }
       return w.RefType.def(closureStructType(type.requiredParameterCount),
-          nullable:
-              !options.parameterNullability || type.isPotentiallyNullable);
+          nullable: type.isPotentiallyNullable);
     }
     throw "Unsupported type ${type.runtimeType}";
   }
@@ -660,10 +656,6 @@ class Translator {
       b.end();
       return function;
     });
-  }
-
-  w.ValueType typeForLocal(w.ValueType type) {
-    return options.localNullability ? type : type.withNullability(true);
   }
 
   w.ValueType outputOrVoid(List<w.ValueType> outputs) {

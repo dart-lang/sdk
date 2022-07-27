@@ -212,8 +212,8 @@ class Constants {
 
     w.Local offset = function.locals[0];
     w.Local length = function.locals[1];
-    w.Local array = function.addLocal(
-        translator.typeForLocal(w.RefType.def(arrayType, nullable: false)));
+    w.Local array =
+        function.addLocal(w.RefType.def(arrayType, nullable: false));
     w.Local index = function.addLocal(w.NumType.i32);
 
     w.Instructions b = function.body;
@@ -422,12 +422,11 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       w.FunctionType ftype = translator.functionType(const [], [type]);
       w.DefinedFunction function = m.addFunction(ftype, "$constant");
       generator(function, function.body);
-      w.Local temp = function.addLocal(translator.typeForLocal(type));
+      w.Local temp = function.addLocal(type);
       w.Instructions b2 = function.body;
       b2.local_tee(temp);
       b2.global_set(global);
       b2.local_get(temp);
-      translator.convertType(function, temp.type, type);
       b2.end();
 
       return ConstantInfo(constant, global, function);
@@ -579,8 +578,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       b.i64_const(length);
       if (lazyConstants) {
         // Allocate array and set each entry to the corresponding sub-constant.
-        w.Local arrayLocal = function!.addLocal(
-            refType.withNullability(!translator.options.localNullability));
+        w.Local arrayLocal = function!.addLocal(refType.withNullability(false));
         b.i32_const(length);
         translator.array_new_default(b, arrayType);
         b.local_set(arrayLocal);
@@ -592,9 +590,6 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
           b.array_set(arrayType);
         }
         b.local_get(arrayLocal);
-        if (arrayLocal.type.nullable) {
-          b.ref_as_non_null();
-        }
       } else {
         // Push all sub-constants on the stack and initialize array from them.
         for (int i = 0; i < length; i++) {

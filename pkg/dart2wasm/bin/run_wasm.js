@@ -6,7 +6,7 @@
 //
 // Run as follows:
 //
-// $> d8 --experimental-wasm-gc --wasm-gc-js-interop run_wasm.js -- <dart_module>.wasm [<ffi_module>.wasm]
+// $> d8 --experimental-wasm-gc --experimental-wasm-nn-locals --wasm-gc-js-interop run_wasm.js -- <dart_module>.wasm [<ffi_module>.wasm]
 //
 // If an FFI module is specified, it will be instantiated first, and its
 // exports will be supplied as imports to the Dart module under the 'ffi'

@@ -811,7 +811,7 @@ class Intrinsifier {
           codeGen.wrap(
               node.arguments.positional.single, receiverInfo.nonNullableType);
           w.Local receiverLocal =
-              codeGen.function.addLocal(receiverInfo.nullableType);
+              codeGen.function.addLocal(receiverInfo.nonNullableType);
           b.local_tee(receiverLocal);
           // We ignore the type argument and just update the classID of the
           // receiver.
@@ -823,7 +823,6 @@ class Intrinsifier {
           b.i32_const(fixedLengthListInfo.classId);
           b.struct_set(topInfo.struct, FieldIndex.classId);
           b.local_get(receiverLocal);
-          b.ref_as_non_null();
           return fixedLengthListInfo.nonNullableType;
       }
     }

@@ -195,7 +195,7 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
     }
 
     List<w.ValueType> typeParameters = List.filled(typeParamCount,
-        translator.classInfo[translator.typeClass]!.nullableType);
+        translator.classInfo[translator.typeClass]!.nonNullableType);
 
     // The JS embedder will not accept Wasm struct types as parameter or return
     // types for functions called from JS. We need to use eqref instead.
