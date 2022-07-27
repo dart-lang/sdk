@@ -714,10 +714,10 @@ class Intrinsifier {
       switch (name) {
         case "unsafeCast":
         case "unsafeCastOpaque":
-          w.ValueType targetType =
-              translator.translateType(node.arguments.types.single);
           Expression operand = node.arguments.positional.single;
-          return codeGen.wrap(operand, targetType);
+          // Just evaluate the operand and let the context convert it to the
+          // expected type.
+          return codeGen.wrap(operand, typeOfExp(operand));
         case "_nativeEffect":
           // Ignore argument
           return translator.voidMarker;

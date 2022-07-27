@@ -41,7 +41,7 @@ class _Error extends Error {
 }
 
 class _TypeError extends _Error implements TypeError {
-  _TypeError(String message) : super('TypeError: $message');
+  _TypeError(String message) : super(message);
 
   factory _TypeError.fromMessageAndStackTrace(
       String message, StackTrace stackTrace) {
@@ -58,10 +58,18 @@ class _TypeError extends _Error implements TypeError {
   }
 
   @pragma("wasm:entry-point")
+  static Never _throwThrowNullError(StackTrace stackTrace) {
+    final typeError =
+        _TypeError.fromMessageAndStackTrace("Throw of null", stackTrace);
+    return _throwObjectWithStackTrace(typeError, stackTrace);
+  }
+
+  @pragma("wasm:entry-point")
   static Never _throwAsCheckError(
       Object? operand, Type? type, StackTrace stackTrace) {
     final typeError = _TypeError.fromMessageAndStackTrace(
-        "Type '${operand.runtimeType}' is not a subtype of type '$type' in type cast",
+        "Type '${operand.runtimeType}' is not a subtype of type '$type'"
+        " in type cast",
         stackTrace);
     return _throwObjectWithStackTrace(typeError, stackTrace);
   }

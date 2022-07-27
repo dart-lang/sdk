@@ -1857,17 +1857,20 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitNullCheck(NullCheck node, w.ValueType expectedType) {
-    w.ValueType operandType =
-        translator.translateType(dartTypeOf(node.operand));
+    return _nullCheck(node.operand, translator.throwNullCheckError);
+  }
+
+  w.ValueType _nullCheck(Expression operand, Procedure errorProcedure) {
+    w.ValueType operandType = translator.translateType(dartTypeOf(operand));
     w.ValueType nonNullOperandType = operandType.withNullability(false);
     w.Label nullCheckBlock = b.block(const [], [nonNullOperandType]);
-    wrap(node.operand, operandType);
+    wrap(operand, operandType);
 
     // We lower a null check to a br_on_non_null, throwing a [TypeError] in the
     // null case.
     b.br_on_non_null(nullCheckBlock);
     call(translator.stackTraceCurrent.reference);
-    call(translator.throwNullCheckError.reference);
+    call(errorProcedure.reference);
     b.unreachable();
     b.end();
     return nonNullOperandType;
@@ -1923,7 +1926,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitThrow(Throw node, w.ValueType expectedType) {
-    wrap(node.expression, translator.topInfo.nonNullableType);
+    if (dartTypeOf(node.expression).isPotentiallyNullable) {
+      _nullCheck(node.expression, translator.throwThrowNullError);
+    } else {
+      wrap(node.expression, translator.topInfo.nonNullableType);
+    }
     call(translator.stackTraceCurrent.reference);
 
     // At this point, we have the exception and the current stack trace on the

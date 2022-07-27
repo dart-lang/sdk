@@ -119,6 +119,7 @@ class Translator {
   late final Procedure stringEquals;
   late final Procedure stringInterpolate;
   late final Procedure throwNullCheckError;
+  late final Procedure throwThrowNullError;
   late final Procedure throwAsCheckError;
   late final Procedure throwWasmRefError;
   late final Procedure mapFactory;
@@ -250,6 +251,8 @@ class Translator {
         .firstWhere((p) => p.name.text == "_interpolate");
     throwNullCheckError = typeErrorClass.procedures
         .firstWhere((p) => p.name.text == "_throwNullCheckError");
+    throwThrowNullError = typeErrorClass.procedures
+        .firstWhere((p) => p.name.text == "_throwThrowNullError");
     throwAsCheckError = typeErrorClass.procedures
         .firstWhere((p) => p.name.text == "_throwAsCheckError");
     throwWasmRefError = typeErrorClass.procedures
