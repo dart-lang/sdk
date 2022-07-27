@@ -32,10 +32,6 @@ class FlutterWrapBuilder extends CorrectionProducer {
       return;
     }
 
-    var context = sessionHelper.session.analysisContext;
-    var addTrailingComma =
-        context.analysisOptions.codeStyleOptions.addTrailingCommas;
-
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(widgetExpr), (builder) {
         builder.writeReference(builderElement);
@@ -58,7 +54,7 @@ class FlutterWrapBuilder extends CorrectionProducer {
         builder.writeln(';');
 
         builder.write(indentNew1);
-        builder.writeln('}${addTrailingComma ? "," : ""}');
+        builder.writeln('}${codeStyleOptions.addTrailingCommas ? "," : ""}');
 
         builder.write(indentOld);
         builder.write(')');
