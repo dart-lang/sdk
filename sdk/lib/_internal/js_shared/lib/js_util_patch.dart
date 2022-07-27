@@ -374,14 +374,55 @@ Object? get objectPrototype => JS('', 'Object.prototype');
 @patch
 List<Object?> objectKeys(Object? object) => JS('', 'Object.keys(#)', object);
 
+// TODO(joshualitt): Move these `is` checks to a helper library to help
+// declutter this patch file.
+bool _isJavaScriptDate(value) => JS('bool', '# instanceof Date', value);
+bool _isJavaScriptRegExp(value) => JS('bool', '# instanceof RegExp', value);
+
+@patch
+bool isJavaScriptArray(value) => JS('bool', '# instanceof Array', value);
+
+// Although it may be tempting to try and rewrite [isJavaScriptSimpleObject]
+// using `js_util` calls, it turns out this can be fragile on some browsers
+// under some situations.
+@patch
+bool isJavaScriptSimpleObject(value) {
+  var proto = JS('', 'Object.getPrototypeOf(#)', value);
+  return JS('bool', '# === Object.prototype', proto) ||
+      JS('bool', '# === null', proto);
+}
+
+bool _isJavaScriptPromise(value) =>
+    JS('bool', r'typeof Promise != "undefined" && # instanceof Promise', value);
+
+DateTime _dateToDateTime(date) {
+  int millisSinceEpoch = JS('int', '#.getTime()', date);
+  return new DateTime.fromMillisecondsSinceEpoch(millisSinceEpoch, isUtc: true);
+}
+
 @patch
 Object? dartify(Object? o) {
   var _convertedObjects = HashMap.identity();
-  Object? convert() {
+  Object? convert(Object? o) {
     if (_convertedObjects.containsKey(o)) {
       return _convertedObjects[o];
     }
     if (o == null || o is bool || o is num || o is String) return o;
+
+    if (_isJavaScriptDate(o)) {
+      return _dateToDateTime(o);
+    }
+
+    if (_isJavaScriptRegExp(o)) {
+      // TODO(joshualitt): Consider investigating if there is a way to convert
+      // from `JSRegExp` to `RegExp`.
+      throw new ArgumentError('structured clone of RegExp');
+    }
+
+    if (_isJavaScriptPromise(o)) {
+      return promiseToFuture(o);
+    }
+
     if (isJavaScriptSimpleObject(o)) {
       Map<Object?, Object?> dartObject = {};
       _convertedObjects[o] = dartObject;
@@ -394,23 +435,27 @@ Object? dartify(Object? o) {
         Object? jsKey = originalKeys[i];
         Object? dartKey = dartKeys[i];
         if (jsKey != null) {
-          dartObject[dartKey] = dartify(getProperty(o, jsKey));
+          dartObject[dartKey] = convert(getProperty(o, jsKey));
         }
       }
       return dartObject;
     }
+
     if (isJavaScriptArray(o)) {
+      var l = JS<List>('returns:List;creates:;', '#', o);
       List<Object?> dartObject = [];
       _convertedObjects[o] = dartObject;
       int length = getProperty(o, 'length');
       for (int i = 0; i < length; i++) {
-        dartObject.add(dartify(getProperty(o, i)));
+        dartObject.add(convert(l[i]));
       }
       return dartObject;
     }
-    throw ArgumentError(
-        "JavaScriptObject $o must be a primitive, simple object, or array");
+
+    // Assume anything else is already a valid Dart object, either by having
+    // already been processed, or e.g. a cloneable native class.
+    return o;
   }
 
-  return convert();
+  return convert(o);
 }

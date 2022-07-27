@@ -150,13 +150,10 @@ external Object? get objectPrototype;
 external List<Object?> objectKeys(Object? object);
 
 /// Returns `true` if a given object is a JavaScript array.
-bool isJavaScriptArray(value) => instanceOfString(value, 'Array');
+external bool isJavaScriptArray(value);
 
 /// Returns `true` if a given object is a simple JavaScript object.
-bool isJavaScriptSimpleObject(value) {
-  final Object? proto = objectGetPrototypeOf(value);
-  return proto == null || proto == objectPrototype;
-}
+external bool isJavaScriptSimpleObject(value);
 
 /// Effectively the inverse of [jsify], [dartify] Takes a JavaScript object, and
 /// converts it to a Dart based object. Only JS primitives, arrays, or 'map'
