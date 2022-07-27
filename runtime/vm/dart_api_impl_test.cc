@@ -9685,6 +9685,50 @@ void main() {
   EXPECT_VALID(result);
 }
 
+static void SetPerformanceModeDefault(Dart_NativeArguments args) {
+  Dart_SetPerformanceMode(Dart_PerformanceMode_Default);
+}
+static void SetPerformanceModeLatency(Dart_NativeArguments args) {
+  Dart_SetPerformanceMode(Dart_PerformanceMode_Latency);
+}
+
+static Dart_NativeFunction SetMode_native_lookup(Dart_Handle name,
+                                                 int argument_count,
+                                                 bool* auto_setup_scope) {
+  const char* cstr = nullptr;
+  Dart_StringToCString(name, &cstr);
+  if (strcmp(cstr, "SetPerformanceModeDefault") == 0) {
+    return SetPerformanceModeDefault;
+  } else if (strcmp(cstr, "SetPerformanceModeLatency") == 0) {
+    return SetPerformanceModeLatency;
+  }
+  return NULL;
+}
+
+TEST_CASE(DartAPI_SetPerformanceMode) {
+  const char* kScriptChars = R"(
+import "dart:typed_data";
+@pragma("vm:external-name", "SetPerformanceModeDefault")
+external void setPerformanceModeDefault();
+@pragma("vm:external-name", "SetPerformanceModeLatency")
+external void setPerformanceModeLatency();
+void main() {
+  for (var i = 0; i < 10; i++) {
+    setPerformanceModeLatency();
+    var t = [];
+    for (var j = 0; j < 32; j++) {
+      t.add(Uint8List(1000000));
+    }
+    setPerformanceModeDefault();
+  }
+}
+)";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, &SetMode_native_lookup);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+}
+
 static void NotifyLowMemoryNative(Dart_NativeArguments args) {
   Dart_NotifyLowMemory();
 }

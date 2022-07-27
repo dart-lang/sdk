@@ -1277,6 +1277,40 @@ DART_EXPORT void Dart_NotifyIdle(int64_t deadline);
  */
 DART_EXPORT void Dart_NotifyLowMemory(void);
 
+typedef enum {
+  /**
+   * Balanced
+   */
+  Dart_PerformanceMode_Default,
+  /**
+   * Optimize for low latency, at the expense of throughput and memory overhead
+   * by performing work in smaller batches (requiring more overhead) or by
+   * delaying work (requiring more memory). An embedder should not remain in
+   * this mode indefinitely.
+   */
+  Dart_PerformanceMode_Latency,
+  /**
+   * Optimize for high throughput, at the expense of latency and memory overhead
+   * by performing work in larger batches with more intervening growth.
+   */
+  Dart_PerformanceMode_Throughput,
+  /**
+   * Optimize for low memory, at the expensive of throughput and latency by more
+   * frequently performing work.
+   */
+  Dart_PerformanceMode_Memory,
+} Dart_PerformanceMode;
+
+/**
+ * Set the desired performance trade-off.
+ *
+ * Requires a current isolate.
+ *
+ * Returns the previous performance mode.
+ */
+DART_EXPORT Dart_PerformanceMode
+Dart_SetPerformanceMode(Dart_PerformanceMode mode);
+
 /**
  * Starts the CPU sampling profiler.
  */

@@ -1524,11 +1524,17 @@ bool PageSpaceController::ReachedHardThreshold(SpaceUsage after) const {
   if (heap_growth_ratio_ == 100) {
     return false;
   }
+  if ((heap_ != nullptr) && (heap_->mode() == Dart_PerformanceMode_Latency)) {
+    return false;
+  }
   return after.CombinedUsedInWords() > hard_gc_threshold_in_words_;
 }
 
 bool PageSpaceController::ReachedSoftThreshold(SpaceUsage after) const {
   if (heap_growth_ratio_ == 100) {
+    return false;
+  }
+  if ((heap_ != nullptr) && (heap_->mode() == Dart_PerformanceMode_Latency)) {
     return false;
   }
   return after.CombinedUsedInWords() > soft_gc_threshold_in_words_;
