@@ -23,3 +23,22 @@ All clear?  Then:
   4. Update SDK `DEPS`.
 
 You're done!
+
+## Updating documentation
+
+Documentation on https://dart-lang.github.io/linter/ 
+is located on the [gh-pages branch](https://github.com/dart-lang/linter/tree/gh-pages)
+and automatically updated as changes are made to the `main` branch.
+
+To update the dart.dev
+[linter rules](https://dart.dev/tools/linter-rules) documentation,
+you need to manually update the file its generated from:
+
+  1. Download the automatically generated [`rules.json`](https://github.com/dart-lang/linter/blob/gh-pages/lints/machine/rules.json) file.
+  2. Rename the downloaded file to `linter_rules.json`.
+  3. Clone and/or open the [site-www repository](https://github.com/dart-lang/site-www),
+     creating a new branch for your changes.
+  4. Replace the old [`linter_rules.json`](https://github.com/dart-lang/site-www/blob/main/src/_data/linter_rules.json) 
+     with the newly downloaded version and commit your changes.
+  5. Submit your changes in a pull request with an overview of what has changed,
+     such as what version of the linter these changes are tied to.
