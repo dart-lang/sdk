@@ -1,3 +1,6 @@
+# 2.2.6
+- Fixed an issue where debug adapters would not automatically close after terminating/disconnecting from the debugee.
+
 # 2.2.5
 - Updated `devtools_shared` version to 2.14.1.
 
