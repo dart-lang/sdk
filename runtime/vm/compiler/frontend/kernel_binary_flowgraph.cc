@@ -173,8 +173,8 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
   if (only_for_side_effects) {
     instructions += Drop();
   } else {
-    instructions += flow_graph_builder_->StoreInstanceFieldGuarded(
-        field, StoreInstanceFieldInstr::Kind::kInitializing);
+    instructions += flow_graph_builder_->StoreFieldGuarded(
+        field, StoreFieldInstr::Kind::kInitializing);
   }
   return instructions;
 }
@@ -196,8 +196,8 @@ Fragment StreamingFlowGraphBuilder::BuildLateFieldInitializer(
   Fragment instructions;
   instructions += LoadLocal(parsed_function()->receiver_var());
   instructions += flow_graph_builder_->Constant(Object::sentinel());
-  instructions += flow_graph_builder_->StoreInstanceField(
-      field, StoreInstanceFieldInstr::Kind::kInitializing);
+  instructions += flow_graph_builder_->StoreField(
+      field, StoreFieldInstr::Kind::kInitializing);
   return instructions;
 }
 
@@ -260,7 +260,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
   if (!is_redirecting_constructor) {
     // Sort list of fields (represented as their kernel offsets) which will
     // be initialized by the constructor initializer list. We will not emit
-    // StoreInstanceField instructions for those initializers though we will
+    // StoreField instructions for those initializers though we will
     // still evaluate initialization expression for its side effects.
     GrowableArray<intptr_t> constructor_initialized_field_offsets(
         initializer_fields.length());
@@ -548,7 +548,7 @@ Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
         body += LoadLocal(&raw_parameter);
         body += flow_graph_builder_->StoreNativeField(
             Slot::GetContextVariableSlotFor(thread(), *variable),
-            StoreInstanceFieldInstr::Kind::kInitializing);
+            StoreFieldInstr::Kind::kInitializing);
       }
     }
     body += Drop();  // The context.
@@ -4196,7 +4196,7 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   instructions += LoadLocal(type_args_vec);
   instructions += flow_graph_builder_->StoreNativeField(
       Slot::Closure_delayed_type_arguments(),
-      StoreInstanceFieldInstr::Kind::kInitializing);
+      StoreFieldInstr::Kind::kInitializing);
   instructions += DropTemporary(&type_args_vec);
 
   // Copy over the instantiator type arguments.
@@ -4206,7 +4206,7 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
       Slot::Closure_instantiator_type_arguments());
   instructions += flow_graph_builder_->StoreNativeField(
       Slot::Closure_instantiator_type_arguments(),
-      StoreInstanceFieldInstr::Kind::kInitializing);
+      StoreFieldInstr::Kind::kInitializing);
 
   // Copy over the function type arguments.
   instructions += LoadLocal(new_closure);
@@ -4215,7 +4215,7 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
       Slot::Closure_function_type_arguments());
   instructions += flow_graph_builder_->StoreNativeField(
       Slot::Closure_function_type_arguments(),
-      StoreInstanceFieldInstr::Kind::kInitializing);
+      StoreFieldInstr::Kind::kInitializing);
 
   instructions += DropTempsPreserveTop(1);  // Drop old closure.
 
@@ -5258,7 +5258,7 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement(
     } else {
       field = IG->object_store()->sync_star_iterator_current();
     }
-    instructions += B->StoreInstanceFieldGuarded(field);
+    instructions += B->StoreFieldGuarded(field);
     instructions += B->Constant(Bool::True());
     instructions +=
         B->Suspend(pos, SuspendInstr::StubId::kSuspendSyncStarAtYield);
@@ -5506,7 +5506,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
     instructions += LoadInstantiatorTypeArguments();
     instructions += flow_graph_builder_->StoreNativeField(
         Slot::Closure_instantiator_type_arguments(),
-        StoreInstanceFieldInstr::Kind::kInitializing);
+        StoreFieldInstr::Kind::kInitializing);
   }
 
   // TODO(30455): We only need to save these if the closure uses any captured
@@ -5515,7 +5515,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   instructions += LoadFunctionTypeArguments();
   instructions += flow_graph_builder_->StoreNativeField(
       Slot::Closure_function_type_arguments(),
-      StoreInstanceFieldInstr::Kind::kInitializing);
+      StoreFieldInstr::Kind::kInitializing);
 
   if (function.IsGeneric()) {
     // Only generic functions need to have properly initialized
@@ -5524,7 +5524,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
     instructions += Constant(Object::empty_type_arguments());
     instructions += flow_graph_builder_->StoreNativeField(
         Slot::Closure_delayed_type_arguments(),
-        StoreInstanceFieldInstr::Kind::kInitializing);
+        StoreFieldInstr::Kind::kInitializing);
   }
 
   return instructions;

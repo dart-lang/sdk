@@ -1008,7 +1008,7 @@ class FlowGraphCompiler : public ValueObject {
   friend class NullErrorSlowPath;        // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowInstr;  // For AddPcRelativeCallStubTarget().
   friend class StoreIndexedInstr;        // For AddPcRelativeCallStubTarget().
-  friend class StoreInstanceFieldInstr;  // For AddPcRelativeCallStubTarget().
+  friend class StoreFieldInstr;          // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
   friend class GraphInstrinsicCodeGenScope;   // For optimizing_.
 

@@ -2458,7 +2458,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 static void EnsureMutableBox(FlowGraphCompiler* compiler,
-                             StoreInstanceFieldInstr* instruction,
+                             StoreFieldInstr* instruction,
                              Register box_reg,
                              const Class& cls,
                              Register instance_reg,
@@ -2475,8 +2475,8 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
   __ Bind(&done);
 }
 
-LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
-                                                              bool opt) const {
+LocationSummary* StoreFieldInstr::MakeLocationSummary(Zone* zone,
+                                                      bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = (IsUnboxedDartFieldStore() && opt)
                                  ? (FLAG_precompiled_mode ? 0 : 2)
@@ -2521,7 +2521,7 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(compiler::target::UntaggedObject::kClassIdTagSize == 16);
   ASSERT(sizeof(UntaggedField::guarded_cid_) == 2);
   ASSERT(sizeof(UntaggedField::is_nullable_) == 2);
@@ -2536,7 +2536,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
     ASSERT(RepresentationUtils::IsUnboxedInteger(slot().representation()));
     const Register value = locs()->in(kValuePos).reg();
-    __ Comment("NativeUnboxedStoreInstanceFieldInstr");
+    __ Comment("NativeUnboxedStoreFieldInstr");
     __ StoreFieldToOffset(
         value, instance_reg, offset_in_bytes,
         RepresentationUtils::OperandSize(slot().representation()));
@@ -2550,7 +2550,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (FLAG_precompiled_mode) {
       switch (cid) {
         case kDoubleCid:
-          __ Comment("UnboxedDoubleStoreInstanceFieldInstr");
+          __ Comment("UnboxedDoubleStoreFieldInstr");
           if (locs()->in(kValuePos).IsConstant()) {
             ASSERT(locs()
                        ->in(kValuePos)
@@ -2564,12 +2564,12 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           }
           return;
         case kFloat32x4Cid:
-          __ Comment("UnboxedFloat32x4StoreInstanceFieldInstr");
+          __ Comment("UnboxedFloat32x4StoreFieldInstr");
           __ StoreQFieldToOffset(locs()->in(kValuePos).fpu_reg(), instance_reg,
                                  offset_in_bytes);
           return;
         case kFloat64x2Cid:
-          __ Comment("UnboxedFloat64x2StoreInstanceFieldInstr");
+          __ Comment("UnboxedFloat64x2StoreFieldInstr");
           __ StoreQFieldToOffset(locs()->in(kValuePos).fpu_reg(), instance_reg,
                                  offset_in_bytes);
           return;
@@ -2608,15 +2608,15 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const VRegister value = locs()->in(kValuePos).fpu_reg();
     switch (cid) {
       case kDoubleCid:
-        __ Comment("UnboxedDoubleStoreInstanceFieldInstr");
+        __ Comment("UnboxedDoubleStoreFieldInstr");
         __ StoreDFieldToOffset(value, temp, Double::value_offset());
         break;
       case kFloat32x4Cid:
-        __ Comment("UnboxedFloat32x4StoreInstanceFieldInstr");
+        __ Comment("UnboxedFloat32x4StoreFieldInstr");
         __ StoreQFieldToOffset(value, temp, Float32x4::value_offset());
         break;
       case kFloat64x2Cid:
-        __ Comment("UnboxedFloat64x2StoreInstanceFieldInstr");
+        __ Comment("UnboxedFloat64x2StoreFieldInstr");
         __ StoreQFieldToOffset(value, temp, Float64x2::value_offset());
         break;
       default:

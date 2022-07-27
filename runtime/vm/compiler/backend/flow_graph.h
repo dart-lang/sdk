@@ -339,12 +339,12 @@ class FlowGraph : public ZoneAllocated {
   // to
   //
   //     v2 <- AssertAssignable:<id>(v1, ...)
-  //     StoreInstanceField(v0, v2)
+  //     StoreField(v0, v2)
   //
   // If the [AssertAssignable] causes a lazy-deopt on return, we'll have to
   // *re-try* the implicit setter call in unoptimized mode, i.e. lazy deopt to
   // before-call (otherwise - if we continued after-call - the
-  // StoreInstanceField would not be performed).
+  // StoreField would not be performed).
   void InsertSpeculativeAfter(Instruction* prev,
                               Instruction* instr,
                               Environment* env,

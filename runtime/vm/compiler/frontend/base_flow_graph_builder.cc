@@ -517,34 +517,31 @@ const Field& BaseFlowGraphBuilder::MayCloneField(Zone* zone,
 Fragment BaseFlowGraphBuilder::StoreNativeField(
     TokenPosition position,
     const Slot& slot,
-    StoreInstanceFieldInstr::Kind
-        kind /* = StoreInstanceFieldInstr::Kind::kOther */,
+    StoreFieldInstr::Kind kind /* = StoreFieldInstr::Kind::kOther */,
     StoreBarrierType emit_store_barrier /* = kEmitStoreBarrier */,
     compiler::Assembler::MemoryOrder memory_order /* = kRelaxed */) {
   Value* value = Pop();
   if (value->BindsToConstant()) {
     emit_store_barrier = kNoStoreBarrier;
   }
-  StoreInstanceFieldInstr* store =
-      new (Z) StoreInstanceFieldInstr(slot, Pop(), value, emit_store_barrier,
-                                      InstructionSource(position), kind);
+  StoreFieldInstr* store =
+      new (Z) StoreFieldInstr(slot, Pop(), value, emit_store_barrier,
+                              InstructionSource(position), kind);
   return Fragment(store);
 }
 
-Fragment BaseFlowGraphBuilder::StoreInstanceField(
+Fragment BaseFlowGraphBuilder::StoreField(
     const Field& field,
-    StoreInstanceFieldInstr::Kind
-        kind /* = StoreInstanceFieldInstr::Kind::kOther */,
+    StoreFieldInstr::Kind kind /* = StoreFieldInstr::Kind::kOther */,
     StoreBarrierType emit_store_barrier) {
   return StoreNativeField(TokenPosition::kNoSource,
                           Slot::Get(MayCloneField(Z, field), parsed_function_),
                           kind, emit_store_barrier);
 }
 
-Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
+Fragment BaseFlowGraphBuilder::StoreFieldGuarded(
     const Field& field,
-    StoreInstanceFieldInstr::Kind
-        kind /* = StoreInstanceFieldInstr::Kind::kOther */) {
+    StoreFieldInstr::Kind kind /* = StoreFieldInstr::Kind::kOther */) {
   Fragment instructions;
   const Field& field_clone = MayCloneField(Z, field);
   if (IG->use_field_guards()) {

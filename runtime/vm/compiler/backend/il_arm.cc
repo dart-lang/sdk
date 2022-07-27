@@ -2827,8 +2827,8 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
-                                                              bool opt) const {
+LocationSummary* StoreFieldInstr::MakeLocationSummary(Zone* zone,
+                                                      bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps =
       ((IsUnboxedDartFieldStore() && opt)
@@ -2878,7 +2878,7 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
 }
 
 static void EnsureMutableBox(FlowGraphCompiler* compiler,
-                             StoreInstanceFieldInstr* instruction,
+                             StoreFieldInstr* instruction,
                              Register box_reg,
                              const Class& cls,
                              Register instance_reg,
@@ -2897,7 +2897,7 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
   __ Bind(&done);
 }
 
-void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(compiler::target::UntaggedObject::kClassIdTagSize == 16);
   ASSERT(sizeof(UntaggedField::guarded_cid_) == 2);
   ASSERT(sizeof(UntaggedField::is_nullable_) == 2);
@@ -2913,7 +2913,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     auto const rep = slot().representation();
     ASSERT(RepresentationUtils::IsUnboxedInteger(rep));
     const size_t value_size = RepresentationUtils::ValueSize(rep);
-    __ Comment("NativeUnboxedStoreInstanceFieldInstr");
+    __ Comment("NativeUnboxedStoreFieldInstr");
     if (value_size <= compiler::target::kWordSize) {
       const Register value = locs()->in(kValuePos).reg();
       __ StoreFieldToOffset(value, instance_reg, offset_in_bytes,
@@ -2938,17 +2938,17 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (FLAG_precompiled_mode) {
       switch (cid) {
         case kDoubleCid:
-          __ Comment("UnboxedDoubleStoreInstanceFieldInstr");
+          __ Comment("UnboxedDoubleStoreFieldInstr");
           __ StoreDToOffset(value, instance_reg,
                             offset_in_bytes - kHeapObjectTag);
           return;
         case kFloat32x4Cid:
-          __ Comment("UnboxedFloat32x4StoreInstanceFieldInstr");
+          __ Comment("UnboxedFloat32x4StoreFieldInstr");
           __ StoreMultipleDToOffset(value, 2, instance_reg,
                                     offset_in_bytes - kHeapObjectTag);
           return;
         case kFloat64x2Cid:
-          __ Comment("UnboxedFloat64x2StoreInstanceFieldInstr");
+          __ Comment("UnboxedFloat64x2StoreFieldInstr");
           __ StoreMultipleDToOffset(value, 2, instance_reg,
                                     offset_in_bytes - kHeapObjectTag);
           return;
@@ -2985,19 +2985,19 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     switch (cid) {
       case kDoubleCid:
-        __ Comment("UnboxedDoubleStoreInstanceFieldInstr");
+        __ Comment("UnboxedDoubleStoreFieldInstr");
         __ StoreDToOffset(
             value, temp,
             compiler::target::Double::value_offset() - kHeapObjectTag);
         break;
       case kFloat32x4Cid:
-        __ Comment("UnboxedFloat32x4StoreInstanceFieldInstr");
+        __ Comment("UnboxedFloat32x4StoreFieldInstr");
         __ StoreMultipleDToOffset(
             value, 2, temp,
             compiler::target::Float32x4::value_offset() - kHeapObjectTag);
         break;
       case kFloat64x2Cid:
-        __ Comment("UnboxedFloat64x2StoreInstanceFieldInstr");
+        __ Comment("UnboxedFloat64x2StoreFieldInstr");
         __ StoreMultipleDToOffset(
             value, 2, temp,
             compiler::target::Float64x2::value_offset() - kHeapObjectTag);

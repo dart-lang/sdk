@@ -104,7 +104,7 @@ static void ExpectStores(FlowGraph* flow_graph,
        !block_it.Done(); block_it.Advance()) {
     for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
          it.Advance()) {
-      if (auto store = it.Current()->AsStoreInstanceField()) {
+      if (auto store = it.Current()->AsStoreField()) {
         EXPECT_LT(next_expected_store, expected_stores.size());
         EXPECT_STREQ(expected_stores[next_expected_store],
                      store->slot().Name());

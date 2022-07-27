@@ -784,7 +784,7 @@ void GuardFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
 }
 
-void StoreInstanceFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+void StoreFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   instance()->PrintTo(f);
   f->Printf(" . %s = ", slot().Name());
   value()->PrintTo(f);
