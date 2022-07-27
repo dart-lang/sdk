@@ -77,7 +77,8 @@ Many tools embed this library, such as:
 
 ## Support
 
-Post issues and feature requests at https://github.com/dart-lang/sdk/issues
+Post issues and feature requests at https://github.com/dart-lang/sdk/issues.
+These will be triaged according to the [analyzer triage priorities](triage).
 
 Questions and discussions are welcome at the
 [Dart Analyzer Discussion Group][list].
@@ -107,3 +108,4 @@ See the [LICENSE] file.
 [dart doc]: https://github.com/dart-lang/dartdoc
 [analysis_sever]: https://github.com/dart-lang/sdk/tree/main/pkg/analysis_server
 [custom_analysis]: https://dart.dev/guides/language/analysis-options
+[triage]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/TRIAGE.md
