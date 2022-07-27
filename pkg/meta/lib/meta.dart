@@ -191,19 +191,20 @@ const _Literal literal = _Literal();
 ///   and does not directly declare a concrete override of `noSuchMethod`.
 const _MustBeOverridden mustBeOverridden = _MustBeOverridden();
 
-/// Used to annotate an instance method `m`. Indicates that every invocation of
-/// a method that overrides `m` must also invoke `m`. In addition, every method
-/// that overrides `m` is implicitly annotated with this same annotation.
+/// Used to annotate an instance member (method, getter, setter, operator, or
+/// field) `m`. Indicates that every invocation of a member that overrides `m`
+/// must also invoke `m`. In addition, every method that overrides `m` is
+/// implicitly annotated with this same annotation.
 ///
-/// Note that private methods with this annotation cannot be validly overridden
-/// outside of the library that defines the annotated method.
+/// Note that private members with this annotation cannot be validly overridden
+/// outside of the library that defines the annotated member.
 ///
 /// Tools, such as the analyzer, can provide feedback if
 ///
-/// * the annotation is associated with anything other than an instance method,
+/// * the annotation is associated with anything other than an instance member,
 ///   or
-/// * a method that overrides a method that has this annotation can return
-///   without invoking the overridden method.
+/// * a member that overrides a member that has this annotation can return
+///   without invoking the overridden member.
 const _MustCallSuper mustCallSuper = _MustCallSuper();
 
 /// Used to annotate an instance member (method, getter, setter, operator, or
