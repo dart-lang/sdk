@@ -3209,7 +3209,7 @@ void FlowGraphAllocator::RemoveFrameIfNotNeeded() {
       // sense to make function frameless if it contains more than 1
       // write barrier invocation.
 #if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_ARM)
-      if (auto store_field = instruction->AsStoreInstanceField()) {
+      if (auto store_field = instruction->AsStoreField()) {
         if (store_field->ShouldEmitStoreBarrier()) {
           if (has_write_barrier_call) {
             // We already have at least one write barrier call.

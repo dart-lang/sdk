@@ -1501,7 +1501,7 @@ class UntaggedField : public UntaggedObject {
   friend class CidRewriteVisitor;
   friend class GuardFieldClassInstr;     // For sizeof(guarded_cid_/...)
   friend class LoadFieldInstr;           // For sizeof(guarded_cid_/...)
-  friend class StoreInstanceFieldInstr;  // For sizeof(guarded_cid_/...)
+  friend class StoreFieldInstr;          // For sizeof(guarded_cid_/...)
 };
 
 class alignas(8) UntaggedScript : public UntaggedObject {

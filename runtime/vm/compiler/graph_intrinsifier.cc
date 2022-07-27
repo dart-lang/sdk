@@ -872,7 +872,7 @@ bool GraphIntrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
   builder.AddInstruction(new CheckClassInstr(new Value(data), DeoptId::kNone,
                                              *value_check, builder.Source()));
 
-  builder.AddInstruction(new StoreInstanceFieldInstr(
+  builder.AddInstruction(new StoreFieldInstr(
       Slot::GrowableObjectArray_data(), new Value(growable_array),
       new Value(data), kEmitStoreBarrier, builder.Source()));
   // Return null.
@@ -894,7 +894,7 @@ bool GraphIntrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
 
   builder.AddInstruction(
       new CheckSmiInstr(new Value(length), DeoptId::kNone, builder.Source()));
-  builder.AddInstruction(new StoreInstanceFieldInstr(
+  builder.AddInstruction(new StoreFieldInstr(
       Slot::GrowableObjectArray_length(), new Value(growable_array),
       new Value(length), kNoStoreBarrier, builder.Source()));
   Definition* null_def = builder.AddNullDefinition();
@@ -1105,7 +1105,7 @@ bool GraphIntrinsifier::Build_ImplicitSetter(FlowGraph* flow_graph) {
                               /*is_checked=*/true);
   }
 
-  builder.AddInstruction(new (zone) StoreInstanceFieldInstr(
+  builder.AddInstruction(new (zone) StoreFieldInstr(
       slot, new (zone) Value(receiver), new (zone) Value(value), barrier_mode,
       builder.Source()));
 

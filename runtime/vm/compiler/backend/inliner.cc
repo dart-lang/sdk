@@ -2938,8 +2938,8 @@ static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
   (*entry)->InheritDeoptTarget(Z, call);
 
   // This is an internal method, no need to check argument types.
-  StoreInstanceFieldInstr* store = new (Z)
-      StoreInstanceFieldInstr(field, new (Z) Value(array), new (Z) Value(value),
+  StoreFieldInstr* store =
+      new (Z) StoreFieldInstr(field, new (Z) Value(array), new (Z) Value(value),
                               store_barrier_type, call->source());
   flow_graph->AppendTo(*entry, store, call->env(), FlowGraph::kEffect);
   *last = store;

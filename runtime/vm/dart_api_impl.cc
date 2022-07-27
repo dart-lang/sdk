@@ -1829,6 +1829,14 @@ DART_EXPORT void Dart_NotifyLowMemory() {
   // caches.
 }
 
+DART_EXPORT Dart_PerformanceMode
+Dart_SetPerformanceMode(Dart_PerformanceMode mode) {
+  Thread* T = Thread::Current();
+  CHECK_ISOLATE(T->isolate());
+  TransitionNativeToVM transition(T);
+  return T->heap()->SetMode(mode);
+}
+
 DART_EXPORT void Dart_ExitIsolate() {
   Thread* T = Thread::Current();
   CHECK_ISOLATE(T->isolate());

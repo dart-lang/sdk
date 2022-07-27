@@ -45,6 +45,8 @@ Future<Uint8List?> compileToModule(compiler.CompilerOptions options,
   CompilerOptions compilerOptions = CompilerOptions()
     ..target = target
     ..sdkRoot = options.sdkPath
+    ..librariesSpecificationUri = options.librariesSpecPath
+    ..packagesFileUri = options.packagesPath
     ..environmentDefines = options.environment
     ..verbose = false
     ..onDiagnostic = diagnosticMessageHandler

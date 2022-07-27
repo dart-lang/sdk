@@ -138,8 +138,8 @@ Fragment FlowGraphBuilder::PushContext(const LocalScope* scope) {
   LocalVariable* context = MakeTemporary();
   instructions += LoadLocal(context);
   instructions += LoadLocal(parsed_function_->current_context_var());
-  instructions += StoreNativeField(
-      Slot::Context_parent(), StoreInstanceFieldInstr::Kind::kInitializing);
+  instructions += StoreNativeField(Slot::Context_parent(),
+                                   StoreFieldInstr::Kind::kInitializing);
   instructions += StoreLocal(TokenPosition::kNoSource,
                              parsed_function_->current_context_var());
   ++context_depth_;
@@ -553,7 +553,7 @@ Fragment FlowGraphBuilder::StoreLateField(const Field& field,
   if (is_static) {
     instructions += StoreStaticField(position, field);
   } else {
-    instructions += StoreInstanceFieldGuarded(field);
+    instructions += StoreFieldGuarded(field);
   }
 
   return instructions;
@@ -1212,12 +1212,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(object);
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
       body += StoreNativeField(Slot::GrowableObjectArray_data(),
-                               StoreInstanceFieldInstr::Kind::kInitializing,
+                               StoreFieldInstr::Kind::kInitializing,
                                kNoStoreBarrier);
       body += LoadLocal(object);
       body += IntConstant(0);
       body += StoreNativeField(Slot::GrowableObjectArray_length(),
-                               StoreInstanceFieldInstr::Kind::kInitializing,
+                               StoreFieldInstr::Kind::kInitializing,
                                kNoStoreBarrier);
       break;
     }
@@ -1312,10 +1312,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
       // Uses a store-release barrier so that other isolates will see the
       // contents of the index after seeing the index itself.
-      body +=
-          StoreNativeField(Slot::ImmutableLinkedHashBase_index(),
-                           StoreInstanceFieldInstr::Kind::kOther,
-                           kEmitStoreBarrier, compiler::Assembler::kRelease);
+      body += StoreNativeField(Slot::ImmutableLinkedHashBase_index(),
+                               StoreFieldInstr::Kind::kOther, kEmitStoreBarrier,
+                               compiler::Assembler::kRelease);
       body += NullConstant();
       break;
     case MethodRecognizer::kUtf8DecoderScan:
@@ -1580,7 +1579,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(typed_data_object);
       body += LoadLocal(arg_length);
       body += StoreNativeField(Slot::TypedDataBase_length(),
-                               StoreInstanceFieldInstr::Kind::kInitializing,
+                               StoreFieldInstr::Kind::kInitializing,
                                kNoStoreBarrier);
 
       // Initialize the result's data pointer field.
@@ -1589,7 +1588,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadUntagged(compiler::target::PointerBase::data_offset());
       body += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
       body += StoreNativeField(Slot::PointerBase_data(),
-                               StoreInstanceFieldInstr::Kind::kInitializing,
+                               StoreFieldInstr::Kind::kInitializing,
                                kNoStoreBarrier);
     } break;
     case MethodRecognizer::kGetNativeField: {
@@ -1738,8 +1737,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     ASSERT_EQUAL(function.NumParameters(), 2);                                 \
     body += LoadLocal(parsed_function_->RawParameterVariable(0));              \
     body += LoadLocal(parsed_function_->RawParameterVariable(1));              \
-    body += StoreNativeField(                                                  \
-        Slot::slot(), StoreInstanceFieldInstr::Kind::kOther, kNoStoreBarrier); \
+    body += StoreNativeField(Slot::slot(), StoreFieldInstr::Kind::kOther,      \
+                             kNoStoreBarrier);                                 \
     body += NullConstant();                                                    \
     break;
       STORE_NATIVE_FIELD_NO_BARRIER(IL_BODY)
@@ -1781,19 +1780,19 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   body += LoadLocal(view_object);
   body += LoadLocal(typed_data);
   body += StoreNativeField(token_pos, Slot::TypedDataView_typed_data(),
-                           StoreInstanceFieldInstr::Kind::kInitializing);
+                           StoreFieldInstr::Kind::kInitializing);
 
   body += LoadLocal(view_object);
   body += LoadLocal(offset_in_bytes);
-  body += StoreNativeField(token_pos, Slot::TypedDataView_offset_in_bytes(),
-                           StoreInstanceFieldInstr::Kind::kInitializing,
-                           kNoStoreBarrier);
+  body +=
+      StoreNativeField(token_pos, Slot::TypedDataView_offset_in_bytes(),
+                       StoreFieldInstr::Kind::kInitializing, kNoStoreBarrier);
 
   body += LoadLocal(view_object);
   body += LoadLocal(length);
-  body += StoreNativeField(token_pos, Slot::TypedDataBase_length(),
-                           StoreInstanceFieldInstr::Kind::kInitializing,
-                           kNoStoreBarrier);
+  body +=
+      StoreNativeField(token_pos, Slot::TypedDataBase_length(),
+                       StoreFieldInstr::Kind::kInitializing, kNoStoreBarrier);
 
   // Update the inner pointer.
   //
@@ -1870,7 +1869,7 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   fragment += StoreNativeField(
       Slot::GetContextVariableSlotFor(
           thread_, *implicit_closure_scope->context_variables()[0]),
-      StoreInstanceFieldInstr::Kind::kInitializing);
+      StoreFieldInstr::Kind::kInitializing);
 
   fragment += AllocateClosure();
   LocalVariable* closure = MakeTemporary();
@@ -1880,7 +1879,7 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
     fragment += LoadLocal(closure);
     fragment += LoadInstantiatorTypeArguments();
     fragment += StoreNativeField(Slot::Closure_instantiator_type_arguments(),
-                                 StoreInstanceFieldInstr::Kind::kInitializing);
+                                 StoreFieldInstr::Kind::kInitializing);
   }
 
   if (target.IsGeneric()) {
@@ -1889,7 +1888,7 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
     fragment += LoadLocal(closure);
     fragment += Constant(Object::empty_type_arguments());
     fragment += StoreNativeField(Slot::Closure_delayed_type_arguments(),
-                                 StoreInstanceFieldInstr::Kind::kInitializing);
+                                 StoreFieldInstr::Kind::kInitializing);
   }
 
   return fragment;
@@ -3801,8 +3800,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
           setter_value);
     } else {
       if (is_method) {
-        body += StoreInstanceFieldGuarded(
-            field, StoreInstanceFieldInstr::Kind::kOther);
+        body += StoreFieldGuarded(field, StoreFieldInstr::Kind::kOther);
       } else {
         body += StoreStaticField(TokenPosition::kNoSource, field);
       }
@@ -4126,15 +4124,15 @@ Fragment FlowGraphBuilder::UnhandledException() {
 
   body += LoadLocal(error_instance);
   body += LoadLocal(CurrentException());
-  body += StoreNativeField(Slot::UnhandledException_exception(),
-                           StoreInstanceFieldInstr::Kind::kInitializing,
-                           kNoStoreBarrier);
+  body +=
+      StoreNativeField(Slot::UnhandledException_exception(),
+                       StoreFieldInstr::Kind::kInitializing, kNoStoreBarrier);
 
   body += LoadLocal(error_instance);
   body += LoadLocal(CurrentStackTrace());
-  body += StoreNativeField(Slot::UnhandledException_stacktrace(),
-                           StoreInstanceFieldInstr::Kind::kInitializing,
-                           kNoStoreBarrier);
+  body +=
+      StoreNativeField(Slot::UnhandledException_stacktrace(),
+                       StoreFieldInstr::Kind::kInitializing, kNoStoreBarrier);
 
   return body;
 }
@@ -4289,8 +4287,8 @@ Fragment FlowGraphBuilder::WrapTypedDataBaseInCompound(
   body += AllocateObject(TokenPosition::kNoSource, compound_sub_class, 0);
   body += LoadLocal(MakeTemporary("compound"));  // Duplicate Struct or Union.
   body += LoadLocal(typed_data);
-  body += StoreInstanceField(compound_typed_data_base,
-                             StoreInstanceFieldInstr::Kind::kInitializing);
+  body += StoreField(compound_typed_data_base,
+                     StoreFieldInstr::Kind::kInitializing);
   body += DropTempsPreserveTop(1);  // Drop TypedData.
   return body;
 }

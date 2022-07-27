@@ -446,8 +446,8 @@ static void TestAliasingViaStore(
         new AllocateObjectInstr(InstructionSource(), cls, S.GetNextDeoptId()));
     if (!make_host_escape) {
       builder.AddInstruction(
-          new StoreInstanceFieldInstr(slot, new Value(v5), new Value(v0),
-                                      kEmitStoreBarrier, InstructionSource()));
+          new StoreFieldInstr(slot, new Value(v5), new Value(v0),
+                              kEmitStoreBarrier, InstructionSource()));
     }
     v1 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v0), slot, InstructionSource()));
@@ -460,8 +460,8 @@ static void TestAliasingViaStore(
       args->Add(new Value(v6));
     } else if (make_host_escape) {
       builder.AddInstruction(
-          new StoreInstanceFieldInstr(slot, new Value(v2), new Value(v0),
-                                      kEmitStoreBarrier, InstructionSource()));
+          new StoreFieldInstr(slot, new Value(v2), new Value(v0),
+                              kEmitStoreBarrier, InstructionSource()));
       args->Add(new Value(v5));
     }
     call = builder.AddInstruction(new StaticCallInstr(
@@ -857,7 +857,7 @@ static void CountLoadsStores(FlowGraph* flow_graph,
          it.Advance()) {
       if (it.Current()->IsLoadField()) {
         (*loads)++;
-      } else if (it.Current()->IsStoreInstanceField()) {
+      } else if (it.Current()->IsStoreField()) {
         (*stores)++;
       }
     }
@@ -1275,8 +1275,8 @@ ISOLATE_UNIT_TEST_CASE(DelayAllocations_DelayAcrossCalls) {
   StaticCallInstr* call1;
   StaticCallInstr* call2;
   AllocateObjectInstr* allocate;
-  StoreInstanceFieldInstr* store1;
-  StoreInstanceFieldInstr* store2;
+  StoreFieldInstr* store1;
+  StoreFieldInstr* store2;
 
   ILMatcher cursor(flow_graph, entry, true, ParallelMovesHandling::kSkip);
   RELEASE_ASSERT(cursor.TryMatch({
@@ -1286,8 +1286,8 @@ ISOLATE_UNIT_TEST_CASE(DelayAllocations_DelayAcrossCalls) {
       {kMatchAndMoveStaticCall, &call2},
       kMoveGlob,
       {kMatchAndMoveAllocateObject, &allocate},
-      {kMatchAndMoveStoreInstanceField, &store1},
-      {kMatchAndMoveStoreInstanceField, &store2},
+      {kMatchAndMoveStoreField, &store1},
+      {kMatchAndMoveStoreField, &store2},
   }));
 
   EXPECT(strcmp(call1->function().UserVisibleNameCString(), "foo") == 0);

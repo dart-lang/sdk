@@ -963,17 +963,17 @@ void AllocateTypedDataInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                              locs(), deopt_id(), env());
 }
 
-bool StoreInstanceFieldInstr::IsUnboxedDartFieldStore() const {
+bool StoreFieldInstr::IsUnboxedDartFieldStore() const {
   return slot().representation() == kTagged && slot().IsDartField() &&
          slot().IsUnboxed();
 }
 
-bool StoreInstanceFieldInstr::IsPotentialUnboxedDartFieldStore() const {
+bool StoreFieldInstr::IsPotentialUnboxedDartFieldStore() const {
   return slot().representation() == kTagged && slot().IsDartField() &&
          slot().IsPotentialUnboxed();
 }
 
-Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
+Representation StoreFieldInstr::RequiredInputRepresentation(
     intptr_t index) const {
   ASSERT((index == 0) || (index == 1));
   if (index == 0) {
@@ -986,7 +986,7 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
   return slot().representation();
 }
 
-Instruction* StoreInstanceFieldInstr::Canonicalize(FlowGraph* flow_graph) {
+Instruction* StoreFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   // Dart objects are allocated null-initialized, which means we can eliminate
   // all initializing stores which store null value.
   // Context objects can be allocated uninitialized as a performance

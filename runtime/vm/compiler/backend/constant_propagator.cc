@@ -292,8 +292,7 @@ void ConstantPropagator::VisitStoreIndexedUnsafe(
 
 void ConstantPropagator::VisitStoreIndexed(StoreIndexedInstr* instr) {}
 
-void ConstantPropagator::VisitStoreInstanceField(
-    StoreInstanceFieldInstr* instr) {}
+void ConstantPropagator::VisitStoreField(StoreFieldInstr* instr) {}
 
 void ConstantPropagator::VisitMemoryCopy(MemoryCopyInstr* instr) {}
 
@@ -1710,8 +1709,8 @@ bool ConstantPropagator::TransformDefinition(Definition* defn) {
   ASSERT((defn == nullptr) || !defn->IsPushArgument());
   if ((defn != nullptr) && IsConstant(defn->constant_value()) &&
       (defn->constant_value().IsSmi() || defn->constant_value().IsOld()) &&
-      !defn->IsConstant() && !defn->IsStoreIndexed() &&
-      !defn->IsStoreInstanceField() && !defn->IsStoreStaticField()) {
+      !defn->IsConstant() && !defn->IsStoreIndexed() && !defn->IsStoreField() &&
+      !defn->IsStoreStaticField()) {
     if (FLAG_trace_constant_propagation && graph_->should_print()) {
       THR_Print("Constant v%" Pd " = %s\n", defn->ssa_temp_index(),
                 defn->constant_value().ToCString());

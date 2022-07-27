@@ -201,29 +201,26 @@ class BaseFlowGraphBuilder {
   Fragment StoreNativeField(
       TokenPosition position,
       const Slot& slot,
-      StoreInstanceFieldInstr::Kind kind =
-          StoreInstanceFieldInstr::Kind::kOther,
+      StoreFieldInstr::Kind kind = StoreFieldInstr::Kind::kOther,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier,
       compiler::Assembler::MemoryOrder memory_order =
           compiler::Assembler::kRelaxedNonAtomic);
   Fragment StoreNativeField(
       const Slot& slot,
-      StoreInstanceFieldInstr::Kind kind =
-          StoreInstanceFieldInstr::Kind::kOther,
+      StoreFieldInstr::Kind kind = StoreFieldInstr::Kind::kOther,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier,
       compiler::Assembler::MemoryOrder memory_order =
           compiler::Assembler::kRelaxedNonAtomic) {
     return StoreNativeField(TokenPosition::kNoSource, slot, kind,
                             emit_store_barrier, memory_order);
   }
-  Fragment StoreInstanceField(
+  Fragment StoreField(
       const Field& field,
-      StoreInstanceFieldInstr::Kind kind =
-          StoreInstanceFieldInstr::Kind::kOther,
+      StoreFieldInstr::Kind kind = StoreFieldInstr::Kind::kOther,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
-  Fragment StoreInstanceFieldGuarded(const Field& field,
-                                     StoreInstanceFieldInstr::Kind kind =
-                                         StoreInstanceFieldInstr::Kind::kOther);
+  Fragment StoreFieldGuarded(
+      const Field& field,
+      StoreFieldInstr::Kind kind = StoreFieldInstr::Kind::kOther);
   Fragment LoadStaticField(const Field& field, bool calls_initializer);
   Fragment RedefinitionWithType(const AbstractType& type);
   Fragment ReachabilityFence();

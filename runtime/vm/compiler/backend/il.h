@@ -447,7 +447,7 @@ struct InstrAttrs {
   M(LoadIndexed, kNoGC)                                                        \
   M(LoadCodeUnits, kNoGC)                                                      \
   M(StoreIndexed, kNoGC)                                                       \
-  M(StoreInstanceField, _)                                                     \
+  M(StoreField, _)                                                             \
   M(LoadStaticField, _)                                                        \
   M(StoreStaticField, kNoGC)                                                   \
   M(BooleanNegate, kNoGC)                                                      \
@@ -1173,7 +1173,7 @@ class Instruction : public ZoneAllocated {
   virtual bool AllowsCSE() const { return false; }
 
   // Returns true if this instruction has any side-effects besides storing.
-  // See StoreInstanceFieldInstr::HasUnknownSideEffects() for rationale.
+  // See StoreFieldInstr::HasUnknownSideEffects() for rationale.
   virtual bool HasUnknownSideEffects() const = 0;
 
   // Whether this instruction can call Dart code without going through
@@ -5452,7 +5452,7 @@ class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
 
 enum StoreBarrierType { kNoStoreBarrier, kEmitStoreBarrier };
 
-// StoreInstanceField instruction represents a store of the given [value] into
+// StoreField instruction represents a store of the given [value] into
 // the specified [slot] on the [instance] object. [emit_store_barrier] allows to
 // specify whether the store should omit the write barrier. [kind] specifies
 // whether this store is an initializing store, i.e. the first store into a
@@ -5476,12 +5476,12 @@ enum StoreBarrierType { kNoStoreBarrier, kEmitStoreBarrier };
 // start of internal typed data array backing) then this instruction cannot be
 // moved across instructions which can trigger GC, to ensure that
 //
-//    LoadUntagged + Arithmetic + StoreInstanceField
+//    LoadUntagged + Arithmetic + StoreField
 //
 // are performed as an effectively atomic set of instructions.
 //
 // See kernel_to_il.cc:BuildTypedDataViewFactoryConstructor.
-class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
+class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
  public:
   enum class Kind {
     // Store is known to be the first store into a slot of an object after
@@ -5493,14 +5493,14 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
     kOther,
   };
 
-  StoreInstanceFieldInstr(const Slot& slot,
-                          Value* instance,
-                          Value* value,
-                          StoreBarrierType emit_store_barrier,
-                          const InstructionSource& source,
-                          Kind kind = Kind::kOther,
-                          compiler::Assembler::MemoryOrder memory_order =
-                              compiler::Assembler::kRelaxedNonAtomic)
+  StoreFieldInstr(const Slot& slot,
+                  Value* instance,
+                  Value* value,
+                  StoreBarrierType emit_store_barrier,
+                  const InstructionSource& source,
+                  Kind kind = Kind::kOther,
+                  compiler::Assembler::MemoryOrder memory_order =
+                      compiler::Assembler::kRelaxedNonAtomic)
       : TemplateInstruction(source),
         slot_(slot),
         emit_store_barrier_(emit_store_barrier),
@@ -5512,19 +5512,19 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
   }
 
   // Convenience constructor that looks up an IL Slot for the given [field].
-  StoreInstanceFieldInstr(const Field& field,
-                          Value* instance,
-                          Value* value,
-                          StoreBarrierType emit_store_barrier,
-                          const InstructionSource& source,
-                          const ParsedFunction* parsed_function,
-                          Kind kind = Kind::kOther)
-      : StoreInstanceFieldInstr(Slot::Get(field, parsed_function),
-                                instance,
-                                value,
-                                emit_store_barrier,
-                                source,
-                                kind) {}
+  StoreFieldInstr(const Field& field,
+                  Value* instance,
+                  Value* value,
+                  StoreBarrierType emit_store_barrier,
+                  const InstructionSource& source,
+                  const ParsedFunction* parsed_function,
+                  Kind kind = Kind::kOther)
+      : StoreFieldInstr(Slot::Get(field, parsed_function),
+                        instance,
+                        value,
+                        emit_store_barrier,
+                        source,
+                        kind) {}
 
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
     // In AOT unbox is done based on TFA, therefore it was proven to be correct
@@ -5535,7 +5535,7 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
                : kGuardInputs;
   }
 
-  DECLARE_INSTRUCTION(StoreInstanceField)
+  DECLARE_INSTRUCTION(StoreField)
 
   enum { kInstancePos = 0, kValuePos = 1 };
 
@@ -5616,7 +5616,7 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
   // Marks initializing stores. E.g. in the constructor.
   const bool is_initialization_;
 
-  DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldInstr);
+  DISALLOW_COPY_AND_ASSIGN(StoreFieldInstr);
 };
 
 class GuardFieldInstr : public TemplateInstruction<1, NoThrow, Pure> {

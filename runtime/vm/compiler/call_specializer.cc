@@ -912,10 +912,10 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
 
   // Field guard was detached.
   ASSERT(instr->FirstArgIndex() == 0);
-  StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
-      field, new (Z) Value(instr->ArgumentAt(0)),
-      new (Z) Value(instr->ArgumentAt(1)), kEmitStoreBarrier, instr->source(),
-      &flow_graph()->parsed_function());
+  StoreFieldInstr* store = new (Z)
+      StoreFieldInstr(field, new (Z) Value(instr->ArgumentAt(0)),
+                      new (Z) Value(instr->ArgumentAt(1)), kEmitStoreBarrier,
+                      instr->source(), &flow_graph()->parsed_function());
 
   // Discard the environment from the original instruction because the store
   // can't deoptimize.

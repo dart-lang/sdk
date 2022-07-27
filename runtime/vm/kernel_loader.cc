@@ -2194,7 +2194,7 @@ ObjectPtr KernelLoader::GenerateFieldAccessors(const Class& klass,
         return converter.SimpleValue().ptr();
       } else {
         // Note: optimizer relies on DoubleInitialized bit in its field-unboxing
-        // heuristics. See JitCallSpecializer::VisitStoreInstanceField for more
+        // heuristics. See JitCallSpecializer::VisitStoreField for more
         // details.
         field.RecordStore(converter.SimpleValue());
         if (!converter.SimpleValue().IsNull() &&

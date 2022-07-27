@@ -4482,7 +4482,7 @@ class Field : public Object {
                             const Object& owner,
                             TokenPosition token_pos,
                             TokenPosition end_token_pos);
-  friend class StoreInstanceFieldInstr;  // Generated code access to bit field.
+  friend class StoreFieldInstr;  // Generated code access to bit field.
 
   enum {
     kConstBit = 0,
