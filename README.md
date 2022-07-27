@@ -85,7 +85,7 @@ tells the analyzer to treat `camel_case_types` lints as errors.  For more on con
 ## Contributing
 
 Feedback is greatly appreciated and contributions are welcome! Please read the
-[contribution guidelines](CONTRIBUTING.md); mechanics of writing lints are covered [here](doc/WritingLints.MD).
+[contribution guidelines](CONTRIBUTING.md); mechanics of writing lints are covered [here](doc/writing-lints.md).
 
 ## Features and bugs
 

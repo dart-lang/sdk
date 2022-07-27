@@ -44,7 +44,7 @@ assignees: ''
 - [ ] If this proposal is motivated by real-world examples, please provide as many details as you can.  Demonstrating potential impact is _especially valuable_.
 
 <!-- Links -->
-[Writing Lints]: https://github.com/dart-lang/linter/blob/main/doc/WritingLints.MD
+[Writing Lints]: https://github.com/dart-lang/linter/blob/main/doc/writing-lints.md
 [Effective Dart]: https://dart.dev/guides/language/effective-dart
 [Flutter Style Guide]: https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo
 [SDK Tracker]: https://github.com/dart-lang/sdk/issues
