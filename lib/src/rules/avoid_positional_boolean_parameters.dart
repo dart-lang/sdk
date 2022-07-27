@@ -107,11 +107,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       DartTypeUtilities.isClass(
           node.declaredElement?.type, 'bool', 'dart.core');
 
-  bool _isOverridingMember(Element? member) {
-    if (member == null) {
-      return false;
-    }
-
+  bool _isOverridingMember(Element member) {
     var classElement = member.thisOrAncestorOfType<ClassElement>();
     if (classElement == null) {
       return false;

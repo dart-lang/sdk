@@ -117,7 +117,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _checkParams(List<DefaultFormalParameter> params, FunctionBody? body) {
+  void _checkParams(List<DefaultFormalParameter> params, FunctionBody body) {
     if (body is BlockFunctionBody) {
       for (var statement in body.block.statements) {
         if (statement is AssertStatement) {

@@ -184,7 +184,7 @@ List<NonNullableFunction> _staticFunctionsWithNonNullableArguments =
 
 /// Function with closure parameters that cannot accept null arguments.
 class NonNullableFunction {
-  final String? library;
+  final String library;
   final String? type;
   final String? name;
   final List<int> positional;
@@ -298,7 +298,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return null;
     }
 
-    NonNullableFunction? getMethod(String? library, String? className) =>
+    NonNullableFunction? getMethod(String library, String className) =>
         possibleMethods
             .lookup(NonNullableFunction(library, className, methodName));
 

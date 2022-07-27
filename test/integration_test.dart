@@ -205,12 +205,8 @@ void ruleTests() {
 }
 
 /// Provide the options found in [optionsSource].
-Map<String, YamlNode> _getOptionsFromString(String? optionsSource) {
+Map<String, YamlNode> _getOptionsFromString(String optionsSource) {
   var options = <String, YamlNode>{};
-  if (optionsSource == null) {
-    return options;
-  }
-
   var doc = loadYamlNode(optionsSource);
 
   // Empty options.

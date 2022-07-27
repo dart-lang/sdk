@@ -97,13 +97,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _visitFunctionBody(FunctionBody? node) {
+  void _visitFunctionBody(FunctionBody node) {
     if (node is ExpressionFunctionBody &&
         DartTypeUtilities.isNullLiteral(node.expression)) {
       rule.reportLint(node);
       return;
     }
-    DartTypeUtilities.traverseNodesInDFS(node!,
+    DartTypeUtilities.traverseNodesInDFS(node,
             excludeCriteria: _isFunctionExpression)
         .where(_isReturnNull)
         .forEach(rule.reportLint);

@@ -45,10 +45,8 @@ class ConditionScope {
 
   ConditionScope(this.outer);
 
-  void add(ExpressionBox? e) {
-    if (e != null) {
-      environment.add(e);
-    }
+  void add(ExpressionBox e) {
+    environment.add(e);
   }
 
   void addAll(Iterable<ExpressionBox> expressions) {
