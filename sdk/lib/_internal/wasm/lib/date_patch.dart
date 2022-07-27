@@ -17,16 +17,19 @@ external double _jsDateNow();
 class DateTime {
   // Natives.
   // The natives have been moved up here to work around Issue 10401.
-  @pragma("vm:external-name", "DateTime_currentTimeMicros")
   static int _getCurrentMicros() =>
       (_jsDateNow() * Duration.microsecondsPerMillisecond).toInt();
 
-  @pragma("vm:external-name", "DateTime_timeZoneName")
-  external static String _timeZoneNameForClampedSeconds(int secondsSinceEpoch);
+  @pragma("wasm:import", "dart2wasm.getTimeZoneNameForSeconds")
+  external static String _timeZoneNameForClampedSecondsRaw(
+      double secondsSinceEpoch);
 
-  @pragma("vm:external-name", "DateTime_timeZoneOffsetInSeconds")
-  external static int _timeZoneOffsetInSecondsForClampedSeconds(
-      int secondsSinceEpoch);
+  static String _timeZoneNameForClampedSeconds(int secondsSinceEpoch) =>
+      _timeZoneNameForClampedSecondsRaw(secondsSinceEpoch.toDouble());
+
+  @pragma("wasm:import", "dart2wasm.getTimeZoneOffsetInSeconds")
+  external static double _timeZoneOffsetInSecondsForClampedSeconds(
+      double secondsSinceEpoch);
 
   static const _MICROSECOND_INDEX = 0;
   static const _MILLISECOND_INDEX = 1;
@@ -424,7 +427,9 @@ class DateTime {
 
   static int _timeZoneOffsetInSeconds(int microsecondsSinceEpoch) {
     int equivalentSeconds = _equivalentSeconds(microsecondsSinceEpoch);
-    return _timeZoneOffsetInSecondsForClampedSeconds(equivalentSeconds);
+    return _timeZoneOffsetInSecondsForClampedSeconds(
+            equivalentSeconds.toDouble())
+        .toInt();
   }
 
   static String _timeZoneName(int microsecondsSinceEpoch) {

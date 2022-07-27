@@ -163,6 +163,19 @@ var dart2wasm = {
         var factoryFunction = constructor.bind.apply(constructor, [null, ...args]);
         return new factoryFunction();
     },
+    getTimeZoneNameForSeconds: function(secondsSinceEpoch) {
+        var date = new Date(secondsSinceEpoch * 1000);
+        var match = /\((.*)\)/.exec(date.toString());
+        if (match == null) {
+            // This should never happen on any recent browser.
+            return '';
+        }
+        return stringToDartString(match[1]);
+
+    },
+    getTimeZoneOffsetInSeconds: function(secondsSinceEpoch) {
+        return new Date(secondsSinceEpoch * 1000).getTimezoneOffset() * 60;
+    },
 };
 
 function instantiate(filename, imports) {
