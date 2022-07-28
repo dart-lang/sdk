@@ -443,13 +443,15 @@ def _CopyDebugger(target_dir, target_cpu):
                         ('api-ms-win-eventing-provider-l1-1-0.dll', False)])
   for debug_file, is_optional in debug_files:
     full_path = os.path.join(win_sdk_dir, 'Debuggers', target_cpu, debug_file)
+    ignore_missing = os.environ.get('IGNORE_MISSING_DEBUG_DLL')
     if not os.path.exists(full_path):
-      if is_optional:
+      if is_optional or ignore_missing:
         continue
       else:
         raise Exception('%s not found in "%s"\r\nYou must install '
                         'Windows 10 SDK version 10.0.20348.0 including the '
-                        '"Debugging Tools for Windows" feature.' %
+                        '"Debugging Tools for Windows" feature.'
+                        'You can set IGNORE_MISSING_DEBUG_DLL to bypass this.' %
                         (debug_file, full_path))
     target_path = os.path.join(target_dir, debug_file)
     _CopyRuntimeImpl(target_path, full_path)
