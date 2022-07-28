@@ -10113,6 +10113,7 @@ class Document extends Node {
 
   String queryCommandValue(String commandId) native;
 
+  @deprecated
   Function registerElement2(String type, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
@@ -10122,8 +10123,10 @@ class Document extends Node {
   }
 
   @JSName('registerElement')
+  @deprecated
   Function _registerElement2_1(type, options) native;
   @JSName('registerElement')
+  @deprecated
   Function _registerElement2_2(type) native;
 
   @JSName('webkitExitFullscreen')
@@ -10423,6 +10426,7 @@ class Document extends Node {
       new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
   /// Checks if [registerElement] is supported on the current platform.
+  @deprecated
   bool get supportsRegisterElement {
     return JS('bool', '("registerElement" in #)', this);
   }
@@ -10431,6 +10435,13 @@ class Document extends Node {
   @deprecated
   bool get supportsRegister => supportsRegisterElement;
 
+  /// **Deprecated**: This is a legacy API based on a deprecated Web Components
+  /// v0.5 specification. Web Components v0.5 doesn't work on modern browsers
+  /// and can only be used with a polyfill.
+  ///
+  /// The latest Web Components specification is supported indirectly via
+  /// JSInterop and doesn't have an explicit API in the `dart:html` library.
+  @deprecated
   void registerElement(String tag, Type customElementClass,
       {String? extendsTag}) {
     registerElement2(
@@ -17831,6 +17842,15 @@ class HtmlDocument extends Document {
   }
 
   /**
+   * **Deprecated**: This is a legacy API based on a deprecated Web Components
+   * v0.5 specification. This method doesn't work on modern browsers and can
+   * only be used with a polyfill.
+   *
+   * The latest Web Components specification is supported indirectly via
+   * JSInterop and doesn't have an explicit API in the `dart:html` library.
+   *
+   * *Original documentation before deprecation*:
+   *
    * Register a custom subclass of Element to be instantiatable by the DOM.
    *
    * This is necessary to allow the construction of any custom elements.
@@ -17871,6 +17891,7 @@ class HtmlDocument extends Document {
    * `<input is="x-bar"></input>`
    *
    */
+  @deprecated
   Function registerElement2(String tag, [Map? options]) {
     return _registerCustomElement(JS('', 'window'), this, tag, options);
   }

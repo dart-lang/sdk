@@ -6737,10 +6737,10 @@
       "readyState": {},
       "referrer": {},
       "registerElement": {
-        "support_level": "untriaged"
+        "support_level": "deprecated"
       },
       "registerElement2": {
-        "support_level": "untriaged"
+        "support_level": "deprecated"
       },
       "rootElement": {
         "support_level": "untriaged"

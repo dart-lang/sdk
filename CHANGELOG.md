@@ -29,6 +29,14 @@
 [`MirrorsUsed`]: https://api.dart.dev/stable/dart-mirrors/MirrorsUsed-class.html
 [`Comment`]: https://api.dart.dev/stable/dart-mirrors/Comment-class.html
 
+#### `dart:html`
+
+- Deprecated `registerElement` and `registerElement2` in `Document` and
+  `HtmlDocument`. These APIs were based on the deprecated Web Components v0.5
+  specification and are not supported by browsers today. These APIs are expected
+  to be deleted in a future release. See the related breaking change
+  request [#49536](https://github.com/dart-lang/sdk/issues/49536).
+
 ### Tools
 
 #### Linter
