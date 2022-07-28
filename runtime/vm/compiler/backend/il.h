@@ -445,7 +445,7 @@ struct InstrAttrs {
   M(DebugStepCheck, _)                                                         \
   M(RecordCoverage, kNoGC)                                                     \
   M(LoadIndexed, kNoGC)                                                        \
-  M(LoadCodeUnits, kNoGC)                                                      \
+  M(LoadCodeUnits, _)                                                          \
   M(StoreIndexed, kNoGC)                                                       \
   M(StoreField, _)                                                             \
   M(LoadStaticField, _)                                                        \
@@ -5989,6 +5989,10 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
+  virtual bool CanTriggerGC() const {
+    return !can_pack_into_smi() && (representation() == kTagged);
+  }
+
  private:
   const intptr_t class_id_;
   const TokenPosition token_pos_;
@@ -6868,6 +6872,10 @@ class LoadFieldInstr : public TemplateLoadField<1> {
   static bool IsTypedDataViewFactory(const Function& function);
 
   virtual bool AllowsCSE() const { return slot_.is_immutable(); }
+
+  virtual bool CanTriggerGC() const {
+    return calls_initializer() || IsPotentialUnboxedDartFieldLoad();
+  }
 
   virtual bool AttributesEqual(const Instruction& other) const;
 

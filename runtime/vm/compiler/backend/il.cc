@@ -5722,6 +5722,7 @@ void BoxAllocationSlowPath::Allocate(FlowGraphCompiler* compiler,
     __ TryAllocate(cls, compiler->intrinsic_slow_path_label(),
                    compiler::Assembler::kFarJump, result, temp);
   } else {
+    RELEASE_ASSERT(instruction->CanTriggerGC());
     auto slow_path = new BoxAllocationSlowPath(instruction, cls, result);
     compiler->AddSlowPathCode(slow_path);
 
