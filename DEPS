@@ -560,7 +560,7 @@ deps = {
     "packages": [
       {
       "package": "fuchsia/sdk/gn/mac-amd64",
-      "version": "git_revision:c9bdf5da65647923cb79c391824434125cb00bbe"
+      "version": "git_revision:8658717573be7924d71b88c3d404ea2b4ca4984b"
       }
     ],
     "condition": 'host_os == "mac" and host_cpu == "x64"',
@@ -570,7 +570,7 @@ deps = {
     "packages": [
       {
       "package": "fuchsia/sdk/gn/linux-amd64",
-      "version": "git_revision:c9bdf5da65647923cb79c391824434125cb00bbe"
+      "version": "git_revision:8658717573be7924d71b88c3d404ea2b4ca4984b"
       }
     ],
     "condition": 'host_os == "linux" and host_cpu == "x64"',
