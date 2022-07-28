@@ -176,6 +176,9 @@ var dart2wasm = {
     getTimeZoneOffsetInSeconds: function(secondsSinceEpoch) {
         return new Date(secondsSinceEpoch * 1000).getTimezoneOffset() * 60;
     },
+    jsonEncode: function(s) {
+        return stringToDartString(JSON.stringify(stringFromDartString(s)));
+    },
 };
 
 function instantiate(filename, imports) {

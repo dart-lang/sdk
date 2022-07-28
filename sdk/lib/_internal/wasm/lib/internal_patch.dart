@@ -140,3 +140,6 @@ dynamic _callClosure2(dynamic closure, dynamic arg1, dynamic arg2) {
 // Schedule a callback from JS via setTimeout.
 @pragma("wasm:import", "dart2wasm.scheduleCallback")
 external void scheduleCallback(double millis, dynamic Function() callback);
+
+@pragma("wasm:import", "dart2wasm.jsonEncode")
+external String jsonEncode(String object);
