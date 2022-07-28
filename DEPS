@@ -139,7 +139,6 @@ vars = {
   "pub_rev": "9bf4289d6fd5d6872a8929d6312bbd7098f3ea9c", # manually rev'd
   "pub_semver_rev": "5c0b4bfd5ca57fe16f1319c581dc8c882e9b8cb2",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
-  "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
   "shelf_rev": "0371a64bd3b99044ee3158bacf8813bba735a9c7",
   "source_map_stack_trace_rev": "72dbf21a33293b2b8434d0a9751e36f9463981ac",
   "source_maps_rev": "e93565b43a7b6b367789de8ffba969c4ebeeb317",
@@ -553,17 +552,6 @@ deps = {
           }
       ],
       "condition": "download_android_deps",
-      "dep_type": "cipd",
-  },
-
-  Var("dart_root") + "/buildtools/" + Var("host_os") + "-" + Var("host_cpu") + "/rust": {
-      "packages": [
-          {
-              "package": "fuchsia/rust/${{platform}}",
-              "version": "git_revision:" + Var("rust_revision"),
-          },
-      ],
-      "condition": "(host_os == 'linux' or host_os == 'mac') and host_cpu == 'x64'",
       "dep_type": "cipd",
   },
 
