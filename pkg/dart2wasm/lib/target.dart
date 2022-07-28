@@ -34,6 +34,9 @@ class WasmTarget extends Target {
   Class? _twoByteString;
 
   @override
+  bool get enableNoSuchMethodForwarders => true;
+
+  @override
   ConstantsBackend get constantsBackend => const ConstantsBackend();
 
   @override
@@ -177,10 +180,55 @@ class WasmTarget extends Target {
     wasmTrans.transformProcedure(procedure, coreTypes, hierarchy);
   }
 
+  Expression _instantiateInvocation(
+      CoreTypes coreTypes, String name, Arguments arguments) {
+    if (name.startsWith("set:")) {
+      name = name.substring(4);
+      Procedure invocationSetter = coreTypes.invocationClass.procedures
+          .firstWhere((c) => c.name.text == "setter");
+      return StaticInvocation(invocationSetter,
+          Arguments([SymbolLiteral(name), arguments.positional.single]));
+    } else if (name.startsWith("get:")) {
+      Procedure invocationGetter = coreTypes.invocationClass.procedures
+          .firstWhere((c) => c.name.text == "getter");
+      return StaticInvocation(
+          invocationGetter, Arguments([SymbolLiteral(name)]));
+    } else if (arguments.types.isEmpty) {
+      Procedure invocationMethod = coreTypes.invocationClass.procedures
+          .firstWhere((c) => c.name.text == "method");
+      return StaticInvocation(
+          invocationMethod,
+          Arguments([
+            SymbolLiteral(name),
+            ListLiteral(arguments.positional),
+            MapLiteral(List<MapLiteralEntry>.from(
+                arguments.named.map((NamedExpression arg) {
+              return MapLiteralEntry(SymbolLiteral(arg.name), arg.value);
+            })), keyType: coreTypes.symbolNonNullableRawType)
+              ..isConst = (arguments.named.isEmpty)
+          ]));
+    } else {
+      Procedure invocationGenericMethod = coreTypes.invocationClass.procedures
+          .firstWhere((c) => c.name.text == "genericMethod");
+      return StaticInvocation(
+          invocationGenericMethod,
+          Arguments([
+            SymbolLiteral(name),
+            ListLiteral(arguments.types.map((t) => TypeLiteral(t)).toList()),
+            ListLiteral(arguments.positional),
+            MapLiteral(List<MapLiteralEntry>.from(
+                arguments.named.map((NamedExpression arg) {
+              return new MapLiteralEntry(SymbolLiteral(arg.name), arg.value);
+            })), keyType: coreTypes.symbolNonNullableRawType)
+              ..isConst = (arguments.named.isEmpty)
+          ]));
+    }
+  }
+
   @override
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper) {
-    throw "Unsupported: instantiateInvocation";
+    return _instantiateInvocation(coreTypes, name, arguments);
   }
 
   Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
@@ -195,7 +243,10 @@ class WasmTarget extends Target {
       bool isStatic: false,
       bool isConstructor: false,
       bool isTopLevel: false}) {
-    throw "Unsupported: instantiateNoSuchMethodError";
+    return ConstructorInvocation(
+        coreTypes.noSuchMethodErrorDefaultConstructor,
+        Arguments(
+            [receiver, _instantiateInvocation(coreTypes, name, arguments)]));
   }
 
   @override
