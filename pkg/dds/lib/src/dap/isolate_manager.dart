@@ -542,7 +542,7 @@ class IsolateManager {
     final isolateId = isolate.id!;
     final uriStrings = uris.map((uri) => uri.toString()).toList();
     final res = await _adapter.vmService
-        ?.lookupResolvedPackageUris(isolateId, uriStrings);
+        ?.lookupResolvedPackageUris(isolateId, uriStrings, local: true);
 
     return res?.uris
         ?.cast<String?>()
@@ -647,6 +647,10 @@ class IsolateManager {
           final vmUri = await thread.resolvePathToUri(
             Uri.parse(uri).toFilePath(),
           );
+
+          if (vmUri == null) {
+            return;
+          }
 
           final vmBp = await service.addBreakpointWithScriptUri(
               isolateId, vmUri.toString(), bp.line,
@@ -826,7 +830,15 @@ class ThreadInfo {
   /// (which they may have navigated to via the Analysis Server) we generate a
   /// valid URI that the VM would create a breakpoint for.
   Future<Uri?> resolvePathToUri(String filePath) async {
-    // We don't currently need to call lookupPackageUris because the VM can
+    var google3Path = _convertPathToGoogle3Uri(filePath);
+    if (google3Path != null) {
+      var result = await _manager._adapter.vmService
+          ?.lookupPackageUris(isolate.id!, [google3Path.toString()]);
+      var uriStr = result?.uris?.first;
+      return uriStr != null ? Uri.parse(uriStr) : null;
+    }
+
+    // We don't need to call lookupPackageUris in non-google3 because the VM can
     // handle incoming file:/// URIs for packages, and also the org-dartlang-sdk
     // URIs directly for SDK sources (we do not need to convert to 'dart:'),
     // however this method is Future-returning in case this changes in future
@@ -960,6 +972,21 @@ class ThreadInfo {
       //   on another device to the VM running this DA).
       final sdkRoot = _manager.sdkRoot;
       return path.joinAll([sdkRoot, ...uri.pathSegments.skip(1)]);
+    }
+
+    return null;
+  }
+
+  Uri? _convertPathToGoogle3Uri(String input) {
+    const search = '/google3/';
+    if (input.startsWith('/google') && input.contains(search)) {
+      var idx = input.indexOf(search);
+      var remainingPath = input.substring(idx + search.length);
+      return Uri(
+        scheme: 'google3',
+        host: '',
+        path: remainingPath,
+      );
     }
 
     return null;
