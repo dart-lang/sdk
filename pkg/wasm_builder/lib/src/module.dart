@@ -354,25 +354,21 @@ class DefinedFunction extends BaseFunction
     with SerializerMixin
     implements Serializable {
   /// All local variables defined in the function, including its inputs.
-  final List<Local> locals = [];
+  List<Local> get locals => body.locals;
 
   /// The body of the function.
   late final Instructions body;
 
   DefinedFunction(Module module, super.index, super.type,
       [super.functionName]) {
+    body = Instructions(module, type.outputs);
     for (ValueType paramType in type.inputs) {
-      addLocal(paramType);
+      body.addLocal(paramType, isParameter: true);
     }
-    body = Instructions(module, type.outputs, locals: locals);
   }
 
   /// Add a local variable to the function.
-  Local addLocal(ValueType type) {
-    Local local = Local(locals.length, type);
-    locals.add(local);
-    return local;
-  }
+  Local addLocal(ValueType type) => body.addLocal(type, isParameter: false);
 
   @override
   void serialize(Serializer s) {

@@ -16,10 +16,8 @@ where *options* include:
 | `--`[`no-`]`import-shared-memory`       | no      | Import a shared memory buffer. If this is on, `--shared-memory-max-pages` must also be specified.
 | `--`[`no-`]`inlining`                   | no      | Inline small functions.
 | `--`[`no-`]`lazy-constants`             | no      | Instantiate constants lazily.
-| `--`[`no-`]`local-nullability`          | no      | Use non-nullable types for non-nullable locals and temporaries.
 | `--`[`no-`]`name-section`               | yes     | Emit Name Section with function names.
 | `--`[`no-`]`nominal-types`              | yes     | Emit nominal types.
-| `--`[`no-`]`parameter-nullability`      | yes     | Use non-nullable types for non-nullable parameters and return values.
 | `--`[`no-`]`polymorphic-specialization` | no      | Do virtual calls by switching on the class ID instead of using `call_indirect`.
 | `--`[`no-`]`print-kernel`               | no      | Print IR for each function before compiling it.
 | `--`[`no-`]`print-wasm`                 | no      | Print Wasm instructions of each compiled function.
@@ -30,7 +28,7 @@ where *options* include:
 
 The resulting `.wasm` file can be run with:
 
-`d8 --experimental-wasm-gc --wasm-gc-js-interop pkg/dart2wasm/bin/run_wasm.js -- `*outfile*`.wasm`
+`d8 --experimental-wasm-gc --experimental-wasm-nn-locals --wasm-gc-js-interop pkg/dart2wasm/bin/run_wasm.js -- `*outfile*`.wasm`
 
 ## Imports and exports
 

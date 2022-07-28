@@ -7,6 +7,10 @@
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class CodeStyleOptions {
+  /// Return `true` if the `require_trailing_commas` is enabled and trailing
+  /// commas should be inserted in function calls and declarations.
+  bool get addTrailingCommas;
+
   /// Return `true` if local variables should be `final` whenever possible.
   bool get makeLocalsFinal;
 

@@ -9,6 +9,7 @@ import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -31,6 +32,10 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// An object that can compute a correction (fix or assist) in a Dart file.
 abstract class CorrectionProducer extends SingleCorrectionProducer {
+  /// Return the code style options for the current context.
+  CodeStyleOptions get codeStyleOptions =>
+      sessionHelper.session.analysisContext.analysisOptions.codeStyleOptions;
+
   /// Return the type for the class `bool` from `dart:core`.
   DartType get coreTypeBool => resolvedResult.typeProvider.boolType;
 

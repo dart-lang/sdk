@@ -74,8 +74,6 @@ class Types {
   Iterable<Class> _getConcreteSubtypes(Class cls) =>
       translator.subtypes.getSubtypesOf(cls).where((c) => !c.isAbstract);
 
-  w.ValueType get nullableTypeType => typeClassInfo.nullableType;
-
   w.ValueType get nonNullableTypeType => typeClassInfo.nonNullableType;
 
   InterfaceType get namedParameterType =>

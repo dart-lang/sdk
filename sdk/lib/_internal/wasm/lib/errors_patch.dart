@@ -8,13 +8,12 @@ external Never _throwObjectWithStackTrace(Object error, StackTrace stacktrace);
 class Error {
   @patch
   static String _objectToString(Object object) {
-    return object.toString();
+    return 'Instance of ${object._runtimeType}';
   }
 
   @patch
   static String _stringToSafeString(String string) {
-    // TODO(joshualitt): JSON encode string.
-    return string;
+    return jsonEncode(string);
   }
 
   @patch
@@ -41,7 +40,7 @@ class _Error extends Error {
 }
 
 class _TypeError extends _Error implements TypeError {
-  _TypeError(String message) : super('TypeError: $message');
+  _TypeError(String message) : super(message);
 
   factory _TypeError.fromMessageAndStackTrace(
       String message, StackTrace stackTrace) {
@@ -58,10 +57,18 @@ class _TypeError extends _Error implements TypeError {
   }
 
   @pragma("wasm:entry-point")
+  static Never _throwThrowNullError(StackTrace stackTrace) {
+    final typeError =
+        _TypeError.fromMessageAndStackTrace("Throw of null", stackTrace);
+    return _throwObjectWithStackTrace(typeError, stackTrace);
+  }
+
+  @pragma("wasm:entry-point")
   static Never _throwAsCheckError(
       Object? operand, Type? type, StackTrace stackTrace) {
     final typeError = _TypeError.fromMessageAndStackTrace(
-        "Type '${operand.runtimeType}' is not a subtype of type '$type' in type cast",
+        "Type '${operand.runtimeType}' is not a subtype of type '$type'"
+        " in type cast",
         stackTrace);
     return _throwObjectWithStackTrace(typeError, stackTrace);
   }
@@ -71,6 +78,71 @@ class _TypeError extends _Error implements TypeError {
     final typeError = _TypeError.fromMessageAndStackTrace(
         "The Wasm reference is not $expected", stackTrace);
     return _throwObjectWithStackTrace(typeError, stackTrace);
+  }
+}
+
+@patch
+class NoSuchMethodError {
+  final Object? _receiver;
+  final Symbol _memberName;
+  final List? _arguments;
+  final Map<Symbol, dynamic>? _namedArguments;
+  final List? _existingArgumentNames;
+
+  @patch
+  factory NoSuchMethodError.withInvocation(
+          Object? receiver, Invocation invocation) =>
+      NoSuchMethodError(receiver, invocation.memberName,
+          invocation.positionalArguments, invocation.namedArguments);
+
+  @patch
+  NoSuchMethodError(Object? receiver, Symbol memberName,
+      List? positionalArguments, Map<Symbol, dynamic>? namedArguments,
+      [List? existingArgumentNames = null])
+      : _receiver = receiver,
+        _memberName = memberName,
+        _arguments = positionalArguments,
+        _namedArguments = namedArguments,
+        _existingArgumentNames = existingArgumentNames;
+
+  @patch
+  String toString() {
+    StringBuffer sb = StringBuffer('');
+    String comma = '';
+    List? arguments = _arguments;
+    if (arguments != null) {
+      for (var argument in arguments) {
+        sb.write(comma);
+        sb.write(Error.safeToString(argument));
+        comma = ', ';
+      }
+    }
+    Map<Symbol, dynamic>? namedArguments = _namedArguments;
+    if (namedArguments != null) {
+      namedArguments.forEach((Symbol key, var value) {
+        sb.write(comma);
+        sb.write(_symbolToString(key));
+        sb.write(": ");
+        sb.write(Error.safeToString(value));
+        comma = ', ';
+      });
+    }
+    String memberName = _symbolToString(_memberName);
+    String receiverText = Error.safeToString(_receiver);
+    String actualParameters = '$sb';
+    List? existingArgumentNames = _existingArgumentNames;
+    if (existingArgumentNames == null) {
+      return "NoSuchMethodError: method not found: '$memberName'\n"
+          "Receiver: ${receiverText}\n"
+          "Arguments: [$actualParameters]";
+    } else {
+      String formalParameters = existingArgumentNames.join(', ');
+      return "NoSuchMethodError: incorrect number of arguments passed to "
+          "method named '$memberName'\n"
+          "Receiver: ${receiverText}\n"
+          "Tried calling: $memberName($actualParameters)\n"
+          "Found: $memberName($formalParameters)";
+    }
   }
 }
 

@@ -28,6 +28,7 @@ abstract class Label {
   late final int depth;
   late final int baseStackHeight;
   late final bool reachable;
+  late final int localInitializationStackHeight;
 
   Label._(this.inputs, this.outputs);
 
@@ -46,6 +47,7 @@ class Expression extends Label {
     depth = 0;
     baseStackHeight = 0;
     reachable = true;
+    localInitializationStackHeight = 0;
   }
 
   List<ValueType> get targetTypes => outputs;
@@ -95,7 +97,7 @@ class Instructions with SerializerMixin {
   final Module module;
 
   /// Locals declared in this body, including parameters.
-  final List<Local> locals;
+  final List<Local> locals = [];
 
   /// Is this the initializer of a global variable?
   final bool isGlobalInitializer;
@@ -129,9 +131,15 @@ class Instructions with SerializerMixin {
   final List<ValueType> _stackTypes = [];
   bool _reachable = true;
 
+  /// Whether each local is currently definitely initialized.
+  final List<bool> _localInitialized = [];
+
+  /// Stack of currently initialized non-defaultable locals.
+  final List<int> _localInitializationStack = [];
+
   /// Create a new instruction sequence.
   Instructions(this.module, List<ValueType> outputs,
-      {this.locals = const [], this.isGlobalInitializer = false}) {
+      {this.isGlobalInitializer = false}) {
     _labelStack.add(Expression(const [], outputs));
   }
 
@@ -143,6 +151,32 @@ class Instructions with SerializerMixin {
 
   /// Textual trace of the instructions.
   String get trace => _traceLines.join();
+
+  Local addLocal(ValueType type, {required bool isParameter}) {
+    Local local = Local(locals.length, type);
+    locals.add(local);
+    _localInitialized.add(isParameter || type.defaultable);
+    return local;
+  }
+
+  bool _initializeLocal(Local local) {
+    if (!_localInitialized[local.index]) {
+      _localInitialized[local.index] = true;
+      _localInitializationStack.add(local.index);
+    }
+    return true;
+  }
+
+  bool _localIsInitialized(Local local) {
+    return _localInitialized[local.index];
+  }
+
+  void _resetLocalInitialization(Label label) {
+    while (_localInitializationStack.length >
+        label.localInitializationStackHeight) {
+      _localInitialized[_localInitializationStack.removeLast()] = false;
+    }
+  }
 
   bool _debugTrace(List<Object>? trace,
       {required bool reachableAfter,
@@ -289,6 +323,7 @@ class Instructions with SerializerMixin {
       _stackTypes.length = label.baseStackHeight;
       _stackTypes.addAll(outputs);
     }
+    _resetLocalInitialization(label);
     return _debugTrace([if (label.hasOrdinal) "$label:", ...trace],
         reachableAfter: reachableAfter,
         indentBefore: -1,
@@ -324,6 +359,7 @@ class Instructions with SerializerMixin {
     label.depth = _labelStack.length;
     label.baseStackHeight = _stackTypes.length - label.inputs.length;
     label.reachable = reachable;
+    label.localInitializationStackHeight = _localInitializationStack.length;
     _labelStack.add(label);
     assert(_verifyStartOfBlock(label, trace: trace));
     writeByte(encoding);
@@ -545,6 +581,8 @@ class Instructions with SerializerMixin {
   void local_get(Local local) {
     assert(locals[local.index] == local);
     assert(_verifyTypes(const [], [local.type], trace: ['local.get', local]));
+    assert(_localIsInitialized(local) ||
+        _reportError("Uninitialized local with non-defaultable type"));
     writeByte(0x20);
     writeUnsigned(local.index);
   }
@@ -553,6 +591,7 @@ class Instructions with SerializerMixin {
   void local_set(Local local) {
     assert(locals[local.index] == local);
     assert(_verifyTypes([local.type], const [], trace: ['local.set', local]));
+    assert(_initializeLocal(local));
     writeByte(0x21);
     writeUnsigned(local.index);
   }
@@ -562,6 +601,7 @@ class Instructions with SerializerMixin {
     assert(locals[local.index] == local);
     assert(
         _verifyTypes([local.type], [local.type], trace: ['local.tee', local]));
+    assert(_initializeLocal(local));
     writeByte(0x22);
     writeUnsigned(local.index);
   }

@@ -228,17 +228,13 @@ class Compiler
   //
   // The resulting future will complete with true if the compilation
   // succeeded.
-  Future<bool> run() => selfTask.measureSubtask("run", () {
+  Future<bool> run() => selfTask.measureSubtask("run", () async {
         measurer.startWallClock();
         var setupDuration = measurer.elapsedWallClock;
-        var success = Future.sync(() => runInternal())
-            .catchError((error, StackTrace stackTrace) =>
+        await runInternal()
+            .onError((error, stackTrace) =>
                 _reporter.onError(options.compilationTarget, error, stackTrace))
-            .whenComplete(() {
-          measurer.stopWallClock();
-        }).then((_) {
-          return !compilationFailed;
-        });
+            .whenComplete(() => measurer.stopWallClock());
         if (options.verbose) {
           var timings = StringBuffer();
           computeTimings(setupDuration, timings);
@@ -249,7 +245,7 @@ class Compiler
           collectMetrics(metrics);
           logInfo('$metrics');
         }
-        return success;
+        return !compilationFailed;
       });
 
   /// Dumps a list of unused [ir.Library]'s in the [KernelResult]. This *must*
