@@ -135,13 +135,15 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
   }
 
   set value(js.Expression value) {
-    assert(!isFinalized && value != null);
+    assert(!isFinalized, 'TypeReference already finalized: $typeRecipe');
+    assert(value != null,
+        'TypeReference must not be finalized to `null`: $typeRecipe');
     _value = value;
   }
 
   @override
   js.Expression get value {
-    assert(isFinalized, 'TypeReference is unassigned');
+    assert(isFinalized, 'TypeReference not finalized: $typeRecipe');
     return _value;
   }
 
