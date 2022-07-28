@@ -135,7 +135,7 @@ vars = {
   "path_rev": "9955b27b9bb98d87591208e19eb01c51d29fd467",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "fa84ddd0e39f45bf3f09dcc5d6b9fbdda7820fef",
-  "protobuf_rev": "a840335449e6a2a9617d2ebe5ecd0d577e071248",
+  "protobuf_rev": "9aad6aadcc0fc616051c7e0eaef78c26b3dd7b60",
   "pub_rev": "9bf4289d6fd5d6872a8929d6312bbd7098f3ea9c", # manually rev'd
   "pub_semver_rev": "5c0b4bfd5ca57fe16f1319c581dc8c882e9b8cb2",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
