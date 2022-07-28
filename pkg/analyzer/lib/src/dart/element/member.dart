@@ -32,6 +32,12 @@ class ConstructorMember extends ExecutableMember
             const <TypeParameterElement>[]);
 
   @override
+  ConstructorAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
   ConstructorElement get declaration => super.declaration as ConstructorElement;
 
   @override
@@ -329,6 +335,12 @@ class FieldMember extends VariableMember implements FieldElement {
     super.substitution,
     super.isLegacy,
   );
+
+  @override
+  FieldAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
 
   @override
   FieldElement get declaration => super.declaration as FieldElement;
@@ -779,6 +791,12 @@ class MethodMember extends ExecutableMember implements MethodElement {
   );
 
   @override
+  MethodAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
   MethodElement get declaration => super.declaration as MethodElement;
 
   @Deprecated('Use enclosingElement2 instead')
@@ -983,6 +1001,12 @@ class PropertyAccessorMember extends ExecutableMember
     super.isLegacy,
     super.typeParameters,
   );
+
+  @override
+  PropertyAccessorAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
 
   @override
   PropertyAccessorElement? get correspondingGetter {

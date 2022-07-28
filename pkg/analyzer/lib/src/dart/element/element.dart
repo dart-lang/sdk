@@ -610,6 +610,18 @@ class ClassElementImpl extends AbstractClassElementImpl {
   }
 
   @override
+  ClassAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  AugmentedClassElement get augmented {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
   List<ConstructorElement> get constructors {
     if (!identical(_constructors, _Sentinel.constructorElement)) {
       return _constructors;
@@ -1362,6 +1374,12 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// Initialize a newly created constructor element to have the given [name]
   /// and [offset].
   ConstructorElementImpl(super.name, super.offset);
+
+  @override
+  ConstructorAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
 
   /// Return the constant initializers for this element, which will be empty if
   /// there are no initializers, or `null` if there was an error in the source.
@@ -2868,7 +2886,7 @@ class ElementLocationImpl implements ElementLocation {
 }
 
 /// An [AbstractClassElementImpl] which is an enum.
-class EnumElementImpl extends AbstractClassElementImpl {
+class EnumElementImpl extends AbstractClassElementImpl implements EnumElement {
   ElementLinkedData? linkedData;
   List<ConstructorElement> _constructors = _Sentinel.constructorElement;
 
@@ -2879,6 +2897,18 @@ class EnumElementImpl extends AbstractClassElementImpl {
   @override
   List<PropertyAccessorElement> get accessors {
     return _accessors;
+  }
+
+  @override
+  Never get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  Never get augmented {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
   }
 
   List<FieldElement> get constants {
@@ -3451,6 +3481,12 @@ class FieldElementImpl extends PropertyInducingElementImpl
   /// Initialize a newly created synthetic field element to have the given
   /// [name] at the given [offset].
   FieldElementImpl(super.name, super.offset);
+
+  @override
+  FieldAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
 
   @override
   FieldElement get declaration => this;
@@ -4751,6 +4787,12 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   MethodElementImpl(super.name, super.offset);
 
   @override
+  MethodAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
   MethodElement get declaration => prototype ?? this;
 
   @override
@@ -4805,7 +4847,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 }
 
 /// A [ClassElementImpl] representing a mixin declaration.
-class MixinElementImpl extends ClassElementImpl {
+class MixinElementImpl extends ClassElementImpl implements MixinElement {
   // TODO(brianwilkerson) Consider creating an abstract superclass of
   // ClassElementImpl that contains the portions of the API that this class
   // needs, and make this class extend the new class.
@@ -4820,6 +4862,18 @@ class MixinElementImpl extends ClassElementImpl {
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   MixinElementImpl(super.name, super.offset);
+
+  @override
+  Never get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  Never get augmented {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
 
   @override
   bool get isAbstract => true;
@@ -5637,6 +5691,12 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
         (variable as FieldElementImpl).isAbstract;
     isStatic = variable.isStatic;
     isSynthetic = true;
+  }
+
+  @override
+  PropertyAccessorAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
   }
 
   @override
