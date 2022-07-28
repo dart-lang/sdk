@@ -458,6 +458,12 @@ class _MustBeOverridden {
   const _MustBeOverridden();
 }
 
+@Target({
+  TargetKind.field,
+  TargetKind.getter,
+  TargetKind.method,
+  TargetKind.setter,
+})
 class _MustCallSuper {
   const _MustCallSuper();
 }
