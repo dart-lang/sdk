@@ -408,6 +408,9 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     builder.addInsertion(_enclosingUnitMember!.end, (builder) {
       builder.writeln();
       builder.writeln();
+      var useSuperParameters = _featureSet.isEnabled(Feature.super_parameters);
+      var paramsToInitialize =
+          _parameters.where((p) => p.constructorName != p.name).toList();
       builder.writeClassDeclaration(
         name,
         superclass: classStatelessWidget!.instantiate(
@@ -425,15 +428,19 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
               // Add the required `key` parameter.
               builder.write('    ');
-              builder.writeParameter(
-                'key',
-                type: classKey!.instantiate(
-                  typeArguments: const [],
-                  nullabilitySuffix: _isNonNullable
-                      ? NullabilitySuffix.question
-                      : NullabilitySuffix.star,
-                ),
-              );
+              if (useSuperParameters) {
+                builder.write('super.key');
+              } else {
+                builder.writeParameter(
+                  'key',
+                  type: classKey!.instantiate(
+                    typeArguments: const [],
+                    nullabilitySuffix: _isNonNullable
+                        ? NullabilitySuffix.question
+                        : NullabilitySuffix.star,
+                  ),
+                );
+              }
               builder.writeln(',');
 
               // Add parameters for fields, local, and method parameters.
@@ -459,17 +466,25 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
               builder.write('  }');
             },
-            initializerWriter: () {
-              for (var parameter in _parameters) {
-                if (parameter.constructorName != parameter.name) {
-                  builder.write(parameter.name);
-                  builder.write(' = ');
-                  builder.write(parameter.constructorName);
-                  builder.write(', ');
-                }
-              }
-              builder.write('super(key: key)');
-            },
+            initializerWriter: useSuperParameters && paramsToInitialize.isEmpty
+                ? null
+                : () {
+                    for (var i = 0; i < paramsToInitialize.length; ++i) {
+                      var parameter = paramsToInitialize[i];
+                      if (i > 0) {
+                        builder.write(', ');
+                      }
+                      builder.write(parameter.name);
+                      builder.write(' = ');
+                      builder.write(parameter.constructorName);
+                    }
+                    if (!useSuperParameters) {
+                      if (paramsToInitialize.isNotEmpty) {
+                        builder.write(', ');
+                      }
+                      builder.write('super(key: key)');
+                    }
+                  },
           );
           builder.writeln();
           builder.writeln();

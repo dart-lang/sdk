@@ -677,9 +677,11 @@ void foo(int arg) {}
 class ExtractWidgetRefactorCodeActionsTest extends AbstractCodeActionsTest {
   final extractWidgetTitle = 'Extract Widget';
 
-  /// Nullability suffix expected in this test class.
-  String get expectedNullableSuffix => '?';
-
+  String get expectedNewWidgetConstructorDeclaration => '''
+const NewWidget({
+    super.key,
+  });
+''';
   @override
   void setUp() {
     super.setUp();
@@ -728,10 +730,7 @@ class MyWidget extends StatelessWidget {
 }
 
 class NewWidget extends StatelessWidget {
-  const NewWidget({
-    Key$expectedNullableSuffix key,
-  }) : super(key: key);
-
+  $expectedNewWidgetConstructorDeclaration
   @override
   Widget build(BuildContext context) {
     return new Column(
@@ -776,7 +775,11 @@ void f() {}
 class ExtractWidgetRefactorCodeActionsWithoutNullSafetyTest
     extends ExtractWidgetRefactorCodeActionsTest {
   @override
-  String get expectedNullableSuffix => '';
+  String get expectedNewWidgetConstructorDeclaration => '''
+const NewWidget({
+    Key key,
+  }) : super(key: key);
+''';
 
   @override
   String get testPackageLanguageVersion => '2.9';
