@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -1351,6 +1352,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       int timeStamp, this.libraryChangeBuilder)
       : super(changeBuilder, resolvedUnit.path, timeStamp);
 
+  CodeStyleOptions get codeStyleOptions =>
+      resolvedUnit.session.analysisContext.analysisOptions.codeStyleOptions;
+
   @override
   bool get hasEdits => super.hasEdits || librariesToImport.isNotEmpty;
 
@@ -1794,7 +1798,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       var whatPath = pathContext.fromUri(uri);
       return getRelativePath(whatPath);
     }
-    var preferRelative = _isLintEnabled('prefer_relative_imports');
+    var preferRelative = codeStyleOptions.useRelativeUris;
     if (forceRelative || (preferRelative && !forceAbsolute)) {
       if (canBeRelativeImport(uri, resolvedUnit.uri)) {
         var whatPath = resolvedUnit.session.uriConverter.uriToPath(uri);
@@ -1831,12 +1835,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// Return `true` if the [element] is defined in the target library.
   bool _isDefinedLocally(Element element) {
     return element.library == resolvedUnit.libraryElement;
-  }
-
-  bool _isLintEnabled(String lintName) {
-    final analysisOptions =
-        resolvedUnit.session.analysisContext.analysisOptions;
-    return analysisOptions.isLintEnabled(lintName);
   }
 
   /// Create an edit to replace the return type of the innermost function

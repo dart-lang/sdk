@@ -1459,6 +1459,21 @@ class A {
     );
   }
 
+  Future<void> test_prefixedTypes() async {
+    // Prefixed type names that are not tear-offs should never be included.
+    final contents = '''
+// ignore_for_file: unused_local_variable
+import 'dart:io' as io;
+
+void ^f(io.File f) {
+  io.Directory? d;
+}
+    ''';
+
+    final calls = await findOutgoingCalls(contents);
+    expect(calls, isEmpty);
+  }
+
   Future<void> test_setter() async {
     final contents = '''
 import 'other.dart';

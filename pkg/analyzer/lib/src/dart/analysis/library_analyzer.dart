@@ -117,13 +117,6 @@ class LibraryAnalyzer {
 
     var node = NodeLocator(offset).searchWithin(parsedUnit);
 
-    if (_hasEmptyCompletionContext(node)) {
-      return AnalysisForCompletionResult(
-        parsedUnit: parsedUnit,
-        resolvedNodes: [],
-      );
-    }
-
     var errorListener = RecordingErrorListener();
 
     return performance.run('resolve', (performance) {
@@ -1010,81 +1003,6 @@ class LibraryAnalyzer {
       ...constantFinder.constantsToCompute,
       ...dependenciesFinder.dependencies,
     ];
-  }
-
-  static bool _hasEmptyCompletionContext(AstNode? node) {
-    if (node is DoubleLiteral || node is IntegerLiteral) {
-      return true;
-    }
-
-    if (node is SimpleIdentifier) {
-      var parent = node.parent;
-
-      if (parent is ConstructorDeclaration && parent.name == node) {
-        return true;
-      }
-
-      if (parent is ConstructorFieldInitializer && parent.fieldName == node) {
-        return true;
-      }
-
-      if (parent is FormalParameter && parent.identifier == node) {
-        // We use elements to access fields.
-        if (parent is FieldFormalParameter) {
-          return false;
-        }
-        // We use elements to access the enclosing constructor.
-        if (parent is SuperFormalParameter) {
-          return false;
-        }
-        // We have a contributor that looks at the type, but it is syntactic.
-        return true;
-      }
-
-      if (parent is FunctionDeclaration && parent.name == node) {
-        return true;
-      }
-
-      if (parent is MethodDeclaration && parent.name == node) {
-        return true;
-      }
-
-      // The name of a NamedType does not provide any context.
-      // So, we don't need to resolve anything.
-      if (parent is NamedType) {
-        var parent3 = parent.parent?.parent;
-        // `class A {foo^ int bar = 0;}` looks as `class A {foo int; bar = 0;}`.
-        if (parent3 is FieldDeclaration) {
-          return false;
-        }
-        // `{foo^ print(0);}` looks as `foo print; (0);`.
-        if (parent3 is VariableDeclarationStatement &&
-            parent3.semicolon.isSynthetic) {
-          return false;
-        }
-        return true;
-      }
-
-      if (parent is TypeParameter && parent.name == node) {
-        return true;
-      }
-
-      // We have a contributor that looks at the type, but it is syntactic.
-      if (parent is VariableDeclaration && parent.name == node) {
-        final parent2 = parent.parent;
-        final parent3 = parent2?.parent;
-        // `class A { foo^ }` looks like `class A { <noType> foo; }`.
-        if (parent2 is VariableDeclarationList &&
-            parent2.type == null &&
-            parent3 is FieldDeclaration &&
-            parent3.semicolon.isSynthetic) {
-          return false;
-        }
-        return true;
-      }
-    }
-
-    return false;
   }
 }
 

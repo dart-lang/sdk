@@ -9,26 +9,53 @@
 import 'package:kernel/ast.dart' as ir
     show
         Class,
+        Constructor,
         DartType,
+        Expression,
         Field,
+        InterfaceType,
+        LibraryDependency,
+        LocalFunction,
         Member,
+        Name,
         Procedure,
         ProcedureStubKind,
-        LibraryDependency,
-        Expression;
-import 'package:kernel/type_environment.dart' as ir show StaticTypeContext;
+        StaticInvocation;
+import 'package:kernel/type_environment.dart' as ir
+    show TypeEnvironment, StaticTypeContext;
 import '../common.dart' show DiagnosticReporter;
 import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/entities.dart'
-    show ClassEntity, ConstructorEntity, MemberEntity, ImportEntity;
+    show
+        ClassEntity,
+        ConstructorEntity,
+        FieldEntity,
+        FunctionEntity,
+        Local,
+        MemberEntity,
+        ImportEntity;
 import '../constants/values.dart';
 import '../elements/indexed.dart' show IndexedClass;
+import '../elements/names.dart' show Name;
 import '../elements/types.dart' show DartType, DartTypes, InterfaceType;
 import '../ir/constants.dart' show Dart2jsConstantEvaluator;
 import '../native/behavior.dart';
+import '../js_backend/native_data.dart' show NativeBasicData;
 import '../options.dart';
+import '../universe/selector.dart';
 
-abstract class KernelElementEnvironment implements ElementEnvironment {}
+enum ForeignKind {
+  JS,
+  JS_BUILTIN,
+  JS_EMBEDDED_GLOBAL,
+  JS_INTERCEPTOR_CONSTANT,
+  NONE,
+}
+
+abstract class KernelElementEnvironment implements ElementEnvironment {
+  Iterable<ConstantValue> getMemberMetadata(MemberEntity member,
+      {bool includeParameterMetadata = false});
+}
 
 abstract class KernelToElementMapForNativeData {
   KernelElementEnvironment get elementEnvironment;
@@ -73,6 +100,48 @@ abstract class KernelToElementMapForDeferredLoading {
   ImportEntity getImport(ir.LibraryDependency? node);
   ir.Member getMemberNode(MemberEntity member);
   ir.StaticTypeContext getStaticTypeContext(MemberEntity member);
+}
+
+abstract class KernelToElementMapForKernelImpact {
+  CommonElements get commonElements;
+  KernelElementEnvironment get elementEnvironment;
+  NativeBasicData get nativeBasicData;
+  ir.TypeEnvironment get typeEnvironment;
+  InterfaceType createInterfaceType(
+      ir.Class cls, List<ir.DartType> typeArguments);
+  ClassEntity getClass(ir.Class node);
+  ConstantValue? getConstantValue(
+      ir.StaticTypeContext staticTypeContext, ir.Expression node,
+      {bool requireConstant = true,
+      bool implicitNull = false,
+      bool checkCasts = true});
+  ConstructorEntity getConstructor(ir.Member node);
+  ConstructorEntity getSuperConstructor(
+      ir.Constructor sourceNode, ir.Member targetNode);
+  DartType getDartType(ir.DartType type);
+  FieldEntity getField(ir.Field node);
+  ForeignKind getForeignKind(ir.StaticInvocation node);
+  FunctionEntity getMethod(ir.Procedure node);
+  FunctionEntity getSuperNoSuchMethod(ClassEntity cls);
+  InterfaceType getInterfaceType(ir.InterfaceType type);
+  ImportEntity? getImport(ir.LibraryDependency? node);
+  InterfaceType? getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node);
+  Local getLocalFunction(ir.LocalFunction node);
+  MemberEntity getMember(ir.Member node);
+  Name getName(ir.Name name);
+  NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
+      Iterable<String> createsAnnotations, Iterable<String> returnsAnnotations,
+      {required bool isJsInterop});
+  NativeBehavior getNativeBehaviorForFieldStore(ir.Field field);
+  NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node);
+  NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
+  NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+      ir.StaticInvocation node);
+  NativeBehavior getNativeBehaviorForMethod(ir.Member member,
+      Iterable<String> createsAnnotations, Iterable<String> returnsAnnotations,
+      {required bool isJsInterop});
+  Selector getInvocationSelector(ir.Name irName, int positionalArguments,
+      List<String> namedArguments, int typeArguments);
 }
 
 // Members which dart2js ignores.

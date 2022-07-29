@@ -4,10 +4,14 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'dart/test_all.dart' as dart_all;
+import 'dart/test_all.dart' as dart;
+import 'snippet_manager_test.dart' as snippet_manager;
+import 'snippet_request_test.dart' as snippet_request;
 
 void main() {
   defineReflectiveSuite(() {
-    dart_all.main();
+    dart.main();
+    snippet_manager.main();
+    snippet_request.main();
   }, name: 'snippets');
 }

@@ -190,13 +190,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     } else if (element.isMustBeOverridden) {
       if ((parent is MethodDeclaration && parent.isStatic) ||
-          (parent is FieldDeclaration && parent.isStatic)) {
+          (parent is FieldDeclaration && parent.isStatic) ||
+          parent.parent is ExtensionDeclaration ||
+          parent.parent is EnumDeclaration) {
         _errorReporter.reportErrorForNode(
           HintCode.INVALID_ANNOTATION_TARGET,
           node,
           [node.name.name, 'instance members of classes and mixins'],
         );
-      } else if (parent.parent is ExtensionDeclaration ||
+      }
+    } else if (element.isMustCallSuper) {
+      if ((parent is MethodDeclaration && parent.isStatic) ||
+          (parent is FieldDeclaration && parent.isStatic) ||
+          parent.parent is ExtensionDeclaration ||
           parent.parent is EnumDeclaration) {
         _errorReporter.reportErrorForNode(
           HintCode.INVALID_ANNOTATION_TARGET,

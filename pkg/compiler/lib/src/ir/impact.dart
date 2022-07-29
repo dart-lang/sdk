@@ -162,12 +162,12 @@ abstract class ImpactRegistry {
   void registerInstanceSet(
       ir.DartType receiverType, ClassRelation relation, ir.Member target);
 
-  void registerSuperInvocation(ir.Member target, int positionalArguments,
+  void registerSuperInvocation(ir.Member? target, int positionalArguments,
       List<String> namedArguments, List<ir.DartType> typeArguments);
 
-  void registerSuperGet(ir.Member target);
+  void registerSuperGet(ir.Member? target);
 
-  void registerSuperSet(ir.Member target);
+  void registerSuperSet(ir.Member? target);
 
   void registerSuperInitializer(
       ir.Constructor source,

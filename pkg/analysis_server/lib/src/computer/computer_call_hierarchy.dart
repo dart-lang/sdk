@@ -478,7 +478,11 @@ class _OutboundCallVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    collect(node.identifier);
+    // Don't collect prefixed identifiers that are just type names. We only
+    // want invocations and tear-offs.
+    if (node.parent is! NamedType) {
+      collect(node.identifier);
+    }
     super.visitPrefixedIdentifier(node);
   }
 

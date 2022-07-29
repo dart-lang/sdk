@@ -126,8 +126,8 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -177,8 +177,8 @@ Widget f() {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -213,8 +213,8 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -246,8 +246,8 @@ Widget f() {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -300,8 +300,8 @@ Widget f() {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -403,9 +403,9 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
+    super.key,
     required this.c,
-  }) : super(key: key);
+  });
 
   final C c;
 
@@ -455,8 +455,8 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -519,11 +519,11 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
+    super.key,
     required this.foo,
     required this.p1,
     required this.p2,
-  }) : super(key: key);
+  });
 
   final String foo;
   final String p1;
@@ -594,11 +594,11 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
+    super.key,
     required this.foo,
     required this.p1,
     required this.p2,
-  }) : super(key: key);
+  });
 
   final String foo;
   final String p1;
@@ -649,9 +649,9 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
+    super.key,
     required this.field,
-  }) : super(key: key);
+  });
 
   final String field;
 
@@ -700,9 +700,9 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
+    super.key,
     required this.c,
-  }) : super(key: key);
+  });
 
   final C c;
 
@@ -743,8 +743,8 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -848,9 +848,9 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
+    super.key,
     required this.c,
-  }) : super(key: key);
+  });
 
   final C c;
 
@@ -912,9 +912,9 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
+    super.key,
     required this.local,
-  }) : super(key: key);
+  });
 
   final String local;
 
@@ -982,9 +982,9 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
+    super.key,
     required String field,
-  }) : _field = field, super(key: key);
+  }) : _field = field;
 
   final String _field;
 
@@ -1031,10 +1031,10 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
+    super.key,
     required this.field,
     required String field2,
-  }) : _field = field2, super(key: key);
+  }) : _field = field2;
 
   final int field;
   final String _field;
@@ -1087,10 +1087,10 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
+    super.key,
     required this.field,
     required this.local,
-  }) : super(key: key);
+  });
 
   final String field;
   final String local;
@@ -1156,10 +1156,10 @@ Widget f() {
 
 class Test extends StatelessWidget {
   const Test({
-    Key? key,
+    super.key,
     required this.index,
     required this.a,
-  }) : super(key: key);
+  });
 
   final int index;
   final String a;
@@ -1207,6 +1207,68 @@ void f() {
 
     assertRefactoringStatus(await refactoring.checkInitialConditions(),
         RefactoringProblemSeverity.FATAL);
+  }
+
+  Future<void> test_useSuperParameters_disabled() async {
+    await indexTestUnit('''
+// No super params.    
+// @dart = 2.15
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: <Widget>[
+        new Column(
+          children: <Widget>[
+            new Text('AAA'),
+            new Text('BBB'),
+          ],
+        ),
+        new Text('CCC'),
+        new Text('DDD'),
+      ],
+    );
+  }
+}
+''');
+    _createRefactoringForStringOffset('new Column');
+
+    await _assertSuccessfulRefactoring('''
+// No super params.    
+// @dart = 2.15
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: <Widget>[
+        Test(),
+        new Text('CCC'),
+        new Text('DDD'),
+      ],
+    );
+  }
+}
+
+class Test extends StatelessWidget {
+  const Test({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return new Column(
+      children: <Widget>[
+        new Text('AAA'),
+        new Text('BBB'),
+      ],
+    );
+  }
+}
+''');
   }
 
   Future<void> _assertRefactoringChange(String expectedCode) async {

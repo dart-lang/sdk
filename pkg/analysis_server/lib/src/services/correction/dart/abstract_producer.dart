@@ -32,10 +32,6 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// An object that can compute a correction (fix or assist) in a Dart file.
 abstract class CorrectionProducer extends SingleCorrectionProducer {
-  /// Return the code style options for the current context.
-  CodeStyleOptions get codeStyleOptions =>
-      sessionHelper.session.analysisContext.analysisOptions.codeStyleOptions;
-
   /// Return the type for the class `bool` from `dart:core`.
   DartType get coreTypeBool => resolvedResult.typeProvider.boolType;
 
@@ -389,6 +385,9 @@ abstract class _AbstractCorrectionProducer {
 
   /// Return `true` if the fixes are being built for the bulk-fix request.
   bool get applyingBulkFixes => _context.applyingBulkFixes;
+
+  CodeStyleOptions get codeStyleOptions =>
+      sessionHelper.session.analysisContext.analysisOptions.codeStyleOptions;
 
   /// The most deeply nested node that completely covers the highlight region of
   /// the diagnostic, or `null` if there is no diagnostic or if such a node does

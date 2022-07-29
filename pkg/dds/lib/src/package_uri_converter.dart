@@ -28,10 +28,13 @@ class PackageUriConverter {
     if (converter != null && useLocalResolver) {
       final vmUris = result['uris'];
 
-      final localUris = uris.map((x) => converter(x as String)).toList();
+      final localPaths = uris.map((x) => converter(x as String)).toList();
 
       final resultUris = <String?>[
-        for (var i = 0; i < vmUris.length; i++) localUris[i] ?? vmUris[i],
+        for (var i = 0; i < vmUris.length; i++)
+          localPaths[i] != null
+              ? Uri.file(localPaths[i]!).toString()
+              : vmUris[i],
       ];
 
       return <String, dynamic>{
