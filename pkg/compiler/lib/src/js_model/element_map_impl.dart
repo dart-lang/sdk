@@ -55,10 +55,12 @@ import 'closure.dart';
 import 'closure_migrated.dart' as closureMigrated;
 import 'elements.dart';
 import 'element_map.dart';
+import 'element_map_interfaces.dart' as interfaces show JsKernelToElementMap;
 import 'env.dart';
 import 'locals.dart';
 
-class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
+class JsKernelToElementMap
+    implements interfaces.JsKernelToElementMap, JsToElementMap, IrToElementMap {
   /// Tag used for identifying serialized [JsKernelToElementMap] objects in a
   /// debugging data stream.
   static const String tag = 'js-kernel-to-element-map';

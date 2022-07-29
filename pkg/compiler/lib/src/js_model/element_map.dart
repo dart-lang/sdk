@@ -19,7 +19,6 @@ import '../ir/util.dart';
 import '../js_model/class_type_variable_access.dart';
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/behavior.dart';
-import '../serialization/serialization.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../world.dart';
@@ -36,6 +35,7 @@ abstract class JsToElementMap implements interfaces.JsToElementMap {
   JCommonElements get commonElements;
 
   /// Access to the [DartTypes] object.
+  @override
   DartTypes get types;
 
   /// Returns the [DartType] corresponding to [type].
@@ -64,6 +64,7 @@ abstract class JsToElementMap implements interfaces.JsToElementMap {
   Selector getSelector(ir.Expression node);
 
   /// Returns the [MemberEntity] corresponding to the member [node].
+  @override
   MemberEntity getMember(ir.Member node);
 
   /// Returns the [FunctionEntity] corresponding to the procedure [node].
@@ -102,6 +103,7 @@ abstract class JsToElementMap implements interfaces.JsToElementMap {
   // TODO(johnniwinther,sigmund): Remove the need for [memberContext]. This is
   //  only needed because effectively constant expressions are not replaced by
   //  constant expressions during resolution.
+  @override
   ConstantValue getConstantValue(
       ir.Member memberContext, ir.Expression expression,
       {bool requireConstant = true, bool implicitNull = false});
@@ -111,6 +113,7 @@ abstract class JsToElementMap implements interfaces.JsToElementMap {
   ///
   /// These should only appear within the defaultValues object attached to
   /// closures and tearoffs when emitting Function.apply.
+  @override
   ConstantValue getRequiredSentinelConstantValue();
 
   /// Return the [ImportEntity] corresponding to [node].
@@ -120,6 +123,7 @@ abstract class JsToElementMap implements interfaces.JsToElementMap {
   ClassDefinition getClassDefinition(covariant ClassEntity cls);
 
   /// [ElementEnvironment] for library, class and member lookup.
+  @override
   JElementEnvironment get elementEnvironment;
 
   /// Returns the list of [DartType]s corresponding to [types].
@@ -240,81 +244,6 @@ ir.FunctionNode getFunctionNode(
     default:
   }
   return null;
-}
-
-enum ClassKind {
-  regular,
-  closure,
-  // TODO(efortuna, johnniwinther): Record is not a class, but is
-  // masquerading as one currently for consistency with the old element model.
-  record,
-}
-
-/// Definition information for a [ClassEntity].
-abstract class ClassDefinition {
-  /// The kind of the defined class. This determines the semantics of [node].
-  ClassKind get kind;
-
-  /// The defining [ir.Node] for this class, if supported by its [kind].
-  ir.Node get node;
-
-  /// The canonical location of [cls]. This is used for sorting the classes
-  /// in the emitted code.
-  SourceSpan get location;
-
-  /// Deserializes a [ClassDefinition] object from [source].
-  factory ClassDefinition.readFromDataSource(DataSourceReader source) {
-    ClassKind kind = source.readEnum(ClassKind.values);
-    switch (kind) {
-      case ClassKind.regular:
-        return RegularClassDefinition.readFromDataSource(source);
-      case ClassKind.closure:
-        return ClosureClassDefinition.readFromDataSource(source);
-      case ClassKind.record:
-        return RecordContainerDefinition.readFromDataSource(source);
-    }
-    throw UnsupportedError("Unexpected ClassKind $kind");
-  }
-
-  /// Serializes this [ClassDefinition] to [sink].
-  void writeToDataSink(DataSinkWriter sink);
-}
-
-/// A class directly defined by its [ir.Class] node.
-class RegularClassDefinition implements ClassDefinition {
-  /// Tag used for identifying serialized [RegularClassDefinition] objects in a
-  /// debugging data stream.
-  static const String tag = 'regular-class-definition';
-
-  @override
-  final ir.Class node;
-
-  RegularClassDefinition(this.node);
-
-  factory RegularClassDefinition.readFromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    ir.Class node = source.readClassNode();
-    source.end(tag);
-    return RegularClassDefinition(node);
-  }
-
-  @override
-  void writeToDataSink(DataSinkWriter sink) {
-    sink.writeEnum(kind);
-    sink.begin(tag);
-    sink.writeClassNode(node);
-    sink.end(tag);
-  }
-
-  @override
-  SourceSpan get location => computeSourceSpanFromTreeNode(node);
-
-  @override
-  ClassKind get kind => ClassKind.regular;
-
-  @override
-  String toString() => 'RegularClassDefinition(kind:$kind,'
-      'node:$node,location:$location)';
 }
 
 /// Returns the initializer for [field].

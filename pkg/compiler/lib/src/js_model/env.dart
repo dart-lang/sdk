@@ -19,9 +19,18 @@ import '../js_model/class_type_variable_access.dart';
 import '../ordered_typeset.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
-import 'closure.dart';
-import 'element_map.dart';
-import 'element_map_impl.dart';
+import 'closure.dart'
+    show
+        ClosureClassData,
+        RecordClassData,
+        ClosureFunctionData,
+        ClosureFieldData;
+import 'element_map_interfaces.dart' show JsToElementMap, JsKernelToElementMap;
+import 'element_map_migrated.dart'
+    show
+        ClassDefinition,
+        MemberDefinition,
+        forEachOrderedParameterByFunctionNode;
 import 'elements.dart';
 
 /// Environment for fast lookup of component libraries.
