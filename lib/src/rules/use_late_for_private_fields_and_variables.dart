@@ -129,6 +129,11 @@ class _Visitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    // See: https://dart.dev/tools/diagnostic-messages#late_final_field_with_const_constructor
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (var variable in node.fields.variables) {
       var parent = node.parent;
