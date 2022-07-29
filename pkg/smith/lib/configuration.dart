@@ -578,6 +578,8 @@ class Architecture extends NamedEnum {
   static const ia32 = Architecture._('ia32');
   static const x64 = Architecture._('x64');
   static const x64c = Architecture._('x64c');
+  static const simx64 = Architecture._('simx64');
+  static const simx64c = Architecture._('simx64c');
   static const arm = Architecture._('arm');
   // ignore: constant_identifier_names
   static const arm_x64 = Architecture._('arm_x64');
@@ -597,6 +599,8 @@ class Architecture extends NamedEnum {
     ia32,
     x64,
     x64c,
+    simx64,
+    simx64c,
     arm,
     arm_x64,
     arm64,

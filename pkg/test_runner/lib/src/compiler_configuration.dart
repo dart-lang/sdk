@@ -1005,6 +1005,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     switch (_configuration.architecture) {
       case Architecture.x64:
       case Architecture.x64c:
+      case Architecture.simx64:
+      case Architecture.simx64c:
         ccFlags = "-m64";
         break;
       case Architecture.simarm64:

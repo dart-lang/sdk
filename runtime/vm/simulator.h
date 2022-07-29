@@ -8,8 +8,10 @@
 #include "vm/globals.h"
 
 #if defined(USING_SIMULATOR)
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32)
 #error Simulator not implemented.
+#elif defined(TARGET_ARCH_X64)
+#include "vm/simulator_x64.h"
 #elif defined(TARGET_ARCH_ARM)
 #include "vm/simulator_arm.h"
 #elif defined(TARGET_ARCH_ARM64)

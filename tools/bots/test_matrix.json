@@ -1338,6 +1338,14 @@
           ]
         },
         {
+          "name": "build dart (cross x64)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=simx64",
+            "gen_snapshot"
+          ]
+        },
+        {
           "name": "vm nnbd tests in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
