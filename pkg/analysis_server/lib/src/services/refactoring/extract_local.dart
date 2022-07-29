@@ -8,11 +8,11 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
+import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -61,6 +61,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     utils = CorrectionUtils(resolveResult);
   }
 
+  CodeStyleOptions get codeStyleOptions =>
+      resolveResult.session.analysisContext.analysisOptions.codeStyleOptions;
+
   String get file => resolveResult.path;
 
   @override
@@ -73,7 +76,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   String get _declarationKeyword {
     if (_isPartOfConstantExpression(singleExpression)) {
       return 'const';
-    } else if (_isLintEnabled(LintNames.prefer_final_locals)) {
+    } else if (codeStyleOptions.makeLocalsFinal) {
       return 'final';
     } else {
       return 'var';
@@ -435,11 +438,6 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       node = node.parent;
     }
     return null;
-  }
-
-  bool _isLintEnabled(String name) {
-    var analysisOptions = unitElement.context.analysisOptions;
-    return analysisOptions.isLintEnabled(name);
   }
 
   bool _isPartOfConstantExpression(AstNode? node) {

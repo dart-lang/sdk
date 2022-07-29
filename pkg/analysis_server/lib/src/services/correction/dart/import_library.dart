@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -220,7 +219,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         _ImportAbsoluteLibrary(fixKind, library),
       ]);
     }
-    if (isLintEnabled(LintNames.prefer_relative_imports)) {
+    if (codeStyleOptions.useRelativeUris) {
       return Stream.fromIterable([
         _ImportRelativeLibrary(fixKind, library),
         _ImportAbsoluteLibrary(fixKind, library),
