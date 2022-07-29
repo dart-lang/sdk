@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/snippets/dart/snippet_manager.dart';
+import 'package:analysis_server/src/services/snippets/dart_snippet_request.dart';
+import 'package:analysis_server/src/services/snippets/snippet_context.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../abstract_single_unit.dart';
+import '../../abstract_single_unit.dart';
 import 'test_support.dart';
 
 void main() {

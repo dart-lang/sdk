@@ -5,8 +5,22 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analysis_server/src/services/snippets/dart/dart_snippet_producers.dart';
-import 'package:analysis_server/src/services/snippets/dart/flutter_snippet_producers.dart';
+import 'package:analysis_server/src/services/snippets/dart/class_declaration.dart';
+import 'package:analysis_server/src/services/snippets/dart/do_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/flutter_stateful_widget.dart';
+import 'package:analysis_server/src/services/snippets/dart/flutter_stateful_widget_with_animation.dart';
+import 'package:analysis_server/src/services/snippets/dart/flutter_stateless_widget.dart';
+import 'package:analysis_server/src/services/snippets/dart/for_in_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/for_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/function_declaration.dart';
+import 'package:analysis_server/src/services/snippets/dart/if_else_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/if_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/main_function.dart';
+import 'package:analysis_server/src/services/snippets/dart/switch_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/test_definition.dart';
+import 'package:analysis_server/src/services/snippets/dart/test_group_definition.dart';
+import 'package:analysis_server/src/services/snippets/dart/try_catch_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/while_statement.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:collection/collection.dart';
@@ -2679,8 +2693,8 @@ clas^
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartClassSnippetProducer.prefix,
-      label: DartClassSnippetProducer.label,
+      prefix: ClassDeclaration.prefix,
+      label: ClassDeclaration.label,
     );
 
     expect(updated, r'''
@@ -2720,8 +2734,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartDoWhileLoopSnippetProducer.prefix,
-      label: DartDoWhileLoopSnippetProducer.label,
+      prefix: DoStatement.prefix,
+      label: DoStatement.label,
     );
 
     expect(updated, r'''
@@ -2746,7 +2760,7 @@ class B {}
     await initializeWithSnippetSupport();
     await expectNoSnippet(
       content,
-      FlutterStatelessWidgetSnippetProducer.prefix,
+      FlutterStatelessWidget.prefix,
     );
   }
 
@@ -2760,8 +2774,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartForLoopSnippetProducer.prefix,
-      label: DartForLoopSnippetProducer.label,
+      prefix: ForStatement.prefix,
+      label: ForStatement.label,
     );
 
     expect(updated, r'''
@@ -2783,8 +2797,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartForInLoopSnippetProducer.prefix,
-      label: DartForInLoopSnippetProducer.label,
+      prefix: ForInStatement.prefix,
+      label: ForInStatement.label,
     );
 
     expect(updated, r'''
@@ -2806,8 +2820,8 @@ class A {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartFunctionSnippetProducer.prefix,
-      label: DartFunctionSnippetProducer.label,
+      prefix: FunctionDeclaration.prefix,
+      label: FunctionDeclaration.label,
     );
 
     expect(updated, r'''
@@ -2829,8 +2843,8 @@ void a() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartFunctionSnippetProducer.prefix,
-      label: DartFunctionSnippetProducer.label,
+      prefix: FunctionDeclaration.prefix,
+      label: FunctionDeclaration.label,
     );
 
     expect(updated, r'''
@@ -2850,8 +2864,8 @@ fun^
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartFunctionSnippetProducer.prefix,
-      label: DartFunctionSnippetProducer.label,
+      prefix: FunctionDeclaration.prefix,
+      label: FunctionDeclaration.label,
     );
 
     expect(updated, r'''
@@ -2871,8 +2885,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartIfSnippetProducer.prefix,
-      label: DartIfSnippetProducer.label,
+      prefix: IfStatement.prefix,
+      label: IfStatement.label,
     );
 
     expect(updated, r'''
@@ -2894,10 +2908,9 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartIfElseSnippetProducer.prefix,
-      label: DartIfElseSnippetProducer.label,
+      prefix: IfElseStatement.prefix,
+      label: IfElseStatement.label,
     );
-
     expect(updated, r'''
 void f() {
   if (${1:condition}) {
@@ -2921,8 +2934,8 @@ class B {}
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartMainFunctionSnippetProducer.prefix,
-      label: DartMainFunctionSnippetProducer.label,
+      prefix: MainFunction.prefix,
+      label: MainFunction.label,
     );
 
     expect(updated, r'''
@@ -2957,8 +2970,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartSwitchSnippetProducer.prefix,
-      label: DartSwitchSnippetProducer.label,
+      prefix: SwitchStatement.prefix,
+      label: SwitchStatement.label,
     );
 
     expect(updated, r'''
@@ -2985,8 +2998,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartTestBlockSnippetProducer.prefix,
-      label: DartTestBlockSnippetProducer.label,
+      prefix: TestDefinition.prefix,
+      label: TestDefinition.label,
     );
 
     expect(updated, r'''
@@ -3010,8 +3023,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartTestGroupBlockSnippetProducer.prefix,
-      label: DartTestGroupBlockSnippetProducer.label,
+      prefix: TestGroupDefinition.prefix,
+      label: TestGroupDefinition.label,
     );
 
     expect(updated, r'''
@@ -3033,8 +3046,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartTryCatchSnippetProducer.prefix,
-      label: DartTryCatchSnippetProducer.label,
+      prefix: TryCatchStatement.prefix,
+      label: TryCatchStatement.label,
     );
 
     expect(updated, r'''
@@ -3058,8 +3071,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartWhileLoopSnippetProducer.prefix,
-      label: DartWhileLoopSnippetProducer.label,
+      prefix: WhileStatement.prefix,
+      label: WhileStatement.label,
     );
 
     expect(updated, r'''
@@ -3112,8 +3125,8 @@ class B {}
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: FlutterStatefulWidgetSnippetProducer.prefix,
-      label: FlutterStatefulWidgetSnippetProducer.label,
+      prefix: FlutterStatefulWidget.prefix,
+      label: FlutterStatefulWidget.label,
     );
 
     expect(updated, '''
@@ -3153,9 +3166,8 @@ class B {}
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix:
-          FlutterStatefulWidgetWithAnimationControllerSnippetProducer.prefix,
-      label: FlutterStatefulWidgetWithAnimationControllerSnippetProducer.label,
+      prefix: FlutterStatefulWidgetWithAnimationController.prefix,
+      label: FlutterStatefulWidgetWithAnimationController.label,
     );
 
     expect(updated, '''
@@ -3210,8 +3222,8 @@ class B {}
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
-      label: FlutterStatelessWidgetSnippetProducer.label,
+      prefix: FlutterStatelessWidget.prefix,
+      label: FlutterStatelessWidget.label,
     );
 
     expect(updated, '''
@@ -3244,8 +3256,8 @@ class B {}
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
-      label: FlutterStatelessWidgetSnippetProducer.label,
+      prefix: FlutterStatelessWidget.prefix,
+      label: FlutterStatelessWidget.label,
     );
 
     expect(updated, '''
@@ -3274,8 +3286,8 @@ stless^
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
-      label: FlutterStatelessWidgetSnippetProducer.label,
+      prefix: FlutterStatelessWidget.prefix,
+      label: FlutterStatelessWidget.label,
     );
 
     expect(updated, '''
@@ -3300,8 +3312,8 @@ class \${1:MyWidget} extends StatelessWidget {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
-      label: FlutterStatelessWidgetSnippetProducer.label,
+      prefix: FlutterStatelessWidget.prefix,
+      label: FlutterStatelessWidget.label,
     );
 
     expect(updated, '''
@@ -3330,7 +3342,7 @@ class A {
     await initializeWithSnippetSupport();
     await expectNoSnippet(
       content,
-      FlutterStatelessWidgetSnippetProducer.prefix,
+      FlutterStatelessWidget.prefix,
     );
   }
 

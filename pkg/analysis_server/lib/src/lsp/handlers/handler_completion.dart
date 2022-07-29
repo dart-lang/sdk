@@ -19,7 +19,8 @@ import 'package:analysis_server/src/services/completion/yaml/analysis_options_ge
 import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
-import 'package:analysis_server/src/services/snippets/dart/snippet_manager.dart';
+import 'package:analysis_server/src/services/snippets/dart_snippet_request.dart';
+import 'package:analysis_server/src/services/snippets/snippet_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
