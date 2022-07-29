@@ -561,7 +561,7 @@ class StaticUse {
       ConstructorEntity element,
       CallStructure callStructure,
       InterfaceType type,
-      ImportEntity deferredImport) {
+      ImportEntity? deferredImport) {
     assert(
         (type as dynamic) != null, // TODO(48820): remove when sound
         failedAt(element, "No type provided for constructor invocation."));
@@ -583,7 +583,7 @@ class StaticUse {
       ConstructorEntity element,
       CallStructure callStructure,
       InterfaceType type,
-      ImportEntity deferredImport) {
+      ImportEntity? deferredImport) {
     assert(
         (type as dynamic) != null, // TODO(48820): remove when sound
         failedAt(element, "No type provided for constructor invocation."));
@@ -645,7 +645,7 @@ class StaticUse {
   /// An invocation of a local function [element] with the provided
   /// [callStructure] and [typeArguments].
   factory StaticUse.closureCall(Local element, CallStructure callStructure,
-      List<DartType> typeArguments) {
+      List<DartType>? typeArguments) {
     StaticUse staticUse = StaticUse.internal(
         element, StaticUseKind.CLOSURE_CALL,
         callStructure: callStructure, typeArguments: typeArguments);
@@ -836,7 +836,7 @@ class TypeUse {
   }
 
   /// [type] used as a type literal, like `foo() => T;`.
-  factory TypeUse.typeLiteral(DartType type, ImportEntity deferredImport) {
+  factory TypeUse.typeLiteral(DartType type, ImportEntity? deferredImport) {
     return TypeUse.internal(type, TypeUseKind.TYPE_LITERAL, deferredImport);
   }
 
@@ -847,7 +847,7 @@ class TypeUse {
 
   /// [type] used in a constant instantiation, like `const T();`.
   factory TypeUse.constInstantiation(
-      InterfaceType type, ImportEntity deferredImport) {
+      InterfaceType type, ImportEntity? deferredImport) {
     return TypeUse.internal(
         type, TypeUseKind.CONST_INSTANTIATION, deferredImport);
   }
