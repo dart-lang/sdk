@@ -301,6 +301,8 @@ vm_sources = [
   "simulator_arm64.h",
   "simulator_riscv.cc",
   "simulator_riscv.h",
+  "simulator_x64.cc",
+  "simulator_x64.h",
   "snapshot.cc",
   "snapshot.h",
   "source_report.cc",

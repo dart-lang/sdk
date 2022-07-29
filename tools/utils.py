@@ -77,6 +77,8 @@ ARCH_FAMILY = {
     'simarm64c': 'ia32',
     'simriscv32': 'ia32',
     'simriscv64': 'ia32',
+    'simx64': 'arm',
+    'simx64c': 'arm',
     'riscv32': 'riscv',
     'riscv64': 'riscv',
 }
