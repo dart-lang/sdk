@@ -22,32 +22,6 @@ class ResolveForCompletionTest extends PubPackageResolutionTest {
     return driverFor(testFile);
   }
 
-  test_class__fieldDeclaration_type_namedType_name() async {
-    var result = await _resolveTestCode(r'''
-class A {
-  var f1 = 0;
-  dou^ f2 = null;
-  var f3 = 1;
-}
-''');
-
-    result.assertResolvedNodes([
-      'dou f2 = null;',
-    ]);
-  }
-
-  test_class__fieldDeclaration_type_namedType_typeArgument_name() async {
-    var result = await _resolveTestCode(r'''
-class A {
-  var f1 = 0;
-  List<doub^>? f2 = null;
-  var f3 = 1;
-}
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
   test_class_body_identifier_beforeFieldDeclaration() async {
     var result = await _resolveTestCode(r'''
 class A {
@@ -59,14 +33,6 @@ class A {
     result.assertResolvedNodes([
       'foo int;',
     ]);
-  }
-
-  test_class_extends_name() async {
-    var result = await _resolveTestCode(r'''
-class A extends foo^ {}
-''');
-
-    result.assertResolvedNodes([]);
   }
 
   test_class_fieldDeclaration_initializer() async {
@@ -83,12 +49,18 @@ class A {
     ]);
   }
 
-  test_class_implements_name() async {
+  test_class_fieldDeclaration_type_namedType_name() async {
     var result = await _resolveTestCode(r'''
-class A implements foo^ {}
+class A {
+  var f1 = 0;
+  dou^ f2 = null;
+  var f3 = 1;
+}
 ''');
 
-    result.assertResolvedNodes([]);
+    result.assertResolvedNodes([
+      'dou f2 = null;',
+    ]);
   }
 
   test_class_methodDeclaration_body() async {
@@ -111,36 +83,6 @@ class B {
     result.assertResolvedNodes([
       'void foo2() {print(0); bar print; (1);}',
     ]);
-  }
-
-  test_class_methodDeclaration_name() async {
-    var result = await _resolveTestCode(r'''
-class A {
-  void foo^() {
-    print(0);
-  }
-}
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
-  test_class_methodDeclaration_returnType_name() async {
-    var result = await _resolveTestCode(r'''
-class A {
-  doub^ foo() {}
-}
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
-  test_class_with_name() async {
-    var result = await _resolveTestCode(r'''
-class A with foo^ {}
-''');
-
-    result.assertResolvedNodes([]);
   }
 
   test_classDeclaration_body_identifier() async {
@@ -194,26 +136,6 @@ class A {
     ]);
   }
 
-  test_constructorDeclaration_fieldInitializer_name() async {
-    var result = await _resolveTestCode(r'''
-class A {}
-
-class B {
-  var f;
-
-  void foo1() {}
-
-  B(int a) : bar^ = 0 {
-    print(0);
-  }
-
-  void foo2() {}
-}
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
   test_constructorDeclaration_fieldInitializer_value() async {
     var result = await _resolveTestCode(r'''
 class A {
@@ -231,18 +153,6 @@ class A {
     ]);
   }
 
-  test_constructorDeclaration_name() async {
-    var result = await _resolveTestCode(r'''
-class A {
-  A.foo^() {
-    print(0);
-  }
-}
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
   test_constructorDeclaration_superFormalParameter_name() async {
     var result = await _resolveTestCode(r'''
 class A {
@@ -258,14 +168,6 @@ class B extends A {
     result.assertResolvedNodes([
       'B(super.);',
     ]);
-  }
-
-  test_doubleLiteral() async {
-    var result = await _resolveTestCode(r'''
-var v = 1.2^;
-''');
-
-    result.assertResolvedNodes([]);
   }
 
   test_extension_methodDeclaration_body() async {
@@ -286,38 +188,6 @@ extension E on int {
     result.assertResolvedNodes([
       'void foo2() {print(0); bar print; (1);}',
     ]);
-  }
-
-  test_extension_methodDeclaration_name() async {
-    var result = await _resolveTestCode(r'''
-extension E on int {
-  void foo^() {
-    print(0);
-  }
-}
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
-  test_extension_methodDeclaration_returnType_name() async {
-    var result = await _resolveTestCode(r'''
-extension E on int {
-  doub^ foo() {}
-}
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
-  test_extension_on_name() async {
-    var result = await _resolveTestCode(r'''
-extension E on int^ {
-  void foo() {}
-}
-''');
-
-    result.assertResolvedNodes([]);
   }
 
   test_functionDeclaration_body() async {
@@ -356,24 +226,6 @@ void foo3() {}
     ]);
   }
 
-  test_functionDeclaration_name() async {
-    var result = await _resolveTestCode(r'''
-void foo^() {
-  print(0);
-}
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
-  test_functionDeclaration_returnType_name() async {
-    var result = await _resolveTestCode(r'''
-doub^ f() {}
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
   test_importDirective_show_name() async {
     var result = await _resolveTestCode(r'''
 import 'dart:async';
@@ -398,42 +250,6 @@ import 'dart:io';
     ]);
   }
 
-  test_integerLiteral() async {
-    var result = await _resolveTestCode(r'''
-var v = 0^;
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
-  test_localVariableDeclaration_name() async {
-    var result = await _resolveTestCode(r'''
-void f() {
-  var foo^
-}
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
-  test_localVariableDeclaration_type_name() async {
-    var result = await _resolveTestCode(r'''
-void f() {
-  doub^ a;
-}
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
-  test_mixin_implements_name() async {
-    var result = await _resolveTestCode(r'''
-mixin M implements foo^ {}
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
   test_mixin_methodDeclaration_body() async {
     var result = await _resolveTestCode(r'''
 class A {}
@@ -456,36 +272,6 @@ mixin M {
     ]);
   }
 
-  test_mixin_methodDeclaration_name() async {
-    var result = await _resolveTestCode(r'''
-mixin M {
-  void foo^() {
-    print(0);
-  }
-}
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
-  test_mixin_methodDeclaration_returnType_name() async {
-    var result = await _resolveTestCode(r'''
-mixin M {
-  doub^ foo() {}
-}
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
-  test_mixin_on_name() async {
-    var result = await _resolveTestCode(r'''
-mixin M on foo^ {}
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
   test_processPendingChanges() async {
     addTestFile('class A {}');
 
@@ -503,22 +289,6 @@ var v2 = v1.^;
     ]);
   }
 
-  test_simpleFormalParameter_name() async {
-    var result = await _resolveTestCode(r'''
-void f(doub^) {}
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
-  test_simpleFormalParameter_type_name() async {
-    var result = await _resolveTestCode(r'''
-void f(doub^ a) {}
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
   test_topLevelVariable_initializer() async {
     var result = await _resolveTestCode(r'''
 var v1 = 0;
@@ -531,52 +301,12 @@ var v3 = 1;
     ]);
   }
 
-  test_topLevelVariable_name() async {
-    var result = await _resolveTestCode(r'''
-var v1 = 0;
-var v2^
-var v3 = 0;
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
-  test_topLevelVariable_type_namedType_name() async {
-    var result = await _resolveTestCode(r'''
-var v1 = 0;
-doub^ v2 = null;
-var v3 = 1;
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
-  test_topLevelVariable_type_namedType_typeArgument_name() async {
-    var result = await _resolveTestCode(r'''
-var v1 = 0;
-List<doub^>? v2 = null;
-var v3 = 1;
-''');
-
-    result.assertResolvedNodes([]);
-  }
-
   test_typedef_name_nothing() async {
     var result = await _resolveTestCode(r'''
 typedef F^
 ''');
 
     _assertWholeUnitResolved(result);
-  }
-
-  test_typeParameter_name() async {
-    var result = await _resolveTestCode(r'''
-void f<T^>() {
-  print(0);
-}
-''');
-
-    result.assertResolvedNodes([]);
   }
 
   int _newFileWithOffset(String path, String content) {
