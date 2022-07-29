@@ -90,7 +90,7 @@ abstract class AugmentedClassElement implements AugmentedClassOrEnumElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class AugmentedClassOrEnumElement
-    implements AugmentedInterfaceDefiningElement {
+    implements AugmentedInterfaceElement {
   /// Returns constructors declared in this element.
   ///
   /// [ConstructorAugmentationElement]s replace corresponding elements,
@@ -115,10 +115,10 @@ abstract class AugmentedEnumElement implements AugmentedClassOrEnumElement {
   List<InterfaceType> get mixins;
 }
 
-/// The result of applying augmentations to a [InterfaceDefiningElement].
+/// The result of applying augmentations to a [InterfaceElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedInterfaceDefiningElement {
+abstract class AugmentedInterfaceElement {
   /// Returns accessors (getters and setters) declared in this element.
   ///
   /// [PropertyAccessorAugmentationElement]s replace corresponding elements,
@@ -165,7 +165,7 @@ abstract class AugmentedInterfaceDefiningElement {
 /// The result of applying augmentations to a [MixinElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedMixinElement extends AugmentedInterfaceDefiningElement {
+abstract class AugmentedMixinElement extends AugmentedInterfaceElement {
   /// Returns superclass constraints of this element.
   ///
   /// This is a union of constraints declared by the class declaration and
@@ -195,7 +195,7 @@ abstract class ClassAugmentationElement implements ClassOrAugmentationElement {
 abstract class ClassElement
     implements
         ClassOrAugmentationElement,
-        InterfaceDefiningElement,
+        InterfaceElement,
         _TmpSharedClassElement {
   /// Returns the result of applying augmentations to this class.
   AugmentedClassElement get augmented;
@@ -238,7 +238,7 @@ abstract class ClassMemberElement implements Element {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class ClassOrAugmentationElement
-    implements InterfaceDefiningOrAugmentationElement {
+    implements InterfaceOrAugmentationElement {
   /// The immediate augmentation of this element, or `null` if there are no
   /// augmentations. [ClassAugmentationElement.augmentationTarget] is the back
   /// pointer that will point at this element.
@@ -1063,7 +1063,7 @@ abstract class EnumAugmentationElement implements EnumOrAugmentationElement {
 abstract class EnumElement
     implements
         EnumOrAugmentationElement,
-        InterfaceDefiningElement,
+        InterfaceElement,
         _TmpSharedClassElement {
   /// Returns the result of applying augmentations to this element.
   AugmentedEnumElement get augmented;
@@ -1078,7 +1078,7 @@ abstract class EnumElement
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class EnumOrAugmentationElement
-    implements InterfaceDefiningOrAugmentationElement {
+    implements InterfaceOrAugmentationElement {
   /// The immediate augmentation of this element, or `null` if there are no
   /// augmentations. [EnumAugmentationElement.augmentationTarget] is the back
   /// pointer that will point at this element.
@@ -1354,8 +1354,8 @@ abstract class ImportElementPrefix {
 /// An element that defines an [InterfaceType].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class InterfaceDefiningElement
-    implements InterfaceDefiningOrAugmentationElement, TypeDefiningElement {
+abstract class InterfaceElement
+    implements InterfaceOrAugmentationElement, TypeDefiningElement {
   /// Return a list containing all the supertypes defined for this element and
   /// its supertypes. This includes superclasses, mixins, interfaces, and
   /// superclass constraints.
@@ -1378,13 +1378,13 @@ abstract class InterfaceDefiningElement
   });
 }
 
-/// Shared interface between [InterfaceDefiningElement] and augmentations.
+/// Shared interface between [InterfaceElement] and augmentations.
 ///
-/// Augmentations of [InterfaceDefiningElement] don't have their own type,
+/// Augmentations of [InterfaceElement] don't have their own type,
 /// so they cannot by instantiated into an [InterfaceType].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class InterfaceDefiningOrAugmentationElement
+abstract class InterfaceOrAugmentationElement
     implements TypeParameterizedElement {
   /// Return a list containing all of the accessors (getters and setters)
   /// declared in this class.
@@ -1734,7 +1734,7 @@ abstract class MixinAugmentationElement implements MixinOrAugmentationElement {
 abstract class MixinElement
     implements
         MixinOrAugmentationElement,
-        InterfaceDefiningElement,
+        InterfaceElement,
         _TmpSharedClassElement {
   /// Returns the result of applying augmentations to this element.
   AugmentedMixinElement get augmented;
@@ -1757,7 +1757,7 @@ abstract class MixinElement
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class MixinOrAugmentationElement
-    implements InterfaceDefiningOrAugmentationElement {
+    implements InterfaceOrAugmentationElement {
   /// The immediate augmentation of this element, or `null` if there are no
   /// augmentations. [MixinAugmentationElement.augmentationTarget] is the back
   /// pointer that will point at this element.
