@@ -634,6 +634,9 @@ abstract class AugmentationImportDirective implements UriBasedDirective {
   @override
   AugmentationImportElement? get element;
 
+  @override
+  AugmentationImportElement? get element2;
+
   /// The token representing the 'import' keyword.
   Token get importKeyword;
 
