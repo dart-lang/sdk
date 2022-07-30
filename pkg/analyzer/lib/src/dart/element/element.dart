@@ -718,6 +718,7 @@ class ClassElementImpl extends AbstractClassElementImpl {
     return definingClass != null && !definingClass.isDartCoreObject;
   }
 
+  @Deprecated('Not useful for clients')
   @override
   bool get hasStaticMember {
     for (MethodElement method in methods) {
@@ -2936,6 +2937,7 @@ class EnumElementImpl extends AbstractClassElementImpl implements EnumElement {
   @override
   bool get hasNonFinalField => false;
 
+  @Deprecated('Not useful for clients')
   @override
   bool get hasStaticMember => true;
 

@@ -114,12 +114,14 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     expect(classB.hasNonFinalField, isTrue);
   }
 
+  @deprecated
   void test_hasStaticMember_false_empty() {
     var classA = class_(name: 'A');
     // no members
     expect(classA.hasStaticMember, isFalse);
   }
 
+  @deprecated
   void test_hasStaticMember_false_instanceMethod() {
     var classA = class_(name: 'A');
     MethodElement method = ElementFactory.methodElement("foo", intNone);
@@ -127,6 +129,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     expect(classA.hasStaticMember, isFalse);
   }
 
+  @deprecated
   void test_hasStaticMember_instanceGetter() {
     var classA = class_(name: 'A');
     PropertyAccessorElement getter =
@@ -135,6 +138,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     expect(classA.hasStaticMember, isFalse);
   }
 
+  @deprecated
   void test_hasStaticMember_true_getter() {
     var classA = class_(name: 'A');
     PropertyAccessorElementImpl getter =
@@ -145,6 +149,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     expect(classA.hasStaticMember, isTrue);
   }
 
+  @deprecated
   void test_hasStaticMember_true_method() {
     var classA = class_(name: 'A');
     MethodElementImpl method = ElementFactory.methodElement("foo", intNone);
@@ -154,6 +159,7 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     expect(classA.hasStaticMember, isTrue);
   }
 
+  @deprecated
   void test_hasStaticMember_true_setter() {
     var classA = class_(name: 'A');
     PropertyAccessorElementImpl setter =

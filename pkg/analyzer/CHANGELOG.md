@@ -6,6 +6,7 @@
 * Deprecated `ClassDeclaration.getConstructor`, filter `members` instead.
 * Deprecated `Directive.element`, use `element2` instead.
 * Deprecated `ClassElement.isValidMixin`, it is not useful for clients.
+* Deprecated `ClassElement.hasStaticMember`, it is not useful for clients.
 
 ## 4.3.1
 * Fix `identifier` for `LibraryExportElement` and `LibraryImportElement`.

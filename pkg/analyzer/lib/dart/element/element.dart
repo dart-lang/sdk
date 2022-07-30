@@ -2289,6 +2289,7 @@ abstract class _TmpSharedClassElement {
   bool get hasNonFinalField;
 
   /// Return `true` if this class declares a static member.
+  @Deprecated('Not useful for clients')
   bool get hasStaticMember;
 
   /// Return `true` if this class is abstract. A class is abstract if it has an
