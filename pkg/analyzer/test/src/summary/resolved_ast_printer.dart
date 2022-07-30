@@ -130,9 +130,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       _writeElement('element', node.element2);
-      _writeRaw('uriContent', node.uriContent);
-      _writeElement('uriElement', node.uriElement);
-      _writeSource('uriSource', node.uriSource);
     });
   }
 
@@ -427,11 +424,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       _writeElement('element', node.element2);
-      _writeSource('selectedSource', node.selectedSource);
-      _writeRaw('selectedUriContent', node.selectedUriContent);
-      _writeRaw('uriContent', node.uriContent);
-      _writeElement('uriElement', node.uriElement);
-      _writeSource('uriSource', node.uriSource);
     });
   }
 
@@ -696,11 +688,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       _writeElement('element', node.element2);
-      _writeSource('selectedSource', node.selectedSource);
-      _writeRaw('selectedUriContent', node.selectedUriContent);
-      _writeRaw('uriContent', node.uriContent);
-      _writeElement('uriElement', node.uriElement);
-      _writeSource('uriSource', node.uriSource);
     });
   }
 
@@ -902,9 +889,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       _writeElement('element', node.element2);
-      _writeRaw('uriContent', node.uriContent);
-      _writePartUnitElement('uriElement', node.uriElement);
-      _writeSource('uriSource', node.uriSource);
     });
   }
 
@@ -1604,28 +1588,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeDirectiveUri(element.uri);
   }
 
-  void _writePartUnitElement(String name, Element? element) {
-    if (_withResolution) {
-      _sink.write(_indent);
-      _sink.write('$name: ');
-      if (element is CompilationUnitElement) {
-        _sink.writeln('unitElement ${_stringOfSource(element.source)}');
-      } else {
-        _sink.writeln('notUnitElement');
-      }
-    }
-  }
-
   void _writeRaw(String name, Object? value) {
     _writelnWithIndent('$name: $value');
-  }
-
-  void _writeSource(String name, Source? source) {
-    if (source != null) {
-      _writelnWithIndent('$name: ${source.uri}');
-    } else {
-      _writelnWithIndent('$name: <null>');
-    }
   }
 
   void _writeToken(String name, Token? token) {

@@ -718,6 +718,7 @@ class ClassElementImpl extends AbstractClassElementImpl {
     return definingClass != null && !definingClass.isDartCoreObject;
   }
 
+  @Deprecated('Not useful for clients')
   @override
   bool get hasStaticMember {
     for (MethodElement method in methods) {
@@ -815,6 +816,7 @@ class ClassElementImpl extends AbstractClassElementImpl {
     setModifier(Modifier.SIMPLY_BOUNDED, isSimplyBounded);
   }
 
+  @Deprecated('Not useful for clients')
   @override
   bool get isValidMixin {
     final supertype = this.supertype;
@@ -2935,6 +2937,7 @@ class EnumElementImpl extends AbstractClassElementImpl implements EnumElement {
   @override
   bool get hasNonFinalField => false;
 
+  @Deprecated('Not useful for clients')
   @override
   bool get hasStaticMember => true;
 
@@ -2956,6 +2959,7 @@ class EnumElementImpl extends AbstractClassElementImpl implements EnumElement {
     setModifier(Modifier.SIMPLY_BOUNDED, isSimplyBounded);
   }
 
+  @Deprecated('Not useful for clients')
   @override
   bool get isValidMixin => false;
 

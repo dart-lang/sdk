@@ -41,11 +41,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithLibrary
       uri: package:test/c.dart
-  selectedSource: package:test/c.dart
-  selectedUriContent: c.dart
-  uriContent: c.dart
-  uriElement: package:test/c.dart
-  uriSource: package:test/c.dart
 ''');
   }
 
@@ -74,11 +69,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithLibrary
       uri: package:test/c.dart
-  selectedSource: package:test/c.dart
-  selectedUriContent: c.dart
-  uriContent: c.dart
-  uriElement: package:test/c.dart
-  uriSource: package:test/c.dart
 ''');
   }
 
@@ -107,11 +97,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithRelativeUriString
       relativeUriString: :net
-  selectedSource: <null>
-  selectedUriContent: :net
-  uriContent: :net
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -150,11 +135,6 @@ ExportDirective
   semicolon: ;
   element: LibraryExportElement
     uri: DirectiveUri
-  selectedSource: <null>
-  selectedUriContent: null
-  uriContent: null
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -183,11 +163,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithRelativeUri
       relativeUri: foo:bar
-  selectedSource: <null>
-  selectedUriContent: foo:bar
-  uriContent: foo:bar
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -220,11 +195,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithSource
       source: package:test/c.dart
-  selectedSource: package:test/c.dart
-  selectedUriContent: c.dart
-  uriContent: c.dart
-  uriElement: <null>
-  uriSource: package:test/c.dart
 ''');
   }
 
@@ -257,11 +227,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithSource
       source: package:test/c.dart
-  selectedSource: package:test/c.dart
-  selectedUriContent: c.dart
-  uriContent: c.dart
-  uriElement: <null>
-  uriSource: package:test/c.dart
 ''');
   }
 
@@ -294,11 +259,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithSource
       source: package:test/c.dart
-  selectedSource: package:test/c.dart
-  selectedUriContent: c.dart
-  uriContent: c.dart
-  uriElement: <null>
-  uriSource: package:test/c.dart
 ''');
   }
 
@@ -369,11 +329,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithLibrary
       uri: package:test/a.dart
-  selectedSource: package:test/a.dart
-  selectedUriContent: a.dart
-  uriContent: a.dart
-  uriElement: package:test/a.dart
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -444,11 +399,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithLibrary
       uri: package:test/a_html.dart
-  selectedSource: package:test/a_html.dart
-  selectedUriContent: a_html.dart
-  uriContent: a.dart
-  uriElement: package:test/a_html.dart
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -519,11 +469,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithLibrary
       uri: package:test/a_io.dart
-  selectedSource: package:test/a_io.dart
-  selectedUriContent: a_io.dart
-  uriContent: a.dart
-  uriElement: package:test/a_io.dart
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -544,11 +489,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithLibrary
       uri: package:test/a.dart
-  selectedSource: package:test/a.dart
-  selectedUriContent: a.dart
-  uriContent: a.dart
-  uriElement: package:test/a.dart
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -569,11 +509,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithLibrary
       uri: package:test/a.dart
-  selectedSource: package:test/a.dart
-  selectedUriContent: a.dart
-  uriContent: a.dart
-  uriElement: package:test/a.dart
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -608,11 +543,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithRelativeUriString
       relativeUriString: :net
-  selectedSource: <null>
-  selectedUriContent: :net
-  uriContent: :net
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -643,11 +573,6 @@ ExportDirective
   semicolon: ;
   element: LibraryExportElement
     uri: DirectiveUri
-  selectedSource: <null>
-  selectedUriContent: null
-  uriContent: null
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -668,11 +593,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithRelativeUri
       relativeUri: foo:bar
-  selectedSource: <null>
-  selectedUriContent: foo:bar
-  uriContent: foo:bar
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -697,11 +617,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithSource
       source: package:test/a.dart
-  selectedSource: package:test/a.dart
-  selectedUriContent: a.dart
-  uriContent: a.dart
-  uriElement: <null>
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -726,11 +641,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithSource
       source: package:test/a.dart
-  selectedSource: package:test/a.dart
-  selectedUriContent: a.dart
-  uriContent: a.dart
-  uriElement: <null>
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -755,11 +665,6 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithSource
       source: package:test/a.dart
-  selectedSource: package:test/a.dart
-  selectedUriContent: a.dart
-  uriContent: a.dart
-  uriElement: <null>
-  uriSource: package:test/a.dart
 ''');
   }
 }

@@ -634,6 +634,9 @@ abstract class AugmentationImportDirective implements UriBasedDirective {
   @override
   AugmentationImportElement? get element;
 
+  @override
+  AugmentationImportElement? get element2;
+
   /// The token representing the 'import' keyword.
   Token get importKeyword;
 
@@ -1242,6 +1245,7 @@ abstract class Configuration implements AstNode {
   StringLiteral get uri;
 
   /// Return the source to which the [uri] was resolved.
+  /// TODO(scheglov) Deprecate and remove.
   Source? get uriSource;
 
   /// Return the value to which the value of the declared variable will be
@@ -3484,6 +3488,7 @@ abstract class NamespaceDirective implements UriBasedDirective {
   /// This will be the source from the first configuration whose condition is
   /// true, or the `[uriSource]` if either there are no configurations or if
   /// there are no configurations whose condition is true.
+  @Deprecated('Use element2.uri and check for DirectiveUriWithSource instead')
   Source? get selectedSource;
 
   /// Return the content of the URI that was selected based on the declared
@@ -3492,11 +3497,14 @@ abstract class NamespaceDirective implements UriBasedDirective {
   /// This will be the URI from the first configuration whose condition is
   /// true, or the `[uriContent]` if either there are no configurations or if
   /// there are no configurations whose condition is true.
+  @Deprecated(
+      'Use element2.uri and check for DirectiveUriWithRelativeUriString instead')
   String? get selectedUriContent;
 
   /// Return the semicolon terminating the directive.
   Token get semicolon;
 
+  @Deprecated('Use element2.uri and check for DirectiveUriWithLibrary instead')
   @override
   LibraryElement? get uriElement;
 }
@@ -4563,7 +4571,8 @@ abstract class UriBasedDirective implements Directive {
 
   /// Return the content of the [uri], or `null` if the AST structure has not
   /// been resolved, or if the [uri] has a string interpolation.
-  /// TODO(scheglov) Deprecate and remove it.
+  @Deprecated(
+      'Use element2.uri and check for DirectiveUriWithRelativeUriString instead')
   String? get uriContent;
 
   /// Return the element associated with the [uri] of this directive, or `null`
@@ -4572,11 +4581,11 @@ abstract class UriBasedDirective implements Directive {
   ///
   /// Examples of the latter case include a directive that contains an invalid
   /// URL or a URL that does not exist.
-  /// TODO(scheglov) Deprecate and remove it.
+  @Deprecated('Use element2.uri and check for DirectiveUriWithLibrary instead')
   Element? get uriElement;
 
   /// Return the source to which the [uri] was resolved.
-  /// TODO(scheglov) Deprecate and remove it.
+  @Deprecated('Use element2.uri and check for DirectiveUriWithSource instead')
   Source? get uriSource;
 }
 

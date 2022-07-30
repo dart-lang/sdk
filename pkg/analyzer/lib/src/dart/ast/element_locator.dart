@@ -161,9 +161,16 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitStringLiteral(StringLiteral node) {
-    var parent = node.parent;
-    if (parent is UriBasedDirective) {
-      return parent.uriElement;
+    final parent = node.parent;
+    if (parent is ExportDirective) {
+      return parent.element2?.exportedLibrary;
+    } else if (parent is ImportDirective) {
+      return parent.element2?.importedLibrary;
+    } else if (parent is PartDirective) {
+      final elementUri = parent.element2?.uri;
+      if (elementUri is DirectiveUriWithUnit) {
+        return elementUri.unit;
+      }
     }
     return null;
   }

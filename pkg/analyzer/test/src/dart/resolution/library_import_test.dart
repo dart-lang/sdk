@@ -42,11 +42,6 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithLibrary
       uri: package:test/c.dart
-  selectedSource: package:test/c.dart
-  selectedUriContent: c.dart
-  uriContent: c.dart
-  uriElement: package:test/c.dart
-  uriSource: package:test/c.dart
 ''');
   }
 
@@ -75,11 +70,6 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithLibrary
       uri: package:test/c.dart
-  selectedSource: package:test/c.dart
-  selectedUriContent: c.dart
-  uriContent: c.dart
-  uriElement: package:test/c.dart
-  uriSource: package:test/c.dart
 ''');
   }
 
@@ -108,11 +98,6 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithRelativeUriString
       relativeUriString: :net
-  selectedSource: <null>
-  selectedUriContent: :net
-  uriContent: :net
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -151,11 +136,6 @@ ImportDirective
   semicolon: ;
   element: LibraryImportElement
     uri: DirectiveUri
-  selectedSource: <null>
-  selectedUriContent: null
-  uriContent: null
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -184,11 +164,6 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithRelativeUri
       relativeUri: foo:bar
-  selectedSource: <null>
-  selectedUriContent: foo:bar
-  uriContent: foo:bar
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -221,11 +196,6 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithSource
       source: package:test/c.dart
-  selectedSource: package:test/c.dart
-  selectedUriContent: c.dart
-  uriContent: c.dart
-  uriElement: <null>
-  uriSource: package:test/c.dart
 ''');
   }
 
@@ -258,11 +228,6 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithSource
       source: package:test/c.dart
-  selectedSource: package:test/c.dart
-  selectedUriContent: c.dart
-  uriContent: c.dart
-  uriElement: <null>
-  uriSource: package:test/c.dart
 ''');
   }
 
@@ -295,11 +260,6 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithSource
       source: package:test/c.dart
-  selectedSource: package:test/c.dart
-  selectedUriContent: c.dart
-  uriContent: c.dart
-  uriElement: <null>
-  uriSource: package:test/c.dart
 ''');
   }
 
@@ -374,11 +334,6 @@ CompilationUnit
       element: LibraryImportElement
         uri: DirectiveUriWithLibrary
           uri: package:test/a.dart
-      selectedSource: package:test/a.dart
-      selectedUriContent: a.dart
-      uriContent: a.dart
-      uriElement: package:test/a.dart
-      uriSource: package:test/a.dart
   declarations
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
@@ -480,11 +435,6 @@ CompilationUnit
       element: LibraryImportElement
         uri: DirectiveUriWithLibrary
           uri: package:test/a_html.dart
-      selectedSource: package:test/a_html.dart
-      selectedUriContent: a_html.dart
-      uriContent: a.dart
-      uriElement: package:test/a_html.dart
-      uriSource: package:test/a.dart
   declarations
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
@@ -586,11 +536,6 @@ CompilationUnit
       element: LibraryImportElement
         uri: DirectiveUriWithLibrary
           uri: package:test/a_io.dart
-      selectedSource: package:test/a_io.dart
-      selectedUriContent: a_io.dart
-      uriContent: a.dart
-      uriElement: package:test/a_io.dart
-      uriSource: package:test/a.dart
   declarations
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
@@ -639,11 +584,6 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithLibrary
       uri: package:test/a.dart
-  selectedSource: package:test/a.dart
-  selectedUriContent: a.dart
-  uriContent: a.dart
-  uriElement: package:test/a.dart
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -664,11 +604,6 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithLibrary
       uri: package:test/a.dart
-  selectedSource: package:test/a.dart
-  selectedUriContent: a.dart
-  uriContent: a.dart
-  uriElement: package:test/a.dart
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -689,11 +624,6 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithRelativeUriString
       relativeUriString: :net
-  selectedSource: <null>
-  selectedUriContent: :net
-  uriContent: :net
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -724,11 +654,6 @@ ImportDirective
   semicolon: ;
   element: LibraryImportElement
     uri: DirectiveUri
-  selectedSource: <null>
-  selectedUriContent: null
-  uriContent: null
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -749,11 +674,6 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithRelativeUri
       relativeUri: foo:bar
-  selectedSource: <null>
-  selectedUriContent: foo:bar
-  uriContent: foo:bar
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -778,11 +698,6 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithSource
       source: package:test/a.dart
-  selectedSource: package:test/a.dart
-  selectedUriContent: a.dart
-  uriContent: a.dart
-  uriElement: <null>
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -807,11 +722,6 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithSource
       source: package:test/a.dart
-  selectedSource: package:test/a.dart
-  selectedUriContent: a.dart
-  uriContent: a.dart
-  uriElement: <null>
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -836,11 +746,6 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithSource
       source: package:test/a.dart
-  selectedSource: package:test/a.dart
-  selectedUriContent: a.dart
-  uriContent: a.dart
-  uriElement: <null>
-  uriSource: package:test/a.dart
 ''');
   }
 }

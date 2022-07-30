@@ -191,27 +191,30 @@ class LibraryAnalyzer {
 
     for (var directive in libraryUnit.directives) {
       if (directive is PartDirective) {
-        var partUnit = elementToUnit[directive.uriElement];
-        if (partUnit != null) {
-          var shouldReport = false;
-          var partOverrideToken = partUnit.languageVersionToken;
-          if (libraryOverrideToken != null) {
-            if (partOverrideToken != null) {
-              if (partOverrideToken.major != libraryOverrideToken.major ||
-                  partOverrideToken.minor != libraryOverrideToken.minor) {
+        final elementUri = directive.element2?.uri;
+        if (elementUri is DirectiveUriWithUnit) {
+          final partUnit = elementToUnit[elementUri.unit];
+          if (partUnit != null) {
+            var shouldReport = false;
+            var partOverrideToken = partUnit.languageVersionToken;
+            if (libraryOverrideToken != null) {
+              if (partOverrideToken != null) {
+                if (partOverrideToken.major != libraryOverrideToken.major ||
+                    partOverrideToken.minor != libraryOverrideToken.minor) {
+                  shouldReport = true;
+                }
+              } else {
                 shouldReport = true;
               }
-            } else {
+            } else if (partOverrideToken != null) {
               shouldReport = true;
             }
-          } else if (partOverrideToken != null) {
-            shouldReport = true;
-          }
-          if (shouldReport) {
-            _getErrorReporter(_library.file).reportErrorForNode(
-              CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE,
-              directive.uri,
-            );
+            if (shouldReport) {
+              _getErrorReporter(_library.file).reportErrorForNode(
+                CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE,
+                directive.uri,
+              );
+            }
           }
         }
       }
@@ -551,7 +554,9 @@ class LibraryAnalyzer {
 
     final uriState = state.uri;
     if (uriState is DirectiveUriWithString) {
+      // ignore: deprecated_member_use_from_same_package
       directive.uriContent = uriState.relativeUriStr;
+      // ignore: deprecated_member_use_from_same_package
       directive.uriSource = uriState.source;
     }
 
@@ -611,6 +616,7 @@ class LibraryAnalyzer {
     units[augmentationFile] = augmentationUnit;
 
     final importedAugmentation = element.importedAugmentation!;
+    // ignore: deprecated_member_use_from_same_package
     directive.uriSource = importedAugmentation.source;
     augmentationUnit.element = importedAugmentation.definingCompilationUnit;
 
@@ -865,11 +871,14 @@ class LibraryAnalyzer {
     for (var i = 0; i < configurationNodes.length; i++) {
       final configurationNode = configurationNodes[i];
       configurationNode as ConfigurationImpl;
+      // TODO(scheglov) Use `DirectiveUri` here instead.
       configurationNode.uriSource = configurationUris[i].source;
     }
 
     if (primaryUriState is DirectiveUriWithString) {
+      // ignore: deprecated_member_use_from_same_package
       directive.uriContent = primaryUriState.relativeUriStr;
+      // ignore: deprecated_member_use_from_same_package
       directive.uriSource = primaryUriState.source;
     }
 
@@ -890,6 +899,7 @@ class LibraryAnalyzer {
   }) {
     StringLiteral partUri = directive.uri;
 
+    // ignore: deprecated_member_use_from_same_package
     directive.uriSource = partState.includedSource;
     directive.element = partElement;
 
@@ -975,6 +985,7 @@ class LibraryAnalyzer {
     }
 
     final partSource = includedKind.file.source;
+    // ignore: deprecated_member_use_from_same_package
     directive.uriSource = partSource;
 
     for (final directive in partUnit.directives) {

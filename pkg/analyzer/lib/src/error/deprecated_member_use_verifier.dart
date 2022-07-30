@@ -35,7 +35,7 @@ class DeprecatedMemberUseVerifier {
   }
 
   void exportDirective(ExportDirective node) {
-    _checkForDeprecated(node.uriElement, node);
+    _checkForDeprecated(node.element2?.exportedLibrary, node);
   }
 
   void functionExpressionInvocation(FunctionExpressionInvocation node) {
@@ -47,7 +47,7 @@ class DeprecatedMemberUseVerifier {
   }
 
   void importDirective(ImportDirective node) {
-    _checkForDeprecated(node.uriElement, node);
+    _checkForDeprecated(node.element2?.importedLibrary, node);
   }
 
   void indexExpression(IndexExpression node) {

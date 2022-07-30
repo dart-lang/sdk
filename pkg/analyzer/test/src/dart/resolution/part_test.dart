@@ -31,9 +31,6 @@ PartDirective
   semicolon: ;
   element: DirectiveUriWithSource
     source: package:test/a.dart
-  uriContent: null
-  uriElement: notUnitElement
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -53,9 +50,6 @@ PartDirective
   semicolon: ;
   element: DirectiveUriWithRelativeUriString
     relativeUriString: :net
-  uriContent: null
-  uriElement: notUnitElement
-  uriSource: <null>
 ''');
   }
 
@@ -85,9 +79,6 @@ PartDirective
     stringValue: null
   semicolon: ;
   element: DirectiveUri
-  uriContent: null
-  uriElement: notUnitElement
-  uriSource: <null>
 ''');
   }
 
@@ -107,9 +98,6 @@ PartDirective
   semicolon: ;
   element: DirectiveUriWithRelativeUri
     relativeUri: foo:bar
-  uriContent: null
-  uriElement: notUnitElement
-  uriSource: <null>
 ''');
   }
 
@@ -131,9 +119,6 @@ PartDirective
   semicolon: ;
   element: DirectiveUriWithUnit
     uri: package:test/a.dart
-  uriContent: null
-  uriElement: unitElement package:test/a.dart
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -154,9 +139,6 @@ PartDirective
   semicolon: ;
   element: DirectiveUriWithUnit
     uri: package:test/a.dart
-  uriContent: null
-  uriElement: unitElement package:test/a.dart
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -179,9 +161,6 @@ PartDirective
   semicolon: ;
   element: DirectiveUriWithSource
     source: package:test/a.dart
-  uriContent: null
-  uriElement: notUnitElement
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -202,9 +181,6 @@ PartDirective
   semicolon: ;
   element: DirectiveUriWithSource
     source: package:test/a.dart
-  uriContent: null
-  uriElement: notUnitElement
-  uriSource: package:test/a.dart
 ''');
   }
 }

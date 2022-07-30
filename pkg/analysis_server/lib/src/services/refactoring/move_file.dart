@@ -6,9 +6,11 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -153,16 +155,17 @@ class MoveFileRefactoringImpl extends RefactoringImpl
             if (directive is UriBasedDirective) {
               // If the import is relative and the referenced file is also in
               // the moved folder, no update is necessary.
-              var uriContent = directive.uriContent;
-              var uriFullPath = directive.uriSource?.fullName;
-              if (uriContent != null &&
-                  uriFullPath != null &&
-                  pathContext.isRelative(uriContent) &&
-                  // `oldFile` is used here and not `oldDir` because we care
-                  // about whether this is within the folder being renamed, not
-                  // the folder for this specific resource.
-                  pathContext.isWithin(oldFile, uriFullPath)) {
-                continue;
+              final elementUri = directive.referencedUri;
+              if (elementUri is DirectiveUriWithSource) {
+                final uriContent = elementUri.relativeUriString;
+                final uriFullPath = elementUri.source.fullName;
+                if (pathContext.isRelative(uriContent) &&
+                    // `oldFile` is used here and not `oldDir` because we care
+                    // about whether this is within the folder being renamed, not
+                    // the folder for this specific resource.
+                    pathContext.isWithin(oldFile, uriFullPath)) {
+                  continue;
+                }
               }
               _updateUriReference(builder, directive, oldDir, newDir);
             }
