@@ -6,6 +6,7 @@ import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 extension AnnotatedNodeExtensions on AnnotatedNode {
   /// Return the first token in this node that is not a comment.
@@ -105,6 +106,44 @@ extension CompilationUnitExtension on CompilationUnit {
   /// Will return false if the AST structure has not been resolved.
   bool get isNonNullableByDefault =>
       declaredElement?.library.isNonNullableByDefault ?? false;
+}
+
+extension DirectiveExtensions on Directive {
+  /// If the target imports or exports a [LibraryElement], returns it.
+  LibraryElement? get referencedLibrary {
+    final element = element2;
+    if (element is LibraryExportElement) {
+      return element.exportedLibrary;
+    } else if (element is LibraryImportElement) {
+      return element.importedLibrary;
+    }
+    return null;
+  }
+
+  /// If [referencedUri] is a [DirectiveUriWithSource], returns the [Source]
+  /// from it.
+  Source? get referencedSource {
+    final uri = referencedUri;
+    if (uri is DirectiveUriWithSource) {
+      return uri.source;
+    }
+    return null;
+  }
+
+  /// Returns the [DirectiveUri] from the element.
+  DirectiveUri? get referencedUri {
+    final self = this;
+    if (self is AugmentationImportDirective) {
+      return self.element2?.uri;
+    } else if (self is ExportDirective) {
+      return self.element2?.uri;
+    } else if (self is ImportDirective) {
+      return self.element2?.uri;
+    } else if (self is PartDirective) {
+      return self.element2?.uri;
+    }
+    return null;
+  }
 }
 
 extension ExpressionExtensions on Expression {

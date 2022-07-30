@@ -404,15 +404,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  void assertNamespaceDirectiveSelected(
-    NamespaceDirective directive, {
-    required String expectedRelativeUri,
-    required String expectedUri,
-  }) {
-    expect(directive.selectedUriContent, expectedRelativeUri);
-    expect('${directive.selectedSource!.uri}', expectedUri);
-  }
-
   Future<void> assertNoErrorsInCode(String code) async {
     addTestFile(code);
     await resolveTestFile();

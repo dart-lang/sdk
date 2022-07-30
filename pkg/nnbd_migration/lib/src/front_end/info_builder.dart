@@ -497,7 +497,7 @@ class InfoBuilder {
   /// it if found, or `null` if not found.
   ImportDirective? _findImportDirective(CompilationUnit unit, String uri) {
     for (var directive in unit.directives) {
-      if (directive is ImportDirective && directive.uriContent == uri) {
+      if (directive is ImportDirective && directive.uri.stringValue == uri) {
         return directive;
       }
     }

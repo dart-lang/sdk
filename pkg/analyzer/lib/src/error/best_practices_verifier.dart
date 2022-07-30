@@ -1084,7 +1084,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void _checkForInternalExport(ExportDirective node) {
     if (!_inPublicPackageApi) return;
 
-    var libraryElement = node.uriElement;
+    var libraryElement = node.element2?.exportedLibrary;
     if (libraryElement == null) return;
     if (libraryElement.hasInternal) {
       _errorReporter.reportErrorForNode(
@@ -1914,7 +1914,7 @@ class _InvalidAccessVerifier {
   }
 
   void verifyImport(ImportDirective node) {
-    var element = node.uriElement;
+    var element = node.element2?.importedLibrary;
     if (_hasInternal(element) &&
         !_isLibraryInWorkspacePackage(element!.library)) {
       // The only way for an import directive's URI to have a `null`

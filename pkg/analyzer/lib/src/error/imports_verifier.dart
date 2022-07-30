@@ -258,7 +258,7 @@ class ImportsVerifier {
     final importsWithLibraries = <_ImportDirective>[];
     for (Directive directive in node.directives) {
       if (directive is ImportDirective) {
-        var libraryElement = directive.uriElement;
+        var libraryElement = directive.element2?.importedLibrary;
         if (libraryElement == null) {
           continue;
         }

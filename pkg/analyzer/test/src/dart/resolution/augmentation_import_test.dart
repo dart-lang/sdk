@@ -44,9 +44,6 @@ AugmentationImportDirective
   element: AugmentationImportElement
     uri: DirectiveUriWithAugmentation
       uri: package:test/c.dart
-  uriContent: c.dart
-  uriElement: self::@augmentation::package:test/c.dart
-  uriSource: package:test/c.dart
 ''');
   }
 
@@ -81,9 +78,6 @@ AugmentationImportDirective
   element: AugmentationImportElement
     uri: DirectiveUriWithAugmentation
       uri: package:test/c.dart
-  uriContent: c.dart
-  uriElement: self::@augmentation::package:test/c.dart
-  uriSource: package:test/c.dart
 ''');
   }
 
@@ -115,9 +109,6 @@ AugmentationImportDirective
   element: AugmentationImportElement
     uri: DirectiveUriWithSource
       source: package:test/c.dart
-  uriContent: c.dart
-  uriElement: <null>
-  uriSource: package:test/c.dart
 ''');
   }
 
@@ -147,9 +138,6 @@ AugmentationImportDirective
   element: AugmentationImportElement
     uri: DirectiveUriWithRelativeUriString
       relativeUriString: :net
-  uriContent: :net
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -189,9 +177,6 @@ AugmentationImportDirective
   semicolon: ;
   element: AugmentationImportElement
     uri: DirectiveUri
-  uriContent: null
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -221,9 +206,6 @@ AugmentationImportDirective
   element: AugmentationImportElement
     uri: DirectiveUriWithRelativeUri
       relativeUri: foo:bar
-  uriContent: foo:bar
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -247,9 +229,6 @@ AugmentationImportDirective
   element: AugmentationImportElement
     uri: DirectiveUriWithAugmentation
       uri: package:test/a.dart
-  uriContent: a.dart
-  uriElement: self::@augmentation::package:test/a.dart
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -276,9 +255,6 @@ AugmentationImportDirective
   element: AugmentationImportElement
     uri: DirectiveUriWithAugmentation
       uri: package:test/a.dart
-  uriContent: a.dart
-  uriElement: self::@augmentation::package:test/a.dart
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -300,9 +276,6 @@ AugmentationImportDirective
   element: AugmentationImportElement
     uri: DirectiveUriWithSource
       source: package:test/a.dart
-  uriContent: a.dart
-  uriElement: <null>
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -326,9 +299,6 @@ AugmentationImportDirective
   element: AugmentationImportElement
     uri: DirectiveUriWithSource
       source: package:test/a.dart
-  uriContent: a.dart
-  uriElement: <null>
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -350,9 +320,6 @@ AugmentationImportDirective
   element: AugmentationImportElement
     uri: DirectiveUriWithRelativeUriString
       relativeUriString: :net
-  uriContent: :net
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -384,9 +351,6 @@ AugmentationImportDirective
   semicolon: ;
   element: AugmentationImportElement
     uri: DirectiveUri
-  uriContent: null
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -408,9 +372,6 @@ AugmentationImportDirective
   element: AugmentationImportElement
     uri: DirectiveUriWithRelativeUri
       relativeUri: foo:bar
-  uriContent: foo:bar
-  uriElement: <null>
-  uriSource: <null>
 ''');
   }
 
@@ -436,9 +397,6 @@ AugmentationImportDirective
   element: AugmentationImportElement
     uri: DirectiveUriWithSource
       source: package:test/a.dart
-  uriContent: a.dart
-  uriElement: <null>
-  uriSource: package:test/a.dart
 ''');
   }
 
@@ -464,9 +422,6 @@ AugmentationImportDirective
   element: AugmentationImportElement
     uri: DirectiveUriWithSource
       source: package:test/a.dart
-  uriContent: a.dart
-  uriElement: <null>
-  uriSource: package:test/a.dart
 ''');
   }
 }

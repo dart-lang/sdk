@@ -59,8 +59,6 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['keyword'] = node.keyword;
     } else if (node is ExportDirective) {
       properties['element'] = node.element2;
-      properties['selectedSource'] = node.selectedSource;
-      properties['uriSource'] = node.uriSource;
     } else if (node is FieldDeclaration) {
       properties['static keyword'] = node.staticKeyword;
     } else if (node is FormalParameter) {
@@ -88,8 +86,6 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['type'] = node.type;
     } else if (node is ImportDirective) {
       properties['element'] = node.element2;
-      properties['selectedSource'] = node.selectedSource;
-      properties['uriSource'] = node.uriSource;
     } else if (node is IndexExpression) {
       properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;
@@ -108,7 +104,6 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['static type'] = node.staticType;
     } else if (node is PartDirective) {
       properties['element'] = node.element2;
-      properties['uriSource'] = node.uriSource;
     } else if (node is PartOfDirective) {
       properties['element'] = node.element2;
     } else if (node is PostfixExpression) {

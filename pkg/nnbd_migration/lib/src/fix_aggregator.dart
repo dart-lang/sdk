@@ -607,7 +607,7 @@ class NodeChangeForCompilationUnit extends NodeChange<CompilationUnit> {
   /// an existing [directive].
   bool _shouldImportGoBefore(String newImportUri, Directive directive) {
     if (directive is ImportDirective) {
-      return newImportUri.compareTo(directive.uriContent!) < 0;
+      return newImportUri.compareTo(directive.uri.stringValue!) < 0;
     } else if (directive is LibraryDirective) {
       // Library directives must come before imports.
       return false;

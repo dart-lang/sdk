@@ -923,6 +923,7 @@ class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
   @override
   Token get keyword => importKeyword;
 
+  @Deprecated('Use element2.uri instead')
   @override
   LibraryAugmentationElement? get uriElement {
     return element2?.importedAugmentation;
@@ -3818,6 +3819,7 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   Token get keyword => exportKeyword;
 
+  @Deprecated('Use element2.uri instead')
   @override
   LibraryElement? get uriElement {
     return element2?.exportedLibrary;
@@ -6475,6 +6477,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
     _prefix = _becomeParentOf(identifier as SimpleIdentifierImpl?);
   }
 
+  @Deprecated('Use element2.uri instead')
   @override
   LibraryElement? get uriElement {
     return element2?.importedLibrary;
@@ -7330,6 +7333,7 @@ class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
   @override
   Token get keyword => libraryKeyword;
 
+  @Deprecated('Use element2.uri instead')
   @override
   LibraryElement? get uriElement {
     // TODO(scheglov) Implement it.
@@ -8272,6 +8276,7 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   @override
   Token get endToken => semicolon;
 
+  @Deprecated('Use element2.uri instead')
   @override
   LibraryElement? get uriElement;
 }
@@ -8820,6 +8825,7 @@ class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
   @override
   Token get keyword => partKeyword;
 
+  @Deprecated('Use element2.uri instead')
   @override
   CompilationUnitElement? get uriElement {
     final partElementUri = element2?.uri;
@@ -11445,9 +11451,11 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
   /// The URI referenced by this directive.
   StringLiteralImpl _uri;
 
+  @Deprecated('Use element2.uri instead')
   @override
   String? uriContent;
 
+  @Deprecated('Use element2.uri instead')
   @override
   Source? uriSource;
 
@@ -11465,6 +11473,7 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
     _uri = _becomeParentOf(uri as StringLiteralImpl);
   }
 
+  @Deprecated('Use element2.uri instead')
   UriValidationCode? validate() {
     return validateUri(this is ImportDirective, uri, uriContent);
   }

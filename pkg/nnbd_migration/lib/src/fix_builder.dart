@@ -1191,7 +1191,7 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
     for (var directive in unit.directives) {
       if (directive is ImportDirective &&
           directive.prefix == null &&
-          directive.uriContent == uri) {
+          directive.uri.stringValue == uri) {
         return directive;
       }
     }
