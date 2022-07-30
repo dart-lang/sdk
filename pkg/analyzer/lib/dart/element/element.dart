@@ -2328,7 +2328,7 @@ abstract class _TmpSharedClassElement {
   /// declares a constructor. It is a compile-time error if a mixin is derived
   /// from a class whose superclass is not Object.
   /// </blockquote>
-  @Deprecated('Not useful for clients')
+  /// TODO(scheglov) Deprecate and remove it.
   bool get isValidMixin;
 
   /// Return a list containing all of the superclass constraints defined for

@@ -816,7 +816,6 @@ class ClassElementImpl extends AbstractClassElementImpl {
     setModifier(Modifier.SIMPLY_BOUNDED, isSimplyBounded);
   }
 
-  @Deprecated('Not useful for clients')
   @override
   bool get isValidMixin {
     final supertype = this.supertype;
@@ -2959,7 +2958,6 @@ class EnumElementImpl extends AbstractClassElementImpl implements EnumElement {
     setModifier(Modifier.SIMPLY_BOUNDED, isSimplyBounded);
   }
 
-  @Deprecated('Not useful for clients')
   @override
   bool get isValidMixin => false;
 
