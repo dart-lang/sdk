@@ -685,7 +685,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     FileState file = _fsState.getFileForPath(path);
     return FileResultImpl(
-        currentSession, path, file.uri, file.lineInfo, file.isPart);
+      session: currentSession,
+      path: path,
+      uri: file.uri,
+      lineInfo: file.lineInfo,
+      isPart: file.isPart,
+    );
   }
 
   /// Return the [FileResult] for the Dart file with the given [path].
@@ -802,7 +807,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       units.add(unitResult);
     }
 
-    return ParsedLibraryResultImpl(currentSession, units);
+    return ParsedLibraryResultImpl(
+      session: currentSession,
+      units: units,
+    );
   }
 
   /// Return a [ParsedLibraryResult] for the library with the given [uri].
@@ -1016,8 +1024,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     FileState file = _fsState.getFileForPath(path);
     RecordingErrorListener listener = RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
-    return ParsedUnitResultImpl(currentSession, file.path, file.uri,
-        file.content, file.lineInfo, file.isPart, unit, listener.errors);
+    return ParsedUnitResultImpl(
+      session: currentSession,
+      path: file.path,
+      uri: file.uri,
+      content: file.content,
+      lineInfo: file.lineInfo,
+      isPart: file.isPart,
+      unit: unit,
+      errors: listener.errors,
+    );
   }
 
   /// Return a [ParsedUnitResult] for the file with the given [path].
@@ -1423,23 +1439,23 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         var unitFile = unitResult.file;
         resolvedUnits.add(
           ResolvedUnitResultImpl(
-            currentSession,
-            unitFile.path,
-            unitFile.uri,
-            unitFile.exists,
-            unitFile.content,
-            unitFile.lineInfo,
-            unitFile.isPart,
-            unitResult.unit,
-            unitResult.errors,
+            session: currentSession,
+            path: unitFile.path,
+            uri: unitFile.uri,
+            exists: unitFile.exists,
+            content: unitFile.content,
+            lineInfo: unitFile.lineInfo,
+            isPart: unitFile.isPart,
+            unit: unitResult.unit,
+            errors: unitResult.errors,
           ),
         );
       }
 
       return ResolvedLibraryResultImpl(
-        currentSession,
-        resolvedUnits.first.libraryElement,
-        resolvedUnits,
+        session: currentSession,
+        element: resolvedUnits.first.libraryElement,
+        units: resolvedUnits,
       );
     });
   }
@@ -1459,12 +1475,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       );
       var element = libraryContext.computeUnitElement(library, file);
       return UnitElementResultImpl(
-        currentSession,
-        path,
-        file.uri,
-        file.lineInfo,
-        file.isPart,
-        element,
+        session: currentSession,
+        path: path,
+        uri: file.uri,
+        lineInfo: file.lineInfo,
+        isPart: file.isPart,
+        element: element,
       );
     });
   }
@@ -1597,25 +1613,25 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var index = unit.index!;
     if (content != null && resolvedUnit != null) {
       var resolvedUnitResult = ResolvedUnitResultImpl(
-        currentSession,
-        file.path,
-        file.uri,
-        file.exists,
-        content,
-        file.lineInfo,
-        file.isPart,
-        resolvedUnit,
-        errors,
+        session: currentSession,
+        path: file.path,
+        uri: file.uri,
+        exists: file.exists,
+        content: content,
+        lineInfo: file.lineInfo,
+        isPart: file.isPart,
+        unit: resolvedUnit,
+        errors: errors,
       );
       return AnalysisResult.unit(signature, resolvedUnitResult, index);
     } else {
       var errorsResult = ErrorsResultImpl(
-        currentSession,
-        file.path,
-        file.uri,
-        file.lineInfo,
-        file.isPart,
-        errors,
+        session: currentSession,
+        path: file.path,
+        uri: file.uri,
+        lineInfo: file.lineInfo,
+        isPart: file.isPart,
+        errors: errors,
       );
       return AnalysisResult.errors(signature, errorsResult, index);
     }
@@ -1681,12 +1697,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       FileState file, String missingUri) {
     // TODO(scheglov) Find a better way to report this.
     var errorsResult = ErrorsResultImpl(
-      currentSession,
-      file.path,
-      file.uri,
-      file.lineInfo,
-      file.isPart,
-      [
+      session: currentSession,
+      path: file.path,
+      uri: file.uri,
+      lineInfo: file.lineInfo,
+      isPart: file.isPart,
+      errors: [
         AnalysisError(file.source, 0, 0,
             CompileTimeErrorCode.MISSING_DART_LIBRARY, [missingUri])
       ],
