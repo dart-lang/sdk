@@ -745,7 +745,6 @@ class A {
     verifyTestResolved();
   }
 
-  @deprecated
   test_isValidMixin_badSuperclass() async {
     await assertErrorsInCode(r'''
 class A extends B {}
@@ -759,7 +758,6 @@ class C = Object with A;''', [
     expect(a.isValidMixin, isFalse);
   }
 
-  @deprecated
   test_isValidMixin_constructor() async {
     await assertErrorsInCode(r'''
 class A {
@@ -774,7 +772,6 @@ class C = Object with A;''', [
     expect(a.isValidMixin, isFalse);
   }
 
-  @deprecated
   test_isValidMixin_factoryConstructor() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -787,7 +784,6 @@ class C = Object with A;''');
     expect(a.isValidMixin, isTrue);
   }
 
-  @deprecated
   test_isValidMixin_super_toString() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -802,7 +798,6 @@ class C = Object with A;''');
     expect(a.isValidMixin, isTrue);
   }
 
-  @deprecated
   test_isValidMixin_valid() async {
     await assertNoErrorsInCode('''
 class A {}

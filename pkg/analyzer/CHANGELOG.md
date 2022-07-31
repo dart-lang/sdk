@@ -5,7 +5,6 @@
 * Deprecated `ClassOrMixinDeclaration.getMethod`, filter `members` instead.
 * Deprecated `ClassDeclaration.getConstructor`, filter `members` instead.
 * Deprecated `Directive.element`, use `element2` instead.
-* Deprecated `ClassElement.isValidMixin`, it is not useful for clients.
 * Deprecated `ClassElement.hasStaticMember`, it is not useful for clients.
 * Deprecated `NamespaceDirective.uriElement`, use `element2.uri` with `DirectiveUriWithLibrary` instead.
 * Deprecated `UriBasedDirective.uriContent`, `UriBasedDirective.uriElement`, `UriBasedDirective.uriSource`.
