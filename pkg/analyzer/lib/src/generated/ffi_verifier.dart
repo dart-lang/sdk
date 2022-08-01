@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
 
@@ -341,6 +342,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
 
       var ffiParameterTypes = ffiSignature.normalParameterTypes;
+      var ffiParameters = ffiSignature.parameters;
 
       if (declarationElement is MethodElement && !declarationElement.isStatic) {
         // Instance methods must have the receiver as an extra parameter in the
@@ -366,6 +368,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         }
 
         ffiParameterTypes = ffiParameterTypes.sublist(1);
+        ffiParameters = ffiParameters.sublist(1);
       } else {
         // Number of parameters in the FfiNative annotation must match the
         // annotated declaration.
@@ -390,6 +393,27 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
                 errorNode);
           }
         }
+      }
+
+      final dartType = declarationElement.type;
+      final nativeType = FunctionTypeImpl(
+        typeFormals: ffiSignature.typeFormals,
+        parameters: ffiParameters,
+        returnType: ffiSignature.returnType,
+        nullabilitySuffix: ffiSignature.nullabilitySuffix,
+      );
+      if (!_isValidFfiNativeFunctionType(nativeType)) {
+        _errorReporter.reportErrorForNode(
+            FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
+            errorNode,
+            [nativeType, 'FfiNative']);
+        return;
+      }
+      if (!_validateCompatibleFunctionTypes(dartType, nativeType,
+          nativeFieldWrappersAsPointer: true, allowStricterReturn: true)) {
+        _errorReporter.reportErrorForNode(FfiCode.MUST_BE_A_SUBTYPE, errorNode,
+            [nativeType, dartType, 'FfiNative']);
+        return;
       }
     }
   }
@@ -777,7 +801,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Validates that the given [nativeType] is, when native types are converted
   /// to their Dart equivalent, a subtype of [dartType].
   bool _validateCompatibleFunctionTypes(
-      DartType dartType, DartType nativeType) {
+    DartType dartType,
+    DartType nativeType, {
+    bool nativeFieldWrappersAsPointer = false,
+    bool allowStricterReturn = false,
+  }) {
     // We require both to be valid function types.
     if (dartType is! FunctionType ||
         dartType.isDartCoreFunction ||
@@ -804,14 +832,26 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     // Validate that the return types are compatible.
     if (!_validateCompatibleNativeType(
-        dartType.returnType, nativeType.returnType, false)) {
-      return false;
+        dartType.returnType, nativeType.returnType)) {
+      // TODO(http://dartbug.com/49518): Fix inconsistency between `FfiNative`
+      // and `asFunction`.
+      if (!allowStricterReturn) {
+        return false;
+      } else if (!_validateCompatibleNativeType(
+          dartType.returnType, nativeType.returnType,
+          checkCovariance: true)) {
+        return false;
+      }
     }
 
     // Validate that the parameter types are compatible.
     for (int i = 0; i < parameterCount; ++i) {
-      if (!_validateCompatibleNativeType(dartType.normalParameterTypes[i],
-          nativeType.normalParameterTypes[i], true)) {
+      if (!_validateCompatibleNativeType(
+        dartType.normalParameterTypes[i],
+        nativeType.normalParameterTypes[i],
+        checkCovariance: true,
+        nativeFieldWrappersAsPointer: nativeFieldWrappersAsPointer,
+      )) {
         return false;
       }
     }
@@ -824,7 +864,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// [dartType] the latter is a subtype of the former if
   /// [checkCovariance].
   bool _validateCompatibleNativeType(
-      DartType dartType, DartType nativeType, bool checkCovariance) {
+    DartType dartType,
+    DartType nativeType, {
+    bool checkCovariance = false,
+    bool nativeFieldWrappersAsPointer = false,
+  }) {
     final nativeReturnType = _primitiveNativeType(nativeType);
     if (nativeReturnType == _PrimitiveDartType.int ||
         (nativeType is InterfaceType &&
@@ -837,12 +881,22 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       return dartType.isDartCoreBool;
     } else if (nativeReturnType == _PrimitiveDartType.void_) {
       return dartType.isVoid;
+    } else if (dartType.isVoid) {
+      // Don't allow other native subtypes if the Dart return type is void.
+      return nativeReturnType == _PrimitiveDartType.void_;
     } else if (nativeReturnType == _PrimitiveDartType.handle) {
       InterfaceType objectType = typeSystem.objectStar;
       return checkCovariance
           ? /* everything is subtype of objectStar */ true
           : typeSystem.isSubtypeOf(objectType, dartType);
     } else if (dartType is InterfaceType && nativeType is InterfaceType) {
+      if (nativeFieldWrappersAsPointer &&
+          _extendsNativeFieldWrapperClass1(dartType)) {
+        // Must be `Pointer<Void>`, `Handle` already checked above.
+        return nativeType.isPointer &&
+            _primitiveNativeType(nativeType.typeArguments.single) ==
+                _PrimitiveDartType.void_;
+      }
       return checkCovariance
           ? typeSystem.isSubtypeOf(dartType, nativeType)
           : typeSystem.isSubtypeOf(nativeType, dartType);
@@ -1015,7 +1069,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     } else {
       Expression e = node.argumentList.arguments[1];
       var eType = e.typeOrThrow;
-      if (!_validateCompatibleNativeType(eType, R, true)) {
+      if (!_validateCompatibleNativeType(eType, R, checkCovariance: true)) {
         _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_SUBTYPE, e, [eType, R, 'fromFunction']);
       }

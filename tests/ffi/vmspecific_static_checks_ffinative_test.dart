@@ -80,18 +80,14 @@ external static int badOptParam(); //# 12: compile-time error
 @FfiNative<Void Function({Double})>('doesntmatter') //# 13: compile-time error
 external static int badNamedParam(); //# 13: compile-time error
 
-// TODO(https://dartbug.com/49412): Implement in analyzer.
 @FfiNative<IntPtr Function(Double)>('doesntmatter') //# 14: compile-time error
 external int wrongFfiParameter(int v); //# 14: compile-time error
 
-// TODO(https://dartbug.com/49412): Implement in analyzer.
 @FfiNative<IntPtr Function(IntPtr)>('doesntmatter') //# 15: compile-time error
 external double wrongFfiReturnType(int v); //# 15: compile-time error
 
-// TODO(https://dartbug.com/49412): Implement in analyzer.
-@FfiNative<int Function(Double)>('doesntmatter') //# 16: compile-time error
+@FfiNative<IntPtr Function(int)>('doesntmatter') //# 16: compile-time error
 external int nonFfiParameter(int v); //# 16: compile-time error
 
-// TODO(https://dartbug.com/49412): Implement in analyzer.
 @FfiNative<double Function(IntPtr)>('doesntmatter') //# 17: compile-time error
 external double nonFfiReturnType(int v); //# 17: compile-time error
