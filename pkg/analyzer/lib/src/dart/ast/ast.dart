@@ -21,6 +21,7 @@ import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:meta/meta.dart';
 
 /// Two or more string literals that are implicitly concatenated because of
@@ -2489,7 +2490,7 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
   StringLiteralImpl _uri;
 
   @override
-  Source? uriSource;
+  DirectiveUri? resolvedUri;
 
   ConfigurationImpl(this.ifKeyword, this.leftParenthesis, this._name,
       this.equalToken, this._value, this.rightParenthesis, this._uri) {
@@ -2516,6 +2517,12 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
 
   set uri(StringLiteral uri) {
     _uri = _becomeParentOf(uri as StringLiteralImpl);
+  }
+
+  @Deprecated('Use resolvedUri instead')
+  @override
+  Source? get uriSource {
+    return resolvedUri?.ifTypeOrNull<DirectiveUriWithSource>()?.source;
   }
 
   @override
@@ -8246,9 +8253,11 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   @override
   Token semicolon;
 
+  @Deprecated('Use element2.uri instead')
   @override
   String? selectedUriContent;
 
+  @Deprecated('Use element2.uri instead')
   @override
   Source? selectedSource;
 

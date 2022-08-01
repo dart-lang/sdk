@@ -310,6 +310,8 @@ CompilationUnit
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'a_html.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_html.dart
         Configuration
           ifKeyword: if
           leftParenthesis: (
@@ -330,6 +332,8 @@ CompilationUnit
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'a_io.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_io.dart
       semicolon: ;
       element: LibraryImportElement
         uri: DirectiveUriWithLibrary
@@ -411,6 +415,8 @@ CompilationUnit
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'a_html.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_html.dart
         Configuration
           ifKeyword: if
           leftParenthesis: (
@@ -431,6 +437,8 @@ CompilationUnit
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'a_io.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_io.dart
       semicolon: ;
       element: LibraryImportElement
         uri: DirectiveUriWithLibrary
@@ -462,6 +470,128 @@ CompilationUnit
             declaredElement: self::@variable::a
       semicolon: ;
       declaredElement: <null>
+''');
+  }
+
+  test_inLibrary_configurations_noRelativeUri() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertNoErrorsInCode(r'''
+// ignore:unused_import
+import 'a.dart'
+  if (x) ':net';
+''');
+
+    final node = findNode.configuration('if (');
+    assertResolvedNodeText(node, r'''
+Configuration
+  ifKeyword: if
+  leftParenthesis: (
+  name: DottedName
+    components
+      SimpleIdentifier
+        token: x
+        staticElement: <null>
+        staticType: null
+  rightParenthesis: )
+  uri: SimpleStringLiteral
+    literal: ':net'
+  resolvedUri: DirectiveUriWithRelativeUriString
+    relativeUriString: :net
+''');
+  }
+
+  test_inLibrary_configurations_noRelativeUriStr() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertNoErrorsInCode(r'''
+// ignore:unused_import
+import 'a.dart'
+  if (x) '${'foo'}.dart';
+''');
+
+    final node = findNode.configuration('if (');
+    assertResolvedNodeText(node, r'''
+Configuration
+  ifKeyword: if
+  leftParenthesis: (
+  name: DottedName
+    components
+      SimpleIdentifier
+        token: x
+        staticElement: <null>
+        staticType: null
+  rightParenthesis: )
+  uri: StringInterpolation
+    elements
+      InterpolationString
+        contents: '
+      InterpolationExpression
+        leftBracket: ${
+        expression: SimpleStringLiteral
+          literal: 'foo'
+        rightBracket: }
+      InterpolationString
+        contents: .dart'
+    staticType: null
+    stringValue: null
+  resolvedUri: DirectiveUri
+''');
+  }
+
+  test_inLibrary_configurations_noSource() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertNoErrorsInCode(r'''
+// ignore:unused_import
+import 'a.dart'
+  if (x) 'foo:bar';
+''');
+
+    final node = findNode.configuration('if (');
+    assertResolvedNodeText(node, r'''
+Configuration
+  ifKeyword: if
+  leftParenthesis: (
+  name: DottedName
+    components
+      SimpleIdentifier
+        token: x
+        staticElement: <null>
+        staticType: null
+  rightParenthesis: )
+  uri: SimpleStringLiteral
+    literal: 'foo:bar'
+  resolvedUri: DirectiveUriWithRelativeUri
+    relativeUri: foo:bar
+''');
+  }
+
+  test_inLibrary_configurations_onlySource_notLibrary() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertNoErrorsInCode(r'''
+// ignore:unused_import
+import 'a.dart'
+  if (x) 'a.dart';
+''');
+
+    final node = findNode.configuration('if (');
+    assertResolvedNodeText(node, r'''
+Configuration
+  ifKeyword: if
+  leftParenthesis: (
+  name: DottedName
+    components
+      SimpleIdentifier
+        token: x
+        staticElement: <null>
+        staticType: null
+  rightParenthesis: )
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  resolvedUri: DirectiveUriWithSource
+    source: package:test/a.dart
 ''');
   }
 
@@ -512,6 +642,8 @@ CompilationUnit
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'a_html.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_html.dart
         Configuration
           ifKeyword: if
           leftParenthesis: (
@@ -532,6 +664,8 @@ CompilationUnit
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'a_io.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_io.dart
       semicolon: ;
       element: LibraryImportElement
         uri: DirectiveUriWithLibrary

@@ -51,7 +51,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     } else if (node is CompilationUnit) {
       properties['declaredElement'] = node.declaredElement;
     } else if (node is Configuration) {
-      properties['uriSource'] = node.uriSource;
+      properties['uriSource'] = node.resolvedUri;
     } else if (node is ConstructorName) {
       properties['static element'] = node.staticElement;
     } else if (node is DeclaredIdentifier) {

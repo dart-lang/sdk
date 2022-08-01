@@ -115,6 +115,10 @@ class FindNode {
     return _node(search, (n) => n is ConditionalExpression);
   }
 
+  Configuration configuration(String search) {
+    return _node(search, (n) => n is Configuration);
+  }
+
   ConstructorDeclaration constructor(String search) {
     return _node(search, (n) => n is ConstructorDeclaration);
   }

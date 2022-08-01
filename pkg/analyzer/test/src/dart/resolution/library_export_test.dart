@@ -305,6 +305,8 @@ ExportDirective
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_html.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_html.dart
     Configuration
       ifKeyword: if
       leftParenthesis: (
@@ -325,6 +327,8 @@ ExportDirective
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_io.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_io.dart
   semicolon: ;
   element: LibraryExportElement
     uri: DirectiveUriWithLibrary
@@ -375,6 +379,8 @@ ExportDirective
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_html.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_html.dart
     Configuration
       ifKeyword: if
       leftParenthesis: (
@@ -395,6 +401,8 @@ ExportDirective
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_io.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_io.dart
   semicolon: ;
   element: LibraryExportElement
     uri: DirectiveUriWithLibrary
@@ -445,6 +453,8 @@ ExportDirective
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_html.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_html.dart
     Configuration
       ifKeyword: if
       leftParenthesis: (
@@ -465,6 +475,8 @@ ExportDirective
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_io.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_io.dart
   semicolon: ;
   element: LibraryExportElement
     uri: DirectiveUriWithLibrary

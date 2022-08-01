@@ -869,10 +869,8 @@ class LibraryAnalyzer {
     required List<file_state.DirectiveUri> configurationUris,
   }) {
     for (var i = 0; i < configurationNodes.length; i++) {
-      final configurationNode = configurationNodes[i];
-      configurationNode as ConfigurationImpl;
-      // TODO(scheglov) Use `DirectiveUri` here instead.
-      configurationNode.uriSource = configurationUris[i].source;
+      final node = configurationNodes[i] as ConfigurationImpl;
+      node.resolvedUri = configurationUris[i].asDirectiveUri;
     }
 
     if (primaryUriState is DirectiveUriWithString) {
@@ -883,7 +881,9 @@ class LibraryAnalyzer {
     }
 
     if (selectedUriState is DirectiveUriWithString) {
+      // ignore: deprecated_member_use_from_same_package
       directive.selectedUriContent = selectedUriState.relativeUriStr;
+      // ignore: deprecated_member_use_from_same_package
       directive.selectedSource = selectedUriState.source;
     }
   }
@@ -1024,4 +1024,27 @@ class UnitAnalysisResult {
   final List<AnalysisError> errors;
 
   UnitAnalysisResult(this.file, this.unit, this.errors);
+}
+
+extension on file_state.DirectiveUri {
+  DirectiveUriImpl get asDirectiveUri {
+    final self = this;
+    if (self is file_state.DirectiveUriWithSource) {
+      return DirectiveUriWithSourceImpl(
+        relativeUriString: self.relativeUriStr,
+        relativeUri: self.relativeUri,
+        source: self.source,
+      );
+    } else if (self is file_state.DirectiveUriWithUri) {
+      return DirectiveUriWithRelativeUriImpl(
+        relativeUriString: self.relativeUriStr,
+        relativeUri: self.relativeUri,
+      );
+    } else if (self is file_state.DirectiveUriWithString) {
+      return DirectiveUriWithRelativeUriStringImpl(
+        relativeUriString: self.relativeUriStr,
+      );
+    }
+    return DirectiveUriImpl();
+  }
 }

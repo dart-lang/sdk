@@ -1237,6 +1237,9 @@ abstract class Configuration implements AstNode {
   /// condition.
   DottedName get name;
 
+  /// The result of resolving [uri].
+  DirectiveUri? get resolvedUri;
+
   /// Return the token for the right parenthesis.
   Token get rightParenthesis;
 
@@ -1245,7 +1248,7 @@ abstract class Configuration implements AstNode {
   StringLiteral get uri;
 
   /// Return the source to which the [uri] was resolved.
-  /// TODO(scheglov) Deprecate and remove.
+  @Deprecated('Use resolvedUri and check for DirectiveUriWithSource instead')
   Source? get uriSource;
 
   /// Return the value to which the value of the declared variable will be

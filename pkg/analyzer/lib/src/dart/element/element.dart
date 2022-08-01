@@ -1763,7 +1763,7 @@ class DirectiveUriWithRelativeUriImpl
   });
 }
 
-class DirectiveUriWithRelativeUriStringImpl
+class DirectiveUriWithRelativeUriStringImpl extends DirectiveUriImpl
     implements DirectiveUriWithRelativeUriString {
   @override
   final String relativeUriString;
