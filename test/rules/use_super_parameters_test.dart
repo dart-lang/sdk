@@ -364,6 +364,22 @@ class B extends A {
     ]);
   }
 
+  /// https://github.com/dart-lang/linter/issues/3569
+  test_repeatedParam() async {
+    await assertNoDiagnostics(r'''
+class Rect {
+  Rect(this.width, this.height);
+
+  final double width;
+  final double height;
+}
+
+class Square extends Rect {
+  Square(double dimension) : super(dimension, dimension);
+}
+''');
+  }
+
   test_requiredPositional_allConvertible() async {
     await assertDiagnostics(r'''
 class B {

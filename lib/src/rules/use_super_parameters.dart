@@ -164,6 +164,8 @@ class _Visitor extends SimpleAstVisitor {
     var convertibleConstructorParams = <String>[];
     var matchedConstructorParamIndex = 0;
 
+    var seenSuperParams = <Element>{};
+
     // For each super arg, ensure there is a constructor param (in the right
     // order).
     for (var i = 0; i < positionalSuperArgs.length; ++i) {
@@ -171,6 +173,10 @@ class _Visitor extends SimpleAstVisitor {
       var superParam = superArg.staticElement;
       if (superParam is! ParameterElement) return null;
       if (superParam.isNamed) return null;
+
+      // Check for the case where a super param is used more than once.
+      if (!seenSuperParams.add(superParam)) return null;
+
       bool match = false;
       for (var i = 0; i < constructorParams.length && !match; ++i) {
         var constructorParam = constructorParams[i];
