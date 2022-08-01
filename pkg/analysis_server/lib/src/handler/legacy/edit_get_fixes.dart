@@ -134,6 +134,8 @@ class EditGetFixesHandler extends LegacyHandler
           path: file,
           uri: Uri.file(file),
           lineInfo: lineInfo,
+          isAugmentation: false,
+          isLibrary: true,
           isPart: false,
           errors: errors,
         );
@@ -240,6 +242,8 @@ error.errorCode: ${error.errorCode}
           path: file,
           uri: Uri.file(file),
           lineInfo: lineInfo,
+          isAugmentation: false,
+          isLibrary: true,
           isPart: false,
           errors: errors,
         );

@@ -68,7 +68,16 @@ abstract class ErrorsResult
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FileResult implements SomeFileResult, AnalysisResult {
+  /// Whether the file is a library augmentation.
+  /// When `true`, [isLibrary] and [isPart] are `false`.
+  bool get isAugmentation;
+
+  /// Whether the file is a library.
+  /// When `true`, [isAugmentation] and [isPart] are `false`.
+  bool get isLibrary;
+
   /// Whether the file is a part.
+  /// When `true`, [isAugmentation] and [isLibrary] are `false`.
   bool get isPart;
 
   /// Information about lines in the content.

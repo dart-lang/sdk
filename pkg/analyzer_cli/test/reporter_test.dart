@@ -112,6 +112,8 @@ ErrorsResultImpl mockResult(ErrorType type, ErrorSeverity severity) {
     path: source.fullName,
     uri: Uri.file('/'),
     lineInfo: lineInfo,
+    isAugmentation: false,
+    isLibrary: true,
     isPart: false,
     errors: [error],
   );

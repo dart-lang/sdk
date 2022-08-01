@@ -1461,6 +1461,34 @@ elementFactory
 ''');
   }
 
+  test_newFile_hasLibraryDirective_hasPartOfDirective() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library L;
+part of L;
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        name: L
+        libraryImports
+          library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+libraryCycles
+elementFactory
+''');
+  }
+
   test_newFile_library_augmentations_emptyUri() {
     final a = newFile('$testPackageLibPath/a.dart', r'''
 import augment '';
@@ -5792,16 +5820,6 @@ var G, H;
     FileState file = fileSystemState.getFileForPath(path);
     expect(file.definedTopLevelNames,
         unorderedEquals(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']));
-  }
-
-  test_getFileForPath_hasLibraryDirective_hasPartOfDirective() {
-    String a = convertPath('/test/lib/a.dart');
-    newFile(a, r'''
-library L;
-part of L;
-''');
-    FileState file = fileSystemState.getFileForPath(a);
-    expect(file.isPart, isFalse);
   }
 
   test_getFileForPath_samePath() {

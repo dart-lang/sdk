@@ -689,7 +689,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       path: path,
       uri: file.uri,
       lineInfo: file.lineInfo,
-      isPart: file.isPart,
+      isAugmentation: file.kind is AugmentationFileKind,
+      isLibrary: file.kind is LibraryFileKind,
+      isPart: file.kind is PartFileKind,
     );
   }
 
@@ -1030,7 +1032,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       uri: file.uri,
       content: file.content,
       lineInfo: file.lineInfo,
-      isPart: file.isPart,
+      isAugmentation: file.kind is AugmentationFileKind,
+      isLibrary: file.kind is LibraryFileKind,
+      isPart: file.kind is PartFileKind,
       unit: unit,
       errors: listener.errors,
     );
@@ -1445,7 +1449,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             exists: unitFile.exists,
             content: unitFile.content,
             lineInfo: unitFile.lineInfo,
-            isPart: unitFile.isPart,
+            isAugmentation: unitFile.kind is AugmentationFileKind,
+            isLibrary: unitFile.kind is LibraryFileKind,
+            isPart: unitFile.kind is PartFileKind,
             unit: unitResult.unit,
             errors: unitResult.errors,
           ),
@@ -1479,7 +1485,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         path: path,
         uri: file.uri,
         lineInfo: file.lineInfo,
-        isPart: file.isPart,
+        isAugmentation: file.kind is AugmentationFileKind,
+        isLibrary: file.kind is LibraryFileKind,
+        isPart: file.kind is PartFileKind,
         element: element,
       );
     });
@@ -1619,7 +1627,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         exists: file.exists,
         content: content,
         lineInfo: file.lineInfo,
-        isPart: file.isPart,
+        isAugmentation: file.kind is AugmentationFileKind,
+        isLibrary: file.kind is LibraryFileKind,
+        isPart: file.kind is PartFileKind,
         unit: resolvedUnit,
         errors: errors,
       );
@@ -1630,7 +1640,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         path: file.path,
         uri: file.uri,
         lineInfo: file.lineInfo,
-        isPart: file.isPart,
+        isAugmentation: file.kind is AugmentationFileKind,
+        isLibrary: file.kind is LibraryFileKind,
+        isPart: file.kind is PartFileKind,
         errors: errors,
       );
       return AnalysisResult.errors(signature, errorsResult, index);
@@ -1701,7 +1713,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       path: file.path,
       uri: file.uri,
       lineInfo: file.lineInfo,
-      isPart: file.isPart,
+      isAugmentation: file.kind is AugmentationFileKind,
+      isLibrary: file.kind is LibraryFileKind,
+      isPart: file.kind is PartFileKind,
       errors: [
         AnalysisError(file.source, 0, 0,
             CompileTimeErrorCode.MISSING_DART_LIBRARY, [missingUri])

@@ -13,6 +13,7 @@
 * Deprecated `Configuration.uriSource`, use `resolvedUri` instead.
 * Deprecated `CatchClause.exceptionParameter` and `CatchClause.stackTraceParameter`.
   Use `exceptionParameter2` and `stackTraceParameter2` instead.
+* Added `FileResult.isAugmentation` and `isLibrary` to complement `isPart`.
 
 ## 4.3.1
 * Fix `identifier` for `LibraryExportElement` and `LibraryImportElement`.
