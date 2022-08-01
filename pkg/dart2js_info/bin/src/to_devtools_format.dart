@@ -6,7 +6,7 @@ import 'package:args/command_runner.dart';
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/io.dart';
 import 'package:vm_snapshot_analysis/treemap.dart';
-import 'package:dart2js_info/src/util.dart' show libraryGroupName;
+import 'package:dart2js_info/src/util.dart';
 import 'package:vm_snapshot_analysis/program_info.dart' as vm;
 
 /// Command that converts a `--dump-info` JSON output into a format ingested by Devtools.
@@ -72,6 +72,10 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
   /// objects of [vm.NodeType.packageNode].
   final Map<String, vm.ProgramInfoNode> packageInfoNodes = {};
 
+  /// Mapping between an <unnamed> [LibraryInfo] object and the name of the
+  /// corresponding [vm.ProgramInfoNode] object.
+  final Map<Info, String> unnamedLibraries = {};
+
   ProgramInfoBuilder(this.info);
 
   @override
@@ -111,7 +115,8 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
     info.classTypes.forEach(visitClassType);
     info.typedefs.forEach(makeTypedef);
     info.typedefs.forEach(visitTypedef);
-    return infoNodesByName[info.name]!;
+    return infoNodesByName[info.name] ??
+        infoNodesByName[unnamedLibraries[info]]!;
   }
 
   @override
@@ -151,7 +156,7 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
 
   @override
   vm.ProgramInfoNode visitConstant(ConstantInfo info) {
-    return infoNodesByName[info.name]!;
+    return infoNodesByName[info.code.first.text!]!;
   }
 
   @override
@@ -190,11 +195,14 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
 
   void makeLibrary(LibraryInfo libraryInfo) {
     String packageName = libraryGroupName(libraryInfo) ?? libraryInfo.name;
-    vm.ProgramInfoNode? parentNode = infoNodesByName[packageName];
+    vm.ProgramInfoNode parentNode = infoNodesByName[packageName]!;
+    String libraryName = libraryInfo.name;
+    if (libraryName == '<unnamed>') {
+      libraryName = longName(libraryInfo, useLibraryUri: true, forId: true);
+      unnamedLibraries[libraryInfo] = libraryName;
+    }
     vm.ProgramInfoNode newLibrary = program.makeNode(
-        name: libraryInfo.name,
-        parent: parentNode!,
-        type: vm.NodeType.libraryNode);
+        name: libraryName, parent: parentNode, type: vm.NodeType.libraryNode);
     newLibrary.size = libraryInfo.size;
     parentNode.children[newLibrary.name] = newLibrary;
     infoNodesByName[newLibrary.name] = newLibrary;
@@ -204,10 +212,16 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
   void makeFunction(FunctionInfo functionInfo) {
     Info? parent = functionInfo.parent;
     if (parent != null) {
-      vm.ProgramInfoNode? parentNode = infoNodesByName[parent.name];
+      vm.ProgramInfoNode parentNode;
+      if (parent.name == "<unnamed>" &&
+          parent.kind == kindFromString('library')) {
+        parentNode = infoNodesByName[unnamedLibraries[parent]]!;
+      } else {
+        parentNode = infoNodesByName[parent.name]!;
+      }
       vm.ProgramInfoNode newFunction = program.makeNode(
           name: functionInfo.name,
-          parent: parentNode!,
+          parent: parentNode,
           type: vm.NodeType.functionNode);
       newFunction.size = functionInfo.size;
       parentNode.children[newFunction.name] = newFunction;
@@ -219,10 +233,16 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
   void makeClass(ClassInfo classInfo) {
     Info? parent = classInfo.parent;
     if (parent != null) {
-      vm.ProgramInfoNode? parentNode = infoNodesByName[parent.name];
+      vm.ProgramInfoNode parentNode;
+      if (parent.name == "<unnamed>" &&
+          parent.kind == kindFromString('library')) {
+        parentNode = infoNodesByName[unnamedLibraries[parent]]!;
+      } else {
+        parentNode = infoNodesByName[parent.name]!;
+      }
       vm.ProgramInfoNode newClass = program.makeNode(
           name: classInfo.name,
-          parent: parentNode!,
+          parent: parentNode,
           type: vm.NodeType.classNode);
       newClass.size = classInfo.size;
       parentNode.children[newClass.name] = newClass;
@@ -239,9 +259,15 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
   void makeField(FieldInfo fieldInfo) {
     Info? parent = fieldInfo.parent;
     if (parent != null) {
-      vm.ProgramInfoNode? parentNode = infoNodesByName[parent.name];
+      vm.ProgramInfoNode parentNode;
+      if (parent.name == "<unnamed>" &&
+          parent.kind == kindFromString('library')) {
+        parentNode = infoNodesByName[unnamedLibraries[parent]]!;
+      } else {
+        parentNode = infoNodesByName[parent.name]!;
+      }
       vm.ProgramInfoNode newField = program.makeNode(
-          name: fieldInfo.name, parent: parentNode!, type: vm.NodeType.other);
+          name: fieldInfo.name, parent: parentNode, type: vm.NodeType.other);
       newField.size = fieldInfo.size;
       parentNode.children[newField.name] = newField;
       infoNodesByName[newField.name] = newField;
@@ -250,10 +276,13 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
   }
 
   void makeConstant(ConstantInfo constantInfo) {
+    String constantName = constantInfo.code.first.text!;
     vm.ProgramInfoNode newConstant = program.makeNode(
-        name: constantInfo.name, parent: program.root, type: vm.NodeType.other);
+        name: constantName, parent: program.root, type: vm.NodeType.other);
     newConstant.size = constantInfo.size;
     program.root.children[newConstant.name] = newConstant;
+    vm.ProgramInfoNode? constantNode = infoNodesByName[newConstant.name];
+    assert(constantNode == null, "encountered constant with duplicated name");
     infoNodesByName[newConstant.name] = newConstant;
     outputInfo.add(newConstant);
   }
@@ -269,10 +298,16 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
   void makeClassType(ClassTypeInfo classTypeInfo) {
     Info? parent = classTypeInfo.parent;
     if (parent != null) {
-      vm.ProgramInfoNode? parentNode = infoNodesByName[parent.name];
+      vm.ProgramInfoNode parentNode;
+      if (parent.name == "<unnamed>" &&
+          parent.kind == kindFromString('library')) {
+        parentNode = infoNodesByName[unnamedLibraries[parent]]!;
+      } else {
+        parentNode = infoNodesByName[parent.name]!;
+      }
       vm.ProgramInfoNode newClassType = program.makeNode(
           name: classTypeInfo.name,
-          parent: parentNode!,
+          parent: parentNode,
           type: vm.NodeType.other);
       newClassType.size = classTypeInfo.size;
       infoNodesByName[newClassType.name] = newClassType;
@@ -283,10 +318,16 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
   void makeClosure(ClosureInfo closureInfo) {
     Info? parent = closureInfo.parent;
     if (parent != null) {
-      vm.ProgramInfoNode? parentNode = infoNodesByName[parent.name];
+      vm.ProgramInfoNode parentNode;
+      if (parent.name == "<unnamed>" &&
+          parent.kind == kindFromString('library')) {
+        parentNode = infoNodesByName[unnamedLibraries[parent]]!;
+      } else {
+        parentNode = infoNodesByName[parent.name]!;
+      }
       vm.ProgramInfoNode newClosure = program.makeNode(
           name: closureInfo.name,
-          parent: parentNode!,
+          parent: parentNode,
           // ProgramInfo trees consider closures and functions to both be of the functionNode type.
           type: vm.NodeType.functionNode);
       newClosure.size = closureInfo.size;
