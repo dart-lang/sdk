@@ -848,26 +848,37 @@ abstract class CatchClauseParameter extends AstNode {
   Token get name;
 }
 
+/// The declaration of a class augmentation.
+///
+///    classAugmentationDeclaration ::=
+///        'augment' 'class' [SimpleIdentifier] [TypeParameterList]?
+///        [ExtendsClause]? [WithClause]? [ImplementsClause]?
+///        '{' [ClassMember]* '}'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class ClassAugmentationDeclaration
+    implements ClassOrAugmentationDeclaration {
+  /// The token representing the 'augment' keyword.
+  Token get augmentKeyword;
+
+  @override
+  ClassAugmentationElement? get declaredElement;
+}
+
 /// The declaration of a class.
 ///
 ///    classDeclaration ::=
 ///        'abstract'? 'class' [SimpleIdentifier] [TypeParameterList]?
-///        ([ExtendsClause] [WithClause]?)?
-///        [ImplementsClause]?
+///        [ExtendsClause]? [WithClause]? [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ClassDeclaration implements ClassOrMixinDeclaration {
-  /// Return the 'abstract' keyword, or `null` if the keyword was absent.
-  Token? get abstractKeyword;
-
-  /// Return the token representing the 'class' keyword.
-  Token get classKeyword;
-
-  /// Return the extends clause for this class, or `null` if the class does not
-  /// extend any other class.
-  ExtendsClause? get extendsClause;
-
+//
+// TODO(scheglov) Add `ClassOrAugmentationElement get declaredElement`,
+// when [ClassOrMixinDeclaration] is gone.
+abstract class ClassDeclaration
+    implements ClassOrAugmentationDeclaration, ClassOrMixinDeclaration {
   /// Return `true` if this class is declared to be an abstract class.
   @Deprecated('Use abstractKeyword instead')
   bool get isAbstract;
@@ -875,10 +886,6 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   /// Return the native clause for this class, or `null` if the class does not
   /// have a native clause.
   NativeClause? get nativeClause;
-
-  /// Return the with clause for the class, or `null` if the class does not have
-  /// a with clause.
-  WithClause? get withClause;
 
   /// Return the constructor declared in the class with the given [name], or
   /// `null` if there is no such constructor.
@@ -897,9 +904,53 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassMember implements Declaration {}
 
+/// Shared interface between [ClassDeclaration] and
+/// [ClassAugmentationDeclaration].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class ClassOrAugmentationDeclaration
+    implements NamedCompilationUnitMember {
+  /// Return the 'abstract' keyword, or `null` if the keyword was absent.
+  ///
+  /// In valid code only [ClassDeclaration] can specify it.
+  Token? get abstractKeyword;
+
+  /// Returns the token representing the 'class' keyword.
+  Token get classKeyword;
+
+  /// Returns the `extends` clause for this class, or `null` if the class
+  /// does not extend any other class.
+  ///
+  /// In valid code only [ClassDeclaration] can specify it.
+  ExtendsClause? get extendsClause;
+
+  /// Returns the `implements` clause for the class, or `null` if the class
+  /// does not implement any interfaces.
+  ImplementsClause? get implementsClause;
+
+  /// Returns the left curly bracket.
+  Token get leftBracket;
+
+  /// Returns the members defined by the class.
+  NodeList<ClassMember> get members;
+
+  /// Returns the right curly bracket.
+  Token get rightBracket;
+
+  /// Returns the type parameters for the class, or `null` if the class does
+  /// not have any type parameters.
+  TypeParameterList? get typeParameters;
+
+  /// Returns the `with` clause for the class, or `null` if the class does not
+  /// have a `with` clause.
+  WithClause? get withClause;
+}
+
 /// The declaration of a class or mixin.
 ///
 /// Clients may not extend, implement or mix-in this class.
+// TODO(scheglov) Deprecate and remove.
 abstract class ClassOrMixinDeclaration implements NamedCompilationUnitMember {
   @override
   ClassElement? get declaredElement;
@@ -913,9 +964,6 @@ abstract class ClassOrMixinDeclaration implements NamedCompilationUnitMember {
 
   /// Returns the members defined by the class/mixin.
   NodeList<ClassMember> get members;
-
-  @override
-  SimpleIdentifier get name;
 
   /// Returns the right curly bracket.
   Token get rightBracket;
