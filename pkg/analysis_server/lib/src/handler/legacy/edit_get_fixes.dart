@@ -130,7 +130,13 @@ class EditGetFixesHandler extends LegacyHandler
         fixes.sort(Fix.compareFixes);
         var lineInfo = LineInfo.fromContent(content);
         var result = engine.ErrorsResultImpl(
-            session, file, Uri.file(file), lineInfo, false, errors);
+          session: session,
+          path: file,
+          uri: Uri.file(file),
+          lineInfo: lineInfo,
+          isPart: false,
+          errors: errors,
+        );
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
@@ -230,7 +236,13 @@ error.errorCode: ${error.errorCode}
         fixes.sort(Fix.compareFixes);
         var lineInfo = LineInfo.fromContent(content);
         var result = engine.ErrorsResultImpl(
-            session, file, Uri.file(file), lineInfo, false, errors);
+          session: session,
+          path: file,
+          uri: Uri.file(file),
+          lineInfo: lineInfo,
+          isPart: false,
+          errors: errors,
+        );
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);

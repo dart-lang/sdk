@@ -347,12 +347,12 @@ class FileResolver {
       }
 
       return ErrorsResultImpl(
-        contextObjects!.analysisSession,
-        path,
-        file.uri,
-        file.lineInfo,
-        false, // isPart
-        errors,
+        session: contextObjects!.analysisSession,
+        path: path,
+        uri: file.uri,
+        lineInfo: file.lineInfo,
+        isPart: false,
+        errors: errors,
       );
     });
   }
@@ -659,21 +659,24 @@ class FileResolver {
       var resolvedUnits = results.map((fileResult) {
         var file = fileResult.file;
         return ResolvedUnitResultImpl(
-          contextObjects!.analysisSession,
-          file.path,
-          file.uri,
-          file.exists,
-          file.content,
-          file.lineInfo,
-          file.isPart,
-          fileResult.unit,
-          fileResult.errors,
+          session: contextObjects!.analysisSession,
+          path: file.path,
+          uri: file.uri,
+          exists: file.exists,
+          content: file.content,
+          lineInfo: file.lineInfo,
+          isPart: file.isPart,
+          unit: fileResult.unit,
+          errors: fileResult.errors,
         );
       }).toList();
 
       var libraryUnit = resolvedUnits.first;
-      var result = ResolvedLibraryResultImpl(contextObjects!.analysisSession,
-          libraryUnit.libraryElement, resolvedUnits);
+      var result = ResolvedLibraryResultImpl(
+        session: contextObjects!.analysisSession,
+        element: libraryUnit.libraryElement,
+        units: resolvedUnits,
+      );
 
       cachedResults[path] = result;
 

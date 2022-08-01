@@ -251,8 +251,14 @@ class Driver implements CommandLineStarter {
             analysisDriver.currentSession.analysisContext.contextRoot.root.path,
           );
           await formatter.formatErrors([
-            ErrorsResultImpl(analysisDriver.currentSession, path,
-                pathContext.toUri(path), lineInfo, false, errors)
+            ErrorsResultImpl(
+              session: analysisDriver.currentSession,
+              path: path,
+              uri: pathContext.toUri(path),
+              lineInfo: lineInfo,
+              isPart: false,
+              errors: errors,
+            )
           ]);
           for (var error in errors) {
             var severity = determineProcessedSeverity(
@@ -307,8 +313,14 @@ class Driver implements CommandLineStarter {
               }
               var lineInfo = LineInfo.fromContent(content);
               await formatter.formatErrors([
-                ErrorsResultImpl(analysisDriver.currentSession, path,
-                    pathContext.toUri(path), lineInfo, false, errors)
+                ErrorsResultImpl(
+                  session: analysisDriver.currentSession,
+                  path: path,
+                  uri: pathContext.toUri(path),
+                  lineInfo: lineInfo,
+                  isPart: false,
+                  errors: errors,
+                ),
               ]);
             }
           } catch (exception) {
@@ -323,8 +335,14 @@ class Driver implements CommandLineStarter {
             var errors = validator.validate(
                 content, analysisDriver.analysisOptions.chromeOsManifestChecks);
             await formatter.formatErrors([
-              ErrorsResultImpl(analysisDriver.currentSession, path,
-                  pathContext.toUri(path), lineInfo, false, errors)
+              ErrorsResultImpl(
+                session: analysisDriver.currentSession,
+                path: path,
+                uri: pathContext.toUri(path),
+                lineInfo: lineInfo,
+                isPart: false,
+                errors: errors,
+              ),
             ]);
             for (var error in errors) {
               var severity = determineProcessedSeverity(

@@ -16,7 +16,9 @@ abstract class AnalysisResultImpl implements AnalysisResult {
   @override
   final AnalysisSession session;
 
-  AnalysisResultImpl(this.session);
+  AnalysisResultImpl({
+    required this.session,
+  });
 }
 
 class ElementDeclarationResultImpl implements ElementDeclarationResult {
@@ -40,8 +42,14 @@ class ErrorsResultImpl extends FileResultImpl implements ErrorsResult {
   @override
   final List<AnalysisError> errors;
 
-  ErrorsResultImpl(super.session, super.path, super.uri, super.lineInfo,
-      super.isPart, this.errors);
+  ErrorsResultImpl({
+    required super.session,
+    required super.path,
+    required super.uri,
+    required super.lineInfo,
+    required super.isPart,
+    required this.errors,
+  });
 }
 
 class FileResultImpl extends AnalysisResultImpl implements FileResult {
@@ -57,8 +65,13 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   @override
   final bool isPart;
 
-  FileResultImpl(
-      super.session, this.path, this.uri, this.lineInfo, this.isPart);
+  FileResultImpl({
+    required super.session,
+    required this.path,
+    required this.uri,
+    required this.lineInfo,
+    required this.isPart,
+  });
 }
 
 class LibraryElementResultImpl implements LibraryElementResult {
@@ -73,7 +86,10 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
   @override
   final List<ParsedUnitResult> units;
 
-  ParsedLibraryResultImpl(super.session, this.units);
+  ParsedLibraryResultImpl({
+    required super.session,
+    required this.units,
+  });
 
   @override
   ElementDeclarationResult? getElementDeclaration(Element element) {
@@ -116,9 +132,16 @@ class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
   @override
   final List<AnalysisError> errors;
 
-  ParsedUnitResultImpl(AnalysisSession session, String path, Uri uri,
-      this.content, LineInfo lineInfo, bool isPart, this.unit, this.errors)
-      : super(session, path, uri, lineInfo, isPart);
+  ParsedUnitResultImpl({
+    required super.session,
+    required super.path,
+    required super.uri,
+    required this.content,
+    required super.lineInfo,
+    required super.isPart,
+    required this.unit,
+    required this.errors,
+  });
 }
 
 class ParseStringResultImpl implements ParseStringResult {
@@ -189,7 +212,11 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   @override
   final List<ResolvedUnitResult> units;
 
-  ResolvedLibraryResultImpl(super.session, this.element, this.units);
+  ResolvedLibraryResultImpl({
+    required super.session,
+    required this.element,
+    required this.units,
+  });
 
   @override
   TypeProvider get typeProvider => element.typeProvider;
@@ -239,17 +266,17 @@ class ResolvedUnitResultImpl extends FileResultImpl
   @override
   final List<AnalysisError> errors;
 
-  ResolvedUnitResultImpl(
-      AnalysisSession session,
-      String path,
-      Uri uri,
-      this.exists,
-      this.content,
-      LineInfo lineInfo,
-      bool isPart,
-      this.unit,
-      this.errors)
-      : super(session, path, uri, lineInfo, isPart);
+  ResolvedUnitResultImpl({
+    required super.session,
+    required super.path,
+    required super.uri,
+    required this.exists,
+    required this.content,
+    required super.lineInfo,
+    required super.isPart,
+    required this.unit,
+    required this.errors,
+  });
 
   @override
   LibraryElement get libraryElement {
@@ -268,8 +295,14 @@ class UnitElementResultImpl extends FileResultImpl
   @override
   final CompilationUnitElement element;
 
-  UnitElementResultImpl(super.session, super.path, super.uri, super.lineInfo,
-      super.isPart, this.element);
+  UnitElementResultImpl({
+    required super.session,
+    required super.path,
+    required super.uri,
+    required super.lineInfo,
+    required super.isPart,
+    required this.element,
+  });
 }
 
 /// A visitor which locates the [AstNode] which declares [element].
