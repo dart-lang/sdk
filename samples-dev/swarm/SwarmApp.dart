@@ -6,29 +6,25 @@
 
 part of swarmlib;
 
-/**
- * A simple news reader in Dart.
- */
+/// A simple news reader in Dart.
 class Swarm extends App {
-  /**
-   * Flag to insure the onLoad isn't called when callback from initializeFromUrl
-   * could occur before the document's onload event.
-   */
+  /// Flag to insure the onLoad isn't called when callback from initializeFromUrl
+  /// could occur before the document's onload event.
   bool onLoadFired;
 
-  /** Collections of datafeeds to show per page. */
+  /// Collections of datafeeds to show per page. */
   Sections sections;
 
-  /** The front page of the app. */
+  /// The front page of the app. */
   FrontView frontView;
 
-  /** Observable UI state. */
+  /// Observable UI state. */
   SwarmState state;
 
-  Swarm({bool useCannedData: false}) : onLoadFired = false {
+  Swarm({bool useCannedData = false}) : onLoadFired = false {
     Sections.initializeFromUrl(useCannedData, (currSections) {
       sections = currSections;
-      state = new SwarmState(sections);
+      state = SwarmState(sections);
       setupApp();
     });
     // Catch user keypresses and decide whether to use them for the
@@ -40,16 +36,14 @@ class Swarm extends App {
     });
   }
 
-  /**
-   * Tells each data source to check the server for the latest data.
-   */
+  /// Tells each data source to check the server for the latest data.
   void refresh() {
     sections.refresh();
 
     // Hook up listeners about any data source additions or deletions.  We don't
     // differentiate additions or deletions just the fact that data feeds have
     // changed.  We might want more fidelity later.
-    sections.sectionTitles.forEach((title) {
+    for (var title in sections.sectionTitles) {
       Section section = sections.findSection(title);
       // TODO(terry): addChangeListener needs to return an id so previous
       //              listener can be removed, otherwise anonymous functions
@@ -58,19 +52,18 @@ class Swarm extends App {
         // TODO(jacobr): implement this.
         print("Refresh sections not impl yet.");
       });
-    });
+    }
   }
 
-  /** The page load event handler. */
+  /// The page load event handler. */
+  @override
   void onLoad() {
     onLoadFired = true;
     super.onLoad();
     setupApp();
   }
 
-  /**
-   * Setup the application's world.
-   */
+  /// Setup the application's world.
   void setupApp() {
     // TODO(terry): Should be able to spinup the app w/o waiting for data.
     // If the document is already loaded so we can setup the app anytime.
@@ -85,7 +78,7 @@ class Swarm extends App {
   }
 
   void render() {
-    frontView = new FrontView(this);
+    frontView = FrontView(this);
     frontView.addToDocument(document.body);
   }
 }

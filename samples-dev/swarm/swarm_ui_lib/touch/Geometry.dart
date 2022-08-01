@@ -6,30 +6,22 @@
 
 part of touch;
 
-/**
- * Represents a point in 2 dimensional space.
- */
+/// Represents a point in 2 dimensional space.
 class Coordinate {
-  /**
-   * X-value
-   */
+  /// X-value
   num x;
 
-  /**
-   * Y-value
-   */
+  /// Y-value
   num y;
 
-  Coordinate([num this.x = 0, num this.y = 0]) {}
+  Coordinate([this.x = 0, this.y = 0]);
 
-  /**
-   * Gets the coordinates of a touch's location relative to the window's
-   * viewport. [input] is either a touch object or an event object.
-   */
+  /// Gets the coordinates of a touch's location relative to the window's
+  /// viewport. [input] is either a touch object or an event object.
   Coordinate.fromClient(var input) : this(input.client.x, input.client.y);
 
   static Coordinate difference(Coordinate a, Coordinate b) {
-    return new Coordinate(a.x - b.x, a.y - b.y);
+    return Coordinate(a.x - b.x, a.y - b.y);
   }
 
   static num distance(Coordinate a, Coordinate b) {
@@ -38,11 +30,13 @@ class Coordinate {
     return Math.sqrt(dx * dx + dy * dy);
   }
 
+  @override
   bool operator ==(covariant Coordinate other) {
-    return other != null && x == other.x && y == other.y;
+    return x == other.x && y == other.y;
   }
 
-  int get hashCode => throw new UnimplementedError();
+  @override
+  int get hashCode => throw UnimplementedError();
 
   static num squaredDistance(Coordinate a, Coordinate b) {
     final dx = a.x - b.x;
@@ -51,45 +45,45 @@ class Coordinate {
   }
 
   static Coordinate sum(Coordinate a, Coordinate b) {
-    return new Coordinate(a.x + b.x, a.y + b.y);
+    return Coordinate(a.x + b.x, a.y + b.y);
   }
 
-  /**
-   * Returns a new copy of the coordinate.
-   */
-  Coordinate clone() => new Coordinate(x, y);
+  /// Returns a new copy of the coordinate.
+  Coordinate clone() => Coordinate(x, y);
 
+  @override
   String toString() => "($x, $y)";
 }
 
-/**
- * Represents the interval { x | start <= x < end }.
- */
+/// Represents the interval { x | start <= x < end }.
 class Interval {
   final num start;
   final num end;
 
-  Interval(num this.start, num this.end) {}
+  Interval(this.start, this.end);
 
   num get length {
     return end - start;
   }
 
+  @override
   bool operator ==(covariant Interval other) {
-    return other != null && other.start == start && other.end == end;
+    return other.start == start && other.end == end;
   }
 
-  int get hashCode => throw new UnimplementedError();
+  @override
+  int get hashCode => throw UnimplementedError();
 
   Interval union(Interval other) {
-    return new Interval(Math.min(start, other.start), Math.max(end, other.end));
+    return Interval(Math.min(start, other.start), Math.max(end, other.end));
   }
 
   bool contains(num value) {
     return value >= start && value < end;
   }
 
+  @override
   String toString() {
-    return '(${start}, ${end})';
+    return '($start, $end)';
   }
 }

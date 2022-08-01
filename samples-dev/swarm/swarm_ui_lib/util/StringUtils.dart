@@ -4,30 +4,26 @@
 
 part of utilslib;
 
-/**
- * General purpose string manipulation utilities.
- */
+/// General purpose string manipulation utilities.
 class StringUtils {
-  /**
-   * Returns either [str], or if [str] is null, the value of [defaultStr].
-   */
+  /// Returns either [str], or if [str] is null, the value of [defaultStr].
   static String defaultString(String? str, [String defaultStr = '']) {
-    return str == null ? defaultStr : str;
+    return str ?? defaultStr;
   }
 
-  /** Parse string to a double, and handle null intelligently */
-  static double? parseDouble(String? str, [double? ifNull = null]) {
+  /// Parse string to a double, and handle null intelligently */
+  static double? parseDouble(String? str, [double? ifNull]) {
     return (str == null) ? ifNull : double.parse(str);
   }
 
-  /** Parse string to a int, and handle null intelligently */
-  static int? parseInt(String? str, [int? ifNull = null]) {
+  /// Parse string to a int, and handle null intelligently */
+  static int? parseInt(String? str, [int? ifNull]) {
     return (str == null) ? ifNull : int.parse(str);
   }
 
-  /** Parse bool to a double, and handle null intelligently */
+  /// Parse bool to a double, and handle null intelligently */
   // TODO(jacobr): corelib should have a boolean parsing method
-  static bool? parseBool(String? str, [bool? ifNull = null]) {
+  static bool? parseBool(String? str, [bool? ifNull]) {
     assert(str == null || str == 'true' || str == 'false');
     return (str == null) ? ifNull : (str == 'true');
   }

@@ -6,12 +6,10 @@
 
 part of view;
 
-typedef void SelectHandler(String menuText);
+typedef SelectHandler = void Function(String menuText);
 
-/**
- * This implements a horizontal menu bar with a sliding triangle arrow
- * that points at the currently selected item.
- */
+/// This implements a horizontal menu bar with a sliding triangle arrow
+/// that points at the currently selected item.
 class SliderMenu extends View {
   static const int TRIANGLE_WIDTH = 24;
 
@@ -24,25 +22,24 @@ class SliderMenu extends View {
   // TODO(mattsh) - move this to a touch mixin
   Element touchItem;
 
-  /**
-   * Callback function that we call when the user chooses something from
-   * the menu.  This is passed the menu item text.
-   */
+  /// Callback function that we call when the user chooses something from
+  /// the menu.  This is passed the menu item text.
   SelectHandler onSelect;
 
-  List<String> _menuItems;
+  final List<String> _menuItems;
 
   SliderMenu(this._menuItems, this.onSelect);
 
+  @override
   Element render() {
     // Create a div for each menu item.
-    final items = new StringBuffer();
+    final items = StringBuffer();
     for (final item in _menuItems) {
       items.write('<div class="sm-item">$item</div>');
     }
 
     // Create a root node to hold this view.
-    return new Element.html('''
+    return Element.html('''
         <div class="sm-root">
           <div class="sm-item-box">
             <div class="sm-item-filler"></div>
@@ -56,6 +53,7 @@ class SliderMenu extends View {
         ''');
   }
 
+  @override
   void enterDocument() {
     // select the first item
     // todo(jacobr): too much actual work is performed in enterDocument.
@@ -95,10 +93,8 @@ class SliderMenu extends View {
     window.onResize.listen((Event event) => updateIndicator(false));
   }
 
-  /**
-   * Walks the parent chain of the first Touch target to find the first ancestor
-   * that has sm-item class.
-   */
+  /// Walks the parent chain of the first Touch target to find the first ancestor
+  /// that has sm-item class.
   Element itemOfTouchEvent(event) {
     Node node = event.changedTouches[0].target;
     return itemOfNode(node);
@@ -153,9 +149,7 @@ class SliderMenu extends View {
     }
   }
 
-  /**
-   * animate - if true, then animate the movement of the triangle slider
-   */
+  /// animate - if true, then animate the movement of the triangle slider
   void updateIndicator(bool animate) {
     if (selectedItem != null) {
       // calculate where we want to put the triangle

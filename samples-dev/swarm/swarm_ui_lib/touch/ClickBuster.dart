@@ -6,57 +6,47 @@
 
 part of touch;
 
-/**
- * Click buster implementation, which is a behavior that prevents native clicks
- * from firing at undesirable times. There are two scenarios where we may want
- * to 'bust' a click.
- *
- * Buttons implemented with touch events usually have click handlers as well.
- * This is because sometimes touch events stop working, and the click handler
- * serves as a fallback. Here we use a click buster to prevent the native click
- * from firing if the touchend event was successfully handled.
- *
- * When native scrolling behavior is disabled (see Scroller), click events will
- * fire after the touchend event when the drag sequence is complete. The click
- * event also happens to fire at the location of the touchstart event which can
- * lead to some very strange behavior.
- *
- * This class puts a single click handler on the body, and calls preventDefault
- * on the click event if we detect that there was a touchend event that already
- * fired in the same spot recently.
- */
+/// Click buster implementation, which is a behavior that prevents native clicks
+/// from firing at undesirable times. There are two scenarios where we may want
+/// to 'bust' a click.
+///
+/// Buttons implemented with touch events usually have click handlers as well.
+/// This is because sometimes touch events stop working, and the click handler
+/// serves as a fallback. Here we use a click buster to prevent the native click
+/// from firing if the touchend event was successfully handled.
+///
+/// When native scrolling behavior is disabled (see Scroller), click events will
+/// fire after the touchend event when the drag sequence is complete. The click
+/// event also happens to fire at the location of the touchstart event which can
+/// lead to some very strange behavior.
+///
+/// This class puts a single click handler on the body, and calls preventDefault
+/// on the click event if we detect that there was a touchend event that already
+/// fired in the same spot recently.
 class ClickBuster {
-  /**
-   * The threshold for how long we allow a click to occur after a touchstart.
-   */
+  /// The threshold for how long we allow a click to occur after a touchstart.
   static const _TIME_THRESHOLD = 2500;
 
-  /**
-   * The threshold for how close a click has to be to the saved coordinate for
-   * us to allow it.
-   */
+  /// The threshold for how close a click has to be to the saved coordinate for
+  /// us to allow it.
   static const _DISTANCE_THRESHOLD = 25;
 
-  /**
-   * The list of coordinates that we use to measure the distance of clicks from.
-   * If a click is within the distance threshold of any of these coordinates
-   * then we allow the click.
-   */
+  /// The list of coordinates that we use to measure the distance of clicks from.
+  /// If a click is within the distance threshold of any of these coordinates
+  /// then we allow the click.
   static DoubleLinkedQueue<num> _coordinates;
 
-  /** The last time preventGhostClick was called. */
+  /// The last time preventGhostClick was called. */
   static int _lastPreventedTime;
 
-  /**
-   * This handler will prevent the default behavior for any clicks unless the
-   * click is within the distance threshold of one of the temporary allowed
-   * coordinates.
-   */
+  /// This handler will prevent the default behavior for any clicks unless the
+  /// click is within the distance threshold of one of the temporary allowed
+  /// coordinates.
   static void _onClick(Event e) {
     if (TimeUtil.now() - _lastPreventedTime > _TIME_THRESHOLD) {
       return;
     }
-    final coord = new Coordinate.fromClient(e);
+    final coord = Coordinate.fromClient(e);
     // TODO(rnystrom): On Android, we get spurious click events at (0, 0). We
     // *do* want those clicks to be busted, so commenting this out fixes it.
     // Leaving it commented out instead of just deleting it because I'm not sure
@@ -87,33 +77,27 @@ class ClickBuster {
     e.preventDefault();
   }
 
-  /**
-   * This handler will temporarily allow a click to occur near the touch event's
-   * coordinates.
-   */
+  /// This handler will temporarily allow a click to occur near the touch event's
+  /// coordinates.
   static void _onTouchStart(Event e) {
     TouchEvent te = e;
-    final coord = new Coordinate.fromClient(te.touches[0]);
+    final coord = Coordinate.fromClient(te.touches[0]);
     _coordinates.add(coord.x);
     _coordinates.add(coord.y);
-    new Timer(const Duration(milliseconds: _TIME_THRESHOLD), () {
+    Timer(const Duration(milliseconds: _TIME_THRESHOLD), () {
       _removeCoordinate(coord.x, coord.y);
     });
     _toggleTapHighlights(true);
   }
 
-  /**
-   * Hit test for whether a coordinate is within the distance threshold of an
-   * event.
-   */
+  /// Hit test for whether a coordinate is within the distance threshold of an
+  /// event.
   static bool _hitTest(num x, num y, num eventX, num eventY) {
     return (eventX - x).abs() < _DISTANCE_THRESHOLD &&
         (eventY - y).abs() < _DISTANCE_THRESHOLD;
   }
 
-  /**
-   * Remove one specified coordinate from the coordinates list.
-   */
+  /// Remove one specified coordinate from the coordinates list.
   static void _removeCoordinate(num x, num y) {
     DoubleLinkedQueueEntry<num> entry = _coordinates.firstEntry();
     while (entry != null) {
@@ -127,26 +111,22 @@ class ClickBuster {
     }
   }
 
-  /**
-   * Enable or disable tap highlights. They are disabled when preventGhostClick
-   * is called so that the flicker on links is not invoked when the ghost click
-   * does fire. This is due to a bug: links get highlighted even if the click
-   * event has preventDefault called on it.
-   */
+  /// Enable or disable tap highlights. They are disabled when preventGhostClick
+  /// is called so that the flicker on links is not invoked when the ghost click
+  /// does fire. This is due to a bug: links get highlighted even if the click
+  /// event has preventDefault called on it.
   static void _toggleTapHighlights(bool enable) {
     document.body.style.setProperty(
         "-webkit-tap-highlight-color", enable ? "" : "rgba(0,0,0,0)", "");
   }
 
-  /**
-   * Registers new touches to create temporary "allowable zones" and registers
-   * new clicks to be prevented unless they fall in one of the current
-   * "allowable zones". Note that if the touchstart and touchend locations are
-   * different, it is still possible for a ghost click to be fired if you
-   * called preventDefault on all touchmove events. In this case the ghost
-   * click will be fired at the location of the touchstart event, so the
-   * coordinate you pass in should be the coordinate of the touchstart.
-   */
+  /// Registers new touches to create temporary "allowable zones" and registers
+  /// new clicks to be prevented unless they fall in one of the current
+  /// "allowable zones". Note that if the touchstart and touchend locations are
+  /// different, it is still possible for a ghost click to be fired if you
+  /// called preventDefault on all touchmove events. In this case the ghost
+  /// click will be fired at the location of the touchstart event, so the
+  /// coordinate you pass in should be the coordinate of the touchstart.
   static void preventGhostClick(num x, num y) {
     // First time this is called the following occurs:
     //   1) Attaches a handler to touchstart events so that each touch will
@@ -196,14 +176,14 @@ class ClickBuster {
       if (!Device.supportsTouch) {
         startFn = mouseToTouchCallback(startFn);
       }
-      var stream;
+      Stream<UIEvent> stream;
       if (Device.supportsTouch) {
         stream = Element.touchStartEvent.forTarget(document, useCapture: true);
       } else {
         stream = Element.mouseDownEvent.forTarget(document, useCapture: true);
       }
       EventUtil.observe(document, stream, startFn, true);
-      _coordinates = new DoubleLinkedQueue<num>();
+      _coordinates = DoubleLinkedQueue<num>();
     }
 
     // Turn tap highlights off until we know the ghost click has fired.

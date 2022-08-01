@@ -6,23 +6,21 @@
 
 part of touch;
 
-/**
- * Common effects related helpers.
- */
+/// Common effects related helpers.
 class FxUtil {
-  /** On transition end event. */
+  /// On transition end event. */
   static const TRANSITION_END_EVENT = 'webkitTransitionEnd';
 
-  /** The translate3d transform function. */
+  /// The translate3d transform function. */
   static const TRANSLATE_3D = 'translate3d';
 
-  /** The rotate transform function. */
+  /// The rotate transform function. */
   static const ROTATE = 'rotate';
 
-  /** The scale transform function. */
+  /// The scale transform function. */
   static const SCALE = 'scale';
 
-  /** Stops and clears the transition on an element. */
+  /// Stops and clears the transition on an element. */
   static void clearWebkitTransition(Element el) {
     el.style.transition = '';
   }
@@ -30,31 +28,27 @@ class FxUtil {
   static void setPosition(Element el, Coordinate point) {
     num x = point.x;
     num y = point.y;
-    el.style.transform = '${TRANSLATE_3D}(${x}px,${y}px,0px)';
+    el.style.transform = '$TRANSLATE_3D(${x}px,${y}px,0px)';
   }
 
-  /** Apply a transform using translate3d to an HTML element. */
+  /// Apply a transform using translate3d to an HTML element. */
   static void setTranslate(Element el, num x, num y, num z) {
-    el.style.transform = '${TRANSLATE_3D}(${x}px,${y}px,${z}px)';
+    el.style.transform = '$TRANSLATE_3D(${x}px,${y}px,${z}px)';
   }
 
-  /** Apply a -webkit-transform using translate3d to an HTML element. */
+  /// Apply a -webkit-transform using translate3d to an HTML element. */
   static void setWebkitTransform(Element el, num x, num y,
-      [num z = 0,
-      num rotation = null,
-      num scale = null,
-      num originX = null,
-      num originY = null]) {
+      [num z = 0, num rotation, num scale, num originX, num originY]) {
     final style = el.style;
     // TODO(jacobr): create a helper class that simplifies building
     // transformation matricies that will be set as CSS styles. We should
     // consider using CSSMatrix although that may be overkill.
-    String transform = '${TRANSLATE_3D}(${x}px,${y}px,${z}px)';
+    String transform = '$TRANSLATE_3D(${x}px,${y}px,${z}px)';
     if (rotation != null) {
-      transform += ' ${ROTATE}(${rotation}deg)';
+      transform += ' $ROTATE(${rotation}deg)';
     }
     if (scale != null) {
-      transform += ' ${SCALE}(${scale})';
+      transform += ' $SCALE($scale)';
     }
     style.transform = transform;
     if (originX != null || originY != null) {
@@ -63,15 +57,13 @@ class FxUtil {
     }
   }
 
-  /**
-   * Determine the position of an [element] relative to a [target] element.
-   * Moving the [element] to be a child of [target] and setting the
-   * [element]'s top and left values to the returned coordinate should result
-   * in the [element]'s position remaining unchanged while its parent is
-   * changed.
-   */
+  /// Determine the position of an [element] relative to a [target] element.
+  /// Moving the [element] to be a child of [target] and setting the
+  /// [element]'s top and left values to the returned coordinate should result
+  /// in the [element]'s position remaining unchanged while its parent is
+  /// changed.
   static Coordinate computeRelativePosition(Element element, Element target) {
-    final testPoint = new Point(0, 0);
+    final testPoint = Point(0, 0);
     /*
     final pagePoint =
         window.convertPointFromNodeToPage(element, testPoint);
@@ -83,25 +75,21 @@ class FxUtil {
     // `convertPointFromPageToNode`.
     var eRect = element.getBoundingClientRect();
     var tRect = target.getBoundingClientRect();
-    return new Coordinate(eRect.left - tRect.left, eRect.top - tRect.top);
+    return Coordinate(eRect.left - tRect.left, eRect.top - tRect.top);
   }
 
-  /** Clear a -webkit-transform from an element. */
+  /// Clear a -webkit-transform from an element. */
   static void clearWebkitTransform(Element el) {
     el.style.transform = '';
   }
 
-  /**
-   * Checks whether an element has a translate3d webkit transform applied.
-   */
+  /// Checks whether an element has a translate3d webkit transform applied.
   static bool hasWebkitTransform(Element el) {
-    return el.style.transform.indexOf(TRANSLATE_3D, 0) != -1;
+    return el.style.transform.contains(TRANSLATE_3D, 0);
   }
 
-  /**
-   * Translates [el], an HTML element that has a relative CSS
-   * position, by setting its left and top CSS styles.
-   */
+  /// Translates [el], an HTML element that has a relative CSS
+  /// position, by setting its left and top CSS styles.
   static void setLeftAndTop(Element el, num x, num y) {
     final style = el.style;
     style.left = '${x}px';

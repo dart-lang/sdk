@@ -12,7 +12,7 @@ class Decoder {
   String data;
 
   Decoder(this.data) {
-    this.index = 0;
+    index = 0;
   }
 
   // Reads numbers in variable-length 7-bit encoding.  This matches the

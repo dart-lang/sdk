@@ -6,14 +6,10 @@
 
 part of swarmlib;
 
-/**
- * The base class for UI state that intends to support browser history.
- */
+/// The base class for UI state that intends to support browser history.
 abstract class UIState {
-  /**
-   * The event listener we hook to the window's "popstate" event.
-   * This event is triggered by the back button or by the first page load.
-   */
+  /// The event listener we hook to the window's "popstate" event.
+  /// This event is triggered by the back button or by the first page load.
   StreamSubscription _historyTracking;
 
   UIState();
@@ -51,7 +47,7 @@ abstract class UIState {
     }
   }
 
-  /** Pushes a state onto the browser history stack */
+  /// Pushes a state onto the browser history stack */
   void pushToHistory() {
     if (_historyTracking == null) {
       throw 'history tracking not started';
@@ -62,17 +58,12 @@ abstract class UIState {
     // TODO(jmesserly): [state] should be an Object, and we should pass it to
     // the state parameter instead of as a #hash URL. Right now we're working
     //  around b/4582542.
-    window.history
-        .pushState(null, '${document.title}', '${document.title}#$state');
+    window.history.pushState(null, document.title, '${document.title}#$state');
   }
 
-  /**
-   * Serialize the state to a form suitable for storing in browser history.
-   */
+  /// Serialize the state to a form suitable for storing in browser history.
   Map<String, String> toHistory();
 
-  /**
-   * Load the UI state from the given [values].
-   */
+  /// Load the UI state from the given [values].
   void loadFromHistory(Map<String, String> values);
 }

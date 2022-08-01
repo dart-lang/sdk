@@ -6,10 +6,9 @@
 
 part of view;
 
-/**
- * A View that is composed of child views.
- */
+/// A View that is composed of child views.
 class CompositeView extends View {
+  @override
   List<View> childViews;
 
   // TODO(rnystrom): Allowing this to be public is gross. CompositeView should
@@ -26,7 +25,7 @@ class CompositeView extends View {
   final bool _nestedContainer;
   final bool _showScrollbar;
 
-  CompositeView(String this._cssName,
+  CompositeView(this._cssName,
       [nestedContainer = false,
       scrollable = false,
       vertical = false,
@@ -35,26 +34,27 @@ class CompositeView extends View {
         _scrollable = scrollable,
         _vertical = vertical,
         _showScrollbar = showScrollbar,
-        childViews = new List<View>() {}
+        childViews = <View>[];
 
+  @override
   Element render() {
-    Element node = new Element.html('<div class="$_cssName"></div>');
+    Element node = Element.html('<div class="$_cssName"></div>');
 
     if (_nestedContainer) {
-      container = new Element.html('<div class="scroll-container"></div>');
+      container = Element.html('<div class="scroll-container"></div>');
       node.nodes.add(container);
     } else {
       container = node;
     }
 
     if (_scrollable) {
-      scroller = new Scroller(
+      scroller = Scroller(
           container,
           _vertical /* verticalScrollEnabled */,
           !_vertical /* horizontalScrollEnabled */,
           true /* momementumEnabled */);
       if (_showScrollbar) {
-        _scrollbar = new Scrollbar(scroller);
+        _scrollbar = Scrollbar(scroller);
       }
     }
 
@@ -65,6 +65,7 @@ class CompositeView extends View {
     return node;
   }
 
+  @override
   void afterRender(Element node) {
     if (_scrollbar != null) {
       _scrollbar.initialize();

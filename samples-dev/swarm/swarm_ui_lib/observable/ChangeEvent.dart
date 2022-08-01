@@ -4,58 +4,54 @@
 
 part of observable;
 
-/** A change to an observable instance. */
+/// A change to an observable instance. */
 class ChangeEvent {
   // TODO(sigmund): capture language issues around enums & create a canonical
   // Dart enum design.
-  /** Type denoting an in-place update event. */
+  /// Type denoting an in-place update event. */
   static const UPDATE = 0;
 
-  /** Type denoting an insertion event. */
+  /// Type denoting an insertion event. */
   static const INSERT = 1;
 
-  /** Type denoting a single-remove event. */
+  /// Type denoting a single-remove event. */
   static const REMOVE = 2;
 
-  /**
-   * Type denoting events that affect the entire observable instance. For
-   * example, a list operation like clear or sort.
-   */
+  /// Type denoting events that affect the entire observable instance. For
+  /// example, a list operation like clear or sort.
   static const GLOBAL = 3;
 
-  /** The observable instance that changed. */
+  /// The observable instance that changed. */
   final Observable target;
 
-  /** Whether the change was an [INSERT], [REMOVE], or [UPDATE]. */
+  /// Whether the change was an [INSERT], [REMOVE], or [UPDATE]. */
   final int type;
 
-  /** The value after the change (or inserted value in a list). */
+  /// The value after the change (or inserted value in a list). */
   final newValue;
 
-  /** The value before the change (or removed value from a list). */
+  /// The value before the change (or removed value from a list). */
   final oldValue;
 
-  /** Property that changed (null for list changes). */
+  /// Property that changed (null for list changes). */
   final String? propertyName;
 
-  /**
-   * Index of the list operation. Insertions prepend in front of the given
-   * index (insert at 0 means an insertion at the beginning of the list).
-   */
+  /// Index of the list operation. Insertions prepend in front of the given
+  /// index (insert at 0 means an insertion at the beginning of the list).
   final int? index;
 
-  /** Factory constructor for property change events. */
+  /// Factory constructor for property change events. */
   ChangeEvent.property(
       this.target, this.propertyName, this.newValue, this.oldValue)
       : type = UPDATE,
         index = null;
 
-  /** Factory constructor for list change events. */
+  /// Factory constructor for list change events. */
   ChangeEvent.list(
       this.target, this.type, this.index, this.newValue, this.oldValue)
       : propertyName = null;
 
-  /** Factory constructor for [GLOBAL] change events. */
+  /// Factory constructor for [GLOBAL] change events. */
   ChangeEvent.global(this.target)
       : type = GLOBAL,
         newValue = null,
@@ -64,7 +60,7 @@ class ChangeEvent {
         index = null;
 }
 
-/** A collection of change events on a single observable instance. */
+/// A collection of change events on a single observable instance. */
 class EventSummary {
   final Observable target;
 
@@ -77,9 +73,9 @@ class EventSummary {
     events.add(e);
   }
 
-  /** Notify listeners of [target] and parents of [target] about all changes. */
+  /// Notify listeners of [target] and parents of [target] about all changes. */
   void notify() {
-    if (!events.isEmpty) {
+    if (events.isNotEmpty) {
       for (Observable? obj = target; obj != null; obj = obj.parent) {
         for (final listener in obj.listeners) {
           listener(this);
@@ -89,5 +85,5 @@ class EventSummary {
   }
 }
 
-/** A listener of change events. */
-typedef void ChangeListener(EventSummary events);
+/// A listener of change events. */
+typedef ChangeListener = void Function(EventSummary events);

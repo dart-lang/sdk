@@ -4,12 +4,10 @@
 
 part of utilslib;
 
-typedef int NumericValueSelector<T>(T value);
+typedef NumericValueSelector<T> = int Function(T value);
 
-/**
- * General purpose collection utilities.
- * TODO(jmesserly): make these top level functions?
- */
+/// General purpose collection utilities.
+/// TODO(jmesserly): make these top level functions?
 class CollectionUtils {
   static void insertAt(List arr, int pos, value) {
     assert(pos >= 0);
@@ -39,12 +37,10 @@ class CollectionUtils {
     }
   }
 
-  /**
-   * Finds the item in [source] that matches [test].  Returns null if
-   * no item matches.  The typing should be:
-   * T find(Iterable<T> source, bool test(T item)), but we don't have generic
-   * functions.
-   */
+  /// Finds the item in [source] that matches [test].  Returns null if
+  /// no item matches.  The typing should be:
+  /// T find(Iterable<T> source, bool test(T item)), but we don't have generic
+  /// functions.
   static find(Iterable source, bool test(item)) {
     for (final item in source) {
       if (test(item)) return item;
@@ -53,7 +49,7 @@ class CollectionUtils {
     return null;
   }
 
-  /** Compute the minimum of an iterable. Returns null if empty. */
+  /// Compute the minimum of an iterable. Returns null if empty. */
   static num? min(Iterable source) {
     final iter = source.iterator;
     if (!iter.moveNext()) {
@@ -66,7 +62,7 @@ class CollectionUtils {
     return best;
   }
 
-  /** Compute the maximum of an iterable. Returns null if empty. */
+  /// Compute the maximum of an iterable. Returns null if empty. */
   static num? max(Iterable source) {
     final iter = source.iterator;
     if (!iter.moveNext()) {
@@ -79,19 +75,19 @@ class CollectionUtils {
     return best;
   }
 
-  /** Orders an iterable by its values, or by a key selector. */
+  /// Orders an iterable by its values, or by a key selector. */
   static List<T> orderBy<T>(Iterable<T> source,
-      [NumericValueSelector? selector = null]) {
+      [NumericValueSelector? selector]) {
     final result = List<T>.from(source);
     sortBy(result, selector);
     return result;
   }
 
-  /** Sorts a list by its values, or by a key selector. */
+  /// Sorts a list by its values, or by a key selector. */
   // TODO(jmesserly): we probably don't want to call the key selector more than
   // once for a given element. This would improve performance and the API
   // contract could be stronger.
-  static void sortBy(List list, [NumericValueSelector? selector = null]) {
+  static void sortBy(List list, [NumericValueSelector? selector]) {
     if (selector != null) {
       list.sort((x, y) => selector(x) - selector(y));
     } else {
@@ -99,8 +95,8 @@ class CollectionUtils {
     }
   }
 
-  /** Compute the sum of an iterable. An empty iterable is an error. */
-  static num sum(Iterable source, [NumericValueSelector? selector = null]) {
+  /// Compute the sum of an iterable. An empty iterable is an error. */
+  static num sum(Iterable source, [NumericValueSelector? selector]) {
     final iter = source.iterator;
     bool wasEmpty = true;
     num total = 0;
