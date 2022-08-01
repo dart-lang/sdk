@@ -7,11 +7,14 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;
 import 'package:kernel/target/targets.dart' hide DiagnosticReporter;
+
+import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 
 import '../../compiler_api.dart' as api;
 import '../commandline_options.dart';
@@ -130,6 +133,12 @@ class _LoadFromKernelResult {
 
 void _doGlobalTransforms(Component component) {
   transformMixins.transformLibraries(component.libraries);
+  // referenceFromIndex is only necessary in the case where a module containing
+  // a stub definition is invalidated, and then reloaded, because we need to
+  // keep existing references to that stub valid. Here, we have the whole
+  // program, and therefore do not need it.
+  StaticInteropClassEraser(ir.CoreTypes(component), null)
+      .visitComponent(component);
 }
 
 Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,

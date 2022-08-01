@@ -153,13 +153,6 @@ class DevCompilerTarget extends Target {
   bool get enableNoSuchMethodForwarders => true;
 
   @override
-  void performOutlineTransformations(Component component, CoreTypes coreTypes,
-      ReferenceFromIndex? referenceFromIndex) {
-    component.accept(StaticInteropStubCreator(
-        StaticInteropClassEraser(coreTypes, referenceFromIndex)));
-  }
-
-  @override
   void performModularTransformationsOnLibraries(
       Component component,
       CoreTypes coreTypes,

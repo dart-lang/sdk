@@ -396,10 +396,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         incrementalComponent.problemsAsJson = null;
         incrementalComponent.setMainMethodAndMode(
             null, true, incrementalComponent.mode);
-        target.performOutlineTransformations(
-            incrementalComponent,
-            incrementalCompilerResult.coreTypes!,
-            incrementalCompilerResult.referenceFromIndex);
+        target.performOutlineTransformations(incrementalComponent);
         makeStable(incrementalComponent);
         return Future.value(fe.serializeComponent(incrementalComponent,
             includeSources: false, includeOffsets: false));
