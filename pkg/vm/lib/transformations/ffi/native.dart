@@ -117,9 +117,10 @@ class FfiNativeTransformer extends FfiTransformer {
   // Replaces return type with Object if it is Handle.
   DartType _wrapReturnType(DartType dartReturnType, DartType ffiReturnType) {
     if (env.isSubtypeOf(
-        ffiReturnType,
-        handleClass.getThisType(coreTypes, Nullability.nonNullable),
-        SubtypeCheckMode.ignoringNullabilities)) {
+            ffiReturnType,
+            handleClass.getThisType(coreTypes, Nullability.nonNullable),
+            SubtypeCheckMode.ignoringNullabilities) &&
+        dartReturnType is! VoidType) {
       return objectClass.getThisType(coreTypes, dartReturnType.nullability);
     }
     return dartReturnType;
@@ -411,7 +412,8 @@ class FfiNativeTransformer extends FfiTransformer {
         nativeFunctionClass, Nullability.legacy, [ffiFunctionType]);
     try {
       ensureNativeTypeValid(nativeType, node);
-      ensureNativeTypeToDartType(nativeType, wrappedDartFunctionType, node);
+      ensureNativeTypeToDartType(nativeType, wrappedDartFunctionType, node,
+          allowHandle: true);
       ensureLeafCallDoesNotUseHandles(nativeType, isLeaf, node);
     } on FfiStaticTypeError {
       // It's OK to swallow the exception because the diagnostics issued will

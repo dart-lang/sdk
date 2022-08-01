@@ -25,11 +25,11 @@ class DuplicateDefinitionVerifier {
 
   /// Check that the exception and stack trace parameters have different names.
   void checkCatchClause(CatchClause node) {
-    var exceptionParameter = node.exceptionParameter;
-    var stackTraceParameter = node.stackTraceParameter;
+    var exceptionParameter = node.exceptionParameter2;
+    var stackTraceParameter = node.stackTraceParameter2;
     if (exceptionParameter != null && stackTraceParameter != null) {
-      String exceptionName = exceptionParameter.name;
-      if (exceptionName == stackTraceParameter.name) {
+      String exceptionName = exceptionParameter.name.lexeme;
+      if (exceptionName == stackTraceParameter.name.lexeme) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.DUPLICATE_DEFINITION,
             stackTraceParameter,

@@ -4,27 +4,25 @@
 
 part of layout;
 
-/** The interface that the layout algorithms use to talk to the view. */
+/// The interface that the layout algorithms use to talk to the view. */
 abstract class Positionable {
   ViewLayout get layout;
 
-  /** Gets our custom CSS properties, as provided by the CSS preprocessor. */
+  /// Gets our custom CSS properties, as provided by the CSS preprocessor. */
   Map<String, String> get customStyle;
 
-  /** Gets the root DOM used for layout. */
+  /// Gets the root DOM used for layout. */
   Element get node;
 
-  /** Gets the collection of child views. */
+  /// Gets the collection of child views. */
   Iterable<Positionable> get childViews;
 
-  /** Causes a view to layout its children. */
+  /// Causes a view to layout its children. */
   void doLayout();
 }
 
-/**
- * Caches the layout parameters that were specified in CSS during a layout
- * computation. These values are immutable during a layout.
- */
+/// Caches the layout parameters that were specified in CSS during a layout
+/// computation. These values are immutable during a layout.
 class LayoutParams {
   // TODO(jmesserly): should be const, but there's a bug in DartC preventing us
   // from calling "window." in an initializer. See b/5332777
@@ -40,19 +38,19 @@ class LayoutParams {
 // TODO(jmesserly): enums would really help here
 class Dimension {
   // TODO(jmesserly): perhaps this should be X and Y
-  static const WIDTH = const Dimension._internal('width');
-  static const HEIGHT = const Dimension._internal('height');
+  static const WIDTH = Dimension._internal('width');
+  static const HEIGHT = Dimension._internal('height');
 
   final String name; // for debugging
   const Dimension._internal(this.name);
 }
 
 class ContentSizeMode {
-  /** Minimum content size, e.g. min-width and min-height in CSS. */
-  static const MIN = const ContentSizeMode._internal('min');
+  /// Minimum content size, e.g. min-width and min-height in CSS. */
+  static const MIN = ContentSizeMode._internal('min');
 
-  /** Maximum content size, e.g. min-width and min-height in CSS. */
-  static const MAX = const ContentSizeMode._internal('max');
+  /// Maximum content size, e.g. min-width and min-height in CSS. */
+  static const MAX = ContentSizeMode._internal('max');
 
   // TODO(jmesserly): we probably want some sort of "auto" or "best fit" mode
   // Don't need it yet though.
@@ -61,35 +59,27 @@ class ContentSizeMode {
   const ContentSizeMode._internal(this.name);
 }
 
-/**
- * Abstract base class for View layout. Tracks relevant layout state.
- * This code was inspired by code in Android's View.java; it's needed for the
- * rest of the layout system.
- */
+/// Abstract base class for View layout. Tracks relevant layout state.
+/// This code was inspired by code in Android's View.java; it's needed for the
+/// rest of the layout system.
 class ViewLayout {
-  /**
-   * The layout parameters associated with this view and used by the parent
-   * to determine how this view should be laid out.
-   */
+  /// The layout parameters associated with this view and used by the parent
+  /// to determine how this view should be laid out.
   LayoutParams? layoutParams;
   int? _offsetWidth;
   int? _offsetHeight;
 
-  /** The view that this layout belongs to. */
+  /// The view that this layout belongs to. */
   final Positionable view;
 
-  /**
-   * To get a perforant positioning model on top of the DOM, we read all
-   * properties in the first pass while computing positions. Then we have a
-   * second pass that actually moves everything.
-   */
+  /// To get a perforant positioning model on top of the DOM, we read all
+  /// properties in the first pass while computing positions. Then we have a
+  /// second pass that actually moves everything.
   int? _measuredLeft, _measuredTop, _measuredWidth, _measuredHeight;
 
   ViewLayout(this.view);
 
-  /**
-   * Creates the appropriate view layout, depending on the properties.
-   */
+  /// Creates the appropriate view layout, depending on the properties.
   // TODO(jmesserly): we should support user defined layouts somehow. Perhaps
   // registered with a LayoutProvider.
   factory ViewLayout.fromView(Positionable view) {
@@ -126,13 +116,11 @@ class ViewLayout {
   int get borderWidth => borderLeftWidth + borderRightWidth;
   int get borderHeight => borderTopWidth + borderBottomWidth;
 
-  /** Implements the custom layout computation. */
+  /// Implements the custom layout computation. */
   void measureLayout(Future<Size> size, Completer<bool>? changed) {}
 
-  /**
-   * Positions the view within its parent container.
-   * Also performs a layout of its children.
-   */
+  /// Positions the view within its parent container.
+  /// Also performs a layout of its children.
   void setBounds(int? left, int? top, int width, int height) {
     assert(width >= 0 && height >= 0);
 
@@ -147,7 +135,7 @@ class ViewLayout {
     measureLayout(completer.future, null);
   }
 
-  /** Applies the layout to the node. */
+  /// Applies the layout to the node. */
   void applyLayout() {
     if (_measuredLeft != null) {
       // TODO(jmesserly): benchmark the performance of this DOM interaction
@@ -180,12 +168,13 @@ class ViewLayout {
   }
 
   int? measureContent(ViewLayout parent, Dimension? dimension,
-      [ContentSizeMode? mode = null]) {
+      [ContentSizeMode? mode]) {
     if (dimension == Dimension.WIDTH) {
       return measureWidth(parent, mode);
     } else if (dimension == Dimension.HEIGHT) {
       return measureHeight(parent, mode);
     }
+    return null;
   }
 
   int? measureWidth(ViewLayout parent, ContentSizeMode? mode) {
@@ -195,6 +184,7 @@ class ViewLayout {
     } else if (mode == ContentSizeMode.MAX) {
       return _styleToPixels(style!.maxWidth, currentWidth, parent.currentWidth);
     }
+    return null;
   }
 
   int? measureHeight(ViewLayout parent, ContentSizeMode? mode) {
@@ -206,6 +196,7 @@ class ViewLayout {
       return _styleToPixels(
           style!.maxHeight, currentHeight, parent.currentHeight);
     }
+    return null;
   }
 
   static int _toPixels(String style) {

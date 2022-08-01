@@ -6,18 +6,16 @@
 
 part of swarmlib;
 
-/**
- * The base class that should be extended by all HTML applications.
- *
- * It should both be easy to use for users coming over from JavaScript, but
- * also offer a clear notion of OO encapsulation.
- *
- * This class or something similar belongs in the standard DOM library.
- */
+/// The base class that should be extended by all HTML applications.
+///
+/// It should both be easy to use for users coming over from JavaScript, but
+/// also offer a clear notion of OO encapsulation.
+///
+/// This class or something similar belongs in the standard DOM library.
 class App {
-  App() {}
+  App();
 
-  /** Begins executing code in this [App]. */
+  /// Begins executing code in this [App]. */
   void run() {
     // If the script is async, by the time we get here the DOM content may
     // already be loaded, so waiting on the DOMContentLoaded event is a no-op.
@@ -40,12 +38,10 @@ class App {
     }
   }
 
-  /**
-   * Called when the DOM is fully loaded but potentially before resources.
-   *
-   * For most apps, any startup code should be in this method. Be sure to call
-   * the superclass implementation.
-   */
+  /// Called when the DOM is fully loaded but potentially before resources.
+  ///
+  /// For most apps, any startup code should be in this method. Be sure to call
+  /// the superclass implementation.
   void onLoad() {
     // Prevent the default browser behavior of scrolling the window.
     document.onTouchMove.listen((Event event) => event.preventDefault());
@@ -57,11 +53,9 @@ class App {
     }
   }
 
-  /**
-   * Erase the static splash screen.
-   *
-   * Assumption: if a splash screen exists, an element #appSplash contains it.
-   */
+  /// Erase the static splash screen.
+  ///
+  /// Assumption: if a splash screen exists, an element #appSplash contains it.
   void eraseSplashScreen() {
     final splash = document.querySelector("#appSplash");
     // Delete it if found, but it's okay for it not to be -- maybe
@@ -71,10 +65,8 @@ class App {
     }
   }
 
-  /**
-   * Swaps and reloads the app cache if an update is ready. Returns false if
-   * an update is not ready.
-   */
+  /// Swaps and reloads the app cache if an update is ready. Returns false if
+  /// an update is not ready.
   bool swapAndReloadCache() {
     ApplicationCache appCache = window.applicationCache;
     if (!identical(appCache.status, ApplicationCache.UPDATEREADY)) {
@@ -88,7 +80,7 @@ class App {
     return true;
   }
 
-  /** Returns true if we are running as a packaged application. */
+  /// Returns true if we are running as a packaged application. */
   static bool get isPackaged {
     return window.location.protocol == 'chrome-extension:';
   }

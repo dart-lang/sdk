@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 /// [RecursiveAstVisitor] that delegates visit methods to functions.
 class FunctionAstVisitor extends RecursiveAstVisitor<void> {
+  final void Function(CatchClauseParameter)? catchClauseParameter;
   final void Function(DeclaredIdentifier)? declaredIdentifier;
   final void Function(FunctionDeclarationStatement)?
       functionDeclarationStatement;
@@ -17,6 +18,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   final void Function(VariableDeclaration)? variableDeclaration;
 
   FunctionAstVisitor({
+    this.catchClauseParameter,
     this.declaredIdentifier,
     this.functionDeclarationStatement,
     this.functionExpression,
@@ -25,6 +27,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
     this.simpleIdentifier,
     this.variableDeclaration,
   });
+
+  @override
+  void visitCatchClauseParameter(CatchClauseParameter node) {
+    catchClauseParameter?.call(node);
+    super.visitCatchClauseParameter(node);
+  }
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {

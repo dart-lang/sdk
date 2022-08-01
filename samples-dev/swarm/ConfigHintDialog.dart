@@ -14,18 +14,19 @@ class ConfigHintDialog extends DialogView {
 
   factory ConfigHintDialog(CompositeView parent, Function doneHandler) {
     View content = ConfigHintDialog.makeContent();
-    return new ConfigHintDialog._impl(parent, doneHandler, content);
+    return ConfigHintDialog._impl(parent, doneHandler, content);
   }
 
   ConfigHintDialog._impl(this._parent, this._doneHandler, View content)
       : super('Feed configuration', '', content);
 
+  @override
   void onDone() {
     _doneHandler();
   }
 
   static View makeContent() {
-    return new View.html('''
+    return View.html('''
         <div>
           Add or remove feeds in
           <a href="https://www.google.com/reader" target="_blank">

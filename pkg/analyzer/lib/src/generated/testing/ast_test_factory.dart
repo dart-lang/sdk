@@ -159,48 +159,6 @@ class AstTestFactory {
     return cascade;
   }
 
-  static CatchClauseImpl catchClause(String exceptionParameter,
-          [List<Statement> statements = const []]) =>
-      catchClause5(null, exceptionParameter, null, statements);
-
-  static CatchClauseImpl catchClause2(
-          String exceptionParameter, String stackTraceParameter,
-          [List<Statement> statements = const []]) =>
-      catchClause5(null, exceptionParameter, stackTraceParameter, statements);
-
-  static CatchClauseImpl catchClause3(TypeAnnotation exceptionType,
-          [List<Statement> statements = const []]) =>
-      catchClause5(exceptionType, null, null, statements);
-
-  static CatchClauseImpl catchClause4(
-          TypeAnnotation exceptionType, String exceptionParameter,
-          [List<Statement> statements = const []]) =>
-      catchClause5(exceptionType, exceptionParameter, null, statements);
-
-  static CatchClauseImpl catchClause5(TypeAnnotation? exceptionType,
-          String? exceptionParameter, String? stackTraceParameter,
-          [List<Statement> statements = const []]) =>
-      astFactory.catchClause(
-          exceptionType == null
-              ? null
-              : TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "on"),
-          exceptionType,
-          exceptionParameter == null
-              ? null
-              : TokenFactory.tokenFromKeyword(Keyword.CATCH),
-          exceptionParameter == null
-              ? null
-              : TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          exceptionParameter == null ? null : identifier3(exceptionParameter),
-          stackTraceParameter == null
-              ? null
-              : TokenFactory.tokenFromType(TokenType.COMMA),
-          stackTraceParameter == null ? null : identifier3(stackTraceParameter),
-          exceptionParameter == null
-              ? null
-              : TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          block(statements));
-
   static ClassDeclarationImpl classDeclaration(
           Keyword? abstractKeyword,
           String name,

@@ -138,13 +138,6 @@ class Dart2jsTarget extends Target {
   bool get errorOnUnexactWebIntLiterals => true;
 
   @override
-  void performOutlineTransformations(ir.Component component,
-      CoreTypes coreTypes, ReferenceFromIndex? referenceFromIndex) {
-    component.accept(StaticInteropStubCreator(
-        StaticInteropClassEraser(coreTypes, referenceFromIndex)));
-  }
-
-  @override
   void performModularTransformationsOnLibraries(
       ir.Component component,
       CoreTypes coreTypes,
@@ -168,12 +161,14 @@ class Dart2jsTarget extends Target {
       // TODO (rileyporter): Merge js_util optimizations with other lowerings
       // in the single pass in `transformations/lowering.dart`.
       jsUtilOptimizer.visitLibrary(library);
-      staticInteropClassEraser.visitLibrary(library);
     }
     lowering.transformLibraries(libraries, coreTypes, hierarchy, options);
     logger?.call("Lowering transformations performed");
     if (canPerformGlobalTransforms) {
       transformMixins.transformLibraries(libraries);
+      for (var library in libraries) {
+        staticInteropClassEraser.visitLibrary(library);
+      }
       logger?.call("Mixin transformations performed");
     }
   }

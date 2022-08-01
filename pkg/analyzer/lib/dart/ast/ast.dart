@@ -383,6 +383,8 @@ abstract class AstVisitor<R> {
 
   R? visitCatchClause(CatchClause node);
 
+  R? visitCatchClauseParameter(CatchClauseParameter node);
+
   R? visitClassDeclaration(ClassDeclaration node);
 
   R? visitClassTypeAlias(ClassTypeAlias node);
@@ -804,7 +806,12 @@ abstract class CatchClause implements AstNode {
 
   /// Return the parameter whose value will be the exception that was thrown, or
   /// `null` if there is no 'catch' keyword.
+  @Deprecated('Use exceptionParameter2 instead')
   SimpleIdentifier? get exceptionParameter;
+
+  /// Return the parameter whose value will be the exception that was thrown, or
+  /// `null` if there is no 'catch' keyword.
+  CatchClauseParameter? get exceptionParameter2;
 
   /// Return the type of exceptions caught by this catch clause, or `null` if
   /// this catch clause catches every type of exception.
@@ -822,7 +829,23 @@ abstract class CatchClause implements AstNode {
 
   /// Return the parameter whose value will be the stack trace associated with
   /// the exception, or `null` if there is no stack trace parameter.
+  @Deprecated('Use stackTraceParameter2 instead')
   SimpleIdentifier? get stackTraceParameter;
+
+  /// Return the parameter whose value will be the stack trace associated with
+  /// the exception, or `null` if there is no stack trace parameter.
+  CatchClauseParameter? get stackTraceParameter2;
+}
+
+/// The 'exception' or 'stackTrace' parameter in [CatchClause].
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class CatchClauseParameter extends AstNode {
+  /// The declared element, or `null` if the AST has not been resolved.
+  LocalVariableElement? get declaredElement;
+
+  /// The name of the parameter.
+  Token get name;
 }
 
 /// The declaration of a class.
@@ -1237,6 +1260,9 @@ abstract class Configuration implements AstNode {
   /// condition.
   DottedName get name;
 
+  /// The result of resolving [uri].
+  DirectiveUri? get resolvedUri;
+
   /// Return the token for the right parenthesis.
   Token get rightParenthesis;
 
@@ -1245,7 +1271,7 @@ abstract class Configuration implements AstNode {
   StringLiteral get uri;
 
   /// Return the source to which the [uri] was resolved.
-  /// TODO(scheglov) Deprecate and remove.
+  @Deprecated('Use resolvedUri and check for DirectiveUriWithSource instead')
   Source? get uriSource;
 
   /// Return the value to which the value of the declared variable will be

@@ -310,6 +310,8 @@ CompilationUnit
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'a_html.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_html.dart
         Configuration
           ifKeyword: if
           leftParenthesis: (
@@ -330,6 +332,8 @@ CompilationUnit
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'a_io.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_io.dart
       semicolon: ;
       element: LibraryImportElement
         uri: DirectiveUriWithLibrary
@@ -411,6 +415,8 @@ CompilationUnit
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'a_html.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_html.dart
         Configuration
           ifKeyword: if
           leftParenthesis: (
@@ -431,6 +437,8 @@ CompilationUnit
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'a_io.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_io.dart
       semicolon: ;
       element: LibraryImportElement
         uri: DirectiveUriWithLibrary
@@ -462,6 +470,128 @@ CompilationUnit
             declaredElement: self::@variable::a
       semicolon: ;
       declaredElement: <null>
+''');
+  }
+
+  test_inLibrary_configurations_noRelativeUri() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertNoErrorsInCode(r'''
+// ignore:unused_import
+import 'a.dart'
+  if (x) ':net';
+''');
+
+    final node = findNode.configuration('if (');
+    assertResolvedNodeText(node, r'''
+Configuration
+  ifKeyword: if
+  leftParenthesis: (
+  name: DottedName
+    components
+      SimpleIdentifier
+        token: x
+        staticElement: <null>
+        staticType: null
+  rightParenthesis: )
+  uri: SimpleStringLiteral
+    literal: ':net'
+  resolvedUri: DirectiveUriWithRelativeUriString
+    relativeUriString: :net
+''');
+  }
+
+  test_inLibrary_configurations_noRelativeUriStr() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertNoErrorsInCode(r'''
+// ignore:unused_import
+import 'a.dart'
+  if (x) '${'foo'}.dart';
+''');
+
+    final node = findNode.configuration('if (');
+    assertResolvedNodeText(node, r'''
+Configuration
+  ifKeyword: if
+  leftParenthesis: (
+  name: DottedName
+    components
+      SimpleIdentifier
+        token: x
+        staticElement: <null>
+        staticType: null
+  rightParenthesis: )
+  uri: StringInterpolation
+    elements
+      InterpolationString
+        contents: '
+      InterpolationExpression
+        leftBracket: ${
+        expression: SimpleStringLiteral
+          literal: 'foo'
+        rightBracket: }
+      InterpolationString
+        contents: .dart'
+    staticType: null
+    stringValue: null
+  resolvedUri: DirectiveUri
+''');
+  }
+
+  test_inLibrary_configurations_noSource() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertNoErrorsInCode(r'''
+// ignore:unused_import
+import 'a.dart'
+  if (x) 'foo:bar';
+''');
+
+    final node = findNode.configuration('if (');
+    assertResolvedNodeText(node, r'''
+Configuration
+  ifKeyword: if
+  leftParenthesis: (
+  name: DottedName
+    components
+      SimpleIdentifier
+        token: x
+        staticElement: <null>
+        staticType: null
+  rightParenthesis: )
+  uri: SimpleStringLiteral
+    literal: 'foo:bar'
+  resolvedUri: DirectiveUriWithRelativeUri
+    relativeUri: foo:bar
+''');
+  }
+
+  test_inLibrary_configurations_onlySource_notLibrary() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await assertNoErrorsInCode(r'''
+// ignore:unused_import
+import 'a.dart'
+  if (x) 'a.dart';
+''');
+
+    final node = findNode.configuration('if (');
+    assertResolvedNodeText(node, r'''
+Configuration
+  ifKeyword: if
+  leftParenthesis: (
+  name: DottedName
+    components
+      SimpleIdentifier
+        token: x
+        staticElement: <null>
+        staticType: null
+  rightParenthesis: )
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  resolvedUri: DirectiveUriWithSource
+    source: package:test/a.dart
 ''');
   }
 
@@ -512,6 +642,8 @@ CompilationUnit
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'a_html.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_html.dart
         Configuration
           ifKeyword: if
           leftParenthesis: (
@@ -532,6 +664,8 @@ CompilationUnit
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'a_io.dart'
+          resolvedUri: DirectiveUriWithSource
+            source: package:test/a_io.dart
       semicolon: ;
       element: LibraryImportElement
         uri: DirectiveUriWithLibrary
@@ -604,6 +738,32 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithLibrary
       uri: package:test/a.dart
+''');
+  }
+
+  test_inLibrary_library_inSummary() async {
+    librarySummaryFiles = [
+      await buildPackageFooSummary(files: {
+        'lib/foo.dart': 'class F {}',
+      }),
+    ];
+    sdkSummaryFile = await writeSdkSummary();
+
+    await assertNoErrorsInCode(r'''
+// ignore: unused_import
+import 'package:foo/foo.dart';
+''');
+
+    final node = findNode.import('package:foo');
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'package:foo/foo.dart'
+  semicolon: ;
+  element: LibraryImportElement
+    uri: DirectiveUriWithLibrary
+      uri: package:foo/foo.dart
 ''');
   }
 
@@ -746,6 +906,34 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithSource
       source: package:test/a.dart
+''');
+  }
+
+  test_inLibrary_notLibrary_partOfUri_inSummary() async {
+    librarySummaryFiles = [
+      await buildPackageFooSummary(files: {
+        'lib/foo.dart': "part 'foo2.dart';",
+        'lib/foo2.dart': "part of 'foo.dart';",
+      }),
+    ];
+    sdkSummaryFile = await writeSdkSummary();
+
+    await assertErrorsInCode(r'''
+import 'package:foo/foo2.dart';
+''', [
+      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 7, 23),
+    ]);
+
+    final node = findNode.import('package:foo');
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'package:foo/foo2.dart'
+  semicolon: ;
+  element: LibraryImportElement
+    uri: DirectiveUriWithSource
+      source: package:foo/foo2.dart
 ''');
   }
 }

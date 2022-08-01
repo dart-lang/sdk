@@ -305,6 +305,8 @@ ExportDirective
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_html.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_html.dart
     Configuration
       ifKeyword: if
       leftParenthesis: (
@@ -325,6 +327,8 @@ ExportDirective
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_io.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_io.dart
   semicolon: ;
   element: LibraryExportElement
     uri: DirectiveUriWithLibrary
@@ -375,6 +379,8 @@ ExportDirective
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_html.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_html.dart
     Configuration
       ifKeyword: if
       leftParenthesis: (
@@ -395,6 +401,8 @@ ExportDirective
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_io.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_io.dart
   semicolon: ;
   element: LibraryExportElement
     uri: DirectiveUriWithLibrary
@@ -445,6 +453,8 @@ ExportDirective
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_html.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_html.dart
     Configuration
       ifKeyword: if
       leftParenthesis: (
@@ -465,6 +475,8 @@ ExportDirective
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_io.dart'
+      resolvedUri: DirectiveUriWithSource
+        source: package:test/a_io.dart
   semicolon: ;
   element: LibraryExportElement
     uri: DirectiveUriWithLibrary
@@ -509,6 +521,31 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithLibrary
       uri: package:test/a.dart
+''');
+  }
+
+  test_inLibrary_library_inSummary() async {
+    librarySummaryFiles = [
+      await buildPackageFooSummary(files: {
+        'lib/foo.dart': 'class F {}',
+      }),
+    ];
+    sdkSummaryFile = await writeSdkSummary();
+
+    await assertNoErrorsInCode(r'''
+export 'package:foo/foo.dart';
+''');
+
+    final node = findNode.export('package:foo');
+    assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: SimpleStringLiteral
+    literal: 'package:foo/foo.dart'
+  semicolon: ;
+  element: LibraryExportElement
+    uri: DirectiveUriWithLibrary
+      uri: package:foo/foo.dart
 ''');
   }
 
@@ -665,6 +702,34 @@ ExportDirective
   element: LibraryExportElement
     uri: DirectiveUriWithSource
       source: package:test/a.dart
+''');
+  }
+
+  test_inLibrary_notLibrary_partOfUri_inSummary() async {
+    librarySummaryFiles = [
+      await buildPackageFooSummary(files: {
+        'lib/foo.dart': "part 'foo2.dart';",
+        'lib/foo2.dart': "part of 'foo.dart';",
+      }),
+    ];
+    sdkSummaryFile = await writeSdkSummary();
+
+    await assertErrorsInCode(r'''
+export 'package:foo/foo2.dart';
+''', [
+      error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 7, 23),
+    ]);
+
+    final node = findNode.export('package:foo');
+    assertResolvedNodeText(node, r'''
+ExportDirective
+  exportKeyword: export
+  uri: SimpleStringLiteral
+    literal: 'package:foo/foo2.dart'
+  semicolon: ;
+  element: LibraryExportElement
+    uri: DirectiveUriWithSource
+      source: package:foo/foo2.dart
 ''');
   }
 }

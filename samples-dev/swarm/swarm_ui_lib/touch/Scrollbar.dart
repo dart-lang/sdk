@@ -6,45 +6,35 @@
 
 part of touch;
 
-/**
- * Implementation of a scrollbar for the custom scrolling behavior
- * defined in [:Scroller:].
- */
+/// Implementation of a scrollbar for the custom scrolling behavior
+/// defined in [:Scroller:].
 class Scrollbar implements ScrollListener {
-  /**
-   * The minimum size of scrollbars when not compressed.
-   */
+  /// The minimum size of scrollbars when not compressed.
   static const _MIN_SIZE = 30;
 
-  /**
-   * The minimum compressed size of scrollbars. Scrollbars are compressed when
-   * the content is stretching past its boundaries.
-   */
+  /// The minimum compressed size of scrollbars. Scrollbars are compressed when
+  /// the content is stretching past its boundaries.
   static const _MIN_COMPRESSED_SIZE = 8;
-  /** Padding in pixels to add above and bellow the scrollbar. */
+
+  /// Padding in pixels to add above and bellow the scrollbar. */
   static const _PADDING_LENGTH = 10;
-  /**
-   * The amount of time to wait before hiding scrollbars after showing them.
-   * Measured in ms.
-   */
+
+  /// The amount of time to wait before hiding scrollbars after showing them.
+  /// Measured in ms.
   static const _DISPLAY_TIME = 300;
   static const DRAG_CLASS_NAME = 'drag';
 
-  Scroller _scroller;
-  Element _frame;
+  final Scroller _scroller;
+  final Element _frame;
   bool _scrollInProgress = false;
   bool _scrollBarDragInProgressValue = false;
 
-  /**
-   * Cached values of height and width. Keys will be 'height' and 'width'
-   * depending on if they are applied to vertical or horizontal scrollbar.
-   */
-  Map<String, num> _cachedSize;
+  /// Cached values of height and width. Keys will be 'height' and 'width'
+  /// depending on if they are applied to vertical or horizontal scrollbar.
+  final Map<String, num> _cachedSize;
 
-  /**
-   * This bound function will be used as the input to window.setTimeout when
-   * scheduling the hiding of the scrollbars.
-   */
+  /// This bound function will be used as the input to window.setTimeout when
+  /// scheduling the hiding of the scrollbars.
   Function _boundHideFn;
 
   Element _verticalElement;
@@ -56,14 +46,14 @@ class Scrollbar implements ScrollListener {
   num _currentScrollRatio;
   Timer _timer;
 
-  bool _displayOnHover;
+  final bool _displayOnHover;
   bool _hovering = false;
 
   Scrollbar(Scroller scroller, [displayOnHover = true])
       : _displayOnHover = displayOnHover,
         _scroller = scroller,
         _frame = scroller.getFrame(),
-        _cachedSize = new Map<String, num>() {
+        _cachedSize = <String, num>{} {
     _boundHideFn = () {
       _showScrollbars(false);
     };
@@ -71,7 +61,7 @@ class Scrollbar implements ScrollListener {
 
   bool get _scrollBarDragInProgress => _scrollBarDragInProgressValue;
 
-  void set _scrollBarDragInProgress(bool value) {
+  set _scrollBarDragInProgress(bool value) {
     _scrollBarDragInProgressValue = value;
     _toggleClass(
         _verticalElement, DRAG_CLASS_NAME, value && _currentScrollVertical);
@@ -90,10 +80,8 @@ class Scrollbar implements ScrollListener {
     }
   }
 
-  /**
-   * Initializes elements and event handlers. Must be called after
-   * construction and before usage.
-   */
+  /// Initializes elements and event handlers. Must be called after
+  /// construction and before usage.
   void initialize() {
     // Don't initialize if we have already been initialized.
     // TODO(jacobr): remove this once bugs are fixed and enterDocument is only
@@ -101,9 +89,9 @@ class Scrollbar implements ScrollListener {
     if (_verticalElement != null) {
       return;
     }
-    _verticalElement = new Element.html(
+    _verticalElement = Element.html(
         '<div class="touch-scrollbar touch-scrollbar-vertical"></div>');
-    _horizontalElement = new Element.html(
+    _horizontalElement = Element.html(
         '<div class="touch-scrollbar touch-scrollbar-horizontal"></div>');
     _scroller.addScrollListener(this);
 
@@ -223,19 +211,17 @@ class Scrollbar implements ScrollListener {
   void _onEnd(Event e) {
     _scrollBarDragInProgress = false;
     // TODO(jacobr): make scrollbar less tightly coupled to the scroller.
-    _scroller._onScrollerDragEnd.add(new Event(ScrollerEventType.DRAG_END));
+    _scroller._onScrollerDragEnd.add(Event(ScrollerEventType.DRAG_END));
   }
 
-  /**
-   * When scrolling ends, schedule a timeout to hide the scrollbars.
-   */
+  /// When scrolling ends, schedule a timeout to hide the scrollbars.
   void _onScrollerEnd(Event e) {
     _cancelTimeout();
-    _timer =
-        new Timer(const Duration(milliseconds: _DISPLAY_TIME), _boundHideFn);
+    _timer = Timer(const Duration(milliseconds: _DISPLAY_TIME), _boundHideFn);
     _scrollInProgress = false;
   }
 
+  @override
   void onScrollerMoved(num scrollX, num scrollY, bool decelerating) {
     if (_scrollInProgress == false) {
       // Display the scrollbar and then immediately prepare to hide it...
@@ -270,9 +256,7 @@ class Scrollbar implements ScrollListener {
     }
   }
 
-  /**
-   * When scrolling starts, show scrollbars and clear hide intervals.
-   */
+  /// When scrolling starts, show scrollbars and clear hide intervals.
   void _onScrollerStart(Event e) {
     _scrollInProgress = true;
     _cancelTimeout();
@@ -286,9 +270,7 @@ class Scrollbar implements ScrollListener {
     }
   }
 
-  /**
-   * Show or hide the scrollbars by changing the opacity.
-   */
+  /// Show or hide the scrollbars by changing the opacity.
   void _showScrollbars(bool show) {
     if (_hovering == true && _displayOnHover) {
       show = true;
@@ -312,12 +294,10 @@ class Scrollbar implements ScrollListener {
         frameSize - _PADDING_LENGTH * 2);
   }
 
-  /**
-   * Update the vertical or horizontal scrollbar based on the new scroll
-   * properties. The CSS property to adjust for position (bottom|right) is
-   * specified by [cssPos]. The CSS property to adjust for size (height|width)
-   * is specified by [cssSize].
-   */
+  /// Update the vertical or horizontal scrollbar based on the new scroll
+  /// properties. The CSS property to adjust for position (bottom|right) is
+  /// specified by [cssPos]. The CSS property to adjust for size (height|width)
+  /// is specified by [cssSize].
   void _updateScrollbar(Element element, num offset, num scrollPercent,
       num frameSize, num contentSize, String cssPos, String cssSize) {
     if (!_cachedSize.containsKey(cssSize)) {

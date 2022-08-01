@@ -268,7 +268,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
             bodyBuilder.transformCollections,
             library.library);
         initializerWasInferred = true;
-        bodyBuilder.performBacklogComputations(delayedActionPerformers);
+        bodyBuilder.performBacklogComputations(
+            delayedActionPerformers: delayedActionPerformers,
+            allowFurtherDelays: false);
       } else if (kind != FormalParameterKind.requiredPositional) {
         // As done by BodyBuilder.endFormalParameter.
         variable!.initializer = new NullLiteral()..parent = variable;

@@ -9,32 +9,32 @@ part of swarmlib;
 // This file contains View framework classes.
 // As it grows, it may need to be split into multiple files.
 
-/** A factory that creates a view from a data model. */
+/// A factory that creates a view from a data model. */
 abstract class ViewFactory<D> {
   View newView(D item);
 
-  /** The width of the created view or null if the width is not fixed. */
+  /// The width of the created view or null if the width is not fixed. */
   int get width;
 
-  /** The height of the created view or null if the height is not fixed. */
+  /// The height of the created view or null if the height is not fixed. */
   int get height;
 }
 
 abstract class VariableSizeViewFactory<D> {
   View newView(D item);
 
-  /** The width of the created view for a specific data model. */
+  /// The width of the created view for a specific data model. */
   int getWidth(D item);
 
-  /** The height of the created view for a specific data model. */
+  /// The height of the created view for a specific data model. */
   int getHeight(D item);
 }
 
-/** A collection of event listeners. */
+/// A collection of event listeners. */
 class EventListeners {
   var listeners;
   EventListeners() {
-    listeners = new List();
+    listeners = [];
   }
 
   void addListener(listener) {
@@ -48,67 +48,61 @@ class EventListeners {
   }
 }
 
-/**
- * Private view class used to store placeholder views for detached ListView
- * elements.
- */
+/// Private view class used to store placeholder views for detached ListView
+/// elements.
 class _PlaceholderView extends View {
   _PlaceholderView();
 
-  Element render() => new Element.tag('div');
+  @override
+  Element render() => Element.tag('div');
 }
 
-/**
- * Class providing all metrics required to layout a data driven list view.
- */
+/// Class providing all metrics required to layout a data driven list view.
 abstract class ListViewLayout<D> {
   void onDataChange();
 
   // TODO(jacobr): placing the newView member function on this class seems like
   // the wrong design.
   View newView(int index);
-  /** Get the height of the view. Possibly expensive to compute. */
+
+  /// Get the height of the view. Possibly expensive to compute. */
   int getHeight(int viewLength);
-  /** Get the width of the view. Possibly expensive to compute. */
+
+  /// Get the width of the view. Possibly expensive to compute. */
   int getWidth(int viewLength);
-  /** Get the length of the view. Possible expensive to compute. */
+
+  /// Get the length of the view. Possible expensive to compute. */
   int getLength(int viewLength);
-  /** Estimated height of the view. Guaranteed to be fast to compute. */
+
+  /// Estimated height of the view. Guaranteed to be fast to compute. */
   int getEstimatedHeight(int viewLength);
-  /** Estimated with of the view. Guaranteed to be fast to compute. */
+
+  /// Estimated with of the view. Guaranteed to be fast to compute. */
   int getEstimatedWidth(int viewLength);
 
-  /**
-   * Returns the offset in px that the ith item in the view should be placed
-   * at.
-   */
+  /// Returns the offset in px that the ith item in the view should be placed
+  /// at.
   int getOffset(int index);
 
-  /**
-   * The page the ith item in the view should be placed in.
-   */
+  /// The page the ith item in the view should be placed in.
   int getPage(int index, int viewLength);
   int getPageStartIndex(int index, int viewLength);
 
   int getEstimatedLength(int viewLength);
-  /**
-   * Snap a specified index to the nearest visible view given the [viewLength].
-   */
+
+  /// Snap a specified index to the nearest visible view given the [viewLength].
   int getSnapIndex(num offset, num viewLength);
-  /**
-   * Returns an interval specifying what views are currently visible given a
-   * particular [:offset:].
-   */
+
+  /// Returns an interval specifying what views are currently visible given a
+  /// particular [:offset:].
   Interval computeVisibleInterval(num offset, num viewLength, num bufferLength);
 }
 
-/**
- * Base class used for the simple fixed size item [:ListView:] classes and more
- * complex list view classes such as [:VariableSizeListView:] using a
- * [:ListViewLayout:] class to drive the actual layout.
- */
+/// Base class used for the simple fixed size item [:ListView:] classes and more
+/// complex list view classes such as [:VariableSizeListView:] using a
+/// [:ListViewLayout:] class to drive the actual layout.
 class GenericListView<D> extends View {
-  /** Minimum throw distance in pixels to trigger snapping to the next item. */
+  /// Minimum throw distance in pixels to trigger snapping to the next item. */
   static const SNAP_TO_NEXT_THROW_THRESHOLD = 15;
 
   static const INDEX_DATA_ATTRIBUTE = 'data-index';
@@ -118,25 +112,24 @@ class GenericListView<D> extends View {
   final bool _snapToItems;
   Scroller scroller;
   Scrollbar _scrollbar;
-  List<D> _data;
-  ObservableValue<D> _selectedItem;
-  Map<int, View> _itemViews;
+  final List<D> _data;
+  final ObservableValue<D> _selectedItem;
+  final Map<int, View> _itemViews;
   Element _containerElem;
-  bool _vertical;
-  /** Length of the scrollable dimension of the view in px. */
+  final bool _vertical;
+
+  /// Length of the scrollable dimension of the view in px. */
   int _viewLength = 0;
   Interval _activeInterval;
-  bool _paginate;
-  bool _removeClippedViews;
-  ListViewLayout<D> _layout;
+  final bool _paginate;
+  final bool _removeClippedViews;
+  final ListViewLayout<D> _layout;
   D _lastSelectedItem;
-  PageState _pages;
+  final PageState _pages;
 
-  /**
-   * Creates a new GenericListView with the given layout and data. If [:_data:]
-   * is an [:ObservableList<T>:] then it will listen to changes to the list
-   * and update the view appropriately.
-   */
+  /// Creates a new GenericListView with the given layout and data. If [:_data:]
+  /// is an [:ObservableList<T>:] then it will listen to changes to the list
+  /// and update the view appropriately.
   GenericListView(
       this._layout,
       this._data,
@@ -148,8 +141,8 @@ class GenericListView<D> extends View {
       this._removeClippedViews,
       this._showScrollbar,
       this._pages)
-      : _activeInterval = new Interval(0, 0),
-        _itemViews = new Map<int, View>() {
+      : _activeInterval = Interval(0, 0),
+        _itemViews = <int, View>{} {
     // TODO(rnystrom): Move this into enterDocument once we have an exitDocument
     // that we can use to unregister it.
     if (_scrollable) {
@@ -169,6 +162,7 @@ class GenericListView<D> extends View {
     _lastSelectedItem = _selectedItem.value;
   }
 
+  @override
   Iterable<View> get childViews {
     return _itemViews.values.toList();
   }
@@ -194,16 +188,17 @@ class GenericListView<D> extends View {
   int _nodeToIndex(Element node) {
     // TODO(jacobr): use data attributes when available.
     String index = node.attributes[INDEX_DATA_ATTRIBUTE];
-    if (index != null && index.length > 0) {
+    if (index != null && index.isNotEmpty) {
       return int.parse(index);
     }
     return null;
   }
 
+  @override
   Element render() {
-    final node = new Element.tag('div');
+    final node = Element.tag('div');
     if (_scrollable) {
-      _containerElem = new Element.tag('div');
+      _containerElem = Element.tag('div');
       _containerElem.tabIndex = -1;
       node.nodes.add(_containerElem);
     } else {
@@ -211,16 +206,16 @@ class GenericListView<D> extends View {
     }
 
     if (_scrollable) {
-      scroller = new Scroller(
+      scroller = Scroller(
           _containerElem,
           _vertical /* verticalScrollEnabled */,
           !_vertical /* horizontalScrollEnabled */,
           true /* momentumEnabled */, () {
         num width = _layout.getWidth(_viewLength);
         num height = _layout.getHeight(_viewLength);
-        width = width != null ? width : 0;
-        height = height != null ? height : 0;
-        return new Size(width, height);
+        width = width ?? 0;
+        height = height ?? 0;
+        return Size(width, height);
       },
           _paginate && _snapToItems
               ? Scroller.FAST_SNAP_DECELERATION_FACTOR
@@ -235,7 +230,7 @@ class GenericListView<D> extends View {
         scroller.onScrollerDragEnd.listen((e) => _decelStart());
       }
       if (_showScrollbar) {
-        _scrollbar = new Scrollbar(scroller, true);
+        _scrollbar = Scrollbar(scroller, true);
       }
     } else {
       _reserveArea();
@@ -245,6 +240,7 @@ class GenericListView<D> extends View {
     return node;
   }
 
+  @override
   void afterRender(Element node) {
     // If our data source is observable, observe it.
     if (_data is ObservableList<D>) {
@@ -300,6 +296,7 @@ class GenericListView<D> extends View {
     });
   }
 
+  @override
   void enterDocument() {
     if (scroller != null) {
       onResize();
@@ -361,7 +358,7 @@ class GenericListView<D> extends View {
       _removeView(i);
     }
     _itemViews.clear();
-    _activeInterval = new Interval(0, 0);
+    _activeInterval = Interval(0, 0);
     if (scroller == null) {
       _reserveArea();
     }
@@ -381,9 +378,7 @@ class GenericListView<D> extends View {
         : scroller.getHorizontalOffset();
   }
 
-  /**
-   * Calculates visible interval, based on the scroller position.
-   */
+  /// Calculates visible interval, based on the scroller position.
   Interval getVisibleInterval() {
     return _layout.computeVisibleInterval(_offset, _viewLength, 0);
   }
@@ -394,14 +389,14 @@ class GenericListView<D> extends View {
       targetInterval = getVisibleInterval();
     } else {
       // If the view is not scrollable, render all elements.
-      targetInterval = new Interval(0, _data.length);
+      targetInterval = Interval(0, _data.length);
     }
 
     if (_pages != null) {
       _pages.current.value = _layout.getPage(targetInterval.start, _viewLength);
     }
     if (_pages != null) {
-      _pages.length.value = _data.length > 0
+      _pages.length.value = _data.isNotEmpty
           ? _layout.getPage(_data.length - 1, _viewLength) + 1
           : 0;
     }
@@ -450,7 +445,7 @@ class GenericListView<D> extends View {
   void _removeView(int index) {
     // Do not remove placeholder views as they need to stay present in case
     // they scroll out of view and then back into view.
-    if (!(_itemViews[index] is _PlaceholderView)) {
+    if (_itemViews[index] is! _PlaceholderView) {
       // Remove from the active DOM but don't destroy.
       _itemViews[index].node.remove();
       childViewRemoved(_itemViews[index]);
@@ -495,10 +490,8 @@ class GenericListView<D> extends View {
     }
   }
 
-  /**
-   * Detach a subview from the view replacing it with an empty placeholder view.
-   * The detached subview can be safely reparented.
-   */
+  /// Detach a subview from the view replacing it with an empty placeholder view.
+  /// The detached subview can be safely reparented.
   View detachSubview(D itemData) {
     int index = findIndex(itemData);
     View view = _itemViews[index];
@@ -509,22 +502,20 @@ class GenericListView<D> extends View {
       _addView(index);
       view = _itemViews[index];
     }
-    final placeholder = new _PlaceholderView();
+    final placeholder = _PlaceholderView();
     view.node.replaceWith(placeholder.node);
     _itemViews[index] = placeholder;
     return view;
   }
 
-  /**
-   * Reattach a subview from the view that was detached from the view
-   * by calling detachSubview. [callback] is called once the subview is
-   * reattached and done animating into position.
-   */
+  /// Reattach a subview from the view that was detached from the view
+  /// by calling detachSubview. [callback] is called once the subview is
+  /// reattached and done animating into position.
   void reattachSubview(D data, View view, bool animate) {
     int index = findIndex(data);
     // TODO(jacobr): perform some validation that the view is
     // really detached.
-    var currentPosition;
+    Coordinate currentPosition;
     if (animate) {
       currentPosition =
           FxUtil.computeRelativePosition(view.node, _containerElem);
@@ -614,14 +605,16 @@ class GenericListView<D> extends View {
 class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
   final ViewFactory<D> itemViewFactory;
   final bool _vertical;
-  List<D> _data;
-  bool _paginate;
+  final List<D> _data;
+  final bool _paginate;
 
   FixedSizeListViewLayout(
       this.itemViewFactory, this._data, this._vertical, this._paginate);
 
+  @override
   void onDataChange() {}
 
+  @override
   View newView(int index) {
     return itemViewFactory.newView(_data[index]);
   }
@@ -630,35 +623,41 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
     return _vertical ? itemViewFactory.height : itemViewFactory.width;
   }
 
+  @override
   int getWidth(int viewLength) {
     return _vertical ? itemViewFactory.width : getLength(viewLength);
   }
 
+  @override
   int getHeight(int viewLength) {
     return _vertical ? getLength(viewLength) : itemViewFactory.height;
   }
 
+  @override
   int getEstimatedHeight(int viewLength) {
     // Returns the exact height as it is trivial to compute for this layout.
     return getHeight(viewLength);
   }
 
+  @override
   int getEstimatedWidth(int viewLength) {
     // Returns the exact height as it is trivial to compute for this layout.
     return getWidth(viewLength);
   }
 
+  @override
   int getEstimatedLength(int viewLength) {
     // Returns the exact length as it is trivial to compute for this layout.
     return getLength(viewLength);
   }
 
+  @override
   int getLength(int viewLength) {
     int itemLength = _vertical ? itemViewFactory.height : itemViewFactory.width;
     if (viewLength == null || viewLength == 0) {
       return itemLength * _data.length;
     } else if (_paginate) {
-      if (_data.length > 0) {
+      if (_data.isNotEmpty) {
         final pageLength = getPageLength(viewLength);
         return getPage(_data.length - 1, viewLength) * pageLength +
             Math.max(viewLength, pageLength);
@@ -670,6 +669,7 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
     }
   }
 
+  @override
   int getOffset(int index) {
     return index * _itemLength;
   }
@@ -679,14 +679,17 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
     return Math.max(1, itemsPerPage) * _itemLength;
   }
 
+  @override
   int getPage(int index, int viewLength) {
     return getOffset(index) ~/ getPageLength(viewLength);
   }
 
+  @override
   int getPageStartIndex(int page, int viewLength) {
     return getPageLength(viewLength) ~/ _itemLength * page;
   }
 
+  @override
   int getSnapIndex(num offset, num viewLength) {
     int index = (-offset / _itemLength).round();
     if (_paginate) {
@@ -695,6 +698,7 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
     return GoogleMath.clamp(index, 0, _data.length - 1);
   }
 
+  @override
   Interval computeVisibleInterval(
       num offset, num viewLength, num bufferLength) {
     int targetIntervalStart =
@@ -703,28 +707,24 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
         ((-offset + viewLength + bufferLength) / _itemLength).ceil(),
         targetIntervalStart,
         _data.length);
-    return new Interval(targetIntervalStart, targetIntervalEnd.toInt());
+    return Interval(targetIntervalStart, targetIntervalEnd.toInt());
   }
 }
 
-/**
- * Simple list view class where each item has fixed width and height.
- */
+/// Simple list view class where each item has fixed width and height.
 class ListView<D> extends GenericListView<D> {
-  /**
-   * Creates a new ListView for the given data. If [:_data:] is an
-   * [:ObservableList<T>:] then it will listen to changes to the list and
-   * update the view appropriately.
-   */
+  /// Creates a new ListView for the given data. If [:_data:] is an
+  /// [:ObservableList<T>:] then it will listen to changes to the list and
+  /// update the view appropriately.
   ListView(List<D> data, ViewFactory<D> itemViewFactory, bool scrollable,
       bool vertical, ObservableValue<D> selectedItem,
       [bool snapToItems = false,
       bool paginate = false,
       bool removeClippedViews = false,
       bool showScrollbar = false,
-      PageState pages = null])
+      PageState pages])
       : super(
-            new FixedSizeListViewLayout<D>(
+            FixedSizeListViewLayout<D>(
                 itemViewFactory, data, vertical, paginate),
             data,
             scrollable,
@@ -737,37 +737,38 @@ class ListView<D> extends GenericListView<D> {
             pages);
 }
 
-/**
- * Layout where each item may have variable size along the axis the list view
- * extends.
- */
+/// Layout where each item may have variable size along the axis the list view
+/// extends.
 class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
-  List<D> _data;
+  final List<D> _data;
   List<int> _itemOffsets;
   List<int> _lengths;
   int _lastOffset = 0;
-  bool _vertical;
-  bool _paginate;
+  final bool _vertical;
+  final bool _paginate;
   VariableSizeViewFactory<D> itemViewFactory;
   Interval _lastVisibleInterval;
 
   VariableSizeListViewLayout(
       this.itemViewFactory, data, this._vertical, this._paginate)
       : _data = data,
-        _lastVisibleInterval = new Interval(0, 0) {
+        _lastVisibleInterval = Interval(0, 0) {
     _itemOffsets = <int>[];
     _lengths = <int>[];
     _itemOffsets.add(0);
   }
 
+  @override
   void onDataChange() {
     _itemOffsets.clear();
     _itemOffsets.add(0);
     _lengths.clear();
   }
 
+  @override
   View newView(int index) => itemViewFactory.newView(_data[index]);
 
+  @override
   int getWidth(int viewLength) {
     if (_vertical) {
       return itemViewFactory.getWidth(null);
@@ -776,6 +777,7 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
     }
   }
 
+  @override
   int getHeight(int viewLength) {
     if (_vertical) {
       return getLength(viewLength);
@@ -784,6 +786,7 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
     }
   }
 
+  @override
   int getEstimatedHeight(int viewLength) {
     if (_vertical) {
       return getEstimatedLength(viewLength);
@@ -792,6 +795,7 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
     }
   }
 
+  @override
   int getEstimatedWidth(int viewLength) {
     if (_vertical) {
       return itemViewFactory.getWidth(null);
@@ -802,12 +806,13 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
 
   // TODO(jacobr): this logic is overly complicated. Replace with something
   // simpler.
+  @override
   int getEstimatedLength(int viewLength) {
     if (_lengths.length == _data.length) {
       // No need to estimate... we have all the data already.
       return getLength(viewLength);
     }
-    if (_itemOffsets.length > 1 && _lengths.length > 0) {
+    if (_itemOffsets.length > 1 && _lengths.isNotEmpty) {
       // Estimate length by taking the average of the lengths
       // of the known views.
       num lengthFromAllButLastElement = 0;
@@ -828,8 +833,9 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
     }
   }
 
+  @override
   int getLength(int viewLength) {
-    if (_data.length == 0) {
+    if (_data.isEmpty) {
       return viewLength;
     } else {
       // Hack so that _lengths[length - 1] is available.
@@ -839,6 +845,7 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
     }
   }
 
+  @override
   int getOffset(int index) {
     if (index >= _itemOffsets.length) {
       int offset = _itemOffsets[_itemOffsets.length - 1];
@@ -854,16 +861,19 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
     return _itemOffsets[index];
   }
 
+  @override
   int getPage(int index, int viewLength) {
     // TODO(jacobr): implement.
     throw 'Not implemented';
   }
 
+  @override
   int getPageStartIndex(int page, int viewLength) {
     // TODO(jacobr): implement.
     throw 'Not implemented';
   }
 
+  @override
   int getSnapIndex(num offset, num viewLength) {
     for (int i = 1; i < _data.length; i++) {
       if (getOffset(i) + getOffset(i - 1) > -offset * 2) {
@@ -873,6 +883,7 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
     return _data.length - 1;
   }
 
+  @override
   Interval computeVisibleInterval(
       num offset, num viewLength, num bufferLength) {
     offset = offset.toInt();
@@ -880,7 +891,7 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
         _lastVisibleInterval != null ? _lastVisibleInterval.start : 0);
     int end = _findFirstItemAfter(-offset + viewLength + bufferLength,
         _lastVisibleInterval != null ? _lastVisibleInterval.end : 0);
-    _lastVisibleInterval = new Interval(start, Math.max(start, end));
+    _lastVisibleInterval = Interval(start, Math.max(start, end));
     _lastOffset = offset;
     return _lastVisibleInterval;
   }
@@ -914,9 +925,9 @@ class VariableSizeListView<D> extends GenericListView<D> {
       bool paginate = false,
       bool removeClippedViews = false,
       bool showScrollbar = false,
-      PageState pages = null])
+      PageState pages])
       : super(
-            new VariableSizeListViewLayout(
+            VariableSizeListViewLayout(
                 itemViewFactory, data, vertical, paginate),
             data,
             scrollable,
@@ -929,19 +940,21 @@ class VariableSizeListView<D> extends GenericListView<D> {
             pages);
 }
 
-/** A back button that is equivalent to clicking "back" in the browser. */
+/// A back button that is equivalent to clicking "back" in the browser. */
 class BackButton extends View {
   BackButton();
 
-  Element render() => new Element.html('<div class="back-arrow button"></div>');
+  @override
+  Element render() => Element.html('<div class="back-arrow button"></div>');
 
+  @override
   void afterRender(Element node) {
     addOnClick((e) => window.history.back());
   }
 }
 
 // TODO(terry): Maybe should be part of ButtonView class in appstack/view?
-/** OS button. */
+/// OS button. */
 class PushButtonView extends View {
   final String _text;
   final String _cssClass;
@@ -949,10 +962,12 @@ class PushButtonView extends View {
 
   PushButtonView(this._text, this._cssClass, this._clickHandler);
 
+  @override
   Element render() {
-    return new Element.html('<button class="${_cssClass}">${_text}</button>');
+    return Element.html('<button class="$_cssClass">$_text</button>');
   }
 
+  @override
   void afterRender(Element node) {
     addOnClick(_clickHandler);
   }
@@ -961,7 +976,7 @@ class PushButtonView extends View {
 // TODO(terry): Add a drop shadow around edge and corners need to be rounded.
 //              Need to support conveyor for contents of dialog so it's not
 //              larger than the parent window.
-/** A generic dialog view supports title, done button and dialog content. */
+/// A generic dialog view supports title, done button and dialog content. */
 class DialogView extends View {
   final String _title;
   final String _cssName;
@@ -971,8 +986,9 @@ class DialogView extends View {
 
   DialogView(this._title, this._cssName, this._content);
 
+  @override
   Element render() {
-    final node = new Element.html('''
+    final node = Element.html('''
       <div class="dialog-modal">
         <div class="dialog $_cssName">
           <div class="dialog-title-area">
@@ -982,8 +998,8 @@ class DialogView extends View {
         </div>
       </div>''');
 
-    _done = new PushButtonView(
-        'Done', 'done-button', EventBatch.wrap((e) => onDone()));
+    _done =
+        PushButtonView('Done', 'done-button', EventBatch.wrap((e) => onDone()));
     final titleArea = node.querySelector('.dialog-title-area');
     titleArea.nodes.add(_done.node);
 
@@ -993,6 +1009,6 @@ class DialogView extends View {
     return node;
   }
 
-  /** Override to handle dialog done. */
+  /// Override to handle dialog done. */
   void onDone() {}
 }

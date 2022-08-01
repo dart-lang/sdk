@@ -4,43 +4,37 @@
 
 part of observable;
 
-/**
- * Accumulates change events from several observable objects.
- *
- * wrap() is public and used by client code.  The other methods are used by
- * AbstractObservable, which works with this class to implement batching.
- */
+/// Accumulates change events from several observable objects.
+///
+/// wrap() is public and used by client code.  The other methods are used by
+/// AbstractObservable, which works with this class to implement batching.
 class EventBatch {
-  /** The current active batch, if any. */
+  /// The current active batch, if any. */
   static EventBatch? current;
 
-  /** Used to generate unique ids for observable objects. */
+  /// Used to generate unique ids for observable objects. */
   static int nextUid = 1;
 
-  /** Map from observable object's uid to their tracked events. */
+  /// Map from observable object's uid to their tracked events. */
   // TODO(sigmund): use [Observable] instead of [int] when [Map] can support it,
   Map<int, EventSummary> summaries;
 
-  /** Whether this batch is currently firing and therefore is sealed. */
+  /// Whether this batch is currently firing and therefore is sealed. */
   bool sealed = false;
 
-  /**
-   * Private constructor that shouldn't be used externally. Use [wrap] to ensure
-   * that a batch exists when running a function.
-   */
-  EventBatch._internal() : summaries = Map<int, EventSummary>();
+  /// Private constructor that shouldn't be used externally. Use [wrap] to ensure
+  /// that a batch exists when running a function.
+  EventBatch._internal() : summaries = <int, EventSummary>{};
 
-  /**
-   * Ensure there is an event batch where [userFunction] can accumulate events.
-   * When the batch is complete, fire all events at once.
-   */
+  /// Ensure there is an event batch where [userFunction] can accumulate events.
+  /// When the batch is complete, fire all events at once.
   static Function wrap(userFunction(var a)) {
     return (e) {
       if (current == null) {
         // Not in a batch so create one.
         final batch = EventBatch._internal();
         current = batch;
-        var result = null;
+        var result;
         try {
           // TODO(jmesserly): don't return here, otherwise an exception in
           // the finally clause will cause it to rerun. See bug#5350131.
@@ -74,12 +68,12 @@ class EventBatch {
     };
   }
 
-  /** Returns a unique global id for observable objects. */
+  /// Returns a unique global id for observable objects. */
   static int genUid() {
     return nextUid++;
   }
 
-  /** Retrieves the events associated with {@code obj}. */
+  /// Retrieves the events associated with {@code obj}. */
   EventSummary getEvents(Observable obj) {
     int uid = obj.uid;
     EventSummary? summary = summaries[uid];
@@ -91,7 +85,7 @@ class EventBatch {
     return summary;
   }
 
-  /** Fires all events at once. */
+  /// Fires all events at once. */
   void _notify() {
     assert(!sealed);
     sealed = true;

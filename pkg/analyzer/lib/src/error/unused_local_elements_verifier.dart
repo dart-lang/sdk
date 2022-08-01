@@ -52,17 +52,17 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitCatchClause(CatchClause node) {
-    var exceptionParameter = node.exceptionParameter;
-    var stackTraceParameter = node.stackTraceParameter;
+    var exceptionParameter = node.exceptionParameter2;
+    var stackTraceParameter = node.stackTraceParameter2;
     if (exceptionParameter != null) {
-      var element = exceptionParameter.staticElement;
+      var element = exceptionParameter.declaredElement;
       usedElements.addCatchException(element);
       if (stackTraceParameter != null || node.onKeyword == null) {
         usedElements.addElement(element);
       }
     }
     if (stackTraceParameter != null) {
-      var element = stackTraceParameter.staticElement;
+      var element = stackTraceParameter.declaredElement;
       usedElements.addCatchStackTrace(element);
     }
     super.visitCatchClause(node);

@@ -91,6 +91,10 @@ class FindNode {
     return _node(search, (n) => n is CatchClause);
   }
 
+  CatchClauseParameter catchClauseParameter(String search) {
+    return _node(search, (n) => n is CatchClauseParameter);
+  }
+
   ClassDeclaration classDeclaration(String search) {
     return _node(search, (n) => n is ClassDeclaration);
   }
@@ -113,6 +117,10 @@ class FindNode {
 
   ConditionalExpression conditionalExpression(String search) {
     return _node(search, (n) => n is ConditionalExpression);
+  }
+
+  Configuration configuration(String search) {
+    return _node(search, (n) => n is Configuration);
   }
 
   ConstructorDeclaration constructor(String search) {

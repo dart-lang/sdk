@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -343,6 +344,45 @@ class PubPackageResolutionTest extends ContextResolutionTest {
 
   String get workspaceRootPath => '/home';
 
+  /// Build summary bundle for a single URI `package:foo/foo.dart`.
+  Future<File> buildPackageFooSummary({
+    required Map<String, String> files,
+  }) async {
+    final rootFolder = getFolder('$workspaceRootPath/foo');
+
+    final packageConfigFile = getFile(
+      '${rootFolder.path}/.dart_tool/package_config.json',
+    );
+
+    writePackageConfig(
+      packageConfigFile.path,
+      PackageConfigFileBuilder()..add(name: 'foo', rootPath: rootFolder.path),
+    );
+
+    for (final entry in files.entries) {
+      newFile('${rootFolder.path}/${entry.key}', entry.value);
+    }
+
+    final targetFile = getFile(rootFolder.path);
+    final analysisDriver = driverFor(targetFile);
+    final bundleBytes = await analysisDriver.buildPackageBundle(
+      uriList: [
+        Uri.parse('package:foo/foo.dart'),
+      ],
+    );
+
+    final bundleFile = getFile('/home/summaries/packages.sum');
+    bundleFile.writeAsBytesSync(bundleBytes);
+
+    // Delete, so it is not available as a file.
+    // We don't have a package config for it anyway, but just to be sure.
+    rootFolder.delete();
+
+    await disposeAnalysisContextCollection();
+
+    return bundleFile;
+  }
+
   @override
   void setUp() {
     super.setUp();
@@ -363,6 +403,16 @@ class PubPackageResolutionTest extends ContextResolutionTest {
         toUriStr: toUriStr,
       ),
     );
+  }
+
+  Future<File> writeSdkSummary() async {
+    final file = getFile('/home/summaries/sdk.sum');
+    final bytes = await buildSdkSummary2(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+    );
+    file.writeAsBytesSync(bytes);
+    return file;
   }
 
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {

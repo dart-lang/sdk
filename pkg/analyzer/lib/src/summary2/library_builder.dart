@@ -440,7 +440,7 @@ class LibraryBuilder {
   }
 
   AugmentationImportElementImpl _buildAugmentationImport(
-    LibraryOrAugmentationElementImpl augmentedElement,
+    LibraryOrAugmentationElementImpl augmentationTarget,
     AugmentationImportState state,
   ) {
     final DirectiveUri uri;
@@ -463,7 +463,7 @@ class LibraryBuilder {
         _bindReference(unitReference, unitElement);
 
         final augmentation = LibraryAugmentationElementImpl(
-          augmented: augmentedElement,
+          augmentationTarget: augmentationTarget,
           nameOffset: importedAugmentation.unlinked.libraryKeywordOffset,
         );
         augmentation.definingCompilationUnit = unitElement;

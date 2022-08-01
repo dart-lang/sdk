@@ -86,20 +86,16 @@ class WasmTarget extends Target {
       ..parent = host;
   }
 
-  StaticInteropClassEraser _staticInteropClassEraser(
-          CoreTypes coreTypes, ReferenceFromIndex? referenceFromIndex) =>
-      StaticInteropClassEraser(coreTypes, referenceFromIndex,
-          libraryForJavaScriptObject: 'dart:_js_helper',
-          classNameOfJavaScriptObject: 'JSValue');
-
   void _performJSInteropTransformations(
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> interopDependentLibraries,
       ReferenceFromIndex? referenceFromIndex) {
     final jsUtilOptimizer = JsUtilWasmOptimizer(coreTypes, hierarchy);
-    final staticInteropClassEraser =
-        _staticInteropClassEraser(coreTypes, referenceFromIndex);
+    final staticInteropClassEraser = StaticInteropClassEraser(
+        coreTypes, referenceFromIndex,
+        libraryForJavaScriptObject: 'dart:_js_helper',
+        classNameOfJavaScriptObject: 'JSValue');
     for (Library library in interopDependentLibraries) {
       jsUtilOptimizer.visitLibrary(library);
       staticInteropClassEraser.visitLibrary(library);
@@ -115,13 +111,6 @@ class WasmTarget extends Target {
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
     _patchHostEndian(coreTypes);
-  }
-
-  @override
-  void performOutlineTransformations(Component component, CoreTypes coreTypes,
-      ReferenceFromIndex? referenceFromIndex) {
-    component.accept(StaticInteropStubCreator(
-        _staticInteropClassEraser(coreTypes, referenceFromIndex)));
   }
 
   @override

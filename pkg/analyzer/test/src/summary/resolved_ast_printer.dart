@@ -269,6 +269,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
     });
+    _withIndent(() {
+      _sink.write(_indent);
+      _sink.write('resolvedUri: ');
+      _writeDirectiveUri(node.resolvedUri);
+    });
   }
 
   @override
@@ -1369,8 +1374,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     });
   }
 
-  void _writeDirectiveUri(DirectiveUri uri) {
-    if (uri is DirectiveUriWithAugmentation) {
+  void _writeDirectiveUri(DirectiveUri? uri) {
+    if (uri == null) {
+      _writeln('<null>');
+    } else if (uri is DirectiveUriWithAugmentation) {
       _writeln('DirectiveUriWithAugmentation');
       _withIndent(() {
         final uriStr = _stringOfSource(uri.augmentation.source);

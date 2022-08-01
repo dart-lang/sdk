@@ -146,13 +146,18 @@ class ToSourceVisitor implements AstVisitor<void> {
         sink.write(' ');
       }
       sink.write('catch (');
-      _visitNode(node.exceptionParameter);
-      _visitNode(node.stackTraceParameter, prefix: ', ');
+      _visitNode(node.exceptionParameter2);
+      _visitNode(node.stackTraceParameter2, prefix: ', ');
       sink.write(') ');
     } else {
       sink.write(' ');
     }
     _visitNode(node.body);
+  }
+
+  @override
+  void visitCatchClauseParameter(CatchClauseParameter node) {
+    _visitToken(node.name);
   }
 
   @override
@@ -1184,8 +1189,9 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   /// Print the given [token].
-  void _visitToken(Token? token, {String suffix = ''}) {
+  void _visitToken(Token? token, {String prefix = '', String suffix = ''}) {
     if (token != null) {
+      sink.write(prefix);
       sink.write(token.lexeme);
       sink.write(suffix);
     }

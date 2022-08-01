@@ -4,12 +4,10 @@
 
 part of utilslib;
 
-/**
- * General purpose date/time utilities.
- */
+/// General purpose date/time utilities.
 class DateUtils {
   // TODO(jmesserly): localized strings
-  static const WEEKDAYS = const [
+  static const WEEKDAYS = [
     'Monday',
     'Tuesday',
     'Wednesday',
@@ -83,7 +81,7 @@ class DateUtils {
     return result.toLocal();
   }
 
-  /** Parse a string like: 2011-07-19T22:03:04.000Z */
+  /// Parse a string like: 2011-07-19T22:03:04.000Z */
   // TODO(jmesserly): workaround for DateTime.fromDate, which has issues:
   //   * on Dart VM it doesn't handle all of ISO 8601. See b/5055106.
   //   * on DartC it doesn't work on Safari. See b/5062557.
@@ -110,7 +108,7 @@ class DateUtils {
     ensure(time.length == 3);
 
     final seconds = time[2].split('.');
-    ensure(seconds.length >= 1 && seconds.length <= 2);
+    ensure(seconds.isNotEmpty && seconds.length <= 2);
     int milliseconds = 0;
     if (seconds.length == 2) {
       milliseconds = int.parse(seconds[1]);
@@ -126,13 +124,11 @@ class DateUtils {
         milliseconds);
   }
 
-  /**
-   * A date/time formatter that takes into account the current date/time:
-   *  - if it's from today, just show the time
-   *  - if it's from yesterday, just show 'Yesterday'
-   *  - if it's from the same week, just show the weekday
-   *  - otherwise, show just the date
-   */
+  /// A date/time formatter that takes into account the current date/time:
+  ///  - if it's from today, just show the time
+  ///  - if it's from yesterday, just show 'Yesterday'
+  ///  - if it's from the same week, just show the weekday
+  ///  - otherwise, show just the date
   static String toRecentTimeString(DateTime then) {
     bool datesAreEqual(DateTime d1, DateTime d2) {
       return (d1.year == d2.year) &&
@@ -159,13 +155,13 @@ class DateUtils {
     } else {
       // TODO(jmesserly): locale specific date format
       String twoDigits(int n) {
-        if (n >= 10) return "${n}";
-        return "0${n}";
+        if (n >= 10) return "$n";
+        return "0$n";
       }
 
       String twoDigitMonth = twoDigits(then.month);
       String twoDigitDay = twoDigits(then.day);
-      return "${then.year}-${twoDigitMonth}-${twoDigitDay}";
+      return "${then.year}-$twoDigitMonth-$twoDigitDay";
     }
   }
 
@@ -179,7 +175,7 @@ class DateUtils {
     return ((daysSince1970 + DateTime.thursday) % DateTime.daysPerWeek);
   }
 
-  /** Formats a time in H:MM A format */
+  /// Formats a time in H:MM A format */
   // TODO(jmesserly): should get 12 vs 24 hour clock setting from the locale
   static String toHourMinutesString(Duration duration) {
     assert(duration.inDays == 0);
@@ -197,12 +193,12 @@ class DateUtils {
       }
     }
     String twoDigits(int n) {
-      if (n >= 10) return "${n}";
-      return "0${n}";
+      if (n >= 10) return "$n";
+      return "0$n";
     }
 
     String mm =
         twoDigits(duration.inMinutes.remainder(Duration.minutesPerHour));
-    return "${hours}:${mm} ${a}";
+    return "$hours:$mm $a";
   }
 }

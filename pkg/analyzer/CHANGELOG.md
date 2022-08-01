@@ -8,8 +8,11 @@
 * Deprecated `ClassElement.hasStaticMember`, it is not useful for clients.
 * Deprecated `NamespaceDirective.uriElement`, use `element2.uri` with `DirectiveUriWithLibrary` instead.
 * Deprecated `UriBasedDirective.uriContent`, `UriBasedDirective.uriElement`, `UriBasedDirective.uriSource`.
-  Use `Directive.element2.uri` instead. 
+  Use `Directive.element2.uri` instead.
 * Deprecated `NamespaceDirective.selectedSource`, use `element2.uri` with `DirectiveUriWithSource` instead.
+* Deprecated `Configuration.uriSource`, use `resolvedUri` instead.
+* Deprecated `CatchClause.exceptionParameter` and `CatchClause.stackTraceParameter`.
+  Use `exceptionParameter2` and `stackTraceParameter2` instead.
 
 ## 4.3.1
 * Fix `identifier` for `LibraryExportElement` and `LibraryImportElement`.

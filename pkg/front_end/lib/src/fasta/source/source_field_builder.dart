@@ -433,7 +433,9 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
         initializer = wrapper.operand;
       }
       buildBody(classHierarchy.coreTypes, initializer);
-      bodyBuilder.performBacklogComputations(delayedActionPerformers);
+      bodyBuilder.performBacklogComputations(
+          delayedActionPerformers: delayedActionPerformers,
+          allowFurtherDelays: false);
     }
     _constInitializerToken = null;
   }

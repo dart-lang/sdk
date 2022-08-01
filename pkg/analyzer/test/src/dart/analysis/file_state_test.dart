@@ -6,7 +6,6 @@ import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -1846,43 +1845,12 @@ elementFactory
   }
 
   test_newFile_library_exports_inSummary_library() async {
-    // Prepare a bundle where `package:foo/foo.dart` is a library.
-    final librarySummaryFiles = <File>[];
-    {
-      final fooRoot = getFolder('$workspaceRootPath/foo');
-      final foo = newFile('${fooRoot.path}/lib/foo.dart', 'class F {}');
-
-      final fooPackageConfigFile = getFile(
-        '${fooRoot.path}/.dart_tool/package_config.json',
-      );
-
-      writePackageConfig(
-        fooPackageConfigFile.path,
-        PackageConfigFileBuilder()..add(name: 'foo', rootPath: fooRoot.path),
-      );
-
-      final analysisDriver = driverFor(foo);
-      final bundleBytes = await analysisDriver.buildPackageBundle(
-        uriList: [
-          Uri.parse('package:foo/foo.dart'),
-        ],
-      );
-
-      final bundleFile = getFile('/home/summaries/packages.sum');
-      bundleFile.writeAsBytesSync(bundleBytes);
-
-      librarySummaryFiles.add(bundleFile);
-
-      // Delete, so it is not available as a file.
-      // We don't have a package config for it anyway, but just to be sure.
-      fooRoot.delete();
-    }
-
-    // Prepare for recreating the collection, with summaries.
-    sdkSummaryFile = await _writeSdkSummary();
-    this.librarySummaryFiles = librarySummaryFiles;
-
-    await disposeAnalysisContextCollection();
+    librarySummaryFiles = [
+      await buildPackageFooSummary(files: {
+        'lib/foo.dart': 'class F {}',
+      }),
+    ];
+    sdkSummaryFile = await writeSdkSummary();
 
     final a = newFile('$testPackageLibPath/a.dart', r'''
 export 'dart:async';
@@ -1932,50 +1900,13 @@ elementFactory
   }
 
   test_newFile_library_exports_inSummary_part() async {
-    // Prepare a bundle where `package:foo/foo2.dart` is a part.
-    final librarySummaryFiles = <File>[];
-    {
-      final fooRoot = getFolder('$workspaceRootPath/foo');
-
-      final foo = newFile('${fooRoot.path}/lib/foo.dart', r'''
-part 'foo2.dart';
-''');
-
-      newFile('${fooRoot.path}/lib/foo2.dart', r'''
-part of 'foo.dart';
-''');
-
-      final fooPackageConfigFile = getFile(
-        '${fooRoot.path}/.dart_tool/package_config.json',
-      );
-
-      writePackageConfig(
-        fooPackageConfigFile.path,
-        PackageConfigFileBuilder()..add(name: 'foo', rootPath: fooRoot.path),
-      );
-
-      final analysisDriver = driverFor(foo);
-      final bundleBytes = await analysisDriver.buildPackageBundle(
-        uriList: [
-          Uri.parse('package:foo/foo.dart'),
-        ],
-      );
-
-      final bundleFile = getFile('/home/summaries/packages.sum');
-      bundleFile.writeAsBytesSync(bundleBytes);
-
-      librarySummaryFiles.add(bundleFile);
-
-      // Delete, so it is not available as a file.
-      // We don't have a package config for it anyway, but just to be sure.
-      fooRoot.delete();
-    }
-
-    // Prepare for recreating the collection, with summaries.
-    sdkSummaryFile = await _writeSdkSummary();
-    this.librarySummaryFiles = librarySummaryFiles;
-
-    await disposeAnalysisContextCollection();
+    librarySummaryFiles = [
+      await buildPackageFooSummary(files: {
+        'lib/foo.dart': "part 'foo2.dart';",
+        'lib/foo2.dart': "part of 'foo.dart';",
+      }),
+    ];
+    sdkSummaryFile = await writeSdkSummary();
 
     final a = newFile('$testPackageLibPath/a.dart', r'''
 export 'package:foo/foo2.dart';
@@ -2343,44 +2274,12 @@ elementFactory
   }
 
   test_newFile_library_imports_library_inSummary_library() async {
-    // Prepare a bundle where `package:foo/foo.dart` is a library.
-    final librarySummaryFiles = <File>[];
-    {
-      final fooRoot = getFolder('$workspaceRootPath/foo');
-
-      final foo = newFile('${fooRoot.path}/lib/foo.dart', 'class F {}');
-
-      final fooPackageConfigFile = getFile(
-        '${fooRoot.path}/.dart_tool/package_config.json',
-      );
-
-      writePackageConfig(
-        fooPackageConfigFile.path,
-        PackageConfigFileBuilder()..add(name: 'foo', rootPath: fooRoot.path),
-      );
-
-      final analysisDriver = driverFor(foo);
-      final bundleBytes = await analysisDriver.buildPackageBundle(
-        uriList: [
-          Uri.parse('package:foo/foo.dart'),
-        ],
-      );
-
-      final bundleFile = getFile('/home/summaries/packages.sum');
-      bundleFile.writeAsBytesSync(bundleBytes);
-
-      librarySummaryFiles.add(bundleFile);
-
-      // Delete, so it is not available as a file.
-      // We don't have a package config for it anyway, but just to be sure.
-      fooRoot.delete();
-    }
-
-    // Prepare for recreating the collection, with summaries.
-    sdkSummaryFile = await _writeSdkSummary();
-    this.librarySummaryFiles = librarySummaryFiles;
-
-    await disposeAnalysisContextCollection();
+    librarySummaryFiles = [
+      await buildPackageFooSummary(files: {
+        'lib/foo.dart': 'class F {}',
+      }),
+    ];
+    sdkSummaryFile = await writeSdkSummary();
 
     final a = newFile('$testPackageLibPath/a.dart', r'''
 import 'dart:async';
@@ -2429,50 +2328,13 @@ elementFactory
   }
 
   test_newFile_library_imports_library_inSummary_part() async {
-    // Prepare a bundle where `package:foo/foo2.dart` is a part.
-    final librarySummaryFiles = <File>[];
-    {
-      final fooRoot = getFolder('$workspaceRootPath/foo');
-
-      final foo = newFile('${fooRoot.path}/lib/foo.dart', r'''
-part 'foo2.dart';
-''');
-
-      newFile('${fooRoot.path}/lib/foo2.dart', r'''
-part of 'foo.dart';
-''');
-
-      final fooPackageConfigFile = getFile(
-        '${fooRoot.path}/.dart_tool/package_config.json',
-      );
-
-      writePackageConfig(
-        fooPackageConfigFile.path,
-        PackageConfigFileBuilder()..add(name: 'foo', rootPath: fooRoot.path),
-      );
-
-      final analysisDriver = driverFor(foo);
-      final bundleBytes = await analysisDriver.buildPackageBundle(
-        uriList: [
-          Uri.parse('package:foo/foo.dart'),
-        ],
-      );
-
-      final bundleFile = getFile('/home/summaries/packages.sum');
-      bundleFile.writeAsBytesSync(bundleBytes);
-
-      librarySummaryFiles.add(bundleFile);
-
-      // Delete, so it is not available as a file.
-      // We don't have a package config for it anyway, but just to be sure.
-      fooRoot.delete();
-    }
-
-    // Prepare for recreating the collection, with summaries.
-    sdkSummaryFile = await _writeSdkSummary();
-    this.librarySummaryFiles = librarySummaryFiles;
-
-    await disposeAnalysisContextCollection();
+    librarySummaryFiles = [
+      await buildPackageFooSummary(files: {
+        'lib/foo.dart': "part 'foo2.dart';",
+        'lib/foo2.dart': "part of 'foo.dart';",
+      }),
+    ];
+    sdkSummaryFile = await writeSdkSummary();
 
     final a = newFile('$testPackageLibPath/a.dart', r'''
 import 'package:foo/foo2.dart';
@@ -5775,16 +5637,6 @@ files
 libraryCycles
 elementFactory
 ''');
-  }
-
-  Future<File> _writeSdkSummary() async {
-    final file = getFile('/home/summaries/sdk.sum');
-    final bytes = await buildSdkSummary2(
-      resourceProvider: resourceProvider,
-      sdkPath: sdkRoot.path,
-    );
-    file.writeAsBytesSync(bytes);
-    return file;
   }
 }
 

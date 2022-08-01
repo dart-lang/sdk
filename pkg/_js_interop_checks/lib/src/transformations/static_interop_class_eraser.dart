@@ -60,11 +60,7 @@ class StaticInteropClassEraser extends Transformer {
         .where((procedure) => procedure.name.text == stubName);
     if (stubs.isEmpty) {
       // We should only create the stub if we're processing the component in
-      // which the stub should exist. Any static invocation of the factory that
-      // doesn't exist in the same component as the factory should be processed
-      // after the component in which the factory exists. In modular
-      // compilation, the outline of that component should already contain the
-      // needed stub.
+      // which the stub should exist.
       if (currentComponent != null) {
         assert(factoryTarget.enclosingComponent == currentComponent);
       }
@@ -240,24 +236,4 @@ class _StaticInteropConstantReplacer extends ConstantReplacer {
 
   @override
   TreeNode visitTreeNode(TreeNode node) => node.accept(_eraser);
-}
-
-/// Used to create stubs for factories when computing outlines.
-///
-/// These stubs can then be used in downstream dependencies in modular
-/// compilation.
-class StaticInteropStubCreator extends RecursiveVisitor {
-  final StaticInteropClassEraser _eraser;
-  StaticInteropStubCreator(this._eraser);
-
-  @override
-  void visitLibrary(Library node) {
-    _eraser.currentComponent = node.enclosingComponent;
-    super.visitLibrary(node);
-  }
-
-  @override
-  void visitProcedure(Procedure node) {
-    _eraser.visitProcedure(node);
-  }
 }

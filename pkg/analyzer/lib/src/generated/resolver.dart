@@ -1131,6 +1131,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitCatchClauseParameter(CatchClauseParameter node) {
+    node.visitChildren(this);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     //
     // Continue the class resolution.
@@ -2440,8 +2445,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         var catchClause = catchClauses[i];
         nullSafetyDeadCodeVerifier.verifyCatchClause(catchClause);
         flow.tryCatchStatement_catchBegin(
-          catchClause.exceptionParameter?.staticElement as PromotableElement?,
-          catchClause.stackTraceParameter?.staticElement as PromotableElement?,
+          catchClause.exceptionParameter2?.declaredElement,
+          catchClause.stackTraceParameter2?.declaredElement,
         );
         catchClause.accept(this);
         flow.tryCatchStatement_catchEnd();
@@ -2990,15 +2995,15 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitCatchClause(CatchClause node) {
-    var exception = node.exceptionParameter;
+    var exception = node.exceptionParameter2;
     if (exception != null) {
       Scope outerScope = nameScope;
       try {
         nameScope = LocalScope(nameScope);
-        _define(exception.staticElement!);
-        var stackTrace = node.stackTraceParameter;
+        _define(exception.declaredElement!);
+        var stackTrace = node.stackTraceParameter2;
         if (stackTrace != null) {
-          _define(stackTrace.staticElement!);
+          _define(stackTrace.declaredElement!);
         }
         super.visitCatchClause(node);
       } finally {

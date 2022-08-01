@@ -780,6 +780,7 @@ degenerate
 degrade
 delay
 delayed
+delays
 delegate
 delegates
 delegation
@@ -2563,6 +2564,7 @@ reserved
 reset
 resets
 resolution
+resolutions
 resolve
 resolved
 resolver

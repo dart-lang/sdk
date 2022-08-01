@@ -2314,7 +2314,7 @@ severity: $severity
         ?.beginSubdivide(BenchmarkSubdivides.delayedActionPerformer);
     for (DelayedActionPerformer delayedActionPerformer
         in delayedActionPerformers) {
-      delayedActionPerformer.performDelayedActions();
+      delayedActionPerformer.performDelayedActions(allowFurtherDelays: false);
     }
     target.benchmarker?.endSubdivide();
     ticker.logMs("Build outline expressions");

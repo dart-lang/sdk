@@ -24,19 +24,26 @@ class RemoveUnusedCatchStack extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var catchClause = node.parent;
+    final stackTraceParameter = node.parent;
+    if (stackTraceParameter is! CatchClauseParameter) {
+      return;
+    }
+
+    final catchClause = stackTraceParameter.parent;
     if (catchClause is! CatchClause) {
       return;
     }
 
-    var exceptionParameter = catchClause.exceptionParameter;
+    final exceptionParameter = catchClause.exceptionParameter2;
     if (exceptionParameter == null) {
       return;
     }
 
-    if (catchClause.stackTraceParameter == node) {
+    if (catchClause.stackTraceParameter2 == stackTraceParameter) {
       await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(range.endEnd(exceptionParameter, node));
+        builder.addDeletion(
+          range.endEnd(exceptionParameter, stackTraceParameter),
+        );
       });
     }
   }

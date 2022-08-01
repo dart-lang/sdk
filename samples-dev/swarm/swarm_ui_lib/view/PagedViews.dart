@@ -11,25 +11,25 @@ class PageState {
   final ObservableValue<int> target;
   final ObservableValue<int> length;
   PageState()
-      : current = new ObservableValue<int>(0),
-        target = new ObservableValue<int>(0),
-        length = new ObservableValue<int>(1);
+      : current = ObservableValue<int>(0),
+        target = ObservableValue<int>(0),
+        length = ObservableValue<int>(1);
 }
 
-/** Simplifies using a PageNumberView and PagedColumnView together. */
+/// Simplifies using a PageNumberView and PagedColumnView together. */
 class PagedContentView extends CompositeView {
   final View content;
   final PageState pages;
 
   PagedContentView(this.content)
-      : pages = new PageState(),
+      : pages = PageState(),
         super('paged-content') {
-    addChild(new PagedColumnView(pages, content));
-    addChild(new PageNumberView(pages));
+    addChild(PagedColumnView(pages, content));
+    addChild(PageNumberView(pages));
   }
 }
 
-/** Displays current page and a left/right arrow. Used with [PagedColumnView] */
+/// Displays current page and a left/right arrow. Used with [PagedColumnView] */
 class PageNumberView extends View {
   final PageState pages;
   Element _label;
@@ -37,11 +37,12 @@ class PageNumberView extends View {
 
   PageNumberView(this.pages);
 
+  @override
   Element render() {
     // TODO(jmesserly): this was supposed to use the somewhat flatter unicode
     // glyphs that Chrome uses on the new tab page, but the text is getting
     // corrupted.
-    final node = new Element.html('''
+    final node = Element.html('''
         <div class="page-number">
           <div class="page-number-left">&lsaquo;</div>
           <div class="page-number-label"></div>
@@ -54,6 +55,7 @@ class PageNumberView extends View {
     return node;
   }
 
+  @override
   void enterDocument() {
     watch(pages.current, (s) => _update());
     watch(pages.length, (s) => _update());
@@ -76,16 +78,14 @@ class PageNumberView extends View {
   }
 }
 
-/**
- * A horizontal scrolling view that snaps to items like [ConveyorView], but only
- * has one child. Instead of scrolling between views, it scrolls between content
- * that flows horizontally in columns. Supports left/right swipe to switch
- * between pages. Can also be used with [PageNumberView].
- *
- * This control assumes that it is styled with fixed or percent width and
- * height, so the content will flow out horizontally. This allows it to compute
- * the number of pages using [:scrollWidth:] and [:offsetWidth:].
- */
+/// A horizontal scrolling view that snaps to items like [ConveyorView], but only
+/// has one child. Instead of scrolling between views, it scrolls between content
+/// that flows horizontally in columns. Supports left/right swipe to switch
+/// between pages. Can also be used with [PageNumberView].
+///
+/// This control assumes that it is styled with fixed or percent width and
+/// height, so the content will flow out horizontally. This allows it to compute
+/// the number of pages using [:scrollWidth:] and [:offsetWidth:].
 class PagedColumnView extends View {
   static const MIN_THROW_PAGE_FRACTION = 0.01;
   final View contentView;
@@ -99,8 +99,9 @@ class PagedColumnView extends View {
 
   PagedColumnView(this.pages, this.contentView);
 
+  @override
   Element render() {
-    final node = new Element.html('''
+    final node = Element.html('''
       <div class="paged-column">
         <div class="paged-column-container"></div>
       </div>''');
@@ -113,9 +114,9 @@ class PagedColumnView extends View {
     // the scroller configured the default way.
 
     // TODO(jacobr): use named arguments when available.
-    scroller = new Scroller(_container, false /* verticalScrollEnabled */,
+    scroller = Scroller(_container, false /* verticalScrollEnabled */,
         true /* horizontalScrollEnabled */, true /* momementumEnabled */, () {
-      return new Size(_getViewLength(_container), 1);
+      return Size(_getViewLength(_container), 1);
     }, Scroller.FAST_SNAP_DECELERATION_FACTOR);
 
     scroller.onDecelStart.listen(_snapToPage);
@@ -130,6 +131,7 @@ class PagedColumnView extends View {
 
   // TODO(jmesserly): would be better to not have this code in enterDocument.
   // But we need computedStyle to read our CSS properties.
+  @override
   void enterDocument() {
     scheduleMicrotask(() {
       var style = contentView.node.getComputedStyle();
@@ -153,7 +155,7 @@ class PagedColumnView extends View {
     });
   }
 
-  /** Read the column-gap setting so we know how far to translate the child. */
+  /// Read the column-gap setting so we know how far to translate the child. */
   void _computeColumnGap(CssStyleDeclaration style) {
     String gap = style.columnGap;
     if (gap == 'normal') {
@@ -172,7 +174,8 @@ class PagedColumnView extends View {
     return double.parse(value).round();
   }
 
-  /** Watch for resize and update page count. */
+  /// Watch for resize and update page count. */
+  @override
   void windowResized() {
     // TODO(jmesserly): verify we aren't triggering unnecessary layouts.
 

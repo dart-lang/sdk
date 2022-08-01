@@ -247,8 +247,9 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitConfiguration(Configuration node) {
-    var source = node.uriSource;
-    if (source != null) {
+    final resolvedUri = node.resolvedUri;
+    if (resolvedUri is DirectiveUriWithSource) {
+      final source = resolvedUri.source;
       if (resourceProvider.getResource(source.fullName).exists) {
         // TODO(brianwilkerson) If the analyzer ever resolves the URI to a
         //  library, use that library element to create the region.

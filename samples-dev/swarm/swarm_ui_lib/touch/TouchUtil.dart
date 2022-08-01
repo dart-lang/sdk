@@ -6,17 +6,15 @@
 
 part of touch;
 
-/**
- * Wraps a callback with translations of mouse events to touch events. Use
- * this function to invoke your callback that expects touch events after
- * touch events are created from the actual mouse events.
- */
+/// Wraps a callback with translations of mouse events to touch events. Use
+/// this function to invoke your callback that expects touch events after
+/// touch events are created from the actual mouse events.
 EventListener mouseToTouchCallback(EventListener callback) {
   return (Event e) {
     var touches = <Touch>[];
     var targetTouches = <Touch>[];
     var changedTouches = <Touch>[];
-    final mockTouch = new MockTouch(e);
+    final mockTouch = MockTouch(e);
     final mockTouchList = <Touch>[mockTouch];
     if (e.type == 'mouseup') {
       changedTouches = mockTouchList;
@@ -24,14 +22,14 @@ EventListener mouseToTouchCallback(EventListener callback) {
       touches = mockTouchList;
       targetTouches = mockTouchList;
     }
-    callback(new MockTouchEvent(e, touches, targetTouches, changedTouches));
+    callback(MockTouchEvent(e, touches, targetTouches, changedTouches));
     // Required to prevent spurious selection changes while tracking touches
     // on devices that don't support touch events.
     e.preventDefault();
   };
 }
 
-/** Helper method to attach event listeners to a [node]. */
+/// Helper method to attach event listeners to a [node]. */
 void _addEventListeners(Element node, EventListener onStart,
     EventListener onMove, EventListener onEnd, EventListener onCancel,
     [bool capture = false]) {
@@ -53,10 +51,10 @@ void _addEventListeners(Element node, EventListener onStart,
   }
 
   if (Device.supportsTouch) {
-    var touchMoveSub;
-    var touchEndSub;
-    var touchLeaveSub;
-    var touchCancelSub;
+    StreamSubscription<TouchEvent> touchMoveSub;
+    StreamSubscription<TouchEvent> touchEndSub;
+    StreamSubscription<TouchEvent> touchLeaveSub;
+    StreamSubscription<TouchEvent> touchCancelSub;
 
     removeListeners = () {
       touchMoveSub.cancel();
@@ -86,9 +84,9 @@ void _addEventListeners(Element node, EventListener onStart,
     onEnd = mouseToTouchCallback(onEnd);
     // onLeave will never be called if the device does not support touches.
 
-    var mouseMoveSub;
-    var mouseUpSub;
-    var touchCancelSub;
+    StreamSubscription<MouseEvent> mouseMoveSub;
+    StreamSubscription<MouseEvent> mouseUpSub;
+    StreamSubscription<TouchEvent> touchCancelSub;
 
     removeListeners = () {
       mouseMoveSub.cancel();
@@ -111,10 +109,8 @@ void _addEventListeners(Element node, EventListener onStart,
   }
 }
 
-/**
- * Gets whether the given touch event targets the node, or one of the node's
- * children.
- */
+/// Gets whether the given touch event targets the node, or one of the node's
+/// children.
 bool _touchEventTargetsNode(event, Node node) {
   Node target = event.changedTouches[0].target;
 
@@ -131,40 +127,28 @@ bool _touchEventTargetsNode(event, Node node) {
 }
 
 abstract class Touchable {
-  /**
-   * Provide the HTML element that should respond to touch events.
-   */
+  /// Provide the HTML element that should respond to touch events.
   Element getElement();
 
-  /**
-   * The object has received a touchend event.
-   */
+  /// The object has received a touchend event.
   void onTouchEnd();
 
-  /**
-   * The object has received a touchstart event.
-   * Returns return true if you want to allow a drag sequence to begin,
-   *      false you want to disable dragging for the duration of this touch.
-   */
+  /// The object has received a touchstart event.
+  /// Returns return true if you want to allow a drag sequence to begin,
+  ///      false you want to disable dragging for the duration of this touch.
   bool onTouchStart(TouchEvent e);
 }
 
 abstract class Draggable implements Touchable {
-  /**
-   * The object's drag sequence is now complete.
-   */
+  /// The object's drag sequence is now complete.
   void onDragEnd();
 
-  /**
-   * The object has been dragged to a new position.
-   */
+  /// The object has been dragged to a new position.
   void onDragMove();
 
-  /**
-   * The object has started dragging.
-   * Returns true to allow a drag sequence to begin (custom behavior),
-   * false to disable dragging for this touch duration (allow native scrolling).
-   */
+  /// The object has started dragging.
+  /// Returns true to allow a drag sequence to begin (custom behavior),
+  /// false to disable dragging for this touch duration (allow native scrolling).
   bool onDragStart(TouchEvent e);
 
   bool get verticalEnabled;
@@ -174,14 +158,16 @@ abstract class Draggable implements Touchable {
 class MockTouch implements Touch {
   MouseEvent wrapped;
 
-  MockTouch(MouseEvent this.wrapped) {}
+  MockTouch(this.wrapped);
 
   int get clientX => wrapped.client.x;
 
   int get clientY => wrapped.client.y;
 
+  @override
   get client => wrapped.client;
 
+  @override
   int get identifier => 0;
 
   int get pageX => wrapped.page.x;
@@ -194,50 +180,58 @@ class MockTouch implements Touch {
     return wrapped.screen.y;
   }
 
+  @override
   EventTarget get target => wrapped.target;
 
+  @override
   double get force {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
+  @override
   Point get page {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
+  @override
   int get radiusX {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
+  @override
   int get radiusY {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
+  @override
   String get region {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
+  @override
   num get rotationAngle {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
+  @override
   Point get screen {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   num get webkitForce {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   int get webkitRadiusX {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   int get webkitRadiusY {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   num get webkitRotationAngle {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 }
 
@@ -250,75 +244,95 @@ class MockTouchList extends Object
 
   static bool get supported => true;
 
+  @override
   int get length => values.length;
 
+  @override
   Touch operator [](int index) => values[index];
 
+  @override
   void operator []=(int index, Touch value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
+    throw UnsupportedError("Cannot assign element of immutable List.");
   }
 
+  @override
   set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
+    throw UnsupportedError("Cannot resize immutable List.");
   }
 
+  @override
   Touch item(int index) => values[index];
 }
 
 class MockTouchEvent implements TouchEvent {
   dynamic /*MouseEvent*/ wrapped;
+  @override
   final TouchList touches;
+  @override
   final TouchList targetTouches;
+  @override
   final TouchList changedTouches;
   MockTouchEvent(MouseEvent this.wrapped, List<Touch> touches,
       List<Touch> targetTouches, List<Touch> changedTouches)
-      : touches = new MockTouchList(touches),
-        targetTouches = new MockTouchList(targetTouches),
-        changedTouches = new MockTouchList(changedTouches);
+      : touches = MockTouchList(touches),
+        targetTouches = MockTouchList(targetTouches),
+        changedTouches = MockTouchList(changedTouches);
 
+  @override
   bool get bubbles => wrapped.bubbles;
 
   bool get cancelBubble => wrapped.cancelBubble;
 
-  void set cancelBubble(bool value) {
+  set cancelBubble(bool value) {
     wrapped.cancelBubble = value;
   }
 
+  @override
   bool get cancelable => wrapped.cancelable;
 
+  @override
   EventTarget get currentTarget => wrapped.currentTarget;
 
+  @override
   bool get defaultPrevented => wrapped.defaultPrevented;
 
+  @override
   int get eventPhase => wrapped.eventPhase;
 
-  void set returnValue(bool value) {
+  set returnValue(bool value) {
     wrapped.returnValue = value;
   }
 
   bool get returnValue => wrapped.returnValue;
 
+  @override
   EventTarget get target => wrapped.target;
 
   /*At different times, int, double, and String*/
+  @override
   get timeStamp => wrapped.timeStamp;
 
+  @override
   String get type => wrapped.type;
 
+  @override
   void preventDefault() {
     wrapped.preventDefault();
   }
 
+  @override
   void stopImmediatePropagation() {
     wrapped.stopImmediatePropagation();
   }
 
+  @override
   void stopPropagation() {
     wrapped.stopPropagation();
   }
 
   int get charCode => wrapped.charCode;
 
+  @override
   int get detail => wrapped.detail;
 
   // TODO(sra): keyCode is not on MouseEvent.
@@ -332,67 +346,78 @@ class MockTouchEvent implements TouchEvent {
 
   int get pageY => wrapped.page.y;
 
+  @override
   Window get view => wrapped.view;
 
   int get which => wrapped.which;
 
+  @override
   bool get altKey => wrapped.altKey;
 
+  @override
   bool get ctrlKey => wrapped.ctrlKey;
 
+  @override
   bool get metaKey => wrapped.metaKey;
 
+  @override
   bool get shiftKey => wrapped.shiftKey;
 
   DataTransfer get clipboardData {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   List<EventTarget> deepPath() {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
+  @override
   bool get isTrusted {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   Point get layer {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
+  @override
   Element get matchingTarget {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   Point get page {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
+  @override
   List<EventTarget> get path {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   bool get scoped {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   Point get screen {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
-  /*InputDeviceCapabilities*/ get sourceCapabilities {
-    throw new UnimplementedError();
+  /*InputDeviceCapabilities*/ @override
+  get sourceCapabilities {
+    throw UnimplementedError();
   }
 
   /*InputDevice*/ get sourceDevice {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
+  @override
   bool get composed {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
+  @override
   List<EventTarget> composedPath() {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 }
