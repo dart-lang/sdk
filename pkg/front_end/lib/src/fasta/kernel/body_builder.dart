@@ -1016,7 +1016,7 @@ class BodyBuilder extends StackListenerImpl
     }
     pop(); // Annotations.
 
-    performBacklogComputations();
+    performBacklogComputations(allowFurtherDelays: false);
     assert(stack.length == 0);
   }
 
@@ -1025,12 +1025,22 @@ class BodyBuilder extends StackListenerImpl
   ///
   /// Back logged computations include resolution of redirecting factory
   /// invocations and checking of typedef types.
+  ///
+  /// If the parameter [allowFurtherDelays] is set to `true`, the backlog
+  /// computations are allowed to be delayed one more time if they can't be
+  /// completed in the current invocation of [performBacklogComputations] and
+  /// have a chance to be completed during the next invocation. If
+  /// [allowFurtherDelays] is set to `false`, the backlog computations are
+  /// assumed to be final and the function throws an internal exception in case
+  /// if any of the computations can't be completed.
   void performBacklogComputations(
-      [List<DelayedActionPerformer>? delayedActionPerformers]) {
+      {List<DelayedActionPerformer>? delayedActionPerformers,
+      required bool allowFurtherDelays}) {
     _finishVariableMetadata();
     _unaliasTypeAliasedConstructorInvocations();
     _unaliasTypeAliasedFactoryInvocations(typeAliasedFactoryInvocations);
-    _resolveRedirectingFactoryTargets(redirectingFactoryInvocations);
+    _resolveRedirectingFactoryTargets(redirectingFactoryInvocations,
+        allowFurtherDelays: allowFurtherDelays);
     libraryBuilder.checkPendingBoundsChecks(typeEnvironment);
     if (hasDelayedActions) {
       assert(
@@ -1042,7 +1052,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   void finishRedirectingFactoryBody() {
-    performBacklogComputations();
+    performBacklogComputations(allowFurtherDelays: false);
   }
 
   @override
@@ -1369,7 +1379,7 @@ class BodyBuilder extends StackListenerImpl
       }
     }
 
-    performBacklogComputations();
+    performBacklogComputations(allowFurtherDelays: false);
   }
 
   void checkAsyncReturnType(AsyncMarker asyncModifier, DartType returnType,
@@ -1517,8 +1527,17 @@ class BodyBuilder extends StackListenerImpl
     return replacementNode;
   }
 
+  /// If the parameter [allowFurtherDelays] is set to `true`, the resolution of
+  /// redirecting factories is allowed to be delayed one more time if it can't
+  /// be completed in the current invocation of
+  /// [_resolveRedirectingFactoryTargets] and has a chance to be completed
+  /// during the next invocation. If [allowFurtherDelays] is set to `false`,
+  /// the resolution of redirecting factories is assumed to be final and the
+  /// function throws an internal exception in case if any of the resolutions
+  /// can't be completed.
   void _resolveRedirectingFactoryTargets(
-      List<FactoryConstructorInvocation> redirectingFactoryInvocations) {
+      List<FactoryConstructorInvocation> redirectingFactoryInvocations,
+      {required bool allowFurtherDelays}) {
     List<FactoryConstructorInvocation> invocations =
         redirectingFactoryInvocations.toList();
     redirectingFactoryInvocations.clear();
@@ -1533,6 +1552,9 @@ class BodyBuilder extends StackListenerImpl
       // ignore: unnecessary_null_comparison
       if (typeInferrer != null) {
         if (!invocation.hasBeenInferred) {
+          if (allowFurtherDelays) {
+            delayedRedirectingFactoryInvocations.add(invocation);
+          }
           continue;
         }
       } else {
@@ -1637,9 +1659,10 @@ class BodyBuilder extends StackListenerImpl
   /// redirecting factory invocation depends on the type inference in the
   /// redirecting factory.
   @override
-  void performDelayedActions() {
+  void performDelayedActions({required bool allowFurtherDelays}) {
     if (delayedRedirectingFactoryInvocations.isNotEmpty) {
-      _resolveRedirectingFactoryTargets(delayedRedirectingFactoryInvocations);
+      _resolveRedirectingFactoryTargets(delayedRedirectingFactoryInvocations,
+          allowFurtherDelays: allowFurtherDelays);
       if (delayedRedirectingFactoryInvocations.isNotEmpty) {
         for (StaticInvocation invocation
             in delayedRedirectingFactoryInvocations) {
@@ -1722,7 +1745,7 @@ class BodyBuilder extends StackListenerImpl
     } else {
       temporaryParent = new ListLiteral(expressions);
     }
-    performBacklogComputations();
+    performBacklogComputations(allowFurtherDelays: false);
     return temporaryParent != null ? temporaryParent.expressions : expressions;
   }
 
@@ -1793,7 +1816,7 @@ class BodyBuilder extends StackListenerImpl
         "Previously implicit assumption about inferFunctionBody "
         "not returning anything different.");
 
-    performBacklogComputations();
+    performBacklogComputations(allowFurtherDelays: false);
     libraryBuilder.loader.transformPostInference(fakeReturn,
         transformSetLiterals, transformCollections, libraryBuilder.library);
 

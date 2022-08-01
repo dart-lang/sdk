@@ -513,7 +513,9 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       }
       bodyBuilder.parseInitializers(beginInitializers!,
           doFinishConstructor: isConst);
-      bodyBuilder.performBacklogComputations(delayedActionPerformers);
+      bodyBuilder.performBacklogComputations(
+          delayedActionPerformers: delayedActionPerformers,
+          allowFurtherDelays: false);
     }
     beginInitializers = null;
     addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
