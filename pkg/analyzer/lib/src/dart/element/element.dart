@@ -3895,12 +3895,12 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
 class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
     implements LibraryAugmentationElement {
   @override
-  final LibraryOrAugmentationElementImpl augmented;
+  final LibraryOrAugmentationElementImpl augmentationTarget;
 
   LibraryAugmentationElementLinkedData? linkedData;
 
   LibraryAugmentationElementImpl({
-    required this.augmented,
+    required this.augmentationTarget,
     required super.nameOffset,
   }) : super(name: null);
 
@@ -3915,19 +3915,21 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   @override
-  FeatureSet get featureSet => augmented.featureSet;
+  FeatureSet get featureSet => augmentationTarget.featureSet;
 
   @override
-  bool get isNonNullableByDefault => augmented.isNonNullableByDefault;
+  bool get isNonNullableByDefault => augmentationTarget.isNonNullableByDefault;
 
   @override
   ElementKind get kind => ElementKind.LIBRARY_AUGMENTATION;
 
   @override
-  LibraryLanguageVersion get languageVersion => augmented.languageVersion;
+  LibraryLanguageVersion get languageVersion {
+    return augmentationTarget.languageVersion;
+  }
 
   @override
-  LibraryElementImpl get library => augmented.library;
+  LibraryElementImpl get library => augmentationTarget.library;
 
   @override
   List<LibraryExportElement> get libraryExports {
@@ -3944,13 +3946,13 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   Source get librarySource => library.source;
 
   @override
-  AnalysisSessionImpl get session => augmented.session;
+  AnalysisSessionImpl get session => augmentationTarget.session;
 
   @override
-  TypeProvider get typeProvider => augmented.typeProvider;
+  TypeProvider get typeProvider => augmentationTarget.typeProvider;
 
   @override
-  TypeSystem get typeSystem => augmented.typeSystem;
+  TypeSystem get typeSystem => augmentationTarget.typeSystem;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) {
@@ -3959,7 +3961,7 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   void _readLinkedData() {
-    augmented._readLinkedData();
+    augmentationTarget._readLinkedData();
   }
 }
 

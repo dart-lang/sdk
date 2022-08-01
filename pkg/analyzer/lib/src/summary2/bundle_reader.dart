@@ -545,7 +545,7 @@ class LibraryReader {
   }
 
   LibraryAugmentationElementImpl _readAugmentationElement({
-    required LibraryOrAugmentationElementImpl augmented,
+    required LibraryOrAugmentationElementImpl augmentationTarget,
     required Source unitSource,
   }) {
     final definingUnit = _readUnitElement(
@@ -555,7 +555,7 @@ class LibraryReader {
     );
 
     final augmentation = LibraryAugmentationElementImpl(
-      augmented: augmented,
+      augmentationTarget: augmentationTarget,
       nameOffset: -1, // TODO(scheglov) implement, test
     );
     augmentation.definingCompilationUnit = definingUnit;
@@ -716,7 +716,7 @@ class LibraryReader {
       case DirectiveUriKind.withAugmentation:
         final parent = readWithSource();
         final augmentation = _readAugmentationElement(
-          augmented: container,
+          augmentationTarget: container,
           unitSource: parent.source,
         );
         return DirectiveUriWithAugmentationImpl(

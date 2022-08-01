@@ -1454,7 +1454,7 @@ abstract class LabelElement implements Element {
 abstract class LibraryAugmentationElement
     implements LibraryOrAugmentationElement, _ExistingElement {
   /// Returns the library that is augmented by this augmentation.
-  LibraryOrAugmentationElement get augmented;
+  LibraryOrAugmentationElement get augmentationTarget;
 }
 
 /// A library.
