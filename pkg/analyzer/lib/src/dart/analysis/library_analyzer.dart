@@ -560,7 +560,6 @@ class LibraryAnalyzer {
       directive.uriSource = uriState.source;
     }
 
-    // TODO(scheglov) Similarly restructure imports/exports.
     final AugmentationFileKind? importedAugmentationKind;
     if (state is AugmentationImportWithFile) {
       importedAugmentationKind = state.importedAugmentation;

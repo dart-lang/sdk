@@ -741,6 +741,32 @@ ImportDirective
 ''');
   }
 
+  test_inLibrary_library_inSummary() async {
+    librarySummaryFiles = [
+      await buildPackageFooSummary(files: {
+        'lib/foo.dart': 'class F {}',
+      }),
+    ];
+    sdkSummaryFile = await writeSdkSummary();
+
+    await assertNoErrorsInCode(r'''
+// ignore: unused_import
+import 'package:foo/foo.dart';
+''');
+
+    final node = findNode.import('package:foo');
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'package:foo/foo.dart'
+  semicolon: ;
+  element: LibraryImportElement
+    uri: DirectiveUriWithLibrary
+      uri: package:foo/foo.dart
+''');
+  }
+
   test_inLibrary_noRelativeUri() async {
     await assertErrorsInCode(r'''
 import ':net';
@@ -880,6 +906,34 @@ ImportDirective
   element: LibraryImportElement
     uri: DirectiveUriWithSource
       source: package:test/a.dart
+''');
+  }
+
+  test_inLibrary_notLibrary_partOfUri_inSummary() async {
+    librarySummaryFiles = [
+      await buildPackageFooSummary(files: {
+        'lib/foo.dart': "part 'foo2.dart';",
+        'lib/foo2.dart': "part of 'foo.dart';",
+      }),
+    ];
+    sdkSummaryFile = await writeSdkSummary();
+
+    await assertErrorsInCode(r'''
+import 'package:foo/foo2.dart';
+''', [
+      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 7, 23),
+    ]);
+
+    final node = findNode.import('package:foo');
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'package:foo/foo2.dart'
+  semicolon: ;
+  element: LibraryImportElement
+    uri: DirectiveUriWithSource
+      source: package:foo/foo2.dart
 ''');
   }
 }
