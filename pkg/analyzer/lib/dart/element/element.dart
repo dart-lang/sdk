@@ -78,7 +78,7 @@ abstract class AugmentationImportElement implements _ExistingElement {
 /// The result of applying augmentations to a [ClassElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedClassElement implements AugmentedClassOrEnumElement {
+abstract class AugmentedClassElement implements AugmentedInterfaceElement {
   /// Returns mixins applied by this class or in its augmentations.
   ///
   /// This is a union of mixins applied by the class declaration and all its
@@ -86,28 +86,10 @@ abstract class AugmentedClassElement implements AugmentedClassOrEnumElement {
   List<InterfaceType> get mixins;
 }
 
-/// The result of applying augmentations to a [ClassElement] or [EnumElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedClassOrEnumElement
-    implements AugmentedInterfaceElement {
-  /// Returns constructors declared in this element.
-  ///
-  /// [ConstructorAugmentationElement]s replace corresponding elements,
-  /// other [ConstructorElement]s are appended.
-  List<ConstructorElement> get constructors;
-
-  /// Returns the unnamed constructor from [constructors].
-  ConstructorElement? get unnamedConstructor;
-
-  /// Returns the constructor from [constructors] that has the given [name].
-  ConstructorElement? getNamedConstructor(String name);
-}
-
 /// The result of applying augmentations to a [EnumElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedEnumElement implements AugmentedClassOrEnumElement {
+abstract class AugmentedEnumElement implements AugmentedInterfaceElement {
   /// Returns mixins applied by this class or in its augmentations.
   ///
   /// This is a union of mixins applied by the class declaration and all its
@@ -124,6 +106,12 @@ abstract class AugmentedInterfaceElement {
   /// [PropertyAccessorAugmentationElement]s replace corresponding elements,
   /// other [PropertyAccessorElement]s are appended.
   List<PropertyAccessorElement> get accessors;
+
+  /// Returns constructors declared in this element.
+  ///
+  /// [ConstructorAugmentationElement]s replace corresponding elements,
+  /// other [ConstructorElement]s are appended.
+  List<ConstructorElement> get constructors;
 
   /// Returns fields declared in this element.
   ///
@@ -149,6 +137,9 @@ abstract class AugmentedInterfaceElement {
   /// [MethodElement]s are appended.
   List<MethodElement> get methods;
 
+  /// Returns the unnamed constructor from [constructors].
+  ConstructorElement? get unnamedConstructor;
+
   /// Returns the field from [fields] that has the given [name].
   FieldElement? getField(String name);
 
@@ -157,6 +148,9 @@ abstract class AugmentedInterfaceElement {
 
   /// Returns the method from [methods] that has the given [name].
   MethodElement? getMethod(String name);
+
+  /// Returns the constructor from [constructors] that has the given [name].
+  ConstructorElement? getNamedConstructor(String name);
 
   /// Returns the setter from [accessors] that has the given [name].
   PropertyAccessorElement? getSetter(String name);
