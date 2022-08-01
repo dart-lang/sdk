@@ -14,6 +14,10 @@ abstract class CodeStyleOptions {
   /// Return `true` if local variables should be `final` whenever possible.
   bool get makeLocalsFinal;
 
+  /// Return `true` if constructors should be sorted first, before other
+  /// class members.
+  bool get sortConstructorsFirst;
+
   /// Return `true` if the formatter should be used on code changes in this
   /// context.
   bool get useFormatter;

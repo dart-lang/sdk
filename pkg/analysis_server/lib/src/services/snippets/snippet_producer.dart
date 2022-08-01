@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/snippets/dart_snippet_request.dart';
 import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -28,6 +29,9 @@ abstract class DartSnippetProducer extends SnippetProducer {
         useSuperParams = request.unit.libraryElement.featureSet
             .isEnabled(Feature.super_parameters);
 
+  CodeStyleOptions get codeStyleOptions =>
+      sessionHelper.session.analysisContext.analysisOptions.codeStyleOptions;
+
   bool get isInTestDirectory {
     final path = request.unit.path;
     return LinterContextImpl.testDirectories
@@ -38,11 +42,6 @@ abstract class DartSnippetProducer extends SnippetProducer {
   NullabilitySuffix get nullableSuffix => libraryElement.isNonNullableByDefault
       ? NullabilitySuffix.question
       : NullabilitySuffix.none;
-
-  bool isLintEnabled(String name) {
-    var analysisOptions = sessionHelper.session.analysisContext.analysisOptions;
-    return analysisOptions.isLintEnabled(name);
-  }
 }
 
 abstract class FlutterSnippetProducer extends DartSnippetProducer {

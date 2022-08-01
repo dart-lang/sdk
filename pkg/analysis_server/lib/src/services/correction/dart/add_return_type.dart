@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -42,8 +41,7 @@ class AddReturnType extends CorrectionProducer {
         if (executable.returnType != null) {
           return;
         }
-        if (isLintEnabled(LintNames.avoid_return_types_on_setters) &&
-            executable.isSetter) {
+        if (executable.isSetter) {
           return;
         }
         insertBeforeEntity = executable.propertyKeyword ?? executable.name;
@@ -52,8 +50,7 @@ class AddReturnType extends CorrectionProducer {
         if (executable.returnType != null) {
           return;
         }
-        if (isLintEnabled(LintNames.avoid_return_types_on_setters) &&
-            executable.isSetter) {
+        if (executable.isSetter) {
           return;
         }
         insertBeforeEntity = executable.propertyKeyword ?? executable.name;

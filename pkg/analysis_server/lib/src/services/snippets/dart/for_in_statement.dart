@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/services/snippets/snippet_producer.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -18,8 +17,7 @@ class ForInStatement extends DartSnippetProducer {
   Future<Snippet> compute() async {
     final builder = ChangeBuilder(session: request.analysisSession);
     final indent = utils.getLinePrefix(request.offset);
-    final varOrFinal =
-        isLintEnabled(LintNames.prefer_final_locals) ? 'final' : 'var';
+    final varOrFinal = codeStyleOptions.makeLocalsFinal ? 'final' : 'var';
 
     await builder.addDartFileEdit(request.filePath, (builder) {
       builder.addReplacement(request.replacementRange, (builder) {

@@ -23,6 +23,9 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
   bool get makeLocalsFinal => _isLintEnabled('prefer_final_locals');
 
   @override
+  bool get sortConstructorsFirst => _isLintEnabled('sort_constructors_first');
+
+  @override
   bool get useRelativeUris => _isLintEnabled('prefer_relative_imports');
 
   /// Return `true` if the lint with the given [name] is enabled.

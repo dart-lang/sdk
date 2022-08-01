@@ -256,12 +256,6 @@ class CorrectionProducerContext {
         unit = resolvedResult.unit,
         utils = CorrectionUtils(resolvedResult);
 
-  /// Return `true` if the lint with the given [name] is enabled.
-  bool isLintEnabled(String name) {
-    var analysisOptions = session.analysisContext.analysisOptions;
-    return analysisOptions.isLintEnabled(name);
-  }
-
   static CorrectionProducerContext? create({
     required ResolvedUnitResult resolvedResult,
     required ChangeWorkspace workspace,
@@ -498,11 +492,6 @@ abstract class _AbstractCorrectionProducer {
     String baseName,
   ) {
     return _context.dartFixContext!.getTopLevelDeclarations(baseName);
-  }
-
-  /// Return `true` the lint with the given [name] is enabled.
-  bool isLintEnabled(String name) {
-    return _context.isLintEnabled(name);
   }
 
   /// Return `true` if the selection covers an operator of the given
