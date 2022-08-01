@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -226,8 +227,8 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredParam(SimpleIdentifier name, TypeAnnotation? type) {
-    if (name.name == targetName) {
+  void declaredParam(Token name, Element? element, TypeAnnotation? type) {
+    if (name.lexeme == targetName) {
       // Type provided by the element in computeFull above
       finished();
     }

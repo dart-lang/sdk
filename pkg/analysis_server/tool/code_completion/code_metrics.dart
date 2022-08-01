@@ -294,8 +294,8 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   void visitCatchClause(CatchClause node) {
     _visitChildren(node, {
       'exceptionType': node.exceptionType,
-      'exceptionParameter': node.exceptionParameter,
-      'stackTraceParameter': node.stackTraceParameter,
+      'exceptionParameter': node.exceptionParameter2,
+      'stackTraceParameter': node.stackTraceParameter2,
       'body': node.body,
     });
     super.visitCatchClause(node);

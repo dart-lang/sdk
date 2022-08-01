@@ -2745,16 +2745,27 @@ class AstBuilder extends StackListener {
         stackTrace = catchParameters[1].identifier;
       }
     }
-    push(ast.catchClause(
+    push(
+      CatchClauseImpl(
         onKeyword,
-        type,
+        type as TypeAnnotationImpl?,
         catchKeyword,
         catchParameterList?.leftParenthesis,
-        exception,
+        exception != null
+            ? CatchClauseParameterImpl(
+                nameNode: exception as SimpleIdentifierImpl,
+              )
+            : null,
         comma,
-        stackTrace,
+        stackTrace != null
+            ? CatchClauseParameterImpl(
+                nameNode: stackTrace as SimpleIdentifierImpl,
+              )
+            : null,
         catchParameterList?.rightParenthesis,
-        body));
+        body as BlockImpl,
+      ),
+    );
   }
 
   @override

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -230,11 +228,17 @@ class AstComparator implements AstVisitor<bool> {
         isEqualNodes(node.exceptionType, other.exceptionType) &&
         isEqualTokens(node.catchKeyword, other.catchKeyword) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
-        isEqualNodes(node.exceptionParameter, other.exceptionParameter) &&
+        isEqualNodes(node.exceptionParameter2, other.exceptionParameter2) &&
         isEqualTokens(node.comma, other.comma) &&
-        isEqualNodes(node.stackTraceParameter, other.stackTraceParameter) &&
+        isEqualNodes(node.stackTraceParameter2, other.stackTraceParameter2) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
         isEqualNodes(node.body, other.body);
+  }
+
+  @override
+  bool visitCatchClauseParameter(CatchClauseParameter node) {
+    CatchClauseParameter other = _other as CatchClauseParameter;
+    return isEqualTokens(node.name, other.name);
   }
 
   @override
@@ -1781,16 +1785,21 @@ class NodeReplacer implements AstVisitor<bool> {
     if (identical(node.exceptionType, _oldNode)) {
       node.exceptionType = _newNode as TypeAnnotation;
       return true;
-    } else if (identical(node.exceptionParameter, _oldNode)) {
-      node.exceptionParameter = _newNode as SimpleIdentifier;
+    } else if (identical(node.exceptionParameter2, _oldNode)) {
+      node.exceptionParameter2 = _newNode as CatchClauseParameterImpl;
       return true;
-    } else if (identical(node.stackTraceParameter, _oldNode)) {
-      node.stackTraceParameter = _newNode as SimpleIdentifier;
+    } else if (identical(node.stackTraceParameter2, _oldNode)) {
+      node.stackTraceParameter2 = _newNode as CatchClauseParameterImpl;
       return true;
     } else if (identical(node.body, _oldNode)) {
       node.body = _newNode as Block;
       return true;
     }
+    return visitNode(node);
+  }
+
+  @override
+  bool? visitCatchClauseParameter(CatchClauseParameter node) {
     return visitNode(node);
   }
 
@@ -3144,8 +3153,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
 
   AstNode? _immediateChild;
 
-  final Map<String, SimpleIdentifier> _locals =
-      HashMap<String, SimpleIdentifier>();
+  final Set<String> _locals = {};
 
   final int _position;
 
@@ -3155,7 +3163,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
 
   Declaration? get declaration => _declarationNode;
 
-  Map<String, SimpleIdentifier> get locals => _locals;
+  Set<String> get locals => _locals;
 
   @override
   void visitBlock(Block node) {
@@ -3165,8 +3173,8 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
 
   @override
   void visitCatchClause(CatchClause node) {
-    _addToScope(node.exceptionParameter);
-    _addToScope(node.stackTraceParameter);
+    _addToScope2(node.exceptionParameter2?.name);
+    _addToScope2(node.stackTraceParameter2?.name);
     super.visitCatchClause(node);
   }
 
@@ -3258,10 +3266,16 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
 
   void _addToScope(SimpleIdentifier? identifier) {
     if (identifier != null && _isInRange(identifier)) {
-      String name = identifier.name;
-      if (!_locals.containsKey(name)) {
-        _locals[name] = identifier;
-      }
+      _locals.add(identifier.name);
+    }
+  }
+
+  /// TODO(scheglov) If we still have [_addToScope] after:
+  /// https://dart-review.googlesource.com/c/sdk/+/252566,
+  /// rename to `_addNodeToScope` and `_addTokenToScope`.
+  void _addToScope2(Token? identifier) {
+    if (identifier != null && _isInRange2(identifier)) {
+      _locals.add(identifier.lexeme);
     }
   }
 
@@ -3295,5 +3309,14 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
       // not reached
     }
     return node.end < _position;
+  }
+
+  bool _isInRange2(Token token) {
+    if (_position < 0) {
+      // if source position is not set then all nodes are in range
+      return true;
+      // not reached
+    }
+    return token.end < _position;
   }
 }

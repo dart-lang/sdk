@@ -7653,13 +7653,12 @@ void main() {
       CatchClause catchClause = statement.catchClauses[0];
       expect(catchClause.exceptionType, isNull);
 
-      var exceptionNode = catchClause.exceptionParameter as SimpleIdentifier;
-      var exceptionElement =
-          exceptionNode.staticElement as LocalVariableElement;
+      var exceptionNode = catchClause.exceptionParameter2!;
+      var exceptionElement = exceptionNode.declaredElement!;
       expect(exceptionElement.type, typeProvider.objectType);
 
-      var stackNode = catchClause.stackTraceParameter as SimpleIdentifier;
-      var stackElement = stackNode.staticElement as LocalVariableElement;
+      var stackNode = catchClause.stackTraceParameter2!;
+      var stackElement = stackNode.declaredElement!;
       expect(stackElement.type, typeProvider.stackTraceType);
 
       List<Statement> catchStatements = catchClause.body.statements;
@@ -7683,13 +7682,12 @@ void main() {
       _assertNamedTypeSimple(
           catchClause.exceptionType as NamedType, typeProvider.intType);
 
-      var exceptionNode = catchClause.exceptionParameter as SimpleIdentifier;
-      var exceptionElement =
-          exceptionNode.staticElement as LocalVariableElement;
+      var exceptionNode = catchClause.exceptionParameter2!;
+      var exceptionElement = exceptionNode.declaredElement!;
       expect(exceptionElement.type, typeProvider.intType);
 
-      var stackNode = catchClause.stackTraceParameter as SimpleIdentifier;
-      var stackElement = stackNode.staticElement as LocalVariableElement;
+      var stackNode = catchClause.stackTraceParameter2!;
+      var stackElement = stackNode.declaredElement!;
       expect(stackElement.type, typeProvider.stackTraceType);
 
       List<Statement> catchStatements = catchClause.body.statements;
@@ -7711,11 +7709,10 @@ void main() {
       var statement = statements[2] as TryStatement;
       CatchClause catchClause = statement.catchClauses[0];
       expect(catchClause.exceptionType, isNull);
-      expect(catchClause.stackTraceParameter, isNull);
+      expect(catchClause.stackTraceParameter2, isNull);
 
-      var exceptionNode = catchClause.exceptionParameter as SimpleIdentifier;
-      var exceptionElement =
-          exceptionNode.staticElement as LocalVariableElement;
+      var exceptionNode = catchClause.exceptionParameter2!;
+      var exceptionElement = exceptionNode.declaredElement!;
       expect(exceptionElement.type, typeProvider.objectType);
     }
 
@@ -7724,11 +7721,10 @@ void main() {
       var statement = statements[3] as TryStatement;
       CatchClause catchClause = statement.catchClauses[0];
       _assertNamedTypeSimple(catchClause.exceptionType!, typeProvider.intType);
-      expect(catchClause.stackTraceParameter, isNull);
+      expect(catchClause.stackTraceParameter2, isNull);
 
-      var exceptionNode = catchClause.exceptionParameter as SimpleIdentifier;
-      var exceptionElement =
-          exceptionNode.staticElement as LocalVariableElement;
+      var exceptionNode = catchClause.exceptionParameter2!;
+      var exceptionElement = exceptionNode.declaredElement!;
       expect(exceptionElement.type, typeProvider.intType);
     }
 
@@ -7738,8 +7734,8 @@ void main() {
       CatchClause catchClause = statement.catchClauses[0];
       _assertNamedTypeSimple(
           catchClause.exceptionType as NamedType, typeProvider.intType);
-      expect(catchClause.exceptionParameter, isNull);
-      expect(catchClause.stackTraceParameter, isNull);
+      expect(catchClause.exceptionParameter2, isNull);
+      expect(catchClause.stackTraceParameter2, isNull);
     }
   }
 

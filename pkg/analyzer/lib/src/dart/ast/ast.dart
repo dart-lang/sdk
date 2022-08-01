@@ -1411,7 +1411,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   /// The parameter whose value will be the exception that was thrown, or `null`
   /// if there is no 'catch' keyword.
-  SimpleIdentifierImpl? _exceptionParameter;
+  CatchClauseParameterImpl? _exceptionParameter;
 
   /// The comma separating the exception parameter from the stack trace
   /// parameter, or `null` if there is no stack trace parameter.
@@ -1420,7 +1420,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   /// The parameter whose value will be the stack trace associated with the
   /// exception, or `null` if there is no stack trace parameter.
-  SimpleIdentifierImpl? _stackTraceParameter;
+  CatchClauseParameterImpl? _stackTraceParameter;
 
   /// The right parenthesis, or `null` if there is no 'catch' keyword.
   @override
@@ -1431,7 +1431,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   /// Initialize a newly created catch clause. The [onKeyword] and
   /// [exceptionType] can be `null` if the clause will catch all exceptions. The
-  /// [comma] and [stackTraceParameter] can be `null` if the stack trace
+  /// [comma] and [_stackTraceParameter] can be `null` if the stack trace
   /// parameter is not defined.
   CatchClauseImpl(
       this.onKeyword,
@@ -1468,11 +1468,20 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   @override
   Token get endToken => _body.endToken;
 
+  @Deprecated('Use exceptionParameter2 instead')
   @override
-  SimpleIdentifierImpl? get exceptionParameter => _exceptionParameter;
+  SimpleIdentifierImpl? get exceptionParameter {
+    return _exceptionParameter?.nameNode;
+  }
 
-  set exceptionParameter(SimpleIdentifier? parameter) {
-    _exceptionParameter = _becomeParentOf(parameter as SimpleIdentifierImpl?);
+  @override
+  CatchClauseParameterImpl? get exceptionParameter2 {
+    return _exceptionParameter;
+  }
+
+  set exceptionParameter2(CatchClauseParameterImpl? parameter) {
+    _exceptionParameter = parameter;
+    _becomeParentOf(parameter);
   }
 
   @override
@@ -1482,11 +1491,20 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
     _exceptionType = _becomeParentOf(exceptionType as TypeAnnotationImpl?);
   }
 
+  @Deprecated('Use stackTraceParameter2 instead')
   @override
-  SimpleIdentifierImpl? get stackTraceParameter => _stackTraceParameter;
+  SimpleIdentifierImpl? get stackTraceParameter {
+    return _stackTraceParameter?.nameNode;
+  }
 
-  set stackTraceParameter(SimpleIdentifier? parameter) {
-    _stackTraceParameter = _becomeParentOf(parameter as SimpleIdentifierImpl?);
+  @override
+  CatchClauseParameterImpl? get stackTraceParameter2 {
+    return _stackTraceParameter;
+  }
+
+  set stackTraceParameter2(CatchClauseParameterImpl? parameter) {
+    _stackTraceParameter = parameter;
+    _becomeParentOf(parameter);
   }
 
   @override
@@ -1495,9 +1513,9 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
     ..addNode('exceptionType', exceptionType)
     ..addToken('catchKeyword', catchKeyword)
     ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('exceptionParameter', exceptionParameter)
+    ..addNode('exceptionParameter', exceptionParameter2)
     ..addToken('comma', comma)
-    ..addNode('stackTraceParameter', stackTraceParameter)
+    ..addNode('stackTraceParameter', stackTraceParameter2)
     ..addToken('rightParenthesis', rightParenthesis)
     ..addNode('body', body);
 
@@ -1510,6 +1528,40 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
     _exceptionParameter?.accept(visitor);
     _stackTraceParameter?.accept(visitor);
     _body.accept(visitor);
+  }
+}
+
+class CatchClauseParameterImpl extends AstNodeImpl
+    implements CatchClauseParameter {
+  /// TODO(scheglov) Eventually replace with [Token].
+  final SimpleIdentifierImpl nameNode;
+
+  @override
+  LocalVariableElement? declaredElement;
+
+  CatchClauseParameterImpl({
+    required this.nameNode,
+  }) {
+    _becomeParentOf(nameNode);
+  }
+
+  @override
+  Token get beginToken => name;
+
+  @override
+  Token get endToken => name;
+
+  @override
+  Token get name => nameNode.token;
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitCatchClauseParameter(this);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    nameNode.accept(visitor);
   }
 }
 
@@ -9957,6 +10009,9 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
           parent.operator.type == TokenType.EQ) {
         return false;
       }
+    }
+    if (parent is CatchClauseParameterImpl && parent.nameNode == this) {
+      return false;
     }
     if (parent is ConstructorFieldInitializer &&
         identical(parent.fieldName, target)) {

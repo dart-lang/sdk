@@ -8,6 +8,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -362,11 +363,10 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredParam(SimpleIdentifier name, TypeAnnotation? type) {
-    var element = name.staticElement;
+  void declaredParam(Token name, Element? element, TypeAnnotation? type) {
     if (visibilityTracker._isVisible(element) &&
         opType.includeReturnValueSuggestions) {
-      if (_isUnused(name.name)) {
+      if (_isUnused(name.lexeme)) {
         return;
       }
       if (element is ParameterElement) {

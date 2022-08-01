@@ -181,16 +181,17 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     exceptionTypeNode?.accept(this);
 
     _withNameScope(() {
-      var exceptionNode = node.exceptionParameter;
+      var exceptionNode = node.exceptionParameter2;
       if (exceptionNode != null) {
         var element = LocalVariableElementImpl(
-          exceptionNode.name,
-          exceptionNode.offset,
+          exceptionNode.name.lexeme,
+          exceptionNode.name.offset,
         );
         _elementHolder.enclose(element);
         _define(element);
 
-        exceptionNode.staticElement = element;
+        exceptionNode.declaredElement = element;
+        exceptionNode.nameNode.staticElement = element;
 
         element.isFinal = true;
         if (exceptionTypeNode == null) {
@@ -198,31 +199,38 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           var type =
               _isNonNullableByDefault ? _typeProvider.objectType : _dynamicType;
           element.type = type;
-          exceptionNode.staticType = type;
+          exceptionNode.nameNode.staticType = type;
         } else {
           element.type = exceptionTypeNode.typeOrThrow;
-          exceptionNode.staticType = exceptionTypeNode.type;
+          exceptionNode.nameNode.staticType = exceptionTypeNode.type;
         }
 
-        _setCodeRange(element, exceptionNode);
+        element.setCodeRange(
+          exceptionNode.name.offset,
+          exceptionNode.name.length,
+        );
       }
 
-      var stackTraceNode = node.stackTraceParameter;
+      var stackTraceNode = node.stackTraceParameter2;
       if (stackTraceNode != null) {
         var element = LocalVariableElementImpl(
-          stackTraceNode.name,
-          stackTraceNode.offset,
+          stackTraceNode.name.lexeme,
+          stackTraceNode.name.offset,
         );
         _elementHolder.enclose(element);
         _define(element);
 
-        stackTraceNode.staticElement = element;
+        stackTraceNode.declaredElement = element;
+        stackTraceNode.nameNode.staticElement = element;
 
         element.isFinal = true;
         element.type = _typeProvider.stackTraceType;
-        stackTraceNode.staticType = _typeProvider.stackTraceType;
+        stackTraceNode.nameNode.staticType = _typeProvider.stackTraceType;
 
-        _setCodeRange(element, stackTraceNode);
+        element.setCodeRange(
+          stackTraceNode.name.offset,
+          stackTraceNode.name.length,
+        );
       }
 
       node.body.accept(this);

@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 /// A visitor that visits an [AstNode] and its parent recursively along with any
 /// declarations in those nodes. Consumers typically call [visit] which catches
@@ -39,7 +41,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   void declaredMixin(MixinDeclaration declaration) {}
 
-  void declaredParam(SimpleIdentifier name, TypeAnnotation? type) {}
+  void declaredParam(Token name, Element? element, TypeAnnotation? type) {}
 
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl) {}
@@ -72,14 +74,22 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitCatchClause(CatchClause node) {
-    var exceptionParameter = node.exceptionParameter;
+    var exceptionParameter = node.exceptionParameter2;
     if (exceptionParameter != null) {
-      declaredParam(exceptionParameter, node.exceptionType);
+      declaredParam(
+        exceptionParameter.name,
+        exceptionParameter.declaredElement,
+        node.exceptionType,
+      );
     }
 
-    var stackTraceParameter = node.stackTraceParameter;
+    var stackTraceParameter = node.stackTraceParameter2;
     if (stackTraceParameter != null) {
-      declaredParam(stackTraceParameter, null);
+      declaredParam(
+        stackTraceParameter.name,
+        stackTraceParameter.declaredElement,
+        null,
+      );
     }
 
     visitNode(node);
@@ -292,8 +302,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
         } else if (normalParam is SimpleFormalParameter) {
           type = normalParam.type;
         }
-        var name = param.identifier;
-        declaredParam(name!, type);
+        declaredParam(param.identifier!.token, param.declaredElement, type);
       }
     }
   }

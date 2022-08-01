@@ -182,6 +182,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitCatchClause(CatchClause node) => visitNode(node);
 
   @override
+  R? visitCatchClauseParameter(CatchClauseParameter node) => visitNode(node);
+
+  @override
   R? visitClassDeclaration(ClassDeclaration node) =>
       visitNamedCompilationUnitMember(node);
 
@@ -751,6 +754,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitCatchClause(CatchClause node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitCatchClauseParameter(CatchClauseParameter node) {
     node.visitChildren(this);
     return null;
   }
@@ -1518,6 +1527,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitCatchClause(CatchClause node) => null;
 
   @override
+  R? visitCatchClauseParameter(CatchClauseParameter node) => null;
+
+  @override
   R? visitClassDeclaration(ClassDeclaration node) => null;
 
   @override
@@ -1936,6 +1948,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitCatchClause(CatchClause node) => _throw(node);
+
+  @override
+  R? visitCatchClauseParameter(CatchClauseParameter node) => _throw(node);
 
   @override
   R? visitClassDeclaration(ClassDeclaration node) => _throw(node);
@@ -2447,6 +2462,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitCatchClause(CatchClause node) {
     stopwatch.start();
     T? result = _baseVisitor.visitCatchClause(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitCatchClauseParameter(CatchClauseParameter node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitCatchClauseParameter(node);
     stopwatch.stop();
     return result;
   }
@@ -3452,6 +3475,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitCatchClause(CatchClause node) => visitNode(node);
+
+  @override
+  R? visitCatchClauseParameter(CatchClauseParameter node) => visitNode(node);
 
   @override
   R? visitClassDeclaration(ClassDeclaration node) => visitNode(node);

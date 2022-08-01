@@ -20,18 +20,18 @@ class ConvertToOnType extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var exceptionParameter = node;
     if (exceptionParameter is SimpleIdentifier) {
-      var catchClause = exceptionParameter.parent;
+      var catchClause = exceptionParameter.parent?.parent;
       if (catchClause is CatchClause) {
         var catchKeyword = catchClause.catchKeyword;
         var rightParenthesis = catchClause.rightParenthesis;
         if (catchKeyword != null &&
             catchClause.exceptionType == null &&
-            catchClause.exceptionParameter == exceptionParameter &&
+            catchClause.exceptionParameter2?.name == exceptionParameter.token &&
             rightParenthesis != null) {
           var exceptionTypeName = exceptionParameter.name;
           fixArguments.add(exceptionTypeName);
           await builder.addDartFileEdit(file, (builder) {
-            var stackTraceParameter = catchClause.stackTraceParameter;
+            var stackTraceParameter = catchClause.stackTraceParameter2;
             if (stackTraceParameter != null) {
               builder.addSimpleReplacement(
                 range.startStart(catchKeyword, stackTraceParameter),

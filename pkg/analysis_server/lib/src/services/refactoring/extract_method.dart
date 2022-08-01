@@ -930,6 +930,14 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   }
 
   @override
+  void visitCatchClauseParameter(CatchClauseParameter node) {
+    super.visitCatchClauseParameter(node);
+    if (_isFirstSelectedNode(node)) {
+      invalidSelection('Cannot extract the name part of a declaration.');
+    }
+  }
+
+  @override
   void visitConstructorInitializer(ConstructorInitializer node) {
     super.visitConstructorInitializer(node);
     if (_isFirstSelectedNode(node)) {

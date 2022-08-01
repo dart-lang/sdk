@@ -57,7 +57,7 @@ class AssignToLocalVariable extends CorrectionProducer {
     var excluded = <String>{};
     var scopedNameFinder = ScopedNameFinder(offset);
     expression.accept(scopedNameFinder);
-    excluded.addAll(scopedNameFinder.locals.keys.toSet());
+    excluded.addAll(scopedNameFinder.locals);
     var suggestions =
         getVariableNameSuggestionsForExpression(type, expression, excluded);
 

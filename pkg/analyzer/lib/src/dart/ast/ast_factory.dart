@@ -53,27 +53,6 @@ class AstFactoryImpl {
           Expression target, List<Expression> cascadeSections) =>
       CascadeExpressionImpl(target as ExpressionImpl, cascadeSections);
 
-  CatchClauseImpl catchClause(
-          Token? onKeyword,
-          TypeAnnotation? exceptionType,
-          Token? catchKeyword,
-          Token? leftParenthesis,
-          SimpleIdentifier? exceptionParameter,
-          Token? comma,
-          SimpleIdentifier? stackTraceParameter,
-          Token? rightParenthesis,
-          Block body) =>
-      CatchClauseImpl(
-          onKeyword,
-          exceptionType as TypeAnnotationImpl?,
-          catchKeyword,
-          leftParenthesis,
-          exceptionParameter as SimpleIdentifierImpl?,
-          comma,
-          stackTraceParameter as SimpleIdentifierImpl?,
-          rightParenthesis,
-          body as BlockImpl);
-
   ClassDeclarationImpl classDeclaration(
           Comment? comment,
           List<Annotation>? metadata,

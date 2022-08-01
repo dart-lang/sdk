@@ -133,13 +133,11 @@ class FindElement extends _FindElementBase {
     }
 
     unit.accept(FunctionAstVisitor(
-      declaredIdentifier: (node) {
+      catchClauseParameter: (node) {
         updateResult(node.declaredElement!);
       },
-      simpleIdentifier: (node) {
-        if (node.parent is CatchClause) {
-          updateResult(node.staticElement!);
-        }
+      declaredIdentifier: (node) {
+        updateResult(node.declaredElement!);
       },
       variableDeclaration: (node) {
         updateResult(node.declaredElement!);

@@ -223,21 +223,47 @@ var v = a * (b + c);
   }
 
   void test_visitCatchClause_catch_noStack() {
-    _assertSource("catch (e) {}", AstTestFactory.catchClause("e"));
+    final code = 'catch (e) {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  try {}
+  $code
+}
+''');
+    _assertSource(code, findNode.catchClause(code));
   }
 
   void test_visitCatchClause_catch_stack() {
-    _assertSource("catch (e, s) {}", AstTestFactory.catchClause2("e", "s"));
+    final code = 'catch (e, s) {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  try {}
+  $code
+}
+''');
+    _assertSource(code, findNode.catchClause(code));
   }
 
   void test_visitCatchClause_on() {
-    _assertSource(
-        "on E {}", AstTestFactory.catchClause3(AstTestFactory.namedType4("E")));
+    final code = 'on E {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  try {}
+  $code
+}
+''');
+    _assertSource(code, findNode.catchClause(code));
   }
 
   void test_visitCatchClause_on_catch() {
-    _assertSource("on E catch (e) {}",
-        AstTestFactory.catchClause4(AstTestFactory.namedType4("E"), "e"));
+    final code = 'on E catch (e) {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  try {}
+  $code
+}
+''');
+    _assertSource(code, findNode.catchClause(code));
   }
 
   void test_visitClassDeclaration_abstract() {
@@ -3333,28 +3359,33 @@ var v = !(a == b);
   }
 
   void test_visitTryStatement_catch() {
-    _assertSource(
-        "try {} on E {}",
-        AstTestFactory.tryStatement2(AstTestFactory.block(),
-            [AstTestFactory.catchClause3(AstTestFactory.namedType4("E"))]));
+    final code = 'try {} on E {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code
+}
+''');
+    _assertSource(code, findNode.tryStatement(code));
   }
 
   void test_visitTryStatement_catches() {
-    _assertSource(
-        "try {} on E {} on F {}",
-        AstTestFactory.tryStatement2(AstTestFactory.block(), [
-          AstTestFactory.catchClause3(AstTestFactory.namedType4("E")),
-          AstTestFactory.catchClause3(AstTestFactory.namedType4("F"))
-        ]));
+    final code = 'try {} on E {} on F {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code
+}
+''');
+    _assertSource(code, findNode.tryStatement(code));
   }
 
   void test_visitTryStatement_catchFinally() {
-    _assertSource(
-        "try {} on E {} finally {}",
-        AstTestFactory.tryStatement3(
-            AstTestFactory.block(),
-            [AstTestFactory.catchClause3(AstTestFactory.namedType4("E"))],
-            AstTestFactory.block()));
+    final code = 'try {} on E {} finally {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code
+}
+''');
+    _assertSource(code, findNode.tryStatement(code));
   }
 
   void test_visitTryStatement_finally() {
