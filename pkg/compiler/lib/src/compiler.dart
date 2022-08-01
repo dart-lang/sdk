@@ -231,10 +231,13 @@ class Compiler
   Future<bool> run() => selfTask.measureSubtask("run", () async {
         measurer.startWallClock();
         var setupDuration = measurer.elapsedWallClock;
-        await runInternal()
-            .onError((error, stackTrace) =>
-                _reporter.onError(options.compilationTarget, error, stackTrace))
-            .whenComplete(() => measurer.stopWallClock());
+        try {
+          await runInternal();
+        } catch (error, stackTrace) {
+          await _reporter.onError(options.compilationTarget, error, stackTrace);
+        } finally {
+          measurer.stopWallClock();
+        }
         if (options.verbose) {
           var timings = StringBuffer();
           computeTimings(setupDuration, timings);
