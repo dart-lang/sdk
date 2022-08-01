@@ -187,6 +187,8 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
       packageInfoNodes[packageName] = newPackage;
       program.root.children[packageName] = newPackage;
       outputInfo.add(newPackage);
+      var packageNode = infoNodesByName[newPackage.name];
+      assert(packageNode == null, "encountered package with duplicated name");
       infoNodesByName[newPackage.name] = newPackage;
     } else {
       packageInfoNode.size = (packageInfoNode.size ?? 0) + libraryInfo.size;
@@ -205,6 +207,8 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
         name: libraryName, parent: parentNode, type: vm.NodeType.libraryNode);
     newLibrary.size = libraryInfo.size;
     parentNode.children[newLibrary.name] = newLibrary;
+    vm.ProgramInfoNode? libraryNode = infoNodesByName[newLibrary.name];
+    assert(libraryNode == null, "encountered library with duplicated name");
     infoNodesByName[newLibrary.name] = newLibrary;
     outputInfo.add(newLibrary);
   }
@@ -225,6 +229,8 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
           type: vm.NodeType.functionNode);
       newFunction.size = functionInfo.size;
       parentNode.children[newFunction.name] = newFunction;
+      vm.ProgramInfoNode? functionNode = infoNodesByName[newFunction.name];
+      assert(functionNode == null, "encountered function with duplicated name");
       infoNodesByName[newFunction.name] = newFunction;
       outputInfo.add(newFunction);
     }
@@ -246,6 +252,8 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
           type: vm.NodeType.classNode);
       newClass.size = classInfo.size;
       parentNode.children[newClass.name] = newClass;
+      vm.ProgramInfoNode? classNode = infoNodesByName[newClass.name];
+      assert(classNode == null, "encountered class with duplicated name");
       infoNodesByName[newClass.name] = newClass;
       outputInfo.add(newClass);
     }
@@ -270,6 +278,8 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
           name: fieldInfo.name, parent: parentNode, type: vm.NodeType.other);
       newField.size = fieldInfo.size;
       parentNode.children[newField.name] = newField;
+      vm.ProgramInfoNode? fieldNode = infoNodesByName[newField.name];
+      assert(fieldNode == null, "encountered field with duplicated name");
       infoNodesByName[newField.name] = newField;
       outputInfo.add(newField);
     }
@@ -310,6 +320,9 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
           parent: parentNode,
           type: vm.NodeType.other);
       newClassType.size = classTypeInfo.size;
+      vm.ProgramInfoNode? classTypeNode = infoNodesByName[newClassType.name];
+      assert(
+          classTypeNode == null, "encountered classType with duplicated name");
       infoNodesByName[newClassType.name] = newClassType;
       outputInfo.add(newClassType);
     }
@@ -332,6 +345,8 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
           type: vm.NodeType.functionNode);
       newClosure.size = closureInfo.size;
       parentNode.children[newClosure.name] = newClosure;
+      vm.ProgramInfoNode? closureNode = infoNodesByName[newClosure.name];
+      assert(closureNode == null, "encountered closure with duplicated name");
       infoNodesByName[newClosure.name] = newClosure;
       outputInfo.add(newClosure);
     }
