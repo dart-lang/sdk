@@ -184,8 +184,8 @@ class DecoratedType implements DecoratedTypeInfo {
     // We'll be storing the type parameter bounds in
     // [_decoratedTypeParameterBounds] so the type parameter needs to have an
     // enclosing element of `null`.
-    assert(parameter.enclosingElement2 == null,
-        '$parameter should not have parent ${parameter.enclosingElement2}');
+    assert(parameter.enclosingElement3 == null,
+        '$parameter should not have parent ${parameter.enclosingElement3}');
   }
 
   /// If `this` represents an interface type, returns the substitution necessary
@@ -415,7 +415,7 @@ class DecoratedType implements DecoratedTypeInfo {
             Map<TypeParameterElement, DecoratedType>.from(substitution);
         for (int i = 0; i < typeFormals.length; i++) {
           // Check if it's a fresh type variable.
-          if (undecoratedResult.typeFormals[i].enclosingElement2 == null) {
+          if (undecoratedResult.typeFormals[i].enclosingElement3 == null) {
             substitution[typeFormals[i]] =
                 DecoratedType._forTypeParameterSubstitution(
                     undecoratedResult.typeFormals[i]);
@@ -542,7 +542,7 @@ class DecoratedTypeParameterBounds {
   final _parentedBounds = <TypeParameterElement, DecoratedType?>{};
 
   DecoratedType? get(TypeParameterElement element) {
-    if (element.enclosingElement2 == null) {
+    if (element.enclosingElement3 == null) {
       return _orphanBounds[element];
     } else {
       return _parentedBounds[element];
@@ -550,7 +550,7 @@ class DecoratedTypeParameterBounds {
   }
 
   void put(TypeParameterElement element, DecoratedType? bounds) {
-    if (element.enclosingElement2 == null) {
+    if (element.enclosingElement3 == null) {
       _orphanBounds[element] = bounds;
     } else {
       _parentedBounds[element] = bounds;

@@ -53,23 +53,23 @@ class GetterSetterTypesVerifier {
           var setterType = setter.parameters[0].type;
           if (!_match(getterType, setterType)) {
             Element errorElement;
-            if (getter.enclosingElement2 == classElement) {
+            if (getter.enclosingElement3 == classElement) {
               errorElement = getter;
-            } else if (setter.enclosingElement2 == classElement) {
+            } else if (setter.enclosingElement3 == classElement) {
               errorElement = setter;
             } else {
               errorElement = classElement;
             }
 
             var getterName = getter.displayName;
-            if (getter.enclosingElement2 != classElement) {
-              var getterClassName = getter.enclosingElement2.displayName;
+            if (getter.enclosingElement3 != classElement) {
+              var getterClassName = getter.enclosingElement3.displayName;
               getterName = '$getterClassName.$getterName';
             }
 
             var setterName = setter.displayName;
-            if (setter.enclosingElement2 != classElement) {
-              var setterClassName = setter.enclosingElement2.displayName;
+            if (setter.enclosingElement3 != classElement) {
+              var setterClassName = setter.enclosingElement3.displayName;
               setterName = '$setterClassName.$setterName';
             }
 

@@ -22261,14 +22261,14 @@ typedef void F<T>(int a);
 
     var T = F.typeParameters[0];
     expect(T.name, 'T');
-    expect(T.enclosingElement2, same(F));
+    expect(T.enclosingElement3, same(F));
 
     var function = F.aliasedElement as GenericFunctionTypeElement;
-    expect(function.enclosingElement2, same(F));
+    expect(function.enclosingElement3, same(F));
 
     var a = function.parameters[0];
     expect(a.name, 'a');
-    expect(a.enclosingElement2, same(function));
+    expect(a.enclosingElement3, same(function));
   }
 
   test_functionTypeAlias_type_element() async {
@@ -23415,18 +23415,18 @@ typedef F<T> = void Function<U>(int a);
 
     var T = F.typeParameters[0];
     expect(T.name, 'T');
-    expect(T.enclosingElement2, same(F));
+    expect(T.enclosingElement3, same(F));
 
     var function = F.aliasedElement as GenericFunctionTypeElement;
-    expect(function.enclosingElement2, same(F));
+    expect(function.enclosingElement3, same(F));
 
     var U = function.typeParameters[0];
     expect(U.name, 'U');
-    expect(U.enclosingElement2, same(function));
+    expect(U.enclosingElement3, same(function));
 
     var a = function.parameters[0];
     expect(a.name, 'a');
-    expect(a.enclosingElement2, same(function));
+    expect(a.enclosingElement3, same(function));
   }
 
   test_genericTypeAlias_recursive() async {
@@ -26601,7 +26601,7 @@ library
 
     final import_0 = library.augmentationImports[0];
     final augmentation = import_0.importedAugmentation!;
-    expect(augmentation.enclosingElement2, same(library));
+    expect(augmentation.enclosingElement3, same(library));
   }
 
   test_library_augmentationImports_noRelativeUriStr() async {

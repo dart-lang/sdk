@@ -52,7 +52,7 @@ class DecoratedClassHierarchy {
   /// because the relationship between a class and its superclass is not
   /// nullable.
   DecoratedType getDecoratedSupertype(
-      ClassElement class_, ClassElement superclass) {
+      ClassElement class_, InterfaceElement superclass) {
     assert(!(class_.library.isDartCore && class_.name == 'Null'));
     if (superclass.typeParameters.isEmpty) {
       return DecoratedType(

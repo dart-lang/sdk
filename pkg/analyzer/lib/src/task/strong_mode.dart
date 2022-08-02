@@ -424,7 +424,7 @@ class InstanceMemberInferrer {
           var conflict = conflicts.single;
           if (conflict is CandidatesConflict) {
             conflictExplanation = conflict.candidates.map((candidate) {
-              var className = candidate.enclosingElement2.name;
+              var className = candidate.enclosingElement3.name;
               var typeStr = candidate.type.getDisplayString(
                 withNullability: typeSystem.isNonNullableByDefault,
               );
@@ -540,7 +540,7 @@ class InstanceMemberInferrer {
       overridden = overridden.declaration;
 
       // Skip Object itself.
-      var enclosingElement = overridden.enclosingElement2;
+      var enclosingElement = overridden.enclosingElement3;
       if (enclosingElement is ClassElement &&
           enclosingElement.isDartCoreObject) {
         continue;

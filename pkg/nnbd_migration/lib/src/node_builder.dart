@@ -680,7 +680,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   DecoratedType _createDecoratedTypeForClass(
-      ClassElement classElement, AstNode? node) {
+      InterfaceElement classElement, AstNode? node) {
     var typeArguments = classElement.typeParameters
         .map((t) => t.instantiate(nullabilitySuffix: NullabilitySuffix.star))
         .toList();
@@ -703,7 +703,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var annotation in metadata) {
       var element = annotation.element;
       if (element is ConstructorElement) {
-        var name = element.enclosingElement2.name;
+        var name = element.enclosingElement3.name;
         if (_isAngularUri(element.librarySource.uri)) {
           if (name == 'ViewChild' || name == 'ContentChild') {
             return _AngularAnnotation.child;
@@ -745,7 +745,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         // Constructors have no explicit return type annotation, so use the
         // implicit return type.
         decoratedReturnType = _createDecoratedTypeForClass(
-            declaredElement.enclosingElement2, parameters!.parent);
+            declaredElement.enclosingElement3, parameters!.parent);
         instrumentation?.implicitReturnType(source, node, decoratedReturnType);
       } else {
         // Inferred return type.
@@ -846,7 +846,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var annotation in node.metadata) {
       var element = annotation.element;
       if (element is ConstructorElement &&
-          element.enclosingElement2.name == 'Optional' &&
+          element.enclosingElement3.name == 'Optional' &&
           _isAngularUri(element.librarySource.uri)) {
         _graph.makeNullable(
             decoratedType!.node!, AngularAnnotationOrigin(source, node));

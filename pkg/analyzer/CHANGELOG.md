@@ -15,6 +15,8 @@
   Use `exceptionParameter2` and `stackTraceParameter2` instead.
 * Added `FileResult.isAugmentation` and `isLibrary` to complement `isPart`.
 * Deprecated 'XyzDeclaration.name' in AST, use `name2` and `declaredElement` instead.
+* Deprecated `Element.enclosingElement2`, use `enclosingElement3` instead.  The meaningful change is that
+  `ConstructorElement.enclosingElement3` returns now `IntefaceElement`, not `ClassElement`.
 
 ## 4.3.1
 * Fix `identifier` for `LibraryExportElement` and `LibraryImportElement`.

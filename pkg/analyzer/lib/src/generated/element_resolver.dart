@@ -365,7 +365,7 @@ class ElementResolver {
     } else {
       if (element.isFactory &&
           // Check if we've reported [NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS].
-          !element.enclosingElement2.constructors
+          !element.enclosingElement3.constructors
               .every((constructor) => constructor.isFactory)) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node, [element]);

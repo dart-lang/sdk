@@ -29,15 +29,16 @@ class ConstructorReferenceResolver {
     }
     node.constructorName.accept(_resolver);
     var element = node.constructorName.staticElement;
-    if (element != null &&
-        !element.isFactory &&
-        element.enclosingElement2.isAbstract) {
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode
-            .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
-        node,
-        [],
-      );
+    if (element != null && !element.isFactory) {
+      final enclosingElement = element.enclosingElement3;
+      if (enclosingElement is ClassElement && enclosingElement.isAbstract) {
+        _resolver.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode
+              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+          node,
+          [],
+        );
+      }
     }
     var name = node.constructorName.name;
     if (element == null &&

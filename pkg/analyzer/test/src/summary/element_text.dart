@@ -199,8 +199,8 @@ class _ElementWriter {
 
     expect(accessor.variable, same(property));
 
-    var propertyEnclosing = property.enclosingElement2;
-    expect(accessor.enclosingElement2, same(propertyEnclosing));
+    var propertyEnclosing = property.enclosingElement3;
+    expect(accessor.enclosingElement3, same(propertyEnclosing));
 
     if (propertyEnclosing is CompilationUnitElement) {
       expect(propertyEnclosing.accessors, contains(accessor));
@@ -378,7 +378,7 @@ class _ElementWriter {
       var classReference = reference.parent!.parent!;
       // We need this `if` for duplicate declarations.
       // The reference might be filled by another declaration.
-      if (identical(classReference.element, e.enclosingElement2)) {
+      if (identical(classReference.element, e.enclosingElement3)) {
         expect(reference.element, same(e));
       }
     }
@@ -415,7 +415,9 @@ class _ElementWriter {
 
       var superConstructor = e.superConstructor;
       if (superConstructor != null) {
-        if (!superConstructor.enclosingElement2.isDartCoreObject) {
+        final enclosingElement = superConstructor.enclosingElement3;
+        if (enclosingElement is ClassElement &&
+            !enclosingElement.isDartCoreObject) {
           _writeElementReference('superConstructor', superConstructor);
         }
       }
@@ -433,7 +435,7 @@ class _ElementWriter {
 
     if (e.isSynthetic) {
       expect(e.nameOffset, -1);
-      expect(e.nonSynthetic, same(e.enclosingElement2));
+      expect(e.nonSynthetic, same(e.enclosingElement3));
     } else {
       if (!e.isTempAugmentation) {
         expect(e.nameOffset, isPositive);
@@ -683,9 +685,9 @@ class _ElementWriter {
       _writeNonSyntheticElement(e);
     });
 
-    if (e.isSynthetic && e.enclosingElement2 is EnumElementImpl) {
+    if (e.isSynthetic && e.enclosingElement3 is EnumElementImpl) {
       expect(e.name, 'toString');
-      expect(e.nonSynthetic, same(e.enclosingElement2));
+      expect(e.nonSynthetic, same(e.enclosingElement3));
     } else {
       _assertNonSyntheticElementSelf(e);
     }
@@ -790,7 +792,7 @@ class _ElementWriter {
     PropertyInducingElement variable = e.variable;
     expect(variable, isNotNull);
 
-    var variableEnclosing = variable.enclosingElement2;
+    var variableEnclosing = variable.enclosingElement3;
     if (variableEnclosing is CompilationUnitElement) {
       expect(variableEnclosing.topLevelVariables, contains(variable));
     } else if (variableEnclosing is ClassElement) {

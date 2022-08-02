@@ -548,7 +548,7 @@ class _ClassVerifier {
                     .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
                 derivedOptionalNodes[i],
                 [
-                  baseExecutable.enclosingElement2.displayName,
+                  baseExecutable.enclosingElement3.displayName,
                   baseExecutable.displayName,
                   name
                 ],
@@ -577,7 +577,7 @@ class _ClassVerifier {
                   .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
               derivedOptionalNodes[i],
               [
-                baseExecutable.enclosingElement2.displayName,
+                baseExecutable.enclosingElement3.displayName,
                 baseExecutable.displayName
               ],
             );
@@ -694,7 +694,7 @@ class _ClassVerifier {
       ) {
         var member = concreteMap[Name(libraryUri, memberName)];
         if (member != null) {
-          var enclosingClass = member.enclosingElement2;
+          var enclosingClass = member.enclosingElement3;
           if (enclosingClass is ClassElement && filter(enclosingClass)) {
             reporter.reportErrorForToken(
               CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
@@ -735,7 +735,7 @@ class _ClassVerifier {
         reporter.reportErrorForToken(
           CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE,
           classNameToken,
-          [inherited.enclosingElement2.name!],
+          [inherited.enclosingElement3.name!],
         );
       }
     }
@@ -811,20 +811,20 @@ class _ClassVerifier {
     if (conflict is GetterMethodConflict) {
       // Members that participate in inheritance are always enclosed in named
       // elements so it is safe to assume that
-      // `conflict.getter.enclosingElement2.name` and
-      // `conflict.method.enclosingElement2.name` are both non-`null`.
+      // `conflict.getter.enclosingElement3.name` and
+      // `conflict.method.enclosingElement3.name` are both non-`null`.
       reporter.reportErrorForToken(
         CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
         token,
         [
           name.name,
-          conflict.getter.enclosingElement2.name!,
-          conflict.method.enclosingElement2.name!
+          conflict.getter.enclosingElement3.name!,
+          conflict.method.enclosingElement3.name!
         ],
       );
     } else if (conflict is CandidatesConflict) {
       var candidatesStr = conflict.candidates.map((candidate) {
-        var className = candidate.enclosingElement2.name;
+        var className = candidate.enclosingElement3.name;
         var typeStr = candidate.type.getDisplayString(
           withNullability: _isNonNullableByDefault,
         );
@@ -860,7 +860,7 @@ class _ClassVerifier {
       }
 
       var elementName = element.displayName;
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement3;
       var enclosingName = enclosingElement.displayName;
       var description = "$prefix$enclosingName.$elementName";
 

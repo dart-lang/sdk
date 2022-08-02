@@ -64,7 +64,7 @@ example(List<int> list) {
       assertType(findElement.localVar('a').type, 'int');
       assertType(findElement.parameter('x').type, 'int');
       assertType(findElement.parameter('y').type, 'int');
-      expect(findNode.binary('x + y').staticElement!.enclosingElement2.name,
+      expect(findNode.binary('x + y').staticElement!.enclosingElement3.name,
           'num');
     } else {
       await assertErrorsInCode(code, [
@@ -130,7 +130,7 @@ test(List<int> list) {
     assertType(findElement.localVar('a').type, _isEnabled ? 'int' : 'dynamic');
     assertType(findElement.parameter('x').type, _isEnabled ? 'int' : 'Object?');
     assertType(findElement.parameter('y').type, 'int');
-    expect(findNode.binary('+ y').staticElement?.enclosingElement2.name,
+    expect(findNode.binary('+ y').staticElement?.enclosingElement3.name,
         _isEnabled ? 'num' : null);
   }
 
@@ -294,7 +294,7 @@ test(List<int> list) {
     assertType(findElement.localVar('a').type, 'int?');
     assertType(findElement.parameter('x').type, 'int?');
     assertType(findElement.parameter('y').type, 'int');
-    expect(findNode.binary('+ y').staticElement!.enclosingElement2.name, 'num');
+    expect(findNode.binary('+ y').staticElement!.enclosingElement3.name, 'num');
   }
 
   test_horizontal_inference_unnecessary_due_to_explicit_parameter_type_named() async {
@@ -311,7 +311,7 @@ test() {
     assertType(findElement.localVar('a').type, 'int?');
     assertType(findElement.parameter('x').type, 'int?');
     assertType(findElement.parameter('y').type, 'int');
-    expect(findNode.binary('+ y').staticElement!.enclosingElement2.name, 'num');
+    expect(findNode.binary('+ y').staticElement!.enclosingElement3.name, 'num');
   }
 
   test_horizontal_inference_unnecessary_due_to_no_dependency() async {

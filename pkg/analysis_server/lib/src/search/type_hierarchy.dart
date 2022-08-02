@@ -35,10 +35,10 @@ class TypeHierarchyComputer {
     Element? element = _pivotElement;
     if (_pivotElement is FieldElement) {
       _pivotFieldFinal = (_pivotElement as FieldElement).isFinal;
-      element = _pivotElement.enclosingElement2;
+      element = _pivotElement.enclosingElement3;
     }
     if (_pivotElement is ExecutableElement) {
-      element = _pivotElement.enclosingElement2;
+      element = _pivotElement.enclosingElement3;
     }
     if (element is ClassElement) {
       _pivotClass = element;

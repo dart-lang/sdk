@@ -192,7 +192,7 @@ class Flutter {
 
   /// Return the presentation for the given Flutter `Widget` creation [node].
   String? getWidgetPresentationText(InstanceCreationExpression node) {
-    var element = node.constructorName.staticElement?.enclosingElement2;
+    var element = node.constructorName.staticElement?.enclosingElement3;
     if (!isWidget(element)) {
       return null;
     }
@@ -486,8 +486,8 @@ class Flutter {
 
   /// Return `true` if the given [element] is the Flutter class `Widget`, or its
   /// subtype.
-  bool isWidget(ClassElement? element) {
-    if (element == null) {
+  bool isWidget(InterfaceElement? element) {
+    if (element is! ClassElement) {
       return false;
     }
     if (_isExactWidget(element, _nameWidget, _uriFramework)) {
@@ -504,7 +504,7 @@ class Flutter {
   /// Return `true` if the given [expr] is a constructor invocation for a
   /// class that has the Flutter class `Widget` as a superclass.
   bool isWidgetCreation(InstanceCreationExpression? expr) {
-    var element = expr?.constructorName.staticElement?.enclosingElement2;
+    var element = expr?.constructorName.staticElement?.enclosingElement3;
     return isWidget(element);
   }
 
@@ -555,7 +555,9 @@ class Flutter {
 
   /// Return `true` if the given [element] is the exact [type] defined in the
   /// file with the given [uri].
-  bool _isExactWidget(ClassElement? element, String type, Uri uri) {
-    return element != null && element.name == type && element.source.uri == uri;
+  bool _isExactWidget(InterfaceElement? element, String type, Uri uri) {
+    return element is ClassElement &&
+        element.name == type &&
+        element.source.uri == uri;
   }
 }

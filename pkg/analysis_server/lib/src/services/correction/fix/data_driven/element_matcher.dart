@@ -202,7 +202,7 @@ class _MatcherBuilder {
         );
       }
     } else if (parent is SuperConstructorInvocation) {
-      var superclassName = parent.staticElement?.enclosingElement2.name;
+      var superclassName = parent.staticElement?.enclosingElement3.name;
       if (superclassName != null) {
         _addMatcher(
           components: [parent.constructorName?.name ?? '', superclassName],
@@ -503,7 +503,7 @@ class _MatcherBuilder {
       }
     }
     if (element != null) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement is ClassElement) {
         return [identifier.name, enclosingElement.name];
       } else if (enclosingElement is ExtensionElement) {

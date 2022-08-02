@@ -65,7 +65,7 @@ class CanRenameResponse {
 
   void _analyzePossibleConflicts(
       ConstructorElement element, RefactoringStatus result, String newName) {
-    var parentClass = element.enclosingElement2;
+    var parentClass = element.enclosingElement3;
     // Check if the "newName" is the name of the enclosing class.
     if (parentClass.name == newName) {
       result.addError('The constructor should not have the same name '
@@ -254,7 +254,7 @@ class CheckNameResponse {
     var stateName = flutterState.newName;
     var match = await canRename._fileResolver.findReferences2(stateClass);
     var sourcePath = stateClass.source.fullName;
-    var location = stateClass.enclosingElement2.lineInfo
+    var location = stateClass.enclosingElement3.lineInfo
         .getLocation(stateClass.nameOffset);
     CiderSearchMatch ciderMatch;
     var searchInfo =
@@ -297,7 +297,7 @@ class CheckNameResponse {
 
   Future<CiderReplaceMatch?> _replaceSyntheticConstructor() async {
     var element = canRename.refactoringElement.element;
-    var classElement = element.enclosingElement2;
+    var classElement = element.enclosingElement3;
 
     var fileResolver = canRename._fileResolver;
     var libraryPath = classElement!.library!.source.fullName;
@@ -382,7 +382,7 @@ class CiderRenameComputer {
   }
 
   bool _canRenameElement(Element element) {
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement3;
     if (element is ConstructorElement) {
       return true;
     }

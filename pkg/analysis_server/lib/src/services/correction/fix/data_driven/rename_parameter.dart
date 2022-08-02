@@ -122,7 +122,7 @@ extension on MethodDeclaration {
   ExecutableElement? overriddenElement() {
     var element = declaredElement;
     if (element != null) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement is ClassElement) {
         var name = Name(enclosingElement.library.source.uri, element.name);
         return InheritanceManager3().getInherited2(enclosingElement, name);

@@ -326,7 +326,7 @@ class SuggestionBuilder {
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestClass(ClassElement classElement, {String? prefix}) {
     var relevance = _computeTopLevelRelevance(classElement,
-        elementType: _instantiateClassElement(classElement));
+        elementType: _instantiateInterfaceElement(classElement));
     _addBuilder(
       _createCompletionSuggestionBuilder(
         classElement,
@@ -410,7 +410,7 @@ class SuggestionBuilder {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
-    var enclosingClass = constructor.enclosingElement2;
+    var enclosingClass = constructor.enclosingElement3;
     var className = enclosingClass.name;
     if (className.isEmpty) {
       return;
@@ -432,7 +432,7 @@ class SuggestionBuilder {
       return;
     }
 
-    var returnType = _instantiateClassElement(enclosingClass);
+    var returnType = _instantiateInterfaceElement(enclosingClass);
     var relevance =
         _computeTopLevelRelevance(constructor, elementType: returnType);
     _addBuilder(
@@ -458,10 +458,10 @@ class SuggestionBuilder {
     } else if (element is ExtensionElement) {
       suggestExtension(element, kind: kind);
     } else if (element is FunctionElement &&
-        element.enclosingElement2 is CompilationUnitElement) {
+        element.enclosingElement3 is CompilationUnitElement) {
       suggestTopLevelFunction(element, kind: kind);
     } else if (element is PropertyAccessorElement &&
-        element.enclosingElement2 is CompilationUnitElement) {
+        element.enclosingElement3 is CompilationUnitElement) {
       suggestTopLevelPropertyAccessor(element);
     } else if (element is TypeAliasElement) {
       suggestTypeAlias(element);
@@ -474,7 +474,7 @@ class SuggestionBuilder {
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestEnumConstant(FieldElement constant, {String? prefix}) {
     var constantName = constant.name;
-    var enumElement = constant.enclosingElement2;
+    var enumElement = constant.enclosingElement3;
     var enumName = enumElement.name;
     var completion = '$enumName.$constantName';
     var relevance =
@@ -706,7 +706,7 @@ class SuggestionBuilder {
       inheritanceDistance: inheritanceDistance,
     );
 
-    var enclosingElement = method.enclosingElement2;
+    var enclosingElement = method.enclosingElement3;
     if (method.name == 'setState' &&
         enclosingElement is ClassElement &&
         flutter.isExactState(enclosingElement)) {
@@ -778,10 +778,10 @@ class SuggestionBuilder {
 
     // Optionally add Flutter child widget details.
     // todo (pq): revisit this special casing; likely it can be generalized away
-    var element = parameter.enclosingElement2;
+    var element = parameter.enclosingElement3;
     // If appendColon is false, default values should never be appended.
     if (element is ConstructorElement && appendColon) {
-      if (Flutter.instance.isWidget(element.enclosingElement2)) {
+      if (Flutter.instance.isWidget(element.enclosingElement3)) {
         // Don't bother with nullability. It won't affect default list values.
         var defaultValue =
             getDefaultStringParameterValue(parameter, withNullability: false);
@@ -1010,9 +1010,9 @@ class SuggestionBuilder {
   void suggestTopLevelPropertyAccessor(PropertyAccessorElement accessor,
       {String? prefix}) {
     assert(
-        accessor.enclosingElement2 is CompilationUnitElement,
+        accessor.enclosingElement3 is CompilationUnitElement,
         'Enclosing element of ${accessor.runtimeType} is '
-        '${accessor.enclosingElement2.runtimeType}.');
+        '${accessor.enclosingElement3.runtimeType}.');
     if (accessor.isSynthetic) {
       // Avoid visiting a field twice. All fields induce a getter, but only
       // non-final fields induce a setter, so we don't add a suggestion for a
@@ -1062,7 +1062,7 @@ class SuggestionBuilder {
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestTopLevelVariable(TopLevelVariableElement variable,
       {String? prefix}) {
-    assert(variable.enclosingElement2 is CompilationUnitElement);
+    assert(variable.enclosingElement3 is CompilationUnitElement);
     var relevance =
         _computeTopLevelRelevance(variable, elementType: variable.type);
     _addBuilder(
@@ -1295,7 +1295,7 @@ class SuggestionBuilder {
       withNullability: _isNonNullableByDefault,
     );
 
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement3;
 
     String? declaringType;
     if (enclosingElement is ClassElement) {
@@ -1354,7 +1354,7 @@ class SuggestionBuilder {
   /// The enclosing element must be either a class, or extension; otherwise
   /// we either fail with assertion, or return `null`.
   String? _enclosingClassOrExtensionName(Element element) {
-    var enclosing = element.enclosingElement2;
+    var enclosing = element.enclosingElement3;
     if (enclosing is ClassElement) {
       return enclosing.name;
     } else if (enclosing is ExtensionElement) {
@@ -1418,7 +1418,7 @@ class SuggestionBuilder {
     }
   }
 
-  InterfaceType _instantiateClassElement(ClassElement element) {
+  InterfaceType _instantiateInterfaceElement(InterfaceElement element) {
     var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {

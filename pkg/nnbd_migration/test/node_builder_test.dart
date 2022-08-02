@@ -1033,7 +1033,7 @@ void f() {
 }
 ''');
     var functionExpressionElement =
-        findNode.simpleParameter('int i').declaredElement!.enclosingElement2!;
+        findNode.simpleParameter('int i').declaredElement!.enclosingElement3!;
     var decoratedType =
         variables!.decoratedElementType(functionExpressionElement);
     expect(decoratedType.positionalParameters![0],
@@ -1050,7 +1050,7 @@ void f() {
 }
 ''');
     var functionExpressionElement =
-        findNode.simpleParameter('int i').declaredElement!.enclosingElement2!;
+        findNode.simpleParameter('int i').declaredElement!.enclosingElement3!;
     var decoratedType =
         variables!.decoratedElementType(functionExpressionElement);
     expect(

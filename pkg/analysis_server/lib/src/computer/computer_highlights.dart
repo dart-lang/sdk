@@ -305,7 +305,7 @@ class DartUnitHighlightsComputer {
     var parent = node.parent;
     var isInvocation = parent is MethodInvocation && parent.methodName == node;
     HighlightRegionType type;
-    var isTopLevel = element.enclosingElement2 is CompilationUnitElement;
+    var isTopLevel = element.enclosingElement3 is CompilationUnitElement;
     if (node.inDeclarationContext()) {
       type = isTopLevel
           ? HighlightRegionType.TOP_LEVEL_FUNCTION_DECLARATION
@@ -334,7 +334,7 @@ class DartUnitHighlightsComputer {
       return false;
     }
     // getter or setter
-    var isTopLevel = element.enclosingElement2 is CompilationUnitElement;
+    var isTopLevel = element.enclosingElement3 is CompilationUnitElement;
     HighlightRegionType type;
     if (element.isGetter) {
       if (isTopLevel) {

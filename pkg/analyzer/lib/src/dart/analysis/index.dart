@@ -19,7 +19,7 @@ Element? declaredParameterElement(
   SimpleIdentifier node,
   Element? element,
 ) {
-  if (element == null || element.enclosingElement2 != null) {
+  if (element == null || element.enclosingElement3 != null) {
     return element;
   }
 
@@ -64,7 +64,7 @@ Element? declaredParameterElement(
 /// Return the [CompilationUnitElement] that should be used for [element].
 /// Throw [StateError] if the [element] is not linked into a unit.
 CompilationUnitElement getUnitElement(Element element) {
-  for (Element? e = element; e != null; e = e.enclosingElement2) {
+  for (Element? e = element; e != null; e = e.enclosingElement3) {
     if (e is CompilationUnitElement) {
       return e;
     }
@@ -89,21 +89,21 @@ class ElementNameComponents {
     String? parameterName;
     if (element is ParameterElement) {
       parameterName = element.name;
-      element = element.enclosingElement2!;
+      element = element.enclosingElement3!;
     }
 
     String? classMemberName;
-    if (element.enclosingElement2 is ClassElement ||
-        element.enclosingElement2 is ExtensionElement) {
+    if (element.enclosingElement3 is ClassElement ||
+        element.enclosingElement3 is ExtensionElement) {
       classMemberName = element.name;
-      element = element.enclosingElement2!;
+      element = element.enclosingElement3!;
     }
 
     String? unitMemberName;
-    if (element.enclosingElement2 is CompilationUnitElement) {
+    if (element.enclosingElement3 is CompilationUnitElement) {
       unitMemberName = element.name;
       if (element is ExtensionElement && unitMemberName == null) {
-        var enclosingUnit = element.enclosingElement2;
+        var enclosingUnit = element.enclosingElement3;
         var indexOf = enclosingUnit.extensions.indexOf(element);
         unitMemberName = 'extension-$indexOf';
       }
@@ -140,7 +140,7 @@ class IndexElementInfo {
     } else if (element.isSynthetic) {
       if (elementKind == ElementKind.CONSTRUCTOR) {
         kind = IndexSyntheticElementKind.constructor;
-        element = element.enclosingElement2!;
+        element = element.enclosingElement3!;
       } else if (element is FunctionElement &&
           element.name == FunctionElement.LOAD_LIBRARY_NAME) {
         kind = IndexSyntheticElementKind.loadLibrary;
@@ -152,7 +152,7 @@ class IndexElementInfo {
       } else if (elementKind == ElementKind.GETTER ||
           elementKind == ElementKind.SETTER) {
         var accessor = element as PropertyAccessorElement;
-        Element enclosing = element.enclosingElement2;
+        Element enclosing = element.enclosingElement3;
         bool isEnumGetter = enclosing is ClassElement && enclosing.isEnum;
         if (isEnumGetter && accessor.name == 'index') {
           kind = IndexSyntheticElementKind.enumIndex;
@@ -167,7 +167,7 @@ class IndexElementInfo {
           element = accessor.variable;
         }
       } else if (element is MethodElement) {
-        Element enclosing = element.enclosingElement2;
+        Element enclosing = element.enclosingElement3;
         bool isEnumMethod = enclosing is ClassElement && enclosing.isEnum;
         if (isEnumMethod && element.name == 'toString') {
           kind = IndexSyntheticElementKind.enumToString;
@@ -492,14 +492,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
         elementKind == ElementKind.TYPE_PARAMETER ||
         elementKind == ElementKind.FUNCTION &&
             element is FunctionElement &&
-            element.enclosingElement2 is ExecutableElement ||
+            element.enclosingElement3 is ExecutableElement ||
         false) {
       return;
     }
     // Ignore named parameters of synthetic functions, e.g. created for LUB.
     // These functions are not bound to a source, we cannot index them.
     if (elementKind == ElementKind.PARAMETER && element is ParameterElement) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement == null || enclosingElement.isSynthetic) {
         return;
       }
@@ -509,7 +509,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // named parameters. Ignore them.
     if (elementKind == ElementKind.PARAMETER &&
         element is ParameterElement &&
-        element.enclosingElement2 is GenericFunctionTypeElement) {
+        element.enclosingElement3 is GenericFunctionTypeElement) {
       return;
     }
     // Add the relation.
@@ -995,8 +995,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
       ConstructorElement? constructor) {
     var seenConstructors = <ConstructorElement?>{};
     while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
-      var enclosing = constructor.enclosingElement2;
-      if (enclosing.isMixinApplication) {
+      var enclosing = constructor.enclosingElement3;
+      if (enclosing is ClassElement && enclosing.isMixinApplication) {
         var superInvocation = constructor.constantInitializers
             .whereType<SuperConstructorInvocation>()
             .singleOrNull;
