@@ -1135,27 +1135,32 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var enclosingRef = _enclosingContext.reference;
     var enclosingElement = _enclosingContext.element;
 
-    PropertyInducingElementImpl? property;
+    bool canUseExisting(PropertyInducingElement property) {
+      return property.isSynthetic ||
+          accessorElement.isSetter && property.setter == null;
+    }
+
+    final PropertyInducingElementImpl property;
     if (enclosingElement is CompilationUnitElement) {
-      var containerRef = enclosingRef.getChild('@variable');
-      var propertyRef = containerRef.getChild(name);
-      property = propertyRef.element as PropertyInducingElementImpl?;
-      if (property == null) {
-        var variable = TopLevelVariableElementImpl(name, -1);
-        variable.isSynthetic = true;
+      final reference = enclosingRef.getChild('@variable').getChild(name);
+      final existing = reference.element;
+      if (existing is TopLevelVariableElementImpl && canUseExisting(existing)) {
+        property = existing;
+      } else {
+        final variable = property = TopLevelVariableElementImpl(name, -1)
+          ..isSynthetic = true;
         _enclosingContext.addTopLevelVariable(name, variable);
-        property = variable;
       }
     } else {
-      var containerRef = enclosingRef.getChild('@field');
-      var propertyRef = containerRef.getChild(name);
-      property = propertyRef.element as PropertyInducingElementImpl?;
-      if (property == null) {
-        var field = FieldElementImpl(name, -1);
-        field.isSynthetic = true;
-        field.isStatic = accessorElement.isStatic;
+      final reference = enclosingRef.getChild('@field').getChild(name);
+      final existing = reference.element;
+      if (existing is FieldElementImpl && canUseExisting(existing)) {
+        property = existing;
+      } else {
+        final field = property = FieldElementImpl(name, -1)
+          ..isStatic = accessorElement.isStatic
+          ..isSynthetic = true;
         _enclosingContext.addField(name, field);
-        property = field;
       }
     }
 

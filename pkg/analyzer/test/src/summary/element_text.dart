@@ -52,6 +52,7 @@ void checkElementText(
   bool withDisplayName = false,
   bool withExportScope = false,
   bool withNonSynthetic = false,
+  bool withPropertyLinking = false,
   bool withSyntheticDartCoreImport = false,
 }) {
   var writer = _ElementWriter(
@@ -60,6 +61,7 @@ void checkElementText(
     withDisplayName: withDisplayName,
     withExportScope: withExportScope,
     withNonSynthetic: withNonSynthetic,
+    withPropertyLinking: withPropertyLinking,
     withSyntheticDartCoreImport: withSyntheticDartCoreImport,
   );
   writer.writeLibraryElement(library);
@@ -126,8 +128,10 @@ class _ElementWriter {
   final bool withDisplayName;
   final bool withExportScope;
   final bool withNonSynthetic;
+  final bool withPropertyLinking;
   final bool withSyntheticDartCoreImport;
   final StringBuffer buffer = StringBuffer();
+  final _IdMap _idMap = _IdMap();
 
   String indent = '';
 
@@ -137,6 +141,7 @@ class _ElementWriter {
     required this.withDisplayName,
     required this.withExportScope,
     required this.withNonSynthetic,
+    required this.withPropertyLinking,
     required this.withSyntheticDartCoreImport,
   });
 
@@ -829,6 +834,13 @@ class _ElementWriter {
       _writeBodyModifiers(e);
     });
 
+    void writeLinking() {
+      if (withPropertyLinking) {
+        _writelnWithIndent('id: ${_idMap[e]}');
+        _writelnWithIndent('variable: ${_idMap[e.variable]}');
+      }
+    }
+
     _withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
@@ -838,6 +850,7 @@ class _ElementWriter {
       _writeParameterElements(e.parameters);
       _writeType('returnType', e.returnType);
       _writeNonSyntheticElement(e);
+      writeLinking();
     });
   }
 
@@ -877,6 +890,22 @@ class _ElementWriter {
       _writeName(e);
     });
 
+    void writeLinking() {
+      if (withPropertyLinking) {
+        _writelnWithIndent('id: ${_idMap[e]}');
+
+        final getter = e.getter;
+        if (getter != null) {
+          _writelnWithIndent('getter: ${_idMap[getter]}');
+        }
+
+        final setter = e.setter;
+        if (setter != null) {
+          _writelnWithIndent('setter: ${_idMap[setter]}');
+        }
+      }
+    }
+
     _withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
@@ -885,6 +914,7 @@ class _ElementWriter {
       _writeType('type', e.type);
       _writeConstantInitializer(e);
       _writeNonSyntheticElement(e);
+      writeLinking();
     });
   }
 
@@ -1009,6 +1039,26 @@ class _ElementWriter {
       _writePropertyAccessorElement,
     );
     _writeElements('functions', e.functions, _writeFunctionElement);
+  }
+}
+
+class _IdMap {
+  final Map<Element, String> fieldMap = Map.identity();
+  final Map<Element, String> getterMap = Map.identity();
+  final Map<Element, String> setterMap = Map.identity();
+
+  String operator [](Element element) {
+    if (element is FieldElement) {
+      return fieldMap[element] ??= 'field_${fieldMap.length}';
+    } else if (element is TopLevelVariableElement) {
+      return fieldMap[element] ??= 'variable_${fieldMap.length}';
+    } else if (element is PropertyAccessorElement && element.isGetter) {
+      return getterMap[element] ??= 'getter_${getterMap.length}';
+    } else if (element is PropertyAccessorElement && element.isSetter) {
+      return setterMap[element] ??= 'setter_${setterMap.length}';
+    } else {
+      return '???';
+    }
   }
 }
 

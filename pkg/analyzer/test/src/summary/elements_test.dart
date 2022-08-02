@@ -4282,6 +4282,101 @@ library
 ''');
   }
 
+  test_class_field_duplicate_getter() async {
+    var library = await buildLibrary('''
+class C {
+  int foo = 0;
+  int get foo => 0;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          foo @16
+            type: int
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+          synthetic foo @-1
+            type: int
+            id: field_1
+            getter: getter_1
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_0
+          synthetic set foo @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+          get foo @35
+            returnType: int
+            id: getter_1
+            variable: field_1
+''',
+        withPropertyLinking: true);
+  }
+
+  test_class_field_duplicate_setter() async {
+    var library = await buildLibrary('''
+class C {
+  int foo = 0;
+  set foo(int _) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          foo @16
+            type: int
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+          synthetic foo @-1
+            type: int
+            id: field_1
+            setter: setter_1
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_0
+          synthetic set foo @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+          set foo @31
+            parameters
+              requiredPositional _ @39
+                type: int
+            returnType: void
+            id: setter_1
+            variable: field_1
+''',
+        withPropertyLinking: true);
+  }
+
   test_class_field_external() async {
     var library = await buildLibrary('''
 abstract class C {
@@ -4448,7 +4543,9 @@ class A {
   set foo(int newValue) {}
 }
 ''');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 library
   definingUnit
     classes
@@ -4456,6 +4553,9 @@ library
         fields
           final foo @22
             type: int
+            id: field_0
+            getter: getter_0
+            setter: setter_0
         constructors
           @29
             parameters
@@ -4465,12 +4565,17 @@ library
         accessors
           synthetic get foo @-1
             returnType: int
+            id: getter_0
+            variable: field_0
           set foo @48
             parameters
               requiredPositional newValue @56
                 type: int
             returnType: void
-''');
+            id: setter_0
+            variable: field_0
+''',
+        withPropertyLinking: true);
   }
 
   test_class_field_formal_param_inferred_type_implicit() async {
@@ -39076,26 +39181,119 @@ library
 ''');
   }
 
+  test_unit_variable_duplicate_getter() async {
+    var library = await buildLibrary('''
+int foo = 0;
+int get foo => 0;
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    topLevelVariables
+      static foo @4
+        type: int
+        id: variable_0
+        getter: getter_0
+        setter: setter_0
+      synthetic static foo @-1
+        type: int
+        id: variable_1
+        getter: getter_1
+    accessors
+      synthetic static get foo @-1
+        returnType: int
+        id: getter_0
+        variable: variable_0
+      synthetic static set foo @-1
+        parameters
+          requiredPositional _foo @-1
+            type: int
+        returnType: void
+        id: setter_0
+        variable: variable_0
+      static get foo @21
+        returnType: int
+        id: getter_1
+        variable: variable_1
+''',
+        withPropertyLinking: true);
+  }
+
+  test_unit_variable_duplicate_setter() async {
+    var library = await buildLibrary('''
+int foo = 0;
+set foo(int _) {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    topLevelVariables
+      static foo @4
+        type: int
+        id: variable_0
+        getter: getter_0
+        setter: setter_0
+      synthetic static foo @-1
+        type: int
+        id: variable_1
+        setter: setter_1
+    accessors
+      synthetic static get foo @-1
+        returnType: int
+        id: getter_0
+        variable: variable_0
+      synthetic static set foo @-1
+        parameters
+          requiredPositional _foo @-1
+            type: int
+        returnType: void
+        id: setter_0
+        variable: variable_0
+      static set foo @17
+        parameters
+          requiredPositional _ @25
+            type: int
+        returnType: void
+        id: setter_1
+        variable: variable_1
+''',
+        withPropertyLinking: true);
+  }
+
   test_unit_variable_final_withSetter() async {
     var library = await buildLibrary(r'''
 final int foo = 0;
 set foo(int newValue) {}
 ''');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 library
   definingUnit
     topLevelVariables
       static final foo @10
         type: int
+        id: variable_0
+        getter: getter_0
+        setter: setter_0
     accessors
       synthetic static get foo @-1
         returnType: int
+        id: getter_0
+        variable: variable_0
       static set foo @23
         parameters
           requiredPositional newValue @31
             type: int
         returnType: void
-''');
+        id: setter_0
+        variable: variable_0
+''',
+        withPropertyLinking: true);
   }
 
   test_unresolved_annotation_instanceCreation_argument_super() async {
