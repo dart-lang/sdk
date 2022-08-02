@@ -29,7 +29,6 @@ import 'dart:collection';
 
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
-
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/graph.dart';
 import 'package:dart2js_info/src/io.dart';
@@ -92,7 +91,7 @@ class _SomePathQuery extends Command<void> with PrintUsageException {
 
 /// A query supported by this tool.
 abstract class Query {
-  run(Graph<Info> graph);
+  void run(Graph<Info> graph);
 }
 
 /// Query that searches for a single path between two elements.

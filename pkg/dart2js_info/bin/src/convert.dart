@@ -4,8 +4,8 @@
 
 import 'package:args/command_runner.dart';
 
-import 'to_json.dart' show ToJsonCommand;
 import 'to_binary.dart' show ToBinaryCommand;
+import 'to_json.dart' show ToJsonCommand;
 import 'to_proto.dart' show ToProtoCommand;
 import 'usage_exception.dart';
 
@@ -22,7 +22,7 @@ class ConvertCommand extends Command<void> with PrintUsageException {
     _addSubcommand(ToProtoCommand());
   }
 
-  _addSubcommand(Command<void> command) {
+  void _addSubcommand(Command<void> command) {
     addSubcommand(command);
     command.argParser
       ..addOption('out',

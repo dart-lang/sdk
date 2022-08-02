@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('parse', () {
     test('hello_world', () {
       var uri = Platform.script.resolve('hello_world/hello_world.js.info.json');

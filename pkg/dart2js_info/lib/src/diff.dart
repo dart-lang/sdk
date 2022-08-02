@@ -49,28 +49,28 @@ class _InfoDiffer extends InfoVisitor<void> {
   }
 
   @override
-  visitAll(AllInfo info) {
+  void visitAll(AllInfo info) {
     throw StateError('should not diff AllInfo');
   }
 
   @override
-  visitProgram(ProgramInfo info) {
+  void visitProgram(ProgramInfo info) {
     throw StateError('should not diff ProgramInfo');
   }
 
   @override
-  visitOutput(OutputUnitInfo info) {
+  void visitOutput(OutputUnitInfo info) {
     throw StateError('should not diff OutputUnitInfo');
   }
 
   // TODO(het): diff constants
   @override
-  visitConstant(ConstantInfo info) {
+  void visitConstant(ConstantInfo info) {
     throw StateError('should not diff ConstantInfo');
   }
 
   @override
-  visitLibrary(LibraryInfo info) {
+  void visitLibrary(LibraryInfo info) {
     var other = _other as LibraryInfo;
     _checkSize(info, other);
     _diffList(info.topLevelVariables, other.topLevelVariables);
@@ -79,7 +79,7 @@ class _InfoDiffer extends InfoVisitor<void> {
   }
 
   @override
-  visitClass(ClassInfo info) {
+  void visitClass(ClassInfo info) {
     var other = _other as ClassInfo;
     _checkSize(info, other);
     _checkDeferredStatus(info, other);
@@ -88,14 +88,14 @@ class _InfoDiffer extends InfoVisitor<void> {
   }
 
   @override
-  visitClassType(ClassTypeInfo info) {
+  void visitClassType(ClassTypeInfo info) {
     var other = _other as ClassTypeInfo;
     _checkSize(info, other);
     _checkDeferredStatus(info, other);
   }
 
   @override
-  visitClosure(ClosureInfo info) {
+  void visitClosure(ClosureInfo info) {
     var other = _other as ClosureInfo;
     _checkSize(info, other);
     _checkDeferredStatus(info, other);
@@ -103,7 +103,7 @@ class _InfoDiffer extends InfoVisitor<void> {
   }
 
   @override
-  visitField(FieldInfo info) {
+  void visitField(FieldInfo info) {
     var other = _other as FieldInfo;
     _checkSize(info, other);
     _checkDeferredStatus(info, other);
@@ -111,7 +111,7 @@ class _InfoDiffer extends InfoVisitor<void> {
   }
 
   @override
-  visitFunction(FunctionInfo info) {
+  void visitFunction(FunctionInfo info) {
     var other = _other as FunctionInfo;
     _checkSize(info, other);
     _checkDeferredStatus(info, other);
@@ -119,7 +119,7 @@ class _InfoDiffer extends InfoVisitor<void> {
   }
 
   @override
-  visitTypedef(TypedefInfo info) {
+  void visitTypedef(TypedefInfo info) {
     var other = _other as TypedefInfo;
     _checkSize(info, other);
     _checkDeferredStatus(info, other);

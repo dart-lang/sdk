@@ -35,7 +35,7 @@ class Subsub2 extends Subclass {
   }
 }
 
-main() {
+void main() {
   Super<Object> s = Subclass()..test();
   Expect.throws(() => s.method(''));
   dynamic x = Subsub1();
