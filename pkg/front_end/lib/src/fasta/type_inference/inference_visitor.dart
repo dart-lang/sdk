@@ -3303,9 +3303,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType binaryType = binaryResult.inferredType;
     Expression binary = binaryResult.expression;
 
-    Expression write = _computePropertySet(node.writeOffset, writeReceiver,
-        receiverType, node.propertyName, writeTarget, binary,
-        valueType: binaryType, forEffect: node.forEffect);
+    ExpressionInferenceResult writeResult = _computePropertySet(
+        node.writeOffset,
+        writeReceiver,
+        receiverType,
+        node.propertyName,
+        writeTarget,
+        binary,
+        valueType: binaryType,
+        forEffect: node.forEffect);
+    Expression write = writeResult.expression;
 
     Expression replacement = write;
     if (receiverVariable != null) {
@@ -3359,9 +3366,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression rhs = rhsResult.expression;
 
     DartType writeType = rhsResult.inferredType;
-    Expression write = _computePropertySet(node.writeOffset, writeReceiver,
-        receiverType, node.propertyName, writeTarget, rhs,
-        forEffect: node.forEffect, valueType: writeType);
+    ExpressionInferenceResult writeResult = _computePropertySet(
+        node.writeOffset,
+        writeReceiver,
+        receiverType,
+        node.propertyName,
+        writeTarget,
+        rhs,
+        forEffect: node.forEffect,
+        valueType: writeType);
+    Expression write = writeResult.expression;
 
     DartType nonNullableReadType = readType.toNonNull();
     DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
@@ -5016,20 +5030,24 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   /// If [forEffect] the resulting expression is ensured to return the [value]
   /// of static type [valueType]. This is needed for extension setters which are
   /// encoded as static method calls that do not implicitly return the value.
-  Expression _computePropertySet(
+  ///
+  /// The returned [ExpressionInferenceResult] holds the generated expression
+  /// and the type of this expression. Normally this is the [valueType] but
+  /// for setter extension for effect, the generated expression has type
+  /// `void`.
+  ExpressionInferenceResult _computePropertySet(
       int fileOffset,
       Expression receiver,
       DartType receiverType,
       Name propertyName,
       ObjectAccessTarget writeTarget,
       Expression value,
-      {DartType? valueType,
+      {required DartType valueType,
       required bool forEffect}) {
     // ignore: unnecessary_null_comparison
     assert(forEffect != null);
-    assert(forEffect || valueType != null,
-        "No value type provided for property set needed for value.");
     Expression write;
+    DartType writeType = valueType;
     switch (writeTarget.kind) {
       case ObjectAccessTargetKind.missing:
         write = createMissingPropertySet(
@@ -5051,8 +5069,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                   types: writeTarget.inferredExtensionTypeArguments)
                 ..fileOffset = fileOffset)
             ..fileOffset = fileOffset;
+          // The generate invocation has a void return type.
+          writeType = const VoidType();
         } else {
-          VariableDeclaration valueVariable = createVariable(value, valueType!);
+          VariableDeclaration valueVariable = createVariable(value, valueType);
           VariableDeclaration assignmentVariable = createVariable(
               new StaticInvocation(
                   writeTarget.member as Procedure,
@@ -5106,16 +5126,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ..fileOffset = fileOffset;
         break;
     }
+    Expression result;
     if (!isTopLevel && writeTarget.isNullable) {
-      return helper.wrapInProblem(
+      result = helper.wrapInProblem(
           write,
           templateNullablePropertyAccessError.withArguments(
               propertyName.text, receiverType, isNonNullableByDefault),
           write.fileOffset,
           propertyName.text.length);
+    } else {
+      result = write;
     }
-
-    return write;
+    return new ExpressionInferenceResult(writeType, result);
   }
 
   ExpressionInferenceResult visitCompoundIndexSet(
@@ -5366,9 +5388,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       valueExpression = createVariableGet(valueVariable);
     }
 
-    Expression write = _computePropertySet(node.writeOffset, writeReceiver,
-        nonNullReceiverType, node.propertyName, writeTarget, valueExpression,
+    ExpressionInferenceResult writeResult = _computePropertySet(
+        node.writeOffset,
+        writeReceiver,
+        nonNullReceiverType,
+        node.propertyName,
+        writeTarget,
+        valueExpression,
+        valueType: binaryType,
         forEffect: true);
+    Expression write = writeResult.expression;
+    DartType writeType = writeResult.inferredType;
 
     DartType resultType = node.forPostIncDec ? readType : binaryType;
 
@@ -5400,8 +5430,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       assert(leftVariable != null);
       assert(valueVariable == null);
 
-      VariableDeclaration writeVariable =
-          createVariable(write, const VoidType());
+      VariableDeclaration writeVariable = createVariable(write, writeType);
       action = createLet(leftVariable!,
           createLet(writeVariable, createVariableGet(leftVariable)));
     } else {
@@ -5794,12 +5823,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression rhs = rhsResult.expression;
     DartType rhsType = rhsResult.inferredType;
 
-    Expression replacement = _computePropertySet(
+    ExpressionInferenceResult replacementResult = _computePropertySet(
         node.fileOffset, receiver, receiverType, node.name, target, rhs,
         valueType: rhsType, forEffect: node.forEffect);
+    Expression replacement = replacementResult.expression;
+    DartType replacementType = replacementResult.inferredType;
 
     return createNullAwareExpressionInferenceResult(
-        rhsType, replacement, nullAwareGuards);
+        replacementType, replacement, nullAwareGuards);
   }
 
   ExpressionInferenceResult visitAugmentSuperSet(
@@ -5825,11 +5856,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression rhs = rhsResult.expression;
       DartType rhsType = rhsResult.inferredType;
 
-      Expression replacement = _computePropertySet(
+      ExpressionInferenceResult replacementResult = _computePropertySet(
           node.fileOffset, receiver, receiverType, member.name, target, rhs,
           valueType: rhsType, forEffect: node.forEffect);
+      Expression replacement = replacementResult.expression;
+      DartType replacementType = replacementResult.inferredType;
 
-      return new ExpressionInferenceResult(rhsType, replacement);
+      return new ExpressionInferenceResult(replacementType, replacement);
     } else {
       // TODO(johnniwinther): Handle augmentation of field with inferred types.
       TypeInferenceEngine.resolveInferenceNode(member, classHierarchy);
@@ -5891,9 +5924,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(valueType, valueResult);
     Expression value = valueResult.expression;
 
-    Expression write = _computePropertySet(node.writeOffset, writeReceiver,
-        nonNullReceiverType, node.name, writeTarget, value,
-        valueType: valueResult.inferredType, forEffect: node.forEffect);
+    ExpressionInferenceResult writeResult = _computePropertySet(
+        node.writeOffset,
+        writeReceiver,
+        nonNullReceiverType,
+        node.name,
+        writeTarget,
+        value,
+        valueType: valueResult.inferredType,
+        forEffect: node.forEffect);
+    Expression write = writeResult.expression;
 
     flowAnalysis.ifNullExpression_end();
 
