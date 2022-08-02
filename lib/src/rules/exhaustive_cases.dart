@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Define case clauses for all constants in enum-like classes.';
 
@@ -110,7 +110,7 @@ class _Visitor extends SimpleAstVisitor {
       if (classElement.isEnum) {
         return;
       }
-      var enumDescription = DartTypeUtilities.asEnumLikeClass(classElement);
+      var enumDescription = classElement.asEnumLikeClass;
       if (enumDescription == null) {
         return;
       }

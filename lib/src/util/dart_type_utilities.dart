@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart'; // ignore: implementation_imports
@@ -78,70 +77,6 @@ bool canonicalElementsFromIdentifiersAreEqual(
 }
 
 class DartTypeUtilities {
-  /// Returns an [EnumLikeClassDescription] for [classElement] if the latter is
-  /// a valid "enum-like" class.
-  ///
-  /// An enum-like class must meet the following requirements:
-  ///
-  /// * is concrete,
-  /// * has no public constructors,
-  /// * has no factory constructors,
-  /// * has two or more static const fields with the same type as the class,
-  /// * has no subclasses declared in the defining library.
-  ///
-  /// The returned [EnumLikeClassDescription]'s `enumConstantNames` contains all
-  /// of the static const fields with the same type as the class, with one
-  /// exception; any static const field which is marked `@Deprecated` and is
-  /// equal to another static const field with the same type as the class is not
-  /// included. Such a field is assumed to be deprecated in favor of the field
-  /// with equal value.
-  static EnumLikeClassDescription? asEnumLikeClass(ClassElement classElement) {
-    // See discussion: https://github.com/dart-lang/linter/issues/2083
-    //
-
-    // Must be concrete.
-    if (classElement.isAbstract) {
-      return null;
-    }
-
-    // With only private non-factory constructors.
-    for (var cons in classElement.constructors) {
-      if (!cons.isPrivate || cons.isFactory) {
-        return null;
-      }
-    }
-
-    var type = classElement.thisType;
-
-    // And 2 or more static const fields whose type is the enclosing class.
-    var enumConstantCount = 0;
-    var enumConstants = <DartObject, Set<FieldElement>>{};
-    for (var field in classElement.fields) {
-      // Ensure static const.
-      if (field.isSynthetic || !field.isConst || !field.isStatic) {
-        continue;
-      }
-      // Check for type equality.
-      if (field.type != type) {
-        continue;
-      }
-      var fieldValue = field.computeConstantValue();
-      if (fieldValue == null) {
-        continue;
-      }
-      enumConstantCount++;
-      enumConstants.putIfAbsent(fieldValue, () => {}).add(field);
-    }
-    if (enumConstantCount < 2) {
-      return null;
-    }
-
-    // And no subclasses in the defining library.
-    if (hasSubclassInDefiningCompilationUnit(classElement)) return null;
-
-    return EnumLikeClassDescription(enumConstants);
-  }
-
   static bool extendsClass(
           DartType? type, String? className, String? library) =>
       _extendsClass(type, <ClassElement>{}, className, library);
@@ -184,20 +119,6 @@ class DartTypeUtilities {
 
   static bool hasInheritedMethod(MethodDeclaration node) =>
       lookUpInheritedMethod(node) != null;
-
-  static bool hasSubclassInDefiningCompilationUnit(ClassElement classElement) {
-    var compilationUnit = classElement.library.definingCompilationUnit;
-    for (var cls in compilationUnit.classes) {
-      InterfaceType? classType = cls.thisType;
-      do {
-        classType = classType?.superclass;
-        if (classType == classElement.thisType) {
-          return true;
-        }
-      } while (classType != null && !classType.isDartCoreObject);
-    }
-    return false;
-  }
 
   static bool implementsAnyInterface(
       DartType type, Iterable<InterfaceTypeDefinition> definitions) {
@@ -535,14 +456,6 @@ class DartTypeUtilities {
     }
     return true;
   }
-}
-
-class EnumLikeClassDescription {
-  final Map<DartObject, Set<FieldElement>> _enumConstants;
-  EnumLikeClassDescription(this._enumConstants);
-
-  /// Returns a fresh map of the class's enum-like constant values.
-  Map<DartObject, Set<FieldElement>> get enumConstants => {..._enumConstants};
 }
 
 class InterfaceTypeDefinition {
