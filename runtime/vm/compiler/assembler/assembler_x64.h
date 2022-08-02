@@ -787,6 +787,7 @@ class Assembler : public AssemblerBase {
   void LoadImmediate(Register reg, int32_t immediate) {
     LoadImmediate(reg, Immediate(immediate));
   }
+  void LoadSImmediate(FpuRegister dst, float immediate);
   void LoadDImmediate(FpuRegister dst, double immediate);
   void LoadQImmediate(FpuRegister dst, simd128_value_t immediate);
 
@@ -1082,6 +1083,9 @@ class Assembler : public AssemblerBase {
     movq(Address(base, offset), src);
   }
 
+  void LoadUnboxedSingle(FpuRegister dst, Register base, int32_t offset) {
+    movss(dst, Address(base, offset));
+  }
   void LoadUnboxedDouble(FpuRegister dst, Register base, int32_t offset) {
     movsd(dst, Address(base, offset));
   }

@@ -136,6 +136,8 @@ class BlockBuilder : public ValueObject {
     entry_->AsJoinEntry()->InsertPhi(phi);
   }
 
+  Instruction* last() const { return current_; }
+
  private:
   static CompileType* TypeForRepresentation(Representation rep) {
     switch (rep) {

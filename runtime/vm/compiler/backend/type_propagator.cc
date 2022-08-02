@@ -1323,6 +1323,14 @@ CompileType BooleanNegateInstr::ComputeType() const {
   return CompileType::Bool();
 }
 
+CompileType BoolToIntInstr::ComputeType() const {
+  return CompileType::Int();
+}
+
+CompileType IntToBoolInstr::ComputeType() const {
+  return CompileType::Bool();
+}
+
 CompileType InstanceOfInstr::ComputeType() const {
   return CompileType::Bool();
 }
@@ -1754,10 +1762,6 @@ CompileType SimdOpInstr::ComputeType() const {
   return CompileType::FromCid(simd_op_result_cids[kind()]);
 }
 
-CompileType MathUnaryInstr::ComputeType() const {
-  return CompileType::FromCid(kDoubleCid);
-}
-
 CompileType MathMinMaxInstr::ComputeType() const {
   return CompileType::FromCid(result_cid_);
 }
@@ -1811,6 +1815,20 @@ CompileType BoxInstr::ComputeType() const {
   }
 }
 
+CompileType BoxLanesInstr::ComputeType() const {
+  switch (from_representation()) {
+    case kUnboxedFloat:
+      return CompileType::FromCid(kFloat32x4Cid);
+    case kUnboxedDouble:
+      return CompileType::FromCid(kFloat64x2Cid);
+    case kUnboxedInt32:
+      return CompileType::FromCid(kInt32x4Cid);
+    default:
+      UNREACHABLE();
+      return CompileType::Dynamic();
+  }
+}
+
 CompileType Int32ToDoubleInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
@@ -1823,12 +1841,12 @@ CompileType Int64ToDoubleInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
 
-CompileType DoubleToDoubleInstr::ComputeType() const {
+CompileType FloatToDoubleInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
 
-CompileType FloatToDoubleInstr::ComputeType() const {
-  return CompileType::FromCid(kDoubleCid);
+CompileType FloatCompareInstr::ComputeType() const {
+  return CompileType::Int();
 }
 
 CompileType DoubleToFloatInstr::ComputeType() const {
@@ -1845,6 +1863,10 @@ CompileType TruncDivModInstr::ComputeType() const {
 }
 
 CompileType ExtractNthOutputInstr::ComputeType() const {
+  return CompileType::FromCid(definition_cid_);
+}
+
+CompileType UnboxLaneInstr::ComputeType() const {
   return CompileType::FromCid(definition_cid_);
 }
 

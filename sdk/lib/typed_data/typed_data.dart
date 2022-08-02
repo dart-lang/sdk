@@ -2456,21 +2456,75 @@ abstract class Float32x4 {
   Float32x4 operator /(Float32x4 other);
 
   /// Relational less than.
+  ///
+  /// Equivalent to:
+  ///
+  /// ```
+  /// Int32x4(this.x < other.x ? -1 : 0,
+  ///         this.y < other.y ? -1 : 0,
+  ///         this.z < other.z ? -1 : 0,
+  ///         this.w < other.w ? -1 : 0);
+  /// ```
   Int32x4 lessThan(Float32x4 other);
 
   /// Relational less than or equal.
+  ///
+  /// Equivalent to:
+  ///
+  /// ```
+  /// Int32x4(this.x <= other.x ? -1 : 0,
+  ///         this.y <= other.y ? -1 : 0,
+  ///         this.z <= other.z ? -1 : 0,
+  ///         this.w <= other.w ? -1 : 0);
+  /// ```
   Int32x4 lessThanOrEqual(Float32x4 other);
 
   /// Relational greater than.
+  ///
+  /// Equivalent to:
+  ///
+  /// ```
+  /// Int32x4(this.x > other.x ? -1 : 0,
+  ///         this.y > other.y ? -1 : 0,
+  ///         this.z > other.z ? -1 : 0,
+  ///         this.w > other.w ? -1 : 0);
+  /// ```
   Int32x4 greaterThan(Float32x4 other);
 
   /// Relational greater than or equal.
+  ///
+  /// Equivalent to:
+  ///
+  /// ```
+  /// Int32x4(this.x >= other.x ? -1 : 0,
+  ///         this.y >= other.y ? -1 : 0,
+  ///         this.z >= other.z ? -1 : 0,
+  ///         this.w >= other.w ? -1 : 0);
+  /// ```
   Int32x4 greaterThanOrEqual(Float32x4 other);
 
   /// Relational equal.
+  ///
+  /// Equivalent to:
+  ///
+  /// ```
+  /// Int32x4(this.x == other.x ? -1 : 0,
+  ///         this.y == other.y ? -1 : 0,
+  ///         this.z == other.z ? -1 : 0,
+  ///         this.w == other.w ? -1 : 0);
+  /// ```
   Int32x4 equal(Float32x4 other);
 
   /// Relational not-equal.
+  ///
+  /// Equivalent to:
+  ///
+  /// ```
+  /// Int32x4(this.x != other.x ? -1 : 0,
+  ///         this.y != other.y ? -1 : 0,
+  ///         this.z != other.z ? -1 : 0,
+  ///         this.w != other.w ? -1 : 0);
+  /// ```
   Int32x4 notEqual(Float32x4 other);
 
   /// Returns a copy of [this] each lane being scaled by [s].
@@ -2802,7 +2856,14 @@ abstract class Float32x4 {
 /// The lanes are "x", "y", "z", and "w" respectively.
 abstract class Int32x4 {
   external factory Int32x4(int x, int y, int z, int w);
+
+  /// Equivalent to:
+  ///
+  /// ```
+  /// Int32x4(x ? -1 : 0, y ? -1 : 0, z ? -1 : 0, w ? -1 : 0)
+  /// ```
   external factory Int32x4.bool(bool x, bool y, bool z, bool w);
+
   external factory Int32x4.fromFloat32x4Bits(Float32x4 x);
 
   /// The bit-wise or operator.
