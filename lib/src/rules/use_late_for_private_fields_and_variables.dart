@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc = r'Use late for private members with a non-nullable type.';
@@ -157,9 +158,9 @@ class _Visitor extends UnifyingAstVisitor<void> {
 
     Element? element;
     if (parent is AssignmentExpression && parent.leftHandSide == node) {
-      element = DartTypeUtilities.getCanonicalElement(parent.writeElement);
+      element = parent.writeElement?.canonicalElement;
     } else {
-      element = DartTypeUtilities.getCanonicalElementFromIdentifier(node);
+      element = node.canonicalElement;
     }
 
     if (element != null) {

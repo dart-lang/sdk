@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc =
@@ -139,8 +140,8 @@ bool _hasNonComparableOperands(TypeSystem typeSystem, BinaryExpression node) {
   if (leftType == null || rightType == null) {
     return false;
   }
-  return !DartTypeUtilities.isNullLiteral(left) &&
-      !DartTypeUtilities.isNullLiteral(right) &&
+  return !left.isNullLiteral &&
+      !right.isNullLiteral &&
       DartTypeUtilities.unrelatedTypes(typeSystem, leftType, rightType) &&
       !(_isFixNumIntX(leftType) && _isCoreInt(rightType));
 }

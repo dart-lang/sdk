@@ -6,13 +6,76 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/member.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/type.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../extensions.dart';
 
 typedef AstNodePredicate = bool Function(AstNode node);
+
+/// Returns whether the canonical elements of [element1] and [element2] are
+/// equal.
+bool canonicalElementsAreEqual(Element? element1, Element? element2) =>
+    element1?.canonicalElement == element2?.canonicalElement;
+
+/// Returns whether the canonical elements from two nodes are equal.
+///
+/// As in, [AstNodeExtensions.canonicalElement], the two nodes must be
+/// [Expression]s in order to be compared (otherwise `false` is returned).
+///
+/// The two nodes must both be a [SimpleIdentifier], [PrefixedIdentifier], or
+/// [PropertyAccess] (otherwise `false` is returned).
+///
+/// If the two nodes are PrefixedIdentifiers, or PropertyAccess nodes, then
+/// `true` is returned only if their canonical elements are equal, in
+/// addition to their prefixes' and targets' (respectfully) canonical
+/// elements.
+///
+/// There is an inherent assumption about pure getters. For example:
+///
+///     A a1 = ...
+///     A a2 = ...
+///     a1.b.c; // statement 1
+///     a2.b.c; // statement 2
+///     a1.b.c; // statement 3
+///
+/// The canonical elements from statements 1 and 2 are different, because a1
+/// is not the same element as a2.  The canonical elements from statements 1
+/// and 3 are considered to be equal, even though `A.b` may have side effects
+/// which alter the returned value.
+bool canonicalElementsFromIdentifiersAreEqual(
+    Expression? rawExpression1, Expression? rawExpression2) {
+  if (rawExpression1 == null || rawExpression2 == null) return false;
+
+  var expression1 = rawExpression1.unParenthesized;
+  var expression2 = rawExpression2.unParenthesized;
+
+  if (expression1 is SimpleIdentifier) {
+    return expression2 is SimpleIdentifier &&
+        canonicalElementsAreEqual(getWriteOrReadElement(expression1),
+            getWriteOrReadElement(expression2));
+  }
+
+  if (expression1 is PrefixedIdentifier) {
+    return expression2 is PrefixedIdentifier &&
+        canonicalElementsAreEqual(expression1.prefix.staticElement,
+            expression2.prefix.staticElement) &&
+        canonicalElementsAreEqual(getWriteOrReadElement(expression1.identifier),
+            getWriteOrReadElement(expression2.identifier));
+  }
+
+  if (expression1 is PropertyAccess && expression2 is PropertyAccess) {
+    var target1 = expression1.target;
+    var target2 = expression2.target;
+    return canonicalElementsFromIdentifiersAreEqual(target1, target2) &&
+        canonicalElementsAreEqual(
+            getWriteOrReadElement(expression1.propertyName),
+            getWriteOrReadElement(expression2.propertyName));
+  }
+
+  return false;
+}
 
 class DartTypeUtilities {
   /// Returns an [EnumLikeClassDescription] for [classElement] if the latter is
@@ -79,104 +142,13 @@ class DartTypeUtilities {
     return EnumLikeClassDescription(enumConstants);
   }
 
-  /// Return whether the canonical elements of two elements are equal.
-  static bool canonicalElementsAreEqual(Element? element1, Element? element2) =>
-      getCanonicalElement(element1) == getCanonicalElement(element2);
-
-  /// Returns whether the canonical elements from two nodes are equal.
-  ///
-  /// As in, [getCanonicalElementFromIdentifier], the two nodes must be
-  /// [Expression]s in order to be compared (otherwise `false` is returned).
-  ///
-  /// The two nodes must both be a [SimpleIdentifier], [PrefixedIdentifier], or
-  /// [PropertyAccess] (otherwise `false` is returned).
-  ///
-  /// If the two nodes are PrefixedIdentifiers, or PropertyAccess nodes, then
-  /// `true` is returned only if their canonical elements are equal, in
-  /// addition to their prefixes' and targets' (respectfully) canonical
-  /// elements.
-  ///
-  /// There is an inherent assumption about pure getters. For example:
-  ///
-  ///     A a1 = ...
-  ///     A a2 = ...
-  ///     a1.b.c; // statement 1
-  ///     a2.b.c; // statement 2
-  ///     a1.b.c; // statement 3
-  ///
-  /// The canonical elements from statements 1 and 2 are different, because a1
-  /// is not the same element as a2.  The canonical elements from statements 1
-  /// and 3 are considered to be equal, even though `A.b` may have side effects
-  /// which alter the returned value.
-  static bool canonicalElementsFromIdentifiersAreEqual(
-      Expression? rawExpression1, Expression? rawExpression2) {
-    if (rawExpression1 == null || rawExpression2 == null) return false;
-
-    var expression1 = rawExpression1.unParenthesized;
-    var expression2 = rawExpression2.unParenthesized;
-
-    if (expression1 is SimpleIdentifier) {
-      return expression2 is SimpleIdentifier &&
-          canonicalElementsAreEqual(getWriteOrReadElement(expression1),
-              getWriteOrReadElement(expression2));
-    }
-
-    if (expression1 is PrefixedIdentifier) {
-      return expression2 is PrefixedIdentifier &&
-          canonicalElementsAreEqual(expression1.prefix.staticElement,
-              expression2.prefix.staticElement) &&
-          canonicalElementsAreEqual(
-              getWriteOrReadElement(expression1.identifier),
-              getWriteOrReadElement(expression2.identifier));
-    }
-
-    if (expression1 is PropertyAccess && expression2 is PropertyAccess) {
-      var target1 = expression1.target;
-      var target2 = expression2.target;
-      return canonicalElementsFromIdentifiersAreEqual(target1, target2) &&
-          canonicalElementsAreEqual(
-              getWriteOrReadElement(expression1.propertyName),
-              getWriteOrReadElement(expression2.propertyName));
-    }
-
-    return false;
-  }
-
   static bool extendsClass(
           DartType? type, String? className, String? library) =>
       _extendsClass(type, <ClassElement>{}, className, library);
 
-  static Element? getCanonicalElement(Element? element) {
-    if (element is PropertyAccessorElement) {
-      var variable = element.variable;
-      if (variable is FieldMember) {
-        // A field element defined in a parameterized type where the values of
-        // the type parameters are known.
-        //
-        // This concept should be invisible when comparing FieldElements, but a
-        // bug in the analyzer causes FieldElements to not evaluate as
-        // equivalent to equivalent FieldMembers. See
-        // https://github.com/dart-lang/sdk/issues/35343.
-        return variable.declaration;
-      } else {
-        return variable;
-      }
-    } else {
-      return element;
-    }
-  }
-
-  static Element? getCanonicalElementFromIdentifier(AstNode? rawNode) {
-    if (rawNode is Expression) {
-      var node = rawNode.unParenthesized;
-      if (node is Identifier) {
-        return getCanonicalElement(node.staticElement);
-      } else if (node is PropertyAccess) {
-        return getCanonicalElement(node.propertyName.staticElement);
-      }
-    }
-    return null;
-  }
+  @Deprecated('Replace with `rawNode.canonicalElement`')
+  static Element? getCanonicalElementFromIdentifier(AstNode? rawNode) =>
+      rawNode.canonicalElement;
 
   static Iterable<InterfaceType> getImplementedInterfaces(InterfaceType type) {
     void recursiveCall(InterfaceType? type, Set<ClassElement> alreadyVisited,
@@ -279,8 +251,8 @@ class DartTypeUtilities {
   static bool isNonNullable(LinterContext context, DartType? type) =>
       type != null && context.typeSystem.isNonNullable(type);
 
-  static bool isNullLiteral(Expression? expression) =>
-      expression?.unParenthesized is NullLiteral;
+  @Deprecated('Replace with `expression.isNullLiteral`')
+  static bool isNullLiteral(Expression? expression) => expression.isNullLiteral;
 
   static PropertyAccessorElement? lookUpGetter(MethodDeclaration node) {
     var declaredElement = node.declaredElement;
@@ -383,15 +355,13 @@ class DartTypeUtilities {
     }
     for (var argument in arguments) {
       if (argument is NamedExpression) {
-        var element = DartTypeUtilities.getCanonicalElementFromIdentifier(
-            argument.expression);
+        var element = argument.expression.canonicalElement;
         if (element == null) {
           return false;
         }
         namedArguments[argument.name.label.name] = element;
       } else {
-        var element =
-            DartTypeUtilities.getCanonicalElementFromIdentifier(argument);
+        var element = argument.canonicalElement;
         if (element == null) {
           return false;
         }
@@ -601,6 +571,7 @@ extension DartTypeExtensions on DartType {
   ///
   /// If `this` is a type variable, then the type-for-interface-check of its
   /// promoted bound or bound is returned. Otherwise, `this` is returned.
+  // TODO(srawlins): Move to extensions.dart.
   DartType get typeForInterfaceCheck {
     if (this is TypeParameterType) {
       if (this is TypeParameterTypeImpl) {

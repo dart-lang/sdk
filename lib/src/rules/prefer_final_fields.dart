@@ -10,7 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Private field could be final.';
 
@@ -93,9 +93,7 @@ bool _containedInFormal(Element element, FormalParameter formal) {
 bool _containedInInitializer(
         Element element, ConstructorInitializer initializer) =>
     initializer is ConstructorFieldInitializer &&
-    DartTypeUtilities.getCanonicalElementFromIdentifier(
-            initializer.fieldName) ==
-        element;
+    initializer.fieldName.canonicalElement == element;
 
 class PreferFinalFields extends LintRule {
   PreferFinalFields()
@@ -142,8 +140,7 @@ class _MutatedFieldsCollector extends RecursiveAstVisitor<void> {
   }
 
   void _addMutatedFieldElement(CompoundAssignmentExpression assignment) {
-    var element =
-        DartTypeUtilities.getCanonicalElement(assignment.writeElement);
+    var element = assignment.writeElement?.canonicalElement;
     if (element is FieldElement) {
       _mutatedFields.add(element);
     }

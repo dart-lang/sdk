@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc =
@@ -257,8 +258,7 @@ class _UnnecessaryOperatorOverrideVisitor
         parameters != null &&
         parameters.length == 1 &&
         parameters.first.identifier?.staticElement ==
-            DartTypeUtilities.getCanonicalElementFromIdentifier(
-                node.rightOperand)) {
+            node.rightOperand.canonicalElement) {
       var leftPart = node.leftOperand.unParenthesized;
       if (leftPart is SuperExpression) {
         visitSuperExpression(leftPart);
@@ -294,8 +294,7 @@ class _UnnecessarySetterOverrideVisitor
     if (parameters != null &&
         parameters.length == 1 &&
         parameters.first.identifier?.staticElement ==
-            DartTypeUtilities.getCanonicalElementFromIdentifier(
-                node.rightHandSide)) {
+            node.rightHandSide.canonicalElement) {
       var leftPart = node.leftHandSide.unParenthesized;
       if (leftPart is PropertyAccess) {
         if (node.writeElement == _inheritedMethod) {

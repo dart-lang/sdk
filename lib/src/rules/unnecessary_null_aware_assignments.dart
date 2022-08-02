@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Avoid null in null-aware assignment.';
 
@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.writeElement is PropertyAccessorElement) return;
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ &&
-        DartTypeUtilities.isNullLiteral(node.rightHandSide)) {
+        node.rightHandSide.isNullLiteral) {
       rule.reportLint(node);
     }
   }

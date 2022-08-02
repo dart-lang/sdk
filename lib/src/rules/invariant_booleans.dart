@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/boolean_expression_utilities.dart';
 import '../util/condition_scope_visitor.dart';
 import '../util/dart_type_utilities.dart';
@@ -102,7 +103,7 @@ void nestedOk5() {
 
 Iterable<Element?> _getElementsInExpression(Expression node) =>
     DartTypeUtilities.traverseNodesInDFS(node)
-        .map(DartTypeUtilities.getCanonicalElementFromIdentifier)
+        .map((e) => e.canonicalElement)
         .where((e) => e != null);
 
 class InvariantBooleans extends LintRule {

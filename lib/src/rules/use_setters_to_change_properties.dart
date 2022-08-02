@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc =
@@ -65,10 +66,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     void checkExpression(Expression expression) {
       if (expression is AssignmentExpression &&
           expression.operator.type == TokenType.EQ) {
-        var leftOperand =
-            DartTypeUtilities.getCanonicalElement(expression.writeElement);
-        var rightOperand = DartTypeUtilities.getCanonicalElementFromIdentifier(
-            expression.rightHandSide);
+        var leftOperand = expression.writeElement?.canonicalElement;
+        var rightOperand = expression.rightHandSide.canonicalElement;
         var parameterElement = node.declaredElement?.parameters.first;
         if (rightOperand == parameterElement && leftOperand is FieldElement) {
           rule.reportLint(node.name);

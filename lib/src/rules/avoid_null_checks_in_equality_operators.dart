@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc = r"Don't check for null in custom == operators.";
@@ -49,24 +50,21 @@ bool _isComparingEquality(TokenType tokenType) =>
 
 bool _isComparingParameterWithNull(BinaryExpression node, Element? parameter) =>
     _isComparingEquality(node.operator.type) &&
-    ((DartTypeUtilities.isNullLiteral(node.leftOperand) &&
+    ((node.leftOperand.isNullLiteral &&
             _isParameter(node.rightOperand, parameter)) ||
-        (DartTypeUtilities.isNullLiteral(node.rightOperand) &&
+        (node.rightOperand.isNullLiteral &&
             _isParameter(node.leftOperand, parameter)));
 
 bool _isParameter(Expression expression, Element? parameter) =>
-    DartTypeUtilities.getCanonicalElementFromIdentifier(expression) ==
-    parameter;
+    expression.canonicalElement == parameter;
 
 bool _isParameterWithQuestion(AstNode node, Element? parameter) =>
     (node is PropertyAccess &&
         node.operator.type == TokenType.QUESTION_PERIOD &&
-        DartTypeUtilities.getCanonicalElementFromIdentifier(node.target) ==
-            parameter) ||
+        node.target.canonicalElement == parameter) ||
     (node is MethodInvocation &&
         node.operator?.type == TokenType.QUESTION_PERIOD &&
-        DartTypeUtilities.getCanonicalElementFromIdentifier(node.target) ==
-            parameter);
+        node.target.canonicalElement == parameter);
 
 bool _isParameterWithQuestionQuestion(
         BinaryExpression node, Element? parameter) =>
@@ -107,8 +105,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var parameter = DartTypeUtilities.getCanonicalElementFromIdentifier(
-        parameters.first.identifier);
+    var parameter = parameters.first.identifier.canonicalElement;
 
     // Analyzer will produce UNNECESSARY_NULL_COMPARISON_FALSE|TRUE
     // See: https://github.com/dart-lang/linter/issues/2864

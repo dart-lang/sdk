@@ -439,6 +439,7 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor {
 }
 
 extension ElementExtension on Element? {
+  // TODO(srawlins): Move to extensions.dart.
   bool get isDartCorePrint {
     var self = this;
     return self is FunctionElement &&

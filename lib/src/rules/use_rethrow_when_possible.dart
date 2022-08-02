@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Use rethrow to rethrow a caught exception.';
 
@@ -64,13 +64,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitThrowExpression(ThrowExpression node) {
     if (node.parent is Expression || node.parent is ArgumentList) return;
 
-    var element =
-        DartTypeUtilities.getCanonicalElementFromIdentifier(node.expression);
+    var element = node.expression.canonicalElement;
     if (element != null) {
       var catchClause = node.thisOrAncestorOfType<CatchClause>();
-      var exceptionParameter =
-          DartTypeUtilities.getCanonicalElementFromIdentifier(
-              catchClause?.exceptionParameter);
+      var exceptionParameter = catchClause?.exceptionParameter.canonicalElement;
       if (element == exceptionParameter) {
         rule.reportLint(node);
       }

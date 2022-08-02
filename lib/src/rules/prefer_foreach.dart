@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc = r'Use `forEach` to only apply a function to all the elements.';
@@ -95,9 +96,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     var arguments = node.argumentList.arguments;
-    if (arguments.length == 1 &&
-        DartTypeUtilities.getCanonicalElementFromIdentifier(arguments.first) ==
-            element) {
+    if (arguments.length == 1 && arguments.first.canonicalElement == element) {
       rule.reportLint(forEachStatement);
     }
   }
@@ -107,14 +106,12 @@ class _PreferForEachVisitor extends SimpleAstVisitor {
     var arguments = node.argumentList.arguments;
     var target = node.target;
     if (arguments.length == 1 &&
-        DartTypeUtilities.getCanonicalElementFromIdentifier(arguments.first) ==
-            element &&
+        arguments.first.canonicalElement == element &&
         (target == null ||
-            (DartTypeUtilities.getCanonicalElementFromIdentifier(target) !=
-                    element &&
+            target.canonicalElement != element &&
                 !DartTypeUtilities.traverseNodesInDFS(target)
-                    .map(DartTypeUtilities.getCanonicalElementFromIdentifier)
-                    .contains(element)))) {
+                    .map((e) => e.canonicalElement)
+                    .contains(element))) {
       rule.reportLint(forEachStatement);
     }
   }

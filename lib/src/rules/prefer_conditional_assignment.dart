@@ -7,7 +7,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
+import '../util/dart_type_utilities.dart' as type_utils;
 
 const _desc = r'Prefer using `??=` over testing for null.';
 
@@ -39,7 +40,7 @@ String get fullName {
 
 bool _checkExpression(Expression expression, Expression condition) =>
     expression is AssignmentExpression &&
-    DartTypeUtilities.canonicalElementsFromIdentifiersAreEqual(
+    type_utils.canonicalElementsFromIdentifiersAreEqual(
         expression.leftHandSide, condition);
 
 bool _checkStatement(Statement statement, Expression condition) {
@@ -56,10 +57,10 @@ Expression? _getExpressionCondition(Expression rawExpression) {
   var expression = rawExpression.unParenthesized;
   if (expression is BinaryExpression &&
       expression.operator.type == TokenType.EQ_EQ) {
-    if (DartTypeUtilities.isNullLiteral(expression.rightOperand)) {
+    if (expression.rightOperand.isNullLiteral) {
       return expression.leftOperand;
     }
-    if (DartTypeUtilities.isNullLiteral(expression.leftOperand)) {
+    if (expression.leftOperand.isNullLiteral) {
       return expression.rightOperand;
     }
   }

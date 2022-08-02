@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Use initializing formals when possible.';
 
@@ -108,14 +108,13 @@ Iterable<ConstructorFieldInitializer>
         node.initializers.whereType<ConstructorFieldInitializer>();
 
 Element? _getLeftElement(AssignmentExpression assignment) =>
-    DartTypeUtilities.getCanonicalElement(assignment.writeElement);
+    assignment.writeElement?.canonicalElement;
 
 Iterable<Element?> _getParameters(ConstructorDeclaration node) =>
     node.parameters.parameters.map((e) => e.identifier?.staticElement);
 
 Element? _getRightElement(AssignmentExpression assignment) =>
-    DartTypeUtilities.getCanonicalElementFromIdentifier(
-        assignment.rightHandSide);
+    assignment.rightHandSide.canonicalElement;
 
 class PreferInitializingFormals extends LintRule {
   PreferInitializingFormals()

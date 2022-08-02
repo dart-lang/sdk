@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc = r'Cascade consecutive method invocations on the same reference.';
@@ -74,8 +75,7 @@ Element? _getElementFromVariableDeclarationStatement(
 ExecutableElement? _getExecutableElementFromMethodInvocation(
     MethodInvocation node) {
   if (_isInvokedWithoutNullAwareOperator(node.operator)) {
-    var executableElement =
-        DartTypeUtilities.getCanonicalElementFromIdentifier(node.methodName);
+    var executableElement = node.methodName.canonicalElement;
     if (executableElement is ExecutableElement) {
       return executableElement;
     }
@@ -86,22 +86,20 @@ ExecutableElement? _getExecutableElementFromMethodInvocation(
 Element? _getPrefixElementFromExpression(Expression rawExpression) {
   var expression = rawExpression.unParenthesized;
   if (expression is PrefixedIdentifier) {
-    return DartTypeUtilities.getCanonicalElementFromIdentifier(
-        expression.prefix);
+    return expression.prefix.canonicalElement;
   } else if (expression is PropertyAccess &&
       _isInvokedWithoutNullAwareOperator(expression.operator) &&
       expression.target is SimpleIdentifier) {
-    return DartTypeUtilities.getCanonicalElementFromIdentifier(
-        expression.target);
+    return expression.target.canonicalElement;
   }
   return null;
 }
 
 Element? _getTargetElementFromCascadeExpression(CascadeExpression node) =>
-    DartTypeUtilities.getCanonicalElementFromIdentifier(node.target);
+    node.target.canonicalElement;
 
 Element? _getTargetElementFromMethodInvocation(MethodInvocation node) =>
-    DartTypeUtilities.getCanonicalElementFromIdentifier(node.target);
+    node.target.canonicalElement;
 
 bool _isInvokedWithoutNullAwareOperator(Token? token) =>
     token?.type == TokenType.PERIOD;
@@ -184,8 +182,7 @@ class _CascadableExpression {
     var leftExpression = node.leftHandSide.unParenthesized;
     if (leftExpression is SimpleIdentifier) {
       return _CascadableExpression._internal(
-          DartTypeUtilities.getCanonicalElement(leftExpression.staticElement),
-          [node.rightHandSide],
+          leftExpression.staticElement?.canonicalElement, [node.rightHandSide],
           canReceive: node.operator.type != TokenType.QUESTION_QUESTION_EQ,
           isCritical: true);
     }
@@ -220,14 +217,12 @@ class _CascadableExpression {
 
   factory _CascadableExpression._fromPrefixedIdentifier(
           PrefixedIdentifier node) =>
-      _CascadableExpression._internal(
-          DartTypeUtilities.getCanonicalElementFromIdentifier(node.prefix), [],
+      _CascadableExpression._internal(node.prefix.canonicalElement, [],
           canJoin: true, canReceive: true, canBeCascaded: true);
 
   factory _CascadableExpression._fromPropertyAccess(PropertyAccess node) {
     var targetIsSimple = node.target is SimpleIdentifier;
-    return _CascadableExpression._internal(
-        DartTypeUtilities.getCanonicalElementFromIdentifier(node.target), [],
+    return _CascadableExpression._internal(node.target.canonicalElement, [],
         // If the target is something like `(a + b).x`, then node can neither
         // join, nor receive.
         //
@@ -274,8 +269,7 @@ class _CascadableExpression {
 
   bool _hasCriticalDependencies(_CascadableExpression expressionBox) {
     bool isCriticalNode(AstNode node) =>
-        DartTypeUtilities.getCanonicalElementFromIdentifier(node) ==
-        expressionBox.element;
+        node.canonicalElement == expressionBox.element;
     return expressionBox.isCritical &&
         criticalNodes.any((node) =>
             isCriticalNode(node) ||
