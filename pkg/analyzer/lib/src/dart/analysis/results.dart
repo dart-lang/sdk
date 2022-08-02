@@ -47,6 +47,8 @@ class ErrorsResultImpl extends FileResultImpl implements ErrorsResult {
     required super.path,
     required super.uri,
     required super.lineInfo,
+    required super.isAugmentation,
+    required super.isLibrary,
     required super.isPart,
     required this.errors,
   });
@@ -63,6 +65,12 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   final LineInfo lineInfo;
 
   @override
+  final bool isAugmentation;
+
+  @override
+  final bool isLibrary;
+
+  @override
   final bool isPart;
 
   FileResultImpl({
@@ -70,6 +78,8 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
     required this.path,
     required this.uri,
     required this.lineInfo,
+    required this.isAugmentation,
+    required this.isLibrary,
     required this.isPart,
   });
 }
@@ -138,6 +148,8 @@ class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
     required super.uri,
     required this.content,
     required super.lineInfo,
+    required super.isAugmentation,
+    required super.isLibrary,
     required super.isPart,
     required this.unit,
     required this.errors,
@@ -273,6 +285,8 @@ class ResolvedUnitResultImpl extends FileResultImpl
     required this.exists,
     required this.content,
     required super.lineInfo,
+    required super.isAugmentation,
+    required super.isLibrary,
     required super.isPart,
     required this.unit,
     required this.errors,
@@ -300,6 +314,8 @@ class UnitElementResultImpl extends FileResultImpl
     required super.path,
     required super.uri,
     required super.lineInfo,
+    required super.isAugmentation,
+    required super.isLibrary,
     required super.isPart,
     required this.element,
   });

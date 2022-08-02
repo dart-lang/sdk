@@ -351,7 +351,9 @@ class FileResolver {
         path: path,
         uri: file.uri,
         lineInfo: file.lineInfo,
-        isPart: false,
+        isAugmentation: file.kind is AugmentationFileKind,
+        isLibrary: file.kind is LibraryFileKind,
+        isPart: file.kind is PartFileKind,
         errors: errors,
       );
     });
@@ -665,7 +667,9 @@ class FileResolver {
           exists: file.exists,
           content: file.content,
           lineInfo: file.lineInfo,
-          isPart: file.isPart,
+          isAugmentation: file.kind is AugmentationFileKind,
+          isLibrary: file.kind is LibraryFileKind,
+          isPart: file.kind is PartFileKind,
           unit: fileResult.unit,
           errors: fileResult.errors,
         );

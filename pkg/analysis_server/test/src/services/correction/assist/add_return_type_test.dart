@@ -153,13 +153,7 @@ class A {
   }
 }
 ''');
-    await assertHasAssist('''
-class A {
-  void set foo(int a) {
-    if (a == 0) return;
-  }
-}
-''');
+    await assertNoAssist();
   }
 
   Future<void> test_method_setter_lint_avoidReturnTypesOnSetters() async {
@@ -222,11 +216,7 @@ set /*caret*/foo(int a) {
   if (a == 0) return;
 }
 ''');
-    await assertHasAssist('''
-void set foo(int a) {
-  if (a == 0) return;
-}
-''');
+    await assertNoAssist();
   }
 
   Future<void>

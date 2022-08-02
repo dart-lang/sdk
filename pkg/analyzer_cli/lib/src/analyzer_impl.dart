@@ -134,7 +134,7 @@ class AnalyzerImpl {
   Future<ErrorSeverity> _analyze(
       int printMode, ErrorFormatter formatter) async {
     // Don't try to analyze parts.
-    if (libraryFile.isPart) {
+    if (libraryFile.kind is! LibraryFileKind) {
       var libraryPath = libraryFile.path;
       stderr.writeln('Only libraries can be analyzed.');
       stderr.writeln('$libraryPath is a part and cannot be analyzed.');

@@ -449,16 +449,6 @@ class FileState {
   @override
   int get hashCode => uri.hashCode;
 
-  /// Return `true` if the file does not have a `library` directive, and has a
-  /// `part of` directive, so is probably a part.
-  bool get isPart {
-    if (_unlinked2!.libraryDirective != null) {
-      return false;
-    }
-    return _unlinked2!.partOfNameDirective != null ||
-        _unlinked2!.partOfUriDirective != null;
-  }
-
   FileKind get kind => _kind!;
 
   /// Return information about line in the file.
