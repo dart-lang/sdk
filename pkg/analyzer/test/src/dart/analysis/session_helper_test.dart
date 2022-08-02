@@ -81,7 +81,7 @@ class A {}
     var element = findElement.class_('A');
     var result = (await helper.getElementDeclaration(element))!;
     var node = result.node as ClassDeclaration;
-    expect(node.name.name, 'A');
+    expect(node.name2.lexeme, 'A');
   }
 
   test_getResolvedUnitByElement() async {

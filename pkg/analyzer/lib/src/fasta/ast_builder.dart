@@ -194,15 +194,15 @@ class AstBuilder extends StackListener {
     }
   }
 
-  SimpleIdentifier? get currentDeclarationName {
+  Token? get currentDeclarationName {
     if (classDeclaration != null) {
-      return classDeclaration!.name;
+      return classDeclaration!.name2;
     } else if (mixinDeclaration != null) {
-      return mixinDeclaration!.name;
+      return mixinDeclaration!.name2;
     } else if (extensionDeclaration != null) {
-      return extensionDeclaration!.name;
+      return extensionDeclaration!.name2;
     } else {
-      return enumDeclaration!.name;
+      return enumDeclaration!.name2;
     }
   }
 
@@ -371,7 +371,7 @@ class AstBuilder extends StackListener {
     }
     if (staticToken != null) {
       assert(staticToken.isModifier);
-      String? className = currentDeclarationName?.name;
+      String? className = currentDeclarationName?.lexeme;
       if (name.lexeme != className || getOrSet != null) {
         modifiers.staticKeyword = staticToken;
       }
@@ -2739,9 +2739,11 @@ class AstBuilder extends StackListener {
     if (catchParameterList != null) {
       List<FormalParameter> catchParameters = catchParameterList.parameters;
       if (catchParameters.isNotEmpty) {
+        // ignore: deprecated_member_use_from_same_package
         exception = catchParameters[0].identifier;
       }
       if (catchParameters.length > 1) {
+        // ignore: deprecated_member_use_from_same_package
         stackTrace = catchParameters[1].identifier;
       }
     }
@@ -2967,6 +2969,7 @@ class AstBuilder extends StackListener {
       constant = EnumConstantDeclarationImpl(
         documentationComment: constant.documentationComment,
         metadata: constant.metadata,
+        // ignore: deprecated_member_use_from_same_package
         name: constant.name,
         arguments: EnumConstantArgumentsImpl(
           typeArguments: typeArguments,
@@ -3172,6 +3175,7 @@ class AstBuilder extends StackListener {
             variableList.metadata,
             variableList.keyword,
             variableList.type,
+            // ignore: deprecated_member_use_from_same_package
             variableList.variables.first.name),
         inKeyword: inKeyword,
         iterable: iterator,
@@ -3744,7 +3748,7 @@ class AstBuilder extends StackListener {
     debugEvent("NoTypeNameInConstructorReference");
     assert(enumDeclaration != null);
 
-    push(ast.simpleIdentifier(enumDeclaration!.name.token));
+    push(ast.simpleIdentifier(enumDeclaration!.name2));
   }
 
   @override

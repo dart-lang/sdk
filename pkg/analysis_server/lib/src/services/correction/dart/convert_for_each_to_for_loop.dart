@@ -46,7 +46,7 @@ class ConvertForEachToForLoop extends CorrectionProducer {
     if (parameter is! NormalFormalParameter) {
       return;
     }
-    var loopVariableName = parameter.identifier?.name;
+    var loopVariableName = parameter.name?.lexeme;
     if (loopVariableName == null) {
       return;
     }

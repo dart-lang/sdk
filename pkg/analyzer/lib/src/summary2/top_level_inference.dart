@@ -455,7 +455,7 @@ class _VariableInferenceNode extends _InferenceNode {
 
   @override
   String get displayName {
-    return _node.name.name;
+    return _node.name2.lexeme;
   }
 
   @override

@@ -288,7 +288,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
       // anchor- defines/binding
       addAnchorEdgesContainingEdge(
-          syntacticEntity: node.name,
+          syntacticEntity: node.name2,
           edges: [
             schema.DEFINES_BINDING_EDGE,
           ],
@@ -355,7 +355,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
       // anchor
       addAnchorEdgesContainingEdge(
-          syntacticEntity: node.name,
+          syntacticEntity: node.name2,
           edges: [
             schema.DEFINES_BINDING_EDGE,
           ],
@@ -471,9 +471,9 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
       // anchor
       var start = node.returnType.offset;
       var end = node.returnType.end;
-      var nameNode = node.name;
-      if (nameNode != null) {
-        end = nameNode.end;
+      var nameToken = node.name2;
+      if (nameToken != null) {
+        end = nameToken.end;
       }
       addAnchorEdgesContainingEdge(
           start: start,
@@ -503,7 +503,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     var declaredElement = node.declaredElement!;
-    _handleVariableDeclaration(declaredElement, node.identifier,
+    _handleVariableDeclaration(declaredElement, node.name,
         subKind: schema.LOCAL_SUBKIND, type: declaredElement.type);
 
     // no children
@@ -517,7 +517,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
     // anchor- defines/binding, defines
     addAnchorEdgesContainingEdge(
-        syntacticEntity: node.name,
+        syntacticEntity: node.name2,
         edges: [
           schema.DEFINES_BINDING_EDGE,
           schema.DEFINES_EDGE,
@@ -539,7 +539,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
       // anchor- defines/binding
       addAnchorEdgesContainingEdge(
-          syntacticEntity: node.name,
+          syntacticEntity: node.name2,
           edges: [
             schema.DEFINES_BINDING_EDGE,
           ],
@@ -578,7 +578,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
     _handleRefEdge(
       element,
       const <String>[schema.REF_EDGE],
-      syntacticEntity: node.identifier,
+      syntacticEntity: node.name,
     );
 
     // visit children
@@ -599,7 +599,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
       // anchor- defines/binding
       addAnchorEdgesContainingEdge(
-          syntacticEntity: node.name,
+          syntacticEntity: node.name2,
           edges: [
             schema.DEFINES_BINDING_EDGE,
           ],
@@ -665,7 +665,6 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
     // visit children
     _safelyVisit(node.documentationComment);
     _safelyVisitList(node.metadata);
-    _safelyVisit(node.identifier);
     _safelyVisit(node.typeParameters);
     _safelyVisit(node.parameters);
   }
@@ -752,7 +751,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
       // anchor- defines/binding
       addAnchorEdgesContainingEdge(
-          syntacticEntity: node.name,
+          syntacticEntity: node.name2,
           edges: [
             schema.DEFINES_BINDING_EDGE,
           ],
@@ -824,7 +823,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
     // node.identifier can be null in cases with the new generic function type
     // syntax
     // TODO(jwren) add test cases for this situation
-    var identifier = node.identifier;
+    var identifier = node.name;
     if (identifier != null) {
       // The anchor and anchor edges generation are broken into two cases, the
       // first case is "method(parameter_name) ...", where the parameter
@@ -920,7 +919,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
     // variable
     var declaredElement = node.declaredElement!;
-    _handleVariableDeclaration(declaredElement, node.name,
+    _handleVariableDeclaration(declaredElement, node.name2,
         subKind: isLocal ? schema.LOCAL_SUBKIND : schema.FIELD_SUBKIND,
         type: declaredElement.type);
 

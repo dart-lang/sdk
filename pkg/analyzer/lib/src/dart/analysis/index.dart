@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -464,8 +465,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// of the given [node].  The flag [isQualified] is `true` if [node] has an
   /// explicit or implicit qualifier, so cannot be shadowed by a local
   /// declaration.
-  void recordRelation(Element? element, IndexRelationKind kind, AstNode node,
-      bool isQualified) {
+  void recordRelation(Element? element, IndexRelationKind kind,
+      SyntacticEntity node, bool isQualified) {
     if (element != null) {
       recordRelationOffset(
           element, kind, node.offset, node.length, isQualified);
@@ -564,7 +565,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     if (node.extendsClause == null) {
       ClassElement? objectElement = declaredElement.supertype?.element;
       recordRelationOffset(objectElement, IndexRelationKind.IS_EXTENDED_BY,
-          node.name.offset, 0, true);
+          node.name2.offset, 0, true);
     }
     recordIsAncestorOf(declaredElement);
     super.visitClassDeclaration(node);
@@ -654,7 +655,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         offset = constructorSelector.period.offset;
         length = constructorSelector.name.end - offset;
       } else {
-        offset = node.name.end;
+        offset = node.name2.end;
         length = 0;
       }
       recordRelationOffset(
@@ -674,7 +675,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     _addSubtype(
-      node.name.name,
+      node.name2.lexeme,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
       memberNodes: node.members,
@@ -713,8 +714,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     if (element is FieldFormalParameterElement) {
       var field = element.field;
       if (field != null) {
-        recordRelation(
-            field, IndexRelationKind.IS_WRITTEN_BY, node.identifier, true);
+        recordRelation(field, IndexRelationKind.IS_WRITTEN_BY, node.name, true);
       }
     }
 
@@ -861,11 +861,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
     // this.field parameter
     if (element is FieldFormalParameterElement) {
-      AstNode parent = node.parent!;
-      IndexRelationKind kind =
-          parent is FieldFormalParameter && parent.identifier == node
-              ? IndexRelationKind.IS_WRITTEN_BY
-              : IndexRelationKind.IS_REFERENCED_BY;
+      IndexRelationKind kind = IndexRelationKind.IS_REFERENCED_BY;
       recordRelation(element.field, kind, node, true);
       return;
     }
@@ -901,7 +897,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       var superParameter = element.superConstructorParameter;
       if (superParameter != null) {
         recordRelation(superParameter, IndexRelationKind.IS_REFERENCED_BY,
-            node.identifier, true);
+            node.name, true);
       }
     }
 
@@ -943,8 +939,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     onClause?.superclassConstraints.forEach(addSupertype);
     implementsClause?.interfaces.forEach(addSupertype);
 
-    void addMemberName(SimpleIdentifier identifier) {
-      String name = identifier.name;
+    void addMemberName(Token identifier) {
+      String name = identifier.lexeme;
       if (name.isNotEmpty) {
         members.add(name);
       }
@@ -952,10 +948,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
     for (ClassMember member in memberNodes) {
       if (member is MethodDeclaration && !member.isStatic) {
-        addMemberName(member.name);
+        addMemberName(member.name2);
       } else if (member is FieldDeclaration && !member.isStatic) {
         for (var field in member.fields.variables) {
-          addMemberName(field.name);
+          addMemberName(field.name2);
         }
       }
     }
@@ -968,7 +964,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassDeclaration(ClassDeclaration node) {
-    _addSubtype(node.name.name,
+    _addSubtype(node.name2.lexeme,
         superclass: node.extendsClause?.superclass,
         withClause: node.withClause,
         implementsClause: node.implementsClause,
@@ -977,7 +973,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassTypeAlis(ClassTypeAlias node) {
-    _addSubtype(node.name.name,
+    _addSubtype(node.name2.lexeme,
         superclass: node.superclass,
         withClause: node.withClause,
         implementsClause: node.implementsClause,
@@ -986,7 +982,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   /// Record the given mixin as a subclass of its direct superclasses.
   void _addSubtypeForMixinDeclaration(MixinDeclaration node) {
-    _addSubtype(node.name.name,
+    _addSubtype(node.name2.lexeme,
         onClause: node.onClause,
         implementsClause: node.implementsClause,
         memberNodes: node.members);

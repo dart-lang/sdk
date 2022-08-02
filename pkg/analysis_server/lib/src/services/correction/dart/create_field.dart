@@ -37,8 +37,7 @@ class CreateField extends CorrectionProducer {
       return;
     }
 
-    var nameNode = parameter.identifier;
-    _fieldName = nameNode.name;
+    _fieldName = parameter.name.lexeme;
 
     var targetLocation = utils.prepareNewFieldLocation(targetClassNode);
     if (targetLocation == null) {

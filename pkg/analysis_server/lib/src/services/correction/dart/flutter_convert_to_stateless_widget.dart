@@ -48,7 +48,7 @@ class FlutterConvertToStatelessWidget extends CorrectionProducer {
     var stateClassElement = stateClass?.declaredElement;
     if (stateClass == null ||
         stateClassElement == null ||
-        !Identifier.isPrivateName(stateClass.name.name) ||
+        !Identifier.isPrivateName(stateClass.name2.lexeme) ||
         !_isSameTypeParameters(widgetClass, stateClass)) {
       return;
     }
@@ -170,7 +170,7 @@ class FlutterConvertToStatelessWidget extends CorrectionProducer {
 
   MethodDeclaration? _findCreateStateMethod(ClassDeclaration widgetClass) {
     for (var member in widgetClass.members) {
-      if (member is MethodDeclaration && member.name.name == 'createState') {
+      if (member is MethodDeclaration && member.name2.lexeme == 'createState') {
         var parameters = member.parameters;
         if (parameters?.parameters.isEmpty ?? false) {
           return member;
@@ -214,7 +214,7 @@ class FlutterConvertToStatelessWidget extends CorrectionProducer {
     outer:
     for (var stateParam in stateParams) {
       for (var widgetParam in widgetParams) {
-        if (stateParam.name.name == widgetParam.name.name &&
+        if (stateParam.name2.lexeme == widgetParam.name2.lexeme &&
             stateParam.bound?.type == widgetParam.bound?.type) {
           continue outer;
         }
@@ -242,7 +242,7 @@ class FlutterConvertToStatelessWidget extends CorrectionProducer {
       }
       if (expression is MethodInvocation &&
           expression.target is SuperExpression &&
-          methodDeclaration!.name.name == expression.methodName.name) {
+          methodDeclaration!.name2.lexeme == expression.methodName.name) {
         return true;
       }
     }
@@ -388,7 +388,7 @@ class _StateUsageVisitor extends RecursiveAstVisitor<void> {
     var classDeclaration =
         methodDeclaration?.thisOrAncestorOfType<ClassDeclaration>();
 
-    if (methodDeclaration?.name.name != 'createState' ||
+    if (methodDeclaration?.name2.lexeme != 'createState' ||
         classDeclaration?.declaredElement != widgetClassElement) {
       used = true;
     }

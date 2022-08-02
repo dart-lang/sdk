@@ -478,17 +478,26 @@ class DartCompletionRequest {
       }
     }
 
+    /// TODO(scheglov) Can we make it better?
+    String fromToken(Token token) {
+      final lexeme = token.lexeme;
+      if (offset >= token.offset && offset < token.end) {
+        return lexeme.substring(0, offset - token.offset);
+      } else if (offset == token.end) {
+        return lexeme;
+      }
+      return '';
+    }
+
     while (entity is AstNode) {
       if (entity is SimpleIdentifier) {
-        var identifier = entity.name;
-        if (offset >= entity.offset && offset < entity.end) {
-          return identifier.substring(0, offset - entity.offset);
-        } else if (offset == entity.end) {
-          return identifier;
-        }
+        return fromToken(entity.token);
       }
       var children = entity.childEntities;
       entity = children.isEmpty ? null : children.first;
+      if (entity is Token) {
+        return fromToken(entity);
+      }
     }
     return '';
   }

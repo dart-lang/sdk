@@ -87,10 +87,7 @@ enum E<T> {
     final node = findNode.enumConstantDeclaration('v.');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
-    staticElement: self::@enum::E::@field::v
-    staticType: null
+  name: v
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
@@ -126,10 +123,7 @@ enum E<T> {
     final node = findNode.enumConstantDeclaration('v(');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
-    staticElement: self::@enum::E::@field::v
-    staticType: null
+  name: v
   arguments: EnumConstantArguments
     argumentList: ArgumentList
       leftParenthesis: (
@@ -159,10 +153,7 @@ enum E<T> {
     final node = findNode.enumConstantDeclaration('v<');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
-    staticElement: self::@enum::E::@field::v
-    staticType: null
+  name: v
   arguments: EnumConstantArguments
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -208,10 +199,7 @@ enum E {
     final node = findNode.enumConstantDeclaration('v.');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
-    staticElement: self::@enum::E::@field::v
-    staticType: null
+  name: v
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
@@ -243,10 +231,7 @@ enum E {
     final node = findNode.enumConstantDeclaration('v(');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
-    staticElement: self::@enum::E::@field::v
-    staticType: null
+  name: v
   arguments: EnumConstantArguments
     argumentList: ArgumentList
       leftParenthesis: (
@@ -271,10 +256,7 @@ enum E {
     final node = findNode.enumConstantDeclaration('v\n');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
-    staticElement: self::@enum::E::@field::v
-    staticType: null
+  name: v
   constructorElement: self::@enum::E::@constructor::•
   declaredElement: self::@enum::E::@field::v
 ''');
@@ -293,10 +275,7 @@ enum E {
     final node = findNode.enumConstantDeclaration('v.');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
-    staticElement: self::@enum::E::@field::v
-    staticType: null
+  name: v
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
@@ -330,10 +309,7 @@ enum E {
     final node = findNode.enumConstantDeclaration('v(');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
-    staticElement: self::@enum::E::@field::v
-    staticType: null
+  name: v
   arguments: EnumConstantArguments
     argumentList: ArgumentList
       leftParenthesis: (

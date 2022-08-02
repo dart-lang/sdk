@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -74,7 +75,7 @@ class DiagnosticFactory {
   AnalysisError invalidOverride(
       Source source,
       ErrorCode? errorCode,
-      AstNode errorNode,
+      SyntacticEntity errorNode,
       ExecutableElement member,
       ExecutableElement superMember) {
     errorCode ??= CompileTimeErrorCode.INVALID_OVERRIDE;

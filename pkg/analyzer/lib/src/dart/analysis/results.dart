@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -343,22 +344,22 @@ class _DeclarationByElementLocator extends UnifyingAstVisitor<void> {
 
     if (element is ClassElement) {
       if (node is ClassOrMixinDeclaration) {
-        if (_hasOffset(node.name)) {
+        if (_hasOffset2(node.name2)) {
           result = node;
         }
       } else if (node is ClassTypeAlias) {
-        if (_hasOffset(node.name)) {
+        if (_hasOffset2(node.name2)) {
           result = node;
         }
       } else if (node is EnumDeclaration) {
-        if (_hasOffset(node.name)) {
+        if (_hasOffset2(node.name2)) {
           result = node;
         }
       }
     } else if (element is ConstructorElement) {
       if (node is ConstructorDeclaration) {
-        if (node.name != null) {
-          if (_hasOffset(node.name)) {
+        if (node.name2 != null) {
+          if (_hasOffset2(node.name2)) {
             result = node;
           }
         } else {
@@ -369,48 +370,48 @@ class _DeclarationByElementLocator extends UnifyingAstVisitor<void> {
       }
     } else if (element is ExtensionElement) {
       if (node is ExtensionDeclaration) {
-        if (_hasOffset(node.name)) {
+        if (_hasOffset2(node.name2)) {
           result = node;
         }
       }
     } else if (element is FieldElement) {
       if (node is EnumConstantDeclaration) {
-        if (_hasOffset(node.name)) {
+        if (_hasOffset2(node.name2)) {
           result = node;
         }
       } else if (node is VariableDeclaration) {
-        if (_hasOffset(node.name)) {
+        if (_hasOffset2(node.name2)) {
           result = node;
         }
       }
     } else if (element is FunctionElement) {
-      if (node is FunctionDeclaration && _hasOffset(node.name)) {
+      if (node is FunctionDeclaration && _hasOffset2(node.name2)) {
         result = node;
       }
     } else if (element is LocalVariableElement) {
-      if (node is VariableDeclaration && _hasOffset(node.name)) {
+      if (node is VariableDeclaration && _hasOffset2(node.name2)) {
         result = node;
       }
     } else if (element is MethodElement) {
-      if (node is MethodDeclaration && _hasOffset(node.name)) {
+      if (node is MethodDeclaration && _hasOffset2(node.name2)) {
         result = node;
       }
     } else if (element is ParameterElement) {
-      if (node is FormalParameter && _hasOffset(node.identifier)) {
+      if (node is FormalParameter && _hasOffset2(node.name)) {
         result = node;
       }
     } else if (element is PropertyAccessorElement) {
       if (node is FunctionDeclaration) {
-        if (_hasOffset(node.name)) {
+        if (_hasOffset2(node.name2)) {
           result = node;
         }
       } else if (node is MethodDeclaration) {
-        if (_hasOffset(node.name)) {
+        if (_hasOffset2(node.name2)) {
           result = node;
         }
       }
     } else if (element is TopLevelVariableElement) {
-      if (node is VariableDeclaration && _hasOffset(node.name)) {
+      if (node is VariableDeclaration && _hasOffset2(node.name2)) {
         result = node;
       }
     }
@@ -422,5 +423,9 @@ class _DeclarationByElementLocator extends UnifyingAstVisitor<void> {
 
   bool _hasOffset(AstNode? node) {
     return node?.offset == _nameOffset;
+  }
+
+  bool _hasOffset2(Token? token) {
+    return token?.offset == _nameOffset;
   }
 }

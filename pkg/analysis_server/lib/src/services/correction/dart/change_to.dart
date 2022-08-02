@@ -8,6 +8,8 @@ import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -82,7 +84,7 @@ class ChangeTo extends CorrectionProducer {
     return element.parameters.where((superParam) =>
         superParam.isNamed &&
         !formalParameters
-            .any((param) => superParam.name == param.identifier?.name));
+            .any((param) => superParam.name == param.name?.lexeme));
   }
 
   Future<void> _proposeAnnotation(ChangeBuilder builder) async {
@@ -130,17 +132,14 @@ class ChangeTo extends CorrectionProducer {
     }
   }
 
-  Future<void> _proposeClassOrMixinMember(
-      ChangeBuilder builder,
-      SimpleIdentifier node,
-      Expression? target,
-      _ElementPredicate predicate) async {
+  Future<void> _proposeClassOrMixinMember(ChangeBuilder builder, Token node,
+      Expression? target, _ElementPredicate predicate) async {
     var targetIdentifierElement =
         target is Identifier ? target.staticElement : null;
-    var finder = _ClosestElementFinder(node.name, predicate);
+    var finder = _ClosestElementFinder(node.lexeme, predicate);
     // unqualified invocation
     if (target == null) {
-      var clazz = node.thisOrAncestorOfType<ClassDeclaration>();
+      var clazz = this.node.thisOrAncestorOfType<ClassDeclaration>();
       if (clazz != null) {
         var classElement = clazz.declaredElement!;
         _updateFinderWithClassMembers(finder, classElement);
@@ -177,7 +176,7 @@ class ChangeTo extends CorrectionProducer {
     var formalParameterList = node.thisOrAncestorOfType<FormalParameterList>();
     if (formalParameterList != null) {
       for (var parameter in formalParameterList.parameters) {
-        var name = parameter.identifier?.name;
+        var name = parameter.name?.lexeme;
         if (name != null) {
           exclusions.add(name);
         }
@@ -185,7 +184,7 @@ class ChangeTo extends CorrectionProducer {
     }
 
     var type = node.type?.type;
-    await _proposeClassOrMixinMember(builder, node.identifier, null,
+    await _proposeClassOrMixinMember(builder, node.name, null,
         (Element element) {
       return element is FieldElement &&
           !exclusions.contains(element.name) &&
@@ -245,7 +244,7 @@ class ChangeTo extends CorrectionProducer {
       // find getter or setter
       var wantGetter = node.inGetterContext();
       var wantSetter = node.inSetterContext();
-      await _proposeClassOrMixinMember(builder, node, target,
+      await _proposeClassOrMixinMember(builder, node.token, target,
           (Element element) {
         if (element is PropertyAccessorElement) {
           return wantGetter && element.isGetter ||
@@ -263,7 +262,7 @@ class ChangeTo extends CorrectionProducer {
     final node = this.node;
     var parent = node.parent;
     if (parent is MethodInvocation && node is SimpleIdentifier) {
-      await _proposeClassOrMixinMember(builder, node, parent.realTarget,
+      await _proposeClassOrMixinMember(builder, node.token, parent.realTarget,
           (Element element) => element is MethodElement && !element.isOperator);
     }
   }
@@ -279,8 +278,7 @@ class ChangeTo extends CorrectionProducer {
     var formalParameters = constructorDeclaration.parameters.parameters
         .whereType<DefaultFormalParameter>();
 
-    var finder =
-        _ClosestElementFinder(parent.identifier.name, (Element e) => true);
+    var finder = _ClosestElementFinder(parent.name.lexeme, (Element e) => true);
 
     var superInvocation = constructorDeclaration.initializers.lastOrNull;
 
@@ -312,11 +310,11 @@ class ChangeTo extends CorrectionProducer {
   }
 
   Future<void> _suggest(
-      ChangeBuilder builder, AstNode node, String? name) async {
+      ChangeBuilder builder, SyntacticEntity node, String? name) async {
     if (name != null) {
       _proposedName = name;
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.node(node), _proposedName);
+        builder.addSimpleReplacement(range.entity(node), _proposedName);
       });
     }
   }

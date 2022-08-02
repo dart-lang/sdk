@@ -241,7 +241,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     if (declaredElement != null &&
         visibilityTracker._isVisible(declaredElement) &&
         opType.includeReturnValueSuggestions &&
-        declaration.name != null) {
+        declaration.name2 != null) {
       builder.suggestExtension(declaredElement, kind: _defaultKind);
     }
   }
@@ -316,10 +316,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation? type) {
-    if (visibilityTracker._isVisible(name.staticElement) &&
+  void declaredLocalVar(
+    Token name,
+    TypeAnnotation? type,
+    LocalVariableElement declaredElement,
+  ) {
+    if (visibilityTracker._isVisible(declaredElement) &&
         opType.includeReturnValueSuggestions) {
-      builder.suggestLocalVariable(name.staticElement as LocalVariableElement);
+      builder.suggestLocalVariable(declaredElement);
     }
   }
 

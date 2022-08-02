@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -33,27 +33,28 @@ class AddReturnType extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    SyntacticEntity? insertBeforeEntity;
+    Token? insertBeforeEntity;
     FunctionBody? body;
     if (node is SimpleIdentifier) {
       var executable = node.parent;
-      if (executable is MethodDeclaration && executable.name == node) {
+      if (executable is MethodDeclaration && executable.name2 == token) {
         if (executable.returnType != null) {
           return;
         }
         if (executable.isSetter) {
           return;
         }
-        insertBeforeEntity = executable.propertyKeyword ?? executable.name;
+        insertBeforeEntity = executable.propertyKeyword ?? executable.name2;
         body = executable.body;
-      } else if (executable is FunctionDeclaration && executable.name == node) {
+      } else if (executable is FunctionDeclaration &&
+          executable.name2 == token) {
         if (executable.returnType != null) {
           return;
         }
         if (executable.isSetter) {
           return;
         }
-        insertBeforeEntity = executable.propertyKeyword ?? executable.name;
+        insertBeforeEntity = executable.propertyKeyword ?? executable.name2;
         body = executable.functionExpression.body;
       } else {
         return;

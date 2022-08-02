@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -86,8 +87,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           inCompound = true;
           compound = node;
           if (node.declaredElement!.isEmptyStruct) {
-            _errorReporter.reportErrorForNode(
-                FfiCode.EMPTY_STRUCT, node.name, [node.name.name, className]);
+            _errorReporter.reportErrorForToken(FfiCode.EMPTY_STRUCT, node.name2,
+                [node.name2.lexeme, className]);
           }
           if (className == _structClassName) {
             _validatePackedAnnotation(node.metadata);
@@ -95,21 +96,21 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         } else if (className == _abiSpecificIntegerClassName) {
           _validateAbiSpecificIntegerAnnotation(node);
           _validateAbiSpecificIntegerMappingAnnotation(
-              node.name, node.metadata);
+              node.name2, node.metadata);
         } else if (className != _allocatorClassName &&
             className != _opaqueClassName &&
             className != _abiSpecificIntegerClassName) {
           _errorReporter.reportErrorForNode(
               FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS,
               superclass.name,
-              [node.name.name, superclass.name.name]);
+              [node.name2.lexeme, superclass.name.name]);
         }
       } else if (superclass.isCompoundSubtype ||
           superclass.isAbiSpecificIntegerSubtype) {
         _errorReporter.reportErrorForNode(
             FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS,
             superclass,
-            [node.name.name, superclass.name.name]);
+            [node.name2.lexeme, superclass.name.name]);
       }
     }
 
@@ -123,11 +124,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
       if (typename.ffiClass != null) {
         _errorReporter.reportErrorForNode(subtypeOfFfiCode, typename,
-            [node.name.name, typename.name.toSource()]);
+            [node.name2.lexeme, typename.name.toSource()]);
       } else if (typename.isCompoundSubtype ||
           typename.isAbiSpecificIntegerSubtype) {
         _errorReporter.reportErrorForNode(subtypeOfStructCode, typename,
-            [node.name.name, typename.name.toSource()]);
+            [node.name2.lexeme, typename.name.toSource()]);
       }
     }
 
@@ -148,8 +149,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     if (inCompound) {
       if (node.declaredElement!.typeParameters.isNotEmpty) {
-        _errorReporter.reportErrorForNode(
-            FfiCode.GENERIC_STRUCT_SUBCLASS, node.name, [node.name.name]);
+        _errorReporter.reportErrorForToken(
+            FfiCode.GENERIC_STRUCT_SUBCLASS, node.name2, [node.name2.lexeme]);
       }
       final implementsClause = node.implementsClause;
       if (implementsClause != null) {
@@ -159,10 +160,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         final finalizableElement = ffiLibrary.getType(_finalizableClassName)!;
         final finalizableType = finalizableElement.thisType;
         if (typeSystem.isSubtypeOf(compoundType, finalizableType)) {
-          _errorReporter.reportErrorForNode(
+          _errorReporter.reportErrorForToken(
               FfiCode.COMPOUND_IMPLEMENTS_FINALIZABLE,
-              node.name,
-              [node.name.name]);
+              node.name2,
+              [node.name2.lexeme]);
         }
       }
     }
@@ -631,21 +632,21 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         node.members.length != 1 ||
         node.members.single is! ConstructorDeclaration ||
         (node.members.single as ConstructorDeclaration).constKeyword == null) {
-      _errorReporter.reportErrorForNode(
-          FfiCode.ABI_SPECIFIC_INTEGER_INVALID, node.name);
+      _errorReporter.reportErrorForToken(
+          FfiCode.ABI_SPECIFIC_INTEGER_INVALID, node.name2);
     }
   }
 
   /// Validate that the [annotations] include at most one mapping annotation.
   void _validateAbiSpecificIntegerMappingAnnotation(
-      AstNode errorNode, NodeList<Annotation> annotations) {
+      Token errorToken, NodeList<Annotation> annotations) {
     final ffiPackedAnnotations = annotations
         .where((annotation) => annotation.isAbiSpecificIntegerMapping)
         .toList();
 
     if (ffiPackedAnnotations.isEmpty) {
-      _errorReporter.reportErrorForNode(
-          FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING, errorNode);
+      _errorReporter.reportErrorForToken(
+          FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING, errorToken);
       return;
     }
 
@@ -963,17 +964,17 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     if (typeSystem.isNonNullableByDefault) {
       if (node.externalKeyword == null) {
-        _errorReporter.reportErrorForNode(
+        _errorReporter.reportErrorForToken(
           FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT,
-          fields.variables[0].name,
+          fields.variables[0].name2,
         );
       }
     }
 
     var fieldType = fields.type;
     if (fieldType == null) {
-      _errorReporter.reportErrorForNode(
-          FfiCode.MISSING_FIELD_TYPE_IN_STRUCT, fields.variables[0].name);
+      _errorReporter.reportErrorForToken(
+          FfiCode.MISSING_FIELD_TYPE_IN_STRUCT, fields.variables[0].name2);
     } else {
       DartType declaredType = fieldType.typeOrThrow;
       if (declaredType.isDartCoreInt) {
@@ -1016,9 +1017,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (!typeSystem.isNonNullableByDefault) {
       for (VariableDeclaration field in fields.variables) {
         if (field.initializer != null) {
-          _errorReporter.reportErrorForNode(
+          _errorReporter.reportErrorForToken(
             FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER,
-            field.name,
+            field.name2,
           );
         }
       }

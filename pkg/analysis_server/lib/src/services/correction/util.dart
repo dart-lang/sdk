@@ -476,7 +476,7 @@ bool isLeftHandOfAssignment(SimpleIdentifier node) {
     return true;
   }
   return node.parent is VariableDeclaration &&
-      (node.parent as VariableDeclaration).name == node;
+      (node.parent as VariableDeclaration).name2 == node.token;
 }
 
 /// Return `true` if the given [node] is the name of a [NamedExpression].

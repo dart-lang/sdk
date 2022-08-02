@@ -310,8 +310,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
             parameter = parameter.parameter;
           }
           if (parameter is NormalFormalParameter) {
-            _parameters.add(_Parameter(
-                parameter.identifier!.name, parameter.declaredElement!.type,
+            final element = parameter.declaredElement!;
+            _parameters.add(_Parameter(element.name, element.type,
                 isMethodParameter: true));
           }
         }

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test/test.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
@@ -209,6 +210,10 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == "void") {
+      return;
+    }
+
+    if (node is DeclaredSimpleIdentifier) {
       return;
     }
 

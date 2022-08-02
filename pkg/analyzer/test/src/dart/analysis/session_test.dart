@@ -329,7 +329,7 @@ class B {}
     var element = libraryResult.element.getType('A')!;
     var declaration = parsedLibrary.getElementDeclaration(element)!;
     var node = declaration.node as ClassDeclaration;
-    expect(node.name.name, 'A');
+    expect(node.name2.lexeme, 'A');
     expect(node.offset, 0);
     expect(node.length, 10);
   }
@@ -365,10 +365,9 @@ int foo = 0;
     // We can get the variable element declaration.
     var fooDeclaration = parsedLibrary.getElementDeclaration(fooElement)!;
     var fooNode = fooDeclaration.node as VariableDeclaration;
-    expect(fooNode.name.name, 'foo');
+    expect(fooNode.name2.lexeme, 'foo');
     expect(fooNode.offset, 4);
     expect(fooNode.length, 7);
-    expect(fooNode.name.staticElement, isNull);
 
     // Synthetic elements don't have nodes.
     expect(parsedLibrary.getElementDeclaration(fooElement.getter!), isNull);
@@ -593,14 +592,14 @@ class B2 extends X {}
 
     var aDeclaration = resolvedLibrary.getElementDeclaration(aClass)!;
     var aNode = aDeclaration.node as ClassDeclaration;
-    expect(aNode.name.name, 'A');
+    expect(aNode.name2.lexeme, 'A');
     expect(aNode.offset, 16);
     expect(aNode.length, 16);
     expect(aNode.declaredElement!.name, 'A');
 
     var bDeclaration = resolvedLibrary.getElementDeclaration(bClass)!;
     var bNode = bDeclaration.node as ClassDeclaration;
-    expect(bNode.name.name, 'B');
+    expect(bNode.name2.lexeme, 'B');
     expect(bNode.offset, 19);
     expect(bNode.length, 16);
     expect(bNode.declaredElement!.name, 'B');
@@ -633,7 +632,7 @@ int foo = 0;
     // We can get the variable element declaration.
     var fooDeclaration = resolvedLibrary.getElementDeclaration(fooElement)!;
     var fooNode = fooDeclaration.node as VariableDeclaration;
-    expect(fooNode.name.name, 'foo');
+    expect(fooNode.name2.lexeme, 'foo');
     expect(fooNode.offset, 4);
     expect(fooNode.length, 7);
     expect(fooNode.declaredElement!.name, 'foo');

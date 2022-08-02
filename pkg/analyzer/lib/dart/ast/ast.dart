@@ -789,7 +789,7 @@ abstract class CascadeExpression
 ///      | 'on' type catchPart? [Block]
 ///
 ///    catchPart ::=
-///        'catch' '(' [SimpleIdentifier] (',' [SimpleIdentifier])? ')'
+///        'catch' '(' [CatchClauseParameter] (',' [CatchClauseParameter])? ')'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class CatchClause implements AstNode {
@@ -851,7 +851,7 @@ abstract class CatchClauseParameter extends AstNode {
 /// The declaration of a class augmentation.
 ///
 ///    classAugmentationDeclaration ::=
-///        'augment' 'class' [SimpleIdentifier] [TypeParameterList]?
+///        'augment' 'class' name [TypeParameterList]?
 ///        [ExtendsClause]? [WithClause]? [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
 ///
@@ -869,7 +869,7 @@ abstract class ClassAugmentationDeclaration
 /// The declaration of a class.
 ///
 ///    classDeclaration ::=
-///        'abstract'? 'class' [SimpleIdentifier] [TypeParameterList]?
+///        'abstract'? 'class' name [TypeParameterList]?
 ///        [ExtendsClause]? [WithClause]? [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
 ///
@@ -986,7 +986,7 @@ abstract class ClassOrMixinDeclaration implements NamedCompilationUnitMember {
 /// A class type alias.
 ///
 ///    classTypeAlias ::=
-///        [SimpleIdentifier] [TypeParameterList]? '=' 'abstract'? mixinApplication
+///        name [TypeParameterList]? '=' 'abstract'? mixinApplication
 ///
 ///    mixinApplication ::=
 ///        [TypeName] [WithClause] [ImplementsClause]? ';'
@@ -1010,9 +1010,6 @@ abstract class ClassTypeAlias implements TypeAlias {
   /// Return `true` if this class is declared to be an abstract class.
   @Deprecated('Use abstractKeyword instead')
   bool get isAbstract;
-
-  @override
-  SimpleIdentifier get name;
 
   /// Return the name of the superclass of the class being declared.
   NamedType get superclass;
@@ -1339,7 +1336,7 @@ abstract class Configuration implements AstNode {
 ///      | 'external'? 'const'  constructorName formalParameterList initializerList?
 ///
 ///    constructorName ::=
-///        [SimpleIdentifier] ('.' [SimpleIdentifier])?
+///        [SimpleIdentifier] ('.' name)?
 ///
 ///    factoryName ::=
 ///        [Identifier] ('.' [SimpleIdentifier])?
@@ -1371,7 +1368,12 @@ abstract class ConstructorDeclaration implements ClassMember {
 
   /// Return the name of the constructor, or `null` if the constructor being
   /// declared is unnamed.
+  @Deprecated('Use name2 instead')
   SimpleIdentifier? get name;
+
+  /// Return the name of the constructor, or `null` if the constructor being
+  /// declared is unnamed.
+  Token? get name2;
 
   /// Return the parameters associated with the constructor.
   FormalParameterList get parameters;
@@ -1545,6 +1547,7 @@ abstract class DeclaredIdentifier implements Declaration {
   LocalVariableElement? get declaredElement;
 
   /// Return the name of the variable being declared.
+  @Deprecated('Use identifier2 instead')
   SimpleIdentifier get identifier;
 
   /// Return `true` if this variable was declared with the 'const' modifier.
@@ -1558,6 +1561,9 @@ abstract class DeclaredIdentifier implements Declaration {
   /// Return the token representing either the 'final', 'const' or 'var'
   /// keyword, or `null` if no keyword was used.
   Token? get keyword;
+
+  /// Return the name of the variable being declared.
+  Token get name;
 
   /// Return the name of the declared type of the parameter, or `null` if the
   /// parameter does not have a declared type.
@@ -1734,13 +1740,17 @@ abstract class EnumConstantDeclaration implements Declaration {
   ConstructorElement? get constructorElement;
 
   /// Return the name of the constant.
+  @Deprecated('Use name2 instead')
   SimpleIdentifier get name;
+
+  /// Return the name of the constant.
+  Token get name2;
 }
 
 /// The declaration of an enumeration.
 ///
 ///    enumType ::=
-///        metadata 'enum' [SimpleIdentifier] [TypeParameterList]?
+///        metadata 'enum' name [TypeParameterList]?
 ///        [WithClause]? [ImplementsClause]? '{' [SimpleIdentifier]
 ///        (',' [SimpleIdentifier])* (';' [ClassMember]+)? '}'
 ///
@@ -1764,9 +1774,6 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
 
   /// Return the members declared by the enumeration.
   NodeList<ClassMember> get members;
-
-  @override
-  SimpleIdentifier get name;
 
   /// Return the right curly bracket.
   Token get rightBracket;
@@ -1946,7 +1953,12 @@ abstract class ExtensionDeclaration implements CompilationUnitMember {
 
   /// Return the name of the extension, or `null` if the extension does not have
   /// a name.
+  @Deprecated('Use name2 instead')
   SimpleIdentifier? get name;
+
+  /// Return the name of the extension, or `null` if the extension does not have
+  /// a name.
+  Token? get name2;
 
   /// Return the token representing the 'on' keyword.
   Token get onKeyword;
@@ -2061,16 +2073,20 @@ abstract class FieldDeclaration implements ClassMember {
 ///
 ///    fieldFormalParameter ::=
 ///        ('final' [TypeAnnotation] | 'const' [TypeAnnotation] | 'var' | [TypeAnnotation])?
-///        'this' '.' [SimpleIdentifier] ([TypeParameterList]? [FormalParameterList])?
+///        'this' '.' name ([TypeParameterList]? [FormalParameterList])?
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FieldFormalParameter implements NormalFormalParameter {
+  @Deprecated('Use identifier2 instead')
   @override
   SimpleIdentifier get identifier;
 
   /// Return the token representing either the 'final', 'const' or 'var'
   /// keyword, or `null` if no keyword was used.
   Token? get keyword;
+
+  @override
+  Token get name;
 
   /// Return the parameters of the function-typed parameter, or `null` if this
   /// is not a function-typed field formal parameter.
@@ -2190,6 +2206,7 @@ abstract class FormalParameter implements AstNode {
   /// Return the name of the parameter being declared, or `null` if the
   /// parameter doesn't have a name, such as when it's part of a generic
   /// function type.
+  @Deprecated('Use identifier2 instead')
   SimpleIdentifier? get identifier;
 
   /// Return `true` if this parameter was declared with the 'const' modifier.
@@ -2246,6 +2263,11 @@ abstract class FormalParameter implements AstNode {
 
   /// Return the annotations associated with this parameter.
   NodeList<Annotation> get metadata;
+
+  /// Return the name of the parameter being declared, or `null` if the
+  /// parameter doesn't have a name, such as when it's part of a generic
+  /// function type.
+  Token? get name;
 
   /// The 'required' keyword, or `null` if the keyword was not used.
   Token? get requiredKeyword;
@@ -2448,7 +2470,7 @@ abstract class FunctionBody implements AstNode {
 ///      | functionSignature [FunctionBody]
 ///
 ///    functionSignature ::=
-///        [Type]? ('get' | 'set')? [SimpleIdentifier] [FormalParameterList]
+///        [Type]? ('get' | 'set')? name [FormalParameterList]
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionDeclaration implements NamedCompilationUnitMember {
@@ -2467,9 +2489,6 @@ abstract class FunctionDeclaration implements NamedCompilationUnitMember {
 
   /// Return `true` if this function declares a setter.
   bool get isSetter;
-
-  @override
-  SimpleIdentifier get name;
 
   /// Return the token representing the 'get' or 'set' keyword, or `null` if
   /// this is a function declaration rather than a property declaration.
@@ -2592,13 +2611,17 @@ abstract class FunctionTypeAlias implements TypeAlias {
 /// A function-typed formal parameter.
 ///
 ///    functionSignature ::=
-///        [TypeAnnotation]? [SimpleIdentifier] [TypeParameterList]?
+///        [TypeAnnotation]? name [TypeParameterList]?
 ///        [FormalParameterList] '?'?
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypedFormalParameter implements NormalFormalParameter {
+  @Deprecated('Use identifier2 instead')
   @override
   SimpleIdentifier get identifier;
+
+  @override
+  Token get name;
 
   /// Return the parameters of the function-typed parameter.
   FormalParameterList get parameters;
@@ -2666,7 +2689,7 @@ abstract class GenericFunctionType implements TypeAnnotation {
 /// A generic type alias.
 ///
 ///    functionTypeAlias ::=
-///        metadata 'typedef' [SimpleIdentifier] [TypeParameterList]? = [FunctionType] ';'
+///        metadata 'typedef' name [TypeParameterList]? = [FunctionType] ';'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class GenericTypeAlias implements TypeAlias {
@@ -3394,7 +3417,11 @@ abstract class MethodDeclaration implements ClassMember {
   Token? get modifierKeyword;
 
   /// Return the name of the method.
+  @Deprecated('Use name2 instead')
   SimpleIdentifier get name;
+
+  /// Return the name of the method.
+  Token get name2;
 
   /// Return the token representing the 'operator' keyword, or `null` if this
   /// method does not declare an operator.
@@ -3480,7 +3507,7 @@ abstract class MethodReferenceExpression implements Expression {
 /// The declaration of a mixin.
 ///
 ///    mixinDeclaration ::=
-///        metadata? 'mixin' [SimpleIdentifier] [TypeParameterList]?
+///        metadata? 'mixin' name [TypeParameterList]?
 ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -3498,7 +3525,11 @@ abstract class MixinDeclaration implements ClassOrMixinDeclaration {
 /// Clients may not extend, implement or mix-in this class.
 abstract class NamedCompilationUnitMember implements CompilationUnitMember {
   /// Return the name of the member being declared.
+  @Deprecated('Use name2 instead')
   SimpleIdentifier get name;
+
+  /// Return the name of the member being declared.
+  Token get name2;
 }
 
 /// An expression that has a name associated with it. They are used in method
@@ -4295,16 +4326,20 @@ abstract class SuperExpression implements Expression {
 ///
 ///    superFormalParameter ::=
 ///        ('final' [TypeAnnotation] | 'const' [TypeAnnotation] | 'var' | [TypeAnnotation])?
-///        'super' '.' [SimpleIdentifier] ([TypeParameterList]? [FormalParameterList])?
+///        'super' '.' name ([TypeParameterList]? [FormalParameterList])?
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class SuperFormalParameter implements NormalFormalParameter {
+  @Deprecated('Use identifier2 instead')
   @override
   SimpleIdentifier get identifier;
 
   /// Return the token representing either the 'final', 'const' or 'var'
   /// keyword, or `null` if no keyword was used.
   Token? get keyword;
+
+  @override
+  Token get name;
 
   /// Return the parameters of the function-typed parameter, or `null` if this
   /// is not a function-typed field formal parameter.
@@ -4508,9 +4543,6 @@ abstract class TryStatement implements Statement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeAlias implements NamedCompilationUnitMember {
-  @override
-  SimpleIdentifier get name;
-
   /// Return the semicolon terminating the declaration.
   Token get semicolon;
 
@@ -4594,7 +4626,7 @@ abstract class TypeLiteral implements Expression, CommentReferableExpression {
 /// A type parameter.
 ///
 ///    typeParameter ::=
-///        [SimpleIdentifier] ('extends' [TypeAnnotation])?
+///        name ('extends' [TypeAnnotation])?
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeParameter implements Declaration {
@@ -4610,7 +4642,11 @@ abstract class TypeParameter implements Declaration {
   Token? get extendsKeyword;
 
   /// Return the name of the type parameter.
+  @Deprecated('Use name2 instead')
   SimpleIdentifier get name;
+
+  /// Return the name of the type parameter.
+  Token get name2;
 }
 
 /// Type parameters within a declaration.
@@ -4669,7 +4705,7 @@ abstract class UriBasedDirective implements Directive {
 /// [VariableDeclarationList].
 ///
 ///    variableDeclaration ::=
-///        [SimpleIdentifier] ('=' [Expression])?
+///        name ('=' [Expression])?
 ///
 /// Clients may not extend, implement or mix-in this class.
 // TODO(paulberry): the grammar does not allow metadata to be associated with a
@@ -4701,7 +4737,11 @@ abstract class VariableDeclaration implements Declaration {
   bool get isLate;
 
   /// Return the name of the variable being declared.
+  @Deprecated('Use name2 instead')
   SimpleIdentifier get name;
+
+  /// Return the name of the variable being declared.
+  Token get name2;
 }
 
 /// The declaration of one or more variables of the same type.

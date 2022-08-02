@@ -54,9 +54,9 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
         var setter = fieldElement.setter;
         if (setter != null && _isOverride(setter)) continue;
 
-        _errorReporter.reportErrorForNode(
+        _errorReporter.reportErrorForToken(
           HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD,
-          field.name,
+          field.name2,
         );
       }
     }
@@ -67,20 +67,20 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
     var element = node.declaredElement!;
     if (element.hasOverride && !_isOverride(element)) {
       if (element is MethodElement) {
-        _errorReporter.reportErrorForNode(
+        _errorReporter.reportErrorForToken(
           HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
-          node.name,
+          node.name2,
         );
       } else if (element is PropertyAccessorElement) {
         if (element.isGetter) {
-          _errorReporter.reportErrorForNode(
+          _errorReporter.reportErrorForToken(
             HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
-            node.name,
+            node.name2,
           );
         } else {
-          _errorReporter.reportErrorForNode(
+          _errorReporter.reportErrorForToken(
             HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER,
-            node.name,
+            node.name2,
           );
         }
       }

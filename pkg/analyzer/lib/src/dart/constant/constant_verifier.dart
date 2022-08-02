@@ -576,7 +576,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (member is FieldDeclaration && !member.isStatic) {
         for (VariableDeclaration variableDeclaration
             in member.fields.variables) {
-          if (isEnumDeclaration && variableDeclaration.name.name == 'values') {
+          if (isEnumDeclaration &&
+              variableDeclaration.name2.lexeme == 'values') {
             continue;
           }
           var initializer = variableDeclaration.initializer;
@@ -597,7 +598,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
                   CompileTimeErrorCode
                       .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
                   constKeyword,
-                  [variableDeclaration.name.name]);
+                  [variableDeclaration.name2.lexeme]);
             }
           }
         }

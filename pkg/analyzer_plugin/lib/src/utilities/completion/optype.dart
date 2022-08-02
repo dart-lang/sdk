@@ -75,6 +75,11 @@ class OpType {
       return optype;
     }
 
+    // Don't suggest anything in comments.
+    if (target.entity is CommentToken) {
+      return optype;
+    }
+
     var targetNode = target.containingNode;
     targetNode.accept(_OpTypeAstVisitor(optype, target.entity, offset));
 
@@ -466,7 +471,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    var identifier = node.identifier;
+    var identifier = node.name;
     if (identifier == entity &&
         offset < identifier.offset &&
         node.type == null) {
@@ -610,7 +615,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       // class A { static late ^ }
       if (node.staticKeyword != null &&
           variables.length == 1 &&
-          variables[0].name.name == 'late') {
+          variables[0].name2.lexeme == 'late') {
         optype.completionLocation = 'FieldDeclaration_static_late';
         optype.includeTypeNameSuggestions = true;
         return;
@@ -619,7 +624,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       if (node.staticKeyword == null &&
           offset <= node.semicolon.offset &&
           variables.length == 1 &&
-          variables[0].name.name == 'static') {
+          variables[0].name2.lexeme == 'static') {
         optype.completionLocation = 'FieldDeclaration_static';
         optype.includeTypeNameSuggestions = true;
         return;
@@ -645,7 +650,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    if (entity == node.identifier) {
+    if (entity == node.name) {
       optype.isPrefixed = true;
     } else {
       optype.includeReturnValueSuggestions = true;
@@ -788,7 +793,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (identical(entity, node.returnType) ||
-        identical(entity, node.name) && node.returnType == null) {
+        identical(entity, node.name2) && node.returnType == null) {
       optype.completionLocation = 'FunctionDeclaration_returnType';
       optype.includeTypeNameSuggestions = true;
     }
@@ -803,7 +808,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (identical(entity, node.returnType) ||
-        identical(entity, node.name) && node.returnType == null) {
+        identical(entity, node.name2) && node.returnType == null) {
       optype.includeTypeNameSuggestions = true;
     }
   }
@@ -930,7 +935,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (identical(entity, node.returnType) ||
-        identical(entity, node.name) && node.returnType == null) {
+        identical(entity, node.name2) && node.returnType == null) {
       optype.completionLocation = 'MethodDeclaration_returnType';
     }
     // TODO(brianwilkerson) In visitFunctionDeclaration, this is conditional. It
@@ -1035,7 +1040,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitNormalFormalParameter(NormalFormalParameter node) {
-    if (node.identifier != entity) {
+    if (node.name != entity) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -1153,7 +1158,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var type = node.type;
-    var name = node.identifier;
+    var name = node.name;
 
     // "(Type^)" is parsed as a parameter with the _name_ "Type".
     if (type == null &&
@@ -1172,7 +1177,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
     // If "(Type ^)", then include parameter names.
     if (type == null && name != null && name.end < offset) {
-      var nextToken = name.token.next;
+      var nextToken = name.next;
       if (nextToken != null && offset <= nextToken.offset) {
         optype.includeVarNameSuggestions = true;
         return;

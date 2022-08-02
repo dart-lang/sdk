@@ -27,6 +27,13 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   final Map<Element, List<int>> elementsOffsets = <Element, List<int>>{};
 
   @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    _addOccurrence(node.declaredElement!, node.name2.offset);
+
+    super.visitEnumConstantDeclaration(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
     if (element != null) {

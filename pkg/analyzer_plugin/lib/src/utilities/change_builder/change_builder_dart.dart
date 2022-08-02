@@ -121,7 +121,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       {ArgumentList? argumentList,
       void Function()? bodyWriter,
       String? classNameGroupName,
-      SimpleIdentifier? constructorName,
+      String? constructorName,
       String? constructorNameGroupName,
       List<String>? fieldNames,
       void Function()? initializerWriter,
@@ -139,9 +139,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (constructorName != null) {
       write('.');
       if (constructorNameGroupName == null) {
-        write(constructorName.name);
+        write(constructorName);
       } else {
-        addSimpleLinkedEdit(constructorNameGroupName, constructorName.name);
+        addSimpleLinkedEdit(constructorNameGroupName, constructorName);
       }
     }
     write('(');

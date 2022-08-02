@@ -18,6 +18,7 @@ import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -222,7 +223,7 @@ class SuggestionBuilder {
         var containingMethod = request.target.containingNode
             .thisOrAncestorOfType<MethodDeclaration>();
         if (containingMethod != null) {
-          _cachedContainingMemberName = containingMethod.name.name;
+          _cachedContainingMemberName = containingMethod.name2.lexeme;
         }
       }
     }
@@ -831,12 +832,12 @@ class SuggestionBuilder {
   /// Add a suggestion to replace the [targetId] with an override of the given
   /// [element]. If [invokeSuper] is `true`, then the override will contain an
   /// invocation of an overridden member.
-  Future<void> suggestOverride(SimpleIdentifier targetId,
-      ExecutableElement element, bool invokeSuper) async {
+  Future<void> suggestOverride(
+      Token targetId, ExecutableElement element, bool invokeSuper) async {
     var displayTextBuffer = StringBuffer();
     var builder = ChangeBuilder(session: request.analysisSession);
     await builder.addDartFileEdit(request.path, (builder) {
-      builder.addReplacement(range.node(targetId), (builder) {
+      builder.addReplacement(range.token(targetId), (builder) {
         builder.writeOverride(
           element,
           displayTextBuffer: displayTextBuffer,

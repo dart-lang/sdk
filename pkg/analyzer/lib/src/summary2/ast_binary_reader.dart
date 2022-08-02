@@ -421,7 +421,7 @@ class AstBinaryReader {
     if (parameter is SimpleFormalParameterImpl) {
       parameter.declaredElement = element;
     }
-    node.identifier?.staticElement = element;
+    node.declaredElement = element;
     element.type = nonDefaultElement.type;
 
     return node;

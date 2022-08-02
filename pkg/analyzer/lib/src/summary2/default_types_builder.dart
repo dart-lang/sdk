@@ -119,7 +119,7 @@ class DefaultTypesBuilder {
         if (typeParametersByName == null) {
           typeParametersByName = {};
           for (var parameterNode in typeParameters) {
-            var name = parameterNode.name.name;
+            var name = parameterNode.name2.lexeme;
             typeParametersByName[name] = parameterNode;
           }
         }

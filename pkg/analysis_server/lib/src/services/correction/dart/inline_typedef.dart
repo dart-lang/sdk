@@ -44,7 +44,7 @@ class InlineTypedef extends CorrectionProducer {
     List<FormalParameter> parameters;
     if (parent is FunctionTypeAlias) {
       returnType = parent.returnType;
-      _name = parent.name.name;
+      _name = parent.name2.lexeme;
       typeParameters = parent.typeParameters;
       parameters = parent.parameters.parameters;
     } else if (parent is GenericTypeAlias) {
@@ -56,7 +56,7 @@ class InlineTypedef extends CorrectionProducer {
         return;
       }
       returnType = functionType.returnType;
-      _name = parent.name.name;
+      _name = parent.name2.lexeme;
       typeParameters = functionType.typeParameters;
       parameters = functionType.parameters.parameters;
     } else {
@@ -128,10 +128,10 @@ class InlineTypedef extends CorrectionProducer {
               builder.write(utils.getNodeText(typeAnnotation));
             }
             if (parameter.isNamed) {
-              var identifier = parameter.identifier;
+              var identifier = parameter.name;
               if (identifier != null) {
                 builder.write(' ');
-                builder.write(identifier.name);
+                builder.write(identifier.lexeme);
               }
             }
           }

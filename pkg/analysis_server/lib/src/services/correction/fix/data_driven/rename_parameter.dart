@@ -38,9 +38,9 @@ class RenameParameter extends Change<_Data> {
         if (overriddenParameter == null) {
           // If the overridden parameter has already been removed, then just
           // rename the old parameter to have the new name.
-          var identifier = parameter.identifier;
+          var identifier = parameter.name;
           if (identifier != null) {
-            builder.addSimpleReplacement(range.node(identifier), newName);
+            builder.addSimpleReplacement(range.token(identifier), newName);
           }
         } else {
           // If the overridden parameter still exists, then mark it as

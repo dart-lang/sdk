@@ -4389,10 +4389,7 @@ library
                                   staticElement: dart:core::@class::double
                                   staticType: null
                                 type: double
-                              identifier: SimpleIdentifier
-                                token: a @78
-                                staticElement: a@78
-                                staticType: null
+                              name: a @78
                               declaredElement: a@78
                               declaredElementType: double
                             rightParenthesis: ) @79
@@ -22789,10 +22786,7 @@ library
                           staticElement: dart:core::@class::String
                           staticType: null
                         type: String
-                      identifier: SimpleIdentifier
-                        token: a @52
-                        staticElement: a@52
-                        staticType: null
+                      name: a @52
                       declaredElement: a@52
                       declaredElementType: String
                     rightParenthesis: ) @53
@@ -22864,10 +22858,7 @@ library
                           staticElement: dart:core::@class::String
                           staticType: null
                         type: String
-                      identifier: SimpleIdentifier
-                        token: a @52
-                        staticElement: a@52
-                        staticType: null
+                      name: a @52
                       declaredElement: a@52
                       declaredElementType: String
                     rightParenthesis: ) @53
@@ -22950,10 +22941,7 @@ library
                                 staticType: null
                               question: ? @61
                               type: int?
-                            identifier: SimpleIdentifier
-                              token: a @63
-                              staticElement: a@63
-                              staticType: null
+                            name: a @63
                             declaredElement: a@63
                             declaredElementType: int?
                           declaredElement: a@63
@@ -23035,10 +23023,7 @@ library
                                 staticType: null
                               question: ? @61
                               type: int?
-                            identifier: SimpleIdentifier
-                              token: a @63
-                              staticElement: a@63
-                              staticType: null
+                            name: a @63
                             declaredElement: a@63
                             declaredElementType: int?
                           declaredElement: a@63
@@ -23120,10 +23105,7 @@ library
                                 staticElement: dart:core::@class::int
                                 staticType: null
                               type: int
-                            identifier: SimpleIdentifier
-                              token: a @71
-                              staticElement: a@71
-                              staticType: null
+                            name: a @71
                             declaredElement: a@71
                             declaredElementType: int
                           declaredElement: a@71
@@ -23202,10 +23184,7 @@ library
                               staticElement: dart:core::@class::int
                               staticType: null
                             type: int
-                          identifier: SimpleIdentifier
-                            token: a @61
-                            staticElement: a@61
-                            staticType: null
+                          name: a @61
                           declaredElement: a@61
                           declaredElementType: int
                         rightParenthesis: ) @62

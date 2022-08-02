@@ -86,10 +86,10 @@ class ErrorReporter {
     // TODO(brianwilkerson) Consider extending this method to take any
     //  declaration and compute the correct range for the name of that
     //  declaration. This might make it easier to be consistent.
-    if (constructor.name != null) {
+    if (constructor.name2 != null) {
       var offset = constructor.returnType.offset;
       reportErrorForOffset(
-          code, offset, constructor.name!.end - offset, arguments);
+          code, offset, constructor.name2!.end - offset, arguments);
     } else {
       reportErrorForNode(code, constructor.returnType, arguments);
     }

@@ -431,7 +431,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   void checkForBodyMayCompleteNormally({
     required FunctionBody body,
-    required AstNode errorNode,
+    required SyntacticEntity errorNode,
   }) {
     if (!_isNonNullableByDefault) return;
     if (!flowAnalysis.flow!.isReachable) {
@@ -499,8 +499,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           errorNode.block.leftBracket,
           [returnType],
         );
-      } else {
-        errorReporter.reportErrorForNode(
+      } else if (errorNode is Token) {
+        errorReporter.reportErrorForToken(
           errorCode,
           errorNode,
           [returnType],
@@ -1249,7 +1249,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.documentationComment?.accept(this);
       node.metadata.accept(this);
       node.returnType.accept(this);
-      node.name?.accept(this);
       node.parameters.accept(this);
       node.initializers.accept(this);
       node.redirectedConstructor?.accept(this);
@@ -1409,9 +1408,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       if (constructorElement != null) {
         node.constructorElement = constructorElement;
         if (!constructorElement.isConst && constructorElement.isFactory) {
-          errorReporter.reportErrorForNode(
+          final errorTarget =
+              node.arguments?.constructorSelector?.name ?? node.name2;
+          errorReporter.reportErrorForOffset(
             CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR,
-            node.arguments?.constructorSelector?.name ?? node.name,
+            errorTarget.offset,
+            errorTarget.length,
           );
         }
       } else {
@@ -1425,9 +1427,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
               [nameNode.name],
             );
           } else {
-            errorReporter.reportErrorForNode(
+            errorReporter.reportErrorForToken(
               CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED,
-              node.name,
+              node.name2,
             );
           }
         }
@@ -1457,9 +1459,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
               .where((e) => e.isRequiredPositional)
               .length;
           if (requiredParameterCount != 0) {
-            errorReporter.reportErrorForNode(
+            errorReporter.reportErrorForToken(
               CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS,
-              node.name,
+              node.name2,
               [requiredParameterCount, 0],
             );
           }
@@ -1639,7 +1641,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.documentationComment?.accept(this);
       node.metadata.accept(this);
       node.returnType?.accept(this);
-      node.name.accept(this);
       analyzeExpression(node.functionExpression, functionType);
       elementResolver.visitFunctionDeclaration(node);
     } finally {
@@ -1649,7 +1650,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (!node.isSetter) {
       checkForBodyMayCompleteNormally(
         body: node.functionExpression.body,
-        errorNode: node.name,
+        errorNode: node.name2,
       );
     }
     flowAnalysis.executableDeclaration_exit(
@@ -1945,7 +1946,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.documentationComment?.accept(this);
       node.metadata.accept(this);
       node.returnType?.accept(this);
-      node.name.accept(this);
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
       node.body.resolve(this, returnType.isDynamic ? null : returnType);
@@ -1958,7 +1958,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (!node.isSetter) {
       checkForBodyMayCompleteNormally(
         body: node.body,
-        errorNode: node.name,
+        errorNode: node.name2,
       );
     }
     flowAnalysis.executableDeclaration_exit(node.body, false);
@@ -2573,8 +2573,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
     if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
       var argumentsText = error.arguments.join(', ');
-      errorReporter.reportErrorForNode(CompileTimeErrorCode.TOP_LEVEL_CYCLE,
-          node.name, [node.name.name, argumentsText]);
+      errorReporter.reportErrorForToken(CompileTimeErrorCode.TOP_LEVEL_CYCLE,
+          node.name2, [node.name2.lexeme, argumentsText]);
     }
   }
 
@@ -3036,7 +3036,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   void visitClassDeclarationInScope(ClassDeclaration node) {
-    node.name.accept(this);
     node.typeParameters?.accept(this);
     node.extendsClause?.accept(this);
     node.withClause?.accept(this);
@@ -3070,7 +3069,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     // alias's type parameter scope.  It was already visited in
     // [visitClassTypeAlias].
     node.documentationComment?.accept(this);
-    node.name.accept(this);
     node.typeParameters?.accept(this);
     node.superclass.accept(this);
     node.withClause.accept(this);
@@ -3092,7 +3090,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       node.metadata.accept(this);
       node.returnType.accept(this);
-      node.name?.accept(this);
       node.parameters.accept(this);
 
       try {
@@ -3171,7 +3168,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   void visitEnumDeclarationInScope(EnumDeclaration node) {
-    node.name.accept(this);
     node.typeParameters?.accept(this);
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
@@ -3211,7 +3207,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   void visitExtensionDeclarationInScope(ExtensionDeclaration node) {
-    node.name?.accept(this);
     node.typeParameters?.accept(this);
     node.extendedType.accept(this);
   }
@@ -3334,7 +3329,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     // Note: we don't visit metadata because it's not inside the function's type
     // parameter scope.  It was already visited in [visitFunctionDeclaration].
     node.returnType?.accept(this);
-    node.name.accept(this);
     node.functionExpression.accept(this);
   }
 
@@ -3385,7 +3379,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     // alias's type parameter scope.  It was already visited in
     // [visitFunctionTypeAlias].
     node.returnType?.accept(this);
-    node.name.accept(this);
     node.typeParameters?.accept(this);
     node.parameters.accept(this);
     // Visiting the parameters added them to the scope as a side effect.  So it
@@ -3416,7 +3409,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     // [visitFunctionTypedFormalParameter].
     node.documentationComment?.accept(this);
     node.returnType?.accept(this);
-    node.identifier.accept(this);
     node.typeParameters?.accept(this);
     node.parameters.accept(this);
   }
@@ -3469,7 +3461,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     // Note: we don't visit metadata because it's not inside the generic type
     // alias's type parameter scope.  It was already visited in
     // [visitGenericTypeAlias].
-    node.name.accept(this);
     node.typeParameters?.accept(this);
     node.type.accept(this);
   }
@@ -3513,7 +3504,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     // Note: we don't visit metadata because it's not inside the method's type
     // parameter scope.  It was already visited in [visitMethodDeclaration].
     node.returnType?.accept(this);
-    node.name.accept(this);
     node.typeParameters?.accept(this);
     node.parameters?.accept(this);
     // Visiting the parameters added them to the scope as a side effect.  So it
@@ -3555,7 +3545,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   void visitMixinDeclarationInScope(MixinDeclaration node) {
-    node.name.accept(this);
     node.typeParameters?.accept(this);
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);

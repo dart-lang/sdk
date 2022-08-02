@@ -38,7 +38,7 @@ class RemoveInitializer extends CorrectionProducer {
     var parameter = node.thisOrAncestorOfType<DefaultFormalParameter>();
     if (parameter != null) {
       // Handle formal parameters with default values.
-      var identifier = parameter.identifier;
+      var identifier = parameter.name;
       var defaultValue = parameter.defaultValue;
       if (identifier != null && defaultValue != null) {
         await builder.addDartFileEdit(file, (builder) {
@@ -54,7 +54,7 @@ class RemoveInitializer extends CorrectionProducer {
       if (variable != null && initializer != null) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addDeletion(
-            range.endEnd(variable.name, initializer),
+            range.endEnd(variable.name2, initializer),
           );
         });
       } else {

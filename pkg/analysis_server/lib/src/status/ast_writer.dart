@@ -144,36 +144,36 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
   /// declaration.
   String? _getName(AstNode node) {
     if (node is ClassTypeAlias) {
-      return node.name.name;
+      return node.name2.lexeme;
     } else if (node is ClassDeclaration) {
-      return node.name.name;
+      return node.name2.lexeme;
     } else if (node is ConstructorDeclaration) {
-      var name = node.name;
+      var name = node.name2;
       if (name == null) {
         return node.returnType.name;
       } else {
-        return '${node.returnType.name}.${name.name}';
+        return '${node.returnType.name}.${name.lexeme}';
       }
     } else if (node is ConstructorName) {
       return node.toSource();
     } else if (node is FieldDeclaration) {
       return _getNames(node.fields);
     } else if (node is FunctionDeclaration) {
-      return node.name.name;
+      return node.name2.lexeme;
     } else if (node is FunctionTypeAlias) {
-      return node.name.name;
+      return node.name2.lexeme;
     } else if (node is Identifier) {
       return node.name;
     } else if (node is MethodDeclaration) {
-      return node.name.name;
+      return node.name2.lexeme;
     } else if (node is TopLevelVariableDeclaration) {
       return _getNames(node.variables);
     } else if (node is TypeAnnotation) {
       return node.toSource();
     } else if (node is TypeParameter) {
-      return node.name.name;
+      return node.name2.lexeme;
     } else if (node is VariableDeclaration) {
-      return node.name.name;
+      return node.name2.lexeme;
     }
     return null;
   }
@@ -189,7 +189,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       } else {
         buffer.write(', ');
       }
-      buffer.write(variable.name.name);
+      buffer.write(variable.name2.lexeme);
     }
     return buffer.toString();
   }

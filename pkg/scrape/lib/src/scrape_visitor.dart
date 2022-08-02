@@ -46,8 +46,8 @@ class ScrapeVisitor extends RecursiveAstVisitor<void> {
   /// "BuildContext context".
   bool get isInFlutterBuildMethod => _inFlutterBuildMethods > 0;
 
-  bool _isBuildMethod(TypeAnnotation? returnType, SimpleIdentifier name,
-      FormalParameterList? parameters) {
+  bool _isBuildMethod(
+      TypeAnnotation? returnType, FormalParameterList? parameters) {
     var parameterString = parameters.toString();
 
     if (returnType.toString() == 'void') return false;
@@ -109,7 +109,7 @@ class ScrapeVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    var isBuild = _isBuildMethod(node.returnType, node.name, node.parameters);
+    var isBuild = _isBuildMethod(node.returnType, node.parameters);
     if (isBuild) _inFlutterBuildMethods++;
 
     try {
@@ -123,8 +123,8 @@ class ScrapeVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    var isBuild = _isBuildMethod(
-        node.returnType, node.name, node.functionExpression.parameters);
+    var isBuild =
+        _isBuildMethod(node.returnType, node.functionExpression.parameters);
     if (isBuild) _inFlutterBuildMethods++;
 
     try {

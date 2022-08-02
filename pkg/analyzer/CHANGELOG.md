@@ -14,6 +14,7 @@
 * Deprecated `CatchClause.exceptionParameter` and `CatchClause.stackTraceParameter`.
   Use `exceptionParameter2` and `stackTraceParameter2` instead.
 * Added `FileResult.isAugmentation` and `isLibrary` to complement `isPart`.
+* Deprecated 'XyzDeclaration.name' in AST, use `name2` and `declaredElement` instead.
 
 ## 4.3.1
 * Fix `identifier` for `LibraryExportElement` and `LibraryImportElement`.

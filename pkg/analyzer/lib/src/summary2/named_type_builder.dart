@@ -247,7 +247,7 @@ class NamedTypeBuilder extends TypeBuilder {
   List<ParameterElementImpl> _formalParameters(FormalParameterList node) {
     return node.parameters.asImpl.map((parameter) {
       return ParameterElementImpl.synthetic(
-        parameter.identifier?.name ?? '',
+        parameter.name?.lexeme ?? '',
         _buildFormalParameterType(parameter),
         parameter.kind,
       );

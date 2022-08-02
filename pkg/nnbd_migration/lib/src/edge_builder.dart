@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -2784,7 +2785,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           DecoratedType? currentParameterType;
           DecoratedType? overriddenParameterType;
           if (parameter.isNamed) {
-            var name = normalParameter.identifier!.name;
+            var name = normalParameter.name!.lexeme;
             currentParameterType = _currentFunctionType!.namedParameters![name];
             overriddenParameterType =
                 overriddenFunctionType.namedParameters![name];
@@ -3062,9 +3063,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         expression = argument.expression;
       } else if (argument is FormalParameter) {
         if (argument.isNamed) {
-          name = argument.identifier!.name;
+          name = argument.name!.lexeme;
         }
-        expression = argument.identifier;
+        // TODO(scheglov) This is a hack.
+        expression = (argument as FormalParameterImpl).identifierForMigration;
       } else {
         expression = argument as Expression;
       }

@@ -457,6 +457,40 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       : _libraryUri = library.source.uri;
 
   @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    final declaredElement = node.declaredElement as ClassElement;
+    _visitClassElement(declaredElement);
+
+    super.visitClassDeclaration(node);
+  }
+
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.name2 != null) {
+      final declaredElement = node.declaredElement as ConstructorElement;
+      _visitConstructorElement(declaredElement);
+    }
+
+    super.visitConstructorDeclaration(node);
+  }
+
+  @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    final declaredElement = node.declaredElement as FieldElement;
+    _visitFieldElement(declaredElement);
+
+    super.visitEnumConstantDeclaration(node);
+  }
+
+  @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    final declaredElement = node.declaredElement as ClassElement;
+    _visitClassElement(declaredElement);
+
+    super.visitEnumDeclaration(node);
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     for (var element in node.parameterElements) {
       if (!_isUsedElement(element!)) {
@@ -465,6 +499,54 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       }
     }
     super.visitFormalParameterList(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    final declaredElement = node.declaredElement;
+    if (declaredElement is FunctionElement) {
+      _visitFunctionElement(declaredElement);
+    } else if (declaredElement is PropertyAccessorElement) {
+      _visitPropertyAccessorElement(declaredElement);
+    }
+
+    super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    final declaredElement = node.declaredElement as TypeAliasElement;
+    _visitTypeAliasElement(declaredElement);
+
+    super.visitFunctionTypeAlias(node);
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    final declaredElement = node.declaredElement as TypeAliasElement;
+    _visitTypeAliasElement(declaredElement);
+
+    super.visitGenericTypeAlias(node);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    final declaredElement = node.declaredElement;
+    if (declaredElement is MethodElement) {
+      _visitMethodElement(declaredElement);
+    } else if (declaredElement is PropertyAccessorElement) {
+      _visitPropertyAccessorElement(declaredElement);
+    }
+
+    super.visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    final declaredElement = node.declaredElement as ClassElement;
+    _visitClassElement(declaredElement);
+
+    super.visitMixinDeclaration(node);
   }
 
   @override

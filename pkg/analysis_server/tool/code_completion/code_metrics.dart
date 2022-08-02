@@ -307,7 +307,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
       'abstractKeyword': node.abstractKeyword,
-      'name': node.name,
+      'name': node.name2,
       'typeParameters': node.typeParameters,
       'extendsClause': node.extendsClause,
       'withClause': node.withClause,
@@ -324,7 +324,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
       'abstractKeyword': node.abstractKeyword,
-      'name': node.name,
+      'name': node.name2,
       'typeParameters': node.typeParameters,
       'superclass': node.superclass,
       'withClause': node.withClause,
@@ -387,7 +387,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'constKeyword': node.constKeyword,
       'factoryKeyword': node.factoryKeyword,
       'returnType': node.returnType,
-      'name': node.name,
+      'name': node.name2,
       'parameters': node.parameters,
       'initializers': node.initializers,
       'redirectedConstructor': node.redirectedConstructor,
@@ -428,7 +428,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
     _visitChildren(node, {
       'keyword': node.keyword,
       'type': node.type,
-      'identifier': node.identifier,
+      'name': node.name,
     });
     super.visitDeclaredIdentifier(node);
   }
@@ -482,7 +482,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
     _visitChildren(node, {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
-      'name': node.name,
+      'name': node.name2,
     });
     super.visitEnumConstantDeclaration(node);
   }
@@ -492,7 +492,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
     _visitChildren(node, {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
-      'name': node.name,
+      'name': node.name2,
       'constants': node.constants,
     });
     super.visitEnumDeclaration(node);
@@ -539,7 +539,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _visitChildren(node, {
-      'name': node.name,
+      'name': node.name2,
       'typeParameters': node.typeParameters,
       'extendedType': node.extendedType,
       'member': node.members,
@@ -579,7 +579,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'keyword': node.keyword,
       'type': node.type,
       'thisKeyword': node.thisKeyword,
-      'identifier': node.identifier,
+      'name': node.name,
       'typeParameters': node.typeParameters,
       'parameters': node.parameters,
       'question': node.question,
@@ -660,7 +660,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'metadata': node.metadata,
       'externalKeyword': node.externalKeyword,
       'propertyKeyword': node.propertyKeyword,
-      'name': node.name,
+      'name': node.name2,
       'functionExpression': node.functionExpression,
       'returnType': node.returnType,
     });
@@ -701,7 +701,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
       'returnType': node.returnType,
-      'name': node.name,
+      'name': node.name2,
       'typeParameters': node.typeParameters,
       'parameters': node.parameters,
     });
@@ -713,7 +713,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
     _visitChildren(node, {
       'covariantKeyword': node.covariantKeyword,
       'returnType': node.returnType,
-      'identifier': node.identifier,
+      'name': node.name,
       'typeParameters': node.typeParameters,
       'parameters': node.parameters,
       'question': node.question,
@@ -737,7 +737,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
     _visitChildren(node, {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
-      'name': node.name,
+      'name': node.name2,
       'typeParameters': node.typeParameters,
       'functionType': node.functionType,
     });
@@ -910,7 +910,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'externalKeyword': node.externalKeyword,
       'modifierKeyword': node.modifierKeyword,
       'returnType': node.returnType,
-      'name': node.name,
+      'name': node.name2,
       'operatorKeyword': node.operatorKeyword,
       'typeParameters': node.typeParameters,
       'parameters': node.parameters,
@@ -935,7 +935,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
     _visitChildren(node, {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
-      'name': node.name,
+      'name': node.name2,
       'typeParameters': node.typeParameters,
       'onClause': node.onClause,
       'implementsClause': node.implementsClause,
@@ -1111,7 +1111,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'covariantKeyword': node.covariantKeyword,
       'keyword': node.keyword,
       'type': node.type,
-      'identifier': node.identifier,
+      'name': node.name,
     });
     super.visitSimpleFormalParameter(node);
   }
@@ -1232,7 +1232,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitTypeParameter(TypeParameter node) {
     _visitChildren(node, {
-      'name': node.name,
+      'name': node.name2,
       'bound': node.bound,
     });
     super.visitTypeParameter(node);
@@ -1249,7 +1249,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
     _visitChildren(node, {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
-      'name': node.name,
+      'name': node.name2,
       'initializer': node.initializer,
     });
     super.visitVariableDeclaration(node);

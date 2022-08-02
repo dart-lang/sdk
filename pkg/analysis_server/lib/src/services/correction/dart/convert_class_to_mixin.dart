@@ -22,7 +22,7 @@ class ConvertClassToMixin extends CorrectionProducer {
     if (classDeclaration == null) {
       return;
     }
-    if (selectionOffset > classDeclaration.name.end ||
+    if (selectionOffset > classDeclaration.name2.end ||
         selectionEnd < classDeclaration.classKeyword.offset) {
       return;
     }
@@ -61,7 +61,7 @@ class ConvertClassToMixin extends CorrectionProducer {
               classDeclaration.abstractKeyword ?? classDeclaration.classKeyword,
               classDeclaration.leftBracket), (builder) {
         builder.write('mixin ');
-        builder.write(classDeclaration.name.name);
+        builder.write(classDeclaration.name2.lexeme);
         builder.writeTypeParameters(classElement.typeParameters);
         builder.writeTypes(superclassConstraints, prefix: ' on ');
         builder.writeTypes(interfaces, prefix: ' implements ');

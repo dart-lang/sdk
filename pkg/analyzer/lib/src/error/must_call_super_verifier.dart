@@ -133,8 +133,8 @@ class MustCallSuperVerifier {
     if (!declaredElement.invokesSuperSelf) {
       // Overridable elements are always enclosed in named elements, so it is
       // safe to assume [overriddenEnclosingName] is non-`null`.
-      _errorReporter.reportErrorForNode(
-          HintCode.MUST_CALL_SUPER, node.name, [overriddenEnclosingName!]);
+      _errorReporter.reportErrorForToken(
+          HintCode.MUST_CALL_SUPER, node.name2, [overriddenEnclosingName!]);
     }
     return;
   }

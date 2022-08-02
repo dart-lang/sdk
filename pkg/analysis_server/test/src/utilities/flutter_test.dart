@@ -544,7 +544,7 @@ Text createEmptyText() => new Text('');
     for (var topDeclaration in unit.declarations) {
       if (topDeclaration is TopLevelVariableDeclaration) {
         for (var variable in topDeclaration.variables.variables) {
-          if (variable.name.name == name) {
+          if (variable.name2.lexeme == name) {
             return variable;
           }
         }

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 
@@ -14,11 +15,12 @@ class OverrideContributor extends DartCompletionContributor {
 
   @override
   Future<void> computeSuggestions() async {
-    var targetId = _getTargetId(request.target);
-    if (targetId == null) {
+    final target = _getTargetId(request.target);
+    if (target == null) {
       return;
     }
-    var classDecl = targetId.thisOrAncestorOfType<ClassOrMixinDeclaration>();
+    var classDecl =
+        target.enclosingNode.thisOrAncestorOfType<ClassOrMixinDeclaration>();
     if (classDecl == null) {
       return;
     }
@@ -41,14 +43,14 @@ class OverrideContributor extends DartCompletionContributor {
       // Gracefully degrade if the overridden element has not been resolved.
       if (element != null) {
         var invokeSuper = interface.isSuperImplemented(name);
-        await builder.suggestOverride(targetId, element, invokeSuper);
+        await builder.suggestOverride(target.id, element, invokeSuper);
       }
     }
   }
 
   /// If the target looks like a partial identifier inside a class declaration
   /// then return that identifier, otherwise return `null`.
-  SimpleIdentifier? _getTargetId(CompletionTarget target) {
+  _Target? _getTargetId(CompletionTarget target) {
     var node = target.containingNode;
     if (node is ClassOrMixinDeclaration) {
       var entity = target.entity;
@@ -64,23 +66,23 @@ class OverrideContributor extends DartCompletionContributor {
     return null;
   }
 
-  SimpleIdentifier? _getTargetIdFromVarList(VariableDeclarationList fields) {
+  _Target? _getTargetIdFromVarList(VariableDeclarationList fields) {
     var variables = fields.variables;
     var type = fields.type;
     if (variables.length == 1) {
       var variable = variables[0];
-      var targetId = variable.name;
-      if (targetId.name.isEmpty) {
+      var targetId = variable.name2;
+      if (targetId.lexeme.isEmpty) {
         // analyzer parser
         // Actual: class C { foo^ }
         // Parsed: class C { foo^ _s_ }
         //   where _s_ is a synthetic id inserted by the analyzer parser
-        return targetId;
+        return _Target(fields, targetId);
       } else if (fields.keyword == null &&
           type == null &&
           variable.initializer == null) {
         // fasta parser does not insert a synthetic identifier
-        return targetId;
+        return _Target(fields, targetId);
       } else if (fields.keyword == null &&
           type is NamedType &&
           type.typeArguments == null &&
@@ -93,7 +95,7 @@ class OverrideContributor extends DartCompletionContributor {
         // Parses as a variable list where `m` is the type and `String` is a
         // variable.
         var name = type.name;
-        return name is SimpleIdentifier ? name : null;
+        return name is SimpleIdentifier ? _Target(fields, name.token) : null;
       }
     }
     return null;
@@ -112,4 +114,11 @@ class OverrideContributor extends DartCompletionContributor {
     }
     return namesToOverride;
   }
+}
+
+class _Target {
+  final AstNode enclosingNode;
+  final Token id;
+
+  _Target(this.enclosingNode, this.id);
 }
