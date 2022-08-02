@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
-import 'usage_exception.dart';
-import 'package:args/command_runner.dart';
 
+import 'package:args/command_runner.dart';
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/io.dart';
-import 'package:vm_snapshot_analysis/treemap.dart';
 import 'package:dart2js_info/src/util.dart';
 import 'package:vm_snapshot_analysis/program_info.dart' as vm;
+import 'package:vm_snapshot_analysis/treemap.dart';
+
+import 'usage_exception.dart';
 
 /// Command that converts a `--dump-info` JSON output into a format ingested by Devtools.
 ///

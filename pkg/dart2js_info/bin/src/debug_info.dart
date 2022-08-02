@@ -44,7 +44,7 @@ class DebugCommand extends Command<void> with PrintUsageException {
 }
 
 /// Validates that codesize of elements adds up to total codesize.
-validateSize(AllInfo info, String debugLibName) {
+void validateSize(AllInfo info, String debugLibName) {
   // Gather data from visiting all info elements.
   final tracker = _SizeTracker(debugLibName);
   info.accept(tracker);
@@ -87,10 +87,10 @@ validateSize(AllInfo info, String debugLibName) {
 }
 
 /// Validates that every element in the model has a parent (except libraries).
-validateParents(AllInfo info) {
+void validateParents(AllInfo info) {
   final parentlessInfos = <Info>{};
 
-  failIfNoParents(List<Info> infos) {
+  void failIfNoParents(List<Info> infos) {
     for (var info in infos) {
       if (info.parent == null) {
         parentlessInfos.add(info);
@@ -160,7 +160,7 @@ class _SizeTracker extends RecursiveInfoVisitor {
 
   bool _debug = false;
   @override
-  visitLibrary(LibraryInfo info) {
+  void visitLibrary(LibraryInfo info) {
     if (_debugLibName != null) _debug = info.name.contains(_debugLibName!);
     _push();
     if (_debug) {
@@ -176,7 +176,7 @@ class _SizeTracker extends RecursiveInfoVisitor {
     }
   }
 
-  _handleCodeInfo(info) {
+  void _handleCodeInfo(info) {
     discovered.add(info);
     var code = info.code;
     if (_debug && code != null) {
@@ -209,26 +209,26 @@ class _SizeTracker extends RecursiveInfoVisitor {
   }
 
   @override
-  visitField(FieldInfo info) {
+  void visitField(FieldInfo info) {
     _handleCodeInfo(info);
     super.visitField(info);
   }
 
   @override
-  visitFunction(FunctionInfo info) {
+  void visitFunction(FunctionInfo info) {
     _handleCodeInfo(info);
     super.visitFunction(info);
   }
 
   @override
-  visitTypedef(TypedefInfo info) {
+  void visitTypedef(TypedefInfo info) {
     if (_debug) print('$info');
     stack.last._totalSize += info.size;
     super.visitTypedef(info);
   }
 
   @override
-  visitClass(ClassInfo info) {
+  void visitClass(ClassInfo info) {
     if (_debug) {
       print('$info');
       _debugCode.write(' ' * _indent);
@@ -246,7 +246,7 @@ class _SizeTracker extends RecursiveInfoVisitor {
   }
 
   @override
-  visitClassType(ClassTypeInfo info) {
+  void visitClassType(ClassTypeInfo info) {
     if (_debug) {
       print('$info');
       _debugCode.write(' ' * _indent);
@@ -304,7 +304,7 @@ void compareGraphs(AllInfo info) {
   // differently than 'deps' links
   int inUsesNotInDependencies = 0;
   int inDependenciesNotInUses = 0;
-  sameEdges(f) {
+  void sameEdges(f) {
     var targets1 = g1.targetsOf(f).toSet();
     var targets2 = g2.targetsOf(f).toSet();
     inUsesNotInDependencies += targets1.difference(targets2).length;
@@ -324,7 +324,7 @@ void compareGraphs(AllInfo info) {
 
 // Validates that all elements are reachable from `main` in the dependency
 // graph.
-verifyDeps(AllInfo info) {
+void verifyDeps(AllInfo info) {
   var graph = graphFromInfo(info);
   var entrypoint = info.program!.entrypoint;
   var reachables = Set.from(graph.preOrder(entrypoint));
@@ -340,5 +340,5 @@ verifyDeps(AllInfo info) {
   }
 }
 
-_pass(String msg) => print('\x1b[32mPASS\x1b[0m: $msg');
-_fail(String msg) => print('\x1b[31mFAIL\x1b[0m: $msg');
+void _pass(String msg) => print('\x1b[32mPASS\x1b[0m: $msg');
+void _fail(String msg) => print('\x1b[31mFAIL\x1b[0m: $msg');

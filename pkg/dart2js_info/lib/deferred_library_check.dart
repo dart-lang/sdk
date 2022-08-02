@@ -87,7 +87,7 @@ List<ManifestComplianceFailure> checkDeferredLibraryManifest(
 
   var failures = <ManifestComplianceFailure>[];
 
-  checkInfo(BasicInfo info) {
+  void checkInfo(BasicInfo info) {
     if (info.size == 0) return;
     var lib = _getLibraryOf(info);
     if (lib != null && _isPackageUri(lib.uri)) {

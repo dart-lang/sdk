@@ -8,7 +8,6 @@ library dart2js_info.bin.deferred_library_size;
 import 'dart:math';
 
 import 'package:args/command_runner.dart';
-
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/io.dart';
 
@@ -56,7 +55,7 @@ void printSizes(Map<String, int> sizeByImport, int programSize) {
   int longest = importSizes.fold('Percent of code deferred'.length,
       (longest, importSize) => max(longest, importSize.import.length));
 
-  printRow(label, data, {int width = 15}) {
+  void printRow(label, data, {int width = 15}) {
     print('${label.toString().padRight(longest + 1)}'
         '${data.toString().padLeft(width)}');
   }

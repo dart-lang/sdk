@@ -632,7 +632,7 @@ abstract class VMProgramInfoVisitor<T> extends InfoVisitor<T> {
 /// so on.
 class RecursiveInfoVisitor extends InfoVisitor<void> {
   @override
-  visitAll(AllInfo info) {
+  void visitAll(AllInfo info) {
     // Note: we don't visit functions, fields, classes, and typedefs because
     // they are reachable from the library info.
     info.libraries.forEach(visitLibrary);
@@ -640,10 +640,10 @@ class RecursiveInfoVisitor extends InfoVisitor<void> {
   }
 
   @override
-  visitProgram(ProgramInfo info) {}
+  void visitProgram(ProgramInfo info) {}
 
   @override
-  visitLibrary(LibraryInfo info) {
+  void visitLibrary(LibraryInfo info) {
     info.topLevelFunctions.forEach(visitFunction);
     info.topLevelVariables.forEach(visitField);
     info.classes.forEach(visitClass);
@@ -652,33 +652,33 @@ class RecursiveInfoVisitor extends InfoVisitor<void> {
   }
 
   @override
-  visitClass(ClassInfo info) {
+  void visitClass(ClassInfo info) {
     info.functions.forEach(visitFunction);
     info.fields.forEach(visitField);
   }
 
   @override
-  visitClassType(ClassTypeInfo info) {}
+  void visitClassType(ClassTypeInfo info) {}
 
   @override
-  visitField(FieldInfo info) {
+  void visitField(FieldInfo info) {
     info.closures.forEach(visitClosure);
   }
 
   @override
-  visitConstant(ConstantInfo info) {}
+  void visitConstant(ConstantInfo info) {}
 
   @override
-  visitFunction(FunctionInfo info) {
+  void visitFunction(FunctionInfo info) {
     info.closures.forEach(visitClosure);
   }
 
   @override
-  visitTypedef(TypedefInfo info) {}
+  void visitTypedef(TypedefInfo info) {}
   @override
-  visitOutput(OutputUnitInfo info) {}
+  void visitOutput(OutputUnitInfo info) {}
   @override
-  visitClosure(ClosureInfo info) {
+  void visitClosure(ClosureInfo info) {
     visitFunction(info.function);
   }
 }

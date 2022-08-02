@@ -6,13 +6,13 @@ import 'package:args/command_runner.dart';
 
 import 'src/code_deps.dart';
 import 'src/common_command.dart';
+import 'src/convert.dart';
 import 'src/coverage_log_server.dart';
 import 'src/debug_info.dart';
-import 'src/diff.dart';
 import 'src/deferred_library_check.dart';
-import 'src/deferred_library_size.dart';
 import 'src/deferred_library_layout.dart';
-import 'src/convert.dart';
+import 'src/deferred_library_size.dart';
+import 'src/diff.dart';
 import 'src/function_size_analysis.dart';
 import 'src/library_size_split.dart';
 import 'src/live_code_size_analysis.dart';

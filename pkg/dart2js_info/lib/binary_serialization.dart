@@ -8,9 +8,9 @@
 
 import 'dart:convert';
 
+import 'info.dart';
 import 'src/binary/sink.dart';
 import 'src/binary/source.dart';
-import 'info.dart';
 
 void encode(AllInfo info, Sink<List<int>> sink) {
   BinaryPrinter(BinarySink(sink)).visitAll(info);
@@ -143,7 +143,7 @@ class BinaryPrinter implements InfoVisitor<void> {
     });
   }
 
-  _visitCodeSpan(CodeSpan code) {
+  void _visitCodeSpan(CodeSpan code) {
     sink.writeIntOrNull(code.start);
     sink.writeIntOrNull(code.end);
     sink.writeStringOrNull(code.text);
@@ -376,7 +376,7 @@ class BinaryReader {
         info.classTypes.addAll(source.readList(readClassType));
         info.typedefs.addAll(source.readList(readTypedef));
 
-        setParent(BasicInfo child) => child.parent = info;
+        LibraryInfo setParent(BasicInfo child) => child.parent = info;
         info.topLevelFunctions.forEach(setParent);
         info.topLevelVariables.forEach(setParent);
         info.classes.forEach(setParent);
@@ -393,7 +393,7 @@ class BinaryReader {
         info.functions.addAll(source.readList(readFunction));
         info.supers.addAll(source.readList(readClass));
 
-        setParent(BasicInfo child) => child.parent = info;
+        ClassInfo setParent(BasicInfo child) => child.parent = info;
         info.fields.forEach(setParent);
         info.functions.forEach(setParent);
         return info;

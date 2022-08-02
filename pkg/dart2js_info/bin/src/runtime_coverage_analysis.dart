@@ -32,7 +32,6 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
-
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/io.dart';
 import 'package:dart2js_info/src/util.dart';
@@ -67,7 +66,7 @@ class RuntimeCoverageAnalysisCommand extends Command<void>
     if (showPackages) {
       await _reportWithPackages(args[0], args[1]);
     } else if (filterFile.isNotEmpty) {
-      _reportWithClassFilter(args[0], args[1], filterFile);
+      await _reportWithClassFilter(args[0], args[1], filterFile);
     } else {
       await _report(args[0], args[1]);
     }
@@ -434,16 +433,16 @@ void _section(String title, {int? size}) {
   print('=' * 72);
 }
 
-_showHeader(String msg, String header1, String header2) {
+void _showHeader(String msg, String header1, String header2) {
   print(' ${pad(msg, 30, right: true)} ${pad(header1, 8)} ${pad(header2, 6)}');
 }
 
-_show(String msg, int size, int total) {
+void _show(String msg, int size, int total) {
   var percent = (size * 100 / total).toStringAsFixed(2);
   print(' ${pad(msg, 30, right: true)} ${pad(size, 8)} ${pad(percent, 6)}%');
 }
 
-_leftPadded(String msg1, String msg2) {
+void _leftPadded(String msg1, String msg2) {
   print(' ${pad(msg1, 50, right: true)} $msg2');
 }
 

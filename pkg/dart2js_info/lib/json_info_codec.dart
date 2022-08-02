@@ -591,10 +591,11 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   }
 
   @override
-  visitTypedef(TypedefInfo info) => _visitBasicInfo(info)..['type'] = info.type;
+  Map visitTypedef(TypedefInfo info) =>
+      _visitBasicInfo(info)..['type'] = info.type;
 
   @override
-  visitOutput(OutputUnitInfo info) => _visitBasicInfo(info)
+  Map visitOutput(OutputUnitInfo info) => _visitBasicInfo(info)
     ..['filename'] = info.filename
     ..['imports'] = info.imports;
 
