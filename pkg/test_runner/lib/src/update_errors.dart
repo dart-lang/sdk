@@ -29,7 +29,7 @@ String updateErrorExpectations(String source, List<StaticError> errors,
     }
   }
 
-  List<String?> lines = source.split("\n");
+  var lines = List<String?>.of(source.split("\n"));
 
   // Keep track of the indentation on any existing expectation markers. If
   // found, it will try to preserve that indentation.
@@ -116,7 +116,7 @@ String updateErrorExpectations(String source, List<StaticError> errors,
               error.length != previousLength)) {
         // If the error can't fit in a line comment, or no source location is
         // specified, use an explicit location.
-        if (error.column <= 2 || error.length == 0) {
+        if (error.column <= 2) {
           if (error.length == 0) {
             result.add("$comment [error column "
                 "${error.column}]");
