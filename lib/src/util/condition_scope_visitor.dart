@@ -324,8 +324,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
 
   bool _isLastStatementAnExitStatement(Statement? statement) {
     if (statement is Block) {
-      return _isLastStatementAnExitStatement(
-          DartTypeUtilities.getLastStatementInBlock(statement));
+      return _isLastStatementAnExitStatement(statement.lastStatement);
     } else {
       if (statement is BreakStatement) {
         return statement.label == null;

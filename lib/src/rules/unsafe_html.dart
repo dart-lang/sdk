@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _descPrefix = r'Avoid unsafe HTML APIs';
 const _desc = '$_descPrefix.';
@@ -37,7 +37,7 @@ var script = ScriptElement()..src = 'foo.js';
 extension on DartType? {
   /// Returns whether this type extends [className] from the dart:html library.
   bool extendsDartHtmlClass(String className) =>
-      DartTypeUtilities.extendsClass(this, className, 'dart.dom.html');
+      extendsClass(className, 'dart.dom.html');
 }
 
 class UnsafeHtml extends LintRule {

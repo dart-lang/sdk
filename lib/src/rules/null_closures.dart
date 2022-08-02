@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Do not pass `null` as an argument where a closure is expected.';
 
@@ -233,8 +233,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var type = node.staticType;
     for (var constructor in _constructorsWithNonNullableArguments) {
       if (constructorName.name?.name == constructor.name) {
-        if (DartTypeUtilities.extendsClass(
-            type, constructor.type, constructor.library)) {
+        if (type.extendsClass(constructor.type, constructor.library)) {
           _checkNullArgForClosure(
               node.argumentList, constructor.positional, constructor.named);
         }

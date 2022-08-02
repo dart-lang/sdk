@@ -8,6 +8,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/member.dart'; // ignore: implementation_imports
 
+import 'util/dart_type_utilities.dart';
+
 extension ElementExtension on Element {
   Element get canonicalElement {
     var self = this;
@@ -117,10 +119,15 @@ extension ClassElementExtension on ClassElement {
     return false;
   }
 
+  /// Returns whether this class is exactly [otherName] declared in
+  /// [otherLibrary].
+  bool isClass(String otherName, String otherLibrary) =>
+      name == otherName && library.name == otherLibrary;
+
   bool get isEnumLikeClass => asEnumLikeClass != null;
 }
 
-extension AstNodeExtensions on AstNode? {
+extension AstNodeExtension on AstNode? {
   Element? get canonicalElement {
     var self = this;
     if (self is Expression) {
@@ -135,8 +142,62 @@ extension AstNodeExtensions on AstNode? {
   }
 }
 
-extension ExpressionExtensions on Expression? {
+extension BlockExtension on Block {
+  /// Returns the last statement of this block, or `null` if this is empty.
+  ///
+  /// If the last immediate statement of this block is a [Block], recurses into
+  /// it to find the last statement.
+  Statement? get lastStatement {
+    if (statements.isEmpty) {
+      return null;
+    }
+    var lastStatement = statements.last;
+    if (lastStatement is Block) {
+      return lastStatement.lastStatement;
+    }
+    return lastStatement;
+  }
+}
+
+extension DartTypeExtension on DartType? {
+  bool extendsClass(String? className, String library) =>
+      _extendsClass(this, <ClassElement>{}, className, library);
+
+  static bool _extendsClass(DartType? type, Set<ClassElement> seenTypes,
+          String? className, String? library) =>
+      type is InterfaceType &&
+      seenTypes.add(type.element) &&
+      (DartTypeUtilities.isClass(type, className, library) ||
+          _extendsClass(type.superclass, seenTypes, className, library));
+}
+
+extension ExpressionExtension on Expression? {
   bool get isNullLiteral => this?.unParenthesized is NullLiteral;
+}
+
+extension InterfaceTypeExtension on InterfaceType {
+  /// Returns the collection of all interfaces that this type implements,
+  /// including itself.
+  Iterable<InterfaceType> get implementedInterfaces {
+    void searchSupertypes(InterfaceType? type, Set<ClassElement> alreadyVisited,
+        List<InterfaceType> interfaceTypes) {
+      if (type == null || !alreadyVisited.add(type.element)) {
+        return;
+      }
+      interfaceTypes.add(type);
+      searchSupertypes(type.superclass, alreadyVisited, interfaceTypes);
+      for (var interface in type.interfaces) {
+        searchSupertypes(interface, alreadyVisited, interfaceTypes);
+      }
+      for (var mixin in type.mixins) {
+        searchSupertypes(mixin, alreadyVisited, interfaceTypes);
+      }
+    }
+
+    var interfaceTypes = <InterfaceType>[];
+    searchSupertypes(this, {}, interfaceTypes);
+    return interfaceTypes;
+  }
 }
 
 extension MethodDeclarationExtension on MethodDeclaration {

@@ -20,7 +20,7 @@ bool canonicalElementsAreEqual(Element? element1, Element? element2) =>
 
 /// Returns whether the canonical elements from two nodes are equal.
 ///
-/// As in, [AstNodeExtensions.canonicalElement], the two nodes must be
+/// As in, [AstNodeExtension.canonicalElement], the two nodes must be
 /// [Expression]s in order to be compared (otherwise `false` is returned).
 ///
 /// The two nodes must both be a [SimpleIdentifier], [PrefixedIdentifier], or
@@ -77,45 +77,14 @@ bool canonicalElementsFromIdentifiersAreEqual(
 }
 
 class DartTypeUtilities {
+  @Deprecated('Replace with type.extendsClass')
   static bool extendsClass(
           DartType? type, String? className, String? library) =>
-      _extendsClass(type, <ClassElement>{}, className, library);
+      type.extendsClass(className, library!);
 
   @Deprecated('Replace with `rawNode.canonicalElement`')
   static Element? getCanonicalElementFromIdentifier(AstNode? rawNode) =>
       rawNode.canonicalElement;
-
-  static Iterable<InterfaceType> getImplementedInterfaces(InterfaceType type) {
-    void recursiveCall(InterfaceType? type, Set<ClassElement> alreadyVisited,
-        List<InterfaceType> interfaceTypes) {
-      if (type == null || !alreadyVisited.add(type.element)) {
-        return;
-      }
-      interfaceTypes.add(type);
-      recursiveCall(type.superclass, alreadyVisited, interfaceTypes);
-      for (var interface in type.interfaces) {
-        recursiveCall(interface, alreadyVisited, interfaceTypes);
-      }
-      for (var mixin in type.mixins) {
-        recursiveCall(mixin, alreadyVisited, interfaceTypes);
-      }
-    }
-
-    var interfaceTypes = <InterfaceType>[];
-    recursiveCall(type, <ClassElement>{}, interfaceTypes);
-    return interfaceTypes;
-  }
-
-  static Statement? getLastStatementInBlock(Block node) {
-    if (node.statements.isEmpty) {
-      return null;
-    }
-    var lastStatement = node.statements.last;
-    if (lastStatement is Block) {
-      return getLastStatementInBlock(lastStatement);
-    }
-    return lastStatement;
-  }
 
   static bool hasInheritedMethod(MethodDeclaration node) =>
       lookUpInheritedMethod(node) != null;
@@ -151,10 +120,6 @@ class DartTypeUtilities {
       type is InterfaceType &&
       type.element.name == className &&
       type.element.library.name == library;
-
-  static bool isClassElement(
-          ClassElement element, String className, String library) =>
-      element.name == className && element.library.name == library;
 
   static bool isConstructorElement(ConstructorElement? element,
           {required String uriStr,
@@ -412,13 +377,6 @@ class DartTypeUtilities {
     }
     return false;
   }
-
-  static bool _extendsClass(DartType? type, Set<ClassElement> seenTypes,
-          String? className, String? library) =>
-      type is InterfaceType &&
-      seenTypes.add(type.element) &&
-      (isClass(type, className, library) ||
-          _extendsClass(type.superclass, seenTypes, className, library));
 
   static bool _isFunctionTypeUnrelatedToType(
       FunctionType type1, DartType type2) {

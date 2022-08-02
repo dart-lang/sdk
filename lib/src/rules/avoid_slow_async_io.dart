@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Avoid slow async `dart:io` methods.';
 
@@ -104,7 +104,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _checkFileMethods(MethodInvocation node, DartType? type) {
-    if (DartTypeUtilities.extendsClass(type, 'File', 'dart.io')) {
+    if (type.extendsClass('File', 'dart.io')) {
       if (_fileMethodNames.contains(node.methodName.name)) {
         rule.reportLint(node);
       }
@@ -112,7 +112,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _checkDirectoryMethods(MethodInvocation node, DartType? type) {
-    if (DartTypeUtilities.extendsClass(type, 'Directory', 'dart.io')) {
+    if (type.extendsClass('Directory', 'dart.io')) {
       if (_dirMethodNames.contains(node.methodName.name)) {
         rule.reportLint(node);
       }
