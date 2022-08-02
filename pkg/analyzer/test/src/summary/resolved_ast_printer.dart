@@ -1298,7 +1298,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   String _elementToReferenceString(Element element) {
-    final enclosingElement = element.enclosingElement2;
+    final enclosingElement = element.enclosingElement3;
     final reference = (element as ElementImpl).reference;
     if (reference != null) {
       return _referenceToString(reference);

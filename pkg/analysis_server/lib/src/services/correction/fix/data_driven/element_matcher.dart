@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart'
     show ClassElement, ExtensionElement, PrefixElement;
 import 'package:analyzer/dart/element/type.dart';
@@ -97,7 +98,7 @@ class ElementMatcher {
   /// Return a list of element matchers that will match the element that is, or
   /// should be, associated with the given [node]. The list will be empty if
   /// there are no appropriate matchers for the [node].
-  static List<ElementMatcher> matchersForNode(AstNode? node) {
+  static List<ElementMatcher> matchersForNode(AstNode? node, Token? nameToken) {
     if (node == null) {
       return const <ElementMatcher>[];
     }
@@ -106,7 +107,7 @@ class ElementMatcher {
       return const <ElementMatcher>[];
     }
     var builder = _MatcherBuilder(importedUris);
-    builder.buildMatchersForNode(node);
+    builder.buildMatchersForNode(node, nameToken);
     return builder.matchers.toList();
   }
 
@@ -143,7 +144,7 @@ class _MatcherBuilder {
 
   _MatcherBuilder(this.importedUris);
 
-  void buildMatchersForNode(AstNode? node) {
+  void buildMatchersForNode(AstNode? node, Token? nameToken) {
     if (node is ArgumentList) {
       _buildFromArgumentList(node);
     } else if (node is BinaryExpression) {
@@ -159,8 +160,8 @@ class _MatcherBuilder {
       _buildFromNamedType(node);
     } else if (node is PrefixedIdentifier) {
       _buildFromPrefixedIdentifier(node);
-    } else if (node is SimpleIdentifier) {
-      _buildFromSimpleIdentifier(node);
+    } else if (node is SimpleIdentifier && nameToken != null) {
+      _buildFromSimpleIdentifier(node, nameToken);
     } else if (node is TypeArgumentList) {
       _buildFromTypeArgumentList(node);
     }
@@ -201,7 +202,7 @@ class _MatcherBuilder {
         );
       }
     } else if (parent is SuperConstructorInvocation) {
-      var superclassName = parent.staticElement?.enclosingElement2.name;
+      var superclassName = parent.staticElement?.enclosingElement3.name;
       if (superclassName != null) {
         _addMatcher(
           components: [parent.constructorName?.name ?? '', superclassName],
@@ -257,7 +258,7 @@ class _MatcherBuilder {
   /// Build a matcher for the method being declared.
   void _buildFromMethodDeclaration(MethodDeclaration node) {
     _addMatcher(
-      components: [node.name.name],
+      components: [node.name2.lexeme],
       kinds: [ElementKind.methodKind],
     );
   }
@@ -447,7 +448,7 @@ class _MatcherBuilder {
   }
 
   /// Build a matcher for the element referenced by the identifier.
-  void _buildFromSimpleIdentifier(SimpleIdentifier node) {
+  void _buildFromSimpleIdentifier(SimpleIdentifier node, Token nameToken) {
     // TODO(brianwilkerson) Use the static element, if there is one, in order to
     //  get a more exact matcher.
     var parent = node.parent;
@@ -458,7 +459,7 @@ class _MatcherBuilder {
       _buildFromArgumentList(parent.parent!.parent as ArgumentList);
     } else if (parent is NamedType) {
       _buildFromNamedType(parent);
-    } else if (parent is MethodDeclaration && node == parent.name) {
+    } else if (parent is MethodDeclaration && nameToken == parent.name2) {
       _buildFromMethodDeclaration(parent);
     } else if (parent is MethodInvocation &&
         node == parent.methodName &&
@@ -502,7 +503,7 @@ class _MatcherBuilder {
       }
     }
     if (element != null) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement is ClassElement) {
         return [identifier.name, enclosingElement.name];
       } else if (enclosingElement is ExtensionElement) {

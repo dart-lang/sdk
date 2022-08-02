@@ -1917,7 +1917,7 @@ var fe1 = (int x) => x;
           messageContains: ["'g0'"]),
       error(HintCode.UNUSED_ELEMENT, 96, 2),
       error(HintCode.UNUSED_ELEMENT, 126, 2),
-      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 212, 12,
+      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 212, 2,
           messageContains: ["'m0'"]),
       error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 304, 2,
           messageContains: ["'y0'"]),

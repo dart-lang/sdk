@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -74,19 +75,19 @@ class DiagnosticFactory {
   AnalysisError invalidOverride(
       Source source,
       ErrorCode? errorCode,
-      AstNode errorNode,
+      SyntacticEntity errorNode,
       ExecutableElement member,
       ExecutableElement superMember) {
     errorCode ??= CompileTimeErrorCode.INVALID_OVERRIDE;
     // Elements enclosing members that can participate in overrides are always
-    // named, so we can safely assume `_thisMember.enclosingElement2.name` and
-    // `superMember.enclosingElement2.name` are non-`null`.
+    // named, so we can safely assume `_thisMember.enclosingElement3.name` and
+    // `superMember.enclosingElement3.name` are non-`null`.
     return AnalysisError(
         source, errorNode.offset, errorNode.length, errorCode, [
       member.name,
-      member.enclosingElement2.name!,
+      member.enclosingElement3.name!,
       member.type,
-      superMember.enclosingElement2.name!,
+      superMember.enclosingElement3.name!,
       superMember.type,
     ], [
       // Only include the context location for INVALID_OVERRIDE because for

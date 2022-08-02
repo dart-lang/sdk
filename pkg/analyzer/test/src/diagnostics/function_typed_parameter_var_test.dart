@@ -30,14 +30,12 @@ class A {
 SuperFormalParameter
   superKeyword: super
   period: .
-  identifier: SimpleIdentifier
-    token: a
+  name: a
   typeParameters: TypeParameterList
     leftBracket: <
     typeParameters
       TypeParameter
-        name: SimpleIdentifier
-          token: T
+        name: T
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (

@@ -43,7 +43,7 @@ class ChangeToStaticAccess extends CorrectionProducer {
     }
 
     final target_final = target;
-    var declaringElement = invokedElement.enclosingElement2;
+    var declaringElement = invokedElement.enclosingElement3;
 
     if (declaringElement is ClassElement) {
       _className = declaringElement.name;

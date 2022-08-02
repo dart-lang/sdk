@@ -49,7 +49,7 @@ class _UnitApiSignatureComputer {
         var functionExpression = declaration.functionExpression;
         _addTokens(
           declaration.beginToken,
-          (functionExpression.parameters ?? declaration.name).endToken,
+          functionExpression.parameters?.endToken ?? declaration.name2,
         );
         _addFunctionBodyModifiers(functionExpression.body);
       } else if (declaration is TopLevelVariableDeclaration) {
@@ -138,7 +138,7 @@ class _UnitApiSignatureComputer {
     signature.addInt(_kindMethodDeclaration);
     _addTokens(
       node.beginToken,
-      (node.parameters ?? node.name).endToken,
+      node.parameters?.endToken ?? node.name2,
     );
     signature.addBool(node.body is EmptyFunctionBody);
     _addFunctionBodyModifiers(node.body);
@@ -212,7 +212,7 @@ class _UnitApiSignatureComputer {
     signature.addInt(variables.length);
 
     for (var variable in variables) {
-      _addNode(variable.name);
+      _addToken(variable.name2);
       signature.addBool(variable.initializer != null);
       if (includeInitializers) {
         _addNode(variable.initializer);

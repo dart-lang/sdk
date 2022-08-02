@@ -305,7 +305,7 @@ class DartUnitHighlightsComputer {
     var parent = node.parent;
     var isInvocation = parent is MethodInvocation && parent.methodName == node;
     HighlightRegionType type;
-    var isTopLevel = element.enclosingElement2 is CompilationUnitElement;
+    var isTopLevel = element.enclosingElement3 is CompilationUnitElement;
     if (node.inDeclarationContext()) {
       type = isTopLevel
           ? HighlightRegionType.TOP_LEVEL_FUNCTION_DECLARATION
@@ -334,7 +334,7 @@ class DartUnitHighlightsComputer {
       return false;
     }
     // getter or setter
-    var isTopLevel = element.enclosingElement2 is CompilationUnitElement;
+    var isTopLevel = element.enclosingElement3 is CompilationUnitElement;
     HighlightRegionType type;
     if (element.isGetter) {
       if (isTopLevel) {
@@ -682,6 +682,14 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
         node.factoryKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(
+      node.name2,
+      HighlightRegionType.CONSTRUCTOR,
+      semanticTokenType: SemanticTokenTypes.method,
+      semanticTokenModifiers: {
+        CustomSemanticTokenModifiers.constructor,
+      },
+    );
     super.visitConstructorDeclaration(node);
   }
 
@@ -743,8 +751,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    computer._addRegion_node(
-      node.name,
+    computer._addRegion_token(
+      node.name2,
       HighlightRegionType.ENUM_CONSTANT,
     );
     node.visitChildren(this);
@@ -803,8 +811,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     if (element is FieldFormalParameterElement) {
       var field = element.field;
       if (field != null) {
-        computer._addRegion_node(
-          node.identifier,
+        computer._addRegion_token(
+          node.name,
           HighlightRegionType.INSTANCE_FIELD_REFERENCE,
         );
       }
@@ -1109,6 +1117,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
+    final parent = node.parent;
+    // ignore: deprecated_member_use
+    if (parent is ConstructorDeclaration && parent.name == node) {
+      return;
+    }
+
     computer._addIdentifierRegion(node);
     super.visitSimpleIdentifier(node);
   }
@@ -1135,8 +1149,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       HighlightRegionType.KEYWORD,
     );
 
-    computer._addRegion_node(
-      node.identifier,
+    computer._addRegion_token(
+      node.name,
       HighlightRegionType.PARAMETER_DECLARATION,
     );
 

@@ -238,6 +238,8 @@ class CorrectionProducerContext {
 
   final AstNode node;
 
+  final Token token;
+
   CorrectionProducerContext._({
     required this.resolvedResult,
     required this.workspace,
@@ -245,6 +247,7 @@ class CorrectionProducerContext {
     this.dartFixContext,
     this.diagnostic,
     required this.node,
+    required this.token,
     this.overrideSet,
     this.selectionOffset = -1,
     this.selectionLength = 0,
@@ -271,10 +274,13 @@ class CorrectionProducerContext {
     var node = locator.searchWithin(resolvedResult.unit);
     node ??= resolvedResult.unit;
 
+    final token = _tokenAt(node, selectionOffset) ?? node.beginToken;
+
     return CorrectionProducerContext._(
       resolvedResult: resolvedResult,
       workspace: workspace,
       node: node,
+      token: token,
       applyingBulkFixes: applyingBulkFixes,
       dartFixContext: dartFixContext,
       diagnostic: diagnostic,
@@ -282,6 +288,21 @@ class CorrectionProducerContext {
       selectionOffset: selectionOffset,
       selectionLength: selectionLength,
     );
+  }
+
+  static Token? _tokenAt(AstNode node, int offset) {
+    for (final entity in node.childEntities) {
+      if (entity is AstNode) {
+        if (entity.offset <= offset && offset <= entity.end) {
+          return _tokenAt(entity, offset);
+        }
+      } else if (entity is Token) {
+        if (entity.offset <= offset && offset <= entity.end) {
+          return entity;
+        }
+      }
+    }
+    return null;
   }
 }
 
@@ -436,6 +457,8 @@ abstract class _AbstractCorrectionProducer {
   int get selectionOffset => _context.selectionOffset;
 
   AnalysisSessionHelper get sessionHelper => _context.sessionHelper;
+
+  Token get token => _context.token;
 
   TypeProvider get typeProvider => _context.typeProvider;
 

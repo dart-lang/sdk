@@ -200,7 +200,7 @@ abstract class ElementLinkedData<E extends ElementImpl> {
     ResolutionReader reader,
     ElementImpl element,
   ) {
-    var enclosing = element.enclosingElement2;
+    var enclosing = element.enclosingElement3;
     if (enclosing is ClassElement) {
       reader._addTypeParameters(enclosing.typeParameters);
     } else if (enclosing is CompilationUnitElement) {
@@ -268,7 +268,7 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
   @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement2,
+      unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
     element.supertype = reader._readOptionalInterfaceType();
@@ -292,7 +292,7 @@ class ExtensionElementLinkedData
   @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement2,
+      unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
     element.extendedType = reader.readRequiredType();
@@ -1288,34 +1288,36 @@ class LibraryReader {
       var name = accessor.displayName;
       var isGetter = accessor.isGetter;
 
-      var reference = containerRef.getChild(name);
-
-      PropertyInducingElementImpl property;
-      if (enclosingElement is CompilationUnitElementImpl) {
-        var existing = reference.element;
-        if (existing is TopLevelVariableElementImpl) {
-          property = existing;
-        } else {
-          var field = TopLevelVariableElementImpl(name, -1);
-          property = field;
-        }
-      } else {
-        var existing = reference.element;
-        if (existing is FieldElementImpl) {
-          property = existing;
-        } else {
-          var field = FieldElementImpl(name, -1);
-          field.isStatic = accessor.isStatic;
-          property = field;
-        }
+      bool canUseExisting(PropertyInducingElement property) {
+        return property.isSynthetic ||
+            accessor.isSetter && property.setter == null;
       }
 
-      if (reference.element == null) {
-        reference.element = property;
-        properties.add(property);
-
-        property.enclosingElement = enclosingElement;
-        property.isSynthetic = true;
+      final PropertyInducingElementImpl property;
+      final reference = containerRef.getChild(name);
+      final existing = reference.element;
+      if (enclosingElement is CompilationUnitElementImpl) {
+        if (existing is TopLevelVariableElementImpl &&
+            canUseExisting(existing)) {
+          property = existing;
+        } else {
+          property = TopLevelVariableElementImpl(name, -1)
+            ..enclosingElement = enclosingElement
+            ..isSynthetic = true;
+          reference.element ??= property;
+          properties.add(property);
+        }
+      } else {
+        if (existing is FieldElementImpl && canUseExisting(existing)) {
+          property = existing;
+        } else {
+          property = FieldElementImpl(name, -1)
+            ..enclosingElement = enclosingElement
+            ..isStatic = accessor.isStatic
+            ..isSynthetic = true;
+          reference.element ??= property;
+          properties.add(property);
+        }
       }
 
       accessor.variable = property;
@@ -1550,7 +1552,7 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
   @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement2,
+      unitElement: element.enclosingElement3,
     );
     _readTypeParameters(reader, element.typeParameters);
     element.superclassConstraints = reader._readInterfaceTypeList();
@@ -1634,7 +1636,7 @@ class ResolutionReader {
       // TODO(scheglov) why to check for empty? If we have this flags.
       if (arguments.isNotEmpty) {
         var typeParameters =
-            (element.enclosingElement2 as TypeParameterizedElement)
+            (element.enclosingElement3 as TypeParameterizedElement)
                 .typeParameters;
         var substitution = Substitution.fromPairs(typeParameters, arguments);
         element =

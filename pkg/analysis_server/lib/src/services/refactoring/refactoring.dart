@@ -406,7 +406,7 @@ abstract class RenameRefactoring implements Refactoring {
     if (element is PropertyAccessorElement) {
       element = element.variable;
     }
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement is CompilationUnitElement) {
       return RenameUnitMemberRefactoringImpl(workspace, resolvedUnit, element);
     }

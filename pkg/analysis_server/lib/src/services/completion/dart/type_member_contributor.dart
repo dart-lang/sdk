@@ -110,7 +110,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredClass(ClassDeclaration declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       // no type
       finished();
     }
@@ -118,7 +118,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredClassTypeAlias(ClassTypeAlias declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       // no type
       finished();
     }
@@ -126,7 +126,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
-    if (varDecl.name.name == targetName) {
+    if (varDecl.name2.lexeme == targetName) {
       // Type provided by the element in computeFull above
       finished();
     }
@@ -134,7 +134,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredFunction(FunctionDeclaration declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       var returnType = declaration.returnType;
       if (returnType != null) {
         var type = returnType.type;
@@ -148,7 +148,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       var returnType = declaration.returnType;
       if (returnType != null) {
         var type = returnType.type;
@@ -162,7 +162,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredGenericTypeAlias(GenericTypeAlias declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       var returnType = declaration.functionType?.returnType;
       if (returnType != null) {
         var type = returnType.type;
@@ -183,17 +183,20 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation? type) {
-    if (name.name == targetName) {
-      var element = name.staticElement as VariableElement;
-      typeFound = element.type;
+  void declaredLocalVar(
+    Token name,
+    TypeAnnotation? type,
+    LocalVariableElement declaredElement,
+  ) {
+    if (name.lexeme == targetName) {
+      typeFound = declaredElement.type;
       finished();
     }
   }
 
   @override
   void declaredMethod(MethodDeclaration declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       var returnType = declaration.returnType;
       if (returnType != null) {
         var type = returnType.type;
@@ -216,7 +219,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl) {
-    if (varDecl.name.name == targetName) {
+    if (varDecl.name2.lexeme == targetName) {
       // Type provided by the element in computeFull above.
       finished();
     }

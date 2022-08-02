@@ -910,13 +910,13 @@ class FileState {
         if (declaration.macroKeyword != null) {
           var constructors = declaration.members
               .whereType<ConstructorDeclaration>()
-              .map((e) => e.name?.name ?? '')
+              .map((e) => e.name2?.lexeme ?? '')
               .where((e) => !e.startsWith('_'))
               .toList();
           if (constructors.isNotEmpty) {
             macroClasses.add(
               MacroClass(
-                name: declaration.name.name,
+                name: declaration.name2.lexeme,
                 constructors: constructors,
               ),
             );
@@ -940,21 +940,21 @@ class FileState {
     final topLevelDeclarations = <String>{};
     for (final declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {
-        topLevelDeclarations.add(declaration.name.name);
+        topLevelDeclarations.add(declaration.name2.lexeme);
       } else if (declaration is EnumDeclaration) {
-        topLevelDeclarations.add(declaration.name.name);
+        topLevelDeclarations.add(declaration.name2.lexeme);
       } else if (declaration is ExtensionDeclaration) {
-        var name = declaration.name;
+        var name = declaration.name2;
         if (name != null) {
-          topLevelDeclarations.add(name.name);
+          topLevelDeclarations.add(name.lexeme);
         }
       } else if (declaration is FunctionDeclaration) {
-        topLevelDeclarations.add(declaration.name.name);
+        topLevelDeclarations.add(declaration.name2.lexeme);
       } else if (declaration is MixinDeclaration) {
-        topLevelDeclarations.add(declaration.name.name);
+        topLevelDeclarations.add(declaration.name2.lexeme);
       } else if (declaration is TopLevelVariableDeclaration) {
         for (var variable in declaration.variables.variables) {
-          topLevelDeclarations.add(variable.name.name);
+          topLevelDeclarations.add(variable.name2.lexeme);
         }
       }
     }

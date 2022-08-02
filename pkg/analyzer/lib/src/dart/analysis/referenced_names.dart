@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 /// Compute the set of external names referenced in the [unit].
@@ -64,7 +65,7 @@ class _LocalNameScope {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     for (Statement statement in node.statements) {
       if (statement is FunctionDeclarationStatement) {
-        scope.add(statement.functionDeclaration.name);
+        scope.add(statement.functionDeclaration.name2);
       } else if (statement is VariableDeclarationStatement) {
         scope.addVariableNames(statement.variables);
       }
@@ -80,7 +81,7 @@ class _LocalNameScope {
       if (member is FieldDeclaration) {
         scope.addVariableNames(member.fields);
       } else if (member is MethodDeclaration) {
-        scope.add(member.name);
+        scope.add(member.name2);
       }
     }
     return scope;
@@ -127,7 +128,7 @@ class _LocalNameScope {
     _LocalNameScope scope = _LocalNameScope(null);
     for (CompilationUnitMember declaration in node.declarations) {
       if (declaration is NamedCompilationUnitMember) {
-        scope.add(declaration.name);
+        scope.add(declaration.name2);
       } else if (declaration is TopLevelVariableDeclaration) {
         scope.addVariableNames(declaration.variables);
       }
@@ -135,29 +136,29 @@ class _LocalNameScope {
     return scope;
   }
 
-  void add(SimpleIdentifier? identifier) {
-    if (identifier != null) {
-      (names ??= <String>{}).add(identifier.name);
+  void add(Token? token) {
+    if (token != null) {
+      (names ??= <String>{}).add(token.lexeme);
     }
   }
 
   void addFormalParameters(FormalParameterList? parameterList) {
     if (parameterList != null) {
       parameterList.parameters
-          .map((p) => p is NormalFormalParameter ? p.identifier : null)
+          .map((p) => p is NormalFormalParameter ? p.name : null)
           .forEach(add);
     }
   }
 
   void addTypeParameters(TypeParameterList? typeParameterList) {
     if (typeParameterList != null) {
-      typeParameterList.typeParameters.map((p) => p.name).forEach(add);
+      typeParameterList.typeParameters.map((p) => p.name2).forEach(add);
     }
   }
 
   void addVariableNames(VariableDeclarationList variableList) {
     for (VariableDeclaration variable in variableList.variables) {
-      add(variable.name);
+      add(variable.name2);
     }
   }
 

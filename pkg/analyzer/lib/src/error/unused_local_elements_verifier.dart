@@ -257,7 +257,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
           usedElements.addElement(parameter);
         }
       }
-      var enclosingElement = element?.enclosingElement2;
+      var enclosingElement = element?.enclosingElement3;
       if (element == null) {
         if (isIdentifierRead) {
           usedElements.unresolvedReadMembers.add(node.name);
@@ -457,6 +457,40 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       : _libraryUri = library.source.uri;
 
   @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    final declaredElement = node.declaredElement as ClassElement;
+    _visitClassElement(declaredElement);
+
+    super.visitClassDeclaration(node);
+  }
+
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.name2 != null) {
+      final declaredElement = node.declaredElement as ConstructorElement;
+      _visitConstructorElement(declaredElement);
+    }
+
+    super.visitConstructorDeclaration(node);
+  }
+
+  @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    final declaredElement = node.declaredElement as FieldElement;
+    _visitFieldElement(declaredElement);
+
+    super.visitEnumConstantDeclaration(node);
+  }
+
+  @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    final declaredElement = node.declaredElement as ClassElement;
+    _visitClassElement(declaredElement);
+
+    super.visitEnumDeclaration(node);
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     for (var element in node.parameterElements) {
       if (!_isUsedElement(element!)) {
@@ -465,6 +499,54 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       }
     }
     super.visitFormalParameterList(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    final declaredElement = node.declaredElement;
+    if (declaredElement is FunctionElement) {
+      _visitFunctionElement(declaredElement);
+    } else if (declaredElement is PropertyAccessorElement) {
+      _visitPropertyAccessorElement(declaredElement);
+    }
+
+    super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    final declaredElement = node.declaredElement as TypeAliasElement;
+    _visitTypeAliasElement(declaredElement);
+
+    super.visitFunctionTypeAlias(node);
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    final declaredElement = node.declaredElement as TypeAliasElement;
+    _visitTypeAliasElement(declaredElement);
+
+    super.visitGenericTypeAlias(node);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    final declaredElement = node.declaredElement;
+    if (declaredElement is MethodElement) {
+      _visitMethodElement(declaredElement);
+    } else if (declaredElement is PropertyAccessorElement) {
+      _visitPropertyAccessorElement(declaredElement);
+    }
+
+    super.visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    final declaredElement = node.declaredElement as ClassElement;
+    _visitClassElement(declaredElement);
+
+    super.visitMixinDeclaration(node);
   }
 
   @override
@@ -516,7 +598,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     if (element.isPrivate) {
       return false;
     }
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement3;
 
     if (enclosingElement is ClassElement) {
       if (enclosingElement.isEnum) {
@@ -544,7 +626,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     bool elementIsStaticVariable =
         element is VariableElement && element.isStatic;
     if (element.isPublic) {
-      if (_isPrivateClassOrExtension(element.enclosingElement2!) &&
+      if (_isPrivateClassOrExtension(element.enclosingElement3!) &&
           elementIsStaticVariable) {
         // Public static fields of private classes, mixins, and extensions are
         // inaccessible from outside the library in which they are declared.
@@ -581,7 +663,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         element is FunctionElement && !element.isStatic) {
       // local variable or function
     } else if (element is ParameterElement) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement3;
       // Only report unused parameters of constructors, methods, and functions.
       if (enclosingElement is! ConstructorElement &&
           enclosingElement is! FunctionElement &&
@@ -593,7 +675,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
       if (enclosingElement is ConstructorElement &&
-          enclosingElement.enclosingElement2.typeParameters.isNotEmpty) {
+          enclosingElement.enclosingElement3.typeParameters.isNotEmpty) {
         // There is an issue matching arguments of instance creation
         // expressions for generic classes with parameters, so for now,
         // consider every parameter of a constructor of a generic class
@@ -647,7 +729,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   Iterable<ExecutableElement> _overriddenElements(Element element) {
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement is ClassElement) {
       Name name = Name(_libraryUri, element.name!);
       var overridden =
@@ -729,7 +811,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     // constructor in the class. A single unused, private constructor may serve
     // the purpose of preventing the class from being extended. In serving this
     // purpose, the constructor is "used."
-    if (element.enclosingElement2.constructors.length > 1 &&
+    if (element.enclosingElement3.constructors.length > 1 &&
         !_isUsedMember(element)) {
       _reportErrorForElement(
           HintCode.UNUSED_ELEMENT, element, [element.displayName]);

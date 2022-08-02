@@ -509,7 +509,7 @@ class FindNode {
     for (var declaration in unit.declarations) {
       if (declaration is TopLevelVariableDeclaration) {
         for (var variable in declaration.variables.variables) {
-          if (variable.name.name == name) {
+          if (variable.name2.lexeme == name) {
             return variable;
           }
         }

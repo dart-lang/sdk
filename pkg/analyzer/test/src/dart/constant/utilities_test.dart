@@ -203,7 +203,7 @@ class ConstantFinderTest {
         keyword == Keyword.FINAL,
         keyword == Keyword.CONST,
         _typeProvider.intType);
-    variableDeclaration.name.staticElement = fieldElement;
+    variableDeclaration.declaredElement = fieldElement;
     FieldDeclaration fieldDeclaration = AstTestFactory.fieldDeclaration2(
         isStatic, keyword, <VariableDeclaration>[variableDeclaration]);
     var classDeclaration = AstTestFactory.classDeclaration(
@@ -212,7 +212,7 @@ class ConstantFinderTest {
     _node = classDeclaration;
     ClassElementImpl classElement = ElementFactory.classElement2(className);
     classElement.fields = <FieldElement>[fieldElement];
-    classDeclaration.name.staticElement = classElement;
+    classDeclaration.declaredElement = classElement;
     if (hasConstConstructor) {
       var constructorDeclaration = AstTestFactory.constructorDeclaration2(
           Keyword.CONST,
@@ -239,9 +239,8 @@ class ConstantFinderTest {
     var variableDeclaration = isInitialized
         ? AstTestFactory.variableDeclaration2(name, AstTestFactory.integer(0))
         : AstTestFactory.variableDeclaration(name);
-    var identifier = variableDeclaration.name;
-    VariableElement element = ElementFactory.localVariableElement(identifier);
-    identifier.staticElement = element;
+    VariableElement element = ElementFactory.localVariableElement2(name);
+    variableDeclaration.declaredElement = element;
     var keyword = isConst
         ? Keyword.CONST
         : isFinal

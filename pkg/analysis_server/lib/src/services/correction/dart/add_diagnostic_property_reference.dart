@@ -116,7 +116,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
 
     final debugFillProperties = classDeclaration.members
         .whereType<MethodDeclaration>()
-        .where((e) => e.name.name == 'debugFillProperties')
+        .where((e) => e.name2.lexeme == 'debugFillProperties')
         .singleOrNull;
     if (debugFillProperties == null) {
       var location = utils.prepareNewMethodLocation(classDeclaration);
@@ -167,10 +167,10 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
       for (var parameter in parameterList.parameters) {
         if (parameter is SimpleFormalParameter) {
           final type = parameter.type;
-          final identifier = parameter.identifier;
+          final identifier = parameter.name;
           if (type is NamedType && identifier != null) {
             if (type.name.name == 'DiagnosticPropertiesBuilder') {
-              propertiesBuilderName = identifier.name;
+              propertiesBuilderName = identifier.lexeme;
               break;
             }
           }

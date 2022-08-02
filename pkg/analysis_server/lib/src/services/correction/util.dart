@@ -219,7 +219,7 @@ String getElementKindName(Element element) {
 String getElementQualifiedName(Element element) {
   var kind = element.kind;
   if (kind == ElementKind.FIELD || kind == ElementKind.METHOD) {
-    return '${element.enclosingElement2!.displayName}.${element.displayName}';
+    return '${element.enclosingElement3!.displayName}.${element.displayName}';
   } else if (kind == ElementKind.LIBRARY) {
     // Libraries may not have names, so use a path relative to the context root.
     final session = element.session!;
@@ -476,7 +476,7 @@ bool isLeftHandOfAssignment(SimpleIdentifier node) {
     return true;
   }
   return node.parent is VariableDeclaration &&
-      (node.parent as VariableDeclaration).name == node;
+      (node.parent as VariableDeclaration).name2 == node.token;
 }
 
 /// Return `true` if the given [node] is the name of a [NamedExpression].
@@ -1379,7 +1379,7 @@ class CorrectionUtils {
   /// Checks if [element] is visible in [targetExecutableElement] or
   /// [targetClassElement].
   bool _isTypeParameterVisible(TypeParameterElement element) {
-    var enclosing = element.enclosingElement2;
+    var enclosing = element.enclosingElement3;
     return identical(enclosing, targetExecutableElement) ||
         identical(enclosing, targetClassElement);
   }

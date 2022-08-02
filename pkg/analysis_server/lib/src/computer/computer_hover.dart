@@ -71,7 +71,7 @@ class DartUnitHoverComputer {
         hover.elementKind = element.kind.displayName;
         hover.isDeprecated = element.hasDeprecated;
         // not local element
-        if (element.enclosingElement2 is! ExecutableElement) {
+        if (element.enclosingElement3 is! ExecutableElement) {
           // containing class
           var containingClass = element.thisOrAncestorOfType<ClassElement>();
           if (containingClass != null && containingClass != element) {
@@ -152,7 +152,7 @@ class DartUnitHoverComputer {
       element = element.field;
     }
     if (element is ParameterElement) {
-      element = element.enclosingElement2;
+      element = element.enclosingElement3;
     }
     if (element == null) {
       // This can happen when the code is invalid, such as having a field formal
@@ -197,9 +197,9 @@ class DartUnitHoverComputer {
     var result =
         dartdocInfo.processDartdoc(rawDoc, includeSummary: includeSummary);
 
-    var documentedElementClass = documentedElement.enclosingElement2;
+    var documentedElementClass = documentedElement.enclosingElement3;
     if (documentedElementClass != null &&
-        documentedElementClass != element.enclosingElement2) {
+        documentedElementClass != element.enclosingElement3) {
       var documentedClass = documentedElementClass.displayName;
       result.full = '${result.full}\n\nCopied from `$documentedClass`.';
     }

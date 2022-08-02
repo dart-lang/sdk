@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:collection/src/iterable_extensions.dart';
@@ -14,6 +15,9 @@ import 'package:collection/src/iterable_extensions.dart';
 Element? getElementOfNode(AstNode? node) {
   if (node == null) {
     return null;
+  }
+  if (node is DeclaredSimpleIdentifier) {
+    node = node.parent;
   }
   if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
     node = node.parent;
@@ -43,8 +47,8 @@ ConstructorElement? _getActualConstructorElement(
     ConstructorElement? constructor) {
   var seenConstructors = <ConstructorElement?>{};
   while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
-    var enclosing = constructor.enclosingElement2;
-    if (enclosing.isMixinApplication) {
+    var enclosing = constructor.enclosingElement3;
+    if (enclosing is ClassElement && enclosing.isMixinApplication) {
       var superInvocation = constructor.constantInitializers
           .whereType<SuperConstructorInvocation>()
           .singleOrNull;
@@ -73,7 +77,7 @@ LibraryImportElement? _getImportElement(
     String prefix,
     Element element,
     Map<LibraryImportElement, Set<Element>> importElementsMap) {
-  if (element.enclosingElement2 is! CompilationUnitElement) {
+  if (element.enclosingElement3 is! CompilationUnitElement) {
     return null;
   }
   var usedLibrary = element.library;
@@ -280,7 +284,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
             MatchInfo(e.nameOffset + e.nameLength, 0, MatchKind.DECLARATION));
       } else {
         var offset = node.period!.offset;
-        var length = node.name!.end - offset;
+        var length = node.name2!.end - offset;
         references.add(MatchInfo(offset, length, MatchKind.DECLARATION));
       }
     }
@@ -310,7 +314,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
         length = 0;
       }
       references.add(MatchInfo(offset, length, kind));
-    } else if (e != null && e.enclosingElement2 == element) {
+    } else if (e != null && e.enclosingElement3 == element) {
       kind = MatchKind.REFERENCE;
       offset = node.offset;
       length = element.nameLength;
@@ -329,7 +333,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
         offset = constructorSelector.period.offset;
         length = constructorSelector.name.end - offset;
       } else {
-        offset = node.name.end;
+        offset = node.name2.end;
         length = 0;
       }
       var kind = node.arguments == null

@@ -25,7 +25,7 @@ class RenameMethodParameter extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     final parameter = node.parent;
     if (parameter is! FormalParameter) return;
-    var paramIdentifier = parameter.identifier;
+    var paramIdentifier = parameter.name;
     if (paramIdentifier == null) return;
 
     var method = parameter.thisOrAncestorOfType<MethodDeclaration>();
@@ -38,12 +38,12 @@ class RenameMethodParameter extends CorrectionProducer {
     if (classElement is! ClassElement) return;
 
     var parentMethod = classElement.lookUpInheritedMethod(
-        method.name.name, classElement.library);
+        method.name2.lexeme, classElement.library);
     if (parentMethod == null) return;
 
     var parameters = methodParameters.parameters;
     var parentParameters = parentMethod.parameters;
-    var oldName = paramIdentifier.name;
+    var oldName = paramIdentifier.lexeme;
 
     var i = parameters.indexOf(parameter);
     if (0 <= i && i < parentParameters.length) {

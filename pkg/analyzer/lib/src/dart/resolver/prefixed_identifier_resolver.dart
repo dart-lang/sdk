@@ -135,7 +135,7 @@ class PrefixedIdentifierResolver {
       return false;
     }
     if (parent is ConstructorDeclaration) {
-      if (parent.name == node || parent.returnType == node) {
+      if (parent.returnType == node) {
         return false;
       }
     }

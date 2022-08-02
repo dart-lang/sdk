@@ -26,8 +26,7 @@ augment class A {}
 ClassDeclaration
   augmentKeyword: augment
   classKeyword: class
-  name: SimpleIdentifier
-    token: A
+  name: A
   leftBracket: {
   rightBracket: }
 ''');
@@ -54,8 +53,7 @@ ClassDeclaration
         offset: 0
   abstractKeyword: abstract @16
   classKeyword: class @25
-  name: SimpleIdentifier
-    token: A @31
+  name: A @31
   leftBracket: { @33
   rightBracket: } @34
 ''',
@@ -99,8 +97,7 @@ ClassDeclaration
         token: Annotation @46
   abstractKeyword: abstract @57
   classKeyword: class @66
-  name: SimpleIdentifier
-    token: A @72
+  name: A @72
   leftBracket: { @74
   rightBracket: } @75
 ''',
@@ -161,8 +158,7 @@ ClassDeclaration
         token: Annotation @46
   abstractKeyword: abstract @249
   classKeyword: class @258
-  name: SimpleIdentifier
-    token: A @264
+  name: A @264
   leftBracket: { @266
   rightBracket: } @267
 ''',
@@ -180,8 +176,7 @@ macro class A {}
 ClassDeclaration
   macroKeyword: macro
   classKeyword: class
-  name: SimpleIdentifier
-    token: A
+  name: A
   leftBracket: {
   rightBracket: }
 ''');
@@ -198,8 +193,7 @@ macro class A = Object with M;
     assertParsedNodeText(node, r'''
 ClassTypeAlias
   typedefKeyword: class
-  name: SimpleIdentifier
-    token: A
+  name: A
   equals: =
   macroKeyword: macro
   superclass: NamedType
@@ -284,8 +278,7 @@ enum E {
     var node = parseResult.findNode.enumConstantDeclaration('v.');
     assertParsedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
+  name: v
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
@@ -310,8 +303,7 @@ enum E {
     var node = parseResult.findNode.enumConstantDeclaration('v.');
     assertParsedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
+  name: v
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
@@ -337,8 +329,7 @@ enum E {
     var node = parseResult.findNode.enumConstantDeclaration('v.');
     assertParsedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
+  name: v
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
@@ -364,8 +355,7 @@ enum E {
     var node = parseResult.findNode.enumConstantDeclaration('v<int>.');
     assertParsedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
+  name: v
   arguments: EnumConstantArguments
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -400,8 +390,7 @@ enum E {
         node,
         r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
+  name: v
   arguments: EnumConstantArguments
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -434,8 +423,7 @@ enum E<T> {
     var node = parseResult.findNode.enumConstantDeclaration('v<int>');
     assertParsedNodeText(node, r'''
 EnumConstantDeclaration
-  name: SimpleIdentifier
-    token: v
+  name: v
   arguments: EnumConstantArguments
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -462,13 +450,11 @@ enum E {
     assertParsedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
-  name: SimpleIdentifier
-    token: E
+  name: E
   leftBracket: {
   constants
     EnumConstantDeclaration
-      name: SimpleIdentifier
-        token: v
+      name: v
   rightBracket: }
 ''');
   }
@@ -485,13 +471,11 @@ enum E {
     assertParsedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
-  name: SimpleIdentifier
-    token: E
+  name: E
   leftBracket: {
   constants
     EnumConstantDeclaration
-      name: SimpleIdentifier
-        token: v
+      name: v
   semicolon: ;
   rightBracket: }
 ''');
@@ -511,8 +495,7 @@ class A {
     assertParsedNodeText(node, r'''
 MethodDeclaration
   propertyKeyword: get
-  name: SimpleIdentifier
-    token: A
+  name: A
   body: ExpressionFunctionBody
     functionDefinition: =>
     expression: IntegerLiteral
@@ -551,8 +534,7 @@ class A {
 SuperFormalParameter
   superKeyword: super
   period: .
-  identifier: SimpleIdentifier
-    token: a
+  name: a
 ''');
   }
 }

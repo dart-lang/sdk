@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -279,7 +280,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     Map<TypeParameterElement, DecoratedType?>? substitution;
     Element? baseElement = element.declaration;
     if (targetType != null) {
-      var enclosingElement = baseElement!.enclosingElement2;
+      var enclosingElement = baseElement!.enclosingElement3;
       if (enclosingElement is ClassElement) {
         if (targetType.type.explicitBound is InterfaceType &&
             enclosingElement.typeParameters.isNotEmpty) {
@@ -473,8 +474,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var assignee =
           getWriteOrReadElement(node.leftHandSide as SimpleIdentifier)!;
       var enclosingElementOfCurrentFunction =
-          _currentFunctionExpression!.declaredElement!.enclosingElement2;
-      if (enclosingElementOfCurrentFunction == assignee.enclosingElement2) {
+          _currentFunctionExpression!.declaredElement!.enclosingElement3;
+      if (enclosingElementOfCurrentFunction == assignee.enclosingElement3) {
         // [node]'s enclosing function is a function expression passed directly
         // to a call to the test package's `setUp` function, and [node] is an
         // assignment to a variable declared in the same scope as the call to
@@ -840,7 +841,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         // Nothing to do; assume the implicit default value of `null` will never
         // be reached.
       } else {
-        var enclosingElement = declaredElement.enclosingElement2;
+        var enclosingElement = declaredElement.enclosingElement3;
         if (enclosingElement is ConstructorElement &&
             enclosingElement.isFactory &&
             enclosingElement.redirectedConstructor != null) {
@@ -1206,7 +1207,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitInstanceCreationExpression(
       InstanceCreationExpression node) {
     var callee = node.constructorName.staticElement!;
-    var typeParameters = callee.enclosingElement2.typeParameters;
+    var typeParameters = callee.enclosingElement3.typeParameters;
     Iterable<DartType?> typeArgumentTypes;
     List<DecoratedType> decoratedTypeArguments;
     var typeArguments = node.constructorName.type.typeArguments;
@@ -1387,7 +1388,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } else {
         targetType = _handleTarget(target, node.methodName.name, callee);
       }
-    } else if (target == null && callee!.enclosingElement2 is ClassElement) {
+    } else if (target == null && callee!.enclosingElement3 is ClassElement) {
       targetType = _thisOrSuper(node);
       _checkThisNotNull(targetType, node);
     }
@@ -1794,13 +1795,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (staticElement is FunctionElement ||
         staticElement is MethodElement ||
         staticElement is ConstructorElement) {
-      if (staticElement!.enclosingElement2 is ClassElement) {
+      if (staticElement!.enclosingElement3 is ClassElement) {
         targetType = _thisOrSuper(node);
       }
       result =
           getOrComputeElementType(node, staticElement, targetType: targetType);
     } else if (staticElement is PropertyAccessorElement) {
-      if (staticElement.enclosingElement2 is ClassElement) {
+      if (staticElement.enclosingElement3 is ClassElement) {
         targetType = _thisOrSuper(node);
       }
       var elementType =
@@ -1815,8 +1816,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (staticElement == null) {
       assert(node.toString() == 'void', "${node.toString()} != 'void'");
       result = _makeNullableVoidType(node);
-    } else if (staticElement.enclosingElement2 is ClassElement &&
-        (staticElement.enclosingElement2 as ClassElement).isEnum) {
+    } else if (staticElement.enclosingElement3 is ClassElement &&
+        staticElement.enclosingElement3 is EnumElement) {
       result = getOrComputeElementType(node, staticElement);
     } else {
       // TODO(paulberry)
@@ -1882,7 +1883,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var nullabilityNode = NullabilityNode.forInferredType(target);
     var class_ = node.thisOrAncestorOfType<ClassDeclaration>()!;
     var decoratedSupertype = _decoratedClassHierarchy!.getDecoratedSupertype(
-        class_.declaredElement!, callee.enclosingElement2);
+        class_.declaredElement!, callee.enclosingElement3);
     var typeArguments = decoratedSupertype.typeArguments;
     Iterable<DartType?> typeArgumentTypes;
     typeArgumentTypes = typeArguments.map((t) => t!.type);
@@ -1890,7 +1891,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         typeArguments: typeArguments);
     var calleeType =
         getOrComputeElementType(node, callee, targetType: createdType);
-    var constructorTypeParameters = callee.enclosingElement2.typeParameters;
+    var constructorTypeParameters = callee.enclosingElement3.typeParameters;
 
     _handleInvocationArguments(
         node,
@@ -1998,7 +1999,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
       var type = _variables!.decoratedElementType(declaredElement);
-      var enclosingElement = declaredElement.enclosingElement2;
+      var enclosingElement = declaredElement.enclosingElement3;
       if (!declaredElement.isStatic && enclosingElement is ClassElement) {
         var overriddenElements = _inheritanceManager.getOverridden2(
             enclosingElement,
@@ -2562,7 +2563,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   void _handleConstructorRedirection(
       FormalParameterList parameters, ConstructorName redirectedConstructor) {
     var callee = redirectedConstructor.staticElement!.declaration;
-    var redirectedClass = callee.enclosingElement2;
+    var redirectedClass = callee.enclosingElement3;
     var calleeType = _variables!.decoratedElementType(callee);
     var typeArguments = redirectedConstructor.type.typeArguments;
     var typeArgumentTypes =
@@ -2581,7 +2582,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (node.argumentList.arguments.isNotEmpty &&
         callee is ExecutableElement &&
         callee.isStatic) {
-      var enclosingElement = callee.enclosingElement2;
+      var enclosingElement = callee.enclosingElement3;
       if (enclosingElement is ClassElement) {
         if (callee.name == 'checkNotNull' &&
                 enclosingElement.name == 'ArgumentError' &&
@@ -2624,7 +2625,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _addParametersToFlowAnalysis(parameters);
     // Push a scope of post-dominated declarations on the stack.
     _postDominatedLocals.pushScope(elements: declaredElement.parameters);
-    if (declaredElement.enclosingElement2 is ExtensionElement) {
+    if (declaredElement.enclosingElement3 is ExtensionElement) {
       _postDominatedLocals.add(_extensionThis);
     }
     try {
@@ -2639,7 +2640,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _handleConstructorRedirection(parameters!, redirectedConstructor);
       }
       if (declaredElement is! ConstructorElement) {
-        var enclosingElement = declaredElement.enclosingElement2;
+        var enclosingElement = declaredElement.enclosingElement3;
         if (enclosingElement is ClassElement) {
           var overriddenElements = _inheritanceManager.getOverridden2(
               enclosingElement,
@@ -2725,7 +2726,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       ClassElement classElement,
       Element overriddenElement) {
     overriddenElement = overriddenElement.declaration!;
-    var overriddenClass = overriddenElement.enclosingElement2 as ClassElement;
+    var overriddenClass = overriddenElement.enclosingElement3 as ClassElement;
     var decoratedSupertype = _decoratedClassHierarchy!
         .getDecoratedSupertype(classElement, overriddenClass);
     var substitution = decoratedSupertype.asSubstitution;
@@ -2784,7 +2785,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           DecoratedType? currentParameterType;
           DecoratedType? overriddenParameterType;
           if (parameter.isNamed) {
-            var name = normalParameter.identifier!.name;
+            var name = normalParameter.name!.lexeme;
             currentParameterType = _currentFunctionType!.namedParameters![name];
             overriddenParameterType =
                 overriddenFunctionType.namedParameters![name];
@@ -2826,7 +2827,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       ClassElement classElement,
       Element overriddenElement) {
     overriddenElement = overriddenElement.declaration!;
-    var overriddenClass = overriddenElement.enclosingElement2 as ClassElement;
+    var overriddenClass = overriddenElement.enclosingElement3 as ClassElement;
     var decoratedSupertype = _decoratedClassHierarchy!
         .getDecoratedSupertype(classElement, overriddenClass);
     var substitution = decoratedSupertype.asSubstitution;
@@ -2958,13 +2959,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     Map<TypeParameterElement, DecoratedType?> getterSubstitution = const {};
     Map<TypeParameterElement, DecoratedType?> setterSubstitution = const {};
     if (class_ != null) {
-      var getterClass = getter.enclosingElement2 as ClassElement;
+      var getterClass = getter.enclosingElement3 as ClassElement;
       if (!identical(class_, getterClass)) {
         getterSubstitution = _decoratedClassHierarchy!
             .getDecoratedSupertype(class_, getterClass)
             .asSubstitution;
       }
-      var setterClass = setter.enclosingElement2 as ClassElement;
+      var setterClass = setter.enclosingElement3 as ClassElement;
       if (!identical(class_, setterClass)) {
         setterSubstitution = _decoratedClassHierarchy!
             .getDecoratedSupertype(class_, setterClass)
@@ -3062,9 +3063,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         expression = argument.expression;
       } else if (argument is FormalParameter) {
         if (argument.isNamed) {
-          name = argument.identifier!.name;
+          name = argument.name!.lexeme;
         }
-        expression = argument.identifier;
+        // TODO(scheglov) This is a hack.
+        expression = (argument as FormalParameterImpl).identifierForMigration;
       } else {
         expression = argument as Expression;
       }
@@ -3218,7 +3220,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (isDeclaredOnObject(name)) {
       return _dispatch(target);
     } else if ((callee is MethodElement || callee is PropertyAccessorElement) &&
-        callee!.enclosingElement2 is ExtensionElement) {
+        callee!.enclosingElement3 is ExtensionElement) {
       // Extension methods can be called on a `null` target, when the `on` type
       // of the extension is nullable.  Note: we don't need to check whether the
       // target type is assignable to the extended type; that is done in

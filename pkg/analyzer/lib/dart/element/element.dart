@@ -57,12 +57,16 @@ import 'package:pub_semver/pub_semver.dart';
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class AugmentationImportElement implements _ExistingElement {
-  @Deprecated('Use enclosingElement2 instead')
+  @Deprecated('Use enclosingElement3 instead')
   @override
   LibraryOrAugmentationElement get enclosingElement;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
   LibraryOrAugmentationElement get enclosingElement2;
+
+  @override
+  LibraryOrAugmentationElement get enclosingElement3;
 
   /// Returns the [LibraryAugmentationElement], if [uri] is a
   /// [DirectiveUriWithAugmentation].
@@ -214,12 +218,16 @@ abstract class ClassMemberElement implements Element {
   // TODO(brianwilkerson) Either remove this class or rename it to something
   //  more correct.
 
-  @Deprecated('Use enclosingElement2 instead')
+  @Deprecated('Use enclosingElement3 instead')
   @override
   Element get enclosingElement;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
   Element get enclosingElement2;
+
+  @override
+  Element get enclosingElement3;
 
   /// Return `true` if this element is a static element. A static element is an
   /// element that is not associated with a particular instance, but rather with
@@ -251,13 +259,17 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   /// unit.
   List<ClassElement> get classes;
 
-  @Deprecated('Use enclosingElement2 instead')
+  @Deprecated('Use enclosingElement3 instead')
   @override
   LibraryElement get enclosingElement;
 
-  /// Return the library, or library augmentation that encloses this unit.
+  @Deprecated('Use enclosingElement3 instead')
   @override
   LibraryOrAugmentationElement get enclosingElement2;
+
+  /// Return the library, or library augmentation that encloses this unit.
+  @override
+  LibraryOrAugmentationElement get enclosingElement3;
 
   /// Return a list containing all of the enums contained in this compilation
   /// unit.
@@ -330,12 +342,16 @@ abstract class ConstructorElement
   @override
   String get displayName;
 
-  @Deprecated('Use enclosingElement2 instead')
+  @Deprecated('Use enclosingElement3 instead')
   @override
   ClassElement get enclosingElement;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
   ClassElement get enclosingElement2;
+
+  @override
+  InterfaceElement get enclosingElement3;
 
   /// Return `true` if this constructor is a const constructor.
   bool get isConst;
@@ -480,13 +496,19 @@ abstract class Element implements AnalysisTarget {
   /// Return the element that either physically or logically encloses this
   /// element. This will be `null` if this element is a library because
   /// libraries are the top-level elements in the model.
-  @Deprecated('Use enclosingElement2 instead')
+  @Deprecated('Use enclosingElement3 instead')
   Element? get enclosingElement;
 
   /// Return the element that either physically or logically encloses this
   /// element. This will be `null` if this element is a library because
   /// libraries are the top-level elements in the model.
+  @Deprecated('Use enclosingElement3 instead')
   Element? get enclosingElement2;
+
+  /// Return the element that either physically or logically encloses this
+  /// element. This will be `null` if this element is a library because
+  /// libraries are the top-level elements in the model.
+  Element? get enclosingElement3;
 
   /// Return `true` if this element has an annotation of the form
   /// `@alwaysThrows`.
@@ -1090,12 +1112,16 @@ abstract class ExecutableElement implements FunctionTypedElement {
   @override
   String get displayName;
 
-  @Deprecated('Use enclosingElement2 instead')
+  @Deprecated('Use enclosingElement3 instead')
   @override
   Element get enclosingElement;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
   Element get enclosingElement2;
+
+  @override
+  Element get enclosingElement3;
 
   /// Return `true` if this executable element did not have an explicit return
   /// type specified for it in the original source.
@@ -1158,12 +1184,16 @@ abstract class ExtensionElement implements TypeParameterizedElement {
   /// declared in this extension.
   List<PropertyAccessorElement> get accessors;
 
-  @Deprecated('Use enclosingElement2 instead')
+  @Deprecated('Use enclosingElement3 instead')
   @override
   CompilationUnitElement get enclosingElement;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
   CompilationUnitElement get enclosingElement2;
+
+  @override
+  CompilationUnitElement get enclosingElement3;
 
   /// Return the type that is extended by this extension.
   DartType get extendedType;
@@ -1389,12 +1419,16 @@ abstract class InterfaceOrAugmentationElement
   /// class, as is the case when this element represents an enum or a mixin.
   List<ConstructorElement> get constructors;
 
-  @Deprecated('Use enclosingElement2 instead')
+  @Deprecated('Use enclosingElement3 instead')
   @override
   CompilationUnitElement get enclosingElement;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
   CompilationUnitElement get enclosingElement2;
+
+  @override
+  CompilationUnitElement get enclosingElement3;
 
   /// Return a list containing all of the fields declared in this class.
   List<FieldElement> get fields;
@@ -1430,12 +1464,16 @@ abstract class InterfaceOrAugmentationElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LabelElement implements Element {
-  @Deprecated('Use enclosingElement2 instead')
+  @Deprecated('Use enclosingElement3 instead')
   @override
   ExecutableElement get enclosingElement;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
   ExecutableElement get enclosingElement2;
+
+  @override
+  ExecutableElement get enclosingElement3;
 
   @override
   String get name;
@@ -1906,13 +1944,17 @@ abstract class PartElement implements _ExistingElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PrefixElement implements _ExistingElement {
-  @Deprecated('Use enclosingElement2 instead')
+  @Deprecated('Use enclosingElement3 instead')
   @override
   LibraryElement get enclosingElement;
 
-  /// Return the library, or library augmentation that encloses this element.
+  @Deprecated('Use enclosingElement3 instead')
   @override
   LibraryOrAugmentationElement get enclosingElement2;
+
+  /// Return the library, or library augmentation that encloses this element.
+  @override
+  LibraryOrAugmentationElement get enclosingElement3;
 
   /// Return the imports that share this prefix.
   @Deprecated('Use imports2 instead')
@@ -1987,12 +2029,16 @@ abstract class PropertyAccessorElement implements ExecutableElement {
   @override
   PropertyAccessorElement get declaration;
 
-  @Deprecated('Use enclosingElement2 instead')
+  @Deprecated('Use enclosingElement3 instead')
   @override
   Element get enclosingElement;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
   Element get enclosingElement2;
+
+  @override
+  Element get enclosingElement3;
 
   /// Return `true` if this accessor represents a getter.
   bool get isGetter;
@@ -2110,12 +2156,16 @@ abstract class TypeAliasElement
   /// a [FunctionType].
   DartType get aliasedType;
 
-  @Deprecated('Use enclosingElement2 instead')
+  @Deprecated('Use enclosingElement3 instead')
   @override
   CompilationUnitElement get enclosingElement;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
   CompilationUnitElement get enclosingElement2;
+
+  @override
+  CompilationUnitElement get enclosingElement3;
 
   @override
   String get name;

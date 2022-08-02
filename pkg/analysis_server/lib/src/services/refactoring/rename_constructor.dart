@@ -82,7 +82,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   void _analyzePossibleConflicts(RefactoringStatus result) {
-    var parentClass = element.enclosingElement2;
+    var parentClass = element.enclosingElement3;
     // Check if the "newName" is the name of the enclosing class.
     if (parentClass.name == newName) {
       result.addError('The constructor should not have the same name '
@@ -107,7 +107,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   Future<void> _replaceSynthetic() async {
-    var classElement = element.enclosingElement2;
+    var classElement = element.enclosingElement3;
 
     var result = await AnalysisSessionHelper(session)
         .getElementDeclaration(classElement);

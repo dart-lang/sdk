@@ -55,12 +55,12 @@ class RemoveTypeAnnotation extends CorrectionProducer {
     }
     // ignore if an incomplete variable declaration
     if (declarationList.variables.length == 1 &&
-        declarationList.variables[0].name.isSynthetic) {
+        declarationList.variables[0].name2.isSynthetic) {
       return;
     }
     // must be not after the name of the variable
     var firstVariable = declarationList.variables[0];
-    if (selectionOffset > firstVariable.name.end) {
+    if (selectionOffset > firstVariable.name2.end) {
       return;
     }
 
@@ -127,7 +127,7 @@ class RemoveTypeAnnotation extends CorrectionProducer {
       return;
     }
     var keyword = declaration.keyword;
-    var variableName = declaration.identifier;
+    var variableName = declaration.name;
     await builder.addDartFileEdit(file, (builder) {
       var typeRange = range.startStart(typeNode, variableName);
       if (keyword != null && keyword.lexeme != 'var') {

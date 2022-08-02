@@ -166,8 +166,19 @@ class CompletionTarget {
             // Try to replace with a comment token.
             var commentToken = _getContainingCommentToken(entity, offset);
             if (commentToken != null) {
-              return CompletionTarget._(
-                  offset, containingNode, commentToken, true);
+              // TODO(scheglov) This is duplicate of the code below.
+              // If the preceding comment is dartdoc token, then update
+              // the containing node to be the dartdoc comment.
+              // Otherwise completion is not required.
+              var docComment =
+                  _getContainingDocComment(containingNode, commentToken);
+              if (docComment != null) {
+                return CompletionTarget._(
+                    offset, docComment, commentToken, false);
+              } else {
+                return CompletionTarget._(
+                    offset, entryPoint, commentToken, true);
+              }
             }
             // Target found.
             return CompletionTarget._(offset, containingNode, entity, false);

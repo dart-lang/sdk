@@ -122,7 +122,7 @@ class _WidgetDescriptionComputer {
 
   /// The set of classes for which we are currently adding properties,
   /// used to prevent infinite recursion.
-  final Set<ClassElement> classesBeingProcessed = <ClassElement>{};
+  final Set<InterfaceElement> elementsBeingProcessed = {};
 
   /// The resolved unit with the widget [InstanceCreationExpression].
   final ResolvedUnitResult resolvedUnit;
@@ -278,8 +278,8 @@ class _WidgetDescriptionComputer {
     constructorElement ??= classDescription?.constructor;
     if (constructorElement == null) return;
 
-    var classElement = constructorElement.enclosingElement2;
-    if (!classesBeingProcessed.add(classElement)) return;
+    var classElement = constructorElement.enclosingElement3;
+    if (!elementsBeingProcessed.add(classElement)) return;
 
     var existingNamed = <String>{};
     if (instanceCreation != null) {
@@ -320,7 +320,7 @@ class _WidgetDescriptionComputer {
       );
     }
 
-    classesBeingProcessed.remove(classElement);
+    elementsBeingProcessed.remove(classElement);
   }
 
   void _addProperty({
@@ -520,7 +520,7 @@ class _WidgetDescriptionComputer {
   }
 
   protocol.FlutterWidgetPropertyValueEnumItem _toEnumItem(FieldElement field) {
-    var classElement = field.enclosingElement2 as ClassElement;
+    var classElement = field.enclosingElement3 as ClassElement;
     var libraryUriStr = '${classElement.library.source.uri}';
     var documentation = getFieldDocumentation(field);
 
@@ -546,7 +546,7 @@ class _WidgetDescriptionComputer {
       if (element is PropertyAccessorElement && element.isGetter) {
         var field = element.variable;
         if (field is FieldElement && field.isStatic) {
-          var enclosingClass = field.enclosingElement2 as ClassElement;
+          var enclosingClass = field.enclosingElement3 as ClassElement;
           if (field.isEnumConstant ||
               _flutter.isExactAlignment(enclosingClass) ||
               _flutter.isExactAlignmentDirectional(enclosingClass)) {

@@ -128,7 +128,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitClassDeclaration(ClassDeclaration node) {
     node.metadata.accept(this);
-    node.name.accept(this);
     node.typeParameters?.accept(this);
     node.nativeClause?.accept(this);
     node.members.accept(this);
@@ -156,7 +155,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitClassTypeAlias(ClassTypeAlias node) {
     node.metadata.accept(this);
-    node.name.accept(this);
     node.typeParameters?.accept(this);
     var classElement = node.declaredElement!;
     _handleSupertypeClauses(node, classElement, node.superclass,
@@ -222,7 +220,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           _typeProvider, declaredElement.type, _graph, target);
       instrumentation?.implicitType(source, node, type);
     }
-    _variables!.recordDecoratedElementType(node.identifier.staticElement, type);
+    _variables!.recordDecoratedElementType(node.declaredElement, type);
     return type;
   }
 
@@ -250,7 +248,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitEnumDeclaration(EnumDeclaration node) {
     node.metadata.accept(this);
-    node.name.accept(this);
     var classElement = node.declaredElement!;
     _variables!.recordDecoratedElementType(
         classElement, DecoratedType(classElement.thisType, _graph.never));
@@ -479,7 +476,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitMixinDeclaration(MixinDeclaration node) {
     node.metadata.accept(this);
-    node.name.accept(this);
     node.typeParameters?.accept(this);
     node.members.accept(this);
     _handleSupertypeClauses(node, node.declaredElement!, null, null,
@@ -684,7 +680,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   DecoratedType _createDecoratedTypeForClass(
-      ClassElement classElement, AstNode? node) {
+      InterfaceElement classElement, AstNode? node) {
     var typeArguments = classElement.typeParameters
         .map((t) => t.instantiate(nullabilitySuffix: NullabilitySuffix.star))
         .toList();
@@ -707,7 +703,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var annotation in metadata) {
       var element = annotation.element;
       if (element is ConstructorElement) {
-        var name = element.enclosingElement2.name;
+        var name = element.enclosingElement3.name;
         if (_isAngularUri(element.librarySource.uri)) {
           if (name == 'ViewChild' || name == 'ContentChild') {
             return _AngularAnnotation.child;
@@ -749,7 +745,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         // Constructors have no explicit return type annotation, so use the
         // implicit return type.
         decoratedReturnType = _createDecoratedTypeForClass(
-            declaredElement.enclosingElement2, parameters!.parent);
+            declaredElement.enclosingElement3, parameters!.parent);
         instrumentation?.implicitReturnType(source, node, decoratedReturnType);
       } else {
         // Inferred return type.
@@ -850,7 +846,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var annotation in node.metadata) {
       var element = annotation.element;
       if (element is ConstructorElement &&
-          element.enclosingElement2.name == 'Optional' &&
+          element.enclosingElement3.name == 'Optional' &&
           _isAngularUri(element.librarySource.uri)) {
         _graph.makeNullable(
             decoratedType!.node!, AngularAnnotationOrigin(source, node));

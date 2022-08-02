@@ -6,11 +6,12 @@ import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart' as proto;
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 /// Return the elements that the given [element] overrides.
 OverriddenElements findOverriddenElements(Element element) {
-  if (element.enclosingElement2 is ClassElement) {
+  if (element.enclosingElement3 is ClassElement) {
     return _OverriddenElementsFinder(element).find();
   }
   return OverriddenElements(element, <Element>[], <Element>[]);
@@ -35,9 +36,8 @@ class DartUnitOverridesComputer {
     return _overrides;
   }
 
-  /// Add a new [Override] for the declaration with the given name [node].
-  void _addOverride(SimpleIdentifier node) {
-    var element = node.staticElement;
+  /// Add a new [Override] for the declaration with the given name [token].
+  void _addOverride(Token token, Element? element) {
     if (element != null) {
       var overridesResult = _OverriddenElementsFinder(element).find();
       var superElements = overridesResult.superElements;
@@ -53,7 +53,7 @@ class DartUnitOverridesComputer {
                 member.nonSynthetic,
                 withNullability: _unit.isNonNullableByDefault))
             .toList();
-        _overrides.add(proto.Override(node.offset, node.length,
+        _overrides.add(proto.Override(token.offset, token.length,
             superclassMember: superMember,
             interfaceMembers: nullIfEmpty(interfaceMembers)));
       }
@@ -66,7 +66,7 @@ class DartUnitOverridesComputer {
         if (classMember.isStatic) {
           continue;
         }
-        _addOverride(classMember.name);
+        _addOverride(classMember.name2, classMember.declaredElement);
       }
       if (classMember is FieldDeclaration) {
         if (classMember.isStatic) {
@@ -74,7 +74,7 @@ class DartUnitOverridesComputer {
         }
         List<VariableDeclaration> fields = classMember.fields.variables;
         for (var field in fields) {
-          _addOverride(field.name);
+          _addOverride(field.name2, field.declaredElement);
         }
       }
     }
@@ -109,7 +109,7 @@ class _OverriddenElementsFinder {
   final Set<ClassElement> _visited = <ClassElement>{};
 
   factory _OverriddenElementsFinder(Element seed) {
-    var class_ = seed.enclosingElement2 as ClassElement;
+    var class_ = seed.enclosingElement3 as ClassElement;
     var library = class_.library;
     var name = seed.displayName;
     List<ElementKind> kinds;

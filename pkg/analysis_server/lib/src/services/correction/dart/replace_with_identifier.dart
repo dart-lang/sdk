@@ -28,8 +28,8 @@ class ReplaceWithIdentifier extends CorrectionProducer {
         node.thisOrAncestorOfType<FunctionTypedFormalParameter>();
     if (functionTyped != null) {
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.node(functionTyped),
-            utils.getNodeText(functionTyped.identifier));
+        builder.addSimpleReplacement(
+            range.node(functionTyped), functionTyped.name.lexeme);
       });
     }
   }

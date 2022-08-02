@@ -62,7 +62,7 @@ class MakeFinal extends CorrectionProducer {
             builder.addSimpleInsertion(type.offset, 'final ');
             return;
           }
-          final identifier = simpleNode.identifier;
+          final identifier = simpleNode.name;
           if (identifier != null) {
             builder.addSimpleInsertion(identifier.offset, 'final ');
           } else {

@@ -4,6 +4,8 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -19,9 +21,9 @@ import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 
-class InheritanceOverrideVerifier {
-  static const _missingOverridesKey = 'missingOverrides';
+final _missingOverrides = Expando<List<ExecutableElement>>();
 
+class InheritanceOverrideVerifier {
   final TypeSystemImpl _typeSystem;
   final TypeProvider _typeProvider;
   final InheritanceManager3 _inheritance;
@@ -43,7 +45,8 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
-          classNameNode: declaration.name,
+          classNameToken: declaration.name2,
+          classElement: declaration.declaredElement as AbstractClassElementImpl,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           superclass: declaration.extendsClause?.superclass,
@@ -57,7 +60,8 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
-          classNameNode: declaration.name,
+          classNameToken: declaration.name2,
+          classElement: declaration.declaredElement as AbstractClassElementImpl,
           implementsClause: declaration.implementsClause,
           superclass: declaration.superclass,
           withClause: declaration.withClause,
@@ -70,7 +74,8 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
-          classNameNode: declaration.name,
+          classNameToken: declaration.name2,
+          classElement: declaration.declaredElement as AbstractClassElementImpl,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           withClause: declaration.withClause,
@@ -83,7 +88,8 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
-          classNameNode: declaration.name,
+          classNameToken: declaration.name2,
+          classElement: declaration.declaredElement as AbstractClassElementImpl,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           onClause: declaration.onClause,
@@ -103,7 +109,7 @@ class InheritanceOverrideVerifier {
   /// Returns [ExecutableElement] members that are in the interface of the
   /// given class, but don't have concrete implementations.
   static List<ExecutableElement> missingOverrides(ClassDeclaration node) {
-    return node.name.getProperty(_missingOverridesKey) ?? const [];
+    return _missingOverrides[node.name2] ?? const [];
   }
 }
 
@@ -118,7 +124,7 @@ class _ClassVerifier {
   final Uri libraryUri;
   final AbstractClassElementImpl classElement;
 
-  final SimpleIdentifier classNameNode;
+  final Token classNameToken;
   final List<ClassMember> members;
   final ImplementsClause? implementsClause;
   final OnClause? onClause;
@@ -137,14 +143,14 @@ class _ClassVerifier {
     required this.reporter,
     required this.featureSet,
     required this.library,
-    required this.classNameNode,
+    required this.classNameToken,
+    required this.classElement,
     this.implementsClause,
     this.members = const [],
     this.onClause,
     this.superclass,
     this.withClause,
-  })  : libraryUri = library.source.uri,
-        classElement = classNameNode.staticElement as AbstractClassElementImpl;
+  }) : libraryUri = library.source.uri;
 
   bool get _isNonNullableByDefault => typeSystem.isNonNullableByDefault;
 
@@ -158,9 +164,9 @@ class _ClassVerifier {
     if (!classElement.isEnum &&
         !classElement.isAbstract &&
         implementsDartCoreEnum) {
-      reporter.reportErrorForNode(
+      reporter.reportErrorForToken(
         CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE,
-        classNameNode,
+        classNameToken,
       );
       return true;
     }
@@ -174,7 +180,7 @@ class _ClassVerifier {
 
     // Report conflicts between direct superinterfaces of the class.
     for (var conflict in interface.conflicts) {
-      _reportInconsistentInheritance(classNameNode, conflict);
+      _reportInconsistentInheritance(classNameToken, conflict);
     }
 
     if (classElement.supertype != null) {
@@ -206,13 +212,13 @@ class _ClassVerifier {
         var fieldList = member.fields;
         for (var field in fieldList.variables) {
           var fieldElement = field.declaredElement as FieldElement;
-          _checkDeclaredMember(field.name, libraryUri, fieldElement.getter);
-          _checkDeclaredMember(field.name, libraryUri, fieldElement.setter);
+          _checkDeclaredMember(field.name2, libraryUri, fieldElement.getter);
+          _checkDeclaredMember(field.name2, libraryUri, fieldElement.setter);
           if (!member.isStatic && !classElement.isEnum) {
-            _checkIllegalEnumValuesDeclaration(field.name);
+            _checkIllegalEnumValuesDeclaration(field.name2);
           }
           if (!member.isStatic) {
-            _checkIllegalConcreteEnumMemberDeclaration(field.name);
+            _checkIllegalConcreteEnumMemberDeclaration(field.name2);
           }
         }
       } else if (member is MethodDeclaration) {
@@ -221,13 +227,13 @@ class _ClassVerifier {
           continue;
         }
 
-        _checkDeclaredMember(member.name, libraryUri, member.declaredElement,
+        _checkDeclaredMember(member.name2, libraryUri, member.declaredElement,
             methodParameterNodes: member.parameters?.parameters);
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
-          _checkIllegalConcreteEnumMemberDeclaration(member.name);
+          _checkIllegalConcreteEnumMemberDeclaration(member.name2);
         }
         if (!member.isStatic && !classElement.isEnum) {
-          _checkIllegalEnumValuesDeclaration(member.name);
+          _checkIllegalEnumValuesDeclaration(member.name2);
         }
       }
     }
@@ -293,7 +299,7 @@ class _ClassVerifier {
         ).verify(
           superMember: interfaceElement,
           errorReporter: reporter,
-          errorNode: classNameNode,
+          errorNode: classNameToken,
           errorCode: CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
         );
       }
@@ -308,7 +314,7 @@ class _ClassVerifier {
   /// instance members in each of [directSuperInterfaces].  The [libraryUri] is
   /// the URI of the library containing the [member].
   void _checkDeclaredMember(
-    AstNode node,
+    SyntacticEntity node,
     Uri libraryUri,
     ExecutableElement? member, {
     List<FormalParameter>? methodParameterNodes,
@@ -542,7 +548,7 @@ class _ClassVerifier {
                     .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
                 derivedOptionalNodes[i],
                 [
-                  baseExecutable.enclosingElement2.displayName,
+                  baseExecutable.enclosingElement3.displayName,
                   baseExecutable.displayName,
                   name
                 ],
@@ -571,7 +577,7 @@ class _ClassVerifier {
                   .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
               derivedOptionalNodes[i],
               [
-                baseExecutable.enclosingElement2.displayName,
+                baseExecutable.enclosingElement3.displayName,
                 baseExecutable.displayName
               ],
             );
@@ -659,14 +665,14 @@ class _ClassVerifier {
     return false;
   }
 
-  void _checkIllegalConcreteEnumMemberDeclaration(SimpleIdentifier name) {
+  void _checkIllegalConcreteEnumMemberDeclaration(Token name) {
     if (implementsDartCoreEnum &&
         !classElement.isDartCoreEnumImpl &&
-        const {'index', 'hashCode', '=='}.contains(name.name)) {
-      reporter.reportErrorForNode(
+        const {'index', 'hashCode', '=='}.contains(name.lexeme)) {
+      reporter.reportErrorForToken(
         CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
         name,
-        [name.name],
+        [name.lexeme],
       );
     }
   }
@@ -688,11 +694,11 @@ class _ClassVerifier {
       ) {
         var member = concreteMap[Name(libraryUri, memberName)];
         if (member != null) {
-          var enclosingClass = member.enclosingElement2;
+          var enclosingClass = member.enclosingElement3;
           if (enclosingClass is ClassElement && filter(enclosingClass)) {
-            reporter.reportErrorForNode(
+            reporter.reportErrorForToken(
               CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
-              classNameNode,
+              classNameToken,
               [memberName, enclosingClass.name],
             );
           }
@@ -705,9 +711,9 @@ class _ClassVerifier {
     }
   }
 
-  void _checkIllegalEnumValuesDeclaration(SimpleIdentifier name) {
-    if (implementsDartCoreEnum && name.name == 'values') {
-      reporter.reportErrorForNode(
+  void _checkIllegalEnumValuesDeclaration(Token name) {
+    if (implementsDartCoreEnum && name.lexeme == 'values') {
+      reporter.reportErrorForToken(
         CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION,
         name,
       );
@@ -726,10 +732,10 @@ class _ClassVerifier {
       );
       var inherited = getter ?? setter;
       if (inherited != null) {
-        reporter.reportErrorForNode(
+        reporter.reportErrorForToken(
           CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE,
-          classNameNode,
-          [inherited.enclosingElement2.name!],
+          classNameToken,
+          [inherited.enclosingElement3.name!],
         );
       }
     }
@@ -780,7 +786,7 @@ class _ClassVerifier {
 
     for (var member in members) {
       if (member is MethodDeclaration) {
-        var displayName = member.name.name;
+        var displayName = member.name2.lexeme;
         var name2 = displayName;
         if (member.isSetter) {
           name2 += '=';
@@ -788,10 +794,10 @@ class _ClassVerifier {
         if (checkMemberNameCombo(member, name2, displayName)) return true;
       } else if (member is FieldDeclaration) {
         for (var variableDeclaration in member.fields.variables) {
-          var name2 = variableDeclaration.name.name;
-          if (checkMemberNameCombo(member, name2, name2)) return true;
+          var name = variableDeclaration.name2.lexeme;
+          if (checkMemberNameCombo(member, name, name)) return true;
           if (!variableDeclaration.isFinal) {
-            if (checkMemberNameCombo(member, '$name2=', name2)) return true;
+            if (checkMemberNameCombo(member, '$name=', name)) return true;
           }
         }
       }
@@ -799,35 +805,35 @@ class _ClassVerifier {
     return false;
   }
 
-  void _reportInconsistentInheritance(AstNode node, Conflict conflict) {
+  void _reportInconsistentInheritance(Token token, Conflict conflict) {
     var name = conflict.name;
 
     if (conflict is GetterMethodConflict) {
       // Members that participate in inheritance are always enclosed in named
       // elements so it is safe to assume that
-      // `conflict.getter.enclosingElement2.name` and
-      // `conflict.method.enclosingElement2.name` are both non-`null`.
-      reporter.reportErrorForNode(
+      // `conflict.getter.enclosingElement3.name` and
+      // `conflict.method.enclosingElement3.name` are both non-`null`.
+      reporter.reportErrorForToken(
         CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
-        node,
+        token,
         [
           name.name,
-          conflict.getter.enclosingElement2.name!,
-          conflict.method.enclosingElement2.name!
+          conflict.getter.enclosingElement3.name!,
+          conflict.method.enclosingElement3.name!
         ],
       );
     } else if (conflict is CandidatesConflict) {
       var candidatesStr = conflict.candidates.map((candidate) {
-        var className = candidate.enclosingElement2.name;
+        var className = candidate.enclosingElement3.name;
         var typeStr = candidate.type.getDisplayString(
           withNullability: _isNonNullableByDefault,
         );
         return '$className.${name.name} ($typeStr)';
       }).join(', ');
 
-      reporter.reportErrorForNode(
+      reporter.reportErrorForToken(
         CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
-        node,
+        token,
         [name.name, candidatesStr],
       );
     } else {
@@ -840,10 +846,7 @@ class _ClassVerifier {
       return;
     }
 
-    classNameNode.setProperty(
-      InheritanceOverrideVerifier._missingOverridesKey,
-      elements,
-    );
+    _missingOverrides[classNameToken] = elements;
 
     var descriptions = <String>[];
     for (ExecutableElement element in elements) {
@@ -857,7 +860,7 @@ class _ClassVerifier {
       }
 
       var elementName = element.displayName;
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement3;
       var enclosingName = enclosingElement.displayName;
       var description = "$prefix$enclosingName.$elementName";
 
@@ -866,34 +869,34 @@ class _ClassVerifier {
     descriptions.sort();
 
     if (descriptions.length == 1) {
-      reporter.reportErrorForNode(
+      reporter.reportErrorForToken(
         CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-        classNameNode,
+        classNameToken,
         [descriptions[0]],
       );
     } else if (descriptions.length == 2) {
-      reporter.reportErrorForNode(
+      reporter.reportErrorForToken(
         CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
-        classNameNode,
+        classNameToken,
         [descriptions[0], descriptions[1]],
       );
     } else if (descriptions.length == 3) {
-      reporter.reportErrorForNode(
+      reporter.reportErrorForToken(
         CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
-        classNameNode,
+        classNameToken,
         [descriptions[0], descriptions[1], descriptions[2]],
       );
     } else if (descriptions.length == 4) {
-      reporter.reportErrorForNode(
+      reporter.reportErrorForToken(
         CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
-        classNameNode,
+        classNameToken,
         [descriptions[0], descriptions[1], descriptions[2], descriptions[3]],
       );
     } else {
-      reporter.reportErrorForNode(
+      reporter.reportErrorForToken(
         CompileTimeErrorCode
             .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
-        classNameNode,
+        classNameToken,
         [
           descriptions[0],
           descriptions[1],
@@ -911,9 +914,9 @@ class _ClassVerifier {
       var inferenceError = element.typeInferenceError;
       if (inferenceError?.kind ==
           TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature) {
-        reporter.reportErrorForNode(
+        reporter.reportErrorForToken(
           CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE,
-          node.name,
+          node.name2,
           [
             classElement.name,
             inferenceError!.arguments[0],
@@ -985,21 +988,21 @@ class _ClassVerifier {
     final namesForError = notOverriddenNames.toList();
 
     if (namesForError.length == 1) {
-      reporter.reportErrorForNode(
+      reporter.reportErrorForToken(
         HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE,
-        classNameNode,
+        classNameToken,
         namesForError,
       );
     } else if (namesForError.length == 2) {
-      reporter.reportErrorForNode(
+      reporter.reportErrorForToken(
         HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO,
-        classNameNode,
+        classNameToken,
         namesForError,
       );
     } else {
-      reporter.reportErrorForNode(
+      reporter.reportErrorForToken(
         HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS,
-        classNameNode,
+        classNameToken,
         [
           namesForError[0],
           namesForError[1],

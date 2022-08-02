@@ -26,6 +26,15 @@ NavigationCollector computeDartNavigation(
     unit.accept(visitor);
   } else {
     var node = _getNodeForRange(unit, offset, length);
+
+    {
+      final parent = node?.parent;
+      // ignore: deprecated_member_use
+      if (parent is ConstructorDeclaration && parent.name == node) {
+        node = parent;
+      }
+    }
+
     if (node != null) {
       node = _getNavigationTargetNode(node);
     }
@@ -146,7 +155,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitAnnotation(Annotation node) {
     var element = node.element;
     if (element is ConstructorElement && element.isSynthetic) {
-      element = element.enclosingElement2;
+      element = element.enclosingElement3;
     }
     var name = node.name;
     if (name is PrefixedIdentifier) {
@@ -271,12 +280,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     // For a default constructor, override the class name to be the declaration
     // itself rather than linking to the class.
-    var name = node.name;
-    if (name == null) {
+    var nameToken = node.name2;
+    if (nameToken == null) {
       computer._addRegionForNode(node.returnType, node.declaredElement);
     } else {
       node.returnType.accept(this);
-      name.accept(this);
+      computer._addRegionForToken(nameToken, node.declaredElement);
     }
     node.parameters.accept(this);
     node.initializers.accept(this);
@@ -330,7 +339,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    computer._addRegionForNode(node.name, node.constructorElement);
+    computer._addRegionForToken(node.name2, node.constructorElement);
 
     var arguments = node.arguments;
     if (arguments != null) {
@@ -358,7 +367,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     final element = node.declaredElement;
     if (element is FieldFormalParameterElementImpl) {
       computer._addRegionForToken(node.thisKeyword, element.field);
-      computer._addRegionForNode(node.identifier, element.field);
+      computer._addRegionForToken(node.name, element.field);
     }
 
     node.type?.accept(this);
@@ -435,7 +444,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       RedirectingConstructorInvocation node) {
     Element? element = node.staticElement;
     if (element != null && element.isSynthetic) {
-      element = element.enclosingElement2;
+      element = element.enclosingElement3;
     }
     // add region
     computer._addRegionForToken(node.thisKeyword, element);
@@ -454,7 +463,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     Element? element = node.staticElement;
     if (element != null && element.isSynthetic) {
-      element = element.enclosingElement2;
+      element = element.enclosingElement3;
     }
     // add region
     computer._addRegionForToken(node.superKeyword, element);
@@ -469,7 +478,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     if (element is SuperFormalParameterElementImpl) {
       var superParameter = element.superConstructorParameter;
       computer._addRegionForToken(node.superKeyword, superParameter);
-      computer._addRegionForNode(node.identifier, superParameter);
+      computer._addRegionForToken(node.name, superParameter);
     }
 
     node.type?.accept(this);

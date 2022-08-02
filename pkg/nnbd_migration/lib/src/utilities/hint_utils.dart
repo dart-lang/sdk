@@ -249,7 +249,7 @@ extension FormalParameterExtensions on FormalParameter {
       } else if (parameter.returnType != null) {
         return parameter.returnType!.beginToken;
       } else {
-        return parameter.identifier.token;
+        return parameter.name;
       }
     } else if (parameter is SimpleFormalParameter) {
       if (parameter.covariantKeyword != null) {
@@ -259,7 +259,7 @@ extension FormalParameterExtensions on FormalParameter {
       } else if (parameter.type != null) {
         return parameter.type!.beginToken;
       } else {
-        return parameter.identifier!.token;
+        return parameter.name;
       }
     }
     return null;

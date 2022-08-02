@@ -68,7 +68,7 @@ abstract class DartEditBuilder implements EditBuilder {
       {ArgumentList? argumentList,
       void Function()? bodyWriter,
       String? classNameGroupName,
-      SimpleIdentifier? constructorName,
+      String? constructorName,
       String? constructorNameGroupName,
       List<String>? fieldNames,
       void Function()? initializerWriter,

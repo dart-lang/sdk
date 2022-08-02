@@ -968,9 +968,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     data.recordPercentage(
         'Methods with type parameters', node.typeParameters != null);
     var element = node.declaredElement!;
-    if (!element.isStatic && element.enclosingElement2 is ClassElement) {
+    if (!element.isStatic && element.enclosingElement3 is ClassElement) {
       var overriddenMembers = inheritanceManager.getOverridden2(
-          element.enclosingElement2 as ClassElement,
+          element.enclosingElement3 as ClassElement,
           Name(element.librarySource.uri, element.name));
       if (overriddenMembers != null) {
         // Consider limiting this to the most immediate override. If the
@@ -993,7 +993,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (node.target is SuperExpression) {
       var enclosingMethod = node.thisOrAncestorOfType<MethodDeclaration>();
       if (enclosingMethod != null) {
-        if (enclosingMethod.name.name == node.methodName.name) {
+        if (enclosingMethod.name2.lexeme == node.methodName.name) {
           data.recordTypeMatch('super invocation member', 'same');
         } else {
           data.recordTypeMatch('super invocation member', 'different');
@@ -1120,7 +1120,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (node.target is SuperExpression) {
       var enclosingMethod = node.thisOrAncestorOfType<MethodDeclaration>();
       if (enclosingMethod != null) {
-        if (enclosingMethod.name.name == node.propertyName.name) {
+        if (enclosingMethod.name2.lexeme == node.propertyName.name) {
           data.recordTypeMatch('super property access member', 'same');
         } else {
           data.recordTypeMatch('super property access member', 'different');
@@ -1406,7 +1406,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     Element? currentElement = element;
     while (currentElement != enclosingLibrary) {
       depth++;
-      currentElement = currentElement?.enclosingElement2;
+      currentElement = currentElement?.enclosingElement3;
     }
     return depth;
   }
@@ -1688,7 +1688,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var reference = _leftMostIdentifier(node);
     var element = reference?.staticElement;
     if (element is ParameterElement) {
-      var definingElement = element.enclosingElement2!;
+      var definingElement = element.enclosingElement3!;
       var depth = _parameterReferenceDepth(node, definingElement);
       _recordDistance('function depth of referenced parameter', depth);
     } else if (element is LocalVariableElement) {

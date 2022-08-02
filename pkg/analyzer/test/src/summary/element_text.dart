@@ -52,6 +52,7 @@ void checkElementText(
   bool withDisplayName = false,
   bool withExportScope = false,
   bool withNonSynthetic = false,
+  bool withPropertyLinking = false,
   bool withSyntheticDartCoreImport = false,
 }) {
   var writer = _ElementWriter(
@@ -60,6 +61,7 @@ void checkElementText(
     withDisplayName: withDisplayName,
     withExportScope: withExportScope,
     withNonSynthetic: withNonSynthetic,
+    withPropertyLinking: withPropertyLinking,
     withSyntheticDartCoreImport: withSyntheticDartCoreImport,
   );
   writer.writeLibraryElement(library);
@@ -126,8 +128,10 @@ class _ElementWriter {
   final bool withDisplayName;
   final bool withExportScope;
   final bool withNonSynthetic;
+  final bool withPropertyLinking;
   final bool withSyntheticDartCoreImport;
   final StringBuffer buffer = StringBuffer();
+  final _IdMap _idMap = _IdMap();
 
   String indent = '';
 
@@ -137,6 +141,7 @@ class _ElementWriter {
     required this.withDisplayName,
     required this.withExportScope,
     required this.withNonSynthetic,
+    required this.withPropertyLinking,
     required this.withSyntheticDartCoreImport,
   });
 
@@ -194,8 +199,8 @@ class _ElementWriter {
 
     expect(accessor.variable, same(property));
 
-    var propertyEnclosing = property.enclosingElement2;
-    expect(accessor.enclosingElement2, same(propertyEnclosing));
+    var propertyEnclosing = property.enclosingElement3;
+    expect(accessor.enclosingElement3, same(propertyEnclosing));
 
     if (propertyEnclosing is CompilationUnitElement) {
       expect(propertyEnclosing.accessors, contains(accessor));
@@ -373,7 +378,7 @@ class _ElementWriter {
       var classReference = reference.parent!.parent!;
       // We need this `if` for duplicate declarations.
       // The reference might be filled by another declaration.
-      if (identical(classReference.element, e.enclosingElement2)) {
+      if (identical(classReference.element, e.enclosingElement3)) {
         expect(reference.element, same(e));
       }
     }
@@ -410,7 +415,9 @@ class _ElementWriter {
 
       var superConstructor = e.superConstructor;
       if (superConstructor != null) {
-        if (!superConstructor.enclosingElement2.isDartCoreObject) {
+        final enclosingElement = superConstructor.enclosingElement3;
+        if (enclosingElement is ClassElement &&
+            !enclosingElement.isDartCoreObject) {
           _writeElementReference('superConstructor', superConstructor);
         }
       }
@@ -428,7 +435,7 @@ class _ElementWriter {
 
     if (e.isSynthetic) {
       expect(e.nameOffset, -1);
-      expect(e.nonSynthetic, same(e.enclosingElement2));
+      expect(e.nonSynthetic, same(e.enclosingElement3));
     } else {
       if (!e.isTempAugmentation) {
         expect(e.nameOffset, isPositive);
@@ -678,9 +685,9 @@ class _ElementWriter {
       _writeNonSyntheticElement(e);
     });
 
-    if (e.isSynthetic && e.enclosingElement2 is EnumElementImpl) {
+    if (e.isSynthetic && e.enclosingElement3 is EnumElementImpl) {
       expect(e.name, 'toString');
-      expect(e.nonSynthetic, same(e.enclosingElement2));
+      expect(e.nonSynthetic, same(e.enclosingElement3));
     } else {
       _assertNonSyntheticElementSelf(e);
     }
@@ -785,7 +792,7 @@ class _ElementWriter {
     PropertyInducingElement variable = e.variable;
     expect(variable, isNotNull);
 
-    var variableEnclosing = variable.enclosingElement2;
+    var variableEnclosing = variable.enclosingElement3;
     if (variableEnclosing is CompilationUnitElement) {
       expect(variableEnclosing.topLevelVariables, contains(variable));
     } else if (variableEnclosing is ClassElement) {
@@ -829,6 +836,13 @@ class _ElementWriter {
       _writeBodyModifiers(e);
     });
 
+    void writeLinking() {
+      if (withPropertyLinking) {
+        _writelnWithIndent('id: ${_idMap[e]}');
+        _writelnWithIndent('variable: ${_idMap[e.variable]}');
+      }
+    }
+
     _withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
@@ -838,6 +852,7 @@ class _ElementWriter {
       _writeParameterElements(e.parameters);
       _writeType('returnType', e.returnType);
       _writeNonSyntheticElement(e);
+      writeLinking();
     });
   }
 
@@ -877,6 +892,22 @@ class _ElementWriter {
       _writeName(e);
     });
 
+    void writeLinking() {
+      if (withPropertyLinking) {
+        _writelnWithIndent('id: ${_idMap[e]}');
+
+        final getter = e.getter;
+        if (getter != null) {
+          _writelnWithIndent('getter: ${_idMap[getter]}');
+        }
+
+        final setter = e.setter;
+        if (setter != null) {
+          _writelnWithIndent('setter: ${_idMap[setter]}');
+        }
+      }
+    }
+
     _withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
@@ -885,6 +916,7 @@ class _ElementWriter {
       _writeType('type', e.type);
       _writeConstantInitializer(e);
       _writeNonSyntheticElement(e);
+      writeLinking();
     });
   }
 
@@ -1009,6 +1041,26 @@ class _ElementWriter {
       _writePropertyAccessorElement,
     );
     _writeElements('functions', e.functions, _writeFunctionElement);
+  }
+}
+
+class _IdMap {
+  final Map<Element, String> fieldMap = Map.identity();
+  final Map<Element, String> getterMap = Map.identity();
+  final Map<Element, String> setterMap = Map.identity();
+
+  String operator [](Element element) {
+    if (element is FieldElement) {
+      return fieldMap[element] ??= 'field_${fieldMap.length}';
+    } else if (element is TopLevelVariableElement) {
+      return fieldMap[element] ??= 'variable_${fieldMap.length}';
+    } else if (element is PropertyAccessorElement && element.isGetter) {
+      return getterMap[element] ??= 'getter_${getterMap.length}';
+    } else if (element is PropertyAccessorElement && element.isSetter) {
+      return setterMap[element] ??= 'setter_${setterMap.length}';
+    } else {
+      return '???';
+    }
   }
 }
 

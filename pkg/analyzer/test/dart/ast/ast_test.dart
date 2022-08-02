@@ -235,7 +235,7 @@ class FieldFormalParameterTest {
   void test_endToken_noParameters() {
     FieldFormalParameter parameter =
         AstTestFactory.fieldFormalParameter2('field');
-    expect(parameter.endToken, parameter.identifier.endToken);
+    expect(parameter.endToken, parameter.name);
   }
 
   void test_endToken_parameters() {
@@ -1493,6 +1493,7 @@ class SimpleIdentifierTest extends _AstTest {
     expect(identifier.inGetterContext(), isFalse);
   }
 
+  @deprecated
   void test_inGetterContext_fieldFormalParameter() {
     FieldFormalParameter parameter =
         AstTestFactory.fieldFormalParameter2('test');
@@ -1506,12 +1507,6 @@ class SimpleIdentifierTest extends _AstTest {
     Statement body = AstTestFactory.block();
     AstTestFactory.forStatement(
         AstTestFactory.forEachPartsWithIdentifier(identifier, iterator), body);
-    expect(identifier.inGetterContext(), isFalse);
-  }
-
-  void test_inGetterContext_variableDeclaration() {
-    VariableDeclaration variable = AstTestFactory.variableDeclaration('test');
-    SimpleIdentifier identifier = variable.name;
     expect(identifier.inGetterContext(), isFalse);
   }
 
@@ -2110,7 +2105,7 @@ class SuperFormalParameterTest {
   void test_endToken_noParameters() {
     SuperFormalParameter parameter =
         AstTestFactory.superFormalParameter2('field');
-    expect(parameter.endToken, parameter.identifier.endToken);
+    expect(parameter.endToken, parameter.name);
   }
 
   void test_endToken_parameters() {

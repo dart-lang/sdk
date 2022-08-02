@@ -73,6 +73,6 @@ class ElementReferencesComputer {
     if (element is ConstructorElement) {
       return false;
     }
-    return element.enclosingElement2 is ClassElement;
+    return element.enclosingElement3 is ClassElement;
   }
 }

@@ -104,7 +104,7 @@ class CallHierarchyItem {
         codeRange = _codeRangeForElement(element),
         file = element.source!.fullName,
         kind = CallHierarchyKind.forElement(element) {
-    final enclosingElement = element.enclosingElement2;
+    final enclosingElement = element.enclosingElement3;
     final container =
         enclosingElement != null ? _getContainer(enclosingElement) : null;
     containerName = container != null ? _getDisplayName(container) : null;
@@ -330,7 +330,7 @@ class DartCallHierarchyComputer {
         }
       }
     } else if (node is ConstructorDeclaration) {
-      final name = node.name;
+      final name = node.name2;
       if (name != null && offset < name.offset) {
         return null;
       }

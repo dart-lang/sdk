@@ -344,10 +344,7 @@ CompilationUnit
         keyword: var
         variables
           VariableDeclaration
-            name: SimpleIdentifier
-              token: a
-              staticElement: self::@variable::a
-              staticType: null
+            name: a
             equals: =
             initializer: InstanceCreationExpression
               constructorName: ConstructorName
@@ -449,10 +446,7 @@ CompilationUnit
         keyword: var
         variables
           VariableDeclaration
-            name: SimpleIdentifier
-              token: a
-              staticElement: self::@variable::a
-              staticType: null
+            name: a
             equals: =
             initializer: InstanceCreationExpression
               constructorName: ConstructorName
@@ -676,10 +670,7 @@ CompilationUnit
         keyword: var
         variables
           VariableDeclaration
-            name: SimpleIdentifier
-              token: a
-              staticElement: self::@variable::a
-              staticType: null
+            name: a
             equals: =
             initializer: InstanceCreationExpression
               constructorName: ConstructorName

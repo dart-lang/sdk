@@ -26,7 +26,7 @@ Set<Object> _computeExplicitlyTypedParameterSet(
   int unnamedParameterIndex = 0;
   for (var formalParameter in parameters) {
     var key = formalParameter.isNamed
-        ? formalParameter.identifier?.name ?? ''
+        ? formalParameter.name?.lexeme ?? ''
         : unnamedParameterIndex++;
     if (formalParameter.isExplicitlyTyped) {
       result.add(key);

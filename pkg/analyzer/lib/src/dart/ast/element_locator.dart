@@ -69,7 +69,22 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitFormalParameter(FormalParameter node) {
+    return node.declaredElement;
+  }
+
+  @override
   Element? visitFunctionDeclaration(FunctionDeclaration node) {
+    return node.declaredElement;
+  }
+
+  @override
+  Element? visitFunctionTypeAlias(FunctionTypeAlias node) {
+    return node.declaredElement;
+  }
+
+  @override
+  Element? visitGenericTypeAlias(GenericTypeAlias node) {
     return node.declaredElement;
   }
 
@@ -86,14 +101,16 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
       // Constructor Elements
       var returnType = parent.returnType;
       if (identical(returnType, node)) {
-        var name = parent.name;
+        var name = parent.name2;
         if (name != null) {
-          return name.staticElement;
+          return parent.declaredElement;
         }
         var element = node.staticElement;
         if (element is ClassElement) {
           return element.unnamedConstructor;
         }
+      } else if (parent.name2 == node.endToken) {
+        return parent.declaredElement;
       }
     } else if (parent is LibraryIdentifier) {
       var grandParent = parent.parent;
@@ -173,6 +190,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
       }
     }
     return null;
+  }
+
+  @override
+  Element? visitTypeParameter(TypeParameter node) {
+    return node.declaredElement;
   }
 
   @override

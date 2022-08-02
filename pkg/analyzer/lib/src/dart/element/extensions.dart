@@ -16,21 +16,21 @@ extension ElementAnnotationExtensions on ElementAnnotation {
   /// Return the target kinds defined for this [ElementAnnotation].
   Set<TargetKind> get targetKinds {
     final element = this.element;
-    ClassElement? classElement;
+    InterfaceElement? interfaceElement;
     if (element is PropertyAccessorElement) {
       if (element.isGetter) {
         var type = element.returnType;
         if (type is InterfaceType) {
-          classElement = type.element;
+          interfaceElement = type.element;
         }
       }
     } else if (element is ConstructorElement) {
-      classElement = element.enclosingElement2;
+      interfaceElement = element.enclosingElement3;
     }
-    if (classElement == null) {
+    if (interfaceElement == null) {
       return const <TargetKind>{};
     }
-    for (var annotation in classElement.metadata) {
+    for (var annotation in interfaceElement.metadata) {
       if (annotation.isTarget) {
         var value = annotation.computeConstantValue()!;
         var kinds = <TargetKind>{};
@@ -68,21 +68,21 @@ extension ElementExtension on Element {
       return true;
     }
 
-    var ancestor = enclosingElement2;
+    var ancestor = enclosingElement3;
     if (ancestor is ClassElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement2;
+      ancestor = ancestor.enclosingElement3;
     } else if (ancestor is ExtensionElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement2;
+      ancestor = ancestor.enclosingElement3;
     }
 
     return ancestor is CompilationUnitElement &&
-        ancestor.enclosingElement2.hasDoNotStore;
+        ancestor.enclosingElement3.hasDoNotStore;
   }
 
   /// Return `true` if this element is an instance member of a class or mixin.
@@ -94,7 +94,7 @@ extension ElementExtension on Element {
   /// [PropertyAccessorElement]s.
   bool get isInstanceMember {
     var this_ = this;
-    var enclosing = this_.enclosingElement2;
+    var enclosing = this_.enclosingElement3;
     if (enclosing is ClassElement) {
       return this_ is MethodElement && !this_.isStatic ||
           this_ is PropertyAccessorElement && !this_.isStatic;
@@ -105,7 +105,7 @@ extension ElementExtension on Element {
 
 extension ExecutableElementExtension on ExecutableElement {
   bool get isEnumConstructor {
-    return this is ConstructorElement && enclosingElement2 is EnumElementImpl;
+    return this is ConstructorElement && enclosingElement3 is EnumElementImpl;
   }
 }
 

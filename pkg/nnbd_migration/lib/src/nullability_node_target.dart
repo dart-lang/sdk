@@ -15,7 +15,7 @@ String _computeElementName(Element? element) {
     } else {
       parts.add(name);
     }
-    element = element.enclosingElement2;
+    element = element.enclosingElement3;
   }
   if (parts.isEmpty) {
     assert(false, 'Could not compute a name for $element');

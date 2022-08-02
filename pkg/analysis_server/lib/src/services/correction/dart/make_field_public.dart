@@ -28,7 +28,9 @@ class MakeFieldPublic extends CorrectionProducer {
     var getterName = node.name;
     _fieldName = '_$getterName';
     var parent = node.parent;
-    if (parent is MethodDeclaration && parent.name == node && parent.isGetter) {
+    if (parent is MethodDeclaration &&
+        parent.name2 == token &&
+        parent.isGetter) {
       var container = parent.parent;
       if (container is ClassOrMixinDeclaration) {
         var members = container.members;
@@ -36,12 +38,12 @@ class MakeFieldPublic extends CorrectionProducer {
         VariableDeclaration? field;
         for (var member in members) {
           if (member is MethodDeclaration &&
-              member.name.name == getterName &&
+              member.name2.lexeme == getterName &&
               member.isSetter) {
             setter = member;
           } else if (member is FieldDeclaration) {
             for (var variable in member.fields.variables) {
-              if (variable.name.name == _fieldName) {
+              if (variable.name2.lexeme == _fieldName) {
                 field = variable;
               }
             }
@@ -51,7 +53,7 @@ class MakeFieldPublic extends CorrectionProducer {
           return;
         }
         await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleReplacement(range.node(field!.name), getterName);
+          builder.addSimpleReplacement(range.token(field!.name2), getterName);
           builder.removeMember(members, parent);
           builder.removeMember(members, setter!);
         });

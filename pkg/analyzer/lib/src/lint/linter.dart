@@ -338,8 +338,10 @@ class LinterContextImpl implements LinterContext {
   bool canBeConstConstructor(covariant ConstructorDeclarationImpl node) {
     var element = node.declaredElement!;
 
-    ClassElement classElement = element.enclosingElement2;
-    if (classElement.hasNonFinalField) return false;
+    final classElement = element.enclosingElement3;
+    if (classElement is ClassElement && classElement.hasNonFinalField) {
+      return false;
+    }
 
     var oldKeyword = node.constKeyword;
     try {

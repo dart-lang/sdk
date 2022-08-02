@@ -241,7 +241,7 @@ class ConvertToSuperParameters extends CorrectionProducer {
     }
 
     var parameterNode = parameter.parameter;
-    var identifier = parameterNode.identifier;
+    var identifier = parameterNode.name;
     if (identifier == null) {
       // This condition should never occur, but the test is here to promote the
       // type.
@@ -272,7 +272,7 @@ class ConvertToSuperParameters extends CorrectionProducer {
         var superDefault = superParameter.computeConstantValue();
         var thisDefault = thisParameter.computeConstantValue();
         if (superDefault != null && superDefault == thisDefault) {
-          return range.endEnd(parameter.identifier!, defaultValue);
+          return range.endEnd(parameter.name!, defaultValue);
         }
       }
     }
@@ -410,14 +410,13 @@ class ConvertToSuperParameters extends CorrectionProducer {
       var typeAnnotation = parameter.type;
       if (typeAnnotation != null) {
         return _TypeData(
-            primaryRange:
-                range.startStart(typeAnnotation, parameter.identifier!));
+            primaryRange: range.startStart(typeAnnotation, parameter.name!));
       }
     } else if (parameter is FunctionTypedFormalParameter) {
       var returnType = parameter.returnType;
       return _TypeData(
           primaryRange: returnType != null
-              ? range.startStart(returnType, parameter.identifier)
+              ? range.startStart(returnType, parameter.name)
               : null,
           parameterRange: range.node(parameter.parameters));
     }
@@ -452,7 +451,7 @@ class _ParameterData {
   final _TypeData? typeToDelete;
 
   /// The name.
-  final Identifier name;
+  final Token name;
 
   /// Whether to add a default initializer with `null` value or not.
   final bool nullInitializer;

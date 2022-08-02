@@ -1,3 +1,7 @@
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE.md file.
+
 // @dart = 2.9
 // ignore_for_file: empty_catches
 
@@ -10,6 +14,7 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/macros/compiler/request_channel.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:frontend_server/frontend_server.dart';
+import 'package:frontend_server/starter.dart';
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;

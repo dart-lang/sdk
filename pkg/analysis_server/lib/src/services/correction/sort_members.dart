@@ -112,19 +112,14 @@ class MemberSorter {
       String name;
       if (member is ConstructorDeclaration) {
         kind = _MemberKind.CLASS_CONSTRUCTOR;
-        var nameNode = member.name;
-        if (nameNode == null) {
-          name = '';
-        } else {
-          name = nameNode.name;
-        }
+        name = member.name2?.lexeme ?? '';
       } else if (member is FieldDeclaration) {
         var fieldDeclaration = member;
         List<VariableDeclaration> fields = fieldDeclaration.fields.variables;
         if (fields.isNotEmpty) {
           kind = _MemberKind.CLASS_FIELD;
           isStatic = fieldDeclaration.isStatic;
-          name = fields[0].name.name;
+          name = fields[0].name2.lexeme;
         } else {
           // Don't sort members if there are errors in the code.
           return;
@@ -132,7 +127,7 @@ class MemberSorter {
       } else if (member is MethodDeclaration) {
         var method = member;
         isStatic = method.isStatic;
-        name = method.name.name;
+        name = method.name2.lexeme;
         if (method.isGetter) {
           kind = _MemberKind.CLASS_ACCESSOR;
           name += ' getter';
@@ -172,23 +167,22 @@ class MemberSorter {
       String name;
       if (member is ClassOrMixinDeclaration) {
         kind = _MemberKind.UNIT_CLASS;
-        name = member.name.name;
+        name = member.name2.lexeme;
       } else if (member is ClassTypeAlias) {
         kind = _MemberKind.UNIT_CLASS;
-        name = member.name.name;
+        name = member.name2.lexeme;
       } else if (member is EnumDeclaration) {
         kind = _MemberKind.UNIT_CLASS;
-        name = member.name.name;
+        name = member.name2.lexeme;
       } else if (member is ExtensionDeclaration) {
         kind = _MemberKind.UNIT_EXTENSION;
-        name = member.name?.name ?? '';
+        name = member.name2?.lexeme ?? '';
       } else if (member is FunctionDeclaration) {
-        var function = member;
-        name = function.name.name;
-        if (function.isGetter) {
+        name = member.name2.lexeme;
+        if (member.isGetter) {
           kind = _MemberKind.UNIT_ACCESSOR;
           name += ' getter';
-        } else if (function.isSetter) {
+        } else if (member.isSetter) {
           kind = _MemberKind.UNIT_ACCESSOR;
           name += ' setter';
         } else {
@@ -200,10 +194,10 @@ class MemberSorter {
         }
       } else if (member is FunctionTypeAlias) {
         kind = _MemberKind.UNIT_FUNCTION_TYPE;
-        name = member.name.name;
+        name = member.name2.lexeme;
       } else if (member is GenericTypeAlias) {
         kind = _MemberKind.UNIT_GENERIC_TYPE_ALIAS;
-        name = member.name.name;
+        name = member.name2.lexeme;
       } else if (member is TopLevelVariableDeclaration) {
         var variableDeclaration = member;
         List<VariableDeclaration> variables =
@@ -214,7 +208,7 @@ class MemberSorter {
           } else {
             kind = _MemberKind.UNIT_VARIABLE;
           }
-          name = variables[0].name.name;
+          name = variables[0].name2.lexeme;
         } else {
           // Don't sort members if there are errors in the code.
           return;

@@ -225,7 +225,7 @@ class AnalyzerConverter {
         // so should it return isEnumConstant = true?
         // Or should we return ElementKind.ENUM_CONSTANT here
         // in either or both of these cases?
-        element.type.element == element.enclosingElement2) {
+        element.type.element == element.enclosingElement3) {
       return plugin.ElementKind.ENUM_CONSTANT;
     }
     return convertElementKind(element.kind);
@@ -324,15 +324,15 @@ class AnalyzerConverter {
     if (currentElement is analyzer.CompilationUnitElement) {
       return currentElement;
     }
-    if (currentElement.enclosingElement2 is analyzer.LibraryElement) {
-      currentElement = currentElement.enclosingElement2;
+    if (currentElement.enclosingElement3 is analyzer.LibraryElement) {
+      currentElement = currentElement.enclosingElement3;
     }
     if (currentElement is analyzer.LibraryElement) {
       return currentElement.definingCompilationUnit;
     }
     for (;
         currentElement != null;
-        currentElement = currentElement.enclosingElement2) {
+        currentElement = currentElement.enclosingElement3) {
       if (currentElement is analyzer.CompilationUnitElement) {
         return currentElement;
       }

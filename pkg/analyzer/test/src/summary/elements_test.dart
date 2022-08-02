@@ -4282,6 +4282,101 @@ library
 ''');
   }
 
+  test_class_field_duplicate_getter() async {
+    var library = await buildLibrary('''
+class C {
+  int foo = 0;
+  int get foo => 0;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          foo @16
+            type: int
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+          synthetic foo @-1
+            type: int
+            id: field_1
+            getter: getter_1
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_0
+          synthetic set foo @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+          get foo @35
+            returnType: int
+            id: getter_1
+            variable: field_1
+''',
+        withPropertyLinking: true);
+  }
+
+  test_class_field_duplicate_setter() async {
+    var library = await buildLibrary('''
+class C {
+  int foo = 0;
+  set foo(int _) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          foo @16
+            type: int
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+          synthetic foo @-1
+            type: int
+            id: field_1
+            setter: setter_1
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_0
+          synthetic set foo @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+          set foo @31
+            parameters
+              requiredPositional _ @39
+                type: int
+            returnType: void
+            id: setter_1
+            variable: field_1
+''',
+        withPropertyLinking: true);
+  }
+
   test_class_field_external() async {
     var library = await buildLibrary('''
 abstract class C {
@@ -4389,10 +4484,7 @@ library
                                   staticElement: dart:core::@class::double
                                   staticType: null
                                 type: double
-                              identifier: SimpleIdentifier
-                                token: a @78
-                                staticElement: a@78
-                                staticType: null
+                              name: a @78
                               declaredElement: a@78
                               declaredElementType: double
                             rightParenthesis: ) @79
@@ -4451,7 +4543,9 @@ class A {
   set foo(int newValue) {}
 }
 ''');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 library
   definingUnit
     classes
@@ -4459,6 +4553,9 @@ library
         fields
           final foo @22
             type: int
+            id: field_0
+            getter: getter_0
+            setter: setter_0
         constructors
           @29
             parameters
@@ -4468,12 +4565,17 @@ library
         accessors
           synthetic get foo @-1
             returnType: int
+            id: getter_0
+            variable: field_0
           set foo @48
             parameters
               requiredPositional newValue @56
                 type: int
             returnType: void
-''');
+            id: setter_0
+            variable: field_0
+''',
+        withPropertyLinking: true);
   }
 
   test_class_field_formal_param_inferred_type_implicit() async {
@@ -22159,14 +22261,14 @@ typedef void F<T>(int a);
 
     var T = F.typeParameters[0];
     expect(T.name, 'T');
-    expect(T.enclosingElement2, same(F));
+    expect(T.enclosingElement3, same(F));
 
     var function = F.aliasedElement as GenericFunctionTypeElement;
-    expect(function.enclosingElement2, same(F));
+    expect(function.enclosingElement3, same(F));
 
     var a = function.parameters[0];
     expect(a.name, 'a');
-    expect(a.enclosingElement2, same(function));
+    expect(a.enclosingElement3, same(function));
   }
 
   test_functionTypeAlias_type_element() async {
@@ -22789,10 +22891,7 @@ library
                           staticElement: dart:core::@class::String
                           staticType: null
                         type: String
-                      identifier: SimpleIdentifier
-                        token: a @52
-                        staticElement: a@52
-                        staticType: null
+                      name: a @52
                       declaredElement: a@52
                       declaredElementType: String
                     rightParenthesis: ) @53
@@ -22864,10 +22963,7 @@ library
                           staticElement: dart:core::@class::String
                           staticType: null
                         type: String
-                      identifier: SimpleIdentifier
-                        token: a @52
-                        staticElement: a@52
-                        staticType: null
+                      name: a @52
                       declaredElement: a@52
                       declaredElementType: String
                     rightParenthesis: ) @53
@@ -22950,10 +23046,7 @@ library
                                 staticType: null
                               question: ? @61
                               type: int?
-                            identifier: SimpleIdentifier
-                              token: a @63
-                              staticElement: a@63
-                              staticType: null
+                            name: a @63
                             declaredElement: a@63
                             declaredElementType: int?
                           declaredElement: a@63
@@ -23035,10 +23128,7 @@ library
                                 staticType: null
                               question: ? @61
                               type: int?
-                            identifier: SimpleIdentifier
-                              token: a @63
-                              staticElement: a@63
-                              staticType: null
+                            name: a @63
                             declaredElement: a@63
                             declaredElementType: int?
                           declaredElement: a@63
@@ -23120,10 +23210,7 @@ library
                                 staticElement: dart:core::@class::int
                                 staticType: null
                               type: int
-                            identifier: SimpleIdentifier
-                              token: a @71
-                              staticElement: a@71
-                              staticType: null
+                            name: a @71
                             declaredElement: a@71
                             declaredElementType: int
                           declaredElement: a@71
@@ -23202,10 +23289,7 @@ library
                               staticElement: dart:core::@class::int
                               staticType: null
                             type: int
-                          identifier: SimpleIdentifier
-                            token: a @61
-                            staticElement: a@61
-                            staticType: null
+                          name: a @61
                           declaredElement: a@61
                           declaredElementType: int
                         rightParenthesis: ) @62
@@ -23331,18 +23415,18 @@ typedef F<T> = void Function<U>(int a);
 
     var T = F.typeParameters[0];
     expect(T.name, 'T');
-    expect(T.enclosingElement2, same(F));
+    expect(T.enclosingElement3, same(F));
 
     var function = F.aliasedElement as GenericFunctionTypeElement;
-    expect(function.enclosingElement2, same(F));
+    expect(function.enclosingElement3, same(F));
 
     var U = function.typeParameters[0];
     expect(U.name, 'U');
-    expect(U.enclosingElement2, same(function));
+    expect(U.enclosingElement3, same(function));
 
     var a = function.parameters[0];
     expect(a.name, 'a');
-    expect(a.enclosingElement2, same(function));
+    expect(a.enclosingElement3, same(function));
   }
 
   test_genericTypeAlias_recursive() async {
@@ -26517,7 +26601,7 @@ library
 
     final import_0 = library.augmentationImports[0];
     final augmentation = import_0.importedAugmentation!;
-    expect(augmentation.enclosingElement2, same(library));
+    expect(augmentation.enclosingElement3, same(library));
   }
 
   test_library_augmentationImports_noRelativeUriStr() async {
@@ -39097,26 +39181,119 @@ library
 ''');
   }
 
+  test_unit_variable_duplicate_getter() async {
+    var library = await buildLibrary('''
+int foo = 0;
+int get foo => 0;
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    topLevelVariables
+      static foo @4
+        type: int
+        id: variable_0
+        getter: getter_0
+        setter: setter_0
+      synthetic static foo @-1
+        type: int
+        id: variable_1
+        getter: getter_1
+    accessors
+      synthetic static get foo @-1
+        returnType: int
+        id: getter_0
+        variable: variable_0
+      synthetic static set foo @-1
+        parameters
+          requiredPositional _foo @-1
+            type: int
+        returnType: void
+        id: setter_0
+        variable: variable_0
+      static get foo @21
+        returnType: int
+        id: getter_1
+        variable: variable_1
+''',
+        withPropertyLinking: true);
+  }
+
+  test_unit_variable_duplicate_setter() async {
+    var library = await buildLibrary('''
+int foo = 0;
+set foo(int _) {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    topLevelVariables
+      static foo @4
+        type: int
+        id: variable_0
+        getter: getter_0
+        setter: setter_0
+      synthetic static foo @-1
+        type: int
+        id: variable_1
+        setter: setter_1
+    accessors
+      synthetic static get foo @-1
+        returnType: int
+        id: getter_0
+        variable: variable_0
+      synthetic static set foo @-1
+        parameters
+          requiredPositional _foo @-1
+            type: int
+        returnType: void
+        id: setter_0
+        variable: variable_0
+      static set foo @17
+        parameters
+          requiredPositional _ @25
+            type: int
+        returnType: void
+        id: setter_1
+        variable: variable_1
+''',
+        withPropertyLinking: true);
+  }
+
   test_unit_variable_final_withSetter() async {
     var library = await buildLibrary(r'''
 final int foo = 0;
 set foo(int newValue) {}
 ''');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 library
   definingUnit
     topLevelVariables
       static final foo @10
         type: int
+        id: variable_0
+        getter: getter_0
+        setter: setter_0
     accessors
       synthetic static get foo @-1
         returnType: int
+        id: getter_0
+        variable: variable_0
       static set foo @23
         parameters
           requiredPositional newValue @31
             type: int
         returnType: void
-''');
+        id: setter_0
+        variable: variable_0
+''',
+        withPropertyLinking: true);
   }
 
   test_unresolved_annotation_instanceCreation_argument_super() async {

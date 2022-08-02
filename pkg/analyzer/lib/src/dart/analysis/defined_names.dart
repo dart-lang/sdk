@@ -3,37 +3,38 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 
 /// Compute the [DefinedNames] for the given [unit].
 DefinedNames computeDefinedNames(CompilationUnit unit) {
   DefinedNames names = DefinedNames();
 
-  void appendName(Set<String> names, SimpleIdentifier? node) {
-    var name = node?.name;
-    if (name != null && name.isNotEmpty) {
-      names.add(name);
+  void appendName(Set<String> names, Token? token) {
+    var lexeme = token?.lexeme;
+    if (lexeme != null && lexeme.isNotEmpty) {
+      names.add(lexeme);
     }
   }
 
   void appendClassMemberName(ClassMember member) {
     if (member is MethodDeclaration) {
-      appendName(names.classMemberNames, member.name);
+      appendName(names.classMemberNames, member.name2);
     } else if (member is FieldDeclaration) {
       for (VariableDeclaration field in member.fields.variables) {
-        appendName(names.classMemberNames, field.name);
+        appendName(names.classMemberNames, field.name2);
       }
     }
   }
 
   void appendTopLevelName(CompilationUnitMember member) {
     if (member is NamedCompilationUnitMember) {
-      appendName(names.topLevelNames, member.name);
+      appendName(names.topLevelNames, member.name2);
       if (member is ClassDeclaration) {
         member.members.forEach(appendClassMemberName);
       }
       if (member is EnumDeclaration) {
         for (var constant in member.constants) {
-          appendName(names.classMemberNames, constant.name);
+          appendName(names.classMemberNames, constant.name2);
         }
         member.members.forEach(appendClassMemberName);
       }
@@ -42,7 +43,7 @@ DefinedNames computeDefinedNames(CompilationUnit unit) {
       }
     } else if (member is TopLevelVariableDeclaration) {
       for (VariableDeclaration variable in member.variables.variables) {
-        appendName(names.topLevelNames, variable.name);
+        appendName(names.topLevelNames, variable.name2);
       }
     }
   }

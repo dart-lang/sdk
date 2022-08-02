@@ -450,7 +450,6 @@ class B<U> extends B0 with N implements J {}
         (node) => node.documentationComment!,
         (node) => node.extendsClause!,
         (node) => node.implementsClause!,
-        (node) => node.name,
         (node) => node.typeParameters!,
         (node) => node.withClause!,
       ],
@@ -477,7 +476,6 @@ class B<U> = B0 with N implements J;
         (node) => node.documentationComment!,
         (node) => node.superclass,
         (node) => node.implementsClause!,
-        (node) => node.name,
         (node) => node.typeParameters!,
         (node) => node.withClause,
       ],
@@ -566,7 +564,6 @@ class B {
       source: findNode.constructor('B.named'),
       childAccessors: [
         (node) => node.body,
-        (node) => node.name!,
         (node) => node.parameters,
         (node) => node.returnType,
       ],
@@ -657,7 +654,6 @@ void f() {
       destination: findNode.declaredIdentifier('i in'),
       source: findNode.declaredIdentifier('j in'),
       childAccessors: [
-        (node) => node.identifier,
         (node) => node.type!,
       ],
     );
@@ -703,13 +699,6 @@ enum E {
     _assertAnnotatedNode(
       findNode.enumConstantDeclaration('aaa'),
     );
-    _assertReplacementForChildren<EnumConstantDeclaration>(
-      destination: findNode.enumConstantDeclaration('aaa'),
-      source: findNode.enumConstantDeclaration('bbb'),
-      childAccessors: [
-        (node) => node.name,
-      ],
-    );
   }
 
   void test_enumDeclaration() {
@@ -721,7 +710,6 @@ enum E2<U> with M2 implements I2 {one, two}
       destination: findNode.enumDeclaration('enum E1'),
       source: findNode.enumDeclaration('enum E2'),
       childAccessors: [
-        (node) => node.name,
         (node) => node.typeParameters!,
         (node) => node.withClause!,
         (node) => node.implementsClause!,
@@ -859,7 +847,6 @@ class A {
       destination: findNode.fieldFormalParameter('foo'),
       source: findNode.fieldFormalParameter('bar'),
       childAccessors: [
-        (node) => node.identifier,
         (node) => node.parameters!,
         (node) => node.type!,
         (node) => node.typeParameters!,
@@ -990,7 +977,6 @@ double g() => 0;
       source: findNode.functionDeclaration('g()'),
       childAccessors: [
         (node) => node.functionExpression,
-        (node) => node.name,
         (node) => node.returnType!,
       ],
     );
@@ -1064,7 +1050,6 @@ typedef double G<U>(double b);
       destination: findNode.functionTypeAlias('int F'),
       source: findNode.functionTypeAlias('double G'),
       childAccessors: [
-        (node) => node.name,
         (node) => node.parameters,
         (node) => node.returnType!,
         (node) => node.typeParameters!,
@@ -1088,7 +1073,6 @@ void f(
       source: findNode.functionTypedFormalParameter('b<U>'),
       childAccessors: [
         (node) => node.returnType!,
-        (node) => node.identifier,
         (node) => node.typeParameters!,
         (node) => node.parameters,
       ],
@@ -1355,7 +1339,6 @@ class A {
       source: findNode.methodDeclaration('bar'),
       childAccessors: [
         (node) => node.returnType!,
-        (node) => node.name,
         (node) => node.typeParameters!,
         (node) => node.parameters!,
         (node) => node.body,
@@ -1626,7 +1609,6 @@ void f(
       source: findNode.simpleFormalParameter('int b'),
       childAccessors: [
         (node) => node.type!,
-        (node) => node.identifier!,
       ],
     );
   }
@@ -1678,7 +1660,6 @@ class B extends A {
       source: findNode.superFormalParameter('a2'),
       childAccessors: [
         (node) => node.type!,
-        (node) => node.identifier,
       ],
     );
   }
@@ -1699,7 +1680,6 @@ class B extends A {
       source: findNode.superFormalParameter('bar2'),
       childAccessors: [
         (node) => node.type!,
-        (node) => node.identifier,
         (node) => node.typeParameters!,
         (node) => node.parameters!,
       ],
@@ -1868,7 +1848,6 @@ class A<T extends int, U extends double> {}
       destination: findNode.typeParameter('T extends'),
       source: findNode.typeParameter('U extends'),
       childAccessors: [
-        (node) => node.name,
         (node) => node.bound!,
       ],
     );
@@ -1897,7 +1876,6 @@ void f() {
       destination: findNode.variableDeclaration('a = 0'),
       source: findNode.variableDeclaration('b = 1'),
       childAccessors: [
-        (node) => node.name,
         (node) => node.initializer!,
       ],
     );

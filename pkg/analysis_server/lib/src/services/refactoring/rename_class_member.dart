@@ -168,7 +168,7 @@ class _BaseClassMemberValidator {
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
       var nameElement = getSyntheticAccessorVariable(declaration.element);
-      var nameClass = nameElement.enclosingElement2;
+      var nameClass = nameElement.enclosingElement3;
       // the renamed Element shadows a member of a superclass
       if (superClasses.contains(nameClass)) {
         result.addError(
@@ -276,7 +276,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     var subClasses = await searchEngine.searchAllSubtypes(elementClass);
     // check shadowing of class names
     for (var element in elements) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement is ClassElement && enclosingElement.name == name) {
         result.addError(
           'Renamed ${elementKind.displayName} has the same name as the '

@@ -95,7 +95,10 @@ abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
   /// Initialize a newly created annotated node. Either or both of the [comment]
   /// and [metadata] can be `null` if the node does not have the corresponding
   /// attribute.
-  AnnotatedNodeImpl(this._comment, List<Annotation>? metadata) {
+  AnnotatedNodeImpl({
+    required CommentImpl? comment,
+    required List<Annotation>? metadata,
+  }) : _comment = comment {
     _becomeParentOf(_comment);
     _metadata._initialize(this, metadata);
   }
@@ -893,13 +896,13 @@ class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
   Token semicolon;
 
   AugmentationImportDirectiveImpl({
-    required CommentImpl? comment,
-    required List<Annotation>? metadata,
+    required super.comment,
+    required super.metadata,
     required this.importKeyword,
     required this.augmentKeyword,
     required this.semicolon,
-    required StringLiteralImpl uri,
-  }) : super(comment, metadata, uri) {
+    required super.uri,
+  }) {
     _becomeParentOf(_uri);
   }
 
@@ -1678,6 +1681,9 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
   /// native clause.
   NativeClauseImpl? _nativeClause;
 
+  @override
+  ClassElement? declaredElement;
+
   /// Initialize a newly created class declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the class does not have the
   /// corresponding attribute. The [abstractKeyword] can be `null` if the class
@@ -1686,29 +1692,26 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
   /// and [implementsClause] can be `null` if the class does not have the
   /// corresponding clause. The list of [members] can be `null` if the class
   /// does not have any members.
-  ClassDeclarationImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      this.abstractKeyword,
-      this.macroKeyword,
-      this.augmentKeyword,
-      this.classKeyword,
-      SimpleIdentifierImpl name,
-      TypeParameterListImpl? typeParameters,
-      this._extendsClause,
-      this._withClause,
-      ImplementsClauseImpl? implementsClause,
-      Token leftBracket,
-      List<ClassMember> members,
-      Token rightBracket)
-      : super(comment, metadata, name, typeParameters, implementsClause,
-            leftBracket, members, rightBracket) {
+  ClassDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.abstractKeyword,
+    required this.macroKeyword,
+    required this.augmentKeyword,
+    required this.classKeyword,
+    required super.name,
+    required super.typeParameters,
+    required ExtendsClauseImpl? extendsClause,
+    required WithClauseImpl? withClause,
+    required super.implementsClause,
+    required super.leftBracket,
+    required super.members,
+    required super.rightBracket,
+  })  : _extendsClause = extendsClause,
+        _withClause = withClause {
     _becomeParentOf(_extendsClause);
     _becomeParentOf(_withClause);
   }
-
-  @override
-  ClassElement? get declaredElement => _name.staticElement as ClassElement?;
 
   @override
   ExtendsClauseImpl? get extendsClause => _extendsClause;
@@ -1746,7 +1749,7 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
     ..addToken('macroKeyword', macroKeyword)
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('classKeyword', classKeyword)
-    ..addNode('name', name)
+    ..addToken('name', name2)
     ..addNode('typeParameters', typeParameters)
     ..addNode('extendsClause', extendsClause)
     ..addNode('withClause', withClause)
@@ -1782,7 +1785,8 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _name.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _typeParameters?.accept(visitor);
     _extendsClause?.accept(visitor);
     _withClause?.accept(visitor);
@@ -1797,7 +1801,10 @@ abstract class ClassMemberImpl extends DeclarationImpl implements ClassMember {
   /// Initialize a newly created member of a class. Either or both of the
   /// [comment] and [metadata] can be `null` if the member does not have the
   /// corresponding attribute.
-  ClassMemberImpl(super.comment, super.metadata);
+  ClassMemberImpl({
+    required super.comment,
+    required super.metadata,
+  });
 }
 
 abstract class ClassOrMixinDeclarationImpl
@@ -1821,15 +1828,17 @@ abstract class ClassOrMixinDeclarationImpl
   @override
   Token rightBracket;
 
-  ClassOrMixinDeclarationImpl(
-      super.comment,
-      super.metadata,
-      super.name,
-      this._typeParameters,
-      this._implementsClause,
-      this.leftBracket,
-      List<ClassMember> members,
-      this.rightBracket) {
+  ClassOrMixinDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required super.name,
+    required TypeParameterListImpl? typeParameters,
+    required ImplementsClauseImpl? implementsClause,
+    required this.leftBracket,
+    required List<ClassMember> members,
+    required this.rightBracket,
+  })  : _typeParameters = typeParameters,
+        _implementsClause = implementsClause {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_implementsClause);
     _members._initialize(this, members);
@@ -1886,7 +1895,7 @@ abstract class ClassOrMixinDeclarationImpl
       ClassMember classMember = _members[i];
       if (classMember is MethodDeclaration) {
         MethodDeclaration method = classMember;
-        if (name == method.name.name) {
+        if (name == method.name2.lexeme) {
           return method;
         }
       }
@@ -1935,35 +1944,38 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   /// clause.
   ImplementsClauseImpl? _implementsClause;
 
+  @override
+  ClassElement? declaredElement;
+
   /// Initialize a newly created class type alias. Either or both of the
   /// [comment] and [metadata] can be `null` if the class type alias does not
   /// have the corresponding attribute. The [typeParameters] can be `null` if
   /// the class does not have any type parameters. The [abstractKeyword] can be
   /// `null` if the class is not abstract. The [implementsClause] can be `null`
   /// if the class does not implement any interfaces.
-  ClassTypeAliasImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      Token keyword,
-      SimpleIdentifierImpl name,
-      this._typeParameters,
-      this.equals,
-      this.abstractKeyword,
-      this.macroKeyword,
-      this.augmentKeyword,
-      this._superclass,
-      this._withClause,
-      this._implementsClause,
-      Token semicolon)
-      : super(comment, metadata, keyword, name, semicolon) {
+  ClassTypeAliasImpl({
+    required super.comment,
+    required super.metadata,
+    required super.typedefKeyword,
+    required super.name,
+    required TypeParameterListImpl? typeParameters,
+    required this.equals,
+    required this.abstractKeyword,
+    required this.macroKeyword,
+    required this.augmentKeyword,
+    required NamedTypeImpl superclass,
+    required WithClauseImpl withClause,
+    required ImplementsClauseImpl? implementsClause,
+    required super.semicolon,
+  })  : _typeParameters = typeParameters,
+        _superclass = superclass,
+        _withClause = withClause,
+        _implementsClause = implementsClause {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_superclass);
     _becomeParentOf(_withClause);
     _becomeParentOf(_implementsClause);
   }
-
-  @override
-  ClassElement? get declaredElement => _name.staticElement as ClassElement?;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -2010,7 +2022,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('typedefKeyword', typedefKeyword)
-    ..addNode('name', name)
+    ..addToken('name', name2)
     ..addNode('typeParameters', typeParameters)
     ..addToken('equals', equals)
     ..addToken('abstractKeyword', abstractKeyword)
@@ -2027,7 +2039,8 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _name.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _typeParameters?.accept(visitor);
     _superclass.accept(visitor);
     _withClause.accept(visitor);
@@ -2409,7 +2422,10 @@ abstract class CompilationUnitMemberImpl extends DeclarationImpl
   /// Initialize a newly created generic compilation unit member. Either or both
   /// of the [comment] and [metadata] can be `null` if the member does not have
   /// the corresponding attribute.
-  CompilationUnitMemberImpl(super.comment, super.metadata);
+  CompilationUnitMemberImpl({
+    required super.comment,
+    required super.metadata,
+  });
 }
 
 mixin CompoundAssignmentExpressionImpl implements CompoundAssignmentExpression {
@@ -2700,7 +2716,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   /// [comment] and [metadata] can be `null` if the constructor does not have
   /// the corresponding attribute. The [constKeyword] can be `null` if the
   /// constructor cannot be used to create a constant. The [factoryKeyword] can
-  /// be `null` if the constructor is not a factory. The [period] and [name] can
+  /// be `null` if the constructor is not a factory. The [period] and [name2] can
   /// both be `null` if the constructor is not a named constructor. The
   /// [separator] can be `null` if the constructor does not have any
   /// initializers and does not redirect to a different constructor. The list of
@@ -2708,20 +2724,25 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   /// initializers. The [redirectedConstructor] can be `null` if the constructor
   /// does not redirect to a different constructor. The [body] can be `null` if
   /// the constructor does not have a body.
-  ConstructorDeclarationImpl(
-      super.comment,
-      super.metadata,
-      this.externalKeyword,
-      this.constKeyword,
-      this.factoryKeyword,
-      this._returnType,
-      this.period,
-      this._name,
-      this._parameters,
-      this.separator,
-      List<ConstructorInitializer>? initializers,
-      this._redirectedConstructor,
-      this._body) {
+  ConstructorDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.externalKeyword,
+    required this.constKeyword,
+    required this.factoryKeyword,
+    required IdentifierImpl returnType,
+    required this.period,
+    required SimpleIdentifierImpl? name,
+    required FormalParameterListImpl parameters,
+    required this.separator,
+    required List<ConstructorInitializer>? initializers,
+    required ConstructorNameImpl? redirectedConstructor,
+    required FunctionBodyImpl body,
+  })  : _returnType = returnType,
+        _name = name,
+        _parameters = parameters,
+        _redirectedConstructor = redirectedConstructor,
+        _body = body {
     _becomeParentOf(_returnType);
     _becomeParentOf(_name);
     _becomeParentOf(_parameters);
@@ -2752,12 +2773,19 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   NodeListImpl<ConstructorInitializer> get initializers => _initializers;
 
+  @Deprecated('Use name2 instead')
   @override
-  SimpleIdentifierImpl? get name => _name;
-
-  set name(SimpleIdentifier? identifier) {
-    _name = _becomeParentOf(identifier as SimpleIdentifierImpl?);
+  SimpleIdentifierImpl? get name {
+    _name?.staticElement = declaredElement;
+    return _name;
   }
+
+  set name(SimpleIdentifier? name) {
+    _name = _becomeParentOf(name as SimpleIdentifierImpl);
+  }
+
+  @override
+  Token? get name2 => _name?.token;
 
   @override
   FormalParameterListImpl get parameters => _parameters;
@@ -2788,7 +2816,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
     ..addToken('factoryKeyword', factoryKeyword)
     ..addNode('returnType', returnType)
     ..addToken('period', period)
-    ..addNode('name', name)
+    ..addToken('name', name2)
     ..addNode('parameters', parameters)
     ..addToken('separator', separator)
     ..addNodeList('initializers', initializers)
@@ -3123,7 +3151,10 @@ abstract class DeclarationImpl extends AnnotatedNodeImpl
   /// Initialize a newly created declaration. Either or both of the [comment]
   /// and [metadata] can be `null` if the declaration does not have the
   /// corresponding attribute.
-  DeclarationImpl(super.comment, super.metadata);
+  DeclarationImpl({
+    required super.comment,
+    required super.metadata,
+  });
 }
 
 /// The declaration of a single identifier.
@@ -3144,19 +3175,23 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   /// The name of the variable being declared.
   SimpleIdentifierImpl _identifier;
 
+  @override
+  LocalVariableElement? declaredElement;
+
   /// Initialize a newly created formal parameter. Either or both of the
   /// [comment] and [metadata] can be `null` if the declaration does not have
   /// the corresponding attribute. The [keyword] can be `null` if a type name is
   /// given. The [type] must be `null` if the keyword is 'var'.
-  DeclaredIdentifierImpl(super.comment, super.metadata, this.keyword,
-      this._type, this._identifier) {
+  DeclaredIdentifierImpl({
+    required super.comment,
+    required super.metadata,
+    required this.keyword,
+    required TypeAnnotationImpl? type,
+    required SimpleIdentifierImpl identifier,
+  })  : _type = type,
+        _identifier = identifier {
     _becomeParentOf(_type);
     _becomeParentOf(_identifier);
-  }
-
-  @override
-  LocalVariableElement? get declaredElement {
-    return _identifier.staticElement as LocalVariableElement;
   }
 
   @override
@@ -3167,8 +3202,12 @@ class DeclaredIdentifierImpl extends DeclarationImpl
     return keyword ?? _type?.beginToken ?? _identifier.beginToken;
   }
 
+  @Deprecated('Use name2 instead')
   @override
-  SimpleIdentifierImpl get identifier => _identifier;
+  SimpleIdentifierImpl get identifier {
+    _identifier.staticElement = declaredElement;
+    return _identifier;
+  }
 
   set identifier(SimpleIdentifier identifier) {
     _identifier = _becomeParentOf(identifier as SimpleIdentifierImpl);
@@ -3181,6 +3220,9 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   bool get isFinal => keyword?.keyword == Keyword.FINAL;
 
   @override
+  Token get name => _identifier.token;
+
+  @override
   TypeAnnotationImpl? get type => _type;
 
   set type(TypeAnnotation? type) {
@@ -3191,7 +3233,7 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   ChildEntities get _childEntities => super._childEntities
     ..addToken('keyword', keyword)
     ..addNode('type', type)
-    ..addNode('identifier', identifier);
+    ..addToken('name', name);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDeclaredIdentifier(this);
@@ -3200,7 +3242,8 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _type?.accept(visitor);
-    _identifier.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    identifier.accept(visitor);
   }
 }
 
@@ -3279,6 +3322,7 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
     return _parameter.endToken;
   }
 
+  @Deprecated('Use identifier2 instead')
   @override
   SimpleIdentifierImpl? get identifier => _parameter.identifier;
 
@@ -3293,6 +3337,9 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
 
   @override
   NodeListImpl<Annotation> get metadata => _parameter.metadata;
+
+  @override
+  Token? get name => _parameter.name;
 
   @override
   NormalFormalParameterImpl get parameter => _parameter;
@@ -3338,7 +3385,10 @@ abstract class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   /// Initialize a newly create directive. Either or both of the [comment] and
   /// [metadata] can be `null` if the directive does not have the corresponding
   /// attribute.
-  DirectiveImpl(super.comment, super.metadata);
+  DirectiveImpl({
+    required super.comment,
+    required super.metadata,
+  });
 
   @Deprecated('Use element2 instead')
   @override
@@ -3643,6 +3693,9 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   SimpleIdentifierImpl _name;
 
   @override
+  FieldElement? declaredElement;
+
+  @override
   final EnumConstantArgumentsImpl? arguments;
 
   @override
@@ -3652,18 +3705,14 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   /// the [documentationComment] and [metadata] can be `null` if the constant
   /// does not have the corresponding attribute.
   EnumConstantDeclarationImpl({
-    required CommentImpl? documentationComment,
-    required List<Annotation>? metadata,
+    required super.comment,
+    required super.metadata,
     required SimpleIdentifierImpl name,
     required this.arguments,
-  })  : _name = name,
-        super(documentationComment, metadata) {
+  }) : _name = name {
     _becomeParentOf(_name);
     _becomeParentOf(arguments);
   }
-
-  @override
-  FieldElement get declaredElement => _name.staticElement as FieldElement;
 
   @override
   Token get endToken => (arguments ?? _name).endToken;
@@ -3671,16 +3720,23 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   @override
   Token get firstTokenAfterCommentAndMetadata => _name.beginToken;
 
+  @Deprecated('Use name2 instead')
   @override
-  SimpleIdentifierImpl get name => _name;
+  SimpleIdentifierImpl get name {
+    _name.staticElement = declaredElement;
+    return _name;
+  }
 
   set name(SimpleIdentifier name) {
     _name = _becomeParentOf(name as SimpleIdentifierImpl);
   }
 
   @override
+  Token get name2 => _name.token;
+
+  @override
   ChildEntities get _childEntities => super._childEntities
-    ..addNode('name', name)
+    ..addToken('name', name2)
     ..addNode('arguments', arguments);
 
   @override
@@ -3690,7 +3746,8 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _name.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     arguments?.accept(visitor);
   }
 }
@@ -3736,24 +3793,29 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   Token rightBracket;
 
+  @override
+  ClassElement? declaredElement;
+
   /// Initialize a newly created enumeration declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the declaration does not have
   /// the corresponding attribute. The list of [constants] must contain at least
   /// one value.
-  EnumDeclarationImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      this.enumKeyword,
-      SimpleIdentifierImpl name,
-      this._typeParameters,
-      this._withClause,
-      this._implementsClause,
-      this.leftBracket,
-      List<EnumConstantDeclaration> constants,
-      this.semicolon,
-      List<ClassMember> members,
-      this.rightBracket)
-      : super(comment, metadata, name) {
+  EnumDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.enumKeyword,
+    required super.name,
+    required TypeParameterListImpl? typeParameters,
+    required WithClauseImpl? withClause,
+    required ImplementsClauseImpl? implementsClause,
+    required this.leftBracket,
+    required List<EnumConstantDeclaration> constants,
+    required this.semicolon,
+    required List<ClassMember> members,
+    required this.rightBracket,
+  })  : _typeParameters = typeParameters,
+        _withClause = withClause,
+        _implementsClause = implementsClause {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_withClause);
     _becomeParentOf(_implementsClause);
@@ -3763,9 +3825,6 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   NodeListImpl<EnumConstantDeclaration> get constants => _constants;
-
-  @override
-  ClassElement? get declaredElement => _name.staticElement as ClassElement?;
 
   @override
   Token get endToken => rightBracket;
@@ -3802,7 +3861,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   // TODO(brianwilkerson) Add commas?
   ChildEntities get _childEntities => super._childEntities
     ..addToken('enumKeyword', enumKeyword)
-    ..addNode('name', name)
+    ..addToken('name', name2)
     ..addNode('typeParameters', typeParameters)
     ..addNode('withClause', withClause)
     ..addNode('implementsClause', implementsClause)
@@ -3818,7 +3877,8 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _name.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _typeParameters?.accept(visitor);
     _withClause?.accept(visitor);
     _implementsClause?.accept(visitor);
@@ -3849,14 +3909,15 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
   /// [comment] and [metadata] can be `null` if the directive does not have the
   /// corresponding attribute. The list of [combinators] can be `null` if there
   /// are no combinators.
-  ExportDirectiveImpl(
-      super.comment,
-      super.metadata,
-      this.exportKeyword,
-      super.libraryUri,
-      super.configurations,
-      super.combinators,
-      super.semicolon);
+  ExportDirectiveImpl({
+    required super.comment,
+    required super.metadata,
+    required this.exportKeyword,
+    required super.uri,
+    required super.configurations,
+    required super.combinators,
+    required super.semicolon,
+  });
 
   @Deprecated('Use element2 instead')
   @override
@@ -4255,20 +4316,25 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   ExtensionElement? _declaredElement;
 
-  ExtensionDeclarationImpl(
-      super.comment,
-      super.metadata,
-      this.extensionKeyword,
-      this.typeKeyword,
-      this._name,
-      this._typeParameters,
-      this.onKeyword,
-      this._extendedType,
-      this._showClause,
-      this._hideClause,
-      this.leftBracket,
-      List<ClassMember> members,
-      this.rightBracket) {
+  ExtensionDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.extensionKeyword,
+    required this.typeKeyword,
+    required SimpleIdentifierImpl? name,
+    required TypeParameterListImpl? typeParameters,
+    required this.onKeyword,
+    required TypeAnnotationImpl extendedType,
+    required ShowClauseImpl? showClause,
+    required HideClauseImpl? hideClause,
+    required this.leftBracket,
+    required List<ClassMember> members,
+    required this.rightBracket,
+  })  : _name = name,
+        _typeParameters = typeParameters,
+        _extendedType = extendedType,
+        _showClause = showClause,
+        _hideClause = hideClause {
     _becomeParentOf(_name);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_extendedType);
@@ -4306,12 +4372,19 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   NodeListImpl<ClassMember> get members => _members;
 
+  @Deprecated('Use name2 instead')
   @override
-  SimpleIdentifierImpl? get name => _name;
+  SimpleIdentifierImpl? get name {
+    _name?.staticElement = declaredElement;
+    return _name;
+  }
 
   set name(SimpleIdentifier? identifier) {
     _name = _becomeParentOf(identifier as SimpleIdentifierImpl?);
   }
+
+  @override
+  Token? get name2 => _name?.token;
 
   @override
   ShowClauseImpl? get showClause => _showClause;
@@ -4330,7 +4403,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('extensionKeyword', extensionKeyword)
-    ..addNode('name', name)
+    ..addToken('name', name2)
     ..addNode('typeParameters', typeParameters)
     ..addToken('onKeyword', onKeyword)
     ..addNode('extendedType', extendedType)
@@ -4345,6 +4418,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
+    // ignore: deprecated_member_use_from_same_package
     name?.accept(visitor);
     _typeParameters?.accept(visitor);
     _extendedType.accept(visitor);
@@ -4483,16 +4557,17 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   /// [comment] and [metadata] can be `null` if the declaration does not have
   /// the corresponding attribute. The [staticKeyword] can be `null` if the
   /// field is not a static field.
-  FieldDeclarationImpl(
-      super.comment,
-      super.metadata,
-      this.abstractKeyword,
-      this.augmentKeyword,
-      this.covariantKeyword,
-      this.externalKeyword,
-      this.staticKeyword,
-      this._fieldList,
-      this.semicolon) {
+  FieldDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.abstractKeyword,
+    required this.augmentKeyword,
+    required this.covariantKeyword,
+    required this.externalKeyword,
+    required this.staticKeyword,
+    required VariableDeclarationListImpl fieldList,
+    required this.semicolon,
+  }) : _fieldList = fieldList {
     _becomeParentOf(_fieldList);
   }
 
@@ -4617,9 +4692,10 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get endToken {
-    return question ?? _parameters?.endToken ?? identifier.endToken;
+    return question ?? _parameters?.endToken ?? name;
   }
 
+  @Deprecated('Use identifier2 instead')
   @override
   SimpleIdentifierImpl get identifier => super.identifier!;
 
@@ -4631,6 +4707,9 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   bool get isFinal => keyword?.keyword == Keyword.FINAL;
+
+  @override
+  Token get name => super.name!;
 
   @override
   FormalParameterListImpl? get parameters => _parameters;
@@ -4659,7 +4738,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
     ..addNode('type', type)
     ..addToken('thisKeyword', thisKeyword)
     ..addToken('period', period)
-    ..addNode('identifier', identifier)
+    ..addToken('name', name)
     ..addNode('parameters', parameters);
 
   @override
@@ -4670,6 +4749,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _type?.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
     identifier.accept(visitor);
     _typeParameters?.accept(visitor);
     _parameters?.accept(visitor);
@@ -4873,16 +4953,23 @@ abstract class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {}
 abstract class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
   @override
-  ParameterElement? get declaredElement {
-    final identifier = this.identifier;
-    if (identifier == null) {
-      return null;
-    }
-    return identifier.staticElement as ParameterElement?;
-  }
+  ParameterElement? declaredElement;
 
+  @Deprecated('Use identifier2 instead')
   @override
   SimpleIdentifierImpl? get identifier;
+
+  /// TODO(scheglov) I was not able to update 'nnbd_migration' any better.
+  SimpleIdentifier? get identifierForMigration {
+    final token = name;
+    if (token != null) {
+      final result = SimpleIdentifierImpl(token);
+      result.staticElement = declaredElement;
+      _becomeParentOf(result);
+      return result;
+    }
+    return null;
+  }
 
   @override
   bool get isNamed => kind.isNamed;
@@ -4910,19 +4997,6 @@ abstract class FormalParameterImpl extends AstNodeImpl
 
   /// Return the kind of this parameter.
   ParameterKind get kind;
-
-  static void setDeclaredElement(
-    FormalParameterImpl node,
-    ParameterElement element,
-  ) {
-    if (node is DefaultFormalParameterImpl) {
-      setDeclaredElement(node.parameter, element);
-    } else if (node is SimpleFormalParameterImpl) {
-      node.declaredElement = element;
-    } else {
-      node.identifier!.staticElement = element;
-    }
-  }
 }
 
 /// The formal parameter list of a method declaration, function declaration, or
@@ -5331,29 +5405,29 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   /// The function expression being wrapped.
   FunctionExpressionImpl _functionExpression;
 
+  @override
+  ExecutableElement? declaredElement;
+
   /// Initialize a newly created function declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the function does not have the
   /// corresponding attribute. The [externalKeyword] can be `null` if the
   /// function is not an external function. The [returnType] can be `null` if no
   /// return type was specified. The [propertyKeyword] can be `null` if the
   /// function is neither a getter or a setter.
-  FunctionDeclarationImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      this.augmentKeyword,
-      this.externalKeyword,
-      this._returnType,
-      this.propertyKeyword,
-      SimpleIdentifierImpl name,
-      this._functionExpression)
-      : super(comment, metadata, name) {
+  FunctionDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.augmentKeyword,
+    required this.externalKeyword,
+    required TypeAnnotationImpl? returnType,
+    required this.propertyKeyword,
+    required super.name,
+    required FunctionExpressionImpl functionExpression,
+  })  : _returnType = returnType,
+        _functionExpression = functionExpression {
     _becomeParentOf(_returnType);
     _becomeParentOf(_functionExpression);
   }
-
-  @override
-  ExecutableElement? get declaredElement =>
-      _name.staticElement as ExecutableElement?;
 
   @override
   Token get endToken => _functionExpression.endToken;
@@ -5394,7 +5468,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..addToken('externalKeyword', externalKeyword)
     ..addNode('returnType', returnType)
     ..addToken('propertyKeyword', propertyKeyword)
-    ..addNode('name', name)
+    ..addToken('name', name2)
     ..addNode('functionExpression', functionExpression);
 
   @override
@@ -5404,7 +5478,8 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _returnType?.accept(visitor);
-    _name.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _functionExpression.accept(visitor);
   }
 }
@@ -5692,29 +5767,30 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
   /// The parameters associated with the function type.
   FormalParameterListImpl _parameters;
 
+  @override
+  TypeAliasElement? declaredElement;
+
   /// Initialize a newly created function type alias. Either or both of the
   /// [comment] and [metadata] can be `null` if the function does not have the
   /// corresponding attribute. The [returnType] can be `null` if no return type
   /// was specified. The [typeParameters] can be `null` if the function has no
   /// type parameters.
-  FunctionTypeAliasImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      Token keyword,
-      this._returnType,
-      SimpleIdentifierImpl name,
-      this._typeParameters,
-      this._parameters,
-      Token semicolon)
-      : super(comment, metadata, keyword, name, semicolon) {
+  FunctionTypeAliasImpl({
+    required super.comment,
+    required super.metadata,
+    required super.typedefKeyword,
+    required TypeAnnotationImpl? returnType,
+    required super.name,
+    required TypeParameterListImpl? typeParameters,
+    required FormalParameterListImpl parameters,
+    required super.semicolon,
+  })  : _returnType = returnType,
+        _typeParameters = typeParameters,
+        _parameters = parameters {
     _becomeParentOf(_returnType);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
   }
-
-  @override
-  TypeAliasElement? get declaredElement =>
-      _name.staticElement as TypeAliasElement?;
 
   @override
   FormalParameterListImpl get parameters => _parameters;
@@ -5741,7 +5817,7 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
   ChildEntities get _childEntities => super._childEntities
     ..addToken('typedefKeyword', typedefKeyword)
     ..addNode('returnType', returnType)
-    ..addNode('name', name)
+    ..addToken('name', name2)
     ..addNode('typeParameters', typeParameters)
     ..addNode('parameters', parameters)
     ..addToken('semicolon', semicolon);
@@ -5753,7 +5829,8 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _returnType?.accept(visitor);
-    _name.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _typeParameters?.accept(visitor);
     _parameters.accept(visitor);
   }
@@ -5813,12 +5890,13 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     } else if (_returnType != null) {
       return _returnType!.beginToken;
     }
-    return identifier.beginToken;
+    return name;
   }
 
   @override
   Token get endToken => question ?? _parameters.endToken;
 
+  @Deprecated('Use identifier2 instead')
   @override
   SimpleIdentifierImpl get identifier => super.identifier!;
 
@@ -5830,6 +5908,9 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   bool get isFinal => false;
+
+  @override
+  Token get name => super.name!;
 
   @override
   FormalParameterListImpl get parameters => _parameters;
@@ -5855,7 +5936,7 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addNode('returnType', returnType)
-    ..addNode('identifier', identifier)
+    ..addToken('name', name)
     ..addNode('parameters', parameters);
 
   @override
@@ -5866,6 +5947,7 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _returnType?.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
     identifier.accept(visitor);
     _typeParameters?.accept(visitor);
     _parameters.accept(visitor);
@@ -6003,26 +6085,27 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
   @override
   Token equals;
 
+  @override
+  Element? declaredElement;
+
   /// Returns a newly created generic type alias. Either or both of the
   /// [comment] and [metadata] can be `null` if the variable list does not have
   /// the corresponding attribute. The [typeParameters] can be `null` if there
   /// are no type parameters.
-  GenericTypeAliasImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      Token typedefToken,
-      SimpleIdentifierImpl name,
-      this._typeParameters,
-      this.equals,
-      this._type,
-      Token semicolon)
-      : super(comment, metadata, typedefToken, name, semicolon) {
+  GenericTypeAliasImpl({
+    required super.comment,
+    required super.metadata,
+    required super.typedefKeyword,
+    required super.name,
+    required TypeParameterListImpl? typeParameters,
+    required this.equals,
+    required TypeAnnotationImpl type,
+    required super.semicolon,
+  })  : _typeParameters = typeParameters,
+        _type = type {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_type);
   }
-
-  @override
-  Element? get declaredElement => name.staticElement;
 
   /// The type of function being defined by the alias.
   ///
@@ -6058,7 +6141,7 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('metadata', metadata)
     ..addToken('typedefKeyword', typedefKeyword)
-    ..addNode('name', name)
+    ..addToken('name', name2)
     ..addNode('typeParameters', typeParameters)
     ..addToken('equals', equals)
     ..addNode('type', type);
@@ -6071,6 +6154,7 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
+    // ignore: deprecated_member_use_from_same_package
     name.accept(visitor);
     _typeParameters?.accept(visitor);
     _type.accept(visitor);
@@ -6493,19 +6577,18 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   /// is not deferred. The [asKeyword] and [prefix] can be `null` if the import
   /// does not specify a prefix. The list of [combinators] can be `null` if
   /// there are no combinators.
-  ImportDirectiveImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      this.importKeyword,
-      StringLiteralImpl libraryUri,
-      List<Configuration>? configurations,
-      this.deferredKeyword,
-      this.asKeyword,
-      this._prefix,
-      List<Combinator>? combinators,
-      Token semicolon)
-      : super(comment, metadata, libraryUri, configurations, combinators,
-            semicolon) {
+  ImportDirectiveImpl({
+    required super.comment,
+    required super.metadata,
+    required this.importKeyword,
+    required super.uri,
+    required super.configurations,
+    required this.deferredKeyword,
+    required this.asKeyword,
+    required SimpleIdentifierImpl? prefix,
+    required super.combinators,
+    required super.semicolon,
+  }) : _prefix = prefix {
     _becomeParentOf(_prefix);
   }
 
@@ -7374,13 +7457,13 @@ class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
   Token semicolon;
 
   LibraryAugmentationDirectiveImpl({
-    required CommentImpl? comment,
-    required List<Annotation>? metadata,
+    required super.comment,
+    required super.metadata,
     required this.libraryKeyword,
     required this.augmentKeyword,
-    required StringLiteralImpl uri,
+    required super.uri,
     required this.semicolon,
-  }) : super(comment, metadata, uri);
+  });
 
   @override
   Token get endToken => semicolon;
@@ -7432,8 +7515,13 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   /// Initialize a newly created library directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the directive does not have the
   /// corresponding attribute.
-  LibraryDirectiveImpl(super.comment, super.metadata, this.libraryKeyword,
-      this._name, this.semicolon) {
+  LibraryDirectiveImpl({
+    required super.comment,
+    required super.metadata,
+    required this.libraryKeyword,
+    required LibraryIdentifierImpl name,
+    required this.semicolon,
+  }) : _name = name {
     _becomeParentOf(_name);
   }
 
@@ -7749,6 +7837,14 @@ class MethodDeclarationImpl extends ClassMemberImpl
   /// The body of the method.
   FunctionBodyImpl _body;
 
+  /// Return the element associated with this method, or `null` if the AST
+  /// structure has not been resolved. The element can either be a
+  /// [MethodElement], if this represents the declaration of a normal method, or
+  /// a [PropertyAccessorElement] if this represents the declaration of either a
+  /// getter or a setter.
+  @override
+  ExecutableElement? declaredElement;
+
   /// Initialize a newly created method declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the declaration does not have
   /// the corresponding attribute. The [externalKeyword] can be `null` if the
@@ -7758,18 +7854,23 @@ class MethodDeclarationImpl extends ClassMemberImpl
   /// method is neither a getter or a setter. The [operatorKeyword] can be
   /// `null` if the method does not implement an operator. The [parameters] must
   /// be `null` if this method declares a getter.
-  MethodDeclarationImpl(
-      super.comment,
-      super.metadata,
-      this.externalKeyword,
-      this.modifierKeyword,
-      this._returnType,
-      this.propertyKeyword,
-      this.operatorKeyword,
-      this._name,
-      this._typeParameters,
-      this._parameters,
-      this._body) {
+  MethodDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.externalKeyword,
+    required this.modifierKeyword,
+    required TypeAnnotationImpl? returnType,
+    required this.propertyKeyword,
+    required this.operatorKeyword,
+    required SimpleIdentifierImpl name,
+    required TypeParameterListImpl? typeParameters,
+    required FormalParameterListImpl? parameters,
+    required FunctionBodyImpl body,
+  })  : _returnType = returnType,
+        _name = name,
+        _typeParameters = typeParameters,
+        _parameters = parameters,
+        _body = body {
     _becomeParentOf(_returnType);
     _becomeParentOf(_name);
     _becomeParentOf(_typeParameters);
@@ -7783,15 +7884,6 @@ class MethodDeclarationImpl extends ClassMemberImpl
   set body(FunctionBody functionBody) {
     _body = _becomeParentOf(functionBody as FunctionBodyImpl);
   }
-
-  /// Return the element associated with this method, or `null` if the AST
-  /// structure has not been resolved. The element can either be a
-  /// [MethodElement], if this represents the declaration of a normal method, or
-  /// a [PropertyAccessorElement] if this represents the declaration of either a
-  /// getter or a setter.
-  @override
-  ExecutableElement? get declaredElement =>
-      _name.staticElement as ExecutableElement?;
 
   @override
   Token get endToken => _body.endToken;
@@ -7823,12 +7915,19 @@ class MethodDeclarationImpl extends ClassMemberImpl
   @override
   bool get isStatic => modifierKeyword?.keyword == Keyword.STATIC;
 
+  @Deprecated('Use name2 instead')
   @override
-  SimpleIdentifierImpl get name => _name;
+  SimpleIdentifierImpl get name {
+    _name.staticElement = declaredElement;
+    return _name;
+  }
 
   set name(SimpleIdentifier identifier) {
     _name = _becomeParentOf(identifier as SimpleIdentifierImpl);
   }
+
+  @override
+  Token get name2 => _name.token;
 
   @override
   FormalParameterListImpl? get parameters => _parameters;
@@ -7858,7 +7957,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
     ..addNode('returnType', returnType)
     ..addToken('propertyKeyword', propertyKeyword)
     ..addToken('operatorKeyword', operatorKeyword)
-    ..addNode('name', name)
+    ..addToken('name', name2)
     ..addNode('parameters', parameters)
     ..addNode('body', body);
 
@@ -7869,7 +7968,8 @@ class MethodDeclarationImpl extends ClassMemberImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _returnType?.accept(visitor);
-    _name.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _typeParameters?.accept(visitor);
     _parameters?.accept(visitor);
     _body.accept(visitor);
@@ -8048,6 +8148,9 @@ class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
   /// super-class constraints.
   OnClauseImpl? _onClause;
 
+  @override
+  ClassElement? declaredElement;
+
   /// Initialize a newly created mixin declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the mixin does not have the
   /// corresponding attribute. The [typeParameters] can be `null` if the mixin
@@ -8055,25 +8158,21 @@ class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
   /// and [implementsClause] can be `null` if the mixin does not have the
   /// corresponding clause. The list of [members] can be `null` if the mixin
   /// does not have any members.
-  MixinDeclarationImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      this.augmentKeyword,
-      this.mixinKeyword,
-      SimpleIdentifierImpl name,
-      TypeParameterListImpl? typeParameters,
-      this._onClause,
-      ImplementsClauseImpl? implementsClause,
-      Token leftBracket,
-      List<ClassMember> members,
-      Token rightBracket)
-      : super(comment, metadata, name, typeParameters, implementsClause,
-            leftBracket, members, rightBracket) {
+  MixinDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.augmentKeyword,
+    required this.mixinKeyword,
+    required super.name,
+    required super.typeParameters,
+    required OnClauseImpl? onClause,
+    required super.implementsClause,
+    required super.leftBracket,
+    required super.members,
+    required super.rightBracket,
+  }) : _onClause = onClause {
     _becomeParentOf(_onClause);
   }
-
-  @override
-  ClassElement? get declaredElement => _name.staticElement as ClassElement?;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -8099,7 +8198,7 @@ class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('mixinKeyword', mixinKeyword)
-    ..addNode('name', name)
+    ..addToken('name', name2)
     ..addNode('typeParameters', typeParameters)
     ..addNode('onClause', onClause)
     ..addNode('implementsClause', implementsClause)
@@ -8113,7 +8212,8 @@ class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _name.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _typeParameters?.accept(visitor);
     _onClause?.accept(visitor);
     _implementsClause?.accept(visitor);
@@ -8127,19 +8227,30 @@ abstract class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
   /// The name of the member being declared.
   SimpleIdentifierImpl _name;
 
-  /// Initialize a newly created compilation unit member with the given [name].
+  /// Initialize a newly created compilation unit member with the given [name2].
   /// Either or both of the [comment] and [metadata] can be `null` if the member
   /// does not have the corresponding attribute.
-  NamedCompilationUnitMemberImpl(super.comment, super.metadata, this._name) {
+  NamedCompilationUnitMemberImpl({
+    required super.comment,
+    required super.metadata,
+    required SimpleIdentifierImpl name,
+  }) : _name = name {
     _becomeParentOf(_name);
   }
 
+  @Deprecated('Use name2 instead')
   @override
-  SimpleIdentifierImpl get name => _name;
+  SimpleIdentifierImpl get name {
+    _name.staticElement = declaredElement;
+    return _name;
+  }
 
   set name(SimpleIdentifier identifier) {
     _name = _becomeParentOf(identifier as SimpleIdentifierImpl);
   }
+
+  @override
+  Token get name2 => _name.token;
 }
 
 /// An expression that has a name associated with it. They are used in method
@@ -8317,13 +8428,14 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   /// [comment] and [metadata] can be `null` if the directive does not have the
   /// corresponding attribute. The list of [combinators] can be `null` if there
   /// are no combinators.
-  NamespaceDirectiveImpl(
-      super.comment,
-      super.metadata,
-      super.libraryUri,
-      List<Configuration>? configurations,
-      List<Combinator>? combinators,
-      this.semicolon) {
+  NamespaceDirectiveImpl({
+    required super.comment,
+    required super.metadata,
+    required super.uri,
+    required List<Configuration>? configurations,
+    required List<Combinator>? combinators,
+    required this.semicolon,
+  }) {
     _configurations._initialize(this, configurations);
     _combinators._initialize(this, combinators);
   }
@@ -8603,8 +8715,12 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
     _comment = _becomeParentOf(comment as CommentImpl?);
   }
 
+  @Deprecated('Use name2 instead')
   @override
-  SimpleIdentifierImpl? get identifier => _identifier;
+  SimpleIdentifierImpl? get identifier {
+    _identifier?.staticElement = declaredElement;
+    return _identifier;
+  }
 
   set identifier(SimpleIdentifier? identifier) {
     _identifier = _becomeParentOf(identifier as SimpleIdentifierImpl?);
@@ -8626,6 +8742,9 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
     _metadata.clear();
     _metadata.addAll(metadata);
   }
+
+  @override
+  Token? get name => _identifier?.token;
 
   @override
   List<AstNode> get sortedCommentAndAnnotations {
@@ -8867,9 +8986,13 @@ class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
   /// Initialize a newly created part directive. Either or both of the [comment]
   /// and [metadata] can be `null` if the directive does not have the
   /// corresponding attribute.
-  PartDirectiveImpl(CommentImpl? comment, List<Annotation>? metadata,
-      this.partKeyword, StringLiteralImpl partUri, this.semicolon)
-      : super(comment, metadata, partUri);
+  PartDirectiveImpl({
+    required super.comment,
+    required super.metadata,
+    required this.partKeyword,
+    required super.uri,
+    required this.semicolon,
+  });
 
   @override
   PartElement? get element2 {
@@ -8934,8 +9057,16 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   /// Initialize a newly created part-of directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the directive does not have the
   /// corresponding attribute.
-  PartOfDirectiveImpl(super.comment, super.metadata, this.partKeyword,
-      this.ofKeyword, this._uri, this._libraryName, this.semicolon) {
+  PartOfDirectiveImpl({
+    required super.comment,
+    required super.metadata,
+    required this.partKeyword,
+    required this.ofKeyword,
+    required StringLiteralImpl? uri,
+    required LibraryIdentifierImpl? libraryName,
+    required this.semicolon,
+  })  : _uri = uri,
+        _libraryName = libraryName {
     _becomeParentOf(_uri);
     _becomeParentOf(_libraryName);
   }
@@ -9821,11 +9952,11 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
     } else if (_type != null) {
       return _type!.beginToken;
     }
-    return identifier!.beginToken;
+    return name!;
   }
 
   @override
-  Token get endToken => identifier?.endToken ?? type!.endToken;
+  Token get endToken => name ?? type!.endToken;
 
   @override
   bool get isConst => keyword?.keyword == Keyword.CONST;
@@ -9847,7 +9978,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   ChildEntities get _childEntities => super._childEntities
     ..addToken('keyword', keyword)
     ..addNode('type', type)
-    ..addNode('identifier', identifier);
+    ..addToken('name', name);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -9857,6 +9988,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _type?.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
     identifier?.accept(visitor);
   }
 }
@@ -10023,11 +10155,13 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
       }
     }
     if (parent is FieldFormalParameter) {
+      // ignore: deprecated_member_use_from_same_package
       if (identical(parent.identifier, target)) {
         return false;
       }
     }
     if (parent is VariableDeclaration) {
+      // ignore: deprecated_member_use_from_same_package
       if (identical(parent.name, target)) {
         return false;
       }
@@ -10652,9 +10786,10 @@ class SuperFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get endToken {
-    return question ?? _parameters?.endToken ?? identifier.endToken;
+    return question ?? _parameters?.endToken ?? name;
   }
 
+  @Deprecated('Use identifier2 instead')
   @override
   SimpleIdentifierImpl get identifier => super.identifier!;
 
@@ -10666,6 +10801,9 @@ class SuperFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   bool get isFinal => keyword?.keyword == Keyword.FINAL;
+
+  @override
+  Token get name => super.name!;
 
   @override
   FormalParameterListImpl? get parameters => _parameters;
@@ -10694,7 +10832,7 @@ class SuperFormalParameterImpl extends NormalFormalParameterImpl
     ..addNode('type', type)
     ..addToken('superKeyword', superKeyword)
     ..addToken('period', period)
-    ..addNode('identifier', identifier)
+    ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
     ..addNode('parameters', parameters);
 
@@ -10706,6 +10844,7 @@ class SuperFormalParameterImpl extends NormalFormalParameterImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _type?.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
     identifier.accept(visitor);
     _typeParameters?.accept(visitor);
     _parameters?.accept(visitor);
@@ -11068,8 +11207,13 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   /// Initialize a newly created top-level variable declaration. Either or both
   /// of the [comment] and [metadata] can be `null` if the variable does not
   /// have the corresponding attribute.
-  TopLevelVariableDeclarationImpl(super.comment, super.metadata,
-      this.externalKeyword, this._variableList, this.semicolon) {
+  TopLevelVariableDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.externalKeyword,
+    required VariableDeclarationListImpl variableList,
+    required this.semicolon,
+  }) : _variableList = variableList {
     _becomeParentOf(_variableList);
   }
 
@@ -11215,9 +11359,13 @@ abstract class TypeAliasImpl extends NamedCompilationUnitMemberImpl
   /// Initialize a newly created type alias. Either or both of the [comment] and
   /// [metadata] can be `null` if the declaration does not have the
   /// corresponding attribute.
-  TypeAliasImpl(CommentImpl? comment, List<Annotation>? metadata,
-      this.typedefKeyword, SimpleIdentifierImpl name, this.semicolon)
-      : super(comment, metadata, name);
+  TypeAliasImpl({
+    required super.comment,
+    required super.metadata,
+    required this.typedefKeyword,
+    required super.name,
+    required this.semicolon,
+  });
 
   @override
   Token get endToken => semicolon;
@@ -11402,12 +11550,22 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   /// explicit upper bound.
   TypeAnnotationImpl? _bound;
 
+  @override
+  TypeParameterElement? declaredElement;
+
   /// Initialize a newly created type parameter. Either or both of the [comment]
   /// and [metadata] can be `null` if the parameter does not have the
   /// corresponding attribute. The [extendsKeyword] and [bound] can be `null` if
   /// the parameter does not have an upper bound.
-  TypeParameterImpl(super.comment, super.metadata, this._name,
-      this.extendsKeyword, this._bound) {
+  TypeParameterImpl({
+    required super.comment,
+    required super.metadata,
+    required SimpleIdentifierImpl name,
+    required this.extendsKeyword,
+    required TypeAnnotationImpl? bound,
+    this.varianceKeyword,
+  })  : _name = name,
+        _bound = bound {
     _becomeParentOf(_name);
     _becomeParentOf(_bound);
   }
@@ -11420,10 +11578,6 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   }
 
   @override
-  TypeParameterElement? get declaredElement =>
-      _name.staticElement as TypeParameterElement?;
-
-  @override
   Token get endToken {
     if (_bound == null) {
       return _name.endToken;
@@ -11434,6 +11588,7 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @override
   Token get firstTokenAfterCommentAndMetadata => _name.beginToken;
 
+  @Deprecated('Use name2 instead')
   @override
   SimpleIdentifierImpl get name => _name;
 
@@ -11442,8 +11597,11 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   }
 
   @override
+  Token get name2 => _name.token;
+
+  @override
   ChildEntities get _childEntities => super._childEntities
-    ..addNode('name', name)
+    ..addToken('name', name2)
     ..addToken('extendsKeyword', extendsKeyword)
     ..addNode('bound', bound);
 
@@ -11453,7 +11611,8 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _name.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _bound?.accept(visitor);
   }
 }
@@ -11526,7 +11685,11 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
   /// Initialize a newly create URI-based directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the directive does not have the
   /// corresponding attribute.
-  UriBasedDirectiveImpl(super.comment, super.metadata, this._uri) {
+  UriBasedDirectiveImpl({
+    required super.comment,
+    required super.metadata,
+    required StringLiteralImpl uri,
+  }) : _uri = uri {
     _becomeParentOf(_uri);
   }
 
@@ -11606,6 +11769,9 @@ class VariableDeclarationImpl extends DeclarationImpl
   /// The name of the variable being declared.
   SimpleIdentifierImpl _name;
 
+  @override
+  VariableElement? declaredElement;
+
   /// The equal sign separating the variable name from the initial value, or
   /// `null` if the initial value was not specified.
   @override
@@ -11623,15 +11789,16 @@ class VariableDeclarationImpl extends DeclarationImpl
 
   /// Initialize a newly created variable declaration. The [equals] and
   /// [initializer] can be `null` if there is no initializer.
-  VariableDeclarationImpl(this._name, this.equals, this._initializer)
-      : super(null, null) {
+  VariableDeclarationImpl({
+    required SimpleIdentifierImpl name,
+    required this.equals,
+    required ExpressionImpl? initializer,
+  })  : _name = name,
+        _initializer = initializer,
+        super(comment: null, metadata: null) {
     _becomeParentOf(_name);
     _becomeParentOf(_initializer);
   }
-
-  @override
-  VariableElement? get declaredElement =>
-      _name.staticElement as VariableElement?;
 
   /// This overridden implementation of [documentationComment] looks in the
   /// grandparent node for Dartdoc comments if no documentation is specifically
@@ -11684,16 +11851,23 @@ class VariableDeclarationImpl extends DeclarationImpl
     return parent is VariableDeclarationList && parent.isLate;
   }
 
+  @Deprecated('Use name2 instead')
   @override
-  SimpleIdentifierImpl get name => _name;
+  SimpleIdentifierImpl get name {
+    _name.staticElement = declaredElement;
+    return _name;
+  }
 
   set name(SimpleIdentifier identifier) {
     _name = _becomeParentOf(identifier as SimpleIdentifierImpl);
   }
 
   @override
+  Token get name2 => _name.token;
+
+  @override
   ChildEntities get _childEntities => super._childEntities
-    ..addNode('name', name)
+    ..addToken('name', name2)
     ..addToken('equals', equals)
     ..addNode('initializer', initializer);
 
@@ -11703,7 +11877,8 @@ class VariableDeclarationImpl extends DeclarationImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _name.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _initializer?.accept(visitor);
   }
 }
@@ -11742,8 +11917,14 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   /// the [comment] and [metadata] can be `null` if the variable list does not
   /// have the corresponding attribute. The [keyword] can be `null` if a type
   /// was specified. The [type] must be `null` if the keyword is 'var'.
-  VariableDeclarationListImpl(super.comment, super.metadata, this.lateKeyword,
-      this.keyword, this._type, List<VariableDeclaration> variables) {
+  VariableDeclarationListImpl({
+    required super.comment,
+    required super.metadata,
+    required this.lateKeyword,
+    required this.keyword,
+    required TypeAnnotationImpl? type,
+    required List<VariableDeclaration> variables,
+  }) : _type = type {
     _becomeParentOf(_type);
     _variables._initialize(this, variables);
   }

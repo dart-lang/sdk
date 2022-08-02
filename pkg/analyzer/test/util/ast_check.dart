@@ -81,13 +81,6 @@ extension EnumConstantDeclarationExtension
       (selected) => 'has arguments ${valueStr(selected)}',
     );
   }
-
-  CheckTarget<SimpleIdentifier> get name {
-    return nest(
-      value.name,
-      (selected) => 'has name ${valueStr(selected)}',
-    );
-  }
 }
 
 extension EnumDeclarationExtension on CheckTarget<EnumDeclaration> {
@@ -95,15 +88,6 @@ extension EnumDeclarationExtension on CheckTarget<EnumDeclaration> {
     return nest(
       value.semicolon,
       (selected) => 'has semicolon ${valueStr(selected)}',
-    );
-  }
-}
-
-extension FormalParameterExtension on CheckTarget<FormalParameter> {
-  CheckTarget<SimpleIdentifier?> get identifier {
-    return nest(
-      value.identifier,
-      (selected) => 'has identifier ${valueStr(selected)}',
     );
   }
 }
@@ -147,13 +131,6 @@ extension SimpleIdentifierExtension on CheckTarget<SimpleIdentifier> {
 }
 
 extension SuperFormalParameterExtension on CheckTarget<SuperFormalParameter> {
-  CheckTarget<SimpleIdentifier> get identifier {
-    return nest(
-      value.identifier,
-      (selected) => 'has identifier ${valueStr(selected)}',
-    );
-  }
-
   CheckTarget<Token?> get keyword {
     return nest(
       value.keyword,

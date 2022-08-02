@@ -847,7 +847,7 @@ class ResolutionSink extends _SummaryDataWriter {
       return const [];
     }
 
-    var enclosing = declaration.enclosingElement2;
+    var enclosing = declaration.enclosingElement3;
     if (enclosing is TypeParameterizedElement) {
       if (enclosing is! ClassElement && enclosing is! ExtensionElement) {
         return const <DartType>[];

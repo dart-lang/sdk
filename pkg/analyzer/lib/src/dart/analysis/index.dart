@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -18,7 +19,7 @@ Element? declaredParameterElement(
   SimpleIdentifier node,
   Element? element,
 ) {
-  if (element == null || element.enclosingElement2 != null) {
+  if (element == null || element.enclosingElement3 != null) {
     return element;
   }
 
@@ -63,7 +64,7 @@ Element? declaredParameterElement(
 /// Return the [CompilationUnitElement] that should be used for [element].
 /// Throw [StateError] if the [element] is not linked into a unit.
 CompilationUnitElement getUnitElement(Element element) {
-  for (Element? e = element; e != null; e = e.enclosingElement2) {
+  for (Element? e = element; e != null; e = e.enclosingElement3) {
     if (e is CompilationUnitElement) {
       return e;
     }
@@ -88,21 +89,21 @@ class ElementNameComponents {
     String? parameterName;
     if (element is ParameterElement) {
       parameterName = element.name;
-      element = element.enclosingElement2!;
+      element = element.enclosingElement3!;
     }
 
     String? classMemberName;
-    if (element.enclosingElement2 is ClassElement ||
-        element.enclosingElement2 is ExtensionElement) {
+    if (element.enclosingElement3 is ClassElement ||
+        element.enclosingElement3 is ExtensionElement) {
       classMemberName = element.name;
-      element = element.enclosingElement2!;
+      element = element.enclosingElement3!;
     }
 
     String? unitMemberName;
-    if (element.enclosingElement2 is CompilationUnitElement) {
+    if (element.enclosingElement3 is CompilationUnitElement) {
       unitMemberName = element.name;
       if (element is ExtensionElement && unitMemberName == null) {
-        var enclosingUnit = element.enclosingElement2;
+        var enclosingUnit = element.enclosingElement3;
         var indexOf = enclosingUnit.extensions.indexOf(element);
         unitMemberName = 'extension-$indexOf';
       }
@@ -139,7 +140,7 @@ class IndexElementInfo {
     } else if (element.isSynthetic) {
       if (elementKind == ElementKind.CONSTRUCTOR) {
         kind = IndexSyntheticElementKind.constructor;
-        element = element.enclosingElement2!;
+        element = element.enclosingElement3!;
       } else if (element is FunctionElement &&
           element.name == FunctionElement.LOAD_LIBRARY_NAME) {
         kind = IndexSyntheticElementKind.loadLibrary;
@@ -151,7 +152,7 @@ class IndexElementInfo {
       } else if (elementKind == ElementKind.GETTER ||
           elementKind == ElementKind.SETTER) {
         var accessor = element as PropertyAccessorElement;
-        Element enclosing = element.enclosingElement2;
+        Element enclosing = element.enclosingElement3;
         bool isEnumGetter = enclosing is ClassElement && enclosing.isEnum;
         if (isEnumGetter && accessor.name == 'index') {
           kind = IndexSyntheticElementKind.enumIndex;
@@ -166,7 +167,7 @@ class IndexElementInfo {
           element = accessor.variable;
         }
       } else if (element is MethodElement) {
-        Element enclosing = element.enclosingElement2;
+        Element enclosing = element.enclosingElement3;
         bool isEnumMethod = enclosing is ClassElement && enclosing.isEnum;
         if (isEnumMethod && element.name == 'toString') {
           kind = IndexSyntheticElementKind.enumToString;
@@ -464,8 +465,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// of the given [node].  The flag [isQualified] is `true` if [node] has an
   /// explicit or implicit qualifier, so cannot be shadowed by a local
   /// declaration.
-  void recordRelation(Element? element, IndexRelationKind kind, AstNode node,
-      bool isQualified) {
+  void recordRelation(Element? element, IndexRelationKind kind,
+      SyntacticEntity node, bool isQualified) {
     if (element != null) {
       recordRelationOffset(
           element, kind, node.offset, node.length, isQualified);
@@ -491,14 +492,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
         elementKind == ElementKind.TYPE_PARAMETER ||
         elementKind == ElementKind.FUNCTION &&
             element is FunctionElement &&
-            element.enclosingElement2 is ExecutableElement ||
+            element.enclosingElement3 is ExecutableElement ||
         false) {
       return;
     }
     // Ignore named parameters of synthetic functions, e.g. created for LUB.
     // These functions are not bound to a source, we cannot index them.
     if (elementKind == ElementKind.PARAMETER && element is ParameterElement) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement == null || enclosingElement.isSynthetic) {
         return;
       }
@@ -508,7 +509,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // named parameters. Ignore them.
     if (elementKind == ElementKind.PARAMETER &&
         element is ParameterElement &&
-        element.enclosingElement2 is GenericFunctionTypeElement) {
+        element.enclosingElement3 is GenericFunctionTypeElement) {
       return;
     }
     // Add the relation.
@@ -564,7 +565,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     if (node.extendsClause == null) {
       ClassElement? objectElement = declaredElement.supertype?.element;
       recordRelationOffset(objectElement, IndexRelationKind.IS_EXTENDED_BY,
-          node.name.offset, 0, true);
+          node.name2.offset, 0, true);
     }
     recordIsAncestorOf(declaredElement);
     super.visitClassDeclaration(node);
@@ -654,7 +655,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         offset = constructorSelector.period.offset;
         length = constructorSelector.name.end - offset;
       } else {
-        offset = node.name.end;
+        offset = node.name2.end;
         length = 0;
       }
       recordRelationOffset(
@@ -674,7 +675,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     _addSubtype(
-      node.name.name,
+      node.name2.lexeme,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
       memberNodes: node.members,
@@ -713,8 +714,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     if (element is FieldFormalParameterElement) {
       var field = element.field;
       if (field != null) {
-        recordRelation(
-            field, IndexRelationKind.IS_WRITTEN_BY, node.identifier, true);
+        recordRelation(field, IndexRelationKind.IS_WRITTEN_BY, node.name, true);
       }
     }
 
@@ -861,11 +861,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
     // this.field parameter
     if (element is FieldFormalParameterElement) {
-      AstNode parent = node.parent!;
-      IndexRelationKind kind =
-          parent is FieldFormalParameter && parent.identifier == node
-              ? IndexRelationKind.IS_WRITTEN_BY
-              : IndexRelationKind.IS_REFERENCED_BY;
+      IndexRelationKind kind = IndexRelationKind.IS_REFERENCED_BY;
       recordRelation(element.field, kind, node, true);
       return;
     }
@@ -901,7 +897,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       var superParameter = element.superConstructorParameter;
       if (superParameter != null) {
         recordRelation(superParameter, IndexRelationKind.IS_REFERENCED_BY,
-            node.identifier, true);
+            node.name, true);
       }
     }
 
@@ -943,8 +939,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     onClause?.superclassConstraints.forEach(addSupertype);
     implementsClause?.interfaces.forEach(addSupertype);
 
-    void addMemberName(SimpleIdentifier identifier) {
-      String name = identifier.name;
+    void addMemberName(Token identifier) {
+      String name = identifier.lexeme;
       if (name.isNotEmpty) {
         members.add(name);
       }
@@ -952,10 +948,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
     for (ClassMember member in memberNodes) {
       if (member is MethodDeclaration && !member.isStatic) {
-        addMemberName(member.name);
+        addMemberName(member.name2);
       } else if (member is FieldDeclaration && !member.isStatic) {
         for (var field in member.fields.variables) {
-          addMemberName(field.name);
+          addMemberName(field.name2);
         }
       }
     }
@@ -968,7 +964,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassDeclaration(ClassDeclaration node) {
-    _addSubtype(node.name.name,
+    _addSubtype(node.name2.lexeme,
         superclass: node.extendsClause?.superclass,
         withClause: node.withClause,
         implementsClause: node.implementsClause,
@@ -977,7 +973,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassTypeAlis(ClassTypeAlias node) {
-    _addSubtype(node.name.name,
+    _addSubtype(node.name2.lexeme,
         superclass: node.superclass,
         withClause: node.withClause,
         implementsClause: node.implementsClause,
@@ -986,7 +982,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   /// Record the given mixin as a subclass of its direct superclasses.
   void _addSubtypeForMixinDeclaration(MixinDeclaration node) {
-    _addSubtype(node.name.name,
+    _addSubtype(node.name2.lexeme,
         onClause: node.onClause,
         implementsClause: node.implementsClause,
         memberNodes: node.members);
@@ -999,8 +995,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
       ConstructorElement? constructor) {
     var seenConstructors = <ConstructorElement?>{};
     while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
-      var enclosing = constructor.enclosingElement2;
-      if (enclosing.isMixinApplication) {
+      var enclosing = constructor.enclosingElement3;
+      if (enclosing is ClassElement && enclosing.isMixinApplication) {
         var superInvocation = constructor.constantInitializers
             .whereType<SuperConstructorInvocation>()
             .singleOrNull;

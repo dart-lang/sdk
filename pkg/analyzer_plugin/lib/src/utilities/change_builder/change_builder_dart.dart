@@ -121,7 +121,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       {ArgumentList? argumentList,
       void Function()? bodyWriter,
       String? classNameGroupName,
-      SimpleIdentifier? constructorName,
+      String? constructorName,
       String? constructorNameGroupName,
       List<String>? fieldNames,
       void Function()? initializerWriter,
@@ -139,9 +139,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (constructorName != null) {
       write('.');
       if (constructorNameGroupName == null) {
-        write(constructorName.name);
+        write(constructorName);
       } else {
-        addSimpleLinkedEdit(constructorNameGroupName, constructorName.name);
+        addSimpleLinkedEdit(constructorNameGroupName, constructorName);
       }
     }
     write('(');
@@ -693,7 +693,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeReference(Element element) {
-    if (element.enclosingElement2 is CompilationUnitElement) {
+    if (element.enclosingElement3 is CompilationUnitElement) {
       _writeLibraryReference(element);
     }
     write(element.displayName);
@@ -1112,10 +1112,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type is TypeParameterType) {
       _initializeEnclosingElements();
       var element = type.element;
-      var enclosing = element.enclosingElement2;
+      var enclosing = element.enclosingElement3;
       while (enclosing is GenericFunctionTypeElement ||
           enclosing is ParameterElement) {
-        enclosing = enclosing!.enclosingElement2;
+        enclosing = enclosing!.enclosingElement3;
       }
       if (enclosing == _enclosingExecutable ||
           enclosing == _enclosingClass ||

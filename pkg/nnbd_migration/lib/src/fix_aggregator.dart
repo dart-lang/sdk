@@ -1181,7 +1181,7 @@ class NodeChangeForSimpleFormalParameter
           AtomicEditInfo(NullabilityFixDescription.addType(typeText), {});
       // Skip past the offset of any metadata, a potential `final` keyword, and
       // a potential `covariant` keyword.
-      var offset = node.type?.offset ?? node.identifier!.offset;
+      var offset = node.type?.offset ?? node.name!.offset;
       return aggregator.planner.passThrough(node, innerPlans: [
         aggregator.planner.insertText(node, offset,
             [AtomicEdit.insert(typeText, info: info), AtomicEdit.insert(' ')]),

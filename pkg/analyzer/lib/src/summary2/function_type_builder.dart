@@ -150,7 +150,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   ) {
     return node.parameters.asImpl.map((parameter) {
       return ParameterElementImpl.synthetic(
-        parameter.identifier?.name ?? '',
+        parameter.name?.lexeme ?? '',
         _getParameterType(isNNBD, parameter),
         parameter.kind,
       );

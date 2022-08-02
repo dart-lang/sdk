@@ -241,7 +241,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     if (declaredElement != null &&
         visibilityTracker._isVisible(declaredElement) &&
         opType.includeReturnValueSuggestions &&
-        declaration.name != null) {
+        declaration.name2 != null) {
       builder.suggestExtension(declaredElement, kind: _defaultKind);
     }
   }
@@ -259,7 +259,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           .thisOrAncestorOfType<ClassDeclaration>();
       var enclosingElement = enclosingClass?.declaredElement;
       if (enclosingElement != null) {
-        var enclosingElement = field.enclosingElement2;
+        var enclosingElement = field.enclosingElement3;
         if (enclosingElement is ClassElement) {
           inheritanceDistance = request.featureComputer
               .inheritanceDistanceFeature(enclosingElement, enclosingElement);
@@ -316,10 +316,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation? type) {
-    if (visibilityTracker._isVisible(name.staticElement) &&
+  void declaredLocalVar(
+    Token name,
+    TypeAnnotation? type,
+    LocalVariableElement declaredElement,
+  ) {
+    if (visibilityTracker._isVisible(declaredElement) &&
         opType.includeReturnValueSuggestions) {
-      builder.suggestLocalVariable(name.staticElement as LocalVariableElement);
+      builder.suggestLocalVariable(declaredElement);
     }
   }
 
@@ -334,7 +338,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       var enclosingClass = request.target.containingNode
           .thisOrAncestorOfType<ClassDeclaration>();
       if (enclosingClass != null) {
-        var enclosingElement = element?.enclosingElement2;
+        var enclosingElement = element?.enclosingElement3;
         if (enclosingElement is ClassElement) {
           inheritanceDistance = request.featureComputer
               .inheritanceDistanceFeature(

@@ -120,7 +120,7 @@ class AddTypeAnnotation extends CorrectionProducer {
       return;
     }
     await _applyChange(builder, declaredIdentifier.keyword,
-        declaredIdentifier.identifier.offset, type);
+        declaredIdentifier.name.offset, type);
   }
 
   Future<void> _forSimpleFormalParameter(ChangeBuilder builder,
@@ -150,7 +150,7 @@ class AddTypeAnnotation extends CorrectionProducer {
     final variables = declarationList.variables;
     final variable = variables[0];
     // Ensure that the selection is not after the name of the variable.
-    if (selectionOffset > variable.name.end) {
+    if (selectionOffset > variable.name2.end) {
       return;
     }
     // Ensure that there is an initializer to get the type from.

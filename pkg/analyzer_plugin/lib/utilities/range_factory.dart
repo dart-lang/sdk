@@ -117,6 +117,11 @@ class RangeFactory {
     return SourceRange(offset, length);
   }
 
+  /// Return a source range that covers the same range as the given [node].
+  SourceRange entity(SyntacticEntity node) {
+    return SourceRange(node.offset, node.length);
+  }
+
   /// Return a source range that covers the same range as the given [error].
   SourceRange error(AnalysisError error) {
     return SourceRange(error.offset, error.length);

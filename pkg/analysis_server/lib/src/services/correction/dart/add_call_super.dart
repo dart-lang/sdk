@@ -48,7 +48,7 @@ class AddCallSuper extends CorrectionProducer {
     var parameters = methodDeclaration.parameters?.parameters;
     var argumentList = parameters
             ?.map((p) {
-              var name = p.identifier?.name;
+              var name = p.name?.lexeme;
               if (overriddenParameters.contains(name)) {
                 return p.isNamed ? '$name: $name' : name;
               }
