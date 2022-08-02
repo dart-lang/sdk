@@ -306,7 +306,7 @@ typedef TextDocumentSignatureHelpResult = SignatureHelp?;
 
 /// Result for a request to resolve the type definition locations of a symbol at
 /// a given text document position. The request's parameter is of type
-/// TextDocumentPositionParams the response is of type Definition or a Thenable
+/// TextDocumentPositioParams the response is of type Definition or a Thenable
 /// that resolves to such.
 typedef TextDocumentTypeDefinitionResult
     = Either2<Definition, List<DefinitionLink>>?;
@@ -21955,7 +21955,7 @@ class PreviousResultId implements ToJsonable {
     );
   }
 
-  /// The URI for which the client knows a result id.
+  /// The URI for which the client knowns a result id.
   final DocumentUri uri;
 
   /// The value of the previous result id.
