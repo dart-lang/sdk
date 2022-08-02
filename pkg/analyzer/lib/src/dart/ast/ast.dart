@@ -95,7 +95,10 @@ abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
   /// Initialize a newly created annotated node. Either or both of the [comment]
   /// and [metadata] can be `null` if the node does not have the corresponding
   /// attribute.
-  AnnotatedNodeImpl(this._comment, List<Annotation>? metadata) {
+  AnnotatedNodeImpl({
+    required CommentImpl? comment,
+    required List<Annotation>? metadata,
+  }) : _comment = comment {
     _becomeParentOf(_comment);
     _metadata._initialize(this, metadata);
   }
@@ -893,13 +896,13 @@ class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
   Token semicolon;
 
   AugmentationImportDirectiveImpl({
-    required CommentImpl? comment,
-    required List<Annotation>? metadata,
+    required super.comment,
+    required super.metadata,
     required this.importKeyword,
     required this.augmentKeyword,
     required this.semicolon,
-    required StringLiteralImpl uri,
-  }) : super(comment, metadata, uri) {
+    required super.uri,
+  }) {
     _becomeParentOf(_uri);
   }
 
@@ -1689,23 +1692,23 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
   /// and [implementsClause] can be `null` if the class does not have the
   /// corresponding clause. The list of [members] can be `null` if the class
   /// does not have any members.
-  ClassDeclarationImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      this.abstractKeyword,
-      this.macroKeyword,
-      this.augmentKeyword,
-      this.classKeyword,
-      SimpleIdentifierImpl name,
-      TypeParameterListImpl? typeParameters,
-      this._extendsClause,
-      this._withClause,
-      ImplementsClauseImpl? implementsClause,
-      Token leftBracket,
-      List<ClassMember> members,
-      Token rightBracket)
-      : super(comment, metadata, name, typeParameters, implementsClause,
-            leftBracket, members, rightBracket) {
+  ClassDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.abstractKeyword,
+    required this.macroKeyword,
+    required this.augmentKeyword,
+    required this.classKeyword,
+    required super.name,
+    required super.typeParameters,
+    required ExtendsClauseImpl? extendsClause,
+    required WithClauseImpl? withClause,
+    required super.implementsClause,
+    required super.leftBracket,
+    required super.members,
+    required super.rightBracket,
+  })  : _extendsClause = extendsClause,
+        _withClause = withClause {
     _becomeParentOf(_extendsClause);
     _becomeParentOf(_withClause);
   }
@@ -1798,7 +1801,10 @@ abstract class ClassMemberImpl extends DeclarationImpl implements ClassMember {
   /// Initialize a newly created member of a class. Either or both of the
   /// [comment] and [metadata] can be `null` if the member does not have the
   /// corresponding attribute.
-  ClassMemberImpl(super.comment, super.metadata);
+  ClassMemberImpl({
+    required super.comment,
+    required super.metadata,
+  });
 }
 
 abstract class ClassOrMixinDeclarationImpl
@@ -1822,15 +1828,17 @@ abstract class ClassOrMixinDeclarationImpl
   @override
   Token rightBracket;
 
-  ClassOrMixinDeclarationImpl(
-      super.comment,
-      super.metadata,
-      super.name,
-      this._typeParameters,
-      this._implementsClause,
-      this.leftBracket,
-      List<ClassMember> members,
-      this.rightBracket) {
+  ClassOrMixinDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required super.name,
+    required TypeParameterListImpl? typeParameters,
+    required ImplementsClauseImpl? implementsClause,
+    required this.leftBracket,
+    required List<ClassMember> members,
+    required this.rightBracket,
+  })  : _typeParameters = typeParameters,
+        _implementsClause = implementsClause {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_implementsClause);
     _members._initialize(this, members);
@@ -1945,21 +1953,24 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   /// the class does not have any type parameters. The [abstractKeyword] can be
   /// `null` if the class is not abstract. The [implementsClause] can be `null`
   /// if the class does not implement any interfaces.
-  ClassTypeAliasImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      Token keyword,
-      SimpleIdentifierImpl name,
-      this._typeParameters,
-      this.equals,
-      this.abstractKeyword,
-      this.macroKeyword,
-      this.augmentKeyword,
-      this._superclass,
-      this._withClause,
-      this._implementsClause,
-      Token semicolon)
-      : super(comment, metadata, keyword, name, semicolon) {
+  ClassTypeAliasImpl({
+    required super.comment,
+    required super.metadata,
+    required super.typedefKeyword,
+    required super.name,
+    required TypeParameterListImpl? typeParameters,
+    required this.equals,
+    required this.abstractKeyword,
+    required this.macroKeyword,
+    required this.augmentKeyword,
+    required NamedTypeImpl superclass,
+    required WithClauseImpl withClause,
+    required ImplementsClauseImpl? implementsClause,
+    required super.semicolon,
+  })  : _typeParameters = typeParameters,
+        _superclass = superclass,
+        _withClause = withClause,
+        _implementsClause = implementsClause {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_superclass);
     _becomeParentOf(_withClause);
@@ -2411,7 +2422,10 @@ abstract class CompilationUnitMemberImpl extends DeclarationImpl
   /// Initialize a newly created generic compilation unit member. Either or both
   /// of the [comment] and [metadata] can be `null` if the member does not have
   /// the corresponding attribute.
-  CompilationUnitMemberImpl(super.comment, super.metadata);
+  CompilationUnitMemberImpl({
+    required super.comment,
+    required super.metadata,
+  });
 }
 
 mixin CompoundAssignmentExpressionImpl implements CompoundAssignmentExpression {
@@ -2710,20 +2724,25 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   /// initializers. The [redirectedConstructor] can be `null` if the constructor
   /// does not redirect to a different constructor. The [body] can be `null` if
   /// the constructor does not have a body.
-  ConstructorDeclarationImpl(
-      super.comment,
-      super.metadata,
-      this.externalKeyword,
-      this.constKeyword,
-      this.factoryKeyword,
-      this._returnType,
-      this.period,
-      this._name,
-      this._parameters,
-      this.separator,
-      List<ConstructorInitializer>? initializers,
-      this._redirectedConstructor,
-      this._body) {
+  ConstructorDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.externalKeyword,
+    required this.constKeyword,
+    required this.factoryKeyword,
+    required IdentifierImpl returnType,
+    required this.period,
+    required SimpleIdentifierImpl? name,
+    required FormalParameterListImpl parameters,
+    required this.separator,
+    required List<ConstructorInitializer>? initializers,
+    required ConstructorNameImpl? redirectedConstructor,
+    required FunctionBodyImpl body,
+  })  : _returnType = returnType,
+        _name = name,
+        _parameters = parameters,
+        _redirectedConstructor = redirectedConstructor,
+        _body = body {
     _becomeParentOf(_returnType);
     _becomeParentOf(_name);
     _becomeParentOf(_parameters);
@@ -3132,7 +3151,10 @@ abstract class DeclarationImpl extends AnnotatedNodeImpl
   /// Initialize a newly created declaration. Either or both of the [comment]
   /// and [metadata] can be `null` if the declaration does not have the
   /// corresponding attribute.
-  DeclarationImpl(super.comment, super.metadata);
+  DeclarationImpl({
+    required super.comment,
+    required super.metadata,
+  });
 }
 
 /// The declaration of a single identifier.
@@ -3160,8 +3182,14 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   /// [comment] and [metadata] can be `null` if the declaration does not have
   /// the corresponding attribute. The [keyword] can be `null` if a type name is
   /// given. The [type] must be `null` if the keyword is 'var'.
-  DeclaredIdentifierImpl(super.comment, super.metadata, this.keyword,
-      this._type, this._identifier) {
+  DeclaredIdentifierImpl({
+    required super.comment,
+    required super.metadata,
+    required this.keyword,
+    required TypeAnnotationImpl? type,
+    required SimpleIdentifierImpl identifier,
+  })  : _type = type,
+        _identifier = identifier {
     _becomeParentOf(_type);
     _becomeParentOf(_identifier);
   }
@@ -3357,7 +3385,10 @@ abstract class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   /// Initialize a newly create directive. Either or both of the [comment] and
   /// [metadata] can be `null` if the directive does not have the corresponding
   /// attribute.
-  DirectiveImpl(super.comment, super.metadata);
+  DirectiveImpl({
+    required super.comment,
+    required super.metadata,
+  });
 
   @Deprecated('Use element2 instead')
   @override
@@ -3674,12 +3705,11 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   /// the [documentationComment] and [metadata] can be `null` if the constant
   /// does not have the corresponding attribute.
   EnumConstantDeclarationImpl({
-    required CommentImpl? documentationComment,
-    required List<Annotation>? metadata,
+    required super.comment,
+    required super.metadata,
     required SimpleIdentifierImpl name,
     required this.arguments,
-  })  : _name = name,
-        super(documentationComment, metadata) {
+  }) : _name = name {
     _becomeParentOf(_name);
     _becomeParentOf(arguments);
   }
@@ -3770,20 +3800,22 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   /// [comment] and [metadata] can be `null` if the declaration does not have
   /// the corresponding attribute. The list of [constants] must contain at least
   /// one value.
-  EnumDeclarationImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      this.enumKeyword,
-      SimpleIdentifierImpl name,
-      this._typeParameters,
-      this._withClause,
-      this._implementsClause,
-      this.leftBracket,
-      List<EnumConstantDeclaration> constants,
-      this.semicolon,
-      List<ClassMember> members,
-      this.rightBracket)
-      : super(comment, metadata, name) {
+  EnumDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.enumKeyword,
+    required super.name,
+    required TypeParameterListImpl? typeParameters,
+    required WithClauseImpl? withClause,
+    required ImplementsClauseImpl? implementsClause,
+    required this.leftBracket,
+    required List<EnumConstantDeclaration> constants,
+    required this.semicolon,
+    required List<ClassMember> members,
+    required this.rightBracket,
+  })  : _typeParameters = typeParameters,
+        _withClause = withClause,
+        _implementsClause = implementsClause {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_withClause);
     _becomeParentOf(_implementsClause);
@@ -3877,14 +3909,15 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
   /// [comment] and [metadata] can be `null` if the directive does not have the
   /// corresponding attribute. The list of [combinators] can be `null` if there
   /// are no combinators.
-  ExportDirectiveImpl(
-      super.comment,
-      super.metadata,
-      this.exportKeyword,
-      super.libraryUri,
-      super.configurations,
-      super.combinators,
-      super.semicolon);
+  ExportDirectiveImpl({
+    required super.comment,
+    required super.metadata,
+    required this.exportKeyword,
+    required super.uri,
+    required super.configurations,
+    required super.combinators,
+    required super.semicolon,
+  });
 
   @Deprecated('Use element2 instead')
   @override
@@ -4283,20 +4316,25 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   ExtensionElement? _declaredElement;
 
-  ExtensionDeclarationImpl(
-      super.comment,
-      super.metadata,
-      this.extensionKeyword,
-      this.typeKeyword,
-      this._name,
-      this._typeParameters,
-      this.onKeyword,
-      this._extendedType,
-      this._showClause,
-      this._hideClause,
-      this.leftBracket,
-      List<ClassMember> members,
-      this.rightBracket) {
+  ExtensionDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.extensionKeyword,
+    required this.typeKeyword,
+    required SimpleIdentifierImpl? name,
+    required TypeParameterListImpl? typeParameters,
+    required this.onKeyword,
+    required TypeAnnotationImpl extendedType,
+    required ShowClauseImpl? showClause,
+    required HideClauseImpl? hideClause,
+    required this.leftBracket,
+    required List<ClassMember> members,
+    required this.rightBracket,
+  })  : _name = name,
+        _typeParameters = typeParameters,
+        _extendedType = extendedType,
+        _showClause = showClause,
+        _hideClause = hideClause {
     _becomeParentOf(_name);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_extendedType);
@@ -4519,16 +4557,17 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   /// [comment] and [metadata] can be `null` if the declaration does not have
   /// the corresponding attribute. The [staticKeyword] can be `null` if the
   /// field is not a static field.
-  FieldDeclarationImpl(
-      super.comment,
-      super.metadata,
-      this.abstractKeyword,
-      this.augmentKeyword,
-      this.covariantKeyword,
-      this.externalKeyword,
-      this.staticKeyword,
-      this._fieldList,
-      this.semicolon) {
+  FieldDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.abstractKeyword,
+    required this.augmentKeyword,
+    required this.covariantKeyword,
+    required this.externalKeyword,
+    required this.staticKeyword,
+    required VariableDeclarationListImpl fieldList,
+    required this.semicolon,
+  }) : _fieldList = fieldList {
     _becomeParentOf(_fieldList);
   }
 
@@ -5375,16 +5414,17 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   /// function is not an external function. The [returnType] can be `null` if no
   /// return type was specified. The [propertyKeyword] can be `null` if the
   /// function is neither a getter or a setter.
-  FunctionDeclarationImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      this.augmentKeyword,
-      this.externalKeyword,
-      this._returnType,
-      this.propertyKeyword,
-      SimpleIdentifierImpl name,
-      this._functionExpression)
-      : super(comment, metadata, name) {
+  FunctionDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.augmentKeyword,
+    required this.externalKeyword,
+    required TypeAnnotationImpl? returnType,
+    required this.propertyKeyword,
+    required super.name,
+    required FunctionExpressionImpl functionExpression,
+  })  : _returnType = returnType,
+        _functionExpression = functionExpression {
     _becomeParentOf(_returnType);
     _becomeParentOf(_functionExpression);
   }
@@ -5735,16 +5775,18 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
   /// corresponding attribute. The [returnType] can be `null` if no return type
   /// was specified. The [typeParameters] can be `null` if the function has no
   /// type parameters.
-  FunctionTypeAliasImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      Token keyword,
-      this._returnType,
-      SimpleIdentifierImpl name,
-      this._typeParameters,
-      this._parameters,
-      Token semicolon)
-      : super(comment, metadata, keyword, name, semicolon) {
+  FunctionTypeAliasImpl({
+    required super.comment,
+    required super.metadata,
+    required super.typedefKeyword,
+    required TypeAnnotationImpl? returnType,
+    required super.name,
+    required TypeParameterListImpl? typeParameters,
+    required FormalParameterListImpl parameters,
+    required super.semicolon,
+  })  : _returnType = returnType,
+        _typeParameters = typeParameters,
+        _parameters = parameters {
     _becomeParentOf(_returnType);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
@@ -6050,16 +6092,17 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
   /// [comment] and [metadata] can be `null` if the variable list does not have
   /// the corresponding attribute. The [typeParameters] can be `null` if there
   /// are no type parameters.
-  GenericTypeAliasImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      Token typedefToken,
-      SimpleIdentifierImpl name,
-      this._typeParameters,
-      this.equals,
-      this._type,
-      Token semicolon)
-      : super(comment, metadata, typedefToken, name, semicolon) {
+  GenericTypeAliasImpl({
+    required super.comment,
+    required super.metadata,
+    required super.typedefKeyword,
+    required super.name,
+    required TypeParameterListImpl? typeParameters,
+    required this.equals,
+    required TypeAnnotationImpl type,
+    required super.semicolon,
+  })  : _typeParameters = typeParameters,
+        _type = type {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_type);
   }
@@ -6534,19 +6577,18 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   /// is not deferred. The [asKeyword] and [prefix] can be `null` if the import
   /// does not specify a prefix. The list of [combinators] can be `null` if
   /// there are no combinators.
-  ImportDirectiveImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      this.importKeyword,
-      StringLiteralImpl libraryUri,
-      List<Configuration>? configurations,
-      this.deferredKeyword,
-      this.asKeyword,
-      this._prefix,
-      List<Combinator>? combinators,
-      Token semicolon)
-      : super(comment, metadata, libraryUri, configurations, combinators,
-            semicolon) {
+  ImportDirectiveImpl({
+    required super.comment,
+    required super.metadata,
+    required this.importKeyword,
+    required super.uri,
+    required super.configurations,
+    required this.deferredKeyword,
+    required this.asKeyword,
+    required SimpleIdentifierImpl? prefix,
+    required super.combinators,
+    required super.semicolon,
+  }) : _prefix = prefix {
     _becomeParentOf(_prefix);
   }
 
@@ -7415,13 +7457,13 @@ class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
   Token semicolon;
 
   LibraryAugmentationDirectiveImpl({
-    required CommentImpl? comment,
-    required List<Annotation>? metadata,
+    required super.comment,
+    required super.metadata,
     required this.libraryKeyword,
     required this.augmentKeyword,
-    required StringLiteralImpl uri,
+    required super.uri,
     required this.semicolon,
-  }) : super(comment, metadata, uri);
+  });
 
   @override
   Token get endToken => semicolon;
@@ -7473,8 +7515,13 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   /// Initialize a newly created library directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the directive does not have the
   /// corresponding attribute.
-  LibraryDirectiveImpl(super.comment, super.metadata, this.libraryKeyword,
-      this._name, this.semicolon) {
+  LibraryDirectiveImpl({
+    required super.comment,
+    required super.metadata,
+    required this.libraryKeyword,
+    required LibraryIdentifierImpl name,
+    required this.semicolon,
+  }) : _name = name {
     _becomeParentOf(_name);
   }
 
@@ -7807,18 +7854,23 @@ class MethodDeclarationImpl extends ClassMemberImpl
   /// method is neither a getter or a setter. The [operatorKeyword] can be
   /// `null` if the method does not implement an operator. The [parameters] must
   /// be `null` if this method declares a getter.
-  MethodDeclarationImpl(
-      super.comment,
-      super.metadata,
-      this.externalKeyword,
-      this.modifierKeyword,
-      this._returnType,
-      this.propertyKeyword,
-      this.operatorKeyword,
-      this._name,
-      this._typeParameters,
-      this._parameters,
-      this._body) {
+  MethodDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.externalKeyword,
+    required this.modifierKeyword,
+    required TypeAnnotationImpl? returnType,
+    required this.propertyKeyword,
+    required this.operatorKeyword,
+    required SimpleIdentifierImpl name,
+    required TypeParameterListImpl? typeParameters,
+    required FormalParameterListImpl? parameters,
+    required FunctionBodyImpl body,
+  })  : _returnType = returnType,
+        _name = name,
+        _typeParameters = typeParameters,
+        _parameters = parameters,
+        _body = body {
     _becomeParentOf(_returnType);
     _becomeParentOf(_name);
     _becomeParentOf(_typeParameters);
@@ -8106,20 +8158,19 @@ class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
   /// and [implementsClause] can be `null` if the mixin does not have the
   /// corresponding clause. The list of [members] can be `null` if the mixin
   /// does not have any members.
-  MixinDeclarationImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      this.augmentKeyword,
-      this.mixinKeyword,
-      SimpleIdentifierImpl name,
-      TypeParameterListImpl? typeParameters,
-      this._onClause,
-      ImplementsClauseImpl? implementsClause,
-      Token leftBracket,
-      List<ClassMember> members,
-      Token rightBracket)
-      : super(comment, metadata, name, typeParameters, implementsClause,
-            leftBracket, members, rightBracket) {
+  MixinDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.augmentKeyword,
+    required this.mixinKeyword,
+    required super.name,
+    required super.typeParameters,
+    required OnClauseImpl? onClause,
+    required super.implementsClause,
+    required super.leftBracket,
+    required super.members,
+    required super.rightBracket,
+  }) : _onClause = onClause {
     _becomeParentOf(_onClause);
   }
 
@@ -8179,7 +8230,11 @@ abstract class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
   /// Initialize a newly created compilation unit member with the given [name2].
   /// Either or both of the [comment] and [metadata] can be `null` if the member
   /// does not have the corresponding attribute.
-  NamedCompilationUnitMemberImpl(super.comment, super.metadata, this._name) {
+  NamedCompilationUnitMemberImpl({
+    required super.comment,
+    required super.metadata,
+    required SimpleIdentifierImpl name,
+  }) : _name = name {
     _becomeParentOf(_name);
   }
 
@@ -8373,13 +8428,14 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   /// [comment] and [metadata] can be `null` if the directive does not have the
   /// corresponding attribute. The list of [combinators] can be `null` if there
   /// are no combinators.
-  NamespaceDirectiveImpl(
-      super.comment,
-      super.metadata,
-      super.libraryUri,
-      List<Configuration>? configurations,
-      List<Combinator>? combinators,
-      this.semicolon) {
+  NamespaceDirectiveImpl({
+    required super.comment,
+    required super.metadata,
+    required super.uri,
+    required List<Configuration>? configurations,
+    required List<Combinator>? combinators,
+    required this.semicolon,
+  }) {
     _configurations._initialize(this, configurations);
     _combinators._initialize(this, combinators);
   }
@@ -8930,9 +8986,13 @@ class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
   /// Initialize a newly created part directive. Either or both of the [comment]
   /// and [metadata] can be `null` if the directive does not have the
   /// corresponding attribute.
-  PartDirectiveImpl(CommentImpl? comment, List<Annotation>? metadata,
-      this.partKeyword, StringLiteralImpl partUri, this.semicolon)
-      : super(comment, metadata, partUri);
+  PartDirectiveImpl({
+    required super.comment,
+    required super.metadata,
+    required this.partKeyword,
+    required super.uri,
+    required this.semicolon,
+  });
 
   @override
   PartElement? get element2 {
@@ -8997,8 +9057,16 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   /// Initialize a newly created part-of directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the directive does not have the
   /// corresponding attribute.
-  PartOfDirectiveImpl(super.comment, super.metadata, this.partKeyword,
-      this.ofKeyword, this._uri, this._libraryName, this.semicolon) {
+  PartOfDirectiveImpl({
+    required super.comment,
+    required super.metadata,
+    required this.partKeyword,
+    required this.ofKeyword,
+    required StringLiteralImpl? uri,
+    required LibraryIdentifierImpl? libraryName,
+    required this.semicolon,
+  })  : _uri = uri,
+        _libraryName = libraryName {
     _becomeParentOf(_uri);
     _becomeParentOf(_libraryName);
   }
@@ -11139,8 +11207,13 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   /// Initialize a newly created top-level variable declaration. Either or both
   /// of the [comment] and [metadata] can be `null` if the variable does not
   /// have the corresponding attribute.
-  TopLevelVariableDeclarationImpl(super.comment, super.metadata,
-      this.externalKeyword, this._variableList, this.semicolon) {
+  TopLevelVariableDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.externalKeyword,
+    required VariableDeclarationListImpl variableList,
+    required this.semicolon,
+  }) : _variableList = variableList {
     _becomeParentOf(_variableList);
   }
 
@@ -11286,9 +11359,13 @@ abstract class TypeAliasImpl extends NamedCompilationUnitMemberImpl
   /// Initialize a newly created type alias. Either or both of the [comment] and
   /// [metadata] can be `null` if the declaration does not have the
   /// corresponding attribute.
-  TypeAliasImpl(CommentImpl? comment, List<Annotation>? metadata,
-      this.typedefKeyword, SimpleIdentifierImpl name, this.semicolon)
-      : super(comment, metadata, name);
+  TypeAliasImpl({
+    required super.comment,
+    required super.metadata,
+    required this.typedefKeyword,
+    required super.name,
+    required this.semicolon,
+  });
 
   @override
   Token get endToken => semicolon;
@@ -11480,8 +11557,15 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   /// and [metadata] can be `null` if the parameter does not have the
   /// corresponding attribute. The [extendsKeyword] and [bound] can be `null` if
   /// the parameter does not have an upper bound.
-  TypeParameterImpl(super.comment, super.metadata, this._name,
-      this.extendsKeyword, this._bound) {
+  TypeParameterImpl({
+    required super.comment,
+    required super.metadata,
+    required SimpleIdentifierImpl name,
+    required this.extendsKeyword,
+    required TypeAnnotationImpl? bound,
+    this.varianceKeyword,
+  })  : _name = name,
+        _bound = bound {
     _becomeParentOf(_name);
     _becomeParentOf(_bound);
   }
@@ -11601,7 +11685,11 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
   /// Initialize a newly create URI-based directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the directive does not have the
   /// corresponding attribute.
-  UriBasedDirectiveImpl(super.comment, super.metadata, this._uri) {
+  UriBasedDirectiveImpl({
+    required super.comment,
+    required super.metadata,
+    required StringLiteralImpl uri,
+  }) : _uri = uri {
     _becomeParentOf(_uri);
   }
 
@@ -11701,8 +11789,13 @@ class VariableDeclarationImpl extends DeclarationImpl
 
   /// Initialize a newly created variable declaration. The [equals] and
   /// [initializer] can be `null` if there is no initializer.
-  VariableDeclarationImpl(this._name, this.equals, this._initializer)
-      : super(null, null) {
+  VariableDeclarationImpl({
+    required SimpleIdentifierImpl name,
+    required this.equals,
+    required ExpressionImpl? initializer,
+  })  : _name = name,
+        _initializer = initializer,
+        super(comment: null, metadata: null) {
     _becomeParentOf(_name);
     _becomeParentOf(_initializer);
   }
@@ -11824,8 +11917,14 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   /// the [comment] and [metadata] can be `null` if the variable list does not
   /// have the corresponding attribute. The [keyword] can be `null` if a type
   /// was specified. The [type] must be `null` if the keyword is 'var'.
-  VariableDeclarationListImpl(super.comment, super.metadata, this.lateKeyword,
-      this.keyword, this._type, List<VariableDeclaration> variables) {
+  VariableDeclarationListImpl({
+    required super.comment,
+    required super.metadata,
+    required this.lateKeyword,
+    required this.keyword,
+    required TypeAnnotationImpl? type,
+    required List<VariableDeclaration> variables,
+  }) : _type = type {
     _becomeParentOf(_type);
     _variables._initialize(this, variables);
   }

@@ -370,13 +370,13 @@ class AstBinaryReader {
 
   DeclaredIdentifier _readDeclaredIdentifier() {
     var flags = _readByte();
-    var type = _readOptionalNode() as TypeAnnotation?;
+    var type = _readOptionalNode() as TypeAnnotationImpl?;
     var identifier = _readDeclarationName();
     var metadata = _readNodeList<Annotation>();
-    return astFactory.declaredIdentifier(
-      null,
-      metadata,
-      Tokens.choose(
+    return DeclaredIdentifierImpl(
+      comment: null,
+      metadata: metadata,
+      keyword: Tokens.choose(
         AstBinaryFlags.isConst(flags),
         Tokens.const_(),
         AstBinaryFlags.isFinal(flags),
@@ -384,8 +384,8 @@ class AstBinaryReader {
         AstBinaryFlags.isVar(flags),
         Tokens.var_(),
       ),
-      type,
-      identifier,
+      type: type,
+      identifier: identifier,
     );
   }
 
@@ -853,24 +853,24 @@ class AstBinaryReader {
   }
 
   MixinDeclaration _readMixinDeclaration() {
-    var typeParameters = _readOptionalNode() as TypeParameterList?;
-    var onClause = _readOptionalNode() as OnClause?;
-    var implementsClause = _readOptionalNode() as ImplementsClause?;
-    var name = readNode() as SimpleIdentifier;
+    var typeParameters = _readOptionalNode() as TypeParameterListImpl?;
+    var onClause = _readOptionalNode() as OnClauseImpl?;
+    var implementsClause = _readOptionalNode() as ImplementsClauseImpl?;
+    var name = readNode() as SimpleIdentifierImpl;
     var metadata = _readNodeList<Annotation>();
 
-    var node = astFactory.mixinDeclaration(
-      null,
-      metadata,
-      null,
-      Tokens.mixin_(),
-      name,
-      typeParameters,
-      onClause,
-      implementsClause,
-      Tokens.openCurlyBracket(),
-      const <ClassMember>[],
-      Tokens.closeCurlyBracket(),
+    var node = MixinDeclarationImpl(
+      comment: null,
+      metadata: metadata,
+      augmentKeyword: null,
+      mixinKeyword: Tokens.mixin_(),
+      name: name,
+      typeParameters: typeParameters,
+      onClause: onClause,
+      implementsClause: implementsClause,
+      leftBracket: Tokens.openCurlyBracket(),
+      members: const <ClassMember>[],
+      rightBracket: Tokens.closeCurlyBracket(),
     );
 
     return node;
@@ -1197,15 +1197,15 @@ class AstBinaryReader {
 
   TypeParameter _readTypeParameter() {
     var name = _readDeclarationName();
-    var bound = _readOptionalNode() as TypeAnnotation?;
+    var bound = _readOptionalNode() as TypeAnnotationImpl?;
     var metadata = _readNodeList<Annotation>();
 
-    var node = astFactory.typeParameter(
-      null,
-      metadata,
-      name,
-      bound != null ? Tokens.extends_() : null,
-      bound,
+    var node = TypeParameterImpl(
+      comment: null,
+      metadata: metadata,
+      name: name,
+      extendsKeyword: bound != null ? Tokens.extends_() : null,
+      bound: bound,
     );
 
     return node;
@@ -1226,13 +1226,13 @@ class AstBinaryReader {
 
   VariableDeclaration _readVariableDeclaration() {
     var flags = _readByte();
-    var name = readNode() as SimpleIdentifier;
-    var initializer = _readOptionalNode() as Expression?;
+    var name = readNode() as SimpleIdentifierImpl;
+    var initializer = _readOptionalNode() as ExpressionImpl?;
 
-    var node = astFactory.variableDeclaration(
-      name,
-      Tokens.eq(),
-      initializer,
+    var node = VariableDeclarationImpl(
+      name: name,
+      equals: Tokens.eq(),
+      initializer: initializer,
     );
 
     node.hasInitializer = AstBinaryFlags.hasInitializer(flags);
@@ -1242,11 +1242,11 @@ class AstBinaryReader {
 
   VariableDeclarationList _readVariableDeclarationList() {
     var flags = _readByte();
-    var type = _readOptionalNode() as TypeAnnotation?;
+    var type = _readOptionalNode() as TypeAnnotationImpl?;
     var variables = _readNodeList<VariableDeclaration>();
     var metadata = _readNodeList<Annotation>();
 
-    return astFactory.variableDeclarationList2(
+    return VariableDeclarationListImpl(
       comment: null,
       keyword: Tokens.choose(
         AstBinaryFlags.isConst(flags),

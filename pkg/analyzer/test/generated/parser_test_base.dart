@@ -14,7 +14,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/ast.dart' show CompilationUnitImpl;
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show ClassDeclarationImpl, CompilationUnitImpl;
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -800,22 +801,22 @@ class ParserProxy extends analyzer.Parser {
 
   ClassMember? parseClassMemberOrNull(String className) {
     return _run('ClassOrMixinBody', () {
-      astBuilder.classDeclaration = astFactory.classDeclaration(
-        null,
-        null,
-        null,
-        null,
-        null,
-        Token(Keyword.CLASS, 0),
-        astFactory.simpleIdentifier(fasta.StringTokenImpl.fromString(
+      astBuilder.classDeclaration = ClassDeclarationImpl(
+        comment: null,
+        metadata: null,
+        abstractKeyword: null,
+        macroKeyword: null,
+        augmentKeyword: null,
+        classKeyword: Token(Keyword.CLASS, 0),
+        name: astFactory.simpleIdentifier(fasta.StringTokenImpl.fromString(
             TokenType.IDENTIFIER, className, 6)),
-        null,
-        null,
-        null,
-        null,
-        Tokens.openCurlyBracket() /* leftBracket */,
-        <ClassMember>[],
-        Tokens.closeCurlyBracket() /* rightBracket */,
+        typeParameters: null,
+        extendsClause: null,
+        withClause: null,
+        implementsClause: null,
+        leftBracket: Tokens.openCurlyBracket(),
+        members: <ClassMember>[],
+        rightBracket: Tokens.closeCurlyBracket(),
       );
       // TODO(danrubel): disambiguate between class and mixin
       currentToken = fastaParser.parseClassMember(currentToken, className);

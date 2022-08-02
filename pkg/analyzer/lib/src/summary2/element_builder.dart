@@ -265,14 +265,19 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         ),
       );
 
-      var variableDeclaration = astFactory.variableDeclaration(
-        astFactory.simpleIdentifier(
+      var variableDeclaration = VariableDeclarationImpl(
+        name: astFactory.simpleIdentifier(
           StringToken(TokenType.STRING, name, -1),
         ),
-        Tokens.eq(),
-        initializer,
+        equals: Tokens.eq(),
+        initializer: initializer,
       );
-      astFactory.variableDeclarationList2(
+      VariableDeclarationListImpl(
+        comment: null,
+        metadata: null,
+        lateKeyword: null,
+        keyword: null,
+        type: null,
         variables: [variableDeclaration],
       );
       _linker.elementNodes[field] = variableDeclaration;
@@ -303,12 +308,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       );
       valuesField.constantInitializer = initializer;
 
-      var variableDeclaration = astFactory.variableDeclaration(
-        astFactory.simpleIdentifier(
+      var variableDeclaration = VariableDeclarationImpl(
+        name: astFactory.simpleIdentifier(
           StringToken(TokenType.STRING, 'values', -1),
         ),
-        Tokens.eq(),
-        initializer,
+        equals: Tokens.eq(),
+        initializer: initializer,
       );
       valuesTypeNode = astFactory.namedType(
         name: astFactory.simpleIdentifier(
@@ -326,7 +331,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           Tokens.gt(),
         ),
       );
-      astFactory.variableDeclarationList2(
+      VariableDeclarationListImpl(
+        comment: null,
+        metadata: null,
+        lateKeyword: null,
         keyword: Tokens.const_(),
         variables: [variableDeclaration],
         type: valuesTypeNode,
