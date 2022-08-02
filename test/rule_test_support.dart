@@ -237,8 +237,10 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   /// The path that is not in [workspaceRootPath], contains external packages.
   String get packagesRootPath => '/packages';
 
+  String get testFileName => 'test.dart';
+
   @override
-  String get testFilePath => '$testPackageLibPath/test.dart';
+  String get testFilePath => '$testPackageLibPath/$testFileName';
 
   String? get testPackageLanguageVersion => null;
 
