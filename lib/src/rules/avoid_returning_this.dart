@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc =
@@ -78,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var parent = node.parent;
     if (parent is ClassOrMixinDeclaration || parent is EnumDeclaration) {
-      if (DartTypeUtilities.overridesMethod(node)) {
+      if (node.isOverride) {
         return;
       }
 

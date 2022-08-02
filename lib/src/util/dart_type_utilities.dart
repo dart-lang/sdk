@@ -308,30 +308,6 @@ class DartTypeUtilities {
     return true;
   }
 
-  static bool overridesMethod(MethodDeclaration node) {
-    var parent = node.parent;
-    if (parent is! ClassOrMixinDeclaration) {
-      return false;
-    }
-    var name = node.declaredElement?.name;
-    if (name == null) {
-      return false;
-    }
-    var clazz = parent;
-    var classElement = clazz.declaredElement;
-    if (classElement == null) {
-      return false;
-    }
-    var library = classElement.library;
-    return classElement.allSupertypes
-        .map(node.isGetter
-            ? (InterfaceType t) => t.lookUpGetter2
-            : node.isSetter
-                ? (InterfaceType t) => t.lookUpSetter2
-                : (InterfaceType t) => t.lookUpMethod2)
-        .any((lookUp) => lookUp(name, library) != null);
-  }
-
   /// Builds the list resulting from traversing the node in DFS and does not
   /// include the node itself, it excludes the nodes for which the exclusion
   /// predicate returns true, if not provided, all is included.

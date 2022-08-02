@@ -138,3 +138,36 @@ extension AstNodeExtensions on AstNode? {
 extension ExpressionExtensions on Expression? {
   bool get isNullLiteral => this?.unParenthesized is NullLiteral;
 }
+
+extension MethodDeclarationExtension on MethodDeclaration {
+  /// Returns whether this method is an override of a method in any supertype.
+  bool get isOverride {
+    var parent = this.parent;
+    if (parent is! ClassOrMixinDeclaration) {
+      return false;
+    }
+    var name = declaredElement?.name;
+    if (name == null) {
+      return false;
+    }
+    var parentElement = parent.declaredElement;
+    if (parentElement == null) {
+      return false;
+    }
+    var parentLibrary = parentElement.library;
+
+    if (isGetter) {
+      // Search supertypes for a getter of the same name.
+      return parentElement.allSupertypes
+          .any((t) => t.lookUpGetter2(name, parentLibrary) != null);
+    } else if (isSetter) {
+      // Search supertypes for a setter of the same name.
+      return parentElement.allSupertypes
+          .any((t) => t.lookUpSetter2(name, parentLibrary) != null);
+    } else {
+      // Search supertypes for a method of the same name.
+      return parentElement.allSupertypes
+          .any((t) => t.lookUpMethod2(name, parentLibrary) != null);
+    }
+  }
+}

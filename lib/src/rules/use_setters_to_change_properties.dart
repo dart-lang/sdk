@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../util/dart_type_utilities.dart';
 
 const _desc =
     r'Use a setter for operations that conceptually change a property.';
@@ -57,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isSetter ||
         node.isGetter ||
-        DartTypeUtilities.overridesMethod(node) ||
+        node.isOverride ||
         node.parameters?.parameters.length != 1 ||
         node.returnType?.type?.isVoid != true) {
       return;
