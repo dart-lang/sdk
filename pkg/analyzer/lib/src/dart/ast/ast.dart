@@ -226,8 +226,17 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   ///
   /// Note that type arguments are only valid if [Feature.generic_metadata] is
   /// enabled.
-  AnnotationImpl(this.atSign, this._name, this._typeArguments, this.period,
-      this._constructorName, this._arguments) {
+  AnnotationImpl({
+    required this.atSign,
+    required IdentifierImpl name,
+    required TypeArgumentListImpl? typeArguments,
+    required this.period,
+    required SimpleIdentifierImpl? constructorName,
+    required ArgumentListImpl? arguments,
+  })  : _name = name,
+        _typeArguments = typeArguments,
+        _constructorName = constructorName,
+        _arguments = arguments {
     _becomeParentOf(_name);
     _becomeParentOf(_typeArguments);
     _becomeParentOf(_constructorName);
@@ -1105,7 +1114,11 @@ class BlockFunctionBodyImpl extends FunctionBodyImpl
   /// statements. The [keyword] can be `null` if there is no keyword specified
   /// for the block. The [star] can be `null` if there is no star following the
   /// keyword (and must be `null` if there is no keyword).
-  BlockFunctionBodyImpl(this.keyword, this.star, this._block) {
+  BlockFunctionBodyImpl({
+    required this.keyword,
+    required this.star,
+    required BlockImpl block,
+  }) : _block = block {
     _becomeParentOf(_block);
   }
 
@@ -1172,7 +1185,11 @@ class BlockImpl extends StatementImpl implements Block {
   Token rightBracket;
 
   /// Initialize a newly created block of code.
-  BlockImpl(this.leftBracket, List<Statement> statements, this.rightBracket) {
+  BlockImpl({
+    required this.leftBracket,
+    required List<Statement> statements,
+    required this.rightBracket,
+  }) {
     _statements._initialize(this, statements);
   }
 

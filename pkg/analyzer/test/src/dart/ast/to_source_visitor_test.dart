@@ -35,24 +35,30 @@ var v = 'a' 'b';
   }
 
   void test_visitAnnotation_constant() {
-    _assertSource(
-        "@A", AstTestFactory.annotation(AstTestFactory.identifier3("A")));
+    final code = '@A';
+    final findNode = _parseStringToFindNode('''
+$code
+void f() {}
+''');
+    _assertSource(code, findNode.annotation(code));
   }
 
   void test_visitAnnotation_constructor() {
-    _assertSource(
-        "@A.c()",
-        AstTestFactory.annotation2(AstTestFactory.identifier3("A"),
-            AstTestFactory.identifier3("c"), AstTestFactory.argumentList()));
+    final code = '@A.foo()';
+    final findNode = _parseStringToFindNode('''
+$code
+void f() {}
+''');
+    _assertSource(code, findNode.annotation(code));
   }
 
   void test_visitAnnotation_constructor_generic() {
-    _assertSource(
-        "@A<T>.c()",
-        AstTestFactory.annotation2(AstTestFactory.identifier3("A"),
-            AstTestFactory.identifier3("c"), AstTestFactory.argumentList(),
-            typeArguments: AstTestFactory.typeArgumentList2(
-                [AstTestFactory.namedType4('T')])));
+    final code = '@A<int>.foo()';
+    final findNode = _parseStringToFindNode('''
+$code
+void f() {}
+''');
+    _assertSource(code, findNode.annotation(code));
   }
 
   void test_visitArgumentList() {
@@ -146,37 +152,51 @@ var v = a * (b + c);
   }
 
   void test_visitBlock_empty() {
-    _assertSource("{}", AstTestFactory.block());
+    final code = '{}';
+    final findNode = _parseStringToFindNode('''
+void f() $code
+''');
+    _assertSource(code, findNode.block(code));
   }
 
   void test_visitBlock_nonEmpty() {
-    _assertSource(
-        "{break; break;}",
-        AstTestFactory.block([
-          AstTestFactory.breakStatement(),
-          AstTestFactory.breakStatement()
-        ]));
+    final code = '{foo(); bar();}';
+    final findNode = _parseStringToFindNode('''
+void f() $code
+''');
+    _assertSource(code, findNode.block(code));
   }
 
   void test_visitBlockFunctionBody_async() {
-    _assertSource("async {}", AstTestFactory.asyncBlockFunctionBody());
+    final code = 'async {}';
+    final findNode = _parseStringToFindNode('''
+void f() $code
+''');
+    _assertSource(code, findNode.blockFunctionBody(code));
   }
 
   void test_visitBlockFunctionBody_async_star() {
-    _assertSource(
-        "async* {}", AstTestFactory.asyncGeneratorBlockFunctionBody());
+    final code = 'async* {}';
+    final findNode = _parseStringToFindNode('''
+void f() $code
+''');
+    _assertSource(code, findNode.blockFunctionBody(code));
   }
 
   void test_visitBlockFunctionBody_simple() {
-    _assertSource("{}", AstTestFactory.blockFunctionBody2());
-  }
-
-  void test_visitBlockFunctionBody_sync() {
-    _assertSource("sync {}", AstTestFactory.syncBlockFunctionBody());
+    final code = '{}';
+    final findNode = _parseStringToFindNode('''
+void f() $code
+''');
+    _assertSource(code, findNode.blockFunctionBody(code));
   }
 
   void test_visitBlockFunctionBody_sync_star() {
-    _assertSource("sync* {}", AstTestFactory.syncGeneratorBlockFunctionBody());
+    final code = 'sync* {}';
+    final findNode = _parseStringToFindNode('''
+void f() $code
+''');
+    _assertSource(code, findNode.blockFunctionBody(code));
   }
 
   void test_visitBooleanLiteral_false() {
@@ -457,11 +477,9 @@ macro class A {}
   }
 
   void test_visitClassDeclaration_withMetadata() {
-    ClassDeclaration declaration =
-        AstTestFactory.classDeclaration(null, "C", null, null, null, null);
-    declaration.metadata.add(
-        AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
-    _assertSource("@deprecated class C {}", declaration);
+    final code = '@deprecated class C {}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
   }
 
   void test_visitClassTypeAlias_abstract() {
@@ -609,16 +627,9 @@ macro class A = S with M;
   }
 
   void test_visitClassTypeAlias_withMetadata() {
-    ClassTypeAlias declaration = AstTestFactory.classTypeAlias(
-        "C",
-        null,
-        null,
-        AstTestFactory.namedType4("S"),
-        AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
-        null);
-    declaration.metadata.add(
-        AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
-    _assertSource("@deprecated class C = S with M1;", declaration);
+    final code = '@deprecated class A = S with M;';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classTypeAlias(code));
   }
 
   void test_visitComment() {
@@ -704,16 +715,13 @@ macro class A = S with M;
   }
 
   void test_visitConstructorDeclaration_const() {
-    _assertSource(
-        "const C() {}",
-        AstTestFactory.constructorDeclaration2(
-            Keyword.CONST,
-            null,
-            AstTestFactory.identifier3("C"),
-            null,
-            AstTestFactory.formalParameterList(),
-            [],
-            AstTestFactory.blockFunctionBody2()));
+    final code = 'const A();';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
   }
 
   void test_visitConstructorDeclaration_external() {
@@ -724,93 +732,63 @@ macro class A = S with M;
   }
 
   void test_visitConstructorDeclaration_minimal() {
-    _assertSource(
-        "C() {}",
-        AstTestFactory.constructorDeclaration2(
-            null,
-            null,
-            AstTestFactory.identifier3("C"),
-            null,
-            AstTestFactory.formalParameterList(),
-            [],
-            AstTestFactory.blockFunctionBody2()));
+    final code = 'A();';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
   }
 
   void test_visitConstructorDeclaration_multipleInitializers() {
-    _assertSource(
-        "C() : a = b, c = d {}",
-        AstTestFactory.constructorDeclaration2(
-            null,
-            null,
-            AstTestFactory.identifier3("C"),
-            null,
-            AstTestFactory.formalParameterList(),
-            [
-              AstTestFactory.constructorFieldInitializer(
-                  false, "a", AstTestFactory.identifier3("b")),
-              AstTestFactory.constructorFieldInitializer(
-                  false, "c", AstTestFactory.identifier3("d"))
-            ],
-            AstTestFactory.blockFunctionBody2()));
+    final code = 'A() : a = b, c = d {}';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
   }
 
   void test_visitConstructorDeclaration_multipleParameters() {
-    _assertSource(
-        "C(var a, var b) {}",
-        AstTestFactory.constructorDeclaration2(
-            null,
-            null,
-            AstTestFactory.identifier3("C"),
-            null,
-            AstTestFactory.formalParameterList([
-              AstTestFactory.simpleFormalParameter(Keyword.VAR, "a"),
-              AstTestFactory.simpleFormalParameter(Keyword.VAR, "b")
-            ]),
-            [],
-            AstTestFactory.blockFunctionBody2()));
+    final code = 'A(int a, double b);';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
   }
 
   void test_visitConstructorDeclaration_named() {
-    _assertSource(
-        "C.m() {}",
-        AstTestFactory.constructorDeclaration2(
-            null,
-            null,
-            AstTestFactory.identifier3("C"),
-            "m",
-            AstTestFactory.formalParameterList(),
-            [],
-            AstTestFactory.blockFunctionBody2()));
+    final code = 'A.foo();';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
   }
 
   void test_visitConstructorDeclaration_singleInitializer() {
-    _assertSource(
-        "C() : a = b {}",
-        AstTestFactory.constructorDeclaration2(
-            null,
-            null,
-            AstTestFactory.identifier3("C"),
-            null,
-            AstTestFactory.formalParameterList(),
-            [
-              AstTestFactory.constructorFieldInitializer(
-                  false, "a", AstTestFactory.identifier3("b"))
-            ],
-            AstTestFactory.blockFunctionBody2()));
+    final code = 'A() : a = b;';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
   }
 
   void test_visitConstructorDeclaration_withMetadata() {
-    ConstructorDeclaration declaration = AstTestFactory.constructorDeclaration2(
-        null,
-        null,
-        AstTestFactory.identifier3("C"),
-        null,
-        AstTestFactory.formalParameterList(),
-        [],
-        AstTestFactory.blockFunctionBody2());
-    declaration.metadata.add(
-        AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
-    _assertSource("@deprecated C() {}", declaration);
+    final code = '@deprecated C() {}';
+    final findNode = _parseStringToFindNode('''
+class C {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
   }
 
   void test_visitConstructorFieldInitializer_withoutThis() {
@@ -856,11 +834,11 @@ macro class A = S with M;
   }
 
   void test_visitDefaultFormalParameter_annotation() {
-    DefaultFormalParameter parameter = AstTestFactory.positionalFormalParameter(
-        AstTestFactory.simpleFormalParameter3("p"), AstTestFactory.integer(0));
-    parameter.metadata
-        .add(AstTestFactory.annotation(AstTestFactory.identifier3("A")));
-    _assertSource('@A p = 0', parameter);
+    final code = '@deprecated p = 0';
+    final findNode = _parseStringToFindNode('''
+void f([$code]) {}
+''');
+    _assertSource(code, findNode.defaultParameter(code));
   }
 
   void test_visitDefaultFormalParameter_named_noValue() {
@@ -894,10 +872,13 @@ macro class A = S with M;
   }
 
   void test_visitDoStatement() {
-    _assertSource(
-        "do {} while (c);",
-        AstTestFactory.doStatement(
-            AstTestFactory.block(), AstTestFactory.identifier3("c")));
+    final code = 'do {} while (true);';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  $code
+}
+''');
+    _assertSource(code, findNode.doStatement(code));
   }
 
   void test_visitDoubleLiteral() {
@@ -1032,10 +1013,9 @@ export 'foo.dart'
   }
 
   void test_visitExportDirective_withMetadata() {
-    ExportDirective directive = AstTestFactory.exportDirective2("a.dart");
-    directive.metadata.add(
-        AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
-    _assertSource("@deprecated export 'a.dart';", directive);
+    final code = '@deprecated export "a.dart";';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.export(code));
   }
 
   void test_visitExpressionFunctionBody_async() {
@@ -1427,18 +1407,24 @@ export 'foo.dart'
   }
 
   void test_visitFieldDeclaration_withMetadata() {
-    FieldDeclaration declaration = AstTestFactory.fieldDeclaration2(
-        false, Keyword.VAR, [AstTestFactory.variableDeclaration("a")]);
-    declaration.metadata.add(
-        AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
-    _assertSource("@deprecated var a;", declaration);
+    final code = '@deprecated var a;';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.fieldDeclaration(code));
   }
 
   void test_visitFieldFormalParameter_annotation() {
-    FieldFormalParameter parameter = AstTestFactory.fieldFormalParameter2('f');
-    parameter.metadata
-        .add(AstTestFactory.annotation(AstTestFactory.identifier3("A")));
-    _assertSource('@A this.f', parameter);
+    final code = '@deprecated this.foo';
+    final findNode = _parseStringToFindNode('''
+class A {
+  final int foo;
+  A($code);
+}
+''');
+    _assertSource(code, findNode.fieldFormalParameter(code));
   }
 
   void test_visitFieldFormalParameter_functionTyped() {
@@ -1511,42 +1497,33 @@ export 'foo.dart'
   }
 
   void test_visitForEachStatement_declared() {
-    _assertSource(
-        "for (var a in b) {}",
-        AstTestFactory.forStatement(
-            AstTestFactory.forEachPartsWithDeclaration(
-                AstTestFactory.declaredIdentifier3("a"),
-                AstTestFactory.identifier3("b")),
-            AstTestFactory.block()));
+    final code = 'for (final a in b) {}';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  $code
+}
+''');
+    _assertSource(code, findNode.forStatement(code));
   }
 
   void test_visitForEachStatement_variable() {
-    _assertSource(
-        "for (a in b) {}",
-        astFactory.forStatement(
-            forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
-            leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-            forLoopParts: astFactory.forEachPartsWithIdentifier(
-                identifier: AstTestFactory.identifier3("a"),
-                inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
-                iterable: AstTestFactory.identifier3("b")),
-            rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-            body: AstTestFactory.block()));
+    final code = 'for (a in b) {}';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  $code
+}
+''');
+    _assertSource(code, findNode.forStatement(code));
   }
 
   void test_visitForEachStatement_variable_await() {
-    _assertSource(
-        "await for (a in b) {}",
-        astFactory.forStatement(
-            awaitKeyword: TokenFactory.tokenFromString("await"),
-            forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
-            leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-            forLoopParts: astFactory.forEachPartsWithIdentifier(
-                identifier: AstTestFactory.identifier3("a"),
-                inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
-                iterable: AstTestFactory.identifier3("b")),
-            rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-            body: AstTestFactory.block()));
+    final code = 'await for (final a in b) {}';
+    final findNode = _parseStringToFindNode('''
+void f() async {
+  $code
+}
+''');
+    _assertSource(code, findNode.forStatement(code));
   }
 
   void test_visitForElement() {
@@ -1792,122 +1769,113 @@ export 'foo.dart'
   }
 
   void test_visitForStatement_c() {
-    _assertSource(
-        "for (; c;) {}",
-        AstTestFactory.forStatement(
-            AstTestFactory.forPartsWithExpression(
-                null, AstTestFactory.identifier3("c"), null),
-            AstTestFactory.block()));
+    final code = 'for (; c;) {}';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  $code
+}
+''');
+    _assertSource(code, findNode.forStatement(code));
   }
 
   void test_visitForStatement_cu() {
-    _assertSource(
-        "for (; c; u) {}",
-        AstTestFactory.forStatement(
-            AstTestFactory.forPartsWithExpression(
-                null,
-                AstTestFactory.identifier3("c"),
-                [AstTestFactory.identifier3("u")]),
-            AstTestFactory.block()));
+    final code = 'for (; c; u) {}';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  $code
+}
+''');
+    _assertSource(code, findNode.forStatement(code));
   }
 
   void test_visitForStatement_e() {
-    _assertSource(
-        "for (e;;) {}",
-        AstTestFactory.forStatement(
-            AstTestFactory.forPartsWithExpression(
-                AstTestFactory.identifier3("e"), null, null),
-            AstTestFactory.block()));
+    final code = 'for (e;;) {}';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  $code
+}
+''');
+    _assertSource(code, findNode.forStatement(code));
   }
 
   void test_visitForStatement_ec() {
-    _assertSource(
-        "for (e; c;) {}",
-        AstTestFactory.forStatement(
-            AstTestFactory.forPartsWithExpression(
-                AstTestFactory.identifier3("e"),
-                AstTestFactory.identifier3("c"),
-                null),
-            AstTestFactory.block()));
+    final code = 'for (e; c;) {}';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  $code
+}
+''');
+    _assertSource(code, findNode.forStatement(code));
   }
 
   void test_visitForStatement_ecu() {
-    _assertSource(
-        "for (e; c; u) {}",
-        AstTestFactory.forStatement(
-            AstTestFactory.forPartsWithExpression(
-                AstTestFactory.identifier3("e"),
-                AstTestFactory.identifier3("c"),
-                [AstTestFactory.identifier3("u")]),
-            AstTestFactory.block()));
+    final code = 'for (e; c; u) {}';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  $code
+}
+''');
+    _assertSource(code, findNode.forStatement(code));
   }
 
   void test_visitForStatement_eu() {
-    _assertSource(
-        "for (e;; u) {}",
-        AstTestFactory.forStatement(
-            AstTestFactory.forPartsWithExpression(
-                AstTestFactory.identifier3("e"),
-                null,
-                [AstTestFactory.identifier3("u")]),
-            AstTestFactory.block()));
+    final code = 'for (e;; u) {}';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  $code
+}
+''');
+    _assertSource(code, findNode.forStatement(code));
   }
 
   void test_visitForStatement_i() {
-    _assertSource(
-        "for (var i;;) {}",
-        AstTestFactory.forStatement(
-            AstTestFactory.forPartsWithDeclarations(
-                AstTestFactory.variableDeclarationList2(
-                    Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
-                null,
-                null),
-            AstTestFactory.block()));
+    final code = 'for (var i;;) {}';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  $code
+}
+''');
+    _assertSource(code, findNode.forStatement(code));
   }
 
   void test_visitForStatement_ic() {
-    _assertSource(
-        "for (var i; c;) {}",
-        AstTestFactory.forStatement(
-            AstTestFactory.forPartsWithDeclarations(
-                AstTestFactory.variableDeclarationList2(
-                    Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
-                AstTestFactory.identifier3("c"),
-                null),
-            AstTestFactory.block()));
+    final code = 'for (var i; c;) {}';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  $code
+}
+''');
+    _assertSource(code, findNode.forStatement(code));
   }
 
   void test_visitForStatement_icu() {
-    _assertSource(
-        "for (var i; c; u) {}",
-        AstTestFactory.forStatement(
-            AstTestFactory.forPartsWithDeclarations(
-                AstTestFactory.variableDeclarationList2(
-                    Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
-                AstTestFactory.identifier3("c"),
-                [AstTestFactory.identifier3("u")]),
-            AstTestFactory.block()));
+    final code = 'for (var i; c; u) {}';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  $code
+}
+''');
+    _assertSource(code, findNode.forStatement(code));
   }
 
   void test_visitForStatement_iu() {
-    _assertSource(
-        "for (var i;; u) {}",
-        AstTestFactory.forStatement(
-            AstTestFactory.forPartsWithDeclarations(
-                AstTestFactory.variableDeclarationList2(
-                    Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
-                null,
-                [AstTestFactory.identifier3("u")]),
-            AstTestFactory.block()));
+    final code = 'for (var i;; u) {}';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  $code
+}
+''');
+    _assertSource(code, findNode.forStatement(code));
   }
 
   void test_visitForStatement_u() {
-    _assertSource(
-        "for (;; u) {}",
-        AstTestFactory.forStatement(
-            AstTestFactory.forPartsWithExpression(
-                null, null, [AstTestFactory.identifier3("u")]),
-            AstTestFactory.block()));
+    final code = 'for (;; u) {}';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  $code
+}
+''');
+    _assertSource(code, findNode.forStatement(code));
   }
 
   void test_visitFunctionDeclaration_external() {
@@ -1923,107 +1891,79 @@ export 'foo.dart'
   }
 
   void test_visitFunctionDeclaration_getter() {
-    _assertSource(
-        "get f() {}",
-        AstTestFactory.functionDeclaration(
-            null, Keyword.GET, "f", AstTestFactory.functionExpression()));
+    final code = 'get foo {}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.functionDeclaration(code));
   }
 
   void test_visitFunctionDeclaration_local_blockBody() {
-    FunctionDeclaration f = AstTestFactory.functionDeclaration(
-        null, null, "f", AstTestFactory.functionExpression());
-    FunctionDeclarationStatement fStatement =
-        astFactory.functionDeclarationStatement(f);
-    _assertSource(
-        "main() {f() {} 42;}",
-        AstTestFactory.functionDeclaration(
-            null,
-            null,
-            "main",
-            AstTestFactory.functionExpression2(
-                AstTestFactory.formalParameterList(),
-                AstTestFactory.blockFunctionBody2([
-                  fStatement,
-                  AstTestFactory.expressionStatement(AstTestFactory.integer(42))
-                ]))));
+    final code = 'void foo() {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code
+}
+''');
+    _assertSource(code, findNode.functionDeclaration(code));
   }
 
   void test_visitFunctionDeclaration_local_expressionBody() {
-    FunctionDeclaration f = AstTestFactory.functionDeclaration(
-        null,
-        null,
-        "f",
-        AstTestFactory.functionExpression2(AstTestFactory.formalParameterList(),
-            AstTestFactory.expressionFunctionBody(AstTestFactory.integer(1))));
-    FunctionDeclarationStatement fStatement =
-        astFactory.functionDeclarationStatement(f);
-    _assertSource(
-        "main() {f() => 1; 2;}",
-        AstTestFactory.functionDeclaration(
-            null,
-            null,
-            "main",
-            AstTestFactory.functionExpression2(
-                AstTestFactory.formalParameterList(),
-                AstTestFactory.blockFunctionBody2([
-                  fStatement,
-                  AstTestFactory.expressionStatement(AstTestFactory.integer(2))
-                ]))));
+    final code = 'int foo() => 42;';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code
+}
+''');
+    _assertSource(code, findNode.functionDeclaration(code));
   }
 
   void test_visitFunctionDeclaration_normal() {
-    _assertSource(
-        "f() {}",
-        AstTestFactory.functionDeclaration(
-            null, null, "f", AstTestFactory.functionExpression()));
+    final code = 'void foo() {}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.functionDeclaration(code));
   }
 
   void test_visitFunctionDeclaration_setter() {
-    _assertSource(
-        "set f() {}",
-        AstTestFactory.functionDeclaration(
-            null, Keyword.SET, "f", AstTestFactory.functionExpression()));
+    final code = 'set foo(int _) {}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.functionDeclaration(code));
   }
 
   void test_visitFunctionDeclaration_typeParameters() {
-    _assertSource(
-        "f<E>() {}",
-        AstTestFactory.functionDeclaration(
-            null,
-            null,
-            "f",
-            AstTestFactory.functionExpression3(
-                AstTestFactory.typeParameterList2(['E']),
-                AstTestFactory.formalParameterList(),
-                AstTestFactory.blockFunctionBody2())));
+    final code = 'void foo<T>() {}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.functionDeclaration(code));
   }
 
   void test_visitFunctionDeclaration_withMetadata() {
-    FunctionDeclaration declaration = AstTestFactory.functionDeclaration(
-        null, null, "f", AstTestFactory.functionExpression());
-    declaration.metadata.add(
-        AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
-    _assertSource("@deprecated f() {}", declaration);
+    final code = '@deprecated void f() {}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.functionDeclaration(code));
   }
 
   void test_visitFunctionDeclarationStatement() {
-    _assertSource(
-        "f() {}",
-        AstTestFactory.functionDeclarationStatement(
-            null, null, "f", AstTestFactory.functionExpression()));
+    final code = 'void foo() {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code
+}
+''');
+    _assertSource(code, findNode.functionDeclaration(code));
   }
 
   void test_visitFunctionExpression() {
-    _assertSource("() {}", AstTestFactory.functionExpression());
+    final code = '() {}';
+    final findNode = _parseStringToFindNode('''
+final f = $code;
+''');
+    _assertSource(code, findNode.functionExpression(code));
   }
 
   void test_visitFunctionExpression_typeParameters() {
-    _assertSource(
-        "<E>() {}",
-        AstTestFactory.functionExpression3(
-            AstTestFactory.typeParameterList2(['E']),
-            AstTestFactory.formalParameterList(),
-            AstTestFactory.blockFunctionBody2()));
+    final code = '<T>() {}';
+    final findNode = _parseStringToFindNode('''
+final f = $code;
+''');
+    _assertSource(code, findNode.functionExpression(code));
   }
 
   void test_visitFunctionExpressionInvocation_minimal() {
@@ -2059,22 +1999,17 @@ export 'foo.dart'
   }
 
   void test_visitFunctionTypeAlias_withMetadata() {
-    FunctionTypeAlias declaration = AstTestFactory.typeAlias(
-        AstTestFactory.namedType4("A"),
-        "F",
-        null,
-        AstTestFactory.formalParameterList());
-    declaration.metadata.add(
-        AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
-    _assertSource("@deprecated typedef A F();", declaration);
+    final code = '@deprecated typedef void F();';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.functionTypeAlias(code));
   }
 
   void test_visitFunctionTypedFormalParameter_annotation() {
-    FunctionTypedFormalParameter parameter =
-        AstTestFactory.functionTypedFormalParameter(null, "f");
-    parameter.metadata
-        .add(AstTestFactory.annotation(AstTestFactory.identifier3("A")));
-    _assertSource('@A f()', parameter);
+    final code = '@deprecated g()';
+    final findNode = _parseStringToFindNode('''
+void f($code) {}
+''');
+    _assertSource(code, findNode.functionTypedFormalParameter(code));
   }
 
   void test_visitFunctionTypedFormalParameter_noType() {
@@ -2182,17 +2117,23 @@ export 'foo.dart'
   }
 
   void test_visitIfStatement_withElse() {
-    _assertSource(
-        "if (c) {} else {}",
-        AstTestFactory.ifStatement2(AstTestFactory.identifier3("c"),
-            AstTestFactory.block(), AstTestFactory.block()));
+    final code = 'if (c) {} else {}';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  $code
+}
+''');
+    _assertSource(code, findNode.ifStatement(code));
   }
 
   void test_visitIfStatement_withoutElse() {
-    _assertSource(
-        "if (c) {}",
-        AstTestFactory.ifStatement(
-            AstTestFactory.identifier3("c"), AstTestFactory.block()));
+    final code = 'if (c) {}';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  $code
+}
+''');
+    _assertSource(code, findNode.ifStatement(code));
   }
 
   void test_visitImplementsClause_multiple() {
@@ -2272,10 +2213,9 @@ import 'foo.dart'
   }
 
   void test_visitImportDirective_withMetadata() {
-    ImportDirective directive = AstTestFactory.importDirective3("a.dart", null);
-    directive.metadata.add(
-        AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
-    _assertSource("@deprecated import 'a.dart';", directive);
+    final code = '@deprecated import "a.dart";';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.import(code));
   }
 
   void test_visitImportHideCombinator_multiple() {
@@ -2404,10 +2344,9 @@ library augment 'a.dart';
   }
 
   void test_visitLibraryDirective_withMetadata() {
-    LibraryDirective directive = AstTestFactory.libraryDirective2("l");
-    directive.metadata.add(
-        AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
-    _assertSource("@deprecated library l;", directive);
+    final code = '@deprecated library my;';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.library(code));
   }
 
   void test_visitLibraryIdentifier_multiple() {
@@ -2569,179 +2508,133 @@ library augment 'a.dart';
   }
 
   void test_visitMethodDeclaration_getter() {
-    _assertSource(
-        "get m {}",
-        AstTestFactory.methodDeclaration2(
-            null,
-            null,
-            Keyword.GET,
-            null,
-            AstTestFactory.identifier3("m"),
-            null,
-            AstTestFactory.blockFunctionBody2()));
+    final code = 'get foo => 0;';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.methodDeclaration(code));
   }
 
   void test_visitMethodDeclaration_getter_returnType() {
-    _assertSource(
-        "T get m {}",
-        AstTestFactory.methodDeclaration2(
-            null,
-            AstTestFactory.namedType4("T"),
-            Keyword.GET,
-            null,
-            AstTestFactory.identifier3("m"),
-            null,
-            AstTestFactory.blockFunctionBody2()));
-  }
-
-  void test_visitMethodDeclaration_getter_seturnType() {
-    _assertSource(
-        "T set m(var v) {}",
-        AstTestFactory.methodDeclaration2(
-            null,
-            AstTestFactory.namedType4("T"),
-            Keyword.SET,
-            null,
-            AstTestFactory.identifier3("m"),
-            AstTestFactory.formalParameterList(
-                [AstTestFactory.simpleFormalParameter(Keyword.VAR, "v")]),
-            AstTestFactory.blockFunctionBody2()));
+    final code = 'int get foo => 0;';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.methodDeclaration(code));
   }
 
   void test_visitMethodDeclaration_minimal() {
-    _assertSource(
-        "m() {}",
-        AstTestFactory.methodDeclaration2(
-            null,
-            null,
-            null,
-            null,
-            AstTestFactory.identifier3("m"),
-            AstTestFactory.formalParameterList(),
-            AstTestFactory.blockFunctionBody2()));
+    final code = 'foo() {}';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.methodDeclaration(code));
   }
 
   void test_visitMethodDeclaration_multipleParameters() {
-    _assertSource(
-        "m(var a, var b) {}",
-        AstTestFactory.methodDeclaration2(
-            null,
-            null,
-            null,
-            null,
-            AstTestFactory.identifier3("m"),
-            AstTestFactory.formalParameterList([
-              AstTestFactory.simpleFormalParameter(Keyword.VAR, "a"),
-              AstTestFactory.simpleFormalParameter(Keyword.VAR, "b")
-            ]),
-            AstTestFactory.blockFunctionBody2()));
+    final code = 'void foo(int a, double b) {}';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.methodDeclaration(code));
   }
 
   void test_visitMethodDeclaration_operator() {
-    _assertSource(
-        "operator +() {}",
-        AstTestFactory.methodDeclaration2(
-            null,
-            null,
-            null,
-            Keyword.OPERATOR,
-            AstTestFactory.identifier3("+"),
-            AstTestFactory.formalParameterList(),
-            AstTestFactory.blockFunctionBody2()));
+    final code = 'operator +(int other) {}';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.methodDeclaration(code));
   }
 
   void test_visitMethodDeclaration_operator_returnType() {
-    _assertSource(
-        "T operator +() {}",
-        AstTestFactory.methodDeclaration2(
-            null,
-            AstTestFactory.namedType4("T"),
-            null,
-            Keyword.OPERATOR,
-            AstTestFactory.identifier3("+"),
-            AstTestFactory.formalParameterList(),
-            AstTestFactory.blockFunctionBody2()));
+    final code = 'int operator +(int other) => 0;';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.methodDeclaration(code));
   }
 
   void test_visitMethodDeclaration_returnType() {
-    _assertSource(
-        "T m() {}",
-        AstTestFactory.methodDeclaration2(
-            null,
-            AstTestFactory.namedType4("T"),
-            null,
-            null,
-            AstTestFactory.identifier3("m"),
-            AstTestFactory.formalParameterList(),
-            AstTestFactory.blockFunctionBody2()));
+    final code = 'int foo() => 0;';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.methodDeclaration(code));
   }
 
   void test_visitMethodDeclaration_setter() {
-    _assertSource(
-        "set m(var v) {}",
-        AstTestFactory.methodDeclaration2(
-            null,
-            null,
-            Keyword.SET,
-            null,
-            AstTestFactory.identifier3("m"),
-            AstTestFactory.formalParameterList(
-                [AstTestFactory.simpleFormalParameter(Keyword.VAR, "v")]),
-            AstTestFactory.blockFunctionBody2()));
+    final code = 'set foo(int _) {}';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.methodDeclaration(code));
+  }
+
+  void test_visitMethodDeclaration_setter_returnType() {
+    final code = 'void set foo(int _) {}';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.methodDeclaration(code));
   }
 
   void test_visitMethodDeclaration_static() {
-    _assertSource(
-        "static m() {}",
-        AstTestFactory.methodDeclaration2(
-            Keyword.STATIC,
-            null,
-            null,
-            null,
-            AstTestFactory.identifier3("m"),
-            AstTestFactory.formalParameterList(),
-            AstTestFactory.blockFunctionBody2()));
+    final code = 'static foo() {}';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.methodDeclaration(code));
   }
 
   void test_visitMethodDeclaration_static_returnType() {
-    _assertSource(
-        "static T m() {}",
-        AstTestFactory.methodDeclaration2(
-            Keyword.STATIC,
-            AstTestFactory.namedType4("T"),
-            null,
-            null,
-            AstTestFactory.identifier3("m"),
-            AstTestFactory.formalParameterList(),
-            AstTestFactory.blockFunctionBody2()));
+    final code = 'static void foo() {}';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.methodDeclaration(code));
   }
 
   void test_visitMethodDeclaration_typeParameters() {
-    _assertSource(
-        "m<E>() {}",
-        AstTestFactory.methodDeclaration3(
-            null,
-            null,
-            null,
-            null,
-            AstTestFactory.identifier3("m"),
-            AstTestFactory.typeParameterList(['E']),
-            AstTestFactory.formalParameterList(),
-            AstTestFactory.blockFunctionBody2()));
+    final code = 'void foo<T>() {}';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.methodDeclaration(code));
   }
 
   void test_visitMethodDeclaration_withMetadata() {
-    MethodDeclaration declaration = AstTestFactory.methodDeclaration2(
-        null,
-        null,
-        null,
-        null,
-        AstTestFactory.identifier3("m"),
-        AstTestFactory.formalParameterList(),
-        AstTestFactory.blockFunctionBody2());
-    declaration.metadata.add(
-        AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
-    _assertSource("@deprecated m() {}", declaration);
+    final code = '@deprecated void foo() {}';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.methodDeclaration(code));
   }
 
   void test_visitMethodInvocation_conditional() {
@@ -2804,10 +2697,9 @@ library augment 'a.dart';
   }
 
   void test_visitPartDirective_withMetadata() {
-    PartDirective directive = AstTestFactory.partDirective2("a.dart");
-    directive.metadata.add(
-        AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
-    _assertSource("@deprecated part 'a.dart';", directive);
+    final code = '@deprecated part "a.dart";';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.part(code));
   }
 
   void test_visitPartOfDirective_name() {
@@ -2823,11 +2715,9 @@ library augment 'a.dart';
   }
 
   void test_visitPartOfDirective_withMetadata() {
-    PartOfDirective directive = AstTestFactory.partOfDirective(
-        AstTestFactory.libraryIdentifier2(["l"]));
-    directive.metadata.add(
-        AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
-    _assertSource("@deprecated part of l;", directive);
+    final code = '@deprecated part of my.lib;';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.partOf(code));
   }
 
   void test_visitPositionalFormalParameter() {
@@ -3096,11 +2986,11 @@ var v = !(a == b);
   }
 
   void test_visitSimpleFormalParameter_annotation() {
-    SimpleFormalParameter parameter =
-        AstTestFactory.simpleFormalParameter3('x');
-    parameter.metadata
-        .add(AstTestFactory.annotation(AstTestFactory.identifier3("A")));
-    _assertSource('@A x', parameter);
+    final code = '@deprecated int x';
+    final findNode = _parseStringToFindNode('''
+void f($code) {}
+''');
+    _assertSource(code, findNode.simpleFormalParameter(code));
   }
 
   void test_visitSimpleFormalParameter_keyword() {
@@ -3193,10 +3083,13 @@ var v = !(a == b);
   }
 
   void test_visitSuperFormalParameter_annotation() {
-    SuperFormalParameter parameter = AstTestFactory.superFormalParameter2('f');
-    parameter.metadata
-        .add(AstTestFactory.annotation(AstTestFactory.identifier3("A")));
-    _assertSource('@A super.f', parameter);
+    final code = '@deprecated super.foo';
+    final findNode = _parseStringToFindNode('''
+class A {
+  A($code);
+}
+''');
+    _assertSource(code, findNode.superFormalParameter(code));
   }
 
   void test_visitSuperFormalParameter_functionTyped() {
@@ -3251,70 +3144,109 @@ var v = !(a == b);
   }
 
   void test_visitSwitchCase_multipleLabels() {
-    _assertSource(
-        "l1: l2: case a: {}",
-        AstTestFactory.switchCase2(
-            [AstTestFactory.label2("l1"), AstTestFactory.label2("l2")],
-            AstTestFactory.identifier3("a"),
-            [AstTestFactory.block()]));
+    final code = 'l1: l2: case a: {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  switch (x) {
+    $code
+  }
+}
+''');
+    _assertSource(code, findNode.switchCase(code));
   }
 
   void test_visitSwitchCase_multipleStatements() {
-    _assertSource(
-        "case a: {} {}",
-        AstTestFactory.switchCase(AstTestFactory.identifier3("a"),
-            [AstTestFactory.block(), AstTestFactory.block()]));
+    final code = 'case a: foo(); bar();';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  switch (x) {
+    $code
+  }
+}
+''');
+    _assertSource(code, findNode.switchCase(code));
   }
 
   void test_visitSwitchCase_noLabels() {
-    _assertSource(
-        "case a: {}",
-        AstTestFactory.switchCase(
-            AstTestFactory.identifier3("a"), [AstTestFactory.block()]));
+    final code = 'case a: {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  switch (x) {
+    $code
+  }
+}
+''');
+    _assertSource(code, findNode.switchCase(code));
   }
 
   void test_visitSwitchCase_singleLabel() {
-    _assertSource(
-        "l1: case a: {}",
-        AstTestFactory.switchCase2([AstTestFactory.label2("l1")],
-            AstTestFactory.identifier3("a"), [AstTestFactory.block()]));
+    final code = 'l1: case a: {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  switch (x) {
+    $code
+  }
+}
+''');
+    _assertSource(code, findNode.switchCase(code));
   }
 
   void test_visitSwitchDefault_multipleLabels() {
-    _assertSource(
-        "l1: l2: default: {}",
-        AstTestFactory.switchDefault(
-            [AstTestFactory.label2("l1"), AstTestFactory.label2("l2")],
-            [AstTestFactory.block()]));
+    final code = 'l1: l2: default: {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  switch (x) {
+    $code
+  }
+}
+''');
+    _assertSource(code, findNode.switchDefault(code));
   }
 
   void test_visitSwitchDefault_multipleStatements() {
-    _assertSource(
-        "default: {} {}",
-        AstTestFactory.switchDefault2(
-            [AstTestFactory.block(), AstTestFactory.block()]));
+    final code = 'default: foo(); bar();';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  switch (x) {
+    $code
+  }
+}
+''');
+    _assertSource(code, findNode.switchDefault(code));
   }
 
   void test_visitSwitchDefault_noLabels() {
-    _assertSource(
-        "default: {}", AstTestFactory.switchDefault2([AstTestFactory.block()]));
+    final code = 'default: {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  switch (x) {
+    $code
+  }
+}
+''');
+    _assertSource(code, findNode.switchDefault(code));
   }
 
   void test_visitSwitchDefault_singleLabel() {
-    _assertSource(
-        "l1: default: {}",
-        AstTestFactory.switchDefault(
-            [AstTestFactory.label2("l1")], [AstTestFactory.block()]));
+    final code = 'l1: default: {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  switch (x) {
+    $code
+  }
+}
+''');
+    _assertSource(code, findNode.switchDefault(code));
   }
 
   void test_visitSwitchStatement() {
-    _assertSource(
-        "switch (a) {case 'b': {} default: {}}",
-        AstTestFactory.switchStatement(AstTestFactory.identifier3("a"), [
-          AstTestFactory.switchCase(
-              AstTestFactory.string2("b"), [AstTestFactory.block()]),
-          AstTestFactory.switchDefault2([AstTestFactory.block()])
-        ]));
+    final code = 'switch (x) {case 0: foo(); default: bar();}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code
+}
+''');
+    _assertSource(code, findNode.switchStatement(code));
   }
 
   void test_visitSymbolLiteral_multiple() {
@@ -3389,10 +3321,13 @@ void f() {
   }
 
   void test_visitTryStatement_finally() {
-    _assertSource(
-        "try {} finally {}",
-        AstTestFactory.tryStatement(
-            AstTestFactory.block(), AstTestFactory.block()));
+    final code = 'try {} finally {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code
+}
+''');
+    _assertSource(code, findNode.tryStatement(code));
   }
 
   void test_visitTypeArgumentList_multiple() {
@@ -3458,10 +3393,11 @@ void f() {
   }
 
   void test_visitTypeParameter_withMetadata() {
-    TypeParameter parameter = AstTestFactory.typeParameter("E");
-    parameter.metadata.add(
-        AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
-    _assertSource("@deprecated E", parameter);
+    final code = '@deprecated T';
+    final findNode = _parseStringToFindNode('''
+class A<$code> {}
+''');
+    _assertSource(code, findNode.typeParameter(code));
   }
 
   void test_visitTypeParameter_withoutExtends() {
@@ -3487,13 +3423,6 @@ void f() {
     _assertSource("a", AstTestFactory.variableDeclaration("a"));
   }
 
-  void test_visitVariableDeclaration_withMetadata() {
-    VariableDeclaration declaration = AstTestFactory.variableDeclaration("a");
-    declaration.metadata.add(
-        AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
-    _assertSource("@deprecated a", declaration);
-  }
-
   void test_visitVariableDeclarationList_const_type() {
     _assertSource(
         "const C a, b",
@@ -3511,17 +3440,6 @@ void f() {
           AstTestFactory.variableDeclaration("a"),
           AstTestFactory.variableDeclaration("b")
         ]));
-  }
-
-  void test_visitVariableDeclarationList_final_withMetadata() {
-    VariableDeclarationList declarationList =
-        AstTestFactory.variableDeclarationList2(Keyword.FINAL, [
-      AstTestFactory.variableDeclaration("a"),
-      AstTestFactory.variableDeclaration("b")
-    ]);
-    declarationList.metadata.add(
-        AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
-    _assertSource("@deprecated final a, b", declarationList);
   }
 
   void test_visitVariableDeclarationList_type() {
@@ -3553,10 +3471,13 @@ void f() {
   }
 
   void test_visitWhileStatement() {
-    _assertSource(
-        "while (c) {}",
-        AstTestFactory.whileStatement(
-            AstTestFactory.identifier3("c"), AstTestFactory.block()));
+    final code = 'while (true) {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code
+}
+''');
+    _assertSource(code, findNode.whileStatement(code));
   }
 
   void test_visitWithClause_multiple() {
