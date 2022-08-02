@@ -3504,20 +3504,71 @@ abstract class MethodReferenceExpression implements Expression {
   MethodElement? get staticElement;
 }
 
-/// The declaration of a mixin.
+/// The declaration of a mixin augmentation.
 ///
-///    mixinDeclaration ::=
-///        metadata? 'mixin' name [TypeParameterList]?
+///    mixinAugmentationDeclaration ::=
+///        'augment' 'mixin' name [TypeParameterList]?
 ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MixinDeclaration implements ClassOrMixinDeclaration {
+@experimental
+abstract class MixinAugmentationDeclaration
+    implements MixinOrAugmentationDeclaration {
+  /// The token representing the 'augment' keyword.
+  Token get augmentKeyword;
+
+  @override
+  MixinAugmentationElement? get declaredElement;
+}
+
+/// The declaration of a mixin.
+///
+///    mixinDeclaration ::=
+///        'mixin' name [TypeParameterList]?
+///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class MixinDeclaration
+    implements MixinOrAugmentationDeclaration, ClassOrMixinDeclaration {
+  // TODO(scheglov) Uncomment when removed [ClassOrMixinDeclaration].
+  // @override
+  // MixinElement get declaredElement;
+}
+
+/// Shared interface between [MixinDeclaration] and
+/// [MixinAugmentationDeclaration].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class MixinOrAugmentationDeclaration
+    implements NamedCompilationUnitMember {
+  /// Returns the `implements` clause for the mixin, or `null` if the mixin
+  /// does not implement any interfaces.
+  ImplementsClause? get implementsClause;
+
+  // @override
+  // TODO(scheglov) Uncomment when removed [ClassOrMixinDeclaration].
+  // MixinOrAugmentationElement get declaredElement;
+
+  /// Returns the left curly bracket.
+  Token get leftBracket;
+
+  /// Returns the members defined by the mixin.
+  NodeList<ClassMember> get members;
+
   /// Return the token representing the 'mixin' keyword.
   Token get mixinKeyword;
 
   /// Return the on clause for the mixin, or `null` if the mixin does not have
   /// any superclass constraints.
   OnClause? get onClause;
+
+  /// Returns the right curly bracket.
+  Token get rightBracket;
+
+  /// Returns the type parameters for the mixin, or `null` if the mixin does
+  /// not have any type parameters.
+  TypeParameterList? get typeParameters;
 }
 
 /// A node that declares a single name within the scope of a compilation unit.
