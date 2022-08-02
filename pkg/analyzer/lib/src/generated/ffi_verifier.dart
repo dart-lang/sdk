@@ -344,7 +344,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       var ffiParameterTypes = ffiSignature.normalParameterTypes;
       var ffiParameters = ffiSignature.parameters;
 
-      if (declarationElement is MethodElement && !declarationElement.isStatic) {
+      if ((declarationElement is MethodElement ||
+              declarationElement is PropertyAccessorElementImpl) &&
+          !declarationElement.isStatic) {
         // Instance methods must have the receiver as an extra parameter in the
         // FfiNative annotation.
         if (formalParameters.length + 1 != ffiSignature.parameters.length) {

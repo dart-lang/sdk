@@ -16,6 +16,22 @@ main() {
 
 @reflectiveTest
 class FfiNativeTest extends PubPackageResolutionTest {
+  test_annotation_FfiNative_getters() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+class NativeFieldWrapperClass1 {}
+
+class Paragraph extends NativeFieldWrapperClass1 {
+  @FfiNative<Double Function(Pointer<Void>)>('Paragraph::ideographicBaseline', isLeaf: true)
+  external double get ideographicBaseline;
+
+  @FfiNative<Void Function(Pointer<Void>, Double)>('Paragraph::ideographicBaseline', isLeaf: true)
+  external set ideographicBaseline(double d);
+}
+''', []);
+  }
+
   test_annotation_FfiNative_noArguments() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
