@@ -8296,7 +8296,7 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
 
   @override
   DecoratedType getDecoratedSupertype(
-      ClassElement class_, InterfaceElement superclass) {
+      InterfaceElement class_, InterfaceElement superclass) {
     throw UnimplementedError('TODO(paulberry)');
   }
 }

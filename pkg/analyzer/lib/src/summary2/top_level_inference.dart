@@ -42,10 +42,10 @@ class ConstantInitializersResolver {
       _library = builder.element;
       for (var unit in _library.units) {
         _unitElement = unit as CompilationUnitElementImpl;
-        unit.classes.forEach(_resolveClassFields);
-        unit.enums.forEach(_resolveClassFields);
+        unit.classes.forEach(_resolveInterfaceFields);
+        unit.enums2.forEach(_resolveInterfaceFields);
         unit.extensions.forEach(_resolveExtensionFields);
-        unit.mixins.forEach(_resolveClassFields);
+        unit.mixins2.forEach(_resolveInterfaceFields);
 
         _scope = unit.enclosingElement3.scope;
         unit.topLevelVariables.forEach(_resolveVariable);
@@ -53,7 +53,15 @@ class ConstantInitializersResolver {
     }
   }
 
-  void _resolveClassFields(ClassElement class_) {
+  void _resolveExtensionFields(ExtensionElement extension_) {
+    var node = linker.getLinkingNode(extension_)!;
+    _scope = LinkingNodeContext.get(node).scope;
+    for (var element in extension_.fields) {
+      _resolveVariable(element);
+    }
+  }
+
+  void _resolveInterfaceFields(InterfaceElement class_) {
     _enclosingClassHasConstConstructor =
         class_.constructors.any((c) => c.isConst);
 
@@ -63,14 +71,6 @@ class ConstantInitializersResolver {
       _resolveVariable(element);
     }
     _enclosingClassHasConstConstructor = false;
-  }
-
-  void _resolveExtensionFields(ExtensionElement extension_) {
-    var node = linker.getLinkingNode(extension_)!;
-    _scope = LinkingNodeContext.get(node).scope;
-    for (var element in extension_.fields) {
-      _resolveVariable(element);
-    }
   }
 
   void _resolveVariable(PropertyInducingElement element) {
@@ -351,10 +351,10 @@ class _InitializerInference {
         _unitElement = unit as CompilationUnitElementImpl;
         unit.classes.forEach(_addClassConstructorFieldFormals);
         unit.classes.forEach(_addClassElementFields);
-        unit.enums.forEach(_addClassConstructorFieldFormals);
-        unit.enums.forEach(_addClassElementFields);
+        unit.enums2.forEach(_addClassConstructorFieldFormals);
+        unit.enums2.forEach(_addClassElementFields);
         unit.extensions.forEach(_addExtensionElementFields);
-        unit.mixins.forEach(_addClassElementFields);
+        unit.mixins2.forEach(_addClassElementFields);
 
         _scope = unit.enclosingElement3.scope;
         for (var element in unit.topLevelVariables) {
@@ -368,7 +368,7 @@ class _InitializerInference {
     _walker.walkNodes();
   }
 
-  void _addClassConstructorFieldFormals(ClassElement class_) {
+  void _addClassConstructorFieldFormals(InterfaceElement class_) {
     for (var constructor in class_.constructors) {
       constructor as ConstructorElementImpl;
       var inferenceNode = _ConstructorInferenceNode(_walker, constructor);
@@ -376,7 +376,7 @@ class _InitializerInference {
     }
   }
 
-  void _addClassElementFields(ClassElement class_) {
+  void _addClassElementFields(InterfaceElement class_) {
     var node = _linker.getLinkingNode(class_)!;
     _scope = LinkingNodeContext.get(node).scope;
     for (var element in class_.fields) {

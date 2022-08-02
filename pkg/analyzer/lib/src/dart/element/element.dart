@@ -1089,7 +1089,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<ClassElement> _classes = const [];
 
   /// A list containing all of the enums contained in this compilation unit.
-  List<ClassElement> _enums = const [];
+  List<EnumElement> _enums = const [];
 
   /// A list containing all of the extensions contained in this compilation
   /// unit.
@@ -1100,7 +1100,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<FunctionElement> _functions = const [];
 
   /// A list containing all of the mixins contained in this compilation unit.
-  List<ClassElement> _mixins = const [];
+  List<MixinElement> _mixins = const [];
 
   /// A list containing all of the type aliases contained in this compilation
   /// unit.
@@ -1171,15 +1171,21 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     return this;
   }
 
+  @Deprecated('Use enums2 instead')
   @override
   List<ClassElement> get enums {
+    return _enums.map((e) => e as ClassElement).toList();
+  }
+
+  @override
+  List<EnumElement> get enums2 {
     return _enums;
   }
 
   /// Set the enums contained in this compilation unit to the given [enums].
-  set enums(List<ClassElement> enums) {
-    for (ClassElement enumDeclaration in enums) {
-      (enumDeclaration as EnumElementImpl).enclosingElement = this;
+  set enums2(List<EnumElement> enums) {
+    for (final element in enums) {
+      (element as EnumElementImpl).enclosingElement = this;
     }
     _enums = enums;
   }
@@ -1227,13 +1233,19 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     return super.metadata;
   }
 
+  @Deprecated('Use mixins2 instead')
   @override
   List<ClassElement> get mixins {
+    return _mixins.map((e) => e as ClassElement).toList();
+  }
+
+  @override
+  List<MixinElement> get mixins2 {
     return _mixins;
   }
 
   /// Set the mixins contained in this compilation unit to the given [mixins].
-  set mixins(List<ClassElement> mixins) {
+  set mixins2(List<MixinElement> mixins) {
     for (var type in mixins) {
       (type as MixinElementImpl).enclosingElement = this;
     }
@@ -1286,11 +1298,22 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     builder.writeCompilationUnitElement(this);
   }
 
+  @Deprecated('Use getEnum2() instead')
   @override
   ClassElement? getEnum(String enumName) {
     for (ClassElement enumDeclaration in enums) {
       if (enumDeclaration.name == enumName) {
         return enumDeclaration;
+      }
+    }
+    return null;
+  }
+
+  @override
+  EnumElement? getEnum2(String name) {
+    for (final element in enums2) {
+      if (element.name == name) {
+        return element;
       }
     }
     return null;
@@ -1318,10 +1341,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     super.visitChildren(visitor);
     safelyVisitChildren(accessors, visitor);
     safelyVisitChildren(classes, visitor);
-    safelyVisitChildren(enums, visitor);
+    safelyVisitChildren(enums2, visitor);
     safelyVisitChildren(extensions, visitor);
     safelyVisitChildren(functions, visitor);
-    safelyVisitChildren(mixins, visitor);
+    safelyVisitChildren(mixins2, visitor);
     safelyVisitChildren(typeAliases, visitor);
     safelyVisitChildren(topLevelVariables, visitor);
   }
@@ -3038,6 +3061,12 @@ class EnumElementImpl extends AbstractClassElementImpl implements EnumElement {
   }
 
   @override
+  T? accept<T>(ElementVisitor<T> visitor) {
+    visitor.visitClassElement(this);
+    return visitor.visitEnumElement(this);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeEnumElement(this);
   }
@@ -4284,10 +4313,10 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     for (var unit in units) {
       yield* unit.accessors;
       yield* unit.classes;
-      yield* unit.enums;
+      yield* unit.enums2;
       yield* unit.extensions;
       yield* unit.functions;
-      yield* unit.mixins;
+      yield* unit.mixins2;
       yield* unit.topLevelVariables;
       yield* unit.typeAliases;
     }
@@ -4323,9 +4352,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
           ..returnType = typeProvider.futureDynamicType;
   }
 
-  ClassElement? getEnum(String name) {
+  EnumElement? getEnum(String name) {
     for (final unitElement in units) {
-      final element = unitElement.getEnum(name);
+      final element = unitElement.getEnum2(name);
       if (element != null) {
         return element;
       }
@@ -4945,6 +4974,12 @@ class MixinElementImpl extends ClassElementImpl implements MixinElement {
   @override
   set supertype(InterfaceType? supertype) {
     throw StateError('Attempt to set a supertype for a mixin declaratio.');
+  }
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) {
+    visitor.visitClassElement(this);
+    return visitor.visitMixinElement(this);
   }
 
   @override

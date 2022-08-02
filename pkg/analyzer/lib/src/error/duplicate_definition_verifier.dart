@@ -314,7 +314,7 @@ class DuplicateDefinitionVerifier {
       for (ClassElement class_ in element.classes) {
         definedGetters[class_.name] = class_;
       }
-      for (ClassElement type in element.enums) {
+      for (final type in element.enums2) {
         definedGetters[type.name] = type;
       }
       for (FunctionElement function in element.functions) {

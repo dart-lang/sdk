@@ -23,7 +23,7 @@ class AstResolver {
   final FeatureSet _featureSet;
   final AnalysisErrorListener _errorListener =
       AnalysisErrorListener.NULL_LISTENER;
-  final ClassElement? enclosingClassElement;
+  final InterfaceElement? enclosingClassElement;
   final ExecutableElement? enclosingExecutableElement;
   late final _resolutionVisitor = ResolutionVisitor(
     unitElement: _unitElement,

@@ -17,6 +17,7 @@
 * Deprecated 'XyzDeclaration.name' in AST, use `name2` and `declaredElement` instead.
 * Deprecated `Element.enclosingElement2`, use `enclosingElement3` instead.  The meaningful change is that
   `ConstructorElement.enclosingElement3` returns now `IntefaceElement`, not `ClassElement`.
+* Deprecated `get enums/mixin`, use `get enums2/mixins2` instead.
 
 ## 4.3.1
 * Fix `identifier` for `LibraryExportElement` and `LibraryImportElement`.

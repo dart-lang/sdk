@@ -151,7 +151,7 @@ class ElementResolver {
   void visitConstructorFieldInitializer(
       covariant ConstructorFieldInitializerImpl node) {
     var fieldName = node.fieldName;
-    ClassElement enclosingClass = _resolver.enclosingClass!;
+    final enclosingClass = _resolver.enclosingClass!;
     var fieldElement = enclosingClass.getField(fieldName.name);
     fieldName.staticElement = fieldElement;
   }
@@ -302,7 +302,7 @@ class ElementResolver {
   void visitRedirectingConstructorInvocation(
       covariant RedirectingConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass == null) {
+    if (enclosingClass is! ClassElement) {
       // TODO(brianwilkerson) Report this error.
       return;
     }
@@ -336,7 +336,7 @@ class ElementResolver {
   void visitSuperConstructorInvocation(
       covariant SuperConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass == null) {
+    if (enclosingClass is! ClassElement) {
       // TODO(brianwilkerson) Report this error.
       return;
     }

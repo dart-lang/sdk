@@ -74,13 +74,6 @@ class B extends A {
     _assertIsEnumLike(findElement.class_('A'), false);
   }
 
-  test_isEnumLike_false_isMixin() async {
-    await assertNoErrorsInCode('''
-mixin M {}
-''');
-    _assertIsEnumLike(findElement.mixin('M'), false);
-  }
-
   test_isEnumLike_true() async {
     await assertNoErrorsInCode('''
 class A {

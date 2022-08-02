@@ -49,7 +49,7 @@ abstract class SearchEngine {
   /// If the [type] has subtypes, return the set of names of members which these
   /// subtypes declare, possibly empty.  If the [type] does not have subtypes,
   /// return `null`.
-  Future<Set<String>?> membersOfSubtypes(ClassElement type);
+  Future<Set<String>?> membersOfSubtypes(InterfaceElement type);
 
   /// Returns all subtypes of the given [type].
   ///

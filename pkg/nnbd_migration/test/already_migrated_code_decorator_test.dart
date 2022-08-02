@@ -427,7 +427,7 @@ class _AlreadyMigratedCodeDecoratorTestBase {
       'mixin C on num {}',
     );
     var unitElement = withUnit.unitElement;
-    var mixin_ = unitElement.mixins.single;
+    var mixin_ = unitElement.mixins2.single;
 
     var withElement = withUnit.withElement(mixin_);
 

@@ -35,7 +35,7 @@ class InstanceMemberInferrer {
     typeSystem = unit.library.typeSystem as TypeSystemImpl;
     isNonNullableByDefault = typeSystem.isNonNullableByDefault;
     _inferClasses(unit.classes);
-    _inferClasses(unit.mixins);
+    _inferClasses(unit.mixins2);
   }
 
   /// Return `true` if the elements corresponding to the [elements] have the
@@ -308,7 +308,7 @@ class InstanceMemberInferrer {
 
   /// Infer type information for all of the instance members in the given
   /// [classElement].
-  void _inferClass(ClassElement classElement) {
+  void _inferClass(InterfaceElement classElement) {
     if (classElement is ClassElementImpl) {
       if (classElement.hasBeenInferred) {
         return;
@@ -359,8 +359,8 @@ class InstanceMemberInferrer {
     }
   }
 
-  void _inferClasses(List<ClassElement> elements) {
-    for (ClassElement element in elements) {
+  void _inferClasses(List<InterfaceElement> elements) {
+    for (final element in elements) {
       try {
         _inferClass(element);
       } on _CycleException {

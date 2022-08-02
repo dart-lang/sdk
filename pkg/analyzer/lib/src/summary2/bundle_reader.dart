@@ -796,7 +796,7 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var count = _reader.readUInt30();
-    unitElement.enums = List.generate(count, (_) {
+    unitElement.enums2 = List.generate(count, (_) {
       return _readEnumElement(unitElement, unitReference);
     });
   }
@@ -1141,7 +1141,7 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var length = _reader.readUInt30();
-    unitElement.mixins = List.generate(length, (index) {
+    unitElement.mixins2 = List.generate(length, (index) {
       return _readMixinElement(unitElement, unitReference);
     });
   }

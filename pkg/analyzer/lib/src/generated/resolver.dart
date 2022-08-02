@@ -143,7 +143,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// The class containing the AST nodes being visited,
   /// or `null` if we are not in the scope of a class.
-  ClassElement? enclosingClass;
+  InterfaceElement? enclosingClass;
 
   /// The element representing the extension containing the AST nodes being
   /// visited, or `null` if we are not in the scope of an extension.
@@ -716,7 +716,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// Set information about enclosing declarations.
   void prepareEnclosingDeclarations({
-    ClassElement? enclosingClassElement,
+    InterfaceElement? enclosingClassElement,
     ExecutableElement? enclosingExecutableElement,
   }) {
     enclosingClass = enclosingClassElement;

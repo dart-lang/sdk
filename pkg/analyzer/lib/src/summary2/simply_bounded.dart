@@ -21,11 +21,11 @@ void computeSimplyBounded(Linker linker) {
         var node = walker.getNode(element);
         nodes.add(node);
       }
-      for (var element in unit.enums) {
+      for (var element in unit.enums2) {
         var node = walker.getNode(element);
         nodes.add(node);
       }
-      for (var element in unit.mixins) {
+      for (var element in unit.mixins2) {
         var node = walker.getNode(element);
         nodes.add(node);
       }

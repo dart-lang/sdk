@@ -526,7 +526,7 @@ class B extends Object with p.A {} // 2
 mixin A {} // 1
 class B extends Object with A {} // 2
 ''');
-    ClassElement elementA = findElement.mixin('A');
+    final elementA = findElement.mixin('A');
     assertThat(elementA)
       ..isMixedInAt('A {} // 2', false)
       ..isReferencedAt('A {} // 2', false);
@@ -546,7 +546,7 @@ class B = Object with A; // 2
 mixin A {} // 1
 class B = Object with A; // 2
 ''');
-    ClassElement elementA = findElement.mixin('A');
+    final elementA = findElement.mixin('A');
     assertThat(elementA).isMixedInAt('A; // 2', false);
   }
 
@@ -622,7 +622,7 @@ main(MyEnum p) {
   MyEnum.a;
 }
 ''');
-    ClassElement element = findElement.enum_('MyEnum');
+    final element = findElement.enum_('MyEnum');
     assertThat(element)
       ..isReferencedAt('MyEnum p) {', false)
       ..isReferencedAt('MyEnum v;', false)
@@ -1169,7 +1169,7 @@ main() {
   print(MyEnum.B);
 }
 ''');
-    ClassElement enumElement = findElement.enum_('MyEnum');
+    final enumElement = findElement.enum_('MyEnum');
     assertThat(enumElement.getGetter('values')!)
         .isReferencedAt('values);', true);
     assertThat(typeProvider.enumElement!.getGetter('index')!)
