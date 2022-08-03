@@ -17,6 +17,50 @@ class DiagnosticFactory {
   /// Initialize a newly created diagnostic factory.
   DiagnosticFactory();
 
+  /// Return a diagnostic indicating that [duplicateElement] reuses a name
+  /// already used by [originalElement].
+  AnalysisError duplicateDefinition(ErrorCode code, Element duplicateElement,
+      Element originalElement, List<Object> arguments) {
+    final duplicate = duplicateElement.nonSynthetic;
+    final original = originalElement.nonSynthetic;
+    return AnalysisError(
+      duplicate.source!,
+      duplicate.nameOffset,
+      duplicate.nameLength,
+      code,
+      arguments,
+      [
+        DiagnosticMessageImpl(
+            filePath: original.source!.fullName,
+            message: "The first definition of this name.",
+            offset: original.nameOffset,
+            length: original.nameLength,
+            url: null)
+      ],
+    );
+  }
+
+  /// Return a diagnostic indicating that [duplicateNode] reuses a name
+  /// already used by [originalNode].
+  AnalysisError duplicateDefinitionForNodes(Source source, ErrorCode code,
+      AstNode duplicateNode, AstNode originalNode, List<Object> arguments) {
+    return AnalysisError(
+      source,
+      duplicateNode.offset,
+      duplicateNode.length,
+      code,
+      arguments,
+      [
+        DiagnosticMessageImpl(
+            filePath: source.fullName,
+            message: "The first definition of this name.",
+            offset: originalNode.offset,
+            length: originalNode.length,
+            url: null)
+      ],
+    );
+  }
+
   /// Return a diagnostic indicating that the [duplicateElement] (in a constant
   /// set) is a duplicate of the [originalElement].
   AnalysisError equalElementsInConstSet(

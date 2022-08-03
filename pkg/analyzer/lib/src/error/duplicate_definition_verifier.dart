@@ -11,12 +11,15 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 class DuplicateDefinitionVerifier {
   final InheritanceManager3 _inheritanceManager;
   final LibraryElement _currentLibrary;
   final ErrorReporter _errorReporter;
+
+  final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
 
   DuplicateDefinitionVerifier(
     this._inheritanceManager,
@@ -31,10 +34,13 @@ class DuplicateDefinitionVerifier {
     if (exceptionParameter != null && stackTraceParameter != null) {
       String exceptionName = exceptionParameter.name.lexeme;
       if (exceptionName == stackTraceParameter.name.lexeme) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.DUPLICATE_DEFINITION,
-            stackTraceParameter,
-            [exceptionName]);
+        _errorReporter.reportError(_diagnosticFactory
+            .duplicateDefinitionForNodes(
+                _errorReporter.source,
+                CompileTimeErrorCode.DUPLICATE_DEFINITION,
+                stackTraceParameter,
+                exceptionParameter,
+                [exceptionName]));
       }
     }
   }
@@ -525,11 +531,12 @@ class DuplicateDefinitionVerifier {
     var previous = getterScope[name];
     if (previous != null) {
       if (!_isGetterSetterPair(element, previous)) {
-        _errorReporter.reportErrorForToken(
+        _errorReporter.reportError(_diagnosticFactory.duplicateDefinition(
           getError(previous, element),
-          identifier,
+          element,
+          previous,
           [name],
-        );
+        ));
       }
     } else {
       getterScope[name] = element;
@@ -539,11 +546,12 @@ class DuplicateDefinitionVerifier {
       if (element is PropertyAccessorElement && element.isSetter) {
         previous = setterScope[name];
         if (previous != null) {
-          _errorReporter.reportErrorForToken(
+          _errorReporter.reportError(_diagnosticFactory.duplicateDefinition(
             getError(previous, element),
-            identifier,
+            element,
+            previous,
             [name],
-          );
+          ));
         } else {
           setterScope[name] = element;
         }
