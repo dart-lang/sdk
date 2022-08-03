@@ -12,17 +12,17 @@ import 'package:analyzer/dart/ast/token.dart';
 
 class BooleanExpressionUtilities {
   static HashSet<TokenType> BOOLEAN_OPERATIONS =
-      HashSet.from(const [TokenType.AMPERSAND_AMPERSAND, TokenType.BAR_BAR]);
+      HashSet.of(const [TokenType.AMPERSAND_AMPERSAND, TokenType.BAR_BAR]);
 
   static HashSet<TokenType> EQUALITY_OPERATIONS =
-      HashSet.from(const [TokenType.EQ_EQ, TokenType.BANG_EQ]);
+      HashSet.of(const [TokenType.EQ_EQ, TokenType.BANG_EQ]);
 
-  static HashMap<TokenType, TokenType> IMPLICATIONS = HashMap.from(const {
+  static HashMap<TokenType, TokenType> IMPLICATIONS = HashMap.of(const {
     TokenType.GT: TokenType.GT_EQ,
     TokenType.LT: TokenType.LT_EQ,
   });
 
-  static HashMap<TokenType, TokenType> NEGATIONS = HashMap.from(const {
+  static HashMap<TokenType, TokenType> NEGATIONS = HashMap.of(const {
     TokenType.EQ_EQ: TokenType.BANG_EQ,
     TokenType.BANG_EQ: TokenType.EQ_EQ,
     TokenType.GT: TokenType.LT_EQ,
@@ -32,7 +32,7 @@ class BooleanExpressionUtilities {
   });
 
   static HashSet<TokenType> TRICHOTOMY_OPERATORS =
-      HashSet.from(const [TokenType.EQ_EQ, TokenType.LT, TokenType.GT]);
+      HashSet.of(const [TokenType.EQ_EQ, TokenType.LT, TokenType.GT]);
 
-  static final HashSet<TokenType> COMPARISONS = HashSet.from(NEGATIONS.keys);
+  static final HashSet<TokenType> COMPARISONS = HashSet.of(NEGATIONS.keys);
 }
