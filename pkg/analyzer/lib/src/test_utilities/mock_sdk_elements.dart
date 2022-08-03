@@ -930,22 +930,19 @@ class _MockSdkElementsBuilder {
       ]),
     ];
 
-    var deprecatedVariable = _topLevelVariable(
+    var deprecatedVariable = _topLevelVariableConst(
       'deprecated',
       _interfaceType(deprecatedElement),
-      isConst: true,
     );
 
-    var overrideVariable = _topLevelVariable(
+    var overrideVariable = _topLevelVariableConst(
       'override',
       _interfaceType(overrideElement),
-      isConst: true,
     );
 
-    var proxyVariable = _topLevelVariable(
+    var proxyVariable = _topLevelVariableConst(
       'proxy',
       _interfaceType(proxyElement),
-      isConst: true,
     );
 
     coreUnit.accessors = <PropertyAccessorElement>[
@@ -1121,14 +1118,12 @@ class _MockSdkElementsBuilder {
         .toList();
   }
 
-  TopLevelVariableElement _topLevelVariable(
-    String name,
-    DartType type, {
-    bool isConst = false,
-    bool isFinal = false,
-  }) {
-    return ElementFactory.topLevelVariableElement3(
-        name, isConst, isFinal, type);
+  TopLevelVariableElement _topLevelVariableConst(String name, DartType type) {
+    final variable = ConstTopLevelVariableElementImpl(name, -1)
+      ..isConst = true
+      ..type = type;
+    PropertyAccessorElementImpl_ImplicitGetter(variable);
+    return variable;
   }
 
   TypeParameterElementImpl _typeParameter(String name) {

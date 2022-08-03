@@ -26,9 +26,9 @@ ExpressionStatement fixCascadeByParenthesizingTarget({
   );
 
   return astFactory.expressionStatement(
-    astFactory.cascadeExpression(
-      newTarget,
-      cascadeExpression.cascadeSections,
+    CascadeExpressionImpl(
+      target: newTarget,
+      cascadeSections: cascadeExpression.cascadeSections,
     ),
     expressionStatement.semicolon,
   );

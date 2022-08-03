@@ -293,7 +293,10 @@ class AstBinaryReader {
 
   BooleanLiteral _readBooleanLiteral() {
     var value = _readByte() == 1;
-    var node = AstTestFactory.booleanLiteral(value);
+    var node = BooleanLiteralImpl(
+      literal: value ? Tokens.true_() : Tokens.false_(),
+      value: value,
+    );
     _readExpressionResolution(node);
     return node;
   }
@@ -303,23 +306,26 @@ class AstBinaryReader {
   }
 
   CascadeExpression _readCascadeExpression() {
-    var target = readNode() as Expression;
+    var target = readNode() as ExpressionImpl;
     var sections = _readNodeList<Expression>();
-    var node = astFactory.cascadeExpression(target, sections);
+    var node = CascadeExpressionImpl(
+      target: target,
+      cascadeSections: sections,
+    );
     node.staticType = target.staticType;
     return node;
   }
 
   ConditionalExpression _readConditionalExpression() {
-    var condition = readNode() as Expression;
-    var thenExpression = readNode() as Expression;
-    var elseExpression = readNode() as Expression;
-    var node = astFactory.conditionalExpression(
-      condition,
-      Tokens.question(),
-      thenExpression,
-      Tokens.colon(),
-      elseExpression,
+    var condition = readNode() as ExpressionImpl;
+    var thenExpression = readNode() as ExpressionImpl;
+    var elseExpression = readNode() as ExpressionImpl;
+    var node = ConditionalExpressionImpl(
+      condition: condition,
+      question: Tokens.question(),
+      thenExpression: thenExpression,
+      colon: Tokens.colon(),
+      elseExpression: elseExpression,
     );
     _readExpressionResolution(node);
     return node;
@@ -327,34 +333,34 @@ class AstBinaryReader {
 
   ConstructorFieldInitializer _readConstructorFieldInitializer() {
     var flags = _readByte();
-    var fieldName = readNode() as SimpleIdentifier;
-    var expression = readNode() as Expression;
+    var fieldName = readNode() as SimpleIdentifierImpl;
+    var expression = readNode() as ExpressionImpl;
     var hasThis = AstBinaryFlags.hasThis(flags);
-    return astFactory.constructorFieldInitializer(
-      hasThis ? Tokens.this_() : null,
-      hasThis ? Tokens.period() : null,
-      fieldName,
-      Tokens.eq(),
-      expression,
+    return ConstructorFieldInitializerImpl(
+      thisKeyword: hasThis ? Tokens.this_() : null,
+      period: hasThis ? Tokens.period() : null,
+      fieldName: fieldName,
+      equals: Tokens.eq(),
+      expression: expression,
     );
   }
 
   ConstructorName _readConstructorName() {
-    var type = readNode() as NamedType;
-    var name = _readOptionalNode() as SimpleIdentifier?;
+    var type = readNode() as NamedTypeImpl;
+    var name = _readOptionalNode() as SimpleIdentifierImpl?;
 
-    var node = astFactory.constructorName(
-      type,
-      name != null ? Tokens.period() : null,
-      name,
+    var node = ConstructorNameImpl(
+      type: type,
+      period: name != null ? Tokens.period() : null,
+      name: name,
     );
     node.staticElement = _reader.readElement() as ConstructorElement?;
     return node;
   }
 
   ConstructorReference _readConstructorReference() {
-    var constructorName = readNode() as ConstructorName;
-    var node = astFactory.constructorReference(
+    var constructorName = readNode() as ConstructorNameImpl;
+    var node = ConstructorReferenceImpl(
       constructorName: constructorName,
     );
     _readExpressionResolution(node);
@@ -391,8 +397,8 @@ class AstBinaryReader {
 
   DefaultFormalParameter _readDefaultFormalParameter() {
     var flags = _readByte();
-    var parameter = readNode() as NormalFormalParameter;
-    var defaultValue = _readOptionalNode() as Expression?;
+    var parameter = readNode() as NormalFormalParameterImpl;
+    var defaultValue = _readOptionalNode() as ExpressionImpl?;
 
     ParameterKind kind;
     if (AstBinaryFlags.isPositional(flags)) {
@@ -405,11 +411,11 @@ class AstBinaryReader {
           : ParameterKind.NAMED;
     }
 
-    var node = astFactory.defaultFormalParameter(
-      parameter,
-      kind,
-      AstBinaryFlags.hasInitializer(flags) ? Tokens.colon() : null,
-      defaultValue,
+    var node = DefaultFormalParameterImpl(
+      parameter: parameter,
+      kind: kind,
+      separator: AstBinaryFlags.hasInitializer(flags) ? Tokens.colon() : null,
+      defaultValue: defaultValue,
     );
 
     var nonDefaultElement = parameter.declaredElement!;

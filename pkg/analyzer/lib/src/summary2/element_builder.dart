@@ -242,15 +242,15 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       var initializer = astFactory.instanceCreationExpression(
         null,
-        astFactory.constructorName(
-          astFactory.namedType(
+        ConstructorNameImpl(
+          type: astFactory.namedType(
             name: astFactory.simpleIdentifier(
               StringToken(TokenType.STRING, element.name, -1),
             ),
             typeArguments: constant.arguments?.typeArguments,
           ),
-          constructorName != null ? Tokens.period() : null,
-          constructorName != null
+          period: constructorName != null ? Tokens.period() : null,
+          name: constructorName != null
               ? astFactory.simpleIdentifier(
                   StringToken(TokenType.STRING, constructorName, -1),
                 )

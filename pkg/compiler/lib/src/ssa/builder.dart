@@ -478,7 +478,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
                 return null;
               }
             }
-            _buildField(target);
+            if (targetElement.isInstanceMember) {
+              _buildInstanceFieldSetter(target);
+            } else {
+              _buildStaticFieldInitializer(target);
+            }
           } else if (target is ir.LocalFunction) {
             _buildFunctionNode(targetElement,
                 _ensureDefaultArgumentValues(null, target.function));
@@ -579,49 +583,53 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     return function;
   }
 
-  void _buildField(ir.Field node) {
-    graph.isLazyInitializer = node.isStatic;
+  void _buildInstanceFieldSetter(ir.Field node) {
+    assert(!node.isStatic);
     FieldEntity field = _elementMap.getMember(node);
     _openFunction(field, checks: TargetChecks.none);
-    if (node.isInstanceMember &&
-        closedWorld.annotationsData.getParameterCheckPolicy(field).isEmitted) {
-      HInstruction thisInstruction = localsHandler.readThis(
-          sourceInformation: _sourceInformationBuilder.buildGet(node));
-      // Use dynamic type because the type computed by the inferrer is
-      // narrowed to the type annotation.
-      HInstruction parameter =
-          HParameterValue(field, _abstractValueDomain.dynamicType);
-      // Add the parameter as the last instruction of the entry block.
-      // If the method is intercepted, we want the actual receiver
-      // to be the first parameter.
-      graph.entry.addBefore(graph.entry.last, parameter);
-      DartType type = _getDartTypeIfValid(node.type);
-      HInstruction value = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
-          field, parameter, type);
-      // TODO(sra): Pass source information to
-      // [potentiallyCheckOrTrustTypeOfParameter].
-      // TODO(sra): The source information should indicate the field and
-      // possibly its type but not the initializer.
-      value.sourceInformation ??= _sourceInformationBuilder.buildSet(node);
-      value = _potentiallyAssertNotNull(field, node, value, type);
-      if (!_fieldAnalysis.getFieldData(field).isElided) {
-        add(HFieldSet(_abstractValueDomain, field, thisInstruction, value));
-      }
-    } else {
-      if (node.initializer != null) {
-        node.initializer.accept(this);
-        HInstruction fieldValue = pop();
-        HInstruction checkInstruction =
-            _typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
-                field, fieldValue, _getDartTypeIfValid(node.type));
-        stack.add(checkInstruction);
-      } else {
-        stack.add(graph.addConstantNull(closedWorld));
-      }
-      HInstruction value = pop();
-      _closeAndGotoExit(HReturn(_abstractValueDomain, value,
-          _sourceInformationBuilder.buildReturn(node)));
+    HInstruction thisInstruction = localsHandler.readThis(
+        sourceInformation: _sourceInformationBuilder.buildGet(node));
+    // Use dynamic type because the type computed by the inferrer is
+    // narrowed to the type annotation.
+    HInstruction parameter =
+        HParameterValue(field, _abstractValueDomain.dynamicType);
+    // Add the parameter as the last instruction of the entry block.
+    // If the method is intercepted, we want the actual receiver
+    // to be the first parameter.
+    graph.entry.addBefore(graph.entry.last, parameter);
+    DartType type = _getDartTypeIfValid(node.type);
+    HInstruction value = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
+        field, parameter, type);
+    // TODO(sra): Pass source information to
+    // [potentiallyCheckOrTrustTypeOfParameter].
+    // TODO(sra): The source information should indicate the field and
+    // possibly its type but not the initializer.
+    value.sourceInformation ??= _sourceInformationBuilder.buildSet(node);
+    value = _potentiallyAssertNotNull(field, node, value, type);
+    if (!_fieldAnalysis.getFieldData(field).isElided) {
+      add(HFieldSet(_abstractValueDomain, field, thisInstruction, value));
     }
+    _closeFunction();
+  }
+
+  void _buildStaticFieldInitializer(ir.Field node) {
+    assert(node.isStatic);
+    graph.isLazyInitializer = true;
+    FieldEntity field = _elementMap.getMember(node);
+    _openFunction(field, checks: TargetChecks.none);
+    if (node.initializer != null) {
+      node.initializer.accept(this);
+      HInstruction fieldValue = pop();
+      HInstruction checkInstruction =
+          _typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
+              field, fieldValue, _getDartTypeIfValid(node.type));
+      stack.add(checkInstruction);
+    } else {
+      stack.add(graph.addConstantNull(closedWorld));
+    }
+    HInstruction value = pop();
+    _closeAndGotoExit(HReturn(_abstractValueDomain, value,
+        _sourceInformationBuilder.buildReturn(node)));
     _closeFunction();
   }
 

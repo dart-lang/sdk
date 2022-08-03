@@ -200,46 +200,73 @@ void f() $code
   }
 
   void test_visitBooleanLiteral_false() {
-    _assertSource("false", AstTestFactory.booleanLiteral(false));
+    final code = 'false';
+    final findNode = _parseStringToFindNode('''
+final v = $code;
+''');
+    _assertSource(code, findNode.booleanLiteral(code));
   }
 
   void test_visitBooleanLiteral_true() {
-    _assertSource("true", AstTestFactory.booleanLiteral(true));
+    final code = 'true';
+    final findNode = _parseStringToFindNode('''
+final v = $code;
+''');
+    _assertSource(code, findNode.booleanLiteral(code));
   }
 
   void test_visitBreakStatement_label() {
-    _assertSource("break l;", AstTestFactory.breakStatement2("l"));
+    final code = 'break L;';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  L: while (true) {
+    $code
+  }
+}
+''');
+    _assertSource(code, findNode.breakStatement(code));
   }
 
   void test_visitBreakStatement_noLabel() {
-    _assertSource("break;", AstTestFactory.breakStatement());
+    final code = 'break;';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  while (true) {
+    $code
+  }
+}
+''');
+    _assertSource(code, findNode.breakStatement(code));
   }
 
   void test_visitCascadeExpression_field() {
-    _assertSource(
-        "a..b..c",
-        AstTestFactory.cascadeExpression(AstTestFactory.identifier3("a"), [
-          AstTestFactory.cascadedPropertyAccess("b"),
-          AstTestFactory.cascadedPropertyAccess("c")
-        ]));
+    final code = 'a..b..c';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code;
+}
+''');
+    _assertSource(code, findNode.cascade(code));
   }
 
   void test_visitCascadeExpression_index() {
-    _assertSource(
-        "a..[0]..[1]",
-        AstTestFactory.cascadeExpression(AstTestFactory.identifier3("a"), [
-          AstTestFactory.cascadedIndexExpression(AstTestFactory.integer(0)),
-          AstTestFactory.cascadedIndexExpression(AstTestFactory.integer(1))
-        ]));
+    final code = 'a..[0]..[1]';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code;
+}
+''');
+    _assertSource(code, findNode.cascade(code));
   }
 
   void test_visitCascadeExpression_method() {
-    _assertSource(
-        "a..b()..c()",
-        AstTestFactory.cascadeExpression(AstTestFactory.identifier3("a"), [
-          AstTestFactory.cascadedMethodInvocation("b"),
-          AstTestFactory.cascadedMethodInvocation("c")
-        ]));
+    final code = 'a..b()..c()';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code;
+}
+''');
+    _assertSource(code, findNode.cascade(code));
   }
 
   void test_visitCatchClause_catch_noStack() {
@@ -640,8 +667,12 @@ macro class A = S with M;
   }
 
   void test_visitCommentReference() {
-    _assertSource(
-        "", astFactory.commentReference(null, AstTestFactory.identifier3("a")));
+    final code = 'x';
+    final findNode = _parseStringToFindNode('''
+/// [$code]
+void f() {}
+''');
+    _assertSource('', findNode.commentReference(code));
   }
 
   void test_visitCompilationUnit_declaration() {
@@ -708,10 +739,13 @@ macro class A = S with M;
   }
 
   void test_visitConditionalExpression() {
-    _assertSource(
-        "a ? b : c",
-        AstTestFactory.conditionalExpression(AstTestFactory.identifier3("a"),
-            AstTestFactory.identifier3("b"), AstTestFactory.identifier3("c")));
+    final code = 'a ? b : c';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code;
+}
+''');
+    _assertSource(code, findNode.conditionalExpression(code));
   }
 
   void test_visitConstructorDeclaration_const() {
@@ -792,45 +826,71 @@ class C {
   }
 
   void test_visitConstructorFieldInitializer_withoutThis() {
-    _assertSource(
-        "a = b",
-        AstTestFactory.constructorFieldInitializer(
-            false, "a", AstTestFactory.identifier3("b")));
+    final code = 'a = 0';
+    final findNode = _parseStringToFindNode('''
+class C {
+  C() : $code;
+}
+''');
+    _assertSource(code, findNode.constructorFieldInitializer(code));
   }
 
   void test_visitConstructorFieldInitializer_withThis() {
-    _assertSource(
-        "this.a = b",
-        AstTestFactory.constructorFieldInitializer(
-            true, "a", AstTestFactory.identifier3("b")));
+    final code = 'this.a = 0';
+    final findNode = _parseStringToFindNode('''
+class C {
+  C() : $code;
+}
+''');
+    _assertSource(code, findNode.constructorFieldInitializer(code));
   }
 
   void test_visitConstructorName_named_prefix() {
-    _assertSource(
-        "p.C.n",
-        AstTestFactory.constructorName(
-            AstTestFactory.namedType4("p.C.n"), null));
+    final code = 'prefix.A.foo';
+    final findNode = _parseStringToFindNode('''
+final x = new $code();
+''');
+    _assertSource(code, findNode.constructorName(code));
   }
 
   void test_visitConstructorName_unnamed_noPrefix() {
-    _assertSource("C",
-        AstTestFactory.constructorName(AstTestFactory.namedType4("C"), null));
+    final code = 'A';
+    final findNode = _parseStringToFindNode('''
+final x = new $code();
+''');
+    _assertSource(code, findNode.constructorName(code));
   }
 
   void test_visitConstructorName_unnamed_prefix() {
-    _assertSource(
-        "p.C",
-        AstTestFactory.constructorName(
-            AstTestFactory.namedType3(AstTestFactory.identifier5("p", "C")),
-            null));
+    final code = 'prefix.A';
+    final findNode = _parseStringToFindNode('''
+final x = new $code();
+''');
+    _assertSource(code, findNode.constructorName(code));
   }
 
   void test_visitContinueStatement_label() {
-    _assertSource("continue l;", AstTestFactory.continueStatement("l"));
+    final code = 'continue L;';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  L: while (true) {
+    $code
+  }
+}
+''');
+    _assertSource(code, findNode.continueStatement('continue'));
   }
 
   void test_visitContinueStatement_noLabel() {
-    _assertSource("continue;", AstTestFactory.continueStatement());
+    final code = 'continue;';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  while (true) {
+    $code
+  }
+}
+''');
+    _assertSource(code, findNode.continueStatement('continue'));
   }
 
   void test_visitDefaultFormalParameter_annotation() {
@@ -842,33 +902,35 @@ void f([$code]) {}
   }
 
   void test_visitDefaultFormalParameter_named_noValue() {
-    _assertSource(
-        "p",
-        AstTestFactory.namedFormalParameter(
-            AstTestFactory.simpleFormalParameter3("p"), null));
+    final code = 'int? a';
+    final findNode = _parseStringToFindNode('''
+void f({$code}) {}
+''');
+    _assertSource(code, findNode.defaultParameter(code));
   }
 
   void test_visitDefaultFormalParameter_named_value() {
-    _assertSource(
-        "p: 0",
-        AstTestFactory.namedFormalParameter(
-            AstTestFactory.simpleFormalParameter3("p"),
-            AstTestFactory.integer(0)));
+    final code = 'int? a = 0';
+    final findNode = _parseStringToFindNode('''
+void f({$code}) {}
+''');
+    _assertSource(code, findNode.defaultParameter(code));
   }
 
   void test_visitDefaultFormalParameter_positional_noValue() {
-    _assertSource(
-        "p",
-        AstTestFactory.positionalFormalParameter(
-            AstTestFactory.simpleFormalParameter3("p"), null));
+    final code = 'int? a';
+    final findNode = _parseStringToFindNode('''
+void f([$code]) {}
+''');
+    _assertSource(code, findNode.defaultParameter(code));
   }
 
   void test_visitDefaultFormalParameter_positional_value() {
-    _assertSource(
-        "p = 0",
-        AstTestFactory.positionalFormalParameter(
-            AstTestFactory.simpleFormalParameter3("p"),
-            AstTestFactory.integer(0)));
+    final code = 'int? a = 0';
+    final findNode = _parseStringToFindNode('''
+void f([$code]) {}
+''');
+    _assertSource(code, findNode.defaultParameter(code));
   }
 
   void test_visitDoStatement() {
@@ -1546,67 +1608,43 @@ void f() async {
   }
 
   void test_visitFormalParameterList_n() {
-    _assertSource(
-        "({a: 0})",
-        AstTestFactory.formalParameterList([
-          AstTestFactory.namedFormalParameter(
-              AstTestFactory.simpleFormalParameter3("a"),
-              AstTestFactory.integer(0))
-        ]));
+    final code = '({a = 0})';
+    final findNode = _parseStringToFindNode('''
+void f$code {}
+''');
+    _assertSource(code, findNode.formalParameterList(code));
   }
 
   void test_visitFormalParameterList_namedRequired() {
-    _assertSource(
-        "({required a, required A b})",
-        AstTestFactory.formalParameterList([
-          AstTestFactory.namedFormalParameter(
-              AstTestFactory.simpleFormalParameter3("a")
-                ..requiredKeyword =
-                    TokenFactory.tokenFromKeyword(Keyword.REQUIRED),
-              null),
-          AstTestFactory.namedFormalParameter(
-              AstTestFactory.simpleFormalParameter2(
-                  null, AstTestFactory.namedType4('A'), "b")
-                ..requiredKeyword =
-                    TokenFactory.tokenFromKeyword(Keyword.REQUIRED),
-              null),
-        ]));
+    final code = '({required a, required int b})';
+    final findNode = _parseStringToFindNode('''
+void f$code {}
+''');
+    _assertSource(code, findNode.formalParameterList(code));
   }
 
   void test_visitFormalParameterList_nn() {
-    _assertSource(
-        "({a: 0, b: 1})",
-        AstTestFactory.formalParameterList([
-          AstTestFactory.namedFormalParameter(
-              AstTestFactory.simpleFormalParameter3("a"),
-              AstTestFactory.integer(0)),
-          AstTestFactory.namedFormalParameter(
-              AstTestFactory.simpleFormalParameter3("b"),
-              AstTestFactory.integer(1))
-        ]));
+    final code = '({int a = 0, b = 1})';
+    final findNode = _parseStringToFindNode('''
+void f$code {}
+''');
+    _assertSource(code, findNode.formalParameterList(code));
   }
 
   void test_visitFormalParameterList_p() {
-    _assertSource(
-        "([a = 0])",
-        AstTestFactory.formalParameterList([
-          AstTestFactory.positionalFormalParameter(
-              AstTestFactory.simpleFormalParameter3("a"),
-              AstTestFactory.integer(0))
-        ]));
+    final code = '([a = 0])';
+    final findNode = _parseStringToFindNode('''
+void f$code {}
+''');
+    _assertSource(code, findNode.formalParameterList(code));
   }
 
   void test_visitFormalParameterList_pp() {
-    _assertSource(
-        "([a = 0, b = 1])",
-        AstTestFactory.formalParameterList([
-          AstTestFactory.positionalFormalParameter(
-              AstTestFactory.simpleFormalParameter3("a"),
-              AstTestFactory.integer(0)),
-          AstTestFactory.positionalFormalParameter(
-              AstTestFactory.simpleFormalParameter3("b"),
-              AstTestFactory.integer(1))
-        ]));
+    final code = '([a = 0, b = 1])';
+    final findNode = _parseStringToFindNode('''
+void f$code {}
+''');
+    _assertSource(code, findNode.formalParameterList(code));
   }
 
   void test_visitFormalParameterList_r() {
@@ -1617,53 +1655,35 @@ void f() async {
   }
 
   void test_visitFormalParameterList_rn() {
-    _assertSource(
-        "(a, {b: 1})",
-        AstTestFactory.formalParameterList([
-          AstTestFactory.simpleFormalParameter3("a"),
-          AstTestFactory.namedFormalParameter(
-              AstTestFactory.simpleFormalParameter3("b"),
-              AstTestFactory.integer(1))
-        ]));
+    final code = '(a, {b = 1})';
+    final findNode = _parseStringToFindNode('''
+void f$code {}
+''');
+    _assertSource(code, findNode.formalParameterList(code));
   }
 
   void test_visitFormalParameterList_rnn() {
-    _assertSource(
-        "(a, {b: 1, c: 2})",
-        AstTestFactory.formalParameterList([
-          AstTestFactory.simpleFormalParameter3("a"),
-          AstTestFactory.namedFormalParameter(
-              AstTestFactory.simpleFormalParameter3("b"),
-              AstTestFactory.integer(1)),
-          AstTestFactory.namedFormalParameter(
-              AstTestFactory.simpleFormalParameter3("c"),
-              AstTestFactory.integer(2))
-        ]));
+    final code = '(a, {b = 1, c = 2})';
+    final findNode = _parseStringToFindNode('''
+void f$code {}
+''');
+    _assertSource(code, findNode.formalParameterList(code));
   }
 
   void test_visitFormalParameterList_rp() {
-    _assertSource(
-        "(a, [b = 1])",
-        AstTestFactory.formalParameterList([
-          AstTestFactory.simpleFormalParameter3("a"),
-          AstTestFactory.positionalFormalParameter(
-              AstTestFactory.simpleFormalParameter3("b"),
-              AstTestFactory.integer(1))
-        ]));
+    final code = '(a, [b = 1])';
+    final findNode = _parseStringToFindNode('''
+void f$code {}
+''');
+    _assertSource(code, findNode.formalParameterList(code));
   }
 
   void test_visitFormalParameterList_rpp() {
-    _assertSource(
-        "(a, [b = 1, c = 2])",
-        AstTestFactory.formalParameterList([
-          AstTestFactory.simpleFormalParameter3("a"),
-          AstTestFactory.positionalFormalParameter(
-              AstTestFactory.simpleFormalParameter3("b"),
-              AstTestFactory.integer(1)),
-          AstTestFactory.positionalFormalParameter(
-              AstTestFactory.simpleFormalParameter3("c"),
-              AstTestFactory.integer(2))
-        ]));
+    final code = '(a, [b = 1, c = 2])';
+    final findNode = _parseStringToFindNode('''
+void f$code {}
+''');
+    _assertSource(code, findNode.formalParameterList(code));
   }
 
   void test_visitFormalParameterList_rr() {
@@ -1676,57 +1696,35 @@ void f() async {
   }
 
   void test_visitFormalParameterList_rrn() {
-    _assertSource(
-        "(a, b, {c: 3})",
-        AstTestFactory.formalParameterList([
-          AstTestFactory.simpleFormalParameter3("a"),
-          AstTestFactory.simpleFormalParameter3("b"),
-          AstTestFactory.namedFormalParameter(
-              AstTestFactory.simpleFormalParameter3("c"),
-              AstTestFactory.integer(3))
-        ]));
+    final code = '(a, b, {c = 2})';
+    final findNode = _parseStringToFindNode('''
+void f$code {}
+''');
+    _assertSource(code, findNode.formalParameterList(code));
   }
 
   void test_visitFormalParameterList_rrnn() {
-    _assertSource(
-        "(a, b, {c: 3, d: 4})",
-        AstTestFactory.formalParameterList([
-          AstTestFactory.simpleFormalParameter3("a"),
-          AstTestFactory.simpleFormalParameter3("b"),
-          AstTestFactory.namedFormalParameter(
-              AstTestFactory.simpleFormalParameter3("c"),
-              AstTestFactory.integer(3)),
-          AstTestFactory.namedFormalParameter(
-              AstTestFactory.simpleFormalParameter3("d"),
-              AstTestFactory.integer(4))
-        ]));
+    final code = '(a, b, {c = 2, d = 3})';
+    final findNode = _parseStringToFindNode('''
+void f$code {}
+''');
+    _assertSource(code, findNode.formalParameterList(code));
   }
 
   void test_visitFormalParameterList_rrp() {
-    _assertSource(
-        "(a, b, [c = 3])",
-        AstTestFactory.formalParameterList([
-          AstTestFactory.simpleFormalParameter3("a"),
-          AstTestFactory.simpleFormalParameter3("b"),
-          AstTestFactory.positionalFormalParameter(
-              AstTestFactory.simpleFormalParameter3("c"),
-              AstTestFactory.integer(3))
-        ]));
+    final code = '(a, b, [c = 2])';
+    final findNode = _parseStringToFindNode('''
+void f$code {}
+''');
+    _assertSource(code, findNode.formalParameterList(code));
   }
 
   void test_visitFormalParameterList_rrpp() {
-    _assertSource(
-        "(a, b, [c = 3, d = 4])",
-        AstTestFactory.formalParameterList([
-          AstTestFactory.simpleFormalParameter3("a"),
-          AstTestFactory.simpleFormalParameter3("b"),
-          AstTestFactory.positionalFormalParameter(
-              AstTestFactory.simpleFormalParameter3("c"),
-              AstTestFactory.integer(3)),
-          AstTestFactory.positionalFormalParameter(
-              AstTestFactory.simpleFormalParameter3("d"),
-              AstTestFactory.integer(4))
-        ]));
+    final code = '(a, b, [c = 2, d = 3])';
+    final findNode = _parseStringToFindNode('''
+void f$code {}
+''');
+    _assertSource(code, findNode.formalParameterList(code));
   }
 
   void test_visitForPartsWithDeclarations() {
@@ -2257,24 +2255,27 @@ import 'foo.dart'
   }
 
   void test_visitInstanceCreationExpression_const() {
-    _assertSource(
-        "const C()",
-        AstTestFactory.instanceCreationExpression2(
-            Keyword.CONST, AstTestFactory.namedType4("C")));
+    final code = 'const A()';
+    final findNode = _parseStringToFindNode('''
+final x = $code;
+''');
+    _assertSource(code, findNode.instanceCreation(code));
   }
 
   void test_visitInstanceCreationExpression_named() {
-    _assertSource(
-        "new C.c()",
-        AstTestFactory.instanceCreationExpression3(
-            Keyword.NEW, AstTestFactory.namedType4("C"), "c"));
+    final code = 'new A.foo()';
+    final findNode = _parseStringToFindNode('''
+final x = $code;
+''');
+    _assertSource(code, findNode.instanceCreation(code));
   }
 
   void test_visitInstanceCreationExpression_unnamed() {
-    _assertSource(
-        "new C()",
-        AstTestFactory.instanceCreationExpression2(
-            Keyword.NEW, AstTestFactory.namedType4("C")));
+    final code = 'new A()';
+    final findNode = _parseStringToFindNode('''
+final x = $code;
+''');
+    _assertSource(code, findNode.instanceCreation(code));
   }
 
   void test_visitIntegerLiteral() {
@@ -2666,11 +2667,11 @@ class A {
   }
 
   void test_visitNamedFormalParameter() {
-    _assertSource(
-        "var a: 0",
-        AstTestFactory.namedFormalParameter(
-            AstTestFactory.simpleFormalParameter(Keyword.VAR, "a"),
-            AstTestFactory.integer(0)));
+    final code = 'var a = 0';
+    final findNode = _parseStringToFindNode('''
+void f({$code}) {}
+''');
+    _assertSource(code, findNode.defaultParameter(code));
   }
 
   void test_visitNativeClause() {
@@ -2721,11 +2722,11 @@ class A {
   }
 
   void test_visitPositionalFormalParameter() {
-    _assertSource(
-        "var a = 0",
-        AstTestFactory.positionalFormalParameter(
-            AstTestFactory.simpleFormalParameter(Keyword.VAR, "a"),
-            AstTestFactory.integer(0)));
+    final code = 'var a = 0';
+    final findNode = _parseStringToFindNode('''
+void f([$code]) {}
+''');
+    _assertSource(code, findNode.defaultParameter(code));
   }
 
   void test_visitPostfixExpression() {

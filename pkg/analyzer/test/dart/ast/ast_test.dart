@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -790,28 +791,22 @@ var v = ^a[b] + c;
   }
 
   void test_isNullAware_cascade_false() {
-    final expression = AstTestFactory.indexExpressionForCascade(
-        AstTestFactory.nullLiteral(),
-        AstTestFactory.nullLiteral(),
-        TokenType.PERIOD_PERIOD,
-        TokenType.OPEN_SQUARE_BRACKET);
-    AstTestFactory.cascadeExpression(
-      AstTestFactory.nullLiteral(),
-      [expression],
-    );
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a..[0];
+}
+''');
+    final expression = findNode.index('[0]');
     expect(expression.isNullAware, isFalse);
   }
 
   void test_isNullAware_cascade_true() {
-    final expression = AstTestFactory.indexExpressionForCascade(
-        AstTestFactory.nullLiteral(),
-        AstTestFactory.nullLiteral(),
-        TokenType.QUESTION_PERIOD_PERIOD,
-        TokenType.OPEN_SQUARE_BRACKET);
-    AstTestFactory.cascadeExpression(
-      AstTestFactory.nullLiteral(),
-      [expression],
-    );
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a?..[0];
+}
+''');
+    final expression = findNode.index('[0]');
     expect(expression.isNullAware, isTrue);
   }
 
@@ -1042,34 +1037,24 @@ class MethodDeclarationTest {
 }
 
 @reflectiveTest
-class MethodInvocationTest extends ParserTestCase {
+class MethodInvocationTest extends _AstTest {
   void test_isNullAware_cascade() {
-    var invocation = astFactory.methodInvocation(
-      null,
-      TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
-      AstTestFactory.identifier3('foo'),
-      null,
-      AstTestFactory.argumentList(),
-    );
-    AstTestFactory.cascadeExpression(
-      AstTestFactory.nullLiteral(),
-      [invocation],
-    );
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a..foo();
+}
+''');
+    final invocation = findNode.methodInvocation('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
   void test_isNullAware_cascade_true() {
-    var invocation = astFactory.methodInvocation(
-      null,
-      TokenFactory.tokenFromType(TokenType.QUESTION_PERIOD_PERIOD),
-      AstTestFactory.identifier3('foo'),
-      null,
-      AstTestFactory.argumentList(),
-    );
-    AstTestFactory.cascadeExpression(
-      AstTestFactory.nullLiteral(),
-      [invocation],
-    );
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a?..foo();
+}
+''');
+    final invocation = findNode.methodInvocation('foo');
     expect(invocation.isNullAware, isTrue);
   }
 
@@ -1094,8 +1079,8 @@ class MethodInvocationTest extends ParserTestCase {
 class NodeListTest {
   void test_add() {
     AstNode parent = AstTestFactory.argumentList();
-    AstNode firstNode = AstTestFactory.booleanLiteral(true);
-    AstNode secondNode = AstTestFactory.booleanLiteral(false);
+    AstNode firstNode = true_();
+    AstNode secondNode = false_();
     NodeList<AstNode> list = astFactory.nodeList<AstNode>(parent);
     list.insert(0, secondNode);
     list.insert(0, firstNode);
@@ -1104,7 +1089,7 @@ class NodeListTest {
     expect(list[1], same(secondNode));
     expect(firstNode.parent, same(parent));
     expect(secondNode.parent, same(parent));
-    AstNode thirdNode = AstTestFactory.booleanLiteral(false);
+    AstNode thirdNode = false_();
     list.insert(1, thirdNode);
     expect(list, hasLength(3));
     expect(list[0], same(firstNode));
@@ -1119,7 +1104,7 @@ class NodeListTest {
     NodeList<AstNode> list =
         astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
-      list.insert(-1, AstTestFactory.booleanLiteral(true));
+      list.insert(-1, true_());
       fail("Expected IndexOutOfBoundsException");
     } on RangeError {
       // Expected
@@ -1130,7 +1115,7 @@ class NodeListTest {
     NodeList<AstNode> list =
         astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
-      list.insert(1, AstTestFactory.booleanLiteral(true));
+      list.insert(1, true_());
       fail("Expected IndexOutOfBoundsException");
     } on RangeError {
       // Expected
@@ -1140,8 +1125,8 @@ class NodeListTest {
   void test_addAll() {
     AstNode parent = AstTestFactory.argumentList();
     List<AstNode> firstNodes = <AstNode>[];
-    AstNode firstNode = AstTestFactory.booleanLiteral(true);
-    AstNode secondNode = AstTestFactory.booleanLiteral(false);
+    AstNode firstNode = true_();
+    AstNode secondNode = false_();
     firstNodes.add(firstNode);
     firstNodes.add(secondNode);
     NodeList<AstNode> list = astFactory.nodeList<AstNode>(parent);
@@ -1152,8 +1137,8 @@ class NodeListTest {
     expect(firstNode.parent, same(parent));
     expect(secondNode.parent, same(parent));
     List<AstNode> secondNodes = <AstNode>[];
-    AstNode thirdNode = AstTestFactory.booleanLiteral(true);
-    AstNode fourthNode = AstTestFactory.booleanLiteral(false);
+    AstNode thirdNode = true_();
+    AstNode fourthNode = false_();
     secondNodes.add(thirdNode);
     secondNodes.add(fourthNode);
     list.addAll(secondNodes);
@@ -1207,8 +1192,7 @@ class NodeListTest {
   void test_getBeginToken_nonEmpty() {
     NodeList<AstNode> list =
         astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    AstNode node = AstTestFactory.parenthesizedExpression(
-        AstTestFactory.booleanLiteral(true));
+    AstNode node = AstTestFactory.parenthesizedExpression(true_());
     list.add(node);
     expect(list.beginToken, same(node.beginToken));
   }
@@ -1222,18 +1206,17 @@ class NodeListTest {
   void test_getEndToken_nonEmpty() {
     NodeList<AstNode> list =
         astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    AstNode node = AstTestFactory.parenthesizedExpression(
-        AstTestFactory.booleanLiteral(true));
+    AstNode node = AstTestFactory.parenthesizedExpression(true_());
     list.add(node);
     expect(list.endToken, same(node.endToken));
   }
 
   void test_indexOf() {
     List<AstNode> nodes = <AstNode>[];
-    AstNode firstNode = AstTestFactory.booleanLiteral(true);
-    AstNode secondNode = AstTestFactory.booleanLiteral(false);
-    AstNode thirdNode = AstTestFactory.booleanLiteral(true);
-    AstNode fourthNode = AstTestFactory.booleanLiteral(false);
+    AstNode firstNode = true_();
+    AstNode secondNode = false_();
+    AstNode thirdNode = true_();
+    AstNode fourthNode = false_();
     nodes.add(firstNode);
     nodes.add(secondNode);
     nodes.add(thirdNode);
@@ -1249,9 +1232,9 @@ class NodeListTest {
 
   void test_remove() {
     List<AstNode> nodes = <AstNode>[];
-    AstNode firstNode = AstTestFactory.booleanLiteral(true);
-    AstNode secondNode = AstTestFactory.booleanLiteral(false);
-    AstNode thirdNode = AstTestFactory.booleanLiteral(true);
+    AstNode firstNode = true_();
+    AstNode secondNode = false_();
+    AstNode thirdNode = true_();
     nodes.add(firstNode);
     nodes.add(secondNode);
     nodes.add(thirdNode);
@@ -1289,9 +1272,9 @@ class NodeListTest {
 
   void test_set() {
     List<AstNode> nodes = <AstNode>[];
-    AstNode firstNode = AstTestFactory.booleanLiteral(true);
-    AstNode secondNode = AstTestFactory.booleanLiteral(false);
-    AstNode thirdNode = AstTestFactory.booleanLiteral(true);
+    AstNode firstNode = true_();
+    AstNode secondNode = false_();
+    AstNode thirdNode = true_();
     nodes.add(firstNode);
     nodes.add(secondNode);
     nodes.add(thirdNode);
@@ -1307,7 +1290,7 @@ class NodeListTest {
   }
 
   void test_set_negative() {
-    AstNode node = AstTestFactory.booleanLiteral(true);
+    AstNode node = true_();
     var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[-1] = node;
@@ -1318,7 +1301,7 @@ class NodeListTest {
   }
 
   void test_set_tooBig() {
-    AstNode node = AstTestFactory.booleanLiteral(true);
+    AstNode node = true_();
     var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[1] = node;
@@ -1326,6 +1309,20 @@ class NodeListTest {
     } on RangeError {
       // Expected
     }
+  }
+
+  static BooleanLiteralImpl false_() {
+    return BooleanLiteralImpl(
+      literal: Tokens.true_(),
+      value: true,
+    );
+  }
+
+  static BooleanLiteralImpl true_() {
+    return BooleanLiteralImpl(
+      literal: Tokens.true_(),
+      value: true,
+    );
   }
 }
 
@@ -1431,24 +1428,24 @@ E f() => g;
 }
 
 @reflectiveTest
-class PropertyAccessTest extends ParserTestCase {
+class PropertyAccessTest extends _AstTest {
   void test_isNullAware_cascade() {
-    final invocation = AstTestFactory.propertyAccess2(
-        AstTestFactory.nullLiteral(), 'foo', TokenType.PERIOD_PERIOD);
-    AstTestFactory.cascadeExpression(
-      AstTestFactory.nullLiteral(),
-      [invocation],
-    );
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a..foo;
+}
+''');
+    final invocation = findNode.propertyAccess('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
   void test_isNullAware_cascade_true() {
-    final invocation = AstTestFactory.propertyAccess2(
-        null, 'foo', TokenType.QUESTION_PERIOD_PERIOD);
-    AstTestFactory.cascadeExpression(
-      AstTestFactory.nullLiteral(),
-      [invocation],
-    );
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a?..foo;
+}
+''');
+    final invocation = findNode.propertyAccess('foo');
     expect(invocation.isNullAware, isTrue);
   }
 
@@ -1487,9 +1484,11 @@ class SimpleIdentifierTest extends _AstTest {
   }
 
   void test_inGetterContext_constructorFieldInitializer() {
-    ConstructorFieldInitializer initializer =
-        AstTestFactory.constructorFieldInitializer(
-            false, 'f', AstTestFactory.integer(0));
+    final initializer = _parseStringToNode<ConstructorFieldInitializer>('''
+class A {
+  A() : ^f = 0;
+}
+''');
     SimpleIdentifier identifier = initializer.fieldName;
     expect(identifier.inGetterContext(), isFalse);
   }
@@ -1560,9 +1559,10 @@ class SimpleIdentifierTest extends _AstTest {
   }
 
   void test_isQualified_inConstructorName() {
-    ConstructorName constructor = AstTestFactory.constructorName(
-        AstTestFactory.namedType4('MyClass'), "test");
-    SimpleIdentifier name = constructor.name!;
+    final constructor = _parseStringToNode<ConstructorName>(r'''
+final x = List<String>.^foo();
+''');
+    final name = constructor.name!;
     expect(name.isQualified, isTrue);
   }
 
@@ -2207,6 +2207,14 @@ class _AssignmentKind {
 }
 
 class _AstTest {
+  FindNode _parseStringToFindNode(String content) {
+    var parseResult = parseString(
+      content: content,
+      featureSet: FeatureSets.latestWithExperiments,
+    );
+    return FindNode(parseResult.content, parseResult.unit);
+  }
+
   T _parseStringToNode<T extends AstNode>(String codeWithMark) {
     var offset = codeWithMark.indexOf('^');
     expect(offset, isNot(equals(-1)), reason: 'missing ^');
