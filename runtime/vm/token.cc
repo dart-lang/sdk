@@ -56,8 +56,6 @@ bool Token::IsBinaryArithmeticOperator(Token::Kind token) {
     case Token::kSHL:
     case Token::kSHR:
     case Token::kUSHR:
-    case Token::kMAX:
-    case Token::kMIN:
       return true;
     default:
       return false;
@@ -65,21 +63,7 @@ bool Token::IsBinaryArithmeticOperator(Token::Kind token) {
 }
 
 bool Token::IsUnaryArithmeticOperator(Token::Kind token) {
-  switch (token) {
-    case Token::kBIT_NOT:
-    case Token::kNEGATE:
-    case Token::kABS:
-    case Token::kSQRT:
-    case Token::kSQUARE:
-    case Token::kRECIPROCAL:
-    case Token::kRECIPROCAL_SQRT:
-    case Token::kTRUNCATE:
-    case Token::kFLOOR:
-    case Token::kCEILING:
-      return true;
-    default:
-      return false;
-  }
+  return (token == kBIT_NOT) || (token == kNEGATE);
 }
 
 bool Token::IsBinaryBitwiseOperator(Token::Kind token) {

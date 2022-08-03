@@ -484,9 +484,7 @@ void Definition::PrintTo(BaseTextBuffer* f) const {
     range_->PrintTo(f);
   }
 
-  if (representation() != kNoRepresentation && representation() != kTagged) {
-    f->Printf(" %s", RepresentationToCString(representation()));
-  } else if (type_ != NULL) {
+  if (type_ != NULL) {
     f->AddString(" ");
     type_->PrintTo(f);
   }
@@ -554,6 +552,10 @@ void ConstantInstr::PrintOperandsTo(BaseTextBuffer* f) const {
     strncpy(buffer, cstr, pos);
     buffer[pos] = '\0';
     f->Printf("#%s\\n...", buffer);
+  }
+
+  if (representation() != kNoRepresentation && representation() != kTagged) {
+    f->Printf(" %s", RepresentationToCString(representation()));
   }
 }
 
@@ -908,21 +910,17 @@ void AllocateUninitializedContextInstr::PrintOperandsTo(
   TemplateAllocation::PrintOperandsTo(f);
 }
 
+void MathUnaryInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  f->Printf("'%s', ", MathUnaryInstr::KindToCString(kind()));
+  value()->PrintTo(f);
+}
+
 void TruncDivModInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   Definition::PrintOperandsTo(f);
 }
 
 void ExtractNthOutputInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf("Extract %" Pd " from ", index());
-  Definition::PrintOperandsTo(f);
-}
-
-void UnboxLaneInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  Definition::PrintOperandsTo(f);
-  f->Printf(", lane %" Pd, lane());
-}
-
-void BoxLanesInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   Definition::PrintOperandsTo(f);
 }
 

@@ -220,7 +220,6 @@ bool FlowGraph::IsConstantRepresentable(const Object& value,
     case kUnboxedInt64:
       return value.IsInteger();
 
-    case kUnboxedFloat:
     case kUnboxedDouble:
       return value.IsInteger() || value.IsDouble();
 
@@ -239,13 +238,11 @@ Definition* FlowGraph::TryCreateConstantReplacementFor(Definition* op,
     return op;
   }
 
-  if (((representation == kUnboxedFloat) ||
-       (representation == kUnboxedDouble)) &&
-      value.IsInteger()) {
-    // Convert the boxed constant from int to float/double.
+  if (representation == kUnboxedDouble && value.IsInteger()) {
+    // Convert the boxed constant from int to double.
     return GetConstant(Double::Handle(Double::NewCanonical(
                            Integer::Cast(value).AsDoubleValue())),
-                       representation);
+                       kUnboxedDouble);
   }
 
   return GetConstant(value, representation);

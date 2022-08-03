@@ -237,10 +237,6 @@ class ExceptionHandlerFinder : public StackResource {
           value = *TaggedSlotAt(fp, move.src_slot());
           break;
 
-        case CatchEntryMove::SourceKind::kFloatSlot:
-          value = Double::New(*SlotAt<float>(fp, move.src_slot()));
-          break;
-
         case CatchEntryMove::SourceKind::kDoubleSlot:
           value = Double::New(*SlotAt<double>(fp, move.src_slot()));
           break;
@@ -371,11 +367,6 @@ const char* CatchEntryMove::ToCString() const {
 
     case SourceKind::kTaggedSlot:
       Utils::SNPrint(from, ARRAY_SIZE(from), "fp[%" Pd "]", src_slot());
-      break;
-
-    case SourceKind::kFloatSlot:
-      Utils::SNPrint(from, ARRAY_SIZE(from), "f32 [fp + %" Pd "]",
-                     src_slot() * compiler::target::kWordSize);
       break;
 
     case SourceKind::kDoubleSlot:

@@ -2066,7 +2066,6 @@ class Assembler : public AssemblerBase {
     LoadImmediate(reg, imm.value());
   }
 
-  void LoadSImmediate(VRegister reg, float immd);
   void LoadDImmediate(VRegister reg, double immd);
   void LoadQImmediate(VRegister reg, simd128_value_t immq);
 
