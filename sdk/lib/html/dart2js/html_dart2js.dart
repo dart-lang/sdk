@@ -28225,7 +28225,20 @@ class SharedArrayBuffer extends JavaScriptObject {
     throw new UnsupportedError("Not supported");
   }
 
+  factory SharedArrayBuffer([int? length]) {
+    if (length != null) {
+      return SharedArrayBuffer._create_1(length);
+    }
+    return SharedArrayBuffer._create_2();
+  }
+  static SharedArrayBuffer _create_1(length) =>
+      JS('SharedArrayBuffer', 'new SharedArrayBuffer(#)', length);
+  static SharedArrayBuffer _create_2() =>
+      JS('SharedArrayBuffer', 'new SharedArrayBuffer()');
+
   int? get byteLength native;
+
+  SharedArrayBuffer slice([int? begin, int? end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
