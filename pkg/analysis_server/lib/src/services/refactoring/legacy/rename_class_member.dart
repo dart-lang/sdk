@@ -6,11 +6,11 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
-import 'package:analysis_server/src/services/refactoring/rename.dart';
-import 'package:analysis_server/src/services/refactoring/visible_ranges_computer.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
