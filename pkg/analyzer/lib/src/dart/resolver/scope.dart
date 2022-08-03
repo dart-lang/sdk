@@ -211,7 +211,7 @@ class NamespaceBuilder {
     for (ClassElement element in compilationUnit.classes) {
       _addIfPublic(definedNames, element);
     }
-    for (ClassElement element in compilationUnit.enums) {
+    for (final element in compilationUnit.enums2) {
       _addIfPublic(definedNames, element);
     }
     for (ExtensionElement element in compilationUnit.extensions) {
@@ -220,7 +220,7 @@ class NamespaceBuilder {
     for (FunctionElement element in compilationUnit.functions) {
       _addIfPublic(definedNames, element);
     }
-    for (ClassElement element in compilationUnit.mixins) {
+    for (final element in compilationUnit.mixins2) {
       _addIfPublic(definedNames, element);
     }
     for (TypeAliasElement element in compilationUnit.typeAliases) {

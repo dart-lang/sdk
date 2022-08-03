@@ -15,31 +15,8 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 final AstFactoryImpl astFactory = AstFactoryImpl();
 
 class AstFactoryImpl {
-  AnnotationImpl annotation(
-          {required Token atSign,
-          required Identifier name,
-          TypeArgumentList? typeArguments,
-          Token? period,
-          SimpleIdentifier? constructorName,
-          ArgumentList? arguments}) =>
-      AnnotationImpl(
-          atSign,
-          name as IdentifierImpl,
-          typeArguments as TypeArgumentListImpl?,
-          period,
-          constructorName as SimpleIdentifierImpl?,
-          arguments as ArgumentListImpl?);
-
-  BlockImpl block(
-          Token leftBracket, List<Statement> statements, Token rightBracket) =>
-      BlockImpl(leftBracket, statements, rightBracket);
-
   CommentImpl blockComment(List<Token> tokens) =>
       CommentImpl.createBlockComment(tokens);
-
-  BlockFunctionBodyImpl blockFunctionBody(
-          Token? keyword, Token? star, Block block) =>
-      BlockFunctionBodyImpl(keyword, star, block as BlockImpl);
 
   BooleanLiteralImpl booleanLiteral(Token literal, bool value) =>
       BooleanLiteralImpl(literal, value);

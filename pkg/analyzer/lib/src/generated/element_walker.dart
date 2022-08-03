@@ -19,13 +19,13 @@ class ElementWalker {
   int _classIndex = 0;
   List<ConstructorElement>? _constructors;
   int _constructorIndex = 0;
-  List<ClassElement>? _enums;
+  List<EnumElement>? _enums;
   int _enumIndex = 0;
   List<ExtensionElement>? _extensions;
   int _extensionIndex = 0;
   List<ExecutableElement>? _functions;
   int _functionIndex = 0;
-  List<ClassElement>? _mixins;
+  List<MixinElement>? _mixins;
   int _mixinIndex = 0;
   List<ParameterElement>? _parameters;
   int _parameterIndex = 0;
@@ -53,10 +53,10 @@ class ElementWalker {
       {this.libraryFilePath, this.unitFilePath})
       : _accessors = element.accessors.where(_isNotSynthetic).toList(),
         _classes = element.classes,
-        _enums = element.enums,
+        _enums = element.enums2,
         _extensions = element.extensions,
         _functions = element.functions,
-        _mixins = element.mixins,
+        _mixins = element.mixins2,
         _typedefs = element.typeAliases,
         _variables = element.topLevelVariables.where(_isNotSynthetic).toList();
 

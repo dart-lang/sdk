@@ -18,16 +18,16 @@ class ConstructorInitializerResolver {
 
   void resolve() {
     for (var unitElement in _libraryElement.units) {
-      var classElements = [
+      var interfaceElements = [
         ...unitElement.classes,
-        ...unitElement.enums,
-        ...unitElement.mixins,
+        ...unitElement.enums2,
+        ...unitElement.mixins2,
       ];
-      for (var classElement in classElements) {
-        for (var constructorElement in classElement.constructors) {
+      for (var interfaceElement in interfaceElements) {
+        for (var constructorElement in interfaceElement.constructors) {
           _constructor(
             unitElement as CompilationUnitElementImpl,
-            classElement as AbstractClassElementImpl,
+            interfaceElement as AbstractClassElementImpl,
             constructorElement as ConstructorElementImpl,
           );
         }

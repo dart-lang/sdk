@@ -15,7 +15,7 @@ class SearchEngineImpl implements SearchEngine {
   SearchEngineImpl(this._drivers);
 
   @override
-  Future<Set<String>?> membersOfSubtypes(ClassElement type) async {
+  Future<Set<String>?> membersOfSubtypes(InterfaceElement type) async {
     var drivers = _drivers.toList();
     var searchedFiles = _createSearchedFiles(drivers);
 
@@ -24,7 +24,8 @@ class SearchEngineImpl implements SearchEngine {
     var visitedIds = <String>{};
     var members = <String>{};
 
-    Future<void> addMembers(ClassElement? type, SubtypeResult? subtype) async {
+    Future<void> addMembers(
+        InterfaceElement? type, SubtypeResult? subtype) async {
       if (subtype != null && !visitedIds.add(subtype.id)) {
         return;
       }

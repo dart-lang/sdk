@@ -206,7 +206,7 @@ class Search {
       }
     }
 
-    void addElements(ClassElement element) {
+    void addElements(InterfaceElement element) {
       element.accessors.forEach(addElement);
       element.fields.forEach(addElement);
       element.methods.forEach(addElement);
@@ -218,8 +218,8 @@ class Search {
         var unitResult = await _driver.getUnitElement(file);
         if (unitResult is UnitElementResult) {
           unitResult.element.classes.forEach(addElements);
-          unitResult.element.enums.forEach(addElements);
-          unitResult.element.mixins.forEach(addElements);
+          unitResult.element.enums2.forEach(addElements);
+          unitResult.element.mixins2.forEach(addElements);
         }
       }
     }
@@ -301,7 +301,7 @@ class Search {
 
   /// Return direct [SubtypeResult]s for either the [type] or [subtype].
   Future<List<SubtypeResult>> subtypes(SearchedFiles searchedFiles,
-      {ClassElement? type, SubtypeResult? subtype}) async {
+      {InterfaceElement? type, SubtypeResult? subtype}) async {
     String name;
     String id;
     if (type != null) {
@@ -351,10 +351,10 @@ class Search {
         CompilationUnitElement unitElement = unitResult.element;
         unitElement.accessors.forEach(addElement);
         unitElement.classes.forEach(addElement);
-        unitElement.enums.forEach(addElement);
+        unitElement.enums2.forEach(addElement);
         unitElement.extensions.forEach(addElement);
         unitElement.functions.forEach(addElement);
-        unitElement.mixins.forEach(addElement);
+        unitElement.mixins2.forEach(addElement);
         unitElement.topLevelVariables.forEach(addElement);
         unitElement.typeAliases.forEach(addElement);
       }
@@ -881,7 +881,7 @@ class _FindDeclarations {
     }
   }
 
-  void _addClasses(FileState file, List<ClassElement> elements) {
+  void _addClasses(FileState file, List<InterfaceElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       _addDeclaration(file, element, element.name);
@@ -1012,8 +1012,8 @@ class _FindDeclarations {
       var element = elements[i];
       _addAccessors(file, element.accessors);
       _addClasses(file, element.classes);
-      _addClasses(file, element.enums);
-      _addClasses(file, element.mixins);
+      _addClasses(file, element.enums2);
+      _addClasses(file, element.mixins2);
       _addExtensions(file, element.extensions);
       _addFunctions(file, element.functions);
       _addTypeAliases(file, element.typeAliases);

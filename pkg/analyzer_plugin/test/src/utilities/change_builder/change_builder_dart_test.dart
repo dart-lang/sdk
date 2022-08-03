@@ -3032,11 +3032,11 @@ class B extends A {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, content);
 
-    ClassElement? targetElement;
+    InterfaceElement? targetElement;
     {
       var unitResult = (await resolveFile(path)).unit;
       if (targetMixinName != null) {
-        targetElement = unitResult.declaredElement!.mixins
+        targetElement = unitResult.declaredElement!.mixins2
             .firstWhere((e) => e.name == targetMixinName);
       } else {
         targetElement = unitResult.declaredElement!.classes

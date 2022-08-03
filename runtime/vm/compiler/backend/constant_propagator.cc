@@ -872,6 +872,16 @@ void ConstantPropagator::VisitBooleanNegate(BooleanNegateInstr* instr) {
   }
 }
 
+void ConstantPropagator::VisitBoolToInt(BoolToIntInstr* instr) {
+  // TODO(riscv)
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitIntToBool(IntToBoolInstr* instr) {
+  // TODO(riscv)
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
   Definition* def = instr->value()->definition();
   const Object& value = def->constant_value();
@@ -1216,8 +1226,27 @@ void ConstantPropagator::VisitUnarySmiOp(UnarySmiOpInstr* instr) {
   VisitUnaryIntegerOp(instr);
 }
 
+static bool IsIntegerOrDouble(const Object& value) {
+  return value.IsInteger() || value.IsDouble();
+}
+
+static double ToDouble(const Object& value) {
+  return value.IsInteger() ? Integer::Cast(value).AsDoubleValue()
+                           : Double::Cast(value).value();
+}
+
 void ConstantPropagator::VisitUnaryDoubleOp(UnaryDoubleOpInstr* instr) {
-  // TODO(kmillikin): Handle unary operations.
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsUnknown(value)) {
+    return;
+  }
+  if (value.IsDouble()) {
+    const double result_val = Evaluator::EvaluateUnaryDoubleOp(
+        ToDouble(value), instr->op_kind(), instr->representation());
+    const Double& result = Double::ZoneHandle(Double::NewCanonical(result_val));
+    SetValue(instr, result);
+    return;
+  }
   SetValue(instr, non_constant_);
 }
 
@@ -1273,11 +1302,6 @@ void ConstantPropagator::VisitDoubleToSmi(DoubleToSmiInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
-void ConstantPropagator::VisitDoubleToDouble(DoubleToDoubleInstr* instr) {
-  // TODO(kmillikin): Handle conversion.
-  SetValue(instr, non_constant_);
-}
-
 void ConstantPropagator::VisitDoubleToFloat(DoubleToFloatInstr* instr) {
   // TODO(kmillikin): Handle conversion.
   SetValue(instr, non_constant_);
@@ -1285,6 +1309,11 @@ void ConstantPropagator::VisitDoubleToFloat(DoubleToFloatInstr* instr) {
 
 void ConstantPropagator::VisitFloatToDouble(FloatToDoubleInstr* instr) {
   // TODO(kmillikin): Handle conversion.
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitFloatCompare(FloatCompareInstr* instr) {
+  // TODO(riscv)
   SetValue(instr, non_constant_);
 }
 
@@ -1300,6 +1329,25 @@ void ConstantPropagator::VisitTruncDivMod(TruncDivModInstr* instr) {
 }
 
 void ConstantPropagator::VisitExtractNthOutput(ExtractNthOutputInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitUnboxLane(UnboxLaneInstr* instr) {
+  if (BoxLanesInstr* box = instr->value()->definition()->AsBoxLanes()) {
+    const Object& value =
+        box->InputAt(instr->lane())->definition()->constant_value();
+    if (IsUnknown(value)) {
+      return;
+    }
+    SetValue(instr, value);
+    return;
+  }
+
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitBoxLanes(BoxLanesInstr* instr) {
+  // TODO(riscv)
   SetValue(instr, non_constant_);
 }
 
@@ -1321,15 +1369,6 @@ void ConstantPropagator::VisitMaterializeObject(MaterializeObjectInstr* instr) {
   UNREACHABLE();
 }
 
-static bool IsIntegerOrDouble(const Object& value) {
-  return value.IsInteger() || value.IsDouble();
-}
-
-static double ToDouble(const Object& value) {
-  return value.IsInteger() ? Integer::Cast(value).AsDoubleValue()
-                           : Double::Cast(value).value();
-}
-
 void ConstantPropagator::VisitBinaryDoubleOp(BinaryDoubleOpInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
@@ -1343,8 +1382,9 @@ void ConstantPropagator::VisitBinaryDoubleOp(BinaryDoubleOpInstr* instr) {
   const bool both_are_integers = left.IsInteger() && right.IsInteger();
   if (IsIntegerOrDouble(left) && IsIntegerOrDouble(right) &&
       !both_are_integers) {
-    const double result_val = Evaluator::EvaluateDoubleOp(
-        ToDouble(left), ToDouble(right), instr->op_kind());
+    const double result_val = Evaluator::EvaluateBinaryDoubleOp(
+        ToDouble(left), ToDouble(right), instr->op_kind(),
+        instr->representation());
     const Double& result = Double::ZoneHandle(Double::NewCanonical(result_val));
     SetValue(instr, result);
     return;
@@ -1381,11 +1421,6 @@ void ConstantPropagator::VisitDoubleTestOp(DoubleTestOpInstr* instr) {
 }
 
 void ConstantPropagator::VisitSimdOp(SimdOpInstr* instr) {
-  SetValue(instr, non_constant_);
-}
-
-void ConstantPropagator::VisitMathUnary(MathUnaryInstr* instr) {
-  // TODO(kmillikin): Handle Math's unary operations (sqrt, cos, sin).
   SetValue(instr, non_constant_);
 }
 

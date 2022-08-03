@@ -227,7 +227,7 @@ class BundleWriter {
     }
   }
 
-  void _writeEnumElement(ClassElement element) {
+  void _writeEnumElement(EnumElement element) {
     element as EnumElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.name);
@@ -408,7 +408,7 @@ class BundleWriter {
     });
   }
 
-  void _writeMixinElement(ClassElement element) {
+  void _writeMixinElement(MixinElement element) {
     element as MixinElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
 
@@ -545,10 +545,10 @@ class BundleWriter {
     _sink._writeOptionalStringReference(unitElement.uri);
     _sink.writeBool(unitElement.isSynthetic);
     _writeList(unitElement.classes, _writeClassElement);
-    _writeList(unitElement.enums, _writeEnumElement);
+    _writeList(unitElement.enums2, _writeEnumElement);
     _writeList(unitElement.extensions, _writeExtensionElement);
     _writeList(unitElement.functions, _writeFunctionElement);
-    _writeList(unitElement.mixins, _writeMixinElement);
+    _writeList(unitElement.mixins2, _writeMixinElement);
     _writeList(unitElement.typeAliases, _writeTypeAliasElement);
 
     _writeList(

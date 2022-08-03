@@ -30,22 +30,6 @@ import 'package:meta/meta.dart';
 /// rather than 'integerLiteral'.
 @internal
 class AstTestFactory {
-  static AnnotationImpl annotation(Identifier name) => astFactory.annotation(
-      atSign: TokenFactory.tokenFromType(TokenType.AT), name: name);
-
-  static AnnotationImpl annotation2(Identifier name,
-          SimpleIdentifier? constructorName, ArgumentList arguments,
-          {TypeArgumentList? typeArguments}) =>
-      astFactory.annotation(
-          atSign: TokenFactory.tokenFromType(TokenType.AT),
-          name: name,
-          typeArguments: typeArguments,
-          period: constructorName == null
-              ? null
-              : TokenFactory.tokenFromType(TokenType.PERIOD),
-          constructorName: constructorName,
-          arguments: arguments);
-
   static ArgumentListImpl argumentList(
           [List<Expression> arguments = const []]) =>
       ArgumentListImpl(
@@ -62,13 +46,6 @@ class AstTestFactory {
         rightHandSide: rightHandSide as ExpressionImpl,
       );
 
-  static BlockFunctionBodyImpl asyncBlockFunctionBody(
-          [List<Statement> statements = const []]) =>
-      astFactory.blockFunctionBody(
-          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
-          null,
-          block(statements));
-
   static ExpressionFunctionBodyImpl asyncExpressionFunctionBody(
           Expression expression) =>
       astFactory.expressionFunctionBody2(
@@ -80,13 +57,6 @@ class AstTestFactory {
         semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
       );
 
-  static BlockFunctionBodyImpl asyncGeneratorBlockFunctionBody(
-          [List<Statement> statements = const []]) =>
-      astFactory.blockFunctionBody(
-          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
-          TokenFactory.tokenFromType(TokenType.STAR),
-          block(statements));
-
   static ExpressionFunctionBodyImpl asyncGeneratorExpressionFunctionBody(
           Expression expression) =>
       astFactory.expressionFunctionBody2(
@@ -97,19 +67,6 @@ class AstTestFactory {
         expression: expression,
         semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
       );
-
-  static BlockImpl block([List<Statement> statements = const []]) =>
-      astFactory.block(
-          TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
-          statements,
-          TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
-
-  static BlockFunctionBodyImpl blockFunctionBody(Block block) =>
-      astFactory.blockFunctionBody(null, null, block);
-
-  static BlockFunctionBodyImpl blockFunctionBody2(
-          [List<Statement> statements = const []]) =>
-      astFactory.blockFunctionBody(null, null, block(statements));
 
   static BooleanLiteralImpl booleanLiteral(
           bool value) =>
@@ -600,9 +557,6 @@ class AstTestFactory {
           FunctionExpression functionExpression) =>
       astFactory.functionDeclarationStatement(
           functionDeclaration(type, keyword, name, functionExpression));
-
-  static FunctionExpressionImpl functionExpression() => astFactory
-      .functionExpression(null, formalParameterList(), blockFunctionBody2());
 
   static FunctionExpressionImpl functionExpression2(
           FormalParameterList parameters, FunctionBody body) =>
@@ -1342,20 +1296,6 @@ class AstTestFactory {
     return astFactory.symbolLiteral(
         TokenFactory.tokenFromType(TokenType.HASH), identifierList);
   }
-
-  static BlockFunctionBodyImpl syncBlockFunctionBody(
-          [List<Statement> statements = const []]) =>
-      astFactory.blockFunctionBody(
-          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "sync"),
-          null,
-          block(statements));
-
-  static BlockFunctionBodyImpl syncGeneratorBlockFunctionBody(
-          [List<Statement> statements = const []]) =>
-      astFactory.blockFunctionBody(
-          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "sync"),
-          TokenFactory.tokenFromType(TokenType.STAR),
-          block(statements));
 
   static ThisExpressionImpl thisExpression() =>
       astFactory.thisExpression(TokenFactory.tokenFromKeyword(Keyword.THIS));

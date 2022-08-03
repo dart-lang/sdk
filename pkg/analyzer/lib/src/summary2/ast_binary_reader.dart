@@ -199,11 +199,11 @@ class AstBinaryReader {
   }
 
   Annotation _readAnnotation() {
-    var name = readNode() as Identifier;
-    var typeArguments = _readOptionalNode() as TypeArgumentList?;
-    var constructorName = _readOptionalNode() as SimpleIdentifier?;
-    var arguments = _readOptionalNode() as ArgumentList?;
-    var node = astFactory.annotation(
+    var name = readNode() as IdentifierImpl;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var constructorName = _readOptionalNode() as SimpleIdentifierImpl?;
+    var arguments = _readOptionalNode() as ArgumentListImpl?;
+    var node = AnnotationImpl(
       atSign: Tokens.at(),
       name: name,
       typeArguments: typeArguments,

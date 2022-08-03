@@ -109,7 +109,7 @@ class InformativeDataApplier {
         );
 
         forCorrespondingPairs(
-            unitElement.enums, unitInfo.enums, _applyToEnumDeclaration);
+            unitElement.enums2, unitInfo.enums, _applyToEnumDeclaration);
 
         forCorrespondingPairs(unitElement.extensions, unitInfo.extensions,
             _applyToExtensionDeclaration);
@@ -117,7 +117,7 @@ class InformativeDataApplier {
         forCorrespondingPairs(unitElement.functions, unitInfo.functions,
             _applyToFunctionDeclaration);
 
-        forCorrespondingPairs(unitElement.mixins, unitInfo.mixinDeclarations,
+        forCorrespondingPairs(unitElement.mixins2, unitInfo.mixinDeclarations,
             _applyToMixinDeclaration);
 
         forCorrespondingPairs(unitElement.topLevelVariables,
@@ -306,7 +306,7 @@ class InformativeDataApplier {
   }
 
   void _applyToEnumDeclaration(
-    ClassElement element,
+    EnumElement element,
     _InfoClassDeclaration info,
   ) {
     element as EnumElementImpl;
@@ -573,7 +573,7 @@ class InformativeDataApplier {
   }
 
   void _applyToMixinDeclaration(
-    ClassElement element,
+    MixinElement element,
     _InfoClassDeclaration info,
   ) {
     element as MixinElementImpl;

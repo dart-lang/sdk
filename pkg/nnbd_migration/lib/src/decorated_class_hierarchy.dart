@@ -21,7 +21,7 @@ class DecoratedClassHierarchy {
 
   /// Cache for speeding up the computation of
   /// [_getGenericSupertypeDecorations].
-  final Map<ClassElement, Map<ClassElement, DecoratedType>>
+  final Map<InterfaceElement, Map<ClassElement, DecoratedType>>
       _genericSupertypeDecorations = {};
 
   DecoratedClassHierarchy(this._variables, this._graph);
@@ -52,7 +52,7 @@ class DecoratedClassHierarchy {
   /// because the relationship between a class and its superclass is not
   /// nullable.
   DecoratedType getDecoratedSupertype(
-      ClassElement class_, InterfaceElement superclass) {
+      InterfaceElement class_, InterfaceElement superclass) {
     assert(!(class_.library.isDartCore && class_.name == 'Null'));
     if (superclass.typeParameters.isEmpty) {
       return DecoratedType(
@@ -70,7 +70,7 @@ class DecoratedClassHierarchy {
   /// Computes a map whose keys are all the superclasses of [class_], and whose
   /// values indicate how [class_] implements each superclass.
   Map<ClassElement, DecoratedType> _getGenericSupertypeDecorations(
-      ClassElement class_) {
+      InterfaceElement class_) {
     var decorations = _genericSupertypeDecorations[class_];
     if (decorations == null) {
       // Call ourselves recursively to compute how each of [class_]'s direct

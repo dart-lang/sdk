@@ -786,7 +786,13 @@ class AstBuilder extends StackListener {
     debugEvent("Block");
 
     var statements = popTypedList2<Statement>(count);
-    push(ast.block(leftBracket, statements, rightBracket));
+    push(
+      BlockImpl(
+        leftBracket: leftBracket,
+        statements: statements,
+        rightBracket: rightBracket,
+      ),
+    );
   }
 
   @override
@@ -796,11 +802,21 @@ class AstBuilder extends StackListener {
     debugEvent("BlockFunctionBody");
 
     var statements = popTypedList2<Statement>(count);
-    Block block = ast.block(leftBracket, statements, rightBracket);
+    final block = BlockImpl(
+      leftBracket: leftBracket,
+      statements: statements,
+      rightBracket: rightBracket,
+    );
     var star = pop() as Token?;
     var asyncKeyword = pop() as Token?;
     if (parseFunctionBodies) {
-      push(ast.blockFunctionBody(asyncKeyword, star, block));
+      push(
+        BlockFunctionBodyImpl(
+          keyword: asyncKeyword,
+          star: star,
+          block: block,
+        ),
+      );
     } else {
       // TODO(danrubel): Skip the block rather than parsing it.
       push(ast.emptyFunctionBody(
@@ -2112,10 +2128,10 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull('.', periodBeforeName));
     debugEvent("Metadata");
 
-    var invocation = pop() as MethodInvocation?;
+    var invocation = pop() as MethodInvocationImpl?;
     var constructorName =
-        periodBeforeName != null ? pop() as SimpleIdentifier : null;
-    var typeArguments = pop() as TypeArgumentList?;
+        periodBeforeName != null ? pop() as SimpleIdentifierImpl : null;
+    var typeArguments = pop() as TypeArgumentListImpl?;
     if (typeArguments != null &&
         !_featureSet.isEnabled(Feature.generic_metadata)) {
       _reportFeatureNotEnabled(
@@ -2123,14 +2139,17 @@ class AstBuilder extends StackListener {
         startToken: typeArguments.beginToken,
       );
     }
-    var name = pop() as Identifier;
-    push(ast.annotation(
+    var name = pop() as IdentifierImpl;
+    push(
+      AnnotationImpl(
         atSign: atSign,
         name: name,
         typeArguments: typeArguments,
         period: periodBeforeName,
         constructorName: constructorName,
-        arguments: invocation?.argumentList));
+        arguments: invocation?.argumentList,
+      ),
+    );
   }
 
   @override
@@ -3493,10 +3512,20 @@ class AstBuilder extends StackListener {
     assert(optional('{', leftBracket));
     assert(optional('}', leftBracket.endGroup!));
     debugEvent("InvalidFunctionBody");
-    Block block = ast.block(leftBracket, [], leftBracket.endGroup!);
+    final block = BlockImpl(
+      leftBracket: leftBracket,
+      statements: [],
+      rightBracket: leftBracket.endGroup!,
+    );
     var star = pop() as Token?;
     var asyncKeyword = pop() as Token?;
-    push(ast.blockFunctionBody(asyncKeyword, star, block));
+    push(
+      BlockFunctionBodyImpl(
+        keyword: asyncKeyword,
+        star: star,
+        block: block,
+      ),
+    );
   }
 
   @override

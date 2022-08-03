@@ -171,7 +171,7 @@ class FindElement extends _FindElementBase {
       }
     }
 
-    void findInClasses(List<ClassElement> classes) {
+    void findInClasses(List<InterfaceElement> classes) {
       for (var class_ in classes) {
         findInExecutables(class_.accessors);
         findInExecutables(class_.constructors);
@@ -183,8 +183,8 @@ class FindElement extends _FindElementBase {
     findInExecutables(unitElement.functions);
 
     findInClasses(unitElement.classes);
-    findInClasses(unitElement.enums);
-    findInClasses(unitElement.mixins);
+    findInClasses(unitElement.enums2);
+    findInClasses(unitElement.mixins2);
 
     for (var extension_ in unitElement.extensions) {
       findInExecutables(extension_.accessors);
@@ -264,7 +264,7 @@ class FindElement extends _FindElementBase {
       }
     }
 
-    void findInClass(ClassElement class_) {
+    void findInClass(InterfaceElement class_) {
       findIn(class_.typeParameters);
       for (var method in class_.methods) {
         findIn(method.typeParameters);
@@ -288,7 +288,7 @@ class FindElement extends _FindElementBase {
       findInClass(class_);
     }
 
-    for (var enum_ in unitElement.enums) {
+    for (var enum_ in unitElement.enums2) {
       findInClass(enum_);
     }
 
@@ -296,7 +296,7 @@ class FindElement extends _FindElementBase {
       findIn(extension_.typeParameters);
     }
 
-    for (var mixin in unitElement.mixins) {
+    for (var mixin in unitElement.mixins2) {
       findInClass(mixin);
     }
 
@@ -342,13 +342,13 @@ abstract class _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  ClassElement classOrMixin(String name) {
+  InterfaceElement classOrMixin(String name) {
     for (var class_ in unitElement.classes) {
       if (class_.name == name) {
         return class_;
       }
     }
-    for (var mixin in unitElement.mixins) {
+    for (var mixin in unitElement.mixins2) {
       if (mixin.name == name) {
         return mixin;
       }
@@ -378,7 +378,7 @@ abstract class _FindElementBase {
       }
     }
 
-    for (var enum_ in unitElement.enums) {
+    for (var enum_ in unitElement.enums2) {
       if (of == null || enum_.name == of) {
         findIn(enum_.constructors);
       }
@@ -390,8 +390,8 @@ abstract class _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  ClassElement enum_(String name) {
-    for (var enum_ in unitElement.enums) {
+  EnumElement enum_(String name) {
+    for (var enum_ in unitElement.enums2) {
       if (enum_.name == name) {
         return enum_;
       }
@@ -432,8 +432,8 @@ abstract class _FindElementBase {
     );
   }
 
-  ClassElement mixin(String name) {
-    for (var mixin in unitElement.mixins) {
+  MixinElement mixin(String name) {
+    for (var mixin in unitElement.mixins2) {
       if (mixin.name == name) {
         return mixin;
       }
@@ -516,7 +516,7 @@ abstract class _FindElementBase {
 
   T _findInClassesLike<T extends Element>({
     required String? className,
-    required T? Function(ClassElement element) fromClass,
+    required T? Function(InterfaceElement element) fromClass,
     required T? Function(ExtensionElement element) fromExtension,
   }) {
     bool filter(Element element) {
@@ -525,8 +525,8 @@ abstract class _FindElementBase {
 
     var classes = [
       ...unitElement.classes,
-      ...unitElement.enums,
-      ...unitElement.mixins,
+      ...unitElement.enums2,
+      ...unitElement.mixins2,
     ];
 
     var results = [

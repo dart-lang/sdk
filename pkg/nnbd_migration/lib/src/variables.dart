@@ -49,7 +49,7 @@ class Variables {
   final _decoratedElementTypes = <Element?, DecoratedType?>{};
 
   final _decoratedDirectSupertypes =
-      <ClassElement, Map<ClassElement, DecoratedType?>>{};
+      <InterfaceElement, Map<ClassElement, DecoratedType?>>{};
 
   final _decoratedTypeAnnotations = <Source?, Map<int, DecoratedType>>{};
 
@@ -76,7 +76,7 @@ class Variables {
   /// Given a [class_], gets the decorated type information for the superclasses
   /// it directly implements/extends/etc.
   Map<ClassElement, DecoratedType?> decoratedDirectSupertypes(
-      ClassElement class_) {
+      InterfaceElement class_) {
     return _decoratedDirectSupertypes[class_] ??=
         _decorateDirectSupertypes(class_);
   }
@@ -418,7 +418,7 @@ class Variables {
   /// Creates an entry [_decoratedDirectSupertypes] for an already-migrated
   /// class.
   Map<ClassElement, DecoratedType> _decorateDirectSupertypes(
-      ClassElement class_) {
+      InterfaceElement class_) {
     var result = <ClassElement, DecoratedType>{};
     for (var decoratedSupertype
         in _alreadyMigratedCodeDecorator.getImmediateSupertypes(class_)) {

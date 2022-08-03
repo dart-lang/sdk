@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
+import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1504,7 +1505,11 @@ class SimpleIdentifierTest extends _AstTest {
   void test_inGetterContext_forEachLoop() {
     SimpleIdentifier identifier = AstTestFactory.identifier3("a");
     Expression iterator = AstTestFactory.listLiteral();
-    Statement body = AstTestFactory.block();
+    Statement body = BlockImpl(
+      leftBracket: Tokens.openCurlyBracket(),
+      statements: [],
+      rightBracket: Tokens.closeCurlyBracket(),
+    );
     AstTestFactory.forStatement(
         AstTestFactory.forEachPartsWithIdentifier(identifier, iterator), body);
     expect(identifier.inGetterContext(), isFalse);
@@ -1544,7 +1549,11 @@ class SimpleIdentifierTest extends _AstTest {
   void test_inSetterContext_forEachLoop() {
     SimpleIdentifier identifier = AstTestFactory.identifier3("a");
     Expression iterator = AstTestFactory.listLiteral();
-    Statement body = AstTestFactory.block();
+    Statement body = BlockImpl(
+      leftBracket: Tokens.openCurlyBracket(),
+      statements: [],
+      rightBracket: Tokens.closeCurlyBracket(),
+    );
     AstTestFactory.forStatement(
         AstTestFactory.forEachPartsWithIdentifier(identifier, iterator), body);
     expect(identifier.inSetterContext(), isTrue);

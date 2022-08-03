@@ -289,20 +289,24 @@ class _ElementWriter {
     }
   }
 
-  void _writeClassElement(ClassElement e) {
+  void _writeClassElement(InterfaceElement e) {
     _writeIndentedLine(() {
-      _writeIf(e.isAbstract && !e.isMixin, 'abstract ');
-      _writeIf(e.isMacro, 'macro ');
+      if (e is ClassElement) {
+        _writeIf(e.isAbstract && !e.isMixin, 'abstract ');
+        _writeIf(e.isMacro, 'macro ');
+      }
       _writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
 
-      if (e.isEnum) {
+      if (e is EnumElement) {
         buffer.write('enum ');
-      } else if (e.isMixin) {
+      } else if (e is MixinElement) {
         buffer.write('mixin ');
       } else {
         buffer.write('class ');
       }
-      _writeIf(e.isMixinApplication, 'alias ');
+      if (e is ClassElement) {
+        _writeIf(e.isMixinApplication, 'alias ');
+      }
 
       _writeName(e);
     });
@@ -313,13 +317,18 @@ class _ElementWriter {
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
 
-      var supertype = e.supertype;
+      InterfaceType? supertype;
+      if (e is ClassElement) {
+        supertype = e.supertype;
+      } else if (e is EnumElement) {
+        supertype = e.supertype;
+      }
       if (supertype != null &&
           (supertype.element.name != 'Object' || e.mixins.isNotEmpty)) {
         _writeType('supertype', supertype);
       }
 
-      if (e.isMixin) {
+      if (e is MixinElement) {
         var superclassConstraints = e.superclassConstraints;
         if (superclassConstraints.isEmpty) {
           throw StateError('At least Object is expected.');
@@ -333,7 +342,7 @@ class _ElementWriter {
       _writeElements('fields', e.fields, _writePropertyInducingElement);
 
       var constructors = e.constructors;
-      if (e.isMixin) {
+      if (e is MixinElement) {
         expect(constructors, isEmpty);
       } else {
         expect(constructors, isNotEmpty);
@@ -1026,9 +1035,9 @@ class _ElementWriter {
 
   void _writeUnitElement(CompilationUnitElement e) {
     _writeElements('classes', e.classes, _writeClassElement);
-    _writeElements('enums', e.enums, _writeClassElement);
+    _writeElements('enums', e.enums2, _writeClassElement);
     _writeElements('extensions', e.extensions, _writeExtensionElement);
-    _writeElements('mixins', e.mixins, _writeClassElement);
+    _writeElements('mixins', e.mixins2, _writeClassElement);
     _writeElements('typeAliases', e.typeAliases, _writeTypeAliasElement);
     _writeElements(
       'topLevelVariables',

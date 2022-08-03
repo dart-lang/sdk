@@ -49,10 +49,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _visitPropertyFirst<TopLevelVariableDeclaration>(unit.declarations);
     _unitElement.accessors = _enclosingContext.propertyAccessors;
     _unitElement.classes = _enclosingContext.classes;
-    _unitElement.enums = _enclosingContext.enums;
+    _unitElement.enums2 = _enclosingContext.enums;
     _unitElement.extensions = _enclosingContext.extensions;
     _unitElement.functions = _enclosingContext.functions;
-    _unitElement.mixins = _enclosingContext.mixins;
+    _unitElement.mixins2 = _enclosingContext.mixins;
     _unitElement.topLevelVariables = _enclosingContext.properties
         .whereType<TopLevelVariableElementImpl>()
         .toList();

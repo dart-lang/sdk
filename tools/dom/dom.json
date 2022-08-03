@@ -21240,7 +21240,11 @@
   },
   "SharedArrayBuffer": {
     "members": {
+      "SharedArrayBuffer": {},
       "byteLength": {
+        "support_level": "untriaged"
+      },
+      "slice": {
         "support_level": "untriaged"
       }
     },
