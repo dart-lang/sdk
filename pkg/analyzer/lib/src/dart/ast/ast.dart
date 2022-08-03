@@ -1231,7 +1231,10 @@ class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   bool value = false;
 
   /// Initialize a newly created boolean literal.
-  BooleanLiteralImpl(this.literal, this.value);
+  BooleanLiteralImpl({
+    required this.literal,
+    required this.value,
+  });
 
   @override
   Token get beginToken => literal;
@@ -1288,7 +1291,11 @@ class BreakStatementImpl extends StatementImpl implements BreakStatement {
 
   /// Initialize a newly created break statement. The [label] can be `null` if
   /// there is no label associated with the statement.
-  BreakStatementImpl(this.breakKeyword, this._label, this.semicolon) {
+  BreakStatementImpl({
+    required this.breakKeyword,
+    required SimpleIdentifierImpl? label,
+    required this.semicolon,
+  }) : _label = label {
     _becomeParentOf(_label);
   }
 
@@ -1345,7 +1352,10 @@ class CascadeExpressionImpl extends ExpressionImpl
 
   /// Initialize a newly created cascade expression. The list of
   /// [cascadeSections] must contain at least one element.
-  CascadeExpressionImpl(this._target, List<Expression> cascadeSections) {
+  CascadeExpressionImpl({
+    required ExpressionImpl target,
+    required List<Expression> cascadeSections,
+  }) : _target = target {
     _becomeParentOf(_target);
     _cascadeSections._initialize(this, cascadeSections);
   }
@@ -1453,17 +1463,21 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   /// [exceptionType] can be `null` if the clause will catch all exceptions. The
   /// [comma] and [_stackTraceParameter] can be `null` if the stack trace
   /// parameter is not defined.
-  CatchClauseImpl(
-      this.onKeyword,
-      this._exceptionType,
-      this.catchKeyword,
-      this.leftParenthesis,
-      this._exceptionParameter,
-      this.comma,
-      this._stackTraceParameter,
-      this.rightParenthesis,
-      this._body)
-      : assert(onKeyword != null || catchKeyword != null) {
+  CatchClauseImpl({
+    required this.onKeyword,
+    required TypeAnnotationImpl? exceptionType,
+    required this.catchKeyword,
+    required this.leftParenthesis,
+    required CatchClauseParameterImpl? exceptionParameter,
+    required this.comma,
+    required CatchClauseParameterImpl? stackTraceParameter,
+    required this.rightParenthesis,
+    required BlockImpl body,
+  })  : assert(onKeyword != null || catchKeyword != null),
+        _exceptionType = exceptionType,
+        _exceptionParameter = exceptionParameter,
+        _stackTraceParameter = stackTraceParameter,
+        _body = body {
     _becomeParentOf(_exceptionType);
     _becomeParentOf(_exceptionParameter);
     _becomeParentOf(_stackTraceParameter);
@@ -2124,7 +2138,11 @@ class CommentImpl extends AstNodeImpl implements Comment {
   /// least one token. The [_type] is the type of the comment. The list of
   /// [references] can be empty if the comment does not contain any embedded
   /// references.
-  CommentImpl(this.tokens, this._type, List<CommentReference> references) {
+  CommentImpl({
+    required this.tokens,
+    required CommentType type,
+    required List<CommentReference> references,
+  }) : _type = type {
     _references._initialize(this, references);
   }
 
@@ -2160,23 +2178,42 @@ class CommentImpl extends AstNodeImpl implements Comment {
   }
 
   /// Create a block comment consisting of the given [tokens].
-  static CommentImpl createBlockComment(List<Token> tokens) =>
-      CommentImpl(tokens, CommentType.BLOCK, const <CommentReference>[]);
+  static CommentImpl createBlockComment(List<Token> tokens) {
+    return CommentImpl(
+      tokens: tokens,
+      type: CommentType.BLOCK,
+      references: const <CommentReference>[],
+    );
+  }
 
   /// Create a documentation comment consisting of the given [tokens].
-  static CommentImpl createDocumentationComment(List<Token> tokens) =>
-      CommentImpl(
-          tokens, CommentType.DOCUMENTATION, const <CommentReference>[]);
+  static CommentImpl createDocumentationComment(List<Token> tokens) {
+    return CommentImpl(
+      tokens: tokens,
+      type: CommentType.DOCUMENTATION,
+      references: const <CommentReference>[],
+    );
+  }
 
   /// Create a documentation comment consisting of the given [tokens] and having
   /// the given [references] embedded within it.
   static CommentImpl createDocumentationCommentWithReferences(
-          List<Token> tokens, List<CommentReference> references) =>
-      CommentImpl(tokens, CommentType.DOCUMENTATION, references);
+      List<Token> tokens, List<CommentReference> references) {
+    return CommentImpl(
+      tokens: tokens,
+      type: CommentType.DOCUMENTATION,
+      references: references,
+    );
+  }
 
   /// Create an end-of-line comment consisting of the given [tokens].
-  static CommentImpl createEndOfLineComment(List<Token> tokens) =>
-      CommentImpl(tokens, CommentType.END_OF_LINE, const <CommentReference>[]);
+  static CommentImpl createEndOfLineComment(List<Token> tokens) {
+    return CommentImpl(
+      tokens: tokens,
+      type: CommentType.END_OF_LINE,
+      references: const <CommentReference>[],
+    );
+  }
 }
 
 abstract class CommentReferableExpressionImpl extends ExpressionImpl
@@ -2197,7 +2234,10 @@ class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
 
   /// Initialize a newly created reference to a Dart element. The [newKeyword]
   /// can be `null` if the reference is not to a constructor.
-  CommentReferenceImpl(this.newKeyword, this._expression) {
+  CommentReferenceImpl({
+    required this.newKeyword,
+    required CommentReferableExpressionImpl expression,
+  }) : _expression = expression {
     _becomeParentOf(_expression);
   }
 
@@ -2483,8 +2523,15 @@ class ConditionalExpressionImpl extends ExpressionImpl
   ExpressionImpl _elseExpression;
 
   /// Initialize a newly created conditional expression.
-  ConditionalExpressionImpl(this._condition, this.question,
-      this._thenExpression, this.colon, this._elseExpression) {
+  ConditionalExpressionImpl({
+    required ExpressionImpl condition,
+    required this.question,
+    required ExpressionImpl thenExpression,
+    required this.colon,
+    required ExpressionImpl elseExpression,
+  })  : _condition = condition,
+        _thenExpression = thenExpression,
+        _elseExpression = elseExpression {
     _becomeParentOf(_condition);
     _becomeParentOf(_thenExpression);
     _becomeParentOf(_elseExpression);
@@ -2577,8 +2624,17 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
   @override
   DirectiveUri? resolvedUri;
 
-  ConfigurationImpl(this.ifKeyword, this.leftParenthesis, this._name,
-      this.equalToken, this._value, this.rightParenthesis, this._uri) {
+  ConfigurationImpl({
+    required this.ifKeyword,
+    required this.leftParenthesis,
+    required DottedNameImpl name,
+    required this.equalToken,
+    required StringLiteralImpl? value,
+    required this.rightParenthesis,
+    required StringLiteralImpl uri,
+  })  : _name = name,
+        _value = value,
+        _uri = uri {
     _becomeParentOf(_name);
     _becomeParentOf(_value);
     _becomeParentOf(_uri);
@@ -2884,8 +2940,14 @@ class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   /// Initialize a newly created field initializer to initialize the field with
   /// the given name to the value of the given expression. The [thisKeyword] and
   /// [period] can be `null` if the 'this' keyword was not specified.
-  ConstructorFieldInitializerImpl(this.thisKeyword, this.period,
-      this._fieldName, this.equals, this._expression) {
+  ConstructorFieldInitializerImpl({
+    required this.thisKeyword,
+    required this.period,
+    required SimpleIdentifierImpl fieldName,
+    required this.equals,
+    required ExpressionImpl expression,
+  })  : _fieldName = fieldName,
+        _expression = expression {
     _becomeParentOf(_fieldName);
     _becomeParentOf(_expression);
   }
@@ -2968,7 +3030,12 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   /// Initialize a newly created constructor name. The [period] and [name] can
   /// be`null` if the constructor being named is the unnamed constructor.
-  ConstructorNameImpl(this._type, this.period, this._name) {
+  ConstructorNameImpl({
+    required NamedTypeImpl type,
+    required this.period,
+    required SimpleIdentifierImpl? name,
+  })  : _type = type,
+        _name = name {
     _becomeParentOf(_type);
     _becomeParentOf(_name);
   }
@@ -3028,7 +3095,9 @@ class ConstructorReferenceImpl extends CommentReferableExpressionImpl
     implements ConstructorReference {
   ConstructorNameImpl _constructorName;
 
-  ConstructorReferenceImpl(this._constructorName) {
+  ConstructorReferenceImpl({
+    required ConstructorNameImpl constructorName,
+  }) : _constructorName = constructorName {
     _becomeParentOf(_constructorName);
   }
 
@@ -3129,7 +3198,11 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
 
   /// Initialize a newly created continue statement. The [label] can be `null`
   /// if there is no label associated with the statement.
-  ContinueStatementImpl(this.continueKeyword, this._label, this.semicolon) {
+  ContinueStatementImpl({
+    required this.continueKeyword,
+    required SimpleIdentifierImpl? label,
+    required this.semicolon,
+  }) : _label = label {
     _becomeParentOf(_label);
   }
 
@@ -3309,8 +3382,13 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
 
   /// Initialize a newly created default formal parameter. The [separator] and
   /// [defaultValue] can be `null` if there is no default value.
-  DefaultFormalParameterImpl(
-      this._parameter, this.kind, this.separator, this._defaultValue) {
+  DefaultFormalParameterImpl({
+    required NormalFormalParameterImpl parameter,
+    required this.kind,
+    required this.separator,
+    required ExpressionImpl? defaultValue,
+  })  : _parameter = parameter,
+        _defaultValue = defaultValue {
     _becomeParentOf(_parameter);
     _becomeParentOf(_defaultValue);
   }

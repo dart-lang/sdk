@@ -229,12 +229,17 @@ class AstBuilder extends StackListener {
     assert(optional('..', token) || optional('?..', token));
     debugEvent("beginCascade");
 
-    var expression = pop() as Expression;
+    var expression = pop() as ExpressionImpl;
     push(token);
     if (expression is CascadeExpression) {
       push(expression);
     } else {
-      push(ast.cascadeExpression(expression, <Expression>[]));
+      push(
+        CascadeExpressionImpl(
+          target: expression,
+          cascadeSections: <Expression>[],
+        ),
+      );
     }
     push(NullValue.CascadeReceiver);
   }
@@ -491,14 +496,14 @@ class AstBuilder extends StackListener {
           initializerObject.target, initializerObject);
     }
 
-    if (initializerObject is AssignmentExpression) {
+    if (initializerObject is AssignmentExpressionImpl) {
       Token? thisKeyword;
       Token? period;
-      SimpleIdentifier fieldName;
+      SimpleIdentifierImpl fieldName;
       Expression left = initializerObject.leftHandSide;
-      if (left is PropertyAccess) {
+      if (left is PropertyAccessImpl) {
         var target = left.target;
-        if (target is ThisExpression) {
+        if (target is ThisExpressionImpl) {
           thisKeyword = target.thisKeyword;
           period = left.operator;
         } else {
@@ -507,7 +512,7 @@ class AstBuilder extends StackListener {
           // Parser has reported FieldInitializedOutsideDeclaringClass.
         }
         fieldName = left.propertyName;
-      } else if (left is SimpleIdentifier) {
+      } else if (left is SimpleIdentifierImpl) {
         fieldName = left;
       } else {
         // Recovery:
@@ -515,8 +520,13 @@ class AstBuilder extends StackListener {
         var superExpression = left as SuperExpression;
         fieldName = ast.simpleIdentifier(superExpression.superKeyword);
       }
-      return ast.constructorFieldInitializer(thisKeyword, period, fieldName,
-          initializerObject.operator, initializerObject.rightHandSide);
+      return ConstructorFieldInitializerImpl(
+        thisKeyword: thisKeyword,
+        period: period,
+        fieldName: fieldName,
+        equals: initializerObject.operator,
+        expression: initializerObject.rightHandSide,
+      );
     }
 
     if (initializerObject is AssertInitializer) {
@@ -1190,13 +1200,20 @@ class AstBuilder extends StackListener {
     assert(optional(':', colon));
     debugEvent("ConditionalExpression");
 
-    var elseExpression = pop() as Expression;
-    var thenExpression = pop() as Expression;
-    var condition = pop() as Expression;
+    var elseExpression = pop() as ExpressionImpl;
+    var thenExpression = pop() as ExpressionImpl;
+    var condition = pop() as ExpressionImpl;
     reportErrorIfSuper(elseExpression);
     reportErrorIfSuper(thenExpression);
-    push(ast.conditionalExpression(
-        condition, question, thenExpression, colon, elseExpression));
+    push(
+      ConditionalExpressionImpl(
+        condition: condition,
+        question: question,
+        thenExpression: thenExpression,
+        colon: colon,
+        elseExpression: elseExpression,
+      ),
+    );
   }
 
   @override
@@ -1206,9 +1223,9 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull('==', equalSign));
     debugEvent("ConditionalUri");
 
-    var libraryUri = pop() as StringLiteral;
-    var value = popIfNotNull(equalSign) as StringLiteral?;
-    if (value is StringInterpolation) {
+    var libraryUri = pop() as StringLiteralImpl;
+    var value = popIfNotNull(equalSign) as StringLiteralImpl?;
+    if (value is StringInterpolationImpl) {
       for (var child in value.childEntities) {
         if (child is InterpolationExpression) {
           // This error is reported in OutlineBuilder.endLiteralString
@@ -1218,9 +1235,18 @@ class AstBuilder extends StackListener {
         }
       }
     }
-    var name = pop() as DottedName;
-    push(ast.configuration(ifKeyword, leftParen, name, equalSign, value,
-        leftParen.endGroup!, libraryUri));
+    var name = pop() as DottedNameImpl;
+    push(
+      ConfigurationImpl(
+        ifKeyword: ifKeyword,
+        leftParenthesis: leftParen,
+        name: name,
+        equalToken: equalSign,
+        value: value,
+        rightParenthesis: leftParen.endGroup!,
+        uri: libraryUri,
+      ),
+    );
   }
 
   @override
@@ -1249,17 +1275,17 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull('.', periodBeforeName));
     debugEvent("ConstructorReference");
 
-    var constructorName = pop() as SimpleIdentifier?;
-    var typeArguments = pop() as TypeArgumentList?;
-    var typeNameIdentifier = pop() as Identifier;
+    var constructorName = pop() as SimpleIdentifierImpl?;
+    var typeArguments = pop() as TypeArgumentListImpl?;
+    var typeNameIdentifier = pop() as IdentifierImpl;
     push(
-      ast.constructorName(
-        ast.namedType(
+      ConstructorNameImpl(
+        type: ast.namedType(
           name: typeNameIdentifier,
           typeArguments: typeArguments,
         ),
-        periodBeforeName,
-        constructorName,
+        period: periodBeforeName,
+        name: constructorName,
       ),
     );
   }
@@ -1594,8 +1620,8 @@ class AstBuilder extends StackListener {
     var comment = _findComment(metadata,
         thisKeyword ?? typeOrFunctionTypedParameter?.beginToken ?? nameToken);
 
-    NormalFormalParameter node;
-    if (typeOrFunctionTypedParameter is FunctionTypedFormalParameter) {
+    NormalFormalParameterImpl node;
+    if (typeOrFunctionTypedParameter is FunctionTypedFormalParameterImpl) {
       // This is a temporary AST node that was constructed in
       // [endFunctionTypedFormalParameter]. We now deconstruct it and create
       // the final AST node.
@@ -1691,13 +1717,21 @@ class AstBuilder extends StackListener {
     ParameterKind analyzerKind = _toAnalyzerParameterKind(kind);
     FormalParameter parameter = node;
     if (analyzerKind != ParameterKind.REQUIRED) {
-      parameter = ast.defaultFormalParameter(
-          node, analyzerKind, defaultValue?.separator, defaultValue?.value);
+      parameter = DefaultFormalParameterImpl(
+        parameter: node,
+        kind: analyzerKind,
+        separator: defaultValue?.separator,
+        defaultValue: defaultValue?.value,
+      );
     } else if (defaultValue != null) {
       // An error is reported if a required parameter has a default value.
       // Record it as named parameter for recovery.
-      parameter = ast.defaultFormalParameter(node, ParameterKind.NAMED,
-          defaultValue.separator, defaultValue.value);
+      parameter = DefaultFormalParameterImpl(
+        parameter: node,
+        kind: ParameterKind.NAMED,
+        separator: defaultValue.separator,
+        defaultValue: defaultValue.value,
+      );
     }
     push(parameter);
   }
@@ -2842,8 +2876,14 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("BreakStatement");
 
-    var label = hasTarget ? pop() as SimpleIdentifier : null;
-    push(ast.breakStatement(breakKeyword, label, semicolon));
+    var label = hasTarget ? pop() as SimpleIdentifierImpl : null;
+    push(
+      BreakStatementImpl(
+        breakKeyword: breakKeyword,
+        label: label,
+        semicolon: semicolon,
+      ),
+    );
   }
 
   @override
@@ -2882,23 +2922,23 @@ class AstBuilder extends StackListener {
     }
     push(
       CatchClauseImpl(
-        onKeyword,
-        type as TypeAnnotationImpl?,
-        catchKeyword,
-        catchParameterList?.leftParenthesis,
-        exception != null
+        onKeyword: onKeyword,
+        exceptionType: type as TypeAnnotationImpl?,
+        catchKeyword: catchKeyword,
+        leftParenthesis: catchParameterList?.leftParenthesis,
+        exceptionParameter: exception != null
             ? CatchClauseParameterImpl(
                 nameNode: exception as SimpleIdentifierImpl,
               )
             : null,
-        comma,
-        stackTrace != null
+        comma: comma,
+        stackTraceParameter: stackTrace != null
             ? CatchClauseParameterImpl(
                 nameNode: stackTrace as SimpleIdentifierImpl,
               )
             : null,
-        catchParameterList?.rightParenthesis,
-        body as BlockImpl,
+        rightParenthesis: catchParameterList?.rightParenthesis,
+        body: body as BlockImpl,
       ),
     );
   }
@@ -2994,13 +3034,28 @@ class AstBuilder extends StackListener {
       var target = ast.prefixedIdentifier(ast.simpleIdentifier(firstToken),
           firstPeriod!, ast.simpleIdentifier(secondToken!));
       var expression = ast.propertyAccess(target, secondPeriod!, identifier);
-      push(ast.commentReference(newKeyword, expression));
+      push(
+        CommentReferenceImpl(
+          newKeyword: newKeyword,
+          expression: expression,
+        ),
+      );
     } else if (secondToken != null) {
       var expression = ast.prefixedIdentifier(
           ast.simpleIdentifier(secondToken), secondPeriod!, identifier);
-      push(ast.commentReference(newKeyword, expression));
+      push(
+        CommentReferenceImpl(
+          newKeyword: newKeyword,
+          expression: expression,
+        ),
+      );
     } else {
-      push(ast.commentReference(newKeyword, identifier));
+      push(
+        CommentReferenceImpl(
+          newKeyword: newKeyword,
+          expression: identifier,
+        ),
+      );
     }
   }
 
@@ -3024,8 +3079,14 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("ContinueStatement");
 
-    var label = hasTarget ? pop() as SimpleIdentifier : null;
-    push(ast.continueStatement(continueKeyword, label, semicolon));
+    var label = hasTarget ? pop() as SimpleIdentifierImpl : null;
+    push(
+      ContinueStatementImpl(
+        continueKeyword: continueKeyword,
+        label: label,
+        semicolon: semicolon,
+      ),
+    );
   }
 
   @override
@@ -3598,7 +3659,12 @@ class AstBuilder extends StackListener {
     assert(value || identical(token.stringValue, "false"));
     debugEvent("LiteralBool");
 
-    push(ast.booleanLiteral(token, value));
+    push(
+      BooleanLiteralImpl(
+        literal: token,
+        value: value,
+      ),
+    );
   }
 
   @override
@@ -4252,7 +4318,7 @@ class AstBuilder extends StackListener {
     assert(optional('=', equals) || optional(':', equals));
     debugEvent("ValuedFormalParameter");
 
-    var value = pop() as Expression;
+    var value = pop() as ExpressionImpl;
     push(_ParameterDefaultValue(equals, value));
   }
 
@@ -4631,7 +4697,7 @@ class _OptionalFormalParameters {
 /// value with the separator token.
 class _ParameterDefaultValue {
   final Token separator;
-  final Expression value;
+  final ExpressionImpl value;
 
   _ParameterDefaultValue(this.separator, this.value);
 }

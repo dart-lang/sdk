@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /// The instance of [AstFactoryImpl].
 final AstFactoryImpl astFactory = AstFactoryImpl();
@@ -17,23 +16,6 @@ final AstFactoryImpl astFactory = AstFactoryImpl();
 class AstFactoryImpl {
   CommentImpl blockComment(List<Token> tokens) =>
       CommentImpl.createBlockComment(tokens);
-
-  BooleanLiteralImpl booleanLiteral(Token literal, bool value) =>
-      BooleanLiteralImpl(literal, value);
-
-  BreakStatementImpl breakStatement(
-          Token breakKeyword, SimpleIdentifier? label, Token semicolon) =>
-      BreakStatementImpl(
-          breakKeyword, label as SimpleIdentifierImpl?, semicolon);
-
-  CascadeExpressionImpl cascadeExpression(
-          Expression target, List<Expression> cascadeSections) =>
-      CascadeExpressionImpl(target as ExpressionImpl, cascadeSections);
-
-  CommentReferenceImpl commentReference(
-          Token? newKeyword, CommentReferableExpression expression) =>
-      CommentReferenceImpl(
-          newKeyword, expression as CommentReferableExpressionImpl);
 
   CompilationUnitImpl compilationUnit(
           {required Token beginToken,
@@ -49,71 +31,6 @@ class AstFactoryImpl {
           LineInfo? lineInfo}) =>
       CompilationUnitImpl(beginToken, scriptTag as ScriptTagImpl?, directives,
           declarations, endToken, featureSet, lineInfo ?? LineInfo([0]));
-
-  ConditionalExpressionImpl conditionalExpression(
-          Expression condition,
-          Token question,
-          Expression thenExpression,
-          Token colon,
-          Expression elseExpression) =>
-      ConditionalExpressionImpl(
-          condition as ExpressionImpl,
-          question,
-          thenExpression as ExpressionImpl,
-          colon,
-          elseExpression as ExpressionImpl);
-
-  ConfigurationImpl configuration(
-          Token ifKeyword,
-          Token leftParenthesis,
-          DottedName name,
-          Token? equalToken,
-          StringLiteral? value,
-          Token rightParenthesis,
-          StringLiteral libraryUri) =>
-      ConfigurationImpl(
-          ifKeyword,
-          leftParenthesis,
-          name as DottedNameImpl,
-          equalToken,
-          value as StringLiteralImpl?,
-          rightParenthesis,
-          libraryUri as StringLiteralImpl);
-
-  ConstructorFieldInitializerImpl constructorFieldInitializer(
-          Token? thisKeyword,
-          Token? period,
-          SimpleIdentifier fieldName,
-          Token equals,
-          Expression expression) =>
-      ConstructorFieldInitializerImpl(
-          thisKeyword,
-          period,
-          fieldName as SimpleIdentifierImpl,
-          equals,
-          expression as ExpressionImpl);
-
-  ConstructorNameImpl constructorName(
-          NamedType type, Token? period, SimpleIdentifier? name) =>
-      ConstructorNameImpl(
-          type as NamedTypeImpl, period, name as SimpleIdentifierImpl?);
-
-  ConstructorReferenceImpl constructorReference(
-          {required ConstructorName constructorName}) =>
-      ConstructorReferenceImpl(constructorName as ConstructorNameImpl);
-
-  ContinueStatementImpl continueStatement(
-          Token continueKeyword, SimpleIdentifier? label, Token semicolon) =>
-      ContinueStatementImpl(
-          continueKeyword, label as SimpleIdentifierImpl?, semicolon);
-
-  DefaultFormalParameterImpl defaultFormalParameter(
-          NormalFormalParameter parameter,
-          ParameterKind kind,
-          Token? separator,
-          Expression? defaultValue) =>
-      DefaultFormalParameterImpl(parameter as NormalFormalParameterImpl, kind,
-          separator, defaultValue as ExpressionImpl?);
 
   CommentImpl documentationComment(List<Token> tokens,
           [List<CommentReference>? references]) =>

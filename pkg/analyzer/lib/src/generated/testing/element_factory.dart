@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -14,7 +13,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -333,38 +331,6 @@ class ElementFactory {
 
   static TopLevelVariableElementImpl topLevelVariableElement(Identifier name) =>
       TopLevelVariableElementImpl(name.name, name.offset);
-
-  static TopLevelVariableElementImpl topLevelVariableElement2(String name) =>
-      topLevelVariableElement3(name, false, false, DynamicTypeImpl.instance);
-
-  static TopLevelVariableElementImpl topLevelVariableElement3(
-      String name, bool isConst, bool isFinal, DartType type) {
-    TopLevelVariableElementImpl variable;
-    if (isConst) {
-      ConstTopLevelVariableElementImpl constant =
-          ConstTopLevelVariableElementImpl(name, -1);
-      var typeElement = type.element as ClassElement;
-      var initializer = AstTestFactory.instanceCreationExpression2(
-          Keyword.CONST, AstTestFactory.namedType(typeElement));
-      if (type is InterfaceType) {
-        var element = typeElement.unnamedConstructor;
-        initializer.constructorName.staticElement = element;
-      }
-      constant.constantInitializer = initializer;
-      variable = constant;
-    } else {
-      variable = TopLevelVariableElementImpl(name, -1);
-    }
-    variable.isConst = isConst;
-    variable.isFinal = isFinal;
-    variable.isSynthetic = false;
-    variable.type = type;
-    PropertyAccessorElementImpl_ImplicitGetter(variable);
-    if (!isConst && !isFinal) {
-      PropertyAccessorElementImpl_ImplicitSetter(variable);
-    }
-    return variable;
-  }
 
   static TypeParameterElementImpl typeParameterElement(String name) {
     return TypeParameterElementImpl(name, 0);

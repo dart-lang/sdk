@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
 /// The class `AstTestFactory` defines utility methods that can be used to
@@ -68,23 +67,6 @@ class AstTestFactory {
         semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
       );
 
-  static BooleanLiteralImpl booleanLiteral(
-          bool value) =>
-      astFactory.booleanLiteral(
-          value
-              ? TokenFactory.tokenFromKeyword(Keyword.TRUE)
-              : TokenFactory.tokenFromKeyword(Keyword.FALSE),
-          value);
-
-  static BreakStatementImpl breakStatement() => astFactory.breakStatement(
-      TokenFactory.tokenFromKeyword(Keyword.BREAK),
-      null,
-      TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static BreakStatementImpl breakStatement2(String label) =>
-      astFactory.breakStatement(TokenFactory.tokenFromKeyword(Keyword.BREAK),
-          identifier3(label), TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
   static IndexExpressionImpl cascadedIndexExpression(Expression index) =>
       astFactory.indexExpressionForCascade2(
           period: TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
@@ -108,13 +90,6 @@ class AstTestFactory {
           null,
           TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
           identifier3(propertyName));
-
-  static CascadeExpressionImpl cascadeExpression(Expression target,
-      [List<Expression> cascadeSections = const []]) {
-    var cascade = astFactory.cascadeExpression(target, cascadeSections);
-    cascade.target.endToken.next = cascadeSections.first.beginToken;
-    return cascade;
-  }
 
   static ClassDeclarationImpl classDeclaration(
           Keyword? abstractKeyword,
@@ -228,15 +203,6 @@ class AstTestFactory {
           featureSet: featureSet,
           lineInfo: LineInfo.fromContent(''));
 
-  static ConditionalExpressionImpl conditionalExpression(Expression condition,
-          Expression thenExpression, Expression elseExpression) =>
-      astFactory.conditionalExpression(
-          condition,
-          TokenFactory.tokenFromType(TokenType.QUESTION),
-          thenExpression,
-          TokenFactory.tokenFromType(TokenType.COLON),
-          elseExpression);
-
   static ConstructorDeclarationImpl constructorDeclaration(
           Identifier returnType,
           String? name,
@@ -291,29 +257,6 @@ class AstTestFactory {
         redirectedConstructor: null,
         body: body as FunctionBodyImpl,
       );
-
-  static ConstructorFieldInitializerImpl constructorFieldInitializer(
-          bool prefixedWithThis, String fieldName, Expression expression) =>
-      astFactory.constructorFieldInitializer(
-          prefixedWithThis ? TokenFactory.tokenFromKeyword(Keyword.THIS) : null,
-          prefixedWithThis
-              ? TokenFactory.tokenFromType(TokenType.PERIOD)
-              : null,
-          identifier3(fieldName),
-          TokenFactory.tokenFromType(TokenType.EQ),
-          expression);
-
-  static ConstructorNameImpl constructorName(NamedType type, String? name) =>
-      astFactory.constructorName(
-          type,
-          name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
-          name == null ? null : identifier3(name));
-
-  static ContinueStatementImpl continueStatement([String? label]) =>
-      astFactory.continueStatement(
-          TokenFactory.tokenFromKeyword(Keyword.CONTINUE),
-          label == null ? null : identifier3(label),
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static DeclaredIdentifierImpl declaredIdentifier(
           Keyword keyword, String identifier) =>
@@ -751,24 +694,6 @@ class AstTestFactory {
           name,
           argumentList(arguments));
 
-  static InstanceCreationExpressionImpl instanceCreationExpression2(
-          Keyword? keyword, NamedType type,
-          [List<Expression> arguments = const []]) =>
-      instanceCreationExpression3(keyword, type, null, arguments);
-
-  static InstanceCreationExpressionImpl instanceCreationExpression3(
-          Keyword? keyword, NamedType type, String? identifier,
-          [List<Expression> arguments = const []]) =>
-      instanceCreationExpression(
-          keyword,
-          astFactory.constructorName(
-              type,
-              identifier == null
-                  ? null
-                  : TokenFactory.tokenFromType(TokenType.PERIOD),
-              identifier == null ? null : identifier3(identifier)),
-          arguments);
-
   static IntegerLiteralImpl integer(int value) => astFactory.integerLiteral(
       TokenFactory.tokenFromTypeAndString(TokenType.INT, value.toString()),
       value);
@@ -997,16 +922,6 @@ class AstTestFactory {
           String label, Expression expression) =>
       namedExpression(label2(label), expression);
 
-  static DefaultFormalParameterImpl namedFormalParameter(
-          NormalFormalParameter parameter, Expression? expression) =>
-      astFactory.defaultFormalParameter(
-          parameter,
-          ParameterKind.NAMED,
-          expression == null
-              ? null
-              : TokenFactory.tokenFromType(TokenType.COLON),
-          expression);
-
   /// Create a type name whose name has been resolved to the given [element] and
   /// whose type has been resolved to the type of the given element.
   ///
@@ -1090,14 +1005,6 @@ class AstTestFactory {
         libraryName: libraryName as LibraryIdentifierImpl,
         semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
       );
-
-  static DefaultFormalParameterImpl positionalFormalParameter(
-          NormalFormalParameter parameter, Expression? expression) =>
-      astFactory.defaultFormalParameter(
-          parameter,
-          ParameterKind.POSITIONAL,
-          expression == null ? null : TokenFactory.tokenFromType(TokenType.EQ),
-          expression);
 
   static PostfixExpressionImpl postfixExpression(
           Expression expression, TokenType operator) =>
