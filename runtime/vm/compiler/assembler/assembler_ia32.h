@@ -759,7 +759,6 @@ class Assembler : public AssemblerBase {
     LoadImmediate(reg, immediate.value());
   }
 
-  void LoadSImmediate(XmmRegister dst, float value);
   void LoadDImmediate(XmmRegister dst, double value);
 
   void Drop(intptr_t stack_elements);

@@ -44,16 +44,10 @@ class Evaluator : public AllStatic {
                                       Representation representation,
                                       Thread* thread);
 
-  // Evaluates a unary double operation and returns the result.
-  static double EvaluateUnaryDoubleOp(const double value,
-                                      Token::Kind token_kind,
-                                      Representation representation);
-
   // Evaluates a binary double operation and returns the result.
-  static double EvaluateBinaryDoubleOp(const double left,
-                                       const double right,
-                                       Token::Kind token_kind,
-                                       Representation representation);
+  static double EvaluateDoubleOp(const double left,
+                                 const double right,
+                                 Token::Kind token_kind);
 
   // Returns whether the value is an int64, and returns the int64 value
   // through the result parameter.

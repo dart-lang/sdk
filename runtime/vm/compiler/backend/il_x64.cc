@@ -567,12 +567,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       __ LoadObject(destination.reg(), value_);
     }
   } else if (destination.IsFpuRegister()) {
-    if (representation() == kUnboxedFloat) {
-      __ LoadSImmediate(destination.fpu_reg(), Double::Cast(value_).value());
-    } else {
-      ASSERT(representation() == kUnboxedDouble);
-      __ LoadDImmediate(destination.fpu_reg(), Double::Cast(value_).value());
-    }
+    __ LoadDImmediate(destination.fpu_reg(), Double::Cast(value_).value());
   } else if (destination.IsDoubleStackSlot()) {
     __ LoadDImmediate(FpuTMP, Double::Cast(value_).value());
     __ movsd(LocationToStackSlotAddress(destination), FpuTMP);
@@ -5048,6 +5043,35 @@ void SimdOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 #undef DEFINE_EMIT
 
+LocationSummary* MathUnaryInstr::MakeLocationSummary(Zone* zone,
+                                                     bool opt) const {
+  ASSERT((kind() == MathUnaryInstr::kSqrt) ||
+         (kind() == MathUnaryInstr::kDoubleSquare));
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  if (kind() == MathUnaryInstr::kDoubleSquare) {
+    summary->set_out(0, Location::SameAsFirstInput());
+  } else {
+    summary->set_out(0, Location::RequiresFpuRegister());
+  }
+  return summary;
+}
+
+void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (kind() == MathUnaryInstr::kSqrt) {
+    __ sqrtsd(locs()->out(0).fpu_reg(), locs()->in(0).fpu_reg());
+  } else if (kind() == MathUnaryInstr::kDoubleSquare) {
+    XmmRegister value_reg = locs()->in(0).fpu_reg();
+    __ mulsd(value_reg, value_reg);
+    ASSERT(value_reg == locs()->out(0).fpu_reg());
+  } else {
+    UNREACHABLE();
+  }
+}
+
 LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
@@ -5105,39 +5129,14 @@ LocationSummary* UnaryDoubleOpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(0, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
 void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(representation() == kUnboxedDouble);
-  XmmRegister result = locs()->out(0).fpu_reg();
   XmmRegister value = locs()->in(0).fpu_reg();
-  switch (op_kind()) {
-    case Token::kNEGATE:
-      __ DoubleNegate(result, value);
-      break;
-    case Token::kSQRT:
-      __ sqrtsd(result, value);
-      break;
-    case Token::kSQUARE:
-      if (result != value) {
-        __ movsd(result, value);
-      }
-      __ mulsd(result, value);
-      break;
-    case Token::kTRUNCATE:
-      __ roundsd(result, value, compiler::Assembler::kRoundToZero);
-      break;
-    case Token::kFLOOR:
-      __ roundsd(result, value, compiler::Assembler::kRoundDown);
-      break;
-    case Token::kCEILING:
-      __ roundsd(result, value, compiler::Assembler::kRoundUp);
-      break;
-    default:
-      UNREACHABLE();
-  }
+  ASSERT(locs()->out(0).fpu_reg() == value);
+  __ DoubleNegate(value, value);
 }
 
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
@@ -5362,6 +5361,40 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ SmiTag(result);
 }
 
+LocationSummary* DoubleToDoubleInstr::MakeLocationSummary(Zone* zone,
+                                                          bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(0, Location::RequiresFpuRegister());
+  return result;
+}
+
+void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister value = locs()->in(0).fpu_reg();
+  XmmRegister result = locs()->out(0).fpu_reg();
+  if (value != result) {
+    // Clear full register to avoid false dependency due to
+    // a partial access to XMM register in roundsd instruction.
+    __ xorps(result, result);
+  }
+  switch (recognized_kind()) {
+    case MethodRecognizer::kDoubleTruncateToDouble:
+      __ roundsd(result, value, compiler::Assembler::kRoundToZero);
+      break;
+    case MethodRecognizer::kDoubleFloorToDouble:
+      __ roundsd(result, value, compiler::Assembler::kRoundDown);
+      break;
+    case MethodRecognizer::kDoubleCeilToDouble:
+      __ roundsd(result, value, compiler::Assembler::kRoundUp);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
 LocationSummary* DoubleToFloatInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -5390,16 +5423,6 @@ LocationSummary* FloatToDoubleInstr::MakeLocationSummary(Zone* zone,
 
 void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ cvtss2sd(locs()->out(0).fpu_reg(), locs()->in(0).fpu_reg());
-}
-
-LocationSummary* FloatCompareInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
-  UNREACHABLE();
-  return NULL;
-}
-
-void FloatCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
 }
 
 LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
@@ -5625,26 +5648,6 @@ void ExtractNthOutputInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register in = in_loc.reg();
     __ movq(out, in);
   }
-}
-
-LocationSummary* UnboxLaneInstr::MakeLocationSummary(Zone* zone,
-                                                     bool opt) const {
-  UNREACHABLE();
-  return NULL;
-}
-
-void UnboxLaneInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
-}
-
-LocationSummary* BoxLanesInstr::MakeLocationSummary(Zone* zone,
-                                                    bool opt) const {
-  UNREACHABLE();
-  return NULL;
-}
-
-void BoxLanesInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
 }
 
 LocationSummary* TruncDivModInstr::MakeLocationSummary(Zone* zone,
@@ -7007,26 +7010,6 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(input == result);
   __ xorq(result, compiler::Immediate(
                       compiler::target::ObjectAlignment::kBoolValueMask));
-}
-
-LocationSummary* BoolToIntInstr::MakeLocationSummary(Zone* zone,
-                                                     bool opt) const {
-  UNREACHABLE();
-  return NULL;
-}
-
-void BoolToIntInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
-}
-
-LocationSummary* IntToBoolInstr::MakeLocationSummary(Zone* zone,
-                                                     bool opt) const {
-  UNREACHABLE();
-  return NULL;
-}
-
-void IntToBoolInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
 }
 
 LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,

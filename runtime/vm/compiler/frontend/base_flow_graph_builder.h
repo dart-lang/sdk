@@ -455,13 +455,18 @@ class BaseFlowGraphBuilder {
   Fragment InvokeMathCFunction(MethodRecognizer::Kind recognized_kind,
                                intptr_t num_inputs);
 
+  // Pops double value and converts it to double as specified
+  // by the recognized method (kDoubleTruncateToDouble,
+  // kDoubleFloorToDouble or kDoubleCeilToDouble).
+  Fragment DoubleToDouble(MethodRecognizer::Kind recognized_kind);
+
   // Pops double value and converts it to int as specified
   // by the recognized method (kDoubleToInteger,
   // kDoubleFloorToInt or kDoubleCeilToInt).
   Fragment DoubleToInteger(MethodRecognizer::Kind recognized_kind);
 
   // Pops double value and applies unary math operation.
-  Fragment UnaryDoubleOp(Token::Kind op);
+  Fragment MathUnary(MathUnaryInstr::MathUnaryKind kind);
 
   // Records coverage for this position, if the current VM mode supports it.
   Fragment RecordCoverage(TokenPosition position);

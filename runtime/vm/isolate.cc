@@ -1739,13 +1739,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to
   // move to the OSThread structure.
   set_user_tag(UserTags::kDefaultUserTag);
-
-  if (group()->obfuscate()) {
-    OS::PrintErr(
-        "Warning: This VM has been configured to obfuscate symbol information "
-        "which violates the Dart standard.\n"
-        "         See dartbug.com/30524 for more information.\n");
-  }
 }
 
 #undef REUSABLE_HANDLE_SCOPE_INIT
