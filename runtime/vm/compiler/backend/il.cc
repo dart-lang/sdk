@@ -5867,9 +5867,9 @@ Environment* Environment::From(Zone* zone,
                                intptr_t fixed_parameter_count,
                                intptr_t lazy_deopt_pruning_count,
                                const ParsedFunction& parsed_function) {
-  Environment* env =
-      new (zone) Environment(definitions.length(), fixed_parameter_count,
-                             lazy_deopt_pruning_count, parsed_function, NULL);
+  Environment* env = new (zone)
+      Environment(definitions.length(), fixed_parameter_count,
+                  lazy_deopt_pruning_count, parsed_function.function(), NULL);
   for (intptr_t i = 0; i < definitions.length(); ++i) {
     env->values_.Add(new (zone) Value(definitions[i]));
   }
@@ -5882,9 +5882,9 @@ void Environment::PushValue(Value* value) {
 
 Environment* Environment::DeepCopy(Zone* zone, intptr_t length) const {
   ASSERT(length <= values_.length());
-  Environment* copy = new (zone) Environment(
-      length, fixed_parameter_count_, LazyDeoptPruneCount(), parsed_function_,
-      (outer_ == NULL) ? NULL : outer_->DeepCopy(zone));
+  Environment* copy = new (zone)
+      Environment(length, fixed_parameter_count_, LazyDeoptPruneCount(),
+                  function_, (outer_ == NULL) ? NULL : outer_->DeepCopy(zone));
   copy->SetDeoptId(DeoptIdBits::decode(bitfield_));
   copy->SetLazyDeoptToBeforeDeoptId(LazyDeoptToBeforeDeoptId());
   if (locations_ != NULL) {
@@ -6355,16 +6355,10 @@ InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
     intptr_t deopt_id,
     MethodRecognizer::Kind recognized_kind,
     const InstructionSource& source)
-    : PureDefinition(source, deopt_id),
-      inputs_(inputs),
+    : VariadicDefinition(inputs, source, deopt_id),
       recognized_kind_(recognized_kind),
       token_pos_(source.token_pos) {
   ASSERT(inputs_->length() == ArgumentCountFor(recognized_kind_));
-  for (intptr_t i = 0; i < inputs_->length(); ++i) {
-    ASSERT((*inputs)[i] != NULL);
-    (*inputs)[i]->set_instruction(this);
-    (*inputs)[i]->set_use_index(i);
-  }
 }
 
 intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
@@ -6599,7 +6593,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
   }
 
   // Moves for arguments.
-  compiler::ffi::FrameRebase rebase(zone_, /*old_base=*/FPREG,
+  compiler::ffi::FrameRebase rebase(compiler->zone(), /*old_base=*/FPREG,
                                     /*new_base=*/saved_fp,
                                     /*stack_delta=*/0);
   intptr_t def_index = 0;
@@ -6627,7 +6621,8 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
           : arg_target.IsMultiple() ? *arg_target.AsMultiple().locations()[i]
           : arg_target.IsPointerToMemory()
               ? arg_target.AsPointerToMemory().pointer_location()
-              : /*arg_target.IsStack()*/ arg_target.Split(zone_, num_defs, i);
+              : /*arg_target.IsStack()*/ arg_target.Split(compiler->zone(),
+                                                          num_defs, i);
 
       ConstantTemporaryAllocator temp_alloc(temp0);
       if (origin.IsConstant()) {
@@ -6692,8 +6687,8 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
 
       // TypedData/Pointer data pointed to in temp.
       const auto& dst = compiler::ffi::NativeRegistersLocation(
-          zone_, pointer_loc.payload_type(), pointer_loc.container_type(),
-          temp0);
+          compiler->zone(), pointer_loc.payload_type(),
+          pointer_loc.container_type(), temp0);
       compiler->EmitNativeMove(dst, pointer_loc, &temp_alloc);
       __ LoadField(temp0,
                    compiler::FieldAddress(
@@ -6715,8 +6710,8 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       __ MoveRegister(temp0, SPREG);
       __ AddImmediate(temp0, sp_offset);
       const auto& src = compiler::ffi::NativeRegistersLocation(
-          zone_, pointer_loc.payload_type(), pointer_loc.container_type(),
-          temp0);
+          compiler->zone(), pointer_loc.payload_type(),
+          pointer_loc.container_type(), temp0);
       __ Comment("pointer_loc %s <- src %s", pointer_loc.ToCString(),
                  src.ToCString());
       compiler->EmitNativeMove(pointer_loc, src, &temp_alloc);
@@ -7001,21 +6996,15 @@ LocationSummary* CCallInstr::MakeLocationSummaryInternal(
 }
 
 CCallInstr::CCallInstr(
-    Zone* zone,
     const compiler::ffi::NativeCallingConvention& native_calling_convention,
     InputsArray* inputs)
-    : Definition(DeoptId::kNone),
-      zone_(zone),
-      native_calling_convention_(native_calling_convention),
-      inputs_(inputs) {
+    : VariadicDefinition(inputs, DeoptId::kNone),
+      native_calling_convention_(native_calling_convention) {
 #ifdef DEBUG
   const intptr_t num_inputs =
       native_calling_convention.argument_locations().length() + 1;
   ASSERT(num_inputs == inputs->length());
 #endif
-  for (intptr_t i = 0, n = inputs_->length(); i < n; ++i) {
-    SetInputAt(i, (*inputs_)[i]);
-  }
 }
 
 Representation CCallInstr::RequiredInputRepresentation(intptr_t idx) const {
@@ -7037,7 +7026,7 @@ void CCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
   }
 
   ConstantTemporaryAllocator temp_alloc(temp0);
-  compiler::ffi::FrameRebase rebase(zone_, /*old_base=*/FPREG,
+  compiler::ffi::FrameRebase rebase(compiler->zone(), /*old_base=*/FPREG,
                                     /*new_base=*/saved_fp,
                                     /*stack_delta=*/0);
 

@@ -24,8 +24,7 @@ class BlockBuilder : public ValueObject {
                                   flow_graph->inlining_id())),
         entry_(entry),
         current_(entry),
-        dummy_env_(
-            new Environment(0, 0, 0, flow_graph->parsed_function(), nullptr)) {
+        dummy_env_(new Environment(0, 0, 0, flow_graph->function(), nullptr)) {
     // Some graph transformations use environments from block entries.
     entry->SetEnvironment(dummy_env_);
   }

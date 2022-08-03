@@ -961,7 +961,7 @@ FlowGraph* SetupFfiFlowgraph(TestPipeline* pipeline,
   FlowGraph* flow_graph = pipeline->RunPasses({CompilerPass::kComputeSSA});
 
   // Make an FfiCall based on ffi_trampoline that calls our native function.
-  auto ffi_call = new FfiCallInstr(zone, DeoptId::kNone, marshaller, is_leaf);
+  auto ffi_call = new FfiCallInstr(DeoptId::kNone, marshaller, is_leaf);
   RELEASE_ASSERT(ffi_call->InputCount() == 1);
   // TargetAddress is the function pointer called.
   const Representation address_repr =

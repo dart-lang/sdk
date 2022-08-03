@@ -1488,7 +1488,7 @@ class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
 // predecessors.  Targets are all other basic block entries.  The types
 // enforce edge-split form---joins are forbidden as the successors of
 // branches.
-class BlockEntryInstr : public Instruction {
+class BlockEntryInstr : public TemplateInstruction<0, NoThrow> {
  public:
   virtual intptr_t PredecessorCount() const = 0;
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const = 0;
@@ -1558,12 +1558,6 @@ class BlockEntryInstr : public Instruction {
                      GrowableArray<BlockEntryInstr*>* preorder,
                      GrowableArray<intptr_t>* parent);
 
-  virtual intptr_t InputCount() const { return 0; }
-  virtual Value* InputAt(intptr_t i) const {
-    UNREACHABLE();
-    return NULL;
-  }
-
   virtual bool CanBecomeDeoptimizationTarget() const {
     // BlockEntry environment is copied to Goto and Branch instructions
     // when we insert new blocks targeting this block.
@@ -1573,8 +1567,6 @@ class BlockEntryInstr : public Instruction {
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
-
-  virtual bool MayThrow() const { return false; }
 
   intptr_t try_index() const { return try_index_; }
   void set_try_index(intptr_t index) { try_index_ = index; }
@@ -1629,7 +1621,7 @@ class BlockEntryInstr : public Instruction {
                   intptr_t try_index,
                   intptr_t deopt_id,
                   intptr_t stack_depth)
-      : Instruction(deopt_id),
+      : TemplateInstruction(deopt_id),
         block_id_(block_id),
         try_index_(try_index),
         stack_depth_(stack_depth),
@@ -1642,8 +1634,6 @@ class BlockEntryInstr : public Instruction {
                              BitVector* block_marks);
 
  private:
-  virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
-
   virtual void ClearPredecessors() = 0;
   virtual void AddPredecessor(BlockEntryInstr* predecessor) = 0;
 
@@ -2253,17 +2243,6 @@ class AliasIdentity : public ValueObject {
     }
   }
 
-  static bool Parse(const char* str, AliasIdentity* out) {
-#define VALUE_CASE(name, val)                                                  \
-  if (strcmp(str, #name) == 0) {                                               \
-    out->value_ = k##name;                                                     \
-    return true;                                                               \
-  }
-    FOR_EACH_ALIAS_IDENTITY_VALUE(VALUE_CASE)
-#undef VALUE_CASE
-    return false;
-  }
-
   bool IsUnknown() const { return value_ == kUnknown; }
   bool IsAliased() const { return value_ == kAliased; }
   bool IsNotAliased() const { return (value_ & kNotAliased) != 0; }
@@ -2553,18 +2532,67 @@ class TemplateDefinition : public CSETrait<Definition, PureDefinition>::Base {
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 };
 
-class PhiInstr : public Definition {
+class VariadicDefinition : public Definition {
  public:
-  PhiInstr(JoinEntryInstr* block, intptr_t num_inputs)
-      : block_(block),
-        inputs_(num_inputs),
-        representation_(kTagged),
-        is_alive_(false),
-        is_receiver_(kUnknownReceiver) {
-    for (intptr_t i = 0; i < num_inputs; ++i) {
-      inputs_.Add(NULL);
+  explicit VariadicDefinition(InputsArray* inputs,
+                              intptr_t deopt_id = DeoptId::kNone)
+      : Definition(deopt_id), inputs_(inputs) {
+    for (intptr_t i = 0, n = inputs_->length(); i < n; ++i) {
+      SetInputAt(i, (*inputs_)[i]);
     }
   }
+  VariadicDefinition(InputsArray* inputs,
+                     const InstructionSource& source,
+                     intptr_t deopt_id = DeoptId::kNone)
+      : Definition(source, deopt_id), inputs_(inputs) {
+    for (intptr_t i = 0, n = inputs_->length(); i < n; ++i) {
+      SetInputAt(i, (*inputs_)[i]);
+    }
+  }
+
+  intptr_t InputCount() const { return inputs_->length(); }
+  Value* InputAt(intptr_t i) const { return (*inputs_)[i]; }
+
+ protected:
+  InputsArray* inputs_;
+
+ private:
+  void RawSetInputAt(intptr_t i, Value* value) { (*inputs_)[i] = value; }
+};
+
+class VariadicDefinitionWithEmbeddedInputs : public Definition {
+ public:
+  explicit VariadicDefinitionWithEmbeddedInputs(
+      const intptr_t num_inputs,
+      intptr_t deopt_id = DeoptId::kNone)
+      : Definition(deopt_id), inputs_(num_inputs) {
+    inputs_.EnsureLength(num_inputs, nullptr);
+  }
+  VariadicDefinitionWithEmbeddedInputs(const intptr_t num_inputs,
+                                       const InstructionSource& source,
+                                       intptr_t deopt_id = DeoptId::kNone)
+      : Definition(source, deopt_id), inputs_(num_inputs) {
+    inputs_.EnsureLength(num_inputs, nullptr);
+  }
+
+  intptr_t InputCount() const { return inputs_.length(); }
+  Value* InputAt(intptr_t i) const { return inputs_[i]; }
+
+ protected:
+  GrowableArray<Value*> inputs_;
+
+ private:
+  void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
+};
+
+class PhiInstr : public VariadicDefinitionWithEmbeddedInputs {
+ public:
+  PhiInstr(JoinEntryInstr* block, intptr_t num_inputs)
+      : VariadicDefinitionWithEmbeddedInputs(num_inputs),
+        block_(block),
+        representation_(kTagged),
+        is_alive_(false),
+        is_receiver_(kUnknownReceiver) {}
 
   // Get the block entry for that instruction.
   virtual BlockEntryInstr* GetBlock() { return block(); }
@@ -2572,10 +2600,6 @@ class PhiInstr : public Definition {
 
   virtual CompileType ComputeType() const;
   virtual bool RecomputeType();
-
-  intptr_t InputCount() const { return inputs_.length(); }
-
-  Value* InputAt(intptr_t i) const { return inputs_[i]; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -2644,10 +2668,7 @@ class PhiInstr : public Definition {
   // predecessors.
   friend class ConstantPropagator;
 
-  void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
-
   JoinEntryInstr* block_;
-  GrowableArray<Value*> inputs_;
   Representation representation_;
   BitVector* reaching_defs_ = nullptr;
   bool is_alive_;
@@ -2663,7 +2684,7 @@ class PhiInstr : public Definition {
 // (0 is the very first parameter, 1 is next and so on). When [base_reg] is
 // set to SPREG, value [index] needs to be reversed (0 is the very last
 // parameter, 1 is next and so on) to get the sp relative position.
-class ParameterInstr : public Definition {
+class ParameterInstr : public TemplateDefinition<0, NoThrow> {
  public:
   ParameterInstr(intptr_t index,
                  intptr_t param_offset,
@@ -2687,12 +2708,6 @@ class ParameterInstr : public Definition {
   virtual BlockEntryInstr* GetBlock() { return block_; }
   void set_block(BlockEntryInstr* block) { block_ = block; }
 
-  intptr_t InputCount() const { return 0; }
-  Value* InputAt(intptr_t i) const {
-    UNREACHABLE();
-    return NULL;
-  }
-
   virtual Representation representation() const { return representation_; }
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
@@ -2711,13 +2726,9 @@ class ParameterInstr : public Definition {
 
   virtual CompileType ComputeType() const;
 
-  virtual bool MayThrow() const { return false; }
-
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
-
   const intptr_t index_;
 
   // The offset (in words) of the last slot of the parameter, relative
@@ -2739,7 +2750,7 @@ class ParameterInstr : public Definition {
 // NativeEntryInstr::EmitNativeCode for more details.
 //
 // TOOD(33549): Unify with ParameterInstr.
-class NativeParameterInstr : public Definition {
+class NativeParameterInstr : public TemplateDefinition<0, NoThrow> {
  public:
   NativeParameterInstr(const compiler::ffi::CallbackMarshaller& marshaller,
                        intptr_t def_index)
@@ -2751,12 +2762,6 @@ class NativeParameterInstr : public Definition {
     return marshaller_.RepInFfiCall(def_index_);
   }
 
-  intptr_t InputCount() const { return 0; }
-  Value* InputAt(intptr_t i) const {
-    UNREACHABLE();
-    return NULL;
-  }
-
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -2764,13 +2769,9 @@ class NativeParameterInstr : public Definition {
   // TODO(sjindel): We can make this more precise.
   virtual CompileType ComputeType() const { return CompileType::Dynamic(); }
 
-  virtual bool MayThrow() const { return false; }
-
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
-
   const compiler::ffi::CallbackMarshaller& marshaller_;
   const intptr_t def_index_;
 
@@ -4013,23 +4014,19 @@ struct ArgumentsInfo {
 };
 
 template <intptr_t kExtraInputs>
-class TemplateDartCall : public Definition {
+class TemplateDartCall : public VariadicDefinition {
  public:
   TemplateDartCall(intptr_t deopt_id,
                    intptr_t type_args_len,
                    const Array& argument_names,
                    InputsArray* inputs,
                    const InstructionSource& source)
-      : Definition(source, deopt_id),
+      : VariadicDefinition(inputs, source, deopt_id),
         type_args_len_(type_args_len),
         argument_names_(argument_names),
-        inputs_(inputs),
         token_pos_(source.token_pos) {
     ASSERT(argument_names.IsZoneHandle() || argument_names.InVMIsolateHeap());
     ASSERT(inputs_->length() >= kExtraInputs);
-    for (intptr_t i = 0, n = inputs_->length(); i < n; ++i) {
-      SetInputAt(i, (*inputs_)[i]);
-    }
   }
 
   inline StringPtr Selector();
@@ -4037,8 +4034,6 @@ class TemplateDartCall : public Definition {
   virtual bool MayThrow() const { return true; }
   virtual bool CanCallDart() const { return true; }
 
-  virtual intptr_t InputCount() const { return inputs_->length(); }
-  virtual Value* InputAt(intptr_t i) const { return inputs_->At(i); }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
@@ -4095,13 +4090,8 @@ class TemplateDartCall : public Definition {
   }
 
  private:
-  virtual void RawSetInputAt(intptr_t i, Value* value) {
-    (*inputs_)[i] = value;
-  }
-
   intptr_t type_args_len_;
   const Array& argument_names_;
-  InputsArray* inputs_;
   PushArgumentsArray* push_arguments_ = nullptr;
   TokenPosition token_pos_;
 
@@ -5063,17 +5053,17 @@ class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
 class DropTempsInstr : public Definition {
  public:
   DropTempsInstr(intptr_t num_temps, Value* value)
-      : num_temps_(num_temps), value_(NULL) {
-    if (value != NULL) {
+      : num_temps_(num_temps), has_input_(value != nullptr) {
+    if (has_input_) {
       SetInputAt(0, value);
     }
   }
 
   DECLARE_INSTRUCTION(DropTemps)
 
-  virtual intptr_t InputCount() const { return value_ != NULL ? 1 : 0; }
+  virtual intptr_t InputCount() const { return has_input_ ? 1 : 0; }
   virtual Value* InputAt(intptr_t i) const {
-    ASSERT((value_ != NULL) && (i == 0));
+    ASSERT(has_input_ && (i == 0));
     return value_;
   }
 
@@ -5097,10 +5087,14 @@ class DropTempsInstr : public Definition {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  virtual void RawSetInputAt(intptr_t i, Value* value) { value_ = value; }
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    ASSERT(has_input_);
+    value_ = value;
+  }
 
   const intptr_t num_temps_;
-  Value* value_;
+  const bool has_input_;
+  Value* value_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(DropTempsInstr);
 };
@@ -5194,8 +5188,8 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
 
 class NativeCallInstr : public TemplateDartCall<0> {
  public:
-  NativeCallInstr(const String* name,
-                  const Function* function,
+  NativeCallInstr(const String& name,
+                  const Function& function,
                   bool link_lazily,
                   const InstructionSource& source,
                   InputsArray* args)
@@ -5207,14 +5201,14 @@ class NativeCallInstr : public TemplateDartCall<0> {
         is_auto_scope_(true),
         link_lazily_(link_lazily),
         token_pos_(source.token_pos) {
-    ASSERT(name->IsZoneHandle());
-    ASSERT(function->IsZoneHandle());
+    ASSERT(name.IsZoneHandle());
+    ASSERT(function.IsZoneHandle());
   }
 
   DECLARE_INSTRUCTION(NativeCall)
 
-  const String& native_name() const { return *native_name_; }
-  const Function& function() const { return *function_; }
+  const String& native_name() const { return native_name_; }
+  const Function& function() const { return function_; }
   NativeFunction native_c_function() const { return native_c_function_; }
   bool is_bootstrap_native() const { return is_bootstrap_native_; }
   bool is_auto_scope() const { return is_auto_scope_; }
@@ -5240,8 +5234,8 @@ class NativeCallInstr : public TemplateDartCall<0> {
   void set_is_bootstrap_native(bool value) { is_bootstrap_native_ = value; }
   void set_is_auto_scope(bool value) { is_auto_scope_ = value; }
 
-  const String* native_name_;
-  const Function* function_;
+  const String& native_name_;
+  const Function& function_;
   NativeFunction native_c_function_;
   bool is_bootstrap_native_;
   bool is_auto_scope_;
@@ -5260,22 +5254,17 @@ class NativeCallInstr : public TemplateDartCall<0> {
 // - The arguments to the native call, marshalled in IL as far as possible.
 // - The argument address.
 // - A TypedData for the return value to populate in machine code (optional).
-class FfiCallInstr : public Definition {
+class FfiCallInstr : public VariadicDefinitionWithEmbeddedInputs {
  public:
-  FfiCallInstr(Zone* zone,
-               intptr_t deopt_id,
+  FfiCallInstr(intptr_t deopt_id,
                const compiler::ffi::CallMarshaller& marshaller,
                bool is_leaf)
-      : Definition(deopt_id),
-        zone_(zone),
+      : VariadicDefinitionWithEmbeddedInputs(
+            marshaller.NumDefinitions() + 1 +
+                (marshaller.PassTypedData() ? 1 : 0),
+            deopt_id),
         marshaller_(marshaller),
-        inputs_(marshaller.NumDefinitions() + 1 +
-                (marshaller.PassTypedData() ? 1 : 0)),
-        is_leaf_(is_leaf) {
-    inputs_.FillWith(
-        nullptr, 0,
-        marshaller.NumDefinitions() + 1 + (marshaller.PassTypedData() ? 1 : 0));
-  }
+        is_leaf_(is_leaf) {}
 
   DECLARE_INSTRUCTION(FfiCall)
 
@@ -5288,8 +5277,6 @@ class FfiCallInstr : public Definition {
     return marshaller_.NumDefinitions() + 1;
   }
 
-  virtual intptr_t InputCount() const { return inputs_.length(); }
-  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
   virtual bool MayThrow() const {
     // By Dart_PropagateError.
     return true;
@@ -5320,8 +5307,6 @@ class FfiCallInstr : public Definition {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
-
   LocationSummary* MakeLocationSummaryInternal(Zone* zone,
                                                bool is_optimizing,
                                                const RegList temps) const;
@@ -5338,21 +5323,16 @@ class FfiCallInstr : public Definition {
                        const Register temp0,
                        const Register temp1);
 
-  Zone* const zone_;
   const compiler::ffi::CallMarshaller& marshaller_;
-
-  GrowableArray<Value*> inputs_;
-
   bool is_leaf_;
 
   DISALLOW_COPY_AND_ASSIGN(FfiCallInstr);
 };
 
 // Has the target address in a register passed as the last input in IL.
-class CCallInstr : public Definition {
+class CCallInstr : public VariadicDefinition {
  public:
   CCallInstr(
-      Zone* zone,
       const compiler::ffi::NativeCallingConvention& native_calling_convention,
       InputsArray* inputs);
 
@@ -5366,8 +5346,6 @@ class CCallInstr : public Definition {
     return native_calling_convention_.argument_locations().length();
   }
 
-  virtual intptr_t InputCount() const { return inputs_->length(); }
-  virtual Value* InputAt(intptr_t i) const { return inputs_->At(i); }
   virtual bool MayThrow() const { return false; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -5386,13 +5364,7 @@ class CCallInstr : public Definition {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  virtual void RawSetInputAt(intptr_t i, Value* value) {
-    (*inputs_)[i] = value;
-  }
-
-  Zone* const zone_;
   const compiler::ffi::NativeCallingConvention& native_calling_convention_;
-  InputsArray* inputs_;
 
   DISALLOW_COPY_AND_ASSIGN(CCallInstr);
 };
@@ -6392,11 +6364,12 @@ class AllocateObjectInstr : public AllocationInstr {
                       Value* type_arguments = nullptr)
       : AllocationInstr(source, deopt_id),
         cls_(cls),
+        has_type_arguments_(type_arguments != nullptr),
         type_arguments_(type_arguments) {
     ASSERT(cls.IsZoneHandle());
     ASSERT(!cls.IsNull());
-    ASSERT((cls.NumTypeArguments() > 0) == (type_arguments != nullptr));
-    if (type_arguments != nullptr) {
+    ASSERT((cls.NumTypeArguments() > 0) == has_type_arguments_);
+    if (has_type_arguments_) {
       SetInputAt(kTypeArgumentsPos, type_arguments);
       type_arguments_slot_ =
           &Slot::GetTypeArgumentsSlotFor(Thread::Current(), cls);
@@ -6409,11 +6382,9 @@ class AllocateObjectInstr : public AllocationInstr {
   const Class& cls() const { return cls_; }
   Value* type_arguments() const { return type_arguments_; }
 
-  virtual intptr_t InputCount() const {
-    return (type_arguments_ != nullptr) ? 1 : 0;
-  }
+  virtual intptr_t InputCount() const { return has_type_arguments_ ? 1 : 0; }
   virtual Value* InputAt(intptr_t i) const {
-    ASSERT(type_arguments_ != nullptr && i == kTypeArgumentsPos);
+    ASSERT(has_type_arguments_ && i == kTypeArgumentsPos);
     return type_arguments_;
   }
 
@@ -6435,12 +6406,12 @@ class AllocateObjectInstr : public AllocationInstr {
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
-    ASSERT((type_arguments_ != nullptr) && (i == kTypeArgumentsPos));
-    ASSERT(value != nullptr);
+    ASSERT(has_type_arguments_ && (i == kTypeArgumentsPos));
     type_arguments_ = value;
   }
 
   const Class& cls_;
+  const bool has_type_arguments_;
   Value* type_arguments_;
   const Slot* type_arguments_slot_ = nullptr;
 
@@ -6529,26 +6500,22 @@ class AllocateUninitializedContextInstr : public TemplateAllocation<0> {
 // This instruction captures the state of the object which had its allocation
 // removed during the AllocationSinking pass.
 // It does not produce any real code only deoptimization information.
-class MaterializeObjectInstr : public Definition {
+class MaterializeObjectInstr : public VariadicDefinition {
  public:
   MaterializeObjectInstr(AllocationInstr* allocation,
                          const Class& cls,
                          intptr_t num_elements,
                          const ZoneGrowableArray<const Slot*>& slots,
                          ZoneGrowableArray<Value*>* values)
-      : allocation_(allocation),
+      : VariadicDefinition(values),
+        allocation_(allocation),
         cls_(cls),
         num_elements_(num_elements),
         slots_(slots),
-        values_(values),
         locations_(nullptr),
         visited_for_liveness_(false),
         registers_remapped_(false) {
-    ASSERT(slots_.length() == values_->length());
-    for (intptr_t i = 0; i < InputCount(); i++) {
-      InputAt(i)->set_instruction(this);
-      InputAt(i)->set_use_index(i);
-    }
+    ASSERT(slots_.length() == values->length());
   }
 
   AllocationInstr* allocation() const { return allocation_; }
@@ -6563,10 +6530,6 @@ class MaterializeObjectInstr : public Definition {
   const Location& LocationAt(intptr_t i) { return locations_[i]; }
 
   DECLARE_INSTRUCTION(MaterializeObject)
-
-  virtual intptr_t InputCount() const { return values_->length(); }
-
-  virtual Value* InputAt(intptr_t i) const { return (*values_)[i]; }
 
   // SelectRepresentations pass is run once more while MaterializeObject
   // instructions are still in the graph. To avoid any redundant boxing
@@ -6594,15 +6557,10 @@ class MaterializeObjectInstr : public Definition {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  virtual void RawSetInputAt(intptr_t i, Value* value) {
-    (*values_)[i] = value;
-  }
-
   AllocationInstr* allocation_;
   const Class& cls_;
   intptr_t num_elements_;
   const ZoneGrowableArray<const Slot*>& slots_;
-  ZoneGrowableArray<Value*>* values_;
   Location* locations_;
 
   bool visited_for_liveness_;
@@ -8692,7 +8650,7 @@ class FloatToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 };
 
 // TODO(sjindel): Replace with FFICallInstr.
-class InvokeMathCFunctionInstr : public PureDefinition {
+class InvokeMathCFunctionInstr : public VariadicDefinition {
  public:
   InvokeMathCFunctionInstr(ZoneGrowableArray<Value*>* inputs,
                            intptr_t deopt_id,
@@ -8726,9 +8684,8 @@ class InvokeMathCFunctionInstr : public PureDefinition {
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
-  virtual intptr_t InputCount() const { return inputs_->length(); }
-
-  virtual Value* InputAt(intptr_t i) const { return (*inputs_)[i]; }
+  virtual bool AllowsCSE() const { return true; }
+  virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool AttributesEqual(const Instruction& other) const {
     auto const other_invoke = other.AsInvokeMathCFunction();
@@ -8744,11 +8701,6 @@ class InvokeMathCFunctionInstr : public PureDefinition {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  virtual void RawSetInputAt(intptr_t i, Value* value) {
-    (*inputs_)[i] = value;
-  }
-
-  ZoneGrowableArray<Value*>* inputs_;
   const MethodRecognizer::Kind recognized_kind_;
   const TokenPosition token_pos_;
 
@@ -9853,7 +9805,7 @@ class Environment : public ZoneAllocated {
     return count;
   }
 
-  const Function& function() const { return parsed_function_.function(); }
+  const Function& function() const { return function_; }
 
   Environment* DeepCopy(Zone* zone) const { return DeepCopy(zone, Length()); }
 
@@ -9893,14 +9845,14 @@ class Environment : public ZoneAllocated {
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,
               intptr_t lazy_deopt_pruning_count,
-              const ParsedFunction& parsed_function,
+              const Function& function,
               Environment* outer)
       : values_(length),
         fixed_parameter_count_(fixed_parameter_count),
         bitfield_(DeoptIdBits::encode(DeoptId::kNone) |
                   LazyDeoptToBeforeDeoptId::encode(false) |
                   LazyDeoptPruningBits::encode(lazy_deopt_pruning_count)),
-        parsed_function_(parsed_function),
+        function_(function),
         outer_(outer) {}
 
   void SetDeoptId(intptr_t deopt_id) {
@@ -9919,7 +9871,7 @@ class Environment : public ZoneAllocated {
   // Deoptimization id associated with this environment. Only set for
   // outer environments.
   uintptr_t bitfield_;
-  const ParsedFunction& parsed_function_;
+  const Function& function_;
   Environment* outer_;
 
   DISALLOW_COPY_AND_ASSIGN(Environment);

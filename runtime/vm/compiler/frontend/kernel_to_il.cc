@@ -394,9 +394,8 @@ Fragment FlowGraphBuilder::FfiCall(
     const compiler::ffi::CallMarshaller& marshaller) {
   Fragment body;
 
-  FfiCallInstr* const call =
-      new (Z) FfiCallInstr(Z, GetNextDeoptId(), marshaller,
-                           parsed_function_->function().FfiIsLeaf());
+  FfiCallInstr* const call = new (Z) FfiCallInstr(
+      GetNextDeoptId(), marshaller, parsed_function_->function().FfiIsLeaf());
 
   for (intptr_t i = call->InputCount() - 1; i >= 0; --i) {
     call->SetInputAt(i, Pop());
@@ -419,8 +418,7 @@ Fragment FlowGraphBuilder::CCall(
   for (intptr_t i = num_arguments - 1; i >= 0; --i) {
     (*arguments)[i] = Pop();
   }
-  auto* const call =
-      new (Z) CCallInstr(Z, native_calling_convention, arguments);
+  auto* const call = new (Z) CCallInstr(native_calling_convention, arguments);
 
   Push(call);
   body <<= call;
@@ -559,15 +557,15 @@ Fragment FlowGraphBuilder::StoreLateField(const Field& field,
   return instructions;
 }
 
-Fragment FlowGraphBuilder::NativeCall(const String* name,
-                                      const Function* function) {
+Fragment FlowGraphBuilder::NativeCall(const String& name,
+                                      const Function& function) {
   InlineBailout("kernel::FlowGraphBuilder::NativeCall");
   const intptr_t num_args =
-      function->NumParameters() + (function->IsGeneric() ? 1 : 0);
+      function.NumParameters() + (function.IsGeneric() ? 1 : 0);
   InputsArray* arguments = GetArguments(num_args);
   NativeCallInstr* call = new (Z)
       NativeCallInstr(name, function, FLAG_link_natives_lazily,
-                      InstructionSource(function->end_token_pos()), arguments);
+                      InstructionSource(function.end_token_pos()), arguments);
   Push(call);
   return Fragment(call);
 }
@@ -838,7 +836,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   for (intptr_t i = 0; i < function.NumParameters(); ++i) {
     body += LoadLocal(parsed_function_->RawParameterVariable(i));
   }
-  body += NativeCall(&name, &function);
+  body += NativeCall(name, function);
   // We typecheck results of native calls for type safety.
   body +=
       Return(TokenPosition::kNoSource, /* omit_result_type_check = */ false);
