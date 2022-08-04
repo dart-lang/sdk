@@ -55,6 +55,11 @@ Updated the Linter to `1.26.0`, which includes changes that
   non-final variable.
 - fix`use_build_context_synchronously` to handle `await`s in `if` conditions.
 
+#### Pub
+
+- Remove remaining support for `.packages` files. The flag
+  `--legacy-packages-file` is no longer supported.
+
 ### Core libraries
 
 #### `dart:io`
