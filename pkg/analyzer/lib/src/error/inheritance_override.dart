@@ -161,7 +161,7 @@ class _ClassVerifier {
       return true;
     }
 
-    if (!classElement.isEnum &&
+    if (classElement is! EnumElement &&
         !classElement.isAbstract &&
         implementsDartCoreEnum) {
       reporter.reportErrorForToken(
@@ -214,7 +214,7 @@ class _ClassVerifier {
           var fieldElement = field.declaredElement as FieldElement;
           _checkDeclaredMember(field.name2, libraryUri, fieldElement.getter);
           _checkDeclaredMember(field.name2, libraryUri, fieldElement.setter);
-          if (!member.isStatic && !classElement.isEnum) {
+          if (!member.isStatic && classElement is! EnumElement) {
             _checkIllegalEnumValuesDeclaration(field.name2);
           }
           if (!member.isStatic) {
@@ -232,7 +232,7 @@ class _ClassVerifier {
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
           _checkIllegalConcreteEnumMemberDeclaration(member.name2);
         }
-        if (!member.isStatic && !classElement.isEnum) {
+        if (!member.isStatic && classElement is! EnumElement) {
           _checkIllegalEnumValuesDeclaration(member.name2);
         }
       }
@@ -263,7 +263,7 @@ class _ClassVerifier {
             continue;
           }
           // We already reported ILLEGAL_ENUM_VALUES_INHERITANCE.
-          if (classElement.isEnum &&
+          if (classElement is EnumElement &&
               const {'values', 'values='}.contains(name.name)) {
             continue;
           }
@@ -407,7 +407,7 @@ class _ClassVerifier {
     if (interfaceElement is ClassElement &&
         interfaceElement.isDartCoreEnum &&
         library.featureSet.isEnabled(Feature.enhanced_enums)) {
-      if (classElement.isAbstract || classElement.isEnum) {
+      if (classElement.isAbstract || classElement is EnumElement) {
         return false;
       }
       reporter.reportErrorForNode(
@@ -466,7 +466,7 @@ class _ClassVerifier {
         )) {
           hasError = true;
         }
-        if (classElement.isEnum && _checkEnumMixin(namedType)) {
+        if (classElement is EnumElement && _checkEnumMixin(namedType)) {
           hasError = true;
         }
       }
@@ -686,7 +686,7 @@ class _ClassVerifier {
     // We ignore mixins because they don't inherit and members.
     // But to support `super.foo()` invocations we put members from superclass
     // constraints into the `superImplemented` bucket, the same we look below.
-    if (classElement.isMixin) {
+    if (classElement is MixinElement) {
       return;
     }
 
@@ -781,7 +781,7 @@ class _ClassVerifier {
         ClassMember member, String memberName, String displayName) {
       if (memberName == name) {
         reporter.reportErrorForNode(
-          classElement.isEnum
+          classElement is EnumElement
               ? CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER
               : CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
           member,

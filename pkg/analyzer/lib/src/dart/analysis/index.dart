@@ -153,7 +153,7 @@ class IndexElementInfo {
           elementKind == ElementKind.SETTER) {
         var accessor = element as PropertyAccessorElement;
         Element enclosing = element.enclosingElement3;
-        bool isEnumGetter = enclosing is ClassElement && enclosing.isEnum;
+        bool isEnumGetter = enclosing is EnumElement;
         if (isEnumGetter && accessor.name == 'index') {
           kind = IndexSyntheticElementKind.enumIndex;
           element = enclosing;
@@ -168,7 +168,7 @@ class IndexElementInfo {
         }
       } else if (element is MethodElement) {
         Element enclosing = element.enclosingElement3;
-        bool isEnumMethod = enclosing is ClassElement && enclosing.isEnum;
+        bool isEnumMethod = enclosing is EnumElement;
         if (isEnumMethod && element.name == 'toString') {
           kind = IndexSyntheticElementKind.enumToString;
           element = enclosing;

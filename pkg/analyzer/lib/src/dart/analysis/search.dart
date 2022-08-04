@@ -31,12 +31,18 @@ Element _getEnclosingElement(CompilationUnitElement unitElement, int offset) {
 }
 
 DeclarationKind? _getSearchElementKind(Element element) {
+  if (element is EnumElement) {
+    return DeclarationKind.ENUM;
+  }
+
+  if (element is MixinElement) {
+    return DeclarationKind.MIXIN;
+  }
+
   if (element is ClassElement) {
-    if (element.isEnum) {
-      return DeclarationKind.ENUM;
+    if (element.isMixinApplication) {
+      return DeclarationKind.CLASS_TYPE_ALIAS;
     }
-    if (element.isMixin) return DeclarationKind.MIXIN;
-    if (element.isMixinApplication) return DeclarationKind.CLASS_TYPE_ALIAS;
     return DeclarationKind.CLASS;
   }
 
@@ -918,14 +924,12 @@ class _FindDeclarations {
 
     String? className;
     String? mixinName;
-    if (enclosing is ClassElement) {
-      if (enclosing.isEnum) {
-        // skip
-      } else if (enclosing.isMixin) {
-        mixinName = enclosing.name;
-      } else {
-        className = enclosing.name;
-      }
+    if (enclosing is EnumElement) {
+      // skip
+    } else if (enclosing is MixinElement) {
+      mixinName = enclosing.name;
+    } else if (enclosing is ClassElement) {
+      className = enclosing.name;
     }
 
     var kind = _getSearchElementKind(element);

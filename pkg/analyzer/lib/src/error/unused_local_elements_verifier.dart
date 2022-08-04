@@ -262,9 +262,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
         if (isIdentifierRead) {
           usedElements.unresolvedReadMembers.add(node.name);
         }
-      } else if (enclosingElement is ClassElement &&
-          enclosingElement.isEnum &&
-          element.name == 'values') {
+      } else if (enclosingElement is EnumElement && element.name == 'values') {
         // If the 'values' static accessor of the enum is accessed, then all of
         // the enum values have been read.
         for (var field in enclosingElement.fields) {
@@ -600,12 +598,12 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     }
     var enclosingElement = element.enclosingElement3;
 
-    if (enclosingElement is ClassElement) {
-      if (enclosingElement.isEnum) {
-        if (element is ConstructorElement && element.isGenerative) {
-          return false;
-        }
+    if (enclosingElement is EnumElement) {
+      if (element is ConstructorElement && element.isGenerative) {
+        return false;
       }
+    }
+    if (enclosingElement is ClassElement) {
       if (enclosingElement.isPrivate) {
         if (element.isStatic || element is ConstructorElement) {
           return false;

@@ -1854,7 +1854,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       String name = typeParameter.name;
       // name is same as the name of the enclosing class
       if (enclosingClass.name == name) {
-        var code = enclosingClass.isMixin
+        var code = enclosingClass is MixinElement
             ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN
             : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS;
         errorReporter.reportErrorForElement(code, typeParameter, [name]);
@@ -1864,7 +1864,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           enclosingClass.getMethod(name) != null ||
           enclosingClass.getGetter(name) != null ||
           enclosingClass.getSetter(name) != null) {
-        var code = enclosingClass.isMixin
+        var code = enclosingClass is MixinElement
             ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN
             : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS;
         errorReporter.reportErrorForElement(code, typeParameter, [name]);
@@ -1999,7 +1999,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
         redirectingInitializerCount++;
       } else if (initializer is SuperConstructorInvocation) {
-        if (enclosingClass.isEnum) {
+        if (enclosingClass is EnumElement) {
           errorReporter.reportErrorForToken(
             CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR,
             initializer.superKeyword,
@@ -2018,7 +2018,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (redirectingInitializerCount > 0) {
       for (ConstructorInitializer initializer in declaration.initializers) {
         if (initializer is SuperConstructorInvocation) {
-          if (!enclosingClass.isEnum) {
+          if (enclosingClass is! EnumElement) {
             errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
                 initializer);
@@ -2036,7 +2036,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
       }
     }
-    if (!enclosingClass.isEnum &&
+    if (enclosingClass is! EnumElement &&
         redirectingInitializerCount == 0 &&
         superInitializerCount == 1 &&
         superInitializer != declaration.initializers.last) {
@@ -2113,7 +2113,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // Enum(s) always call a const super-constructor.
-    if (enclosingClass.isEnum) {
+    if (enclosingClass is EnumElement) {
       return false;
     }
 
@@ -3699,7 +3699,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForNonConstGenerativeEnumConstructor(ConstructorDeclaration node) {
-    if (_enclosingClass?.isEnum == true &&
+    if (_enclosingClass is EnumElement &&
         node.constKeyword == null &&
         node.factoryKeyword == null) {
       errorReporter.reportErrorForName(
@@ -3746,7 +3746,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (variableList.isFinal) return;
 
     var enclosingClass = _enclosingClass;
-    if (enclosingClass == null || !enclosingClass.isEnum) {
+    if (enclosingClass == null || enclosingClass is! EnumElement) {
       return;
     }
 

@@ -161,9 +161,11 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   @override
   bool get isDartCoreObject => false;
 
+  @Deprecated('Use `is EnumElement` instead')
   @override
   bool get isEnum => false;
 
+  @Deprecated('Use `is MixinElement` instead')
   @override
   bool get isMixin => false;
 
@@ -776,11 +778,14 @@ class ClassElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  bool get isDartCoreObject => !isMixin && supertype == null;
+  bool get isDartCoreObject {
+    return name == 'Object' && library.isDartCore;
+  }
 
   bool get isEnumLike {
     // Must be a concrete class.
-    if (isAbstract || isMixin) {
+    // TODO(scheglov) `is MixinElement` after the separation.
+    if (isAbstract || this is MixinElement) {
       return false;
     }
 
@@ -3005,6 +3010,7 @@ class EnumElementImpl extends AbstractClassElementImpl implements EnumElement {
   @override
   bool get isAbstract => false;
 
+  @Deprecated('Use `is EnumElement` instead')
   @override
   bool get isEnum => true;
 
@@ -4965,6 +4971,7 @@ class MixinElementImpl extends ClassElementImpl implements MixinElement {
   @override
   bool get isAbstract => true;
 
+  @Deprecated('Use `is MixinElement` instead')
   @override
   bool get isMixin => true;
 

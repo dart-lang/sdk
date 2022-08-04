@@ -914,9 +914,10 @@ class InheritanceManager3 {
 
   static bool _isDeclaredInObject(ExecutableElement element) {
     var enclosing = element.enclosingElement3;
+    // TODO(scheglov) `is! MixinElement` after the separation.
     return enclosing is ClassElement &&
         enclosing.supertype == null &&
-        !enclosing.isMixin;
+        enclosing is! MixinElement;
   }
 }
 

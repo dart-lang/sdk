@@ -291,8 +291,9 @@ class _ElementWriter {
 
   void _writeClassElement(InterfaceElement e) {
     _writeIndentedLine(() {
-      if (e is ClassElement) {
-        _writeIf(e.isAbstract && !e.isMixin, 'abstract ');
+      // TODO(scheglov) `is! MixinElement` after the separation.
+      if (e is ClassElement && e is! MixinElement) {
+        _writeIf(e.isAbstract, 'abstract ');
         _writeIf(e.isMacro, 'macro ');
       }
       _writeIf(!e.isSimplyBounded, 'notSimplyBounded ');

@@ -19,6 +19,7 @@
   `ConstructorElement.enclosingElement3` returns now `IntefaceElement`, not `ClassElement`.
 * Deprecated `get enums/mixin`, use `get enums2/mixins2` instead.
 * Deprecated `DartType.element`, check for `InterfaceType`, `TypeParameterType`, and then ask the element.
+* Deprecated `ClassElement.isEnum` and `isMixin`. Check for `is EnumElement` and `is MixinElement` instead.
 
 ## 4.3.1
 * Fix `identifier` for `LibraryExportElement` and `LibraryImportElement`.

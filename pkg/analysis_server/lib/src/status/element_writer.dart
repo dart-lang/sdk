@@ -41,7 +41,7 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['hasNonFinalField'] = element.hasNonFinalField;
       properties['interfaces'] = element.interfaces;
       properties['isAbstract'] = element.isAbstract;
-      properties['isEnum'] = element.isEnum;
+      properties['isEnum'] = element is EnumElement;
       properties['isMixinApplication'] = element.isMixinApplication;
       properties['isValidMixin'] = element.isValidMixin;
       properties['mixins'] = element.mixins;

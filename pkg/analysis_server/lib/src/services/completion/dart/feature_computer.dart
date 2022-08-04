@@ -175,12 +175,11 @@ class FeatureComputer {
   protocol.ElementKind computeElementKind(Element element) {
     if (element is LibraryElement) {
       return protocol.ElementKind.PREFIX;
+    } else if (element is EnumElement) {
+      return protocol.ElementKind.ENUM;
+    } else if (element is MixinElement) {
+      return protocol.ElementKind.MIXIN;
     } else if (element is ClassElement) {
-      if (element.isEnum) {
-        return protocol.ElementKind.ENUM;
-      } else if (element.isMixin) {
-        return protocol.ElementKind.MIXIN;
-      }
       return protocol.ElementKind.CLASS;
     } else if (element is FieldElement && element.isEnumConstant) {
       return protocol.ElementKind.ENUM_CONSTANT;

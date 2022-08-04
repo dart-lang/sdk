@@ -82,24 +82,12 @@ abstract class AugmentationImportElement implements _ExistingElement {
 /// The result of applying augmentations to a [ClassElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedClassElement implements AugmentedInterfaceElement {
-  /// Returns mixins applied by this class or in its augmentations.
-  ///
-  /// This is a union of mixins applied by the class declaration and all its
-  /// augmentations.
-  List<InterfaceType> get mixins;
-}
+abstract class AugmentedClassElement implements AugmentedInterfaceElement {}
 
 /// The result of applying augmentations to a [EnumElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedEnumElement implements AugmentedInterfaceElement {
-  /// Returns mixins applied by this class or in its augmentations.
-  ///
-  /// This is a union of mixins applied by the class declaration and all its
-  /// augmentations.
-  List<InterfaceType> get mixins;
-}
+abstract class AugmentedEnumElement implements AugmentedInterfaceElement {}
 
 /// The result of applying augmentations to a [InterfaceElement].
 ///
@@ -140,6 +128,12 @@ abstract class AugmentedInterfaceElement {
   /// [MethodAugmentationElement]s replace corresponding elements, other
   /// [MethodElement]s are appended.
   List<MethodElement> get methods;
+
+  /// Returns mixins applied by this class or in its augmentations.
+  ///
+  /// This is a union of mixins applied by the class declaration and all its
+  /// augmentations.
+  List<InterfaceType> get mixins;
 
   /// Returns the unnamed constructor from [constructors].
   ConstructorElement? get unnamedConstructor;
@@ -2495,9 +2489,11 @@ abstract class _TmpSharedClassElement {
   bool get isDartCoreObject;
 
   /// Return `true` if this class is defined by an enum declaration.
+  @Deprecated('Use `is EnumElement` instead')
   bool get isEnum;
 
   /// Return `true` if this class is defined by a mixin declaration.
+  @Deprecated('Use `is MixinElement` instead')
   bool get isMixin;
 
   /// Return `true` if this class is a mixin application.  A class is a mixin

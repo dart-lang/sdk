@@ -140,7 +140,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
 
   /// Add constructor suggestions for the given class.
   void _addConstructorSuggestions(ClassElement element) {
-    if (element.isEnum) {
+    if (element is EnumElement) {
       return;
     }
 

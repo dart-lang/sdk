@@ -312,7 +312,7 @@ class PropertyElementResolver with ScopeHelpers {
             propertyName.name,
             element.kind.displayName,
             enclosingElement.name!,
-            enclosingElement is ClassElement && enclosingElement.isMixin
+            enclosingElement is MixinElement
                 ? 'mixin'
                 : enclosingElement.kind.displayName,
           ]);

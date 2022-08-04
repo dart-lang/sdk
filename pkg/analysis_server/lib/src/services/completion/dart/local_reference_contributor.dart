@@ -419,7 +419,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
       if (!opType.isPrefixed &&
           opType.includeConstructorSuggestions &&
-          !class_.isEnum) {
+          class_ is! EnumElement) {
         for (final constructor in class_.constructors) {
           if (!class_.isAbstract || constructor.isFactory) {
             builder.suggestConstructor(constructor);

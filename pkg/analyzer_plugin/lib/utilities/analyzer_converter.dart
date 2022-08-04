@@ -213,7 +213,7 @@ class AnalyzerConverter {
   /// Convert the element kind of the [element] from the 'analyzer' package to
   /// an element kind defined by the plugin API.
   plugin.ElementKind _convertElementToElementKind(analyzer.Element element) {
-    if (element is analyzer.ClassElement && element.isEnum) {
+    if (element is analyzer.EnumElement) {
       return plugin.ElementKind.ENUM;
     } else if (element is analyzer.FieldElement && element.isEnumConstant
         // MyEnum.values and MyEnum.one.index return isEnumConstant = true

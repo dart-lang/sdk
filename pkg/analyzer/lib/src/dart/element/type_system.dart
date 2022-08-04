@@ -318,7 +318,7 @@ class TypeSystemImpl implements TypeSystem {
   List<InterfaceType> gatherMixinSupertypeConstraintsForInference(
       ClassElement mixinElement) {
     List<InterfaceType> candidates;
-    if (mixinElement.isMixin) {
+    if (mixinElement is MixinElement) {
       candidates = mixinElement.superclassConstraints;
     } else {
       final supertype = mixinElement.supertype;
