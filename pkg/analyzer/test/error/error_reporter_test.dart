@@ -97,7 +97,7 @@ main() {
 
     var reporter = ErrorReporter(
       listener,
-      firstType.element.source,
+      firstType.element2.source,
       isNonNullableByDefault: false,
     );
 
@@ -136,7 +136,7 @@ main() {
 
     var reporter = ErrorReporter(
       listener,
-      firstType.element.source,
+      firstType.element2.source,
       isNonNullableByDefault: false,
     );
     reporter.reportErrorForNode(

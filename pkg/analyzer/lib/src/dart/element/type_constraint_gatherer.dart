@@ -543,7 +543,7 @@ class TypeConstraintGatherer {
     // holds under constraints `C0 + ... + Ck`:
     //   If `Mi` is a subtype match for `Ni` with respect to L under
     //   constraints `Ci`.
-    if (P.element == Q.element) {
+    if (P.element2 == Q.element2) {
       if (!_interfaceType_arguments(P, Q, leftSchema)) {
         return false;
       }
@@ -555,10 +555,10 @@ class TypeConstraintGatherer {
     //   If `C1<B0, ..., Bj>` is a superinterface of `C0<M0, ..., Mk>` and
     //   `C1<B0, ..., Bj>` is a subtype match for `C1<N0, ..., Nj>` with
     //   respect to `L` under constraints `C`.
-    var C0 = P.element;
-    var C1 = Q.element;
+    var C0 = P.element2;
+    var C1 = Q.element2;
     for (var interface in C0.allSupertypes) {
-      if (interface.element == C1) {
+      if (interface.element2 == C1) {
         var substitution = Substitution.fromInterfaceType(P);
         return _interfaceType_arguments(
           substitution.substituteType(interface) as InterfaceType,
@@ -578,13 +578,13 @@ class TypeConstraintGatherer {
     InterfaceType Q,
     bool leftSchema,
   ) {
-    assert(P.element == Q.element);
+    assert(P.element2 == Q.element2);
 
     var rewind = _constraints.length;
 
     for (var i = 0; i < P.typeArguments.length; i++) {
       var variance =
-          (P.element.typeParameters[i] as TypeParameterElementImpl).variance;
+          (P.element2.typeParameters[i] as TypeParameterElementImpl).variance;
       var M = P.typeArguments[i];
       var N = Q.typeArguments[i];
       if ((variance.isCovariant || variance.isInvariant) &&

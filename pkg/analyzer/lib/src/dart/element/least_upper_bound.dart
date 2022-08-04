@@ -23,7 +23,7 @@ import 'package:meta/meta.dart';
 /// But it should be used where nullability does not make sense - to specify
 /// superclasses, mixins, and implemented interfaces.
 class InstantiatedClass {
-  final ClassElement element;
+  final InterfaceElement element;
   final List<DartType> arguments;
 
   final Substitution _substitution;
@@ -37,7 +37,7 @@ class InstantiatedClass {
   /// Return the [InstantiatedClass] that corresponds to the [type] - with the
   /// same element and type arguments, ignoring its nullability suffix.
   factory InstantiatedClass.of(InterfaceType type) {
-    return InstantiatedClass(type.element, type.typeArguments);
+    return InstantiatedClass(type.element2, type.typeArguments);
   }
 
   @override
@@ -70,6 +70,11 @@ class InstantiatedClass {
   /// Return the superclass of this type, or `null` if this type represents
   /// the class 'Object'.
   InstantiatedClass? get superclass {
+    final element = this.element;
+    if (element is! ClassElement) {
+      return null;
+    }
+
     var supertype = element.supertype;
     if (supertype == null) return null;
 
@@ -83,8 +88,13 @@ class InstantiatedClass {
   /// the declaration does not have an `on` clause, then the list will contain
   /// the type for the class `Object`.
   List<InstantiatedClass> get superclassConstraints {
-    var constraints = element.superclassConstraints;
-    return _toInstantiatedClasses(constraints);
+    final element = this.element;
+    if (element is MixinElement) {
+      var constraints = element.superclassConstraints;
+      return _toInstantiatedClasses(constraints);
+    } else {
+      return [];
+    }
   }
 
   @visibleForTesting
@@ -126,7 +136,7 @@ class InstantiatedClass {
 
   InterfaceTypeImpl withNullability(NullabilitySuffix nullability) {
     return InterfaceTypeImpl(
-      element: element,
+      element2: element,
       typeArguments: arguments,
       nullabilitySuffix: nullability,
     );
@@ -190,10 +200,10 @@ class InterfaceLeastUpperBoundHelper {
       return type1.withNullability(nullability);
     }
 
-    if (type1.element == type2.element) {
+    if (type1.element2 == type2.element2) {
       var args1 = type1.typeArguments;
       var args2 = type2.typeArguments;
-      var params = type1.element.typeParameters;
+      var params = type1.element2.typeParameters;
       assert(args1.length == args2.length);
       assert(args1.length == params.length);
 
@@ -226,7 +236,7 @@ class InterfaceLeastUpperBoundHelper {
       }
 
       return InterfaceTypeImpl(
-        element: type1.element,
+        element2: type1.element2,
         typeArguments: args,
         nullabilitySuffix: nullability,
       );
@@ -278,8 +288,9 @@ class InterfaceLeastUpperBoundHelper {
   /// Return the length of the longest inheritance path from the [element] to
   /// Object.
   @visibleForTesting
-  static int computeLongestInheritancePathToObject(ClassElement element) {
-    return _computeLongestInheritancePathToObject(element, <ClassElement>{});
+  static int computeLongestInheritancePathToObject(InterfaceElement element) {
+    return _computeLongestInheritancePathToObject(
+        element, <InterfaceElement>{});
   }
 
   /// Add all of the superinterfaces of the given [type] to the given [set].
@@ -339,9 +350,10 @@ class InterfaceLeastUpperBoundHelper {
   /// is used to prevent infinite recursion in the case of a cyclic type
   /// structure.
   static int _computeLongestInheritancePathToObject(
-      ClassElement element, Set<ClassElement> visitedElements) {
+      InterfaceElement element, Set<InterfaceElement> visitedElements) {
     // Object case
-    if (element.isDartCoreObject || visitedElements.contains(element)) {
+    if (element is ClassElement && element.isDartCoreObject ||
+        visitedElements.contains(element)) {
       return 0;
     }
     int longestPath = 0;
@@ -350,18 +362,24 @@ class InterfaceLeastUpperBoundHelper {
 
       // loop through each of the superinterfaces recursively calling this
       // method and keeping track of the longest path to return
-      for (InterfaceType interface in element.superclassConstraints) {
-        var pathLength = _computeLongestInheritancePathToObject(
-            interface.element, visitedElements);
-        longestPath = max(longestPath, 1 + pathLength);
+      if (element is MixinElement) {
+        for (InterfaceType interface in element.superclassConstraints) {
+          var pathLength = _computeLongestInheritancePathToObject(
+              interface.element2, visitedElements);
+          longestPath = max(longestPath, 1 + pathLength);
+        }
       }
 
       // loop through each of the superinterfaces recursively calling this
       // method and keeping track of the longest path to return
       for (InterfaceType interface in element.interfaces) {
         var pathLength = _computeLongestInheritancePathToObject(
-            interface.element, visitedElements);
+            interface.element2, visitedElements);
         longestPath = max(longestPath, 1 + pathLength);
+      }
+
+      if (element is! ClassElement) {
+        return longestPath;
       }
 
       var supertype = element.supertype;
@@ -370,14 +388,14 @@ class InterfaceLeastUpperBoundHelper {
       }
 
       var superLength = _computeLongestInheritancePathToObject(
-          supertype.element, visitedElements);
+          supertype.element2, visitedElements);
 
       var mixins = element.mixins;
       for (var i = 0; i < mixins.length; i++) {
         // class _X&S&M extends S implements M {}
         // So, we choose the maximum length from S and M.
         var mixinLength = _computeLongestInheritancePathToObject(
-          mixins[i].element,
+          mixins[i].element2,
           visitedElements,
         );
         superLength = max(superLength, mixinLength);
@@ -444,7 +462,7 @@ class LeastUpperBoundHelper {
   LeastUpperBoundHelper(this._typeSystem);
 
   InterfaceType get _interfaceTypeFunctionNone {
-    return _typeSystem.typeProvider.functionType.element.instantiate(
+    return _typeSystem.typeProvider.functionType.element2.instantiate(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );

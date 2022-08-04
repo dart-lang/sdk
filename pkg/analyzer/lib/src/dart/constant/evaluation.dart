@@ -252,7 +252,7 @@ class ConstantEvaluationEngine {
           var superclass = constant.returnType.superclass;
           if (superclass != null && !superclass.isDartCoreObject) {
             var unnamedConstructor =
-                superclass.element.unnamedConstructor?.declaration;
+                superclass.element2.unnamedConstructor?.declaration;
             if (unnamedConstructor != null && unnamedConstructor.isConst) {
               callback(unnamedConstructor);
             }
@@ -1423,7 +1423,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// [identifier] is "length".
   bool _isStringLength(
       DartObjectImpl targetResult, SimpleIdentifier identifier) {
-    if (targetResult.type.element != _typeProvider.stringElement) {
+    final targetType = targetResult.type;
+    if (!(targetType is InterfaceType &&
+        targetType.element2 == _typeProvider.stringElement)) {
       return false;
     }
     return identifier.name == 'length' &&

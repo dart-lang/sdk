@@ -23,7 +23,7 @@ class TypeHierarchyComputer {
   ClassElement? _pivotClass;
 
   final List<TypeHierarchyItem> _items = <TypeHierarchyItem>[];
-  final List<ClassElement> _itemClassElements = <ClassElement>[];
+  final List<InterfaceElement> _itemClassElements = [];
   final Map<Element, TypeHierarchyItem> _elementItemMap =
       HashMap<Element, TypeHierarchyItem>();
 
@@ -81,7 +81,7 @@ class TypeHierarchyComputer {
   }
 
   Future _createSubclasses(
-      TypeHierarchyItem item, int itemId, ClassElement classElement) async {
+      TypeHierarchyItem item, int itemId, InterfaceElement classElement) async {
     var subElements = await getDirectSubClasses(_searchEngine, classElement);
     var subItemIds = <int>[];
     for (var subElement in subElements) {
@@ -120,7 +120,7 @@ class TypeHierarchyComputer {
   }
 
   int _createSuperItem(
-      ClassElement classElement, List<DartType>? typeArguments) {
+      InterfaceElement classElement, List<DartType>? typeArguments) {
     // check for recursion
     var cachedItem = _elementItemMap[classElement];
     if (cachedItem != null) {
@@ -154,30 +154,30 @@ class TypeHierarchyComputer {
       _itemClassElements.add(classElement);
     }
     // superclass
-    {
+    if (classElement is ClassElement) {
       var superType = classElement.supertype;
       if (superType != null) {
         item.superclass = _createSuperItem(
-          superType.element,
+          superType.element2,
           superType.typeArguments,
         );
       }
     }
     // mixins
     for (var type in classElement.mixins) {
-      var id = _createSuperItem(type.element, type.typeArguments);
+      var id = _createSuperItem(type.element2, type.typeArguments);
       item.mixins.add(id);
     }
     // interfaces
     for (var type in classElement.interfaces) {
-      var id = _createSuperItem(type.element, type.typeArguments);
+      var id = _createSuperItem(type.element2, type.typeArguments);
       item.interfaces.add(id);
     }
     // done
     return itemId;
   }
 
-  ExecutableElement? _findMemberElement(ClassElement clazz) {
+  ExecutableElement? _findMemberElement(InterfaceElement clazz) {
     var pivotName = _pivotName;
     if (pivotName == null) {
       return null;
@@ -201,7 +201,7 @@ class TypeHierarchyComputer {
     }
     // try to find in the class mixin
     for (var mixin in clazz.mixins.reversed) {
-      var mixinElement = mixin.element;
+      var mixinElement = mixin.element2;
       if (_pivotKind == ElementKind.METHOD) {
         result = mixinElement.lookUpMethod(pivotName, _pivotLibrary);
       } else if (_pivotKind == ElementKind.GETTER) {

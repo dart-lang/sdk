@@ -76,7 +76,7 @@ class CreateField extends CorrectionProducer {
     }
     // prepare target ClassElement
     var staticModifier = false;
-    ClassElement? targetClassElement;
+    InterfaceElement? targetClassElement;
     if (target != null) {
       targetClassElement = getTargetClassElement(target);
       // maybe static

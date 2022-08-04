@@ -291,8 +291,9 @@ class _ElementWriter {
 
   void _writeClassElement(InterfaceElement e) {
     _writeIndentedLine(() {
-      if (e is ClassElement) {
-        _writeIf(e.isAbstract && !e.isMixin, 'abstract ');
+      // TODO(scheglov) `is! MixinElement` after the separation.
+      if (e is ClassElement && e is! MixinElement) {
+        _writeIf(e.isAbstract, 'abstract ');
         _writeIf(e.isMacro, 'macro ');
       }
       _writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
@@ -324,7 +325,7 @@ class _ElementWriter {
         supertype = e.supertype;
       }
       if (supertype != null &&
-          (supertype.element.name != 'Object' || e.mixins.isNotEmpty)) {
+          (supertype.element2.name != 'Object' || e.mixins.isNotEmpty)) {
         _writeType('supertype', supertype);
       }
 
@@ -961,11 +962,6 @@ class _ElementWriter {
 
       var aliasedType = e.aliasedType;
       _writeType('aliasedType', aliasedType);
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
-      // TODO(scheglov) Remove it when we stop providing it everywhere.
-      if (aliasedType is FunctionType) {
-        expect(aliasedType.element, isNull);
-      }
 
       var aliasedElement = e.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElementImpl) {

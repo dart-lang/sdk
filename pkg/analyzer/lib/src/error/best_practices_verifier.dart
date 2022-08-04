@@ -739,7 +739,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       var type = node.typeOrThrow;
       // Only report non-aliased, non-user-defined `Null?` and `dynamic?`. Do
       // not report synthetic `dynamic` in place of an unresolved type.
-      if ((type.element == _nullType.element ||
+      if ((type is InterfaceType && type.element2 == _nullType.element2 ||
               (type.isDynamic && name == 'dynamic')) &&
           type.alias == null) {
         _errorReporter.reportErrorForToken(
@@ -990,7 +990,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void _checkForImmutable(NamedCompilationUnitMember node) {
     /// Return `true` if the given class [element] is annotated with the
     /// `@immutable` annotation.
-    bool isImmutable(ClassElement element) {
+    bool isImmutable(InterfaceElement element) {
       for (ElementAnnotation annotation in element.metadata) {
         if (annotation.isImmutable) {
           return true;
@@ -1002,29 +1002,29 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     /// Return `true` if the given class [element] or any superclass of it is
     /// annotated with the `@immutable` annotation.
     bool isOrInheritsImmutable(
-        ClassElement element, HashSet<ClassElement> visited) {
+        InterfaceElement element, Set<InterfaceElement> visited) {
       if (visited.add(element)) {
         if (isImmutable(element)) {
           return true;
         }
         for (InterfaceType interface in element.mixins) {
-          if (isOrInheritsImmutable(interface.element, visited)) {
+          if (isOrInheritsImmutable(interface.element2, visited)) {
             return true;
           }
         }
         for (InterfaceType mixin in element.interfaces) {
-          if (isOrInheritsImmutable(mixin.element, visited)) {
+          if (isOrInheritsImmutable(mixin.element2, visited)) {
             return true;
           }
         }
         if (element.supertype != null) {
-          return isOrInheritsImmutable(element.supertype!.element, visited);
+          return isOrInheritsImmutable(element.supertype!.element2, visited);
         }
       }
       return false;
     }
 
-    Iterable<String> nonFinalInstanceFields(ClassElement element) {
+    Iterable<String> nonFinalInstanceFields(InterfaceElement element) {
       return element.fields
           .where((FieldElement field) =>
               !field.isSynthetic && !field.isFinal && !field.isStatic)
@@ -1032,16 +1032,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     Iterable<String> definedOrInheritedNonFinalInstanceFields(
-        ClassElement element, HashSet<ClassElement> visited) {
+        InterfaceElement element, Set<InterfaceElement> visited) {
       Iterable<String> nonFinalFields = [];
       if (visited.add(element)) {
         nonFinalFields = nonFinalInstanceFields(element);
         nonFinalFields = nonFinalFields.followedBy(element.mixins.expand(
-            (InterfaceType mixin) => nonFinalInstanceFields(mixin.element)));
+            (InterfaceType mixin) => nonFinalInstanceFields(mixin.element2)));
         if (element.supertype != null) {
           nonFinalFields = nonFinalFields.followedBy(
               definedOrInheritedNonFinalInstanceFields(
-                  element.supertype!.element, visited));
+                  element.supertype!.element2, visited));
         }
       }
       return nonFinalFields;
@@ -1172,7 +1172,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     // TODO(srawlins): Perhaps replace this with a getter on Element, like
     // `Element.hasOrInheritsSealed`?
     for (InterfaceType supertype in element.allSupertypes) {
-      ClassElement superclass = supertype.element;
+      final superclass = supertype.element2;
       if (superclass.hasSealed) {
         if (!currentPackageContains(superclass)) {
           if (element.superclassConstraints.contains(supertype)) {

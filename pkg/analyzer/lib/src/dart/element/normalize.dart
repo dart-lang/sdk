@@ -139,7 +139,7 @@ class NormalizeHelper {
 
     // NORM(C<T0, ..., Tn>) = C<R0, ..., Rn> where Ri is NORM(Ti)
     if (T is InterfaceType) {
-      return T.element.instantiate(
+      return T.element2.instantiate(
         typeArguments: T.typeArguments.map(_normalize).toList(),
         nullabilitySuffix: NullabilitySuffix.none,
       );

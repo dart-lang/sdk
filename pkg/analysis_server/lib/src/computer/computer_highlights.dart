@@ -174,7 +174,7 @@ class DartUnitHighlightsComputer {
       type = HighlightRegionType.CONSTRUCTOR;
       semanticType = SemanticTokenTypes.class_;
       semanticModifiers = {CustomSemanticTokenModifiers.constructor};
-    } else if (element.isEnum) {
+    } else if (element is EnumElement) {
       type = HighlightRegionType.ENUM;
     } else {
       type = HighlightRegionType.CLASS;

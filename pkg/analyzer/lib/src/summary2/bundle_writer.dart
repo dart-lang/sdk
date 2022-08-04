@@ -658,11 +658,11 @@ class ResolutionSink extends _SummaryDataWriter {
           writeByte(Tag.InterfaceType_noTypeArguments_star);
         }
         // TODO(scheglov) Write raw
-        writeElement(type.element);
+        writeElement(type.element2);
       } else {
         writeByte(Tag.InterfaceType);
         // TODO(scheglov) Write raw
-        writeElement(type.element);
+        writeElement(type.element2);
         writeUInt30(typeArguments.length);
         for (var i = 0; i < typeArguments.length; ++i) {
           writeType(typeArguments[i]);

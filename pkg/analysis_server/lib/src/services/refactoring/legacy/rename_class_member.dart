@@ -161,9 +161,10 @@ class _BaseClassMemberValidator {
 
   Future<void> _checkHierarchy({
     required bool isRename,
-    required Set<ClassElement> subClasses,
+    required Set<InterfaceElement> subClasses,
   }) async {
-    var superClasses = elementClass.allSupertypes.map((e) => e.element).toSet();
+    var superClasses =
+        elementClass.allSupertypes.map((e) => e.element2).toSet();
     // check shadowing in the hierarchy
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {

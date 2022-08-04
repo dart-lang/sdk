@@ -560,7 +560,7 @@ class _EnumDescription {
               //   class.
               if (fieldElement.isConst &&
                   fieldType is InterfaceType &&
-                  fieldType.element == classElement) {
+                  fieldType.element2 == classElement) {
                 var initializer = field.initializer;
                 if (initializer is InstanceCreationExpression) {
                   var constructorElement =
@@ -728,13 +728,13 @@ class _NonEnumVisitor extends _BaseVisitor {
       throw _CannotConvertException('Unresolved');
     }
     if (element != classElement) {
-      if (element.supertype?.element == classElement) {
+      if (element.supertype?.element2 == classElement) {
         throw _CannotConvertException('Class is extended');
       } else if (element.interfaces
-          .map((e) => e.element)
+          .map((e) => e.element2)
           .contains(classElement)) {
         throw _CannotConvertException('Class is implemented');
-      } else if (element.mixins.map((e) => e.element).contains(classElement)) {
+      } else if (element.mixins.map((e) => e.element2).contains(classElement)) {
         // This case won't occur unless there's an error in the source code, but
         // it's easier to check for the condition than it is to check for the
         // diagnostic.

@@ -21,7 +21,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
       if (element.isGetter) {
         var type = element.returnType;
         if (type is InterfaceType) {
-          interfaceElement = type.element;
+          interfaceElement = type.element2;
         }
       }
     } else if (element is ConstructorElement) {
@@ -41,7 +41,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
           // may have been compiled with a different version of pkg:meta.
           var index = kindObject.getField('index')!.toIntValue()!;
           var targetKindClass =
-              (kindObject.type as InterfaceType).element as EnumElementImpl;
+              (kindObject.type as InterfaceType).element2 as EnumElementImpl;
           // Instead, map constants to their TargetKind by comparing getter
           // names.
           var getter = targetKindClass.constants[index];

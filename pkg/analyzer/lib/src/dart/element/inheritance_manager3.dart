@@ -115,7 +115,7 @@ class InheritanceManager3 {
 
   /// Return the result of [getInherited2] with [type] substitution.
   ExecutableElement? getInherited(InterfaceType type, Name name) {
-    var rawElement = getInherited2(type.element, name);
+    var rawElement = getInherited2(type.element2, name);
     if (rawElement == null) {
       return null;
     }
@@ -237,7 +237,7 @@ class InheritanceManager3 {
     bool forSuper = false,
   }) {
     var rawElement = getMember2(
-      type.element,
+      type.element2,
       name,
       concrete: concrete,
       forMixinIndex: forMixinIndex,
@@ -466,7 +466,7 @@ class InheritanceManager3 {
     Interface? superTypeInterface;
     if (superType != null) {
       var substitution = Substitution.fromInterfaceType(superType);
-      superTypeInterface = getInterface(superType.element);
+      superTypeInterface = getInterface(superType.element2);
       _addCandidates(
         namedCandidates: namedCandidates,
         substitution: substitution,
@@ -492,7 +492,7 @@ class InheritanceManager3 {
     // interfaces. Consider using `Map<Name, ExecutableElement>` here.
     var mixinsConflicts = <List<Conflict>>[];
     for (var mixin in element.mixins) {
-      var mixinElement = mixin.element;
+      var mixinElement = mixin.element2;
       var substitution = Substitution.fromInterfaceType(mixin);
       var mixinInterface = getInterface(mixinElement);
       // `class X extends S with M1, M2 {}` is semantically a sequence of:
@@ -583,7 +583,7 @@ class InheritanceManager3 {
       _addCandidates(
         namedCandidates: namedCandidates,
         substitution: Substitution.fromInterfaceType(interface),
-        interface: getInterface(interface.element),
+        interface: getInterface(interface.element2),
         isNonNullableByDefault: isNonNullableByDefault,
       );
     }
@@ -660,7 +660,7 @@ class InheritanceManager3 {
     var superCandidates = <Name, List<ExecutableElement>>{};
     for (var constraint in element.superclassConstraints) {
       var substitution = Substitution.fromInterfaceType(constraint);
-      var interfaceObj = getInterface(constraint.element);
+      var interfaceObj = getInterface(constraint.element2);
       _addCandidates(
         namedCandidates: superCandidates,
         substitution: substitution,
@@ -684,7 +684,7 @@ class InheritanceManager3 {
       _addCandidates(
         namedCandidates: interfaceCandidates,
         substitution: Substitution.fromInterfaceType(interface),
-        interface: getInterface(interface.element),
+        interface: getInterface(interface.element2),
         isNonNullableByDefault: isNonNullableByDefault,
       );
     }
@@ -914,9 +914,10 @@ class InheritanceManager3 {
 
   static bool _isDeclaredInObject(ExecutableElement element) {
     var enclosing = element.enclosingElement3;
+    // TODO(scheglov) `is! MixinElement` after the separation.
     return enclosing is ClassElement &&
         enclosing.supertype == null &&
-        !enclosing.isMixin;
+        enclosing is! MixinElement;
   }
 }
 

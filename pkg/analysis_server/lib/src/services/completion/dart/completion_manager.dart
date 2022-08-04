@@ -251,9 +251,9 @@ class DartCompletionManager {
 
     var type = request.contextType;
     if (type is InterfaceType) {
-      var element = type.element;
+      var element = type.element2;
       var tag = '${element.librarySource.uri}::${element.name}';
-      if (element.isEnum) {
+      if (element is EnumElement) {
         includedSuggestionRelevanceTags.add(
           IncludedSuggestionRelevanceTag(
             tag,

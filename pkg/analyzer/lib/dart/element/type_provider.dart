@@ -82,7 +82,7 @@ abstract class TypeProvider {
   InterfaceType get mapObjectObjectType;
 
   /// Return the type representing the built-in type `Never`.
-  DartType get neverType;
+  NeverType get neverType;
 
   /// Return the element representing the built-in class `Null`.
   ClassElement get nullElement;
@@ -138,7 +138,7 @@ abstract class TypeProvider {
   InterfaceType futureType(DartType valueType);
 
   /// Return `true` if [element] cannot be extended, implemented, or mixed in.
-  bool isNonSubtypableClass(ClassElement element);
+  bool isNonSubtypableClass(InterfaceElement element);
 
   /// Return 'true' if [id] is the name of a getter on the `Object` type.
   bool isObjectGetter(String id);

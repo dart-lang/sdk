@@ -24,7 +24,7 @@ List<Element> getChildren(Element parent, [String? name]) {
 ///
 /// Includes: fields, accessors and methods.
 /// Excludes: constructors and synthetic elements.
-List<Element> getClassMembers(ClassElement clazz, [String? name]) {
+List<Element> getClassMembers(InterfaceElement clazz, [String? name]) {
   var members = <Element>[];
   visitChildren(clazz, (Element element) {
     if (element.isSynthetic) {
@@ -49,7 +49,7 @@ List<Element> getClassMembers(ClassElement clazz, [String? name]) {
 
 /// Returns a [Set] with direct subclasses of [seed].
 Future<Set<ClassElement>> getDirectSubClasses(
-    SearchEngine searchEngine, ClassElement seed) async {
+    SearchEngine searchEngine, InterfaceElement seed) async {
   var matches = await searchEngine.searchSubtypes(seed);
   return matches.map((match) => match.element).cast<ClassElement>().toSet();
 }
@@ -96,7 +96,7 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
   if (enclosingElement is ClassElement) {
     var name = member.displayName;
     var searchClasses = [
-      ...enclosingElement.allSupertypes.map((e) => e.element),
+      ...enclosingElement.allSupertypes.map((e) => e.element2),
       enclosingElement,
     ];
     for (var superClass in searchClasses) {
@@ -153,9 +153,9 @@ Future<List<ParameterElement>> getHierarchyNamedParameters(
 /// Includes: fields, accessors and methods.
 ///
 /// Excludes: constructors and synthetic elements.
-List<Element> getMembers(ClassElement clazz) {
+List<Element> getMembers(InterfaceElement clazz) {
   var classElements = [
-    ...clazz.allSupertypes.map((e) => e.element),
+    ...clazz.allSupertypes.map((e) => e.element2),
     clazz,
   ];
   var members = <Element>[];

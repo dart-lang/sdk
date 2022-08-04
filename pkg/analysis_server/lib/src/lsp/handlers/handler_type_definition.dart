@@ -7,11 +7,12 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/element.dart' show ElementImpl;
+import 'package:analyzer/src/dart/element/element.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 
@@ -69,8 +70,13 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
         }
 
         final type = node is Expression ? _getType(node) : null;
-        final element = type?.element;
-        if (element is! ElementImpl) {
+        analyzer.Element? element;
+        if (type is InterfaceType) {
+          element = type.element2;
+        } else if (type is TypeParameterType) {
+          element = type.element;
+        }
+        if (element is! analyzer.ElementImpl) {
           return success(_emptyResult);
         }
 
@@ -118,7 +124,7 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
     LineInfo originLineInfo,
     LineInfo targetLineInfo,
     AstNode originNode,
-    ElementImpl targetElement,
+    analyzer.ElementImpl targetElement,
     plugin.Location targetLocation,
   ) {
     final nameRange =

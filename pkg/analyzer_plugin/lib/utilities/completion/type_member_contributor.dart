@@ -415,11 +415,11 @@ class _SuggestionBuilder {
     // classes seen (not the interfaces) so that we won't be fooled by nonsense
     // like "class C<T> extends C<List<T>> {}"
     var result = <InterfaceType>[];
-    Set<ClassElement> classesSeen = HashSet<ClassElement>();
+    final classesSeen = <InterfaceElement>{};
     var typesToVisit = <InterfaceType>[type];
     while (typesToVisit.isNotEmpty) {
       var nextType = typesToVisit.removeLast();
-      if (!classesSeen.add(nextType.element)) {
+      if (!classesSeen.add(nextType.element2)) {
         // Class had already been seen, so ignore this type.
         continue;
       }

@@ -22,6 +22,7 @@ import 'package:analyzer/dart/element/element.dart'
         Element,
         ExecutableElement,
         ExtensionElement,
+        InterfaceElement,
         LibraryElement,
         LocalVariableElement,
         ParameterElement,
@@ -1570,7 +1571,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       return;
     }
     if (targetType is InterfaceType) {
-      var targetClass = targetType.element;
+      var targetClass = targetType.element2;
       var extension = member.thisOrAncestorOfType<ExtensionElement>();
       if (extension != null) {
         _recordDistance('member (extension)', 0);
@@ -1585,19 +1586,23 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         /// superclasses caused by mixins.
         int getSuperclassDepth() {
           var depth = 0;
-          ClassElement? currentClass = targetClass;
+          InterfaceElement? currentClass = targetClass;
           while (currentClass != null) {
             if (currentClass == memberClass) {
               return depth;
             }
             for (var mixin in currentClass.mixins.reversed) {
               depth++;
-              if (mixin.element == memberClass) {
+              if (mixin.element2 == memberClass) {
                 return depth;
               }
             }
             depth++;
-            currentClass = currentClass.supertype?.element;
+            if (currentClass is ClassElement) {
+              currentClass = currentClass.supertype?.element2;
+            } else {
+              currentClass = null;
+            }
           }
           return -1;
         }
@@ -1606,10 +1611,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         /// includes all of the implicit superclasses caused by mixins.
         int getTargetDepth() {
           var depth = 0;
-          ClassElement? currentClass = targetClass;
+          InterfaceElement? currentClass = targetClass;
           while (currentClass != null) {
             depth += currentClass.mixins.length + 1;
-            currentClass = currentClass.supertype?.element;
+            if (currentClass is ClassElement) {
+              currentClass = currentClass.supertype?.element2;
+            } else {
+              break;
+            }
           }
           return depth;
         }
@@ -1816,20 +1825,20 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           argumentType is InterfaceType &&
           parameterType is InterfaceType) {
         int distance;
-        if (parameterType.element == typeProvider.futureOrElement) {
+        if (parameterType.element2 == typeProvider.futureOrElement) {
           var typeArgument = parameterType.typeArguments[0];
           distance = featureComputer.inheritanceDistance(
-              argumentType.element, typeProvider.futureElement);
+              argumentType.element2, typeProvider.futureElement);
           if (typeArgument is InterfaceType) {
             var argDistance = featureComputer.inheritanceDistance(
-                argumentType.element, typeArgument.element);
+                argumentType.element2, typeArgument.element2);
             if (distance < 0 || (argDistance >= 0 && argDistance < distance)) {
               distance = argDistance;
             }
           }
         } else {
           distance = featureComputer.inheritanceDistance(
-              argumentType.element, parameterType.element);
+              argumentType.element2, parameterType.element2);
         }
         data.recordDistance('Subtype of context type ($descriptor)', distance);
         data.recordDistance('Subtype of context type (all)', distance);

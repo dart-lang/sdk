@@ -356,7 +356,7 @@ class MigrationResolutionHooksImpl
         () => element.interfacesInternal,
         () => [
               for (var interface in element.interfacesInternal)
-                _getClassInterface(element, interface.element)
+                _getClassInterface(element, interface.element2)
             ]);
   }
 
@@ -678,7 +678,7 @@ class MigrationResolutionHooksImpl
   }
 
   InterfaceType _getClassInterface(
-      ClassElement class_, ClassElement superclass) {
+      ClassElement class_, InterfaceElement superclass) {
     var decoratedSupertype = _fixBuilder!._decoratedClassHierarchy!
         .getDecoratedSupertype(class_, superclass);
     var finalType = _fixBuilder!._variables!.toFinalType(decoratedSupertype);

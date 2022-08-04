@@ -703,7 +703,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _dispatch(node.withClause);
     var classElement = node.declaredElement!;
     var supertype = classElement.supertype!;
-    var superElement = supertype.element;
+    var superElement = supertype.element2;
     for (var constructorElement in classElement.constructors) {
       assert(constructorElement.isSynthetic);
       var superConstructorElement =
@@ -2237,14 +2237,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           List<DecoratedType?> rightTypeArguments;
           if (isLUB) {
             leftTypeArguments = _decoratedClassHierarchy!
-                .asInstanceOf(left, type.element)
+                .asInstanceOf(left, type.element2)
                 .typeArguments;
             rightTypeArguments = _decoratedClassHierarchy!
-                .asInstanceOf(right, type.element)
+                .asInstanceOf(right, type.element2)
                 .typeArguments;
           } else {
-            if (leftType.element != type.element ||
-                rightType.element != type.element) {
+            if (leftType.element2 != type.element2 ||
+                rightType.element2 != type.element2) {
               _unimplemented(astNode, 'GLB with substitution');
             }
             leftTypeArguments = left.typeArguments;
@@ -2330,8 +2330,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         return DecoratedType(type, node);
       }
 
-      assert(leftType.element == type.element &&
-          rightType.element == type.element);
+      assert(leftType.sharedElement == type.element &&
+          rightType.sharedElement == type.element);
       return DecoratedType(type, node);
     }
     _unimplemented(astNode, '_decorateUpperOrLowerBound');
@@ -2904,8 +2904,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         if (_typeSystem.isSubtypeOf(
             iterableTypeType, typeProvider.iterableDynamicType)) {
           elementType = _decoratedClassHierarchy!
-              .asInstanceOf(
-                  iterableType, typeProvider.iterableDynamicType.element)
+              .asInstanceOf(iterableType, typeProvider.iterableElement)
               .typeArguments[0];
           _checkAssignment(
               ForEachVariableOrigin(source, parts), FixReasonTarget.root,
@@ -3537,7 +3536,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
 
     if (dartType is InterfaceType &&
-        dartType.element == typeProvider.futureOrElement) {
+        dartType.element2 == typeProvider.futureOrElement) {
       var typeArguments = type.typeArguments;
       if (typeArguments.length == 1) {
         // Wrapping FutureOr<T?1>?2 should produce Future<T?3>, where either 1
@@ -3552,7 +3551,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
     if (_typeSystem.isSubtypeOf(dartType, typeProvider.futureDynamicType)) {
       return _decoratedClassHierarchy!
-          .asInstanceOf(type, typeProvider.futureDynamicType.element);
+          .asInstanceOf(type, typeProvider.futureElement);
     }
 
     return _futureOf(type, node!);
@@ -3769,7 +3768,7 @@ mixin _AssignmentChecker {
     } else if (sourceType is InterfaceType &&
         destinationType is InterfaceType) {
       var rewrittenSource = _decoratedClassHierarchy!
-          .asInstanceOf(source, destinationType.element);
+          .asInstanceOf(source, destinationType.element2);
       assert(rewrittenSource.typeArguments.length ==
           destination.typeArguments.length);
       for (int i = 0; i < rewrittenSource.typeArguments.length; i++) {
@@ -3827,16 +3826,17 @@ mixin _AssignmentChecker {
       required DecoratedType destination,
       required bool hard}) {
     var destinationType = destination.type!;
-    assert(_typeSystem.isSubtypeOf(destinationType, source.type!));
+    final sourceType = source.type!;
+    assert(_typeSystem.isSubtypeOf(destinationType, sourceType));
     // Nullability should narrow to maintain subtype relationship.
     _connect(source.node, destination.node, origin, FixReasonTarget.root,
         hard: hard);
 
-    if (source.type!.isDynamic ||
-        source.type!.isDartCoreObject ||
-        source.type!.isVoid) {
+    if (sourceType.isDynamic ||
+        sourceType.isDartCoreObject ||
+        sourceType.isVoid) {
       if (destinationType is InterfaceType) {
-        for (final param in destinationType.element.typeParameters) {
+        for (final param in destinationType.element2.typeParameters) {
           assert(param.bound == null,
               'downcast to type parameters with bounds not supported');
         }
@@ -3853,17 +3853,17 @@ mixin _AssignmentChecker {
       // trying to store a value into a `List<Null>`).  So do nothing.
       return;
     } else if (destinationType is TypeParameterType) {
-      if (source.type is! TypeParameterType) {
+      if (sourceType is! TypeParameterType) {
         // Assume an assignment to the type parameter's bound.
         _checkAssignment(origin, FixReasonTarget.root,
             source: source,
             destination: _getTypeParameterTypeBound(destination)!,
             hard: false);
-      } else if (destinationType == source.type) {
+      } else if (destinationType == sourceType) {
         // Nothing to do.
         return;
       }
-    } else if (source.type!.isDartAsyncFutureOr) {
+    } else if (sourceType.isDartAsyncFutureOr) {
       if (destination.type!.isDartAsyncFuture) {
         // FutureOr<T?> is nullable, so the Future<T> should be nullable too.
         _connect(source.typeArguments[0]!.node, destination.node, origin,
@@ -3885,9 +3885,9 @@ mixin _AssignmentChecker {
             hard: false);
       }
     } else if (destinationType is InterfaceType) {
-      if (source.type is InterfaceType) {
+      if (sourceType is InterfaceType) {
         final target = _decoratedClassHierarchy!
-            .asInstanceOf(destination, source.type!.element as ClassElement?);
+            .asInstanceOf(destination, sourceType.element2);
         for (var i = 0; i < source.typeArguments.length; ++i) {
           _checkDowncast(origin,
               source: source.typeArguments[i]!,
@@ -3896,18 +3896,18 @@ mixin _AssignmentChecker {
         }
       } else {
         assert(false,
-            'downcasting from ${source.type.runtimeType} to interface type');
+            'downcasting from ${sourceType.runtimeType} to interface type');
       }
     } else if (destinationType is FunctionType) {
-      if (source.type!.isDartCoreFunction) {
+      if (sourceType.isDartCoreFunction) {
         // Nothing else to do.
         return;
       }
     } else {
       assert(
           false,
-          'downcasting from ${source.type.runtimeType} to '
-          '${destinationType.runtimeType} not supported. (${source.type} $destinationType)');
+          'downcasting from ${sourceType.runtimeType} to '
+          '${destinationType.runtimeType} not supported. ($sourceType $destinationType)');
     }
   }
 
@@ -3982,5 +3982,16 @@ extension on DartType? {
       return self.element.bound.explicitBound;
     }
     return self;
+  }
+
+  Element? get sharedElement {
+    final self = this;
+    if (self is InterfaceType) {
+      return self.element2;
+    } else if (self is TypeParameterType) {
+      return self.element;
+    } else {
+      return null;
+    }
   }
 }

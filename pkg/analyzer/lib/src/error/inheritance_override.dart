@@ -161,7 +161,7 @@ class _ClassVerifier {
       return true;
     }
 
-    if (!classElement.isEnum &&
+    if (classElement is! EnumElement &&
         !classElement.isAbstract &&
         implementsDartCoreEnum) {
       reporter.reportErrorForToken(
@@ -214,7 +214,7 @@ class _ClassVerifier {
           var fieldElement = field.declaredElement as FieldElement;
           _checkDeclaredMember(field.name2, libraryUri, fieldElement.getter);
           _checkDeclaredMember(field.name2, libraryUri, fieldElement.setter);
-          if (!member.isStatic && !classElement.isEnum) {
+          if (!member.isStatic && classElement is! EnumElement) {
             _checkIllegalEnumValuesDeclaration(field.name2);
           }
           if (!member.isStatic) {
@@ -232,7 +232,7 @@ class _ClassVerifier {
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
           _checkIllegalConcreteEnumMemberDeclaration(member.name2);
         }
-        if (!member.isStatic && !classElement.isEnum) {
+        if (!member.isStatic && classElement is! EnumElement) {
           _checkIllegalEnumValuesDeclaration(member.name2);
         }
       }
@@ -263,7 +263,7 @@ class _ClassVerifier {
             continue;
           }
           // We already reported ILLEGAL_ENUM_VALUES_INHERITANCE.
-          if (classElement.isEnum &&
+          if (classElement is EnumElement &&
               const {'values', 'values='}.contains(name.name)) {
             continue;
           }
@@ -375,7 +375,7 @@ class _ClassVerifier {
   /// corresponding instance members in each of [directSuperInterfaces].
   void _checkDeclaredMembers(AstNode node, InterfaceType type,
       {required int mixinIndex}) {
-    var libraryUri = type.element.library.source.uri;
+    var libraryUri = type.element2.library.source.uri;
     for (var method in type.methods) {
       _checkDeclaredMember(node, libraryUri, method, mixinIndex: mixinIndex);
     }
@@ -402,11 +402,12 @@ class _ClassVerifier {
       return false;
     }
 
-    var interfaceElement = type.element;
+    var interfaceElement = type.element2;
 
-    if (interfaceElement.isDartCoreEnum &&
+    if (interfaceElement is ClassElement &&
+        interfaceElement.isDartCoreEnum &&
         library.featureSet.isEnabled(Feature.enhanced_enums)) {
-      if (classElement.isAbstract || classElement.isEnum) {
+      if (classElement.isAbstract || classElement is EnumElement) {
         return false;
       }
       reporter.reportErrorForNode(
@@ -465,7 +466,7 @@ class _ClassVerifier {
         )) {
           hasError = true;
         }
-        if (classElement.isEnum && _checkEnumMixin(namedType)) {
+        if (classElement is EnumElement && _checkEnumMixin(namedType)) {
           hasError = true;
         }
       }
@@ -479,8 +480,8 @@ class _ClassVerifier {
       return false;
     }
 
-    var interfaceElement = type.element;
-    if (interfaceElement.isEnum) {
+    var interfaceElement = type.element2;
+    if (interfaceElement is EnumElement) {
       return false;
     }
 
@@ -595,9 +596,9 @@ class _ClassVerifier {
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS],
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON],
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH].
-  bool _checkForRecursiveInterfaceInheritance(ClassElement element,
-      [List<ClassElement>? path]) {
-    path ??= <ClassElement>[];
+  bool _checkForRecursiveInterfaceInheritance(InterfaceElement element,
+      [List<InterfaceElement>? path]) {
+    path ??= <InterfaceElement>[];
 
     // Detect error condition.
     int size = path.length;
@@ -637,26 +638,30 @@ class _ClassVerifier {
     path.add(element);
 
     // n-case
-    var supertype = element.supertype;
-    if (supertype != null &&
-        _checkForRecursiveInterfaceInheritance(supertype.element, path)) {
-      return true;
-    }
-
-    for (InterfaceType type in element.mixins) {
-      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+    if (element is ClassElement) {
+      var supertype = element.supertype;
+      if (supertype != null &&
+          _checkForRecursiveInterfaceInheritance(supertype.element2, path)) {
         return true;
       }
     }
 
-    for (InterfaceType type in element.superclassConstraints) {
-      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+    for (InterfaceType type in element.mixins) {
+      if (_checkForRecursiveInterfaceInheritance(type.element2, path)) {
         return true;
+      }
+    }
+
+    if (element is MixinElement) {
+      for (InterfaceType type in element.superclassConstraints) {
+        if (_checkForRecursiveInterfaceInheritance(type.element2, path)) {
+          return true;
+        }
       }
     }
 
     for (InterfaceType type in element.interfaces) {
-      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+      if (_checkForRecursiveInterfaceInheritance(type.element2, path)) {
         return true;
       }
     }
@@ -681,7 +686,7 @@ class _ClassVerifier {
     // We ignore mixins because they don't inherit and members.
     // But to support `super.foo()` invocations we put members from superclass
     // constraints into the `superImplemented` bucket, the same we look below.
-    if (classElement.isMixin) {
+    if (classElement is MixinElement) {
       return;
     }
 
@@ -743,19 +748,23 @@ class _ClassVerifier {
 
   /// Return the error code that should be used when the given class [element]
   /// references itself directly.
-  ErrorCode _getRecursiveErrorCode(ClassElement element) {
-    if (element.supertype?.element == classElement) {
-      return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS;
+  ErrorCode _getRecursiveErrorCode(InterfaceElement element) {
+    if (element is ClassElement) {
+      if (element.supertype?.element2 == classElement) {
+        return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS;
+      }
     }
 
-    for (InterfaceType type in element.superclassConstraints) {
-      if (type.element == classElement) {
-        return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON;
+    if (element is MixinElement) {
+      for (InterfaceType type in element.superclassConstraints) {
+        if (type.element2 == classElement) {
+          return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON;
+        }
       }
     }
 
     for (InterfaceType type in element.mixins) {
-      if (type.element == classElement) {
+      if (type.element2 == classElement) {
         return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH;
       }
     }
@@ -772,7 +781,7 @@ class _ClassVerifier {
         ClassMember member, String memberName, String displayName) {
       if (memberName == name) {
         reporter.reportErrorForNode(
-          classElement.isEnum
+          classElement is EnumElement
               ? CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER
               : CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
           member,

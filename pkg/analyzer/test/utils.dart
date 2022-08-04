@@ -196,7 +196,7 @@ class TypeAssertions {
 
   /// Assert that a type has the element that is equal to the [expected].
   Asserter<DartType> hasElement(Element expected) =>
-      (DartType type) => expect(expected, type.element);
+      (DartType type) => expect(expected, (type as InterfaceType).element2);
 
   /// Given assertions for the argument and return types, produce an
   /// assertion over unary function types.

@@ -318,7 +318,7 @@ class TypeSystemImpl implements TypeSystem {
   List<InterfaceType> gatherMixinSupertypeConstraintsForInference(
       ClassElement mixinElement) {
     List<InterfaceType> candidates;
-    if (mixinElement.isMixin) {
+    if (mixinElement is MixinElement) {
       candidates = mixinElement.superclassConstraints;
     } else {
       final supertype = mixinElement.supertype;
@@ -332,7 +332,7 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
     return candidates
-        .where((type) => type.element.typeParameters.isNotEmpty)
+        .where((type) => type.element2.typeParameters.isNotEmpty)
         .toList();
   }
 
@@ -345,7 +345,7 @@ class TypeSystemImpl implements TypeSystem {
   FunctionType? getCallMethodType(DartType t) {
     if (t is InterfaceType) {
       return t
-          .lookUpMethod2(FunctionElement.CALL_METHOD_NAME, t.element.library)
+          .lookUpMethod2(FunctionElement.CALL_METHOD_NAME, t.element2.library)
           ?.type;
     }
     return null;
@@ -555,7 +555,7 @@ class TypeSystemImpl implements TypeSystem {
       return type.instantiate(typeArguments);
     } else if (type is InterfaceTypeImpl) {
       // TODO(scheglov) Use `ClassElement.instantiate()`, don't use raw types.
-      return type.element.instantiate(
+      return type.element2.instantiate(
         typeArguments: typeArguments,
         nullabilitySuffix: type.nullabilitySuffix,
       );
@@ -1595,7 +1595,7 @@ class TypeSystemImpl implements TypeSystem {
     if (type is FunctionType) {
       return type.typeFormals;
     } else if (type is InterfaceType) {
-      return type.element.typeParameters;
+      return type.element2.typeParameters;
     } else {
       return const <TypeParameterElement>[];
     }

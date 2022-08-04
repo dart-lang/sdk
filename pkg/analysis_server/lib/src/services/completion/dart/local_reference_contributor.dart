@@ -149,7 +149,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
         : CompletionSuggestionKind.INVOCATION;
     for (var type in classElement.allSupertypes) {
       var inheritanceDistance = request.featureComputer
-          .inheritanceDistanceFeature(classElement, type.element);
+          .inheritanceDistanceFeature(classElement, type.element2);
       _addSuggestionsForType(type, inheritanceDistance,
           isFunctionalArgument: isFunctionalArgument);
     }
@@ -419,7 +419,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
       if (!opType.isPrefixed &&
           opType.includeConstructorSuggestions &&
-          !class_.isEnum) {
+          class_ is! EnumElement) {
         for (final constructor in class_.constructors) {
           if (!class_.isAbstract || constructor.isFactory) {
             builder.suggestConstructor(constructor);

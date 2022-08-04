@@ -15,6 +15,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../util/feature_sets.dart';
+import '../../diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -23,7 +24,7 @@ main() {
 }
 
 @reflectiveTest
-class ToSourceVisitorTest {
+class ToSourceVisitorTest extends ParserDiagnosticsTest {
   void test_visitAdjacentStrings() {
     var findNode = _parseStringToFindNode(r'''
 var v = 'a' 'b';
@@ -944,15 +945,31 @@ void f () {
   }
 
   void test_visitDoubleLiteral() {
-    _assertSource("4.2", AstTestFactory.doubleLiteral(4.2));
+    final code = '3.14';
+    final findNode = _parseStringToFindNode('''
+final x = $code;
+''');
+    _assertSource(code, findNode.doubleLiteral(code));
   }
 
   void test_visitEmptyFunctionBody() {
-    _assertSource(";", AstTestFactory.emptyFunctionBody());
+    final code = ';';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  ;
+}
+''');
+    _assertSource(code, findNode.emptyStatement(code));
   }
 
   void test_visitEmptyStatement() {
-    _assertSource(";", AstTestFactory.emptyStatement());
+    final code = ';';
+    final findNode = _parseStringToFindNode('''
+abstract class A {
+  void foo();
+}
+''');
+    _assertSource(code, findNode.emptyFunctionBody(code));
   }
 
   void test_visitEnumDeclaration_constant_arguments_named() {
@@ -1081,22 +1098,28 @@ export 'foo.dart'
   }
 
   void test_visitExpressionFunctionBody_async() {
-    _assertSource(
-        "async => a;",
-        AstTestFactory.asyncExpressionFunctionBody(
-            AstTestFactory.identifier3("a")));
+    final code = 'async => 0;';
+    final findNode = _parseStringToFindNode('''
+void f() $code
+''');
+    _assertSource(code, findNode.expressionFunctionBody(code));
   }
 
   void test_visitExpressionFunctionBody_async_star() {
-    _assertSource(
-        "async* => a;",
-        AstTestFactory.asyncGeneratorExpressionFunctionBody(
-            AstTestFactory.identifier3("a")));
+    final code = 'async* => 0;';
+    final parseResult = parseStringWithErrors('''
+void f() $code
+''');
+    final node = parseResult.findNode.expressionFunctionBody(code);
+    _assertSource(code, node);
   }
 
   void test_visitExpressionFunctionBody_simple() {
-    _assertSource("=> a;",
-        AstTestFactory.expressionFunctionBody(AstTestFactory.identifier3("a")));
+    final code = '=> 0;';
+    final findNode = _parseStringToFindNode('''
+void f() $code
+''');
+    _assertSource(code, findNode.expressionFunctionBody(code));
   }
 
   void test_visitExpressionStatement() {
@@ -1877,15 +1900,9 @@ void f () {
   }
 
   void test_visitFunctionDeclaration_external() {
-    var functionDeclaration = AstTestFactory.functionDeclaration(
-        null,
-        null,
-        "f",
-        AstTestFactory.functionExpression2(AstTestFactory.formalParameterList(),
-            AstTestFactory.emptyFunctionBody()));
-    functionDeclaration.externalKeyword =
-        TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
-    _assertSource("external f();", functionDeclaration);
+    final code = 'external void f();';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.functionDeclaration(code));
   }
 
   void test_visitFunctionDeclaration_getter() {
@@ -3514,6 +3531,7 @@ void f() {
     expect(buffer.toString(), expectedSource);
   }
 
+  /// TODO(scheglov) Use [parseStringWithErrors] everywhere? Or just there?
   FindNode _parseStringToFindNode(String content) {
     var parseResult = parseString(
       content: content,

@@ -32,7 +32,7 @@ class BulkFixDetails {
         var classElement = classDecl.declaredElement;
         if (classElement != null &&
             classElement.allSupertypes.any(
-                (element) => element.element.name == 'CorrectionProducer')) {
+                (element) => element.element2.name == 'CorrectionProducer')) {
           var correctionName = classDecl.name2.lexeme;
 
           for (var method in classDecl.members.whereType<MethodDeclaration>()) {

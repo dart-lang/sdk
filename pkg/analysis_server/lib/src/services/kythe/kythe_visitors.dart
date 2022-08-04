@@ -305,7 +305,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
       // extends
       var supertype = _enclosingClassElement!.supertype;
-      var supertypeElement = supertype?.element;
+      var supertypeElement = supertype?.element2;
       if (supertypeElement != null) {
         var recordSupertypeVName =
             _vNameFromElement(supertypeElement, schema.RECORD_KIND);
@@ -317,7 +317,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
       var interfaces = _enclosingClassElement!.interfaces;
       for (var interface in interfaces) {
         var recordInterfaceVName =
-            _vNameFromElement(interface.element, schema.RECORD_KIND);
+            _vNameFromElement(interface.element2, schema.RECORD_KIND);
         addEdge(
             _enclosingClassVName!, schema.EXTENDS_EDGE, recordInterfaceVName);
       }
@@ -326,7 +326,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
       var mixins = _enclosingClassElement!.mixins;
       for (var mixin in mixins) {
         var recordMixinVName =
-            _vNameFromElement(mixin.element, schema.RECORD_KIND);
+            _vNameFromElement(mixin.element2, schema.RECORD_KIND);
         addEdge(_enclosingClassVName!, schema.EXTENDS_EDGE, recordMixinVName);
       }
 
@@ -383,7 +383,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
       var interfaces = _enclosingClassElement!.interfaces;
       for (var interface in interfaces) {
         var recordInterfaceVName =
-            _vNameFromElement(interface.element, schema.RECORD_KIND);
+            _vNameFromElement(interface.element2, schema.RECORD_KIND);
         addEdge(
             _enclosingClassVName!, schema.EXTENDS_EDGE, recordInterfaceVName);
       }
@@ -392,7 +392,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
       var mixins = _enclosingClassElement!.mixins;
       for (var mixin in mixins) {
         var recordMixinVName =
-            _vNameFromElement(mixin.element, schema.RECORD_KIND);
+            _vNameFromElement(mixin.element2, schema.RECORD_KIND);
         addEdge(_enclosingClassVName!, schema.EXTENDS_EDGE, recordMixinVName);
       }
 
@@ -1023,18 +1023,18 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
   void _handleThisOrSuper(Expression thisOrSuperNode) {
     var type = thisOrSuperNode.staticType;
-    if (type != null && type.element != null) {
+    if (type is InterfaceType) {
       // Expected SuperExpression.staticType to return the type of the
       // supertype, but it returns the type of the enclosing class (same as
       // ThisExpression), do some additional work to correct assumption:
-      if (thisOrSuperNode is SuperExpression && type.element is ClassElement) {
-        var supertype = (type.element as ClassElement).supertype;
+      if (thisOrSuperNode is SuperExpression && type.element2 is ClassElement) {
+        var supertype = (type.element2 as ClassElement).supertype;
         if (supertype != null) {
           type = supertype;
         }
       }
       // vname
-      var vName = _vNameFromElement(type.element, schema.RECORD_KIND);
+      var vName = _vNameFromElement(type.element2, schema.RECORD_KIND);
 
       // anchor
       var anchorVName = addAnchorEdgesContainingEdge(
@@ -1318,8 +1318,8 @@ mixin OutputUtils {
         var paramTypeVName = dynamicBuiltin;
         var declaredElement = paramNode.declaredElement!;
         var type = declaredElement.type;
-        if (!type.isDynamic) {
-          paramTypeVName = _vNameFromElement(type.element, schema.TAPP_KIND);
+        if (type is InterfaceType) {
+          paramTypeVName = _vNameFromElement(type.element2, schema.TAPP_KIND);
         }
         addEdge(funcTypeVName, schema.PARAM_EDGE, paramTypeVName,
             ordinalIntValue: i++);
@@ -1395,8 +1395,8 @@ mixin OutputUtils {
       return dynamicBuiltin;
     } else if (type.isVoid) {
       return voidBuiltin;
-    } else if (type.element is ClassElement) {
-      return _vNameFromElement(type.element, schema.RECORD_KIND);
+    } else if (type is InterfaceType) {
+      return _vNameFromElement(type.element2, schema.RECORD_KIND);
     } else {
       return dynamicBuiltin;
     }

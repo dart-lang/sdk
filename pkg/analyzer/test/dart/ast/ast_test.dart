@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -9,6 +10,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
@@ -17,6 +19,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/parser_test_base.dart' show ParserTestCase;
+import '../../src/diagnostics/parser_diagnostics.dart';
 import '../../util/feature_sets.dart';
 
 main() {
@@ -155,80 +158,68 @@ class ClassTypeAliasTest extends ParserTestCase {
 }
 
 @reflectiveTest
-class ConstructorDeclarationTest {
+class ConstructorDeclarationTest extends ParserDiagnosticsTest {
   void test_firstTokenAfterCommentAndMetadata_all_inverted() {
-    Token externalKeyword = TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
-    externalKeyword.offset = 14;
-    var declaration = AstTestFactory.constructorDeclaration2(
-        Keyword.CONST,
-        Keyword.FACTORY,
-        AstTestFactory.identifier3('int'),
-        null,
-        AstTestFactory.formalParameterList(),
-        [],
-        AstTestFactory.emptyFunctionBody());
-    declaration.externalKeyword = externalKeyword;
-    declaration.constKeyword!.offset = 8;
-    Token factoryKeyword = declaration.factoryKeyword!;
-    factoryKeyword.offset = 0;
-    expect(declaration.firstTokenAfterCommentAndMetadata, factoryKeyword);
+    final parseResult = parseStringWithErrors(r'''
+class A {
+  factory const external A();
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 20, 5),
+      error(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 26, 8),
+    ]);
+
+    final node = parseResult.findNode.constructor('A()');
+    expect(node.firstTokenAfterCommentAndMetadata, node.factoryKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_all_normal() {
-    Token token = TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
-    token.offset = 0;
-    var declaration = AstTestFactory.constructorDeclaration2(
-        Keyword.CONST,
-        Keyword.FACTORY,
-        AstTestFactory.identifier3('int'),
-        null,
-        AstTestFactory.formalParameterList(),
-        [],
-        AstTestFactory.emptyFunctionBody());
-    declaration.externalKeyword = token;
-    declaration.constKeyword!.offset = 9;
-    declaration.factoryKeyword!.offset = 15;
-    expect(declaration.firstTokenAfterCommentAndMetadata, token);
+    final parseResult = parseStringWithErrors(r'''
+class A {
+  external const factory A();
+}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.constructor('A()');
+    expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_constOnly() {
-    ConstructorDeclaration declaration = AstTestFactory.constructorDeclaration2(
-        Keyword.CONST,
-        null,
-        AstTestFactory.identifier3('int'),
-        null,
-        AstTestFactory.formalParameterList(),
-        [],
-        AstTestFactory.emptyFunctionBody());
-    expect(declaration.firstTokenAfterCommentAndMetadata,
-        declaration.constKeyword);
+    final parseResult = parseStringWithErrors(r'''
+class A {
+  const A();
+}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.constructor('A()');
+    expect(node.firstTokenAfterCommentAndMetadata, node.constKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_externalOnly() {
-    Token externalKeyword = TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
-    var declaration = AstTestFactory.constructorDeclaration2(
-        null,
-        null,
-        AstTestFactory.identifier3('int'),
-        null,
-        AstTestFactory.formalParameterList(),
-        [],
-        AstTestFactory.emptyFunctionBody());
-    declaration.externalKeyword = externalKeyword;
-    expect(declaration.firstTokenAfterCommentAndMetadata, externalKeyword);
+    final parseResult = parseStringWithErrors(r'''
+class A {
+  external A();
+}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.constructor('A()');
+    expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_factoryOnly() {
-    ConstructorDeclaration declaration = AstTestFactory.constructorDeclaration2(
-        null,
-        Keyword.FACTORY,
-        AstTestFactory.identifier3('int'),
-        null,
-        AstTestFactory.formalParameterList(),
-        [],
-        AstTestFactory.emptyFunctionBody());
-    expect(declaration.firstTokenAfterCommentAndMetadata,
-        declaration.factoryKeyword);
+    final parseResult = parseStringWithErrors(r'''
+class A {
+  factory A() => throw 0;
+}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.constructor('A()');
+    expect(node.firstTokenAfterCommentAndMetadata, node.factoryKeyword);
   }
 }
 
@@ -991,48 +982,65 @@ class InterpolationStringTest extends ParserTestCase {
 }
 
 @reflectiveTest
-class MethodDeclarationTest {
+class MethodDeclarationTest extends ParserDiagnosticsTest {
   void test_firstTokenAfterCommentAndMetadata_external() {
-    MethodDeclaration declaration = AstTestFactory.methodDeclaration4(
-        external: true, name: 'm', body: AstTestFactory.emptyFunctionBody());
-    expect(declaration.firstTokenAfterCommentAndMetadata,
-        declaration.externalKeyword);
+    final parseResult = parseStringWithErrors(r'''
+class A {
+  external void foo();
+}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.methodDeclaration('foo()');
+    expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_external_getter() {
-    MethodDeclaration declaration = AstTestFactory.methodDeclaration4(
-        external: true,
-        property: Keyword.GET,
-        name: 'm',
-        body: AstTestFactory.emptyFunctionBody());
-    expect(declaration.firstTokenAfterCommentAndMetadata,
-        declaration.externalKeyword);
+    final parseResult = parseStringWithErrors(r'''
+class A {
+  external get foo;
+}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.methodDeclaration('get foo');
+    expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_external_operator() {
-    MethodDeclaration declaration = AstTestFactory.methodDeclaration4(
-        external: true,
-        operator: true,
-        name: 'm',
-        body: AstTestFactory.emptyFunctionBody());
-    expect(declaration.firstTokenAfterCommentAndMetadata,
-        declaration.externalKeyword);
+    final parseResult = parseStringWithErrors(r'''
+class A {
+  external operator +(int other);
+}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.methodDeclaration('external operator');
+    expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_getter() {
-    MethodDeclaration declaration = AstTestFactory.methodDeclaration4(
-        property: Keyword.GET,
-        name: 'm',
-        body: AstTestFactory.emptyFunctionBody());
-    expect(declaration.firstTokenAfterCommentAndMetadata,
-        declaration.propertyKeyword);
+    final parseResult = parseStringWithErrors(r'''
+class A {
+  get foo => 0;
+}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.methodDeclaration('get foo');
+    expect(node.firstTokenAfterCommentAndMetadata, node.propertyKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_operator() {
-    MethodDeclaration declaration = AstTestFactory.methodDeclaration4(
-        operator: true, name: 'm', body: AstTestFactory.emptyFunctionBody());
-    expect(declaration.firstTokenAfterCommentAndMetadata,
-        declaration.operatorKeyword);
+    final parseResult = parseStringWithErrors(r'''
+class A {
+  operator +(int other) => 0;
+}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.methodDeclaration('operator');
+    expect(node.firstTokenAfterCommentAndMetadata, node.operatorKeyword);
   }
 }
 
@@ -2207,6 +2215,14 @@ class _AssignmentKind {
 }
 
 class _AstTest {
+  ParseStringResult parseStringWithErrors(String content) {
+    return parseString(
+      content: content,
+      featureSet: FeatureSets.latestWithExperiments,
+      throwIfDiagnostics: false,
+    );
+  }
+
   FindNode _parseStringToFindNode(String content) {
     var parseResult = parseString(
       content: content,

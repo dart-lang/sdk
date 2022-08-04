@@ -305,7 +305,7 @@ class LibraryMacroApplier {
         final variableType = variable.type;
         if (variable is ConstTopLevelVariableElementImpl &&
             variableType is InterfaceType) {
-          final macroClass = variableType.element;
+          final macroClass = variableType.element2;
           final initializer = variable.constantInitializer;
           if (macroClass is ClassElementImpl &&
               macroClass.isMacro &&

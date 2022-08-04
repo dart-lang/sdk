@@ -369,7 +369,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
     // prepare ClassElement
     if (type is InterfaceType) {
-      var element = type.element;
+      var element = type.element2;
       // lookup for ==
       var method = element.lookUpConcreteMethod("==", _currentLibrary);
       if (method == null ||

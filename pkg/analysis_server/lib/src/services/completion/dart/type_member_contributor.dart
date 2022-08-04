@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
@@ -251,7 +249,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
     }
     for (var targetType in types) {
       var inheritanceDistance = request.featureComputer
-          .inheritanceDistanceFeature(type.element, targetType.element);
+          .inheritanceDistanceFeature(type.element2, targetType.element2);
       for (var method in targetType.methods) {
         // Exclude static methods when completion on an instance.
         if (!method.isStatic) {
@@ -288,11 +286,11 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
     // classes seen (not the interfaces) so that we won't be fooled by nonsense
     // like "class C<T> extends C<List<T>> {}"
     var result = <InterfaceType>[];
-    Set<ClassElement> classesSeen = HashSet<ClassElement>();
+    final classesSeen = <InterfaceElement>{};
     var typesToVisit = <InterfaceType>[type];
     while (typesToVisit.isNotEmpty) {
       var nextType = typesToVisit.removeLast();
-      if (!classesSeen.add(nextType.element)) {
+      if (!classesSeen.add(nextType.element2)) {
         // Class had already been seen, so ignore this type.
         continue;
       }

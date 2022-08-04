@@ -312,7 +312,7 @@ class PropertyElementResolver with ScopeHelpers {
             propertyName.name,
             element.kind.displayName,
             enclosingElement.name!,
-            enclosingElement is ClassElement && enclosingElement.isMixin
+            enclosingElement is MixinElement
                 ? 'mixin'
                 : enclosingElement.kind.displayName,
           ]);
@@ -370,7 +370,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (target is Identifier) {
       var targetElement = target.staticElement;
       if (targetElement is ClassElement) {
-        return _resolveTargetClassElement(
+        return _resolveTargetInterfaceElement(
           typeReference: targetElement,
           isCascaded: isCascaded,
           propertyName: propertyName,
@@ -380,8 +380,8 @@ class PropertyElementResolver with ScopeHelpers {
       } else if (targetElement is TypeAliasElement) {
         var aliasedType = targetElement.aliasedType;
         if (aliasedType is InterfaceType) {
-          return _resolveTargetClassElement(
-            typeReference: aliasedType.element,
+          return _resolveTargetInterfaceElement(
+            typeReference: aliasedType.element2,
             isCascaded: isCascaded,
             propertyName: propertyName,
             hasRead: hasRead,
@@ -492,87 +492,6 @@ class PropertyElementResolver with ScopeHelpers {
       readElementRecovery: result.setter,
       writeElementRequested: result.setter,
       writeElementRecovery: result.getter,
-    );
-  }
-
-  PropertyElementResolverResult _resolveTargetClassElement({
-    required ClassElement typeReference,
-    required bool isCascaded,
-    required SimpleIdentifier propertyName,
-    required bool hasRead,
-    required bool hasWrite,
-  }) {
-    if (isCascaded) {
-      typeReference = _resolver.typeProvider.typeType.element;
-    }
-
-    ExecutableElement? readElement;
-    ExecutableElement? readElementRecovery;
-    if (hasRead) {
-      readElement = typeReference.getGetter(propertyName.name);
-      if (readElement != null && !_isAccessible(readElement)) {
-        readElement = null;
-      }
-
-      if (readElement == null) {
-        readElement = typeReference.getMethod(propertyName.name);
-        if (readElement != null && !_isAccessible(readElement)) {
-          readElement = null;
-        }
-      }
-
-      if (readElement != null) {
-        readElement = _resolver.toLegacyElement(readElement);
-        if (_checkForStaticAccessToInstanceMember(propertyName, readElement)) {
-          readElementRecovery = readElement;
-          readElement = null;
-        }
-      } else {
-        var code = typeReference.isEnum
-            ? CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT
-            : CompileTimeErrorCode.UNDEFINED_GETTER;
-        errorReporter.reportErrorForNode(
-          code,
-          propertyName,
-          [propertyName.name, typeReference.name],
-        );
-      }
-    }
-
-    ExecutableElement? writeElement;
-    ExecutableElement? writeElementRecovery;
-    if (hasWrite) {
-      writeElement = typeReference.getSetter(propertyName.name);
-      if (writeElement != null) {
-        writeElement = _resolver.toLegacyElement(writeElement);
-        if (!_isAccessible(writeElement)) {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.PRIVATE_SETTER,
-            propertyName,
-            [propertyName.name],
-          );
-        }
-        if (_checkForStaticAccessToInstanceMember(propertyName, writeElement)) {
-          writeElementRecovery = writeElement;
-          writeElement = null;
-        }
-      } else {
-        // Recovery, try to use getter.
-        writeElementRecovery = typeReference.getGetter(propertyName.name);
-        AssignmentVerifier(_definingLibrary, errorReporter).verify(
-          node: propertyName,
-          requested: null,
-          recovery: writeElementRecovery,
-          receiverType: typeReference.thisType,
-        );
-      }
-    }
-
-    return PropertyElementResolverResult(
-      readElementRequested: readElement,
-      readElementRecovery: readElementRecovery,
-      writeElementRequested: writeElement,
-      writeElementRecovery: writeElementRecovery,
     );
   }
 
@@ -696,6 +615,87 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
+  PropertyElementResolverResult _resolveTargetInterfaceElement({
+    required InterfaceElement typeReference,
+    required bool isCascaded,
+    required SimpleIdentifier propertyName,
+    required bool hasRead,
+    required bool hasWrite,
+  }) {
+    if (isCascaded) {
+      typeReference = _resolver.typeProvider.typeType.element2;
+    }
+
+    ExecutableElement? readElement;
+    ExecutableElement? readElementRecovery;
+    if (hasRead) {
+      readElement = typeReference.getGetter(propertyName.name);
+      if (readElement != null && !_isAccessible(readElement)) {
+        readElement = null;
+      }
+
+      if (readElement == null) {
+        readElement = typeReference.getMethod(propertyName.name);
+        if (readElement != null && !_isAccessible(readElement)) {
+          readElement = null;
+        }
+      }
+
+      if (readElement != null) {
+        readElement = _resolver.toLegacyElement(readElement);
+        if (_checkForStaticAccessToInstanceMember(propertyName, readElement)) {
+          readElementRecovery = readElement;
+          readElement = null;
+        }
+      } else {
+        var code = typeReference is EnumElement
+            ? CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT
+            : CompileTimeErrorCode.UNDEFINED_GETTER;
+        errorReporter.reportErrorForNode(
+          code,
+          propertyName,
+          [propertyName.name, typeReference.name],
+        );
+      }
+    }
+
+    ExecutableElement? writeElement;
+    ExecutableElement? writeElementRecovery;
+    if (hasWrite) {
+      writeElement = typeReference.getSetter(propertyName.name);
+      if (writeElement != null) {
+        writeElement = _resolver.toLegacyElement(writeElement);
+        if (!_isAccessible(writeElement)) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.PRIVATE_SETTER,
+            propertyName,
+            [propertyName.name],
+          );
+        }
+        if (_checkForStaticAccessToInstanceMember(propertyName, writeElement)) {
+          writeElementRecovery = writeElement;
+          writeElement = null;
+        }
+      } else {
+        // Recovery, try to use getter.
+        writeElementRecovery = typeReference.getGetter(propertyName.name);
+        AssignmentVerifier(_definingLibrary, errorReporter).verify(
+          node: propertyName,
+          requested: null,
+          recovery: writeElementRecovery,
+          receiverType: typeReference.thisType,
+        );
+      }
+    }
+
+    return PropertyElementResolverResult(
+      readElementRequested: readElement,
+      readElementRecovery: readElementRecovery,
+      writeElementRequested: writeElement,
+      writeElementRecovery: writeElementRecovery,
+    );
+  }
+
   PropertyElementResolverResult _resolveTargetPrefixElement({
     required PrefixElement target,
     required SimpleIdentifier identifier,
@@ -755,7 +755,7 @@ class PropertyElementResolver with ScopeHelpers {
       if (hasRead) {
         var name = Name(_definingLibrary.source.uri, propertyName.name);
         readElement = _resolver.inheritance
-            .getMember2(targetType.element, name, forSuper: true);
+            .getMember2(targetType.element2, name, forSuper: true);
 
         if (readElement != null) {
           readElement = _resolver.toLegacyElement(readElement);
@@ -765,7 +765,7 @@ class PropertyElementResolver with ScopeHelpers {
           // But we would like to give the user at least some resolution.
           // So, we retry simply looking for an inherited member.
           readElement =
-              _resolver.inheritance.getInherited2(targetType.element, name);
+              _resolver.inheritance.getInherited2(targetType.element2, name);
           if (readElement != null) {
             errorReporter.reportErrorForNode(
               CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,

@@ -162,7 +162,7 @@ Set<String> _getNamesConflictingAt(AstNode node) {
     var enclosingClassElement = getEnclosingClassElement(node);
     if (enclosingClassElement != null) {
       var elements = [
-        ...enclosingClassElement.allSupertypes.map((e) => e.element),
+        ...enclosingClassElement.allSupertypes.map((e) => e.element2),
         enclosingClassElement,
       ];
       for (var classElement in elements) {

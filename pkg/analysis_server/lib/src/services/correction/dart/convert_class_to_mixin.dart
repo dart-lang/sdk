@@ -38,7 +38,7 @@ class ConvertClassToMixin extends CorrectionProducer {
 
     var classElement = classDeclaration.declaredElement!;
     for (var type in classElement.mixins) {
-      if (referencedClasses.contains(type.element)) {
+      if (referencedClasses.contains(type.element2)) {
         superclassConstraints.add(type);
       } else {
         interfaces.add(type);

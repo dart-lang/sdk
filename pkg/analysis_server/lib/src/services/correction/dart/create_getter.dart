@@ -55,7 +55,7 @@ class CreateGetter extends CorrectionProducer {
       if (targetType is! InterfaceType) {
         return;
       }
-      targetElement = targetType.element;
+      targetElement = targetType.element2;
       // maybe static
       if (target is Identifier) {
         var targetIdentifier = target;

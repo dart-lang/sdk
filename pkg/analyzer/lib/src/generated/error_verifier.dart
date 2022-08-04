@@ -283,7 +283,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// The language team is thinking about adding abstract fields, or external
   /// fields. But for now we will ignore such fields in `Struct` subtypes.
   bool get _isEnclosingClassFfiStruct {
-    var superClass = _enclosingClass?.supertype?.element;
+    var superClass = _enclosingClass?.supertype?.element2;
     return superClass != null &&
         superClass.library.name == 'dart.ffi' &&
         superClass.name == 'Struct';
@@ -292,7 +292,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// The language team is thinking about adding abstract fields, or external
   /// fields. But for now we will ignore such fields in `Struct` subtypes.
   bool get _isEnclosingClassFfiUnion {
-    var superClass = _enclosingClass?.supertype?.element;
+    var superClass = _enclosingClass?.supertype?.element2;
     return superClass != null &&
         superClass.library.name == 'dart.ffi' &&
         superClass.name == 'Union';
@@ -1460,12 +1460,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             mixinName, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS)) {
           problemReported = true;
         } else {
-          ClassElement mixinElement = mixinType.element;
+          final mixinElement = mixinType.element2;
           if (_checkForExtendsOrImplementsDeferredClass(
               mixinName, CompileTimeErrorCode.MIXIN_DEFERRED_CLASS)) {
             problemReported = true;
           }
-          if (mixinElement.isMixin) {
+          if (mixinElement is MixinElement) {
             if (_checkForMixinSuperclassConstraints(
                 mixinNameIndex, mixinName)) {
               problemReported = true;
@@ -1504,7 +1504,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       // REDIRECT_TO_MISSING_CONSTRUCTOR case
       NamedType constructorNamedType = redirectedConstructor.type;
       DartType redirectedType = constructorNamedType.typeOrThrow;
-      if (redirectedType.element != null && !redirectedType.isDynamic) {
+      if (redirectedType is! DynamicType) {
         // Prepare the constructor name
         String constructorStrName = constructorNamedType.name.name;
         if (redirectedConstructor.name != null) {
@@ -1854,7 +1854,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       String name = typeParameter.name;
       // name is same as the name of the enclosing class
       if (enclosingClass.name == name) {
-        var code = enclosingClass.isMixin
+        var code = enclosingClass is MixinElement
             ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN
             : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS;
         errorReporter.reportErrorForElement(code, typeParameter, [name]);
@@ -1864,7 +1864,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           enclosingClass.getMethod(name) != null ||
           enclosingClass.getGetter(name) != null ||
           enclosingClass.getSetter(name) != null) {
-        var code = enclosingClass.isMixin
+        var code = enclosingClass is MixinElement
             ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN
             : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS;
         errorReporter.reportErrorForElement(code, typeParameter, [name]);
@@ -1999,7 +1999,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
         redirectingInitializerCount++;
       } else if (initializer is SuperConstructorInvocation) {
-        if (enclosingClass.isEnum) {
+        if (enclosingClass is EnumElement) {
           errorReporter.reportErrorForToken(
             CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR,
             initializer.superKeyword,
@@ -2018,7 +2018,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (redirectingInitializerCount > 0) {
       for (ConstructorInitializer initializer in declaration.initializers) {
         if (initializer is SuperConstructorInvocation) {
-          if (!enclosingClass.isEnum) {
+          if (enclosingClass is! EnumElement) {
             errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
                 initializer);
@@ -2036,11 +2036,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
       }
     }
-    if (!enclosingClass.isEnum &&
+    if (enclosingClass is! EnumElement &&
         redirectingInitializerCount == 0 &&
         superInitializerCount == 1 &&
         superInitializer != declaration.initializers.last) {
-      var superNamedType = enclosingClass.supertype!.element.displayName;
+      var superNamedType = enclosingClass.supertype!.element2.displayName;
       var constructorStrName = superNamedType;
       var constructorName = superInitializer.constructorName;
       if (constructorName != null) {
@@ -2077,7 +2077,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // check for mixins
     var instanceFields = <FieldElement>[];
     for (var mixin in enclosingClass.mixins) {
-      instanceFields.addAll(mixin.element.fields.where((field) {
+      instanceFields.addAll(mixin.element2.fields.where((field) {
         if (field.isStatic) {
           return false;
         }
@@ -2113,7 +2113,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // Enum(s) always call a const super-constructor.
-    if (enclosingClass.isEnum) {
+    if (enclosingClass is EnumElement) {
       return false;
     }
 
@@ -2139,7 +2139,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (supertype.isDartCoreObject) {
       return false;
     }
-    var unnamedConstructor = supertype.element.unnamedConstructor;
+    var unnamedConstructor = supertype.element2.unnamedConstructor;
     if (unnamedConstructor == null || unnamedConstructor.isConst) {
       return false;
     }
@@ -2208,7 +2208,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       InstanceCreationExpression expression,
       NamedType namedType,
       InterfaceType type) {
-    if (type.element.isAbstract && !type.element.isMixin) {
+    final element = type.element2;
+    if (element is! MixinElement &&
+        element is ClassElement &&
+        element.isAbstract) {
       var element = expression.constructorName.staticElement;
       if (element != null && !element.isFactory) {
         bool isImplicit =
@@ -2227,7 +2230,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the given [expression] is not a mixin instantiation.
   void _checkForConstOrNewWithMixin(InstanceCreationExpression expression,
       NamedType namedType, InterfaceType type) {
-    if (type.element.isMixin) {
+    if (type.element2 is MixinElement) {
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MIXIN_INSTANTIATE, namedType);
     }
@@ -2273,8 +2276,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     DartType type = namedType.typeOrThrow;
     if (type is InterfaceType) {
-      ClassElement element = type.element;
-      if (element.isEnum) {
+      if (type.element2 is EnumElement) {
         // We have already reported the error.
         return;
       }
@@ -2633,7 +2635,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     var type = namedType.type;
     return type is InterfaceType &&
-        _typeProvider.isNonSubtypableClass(type.element);
+        _typeProvider.isNonSubtypableClass(type.element2);
   }
 
   void _checkForExtensionDeclaresMemberOfObject(MethodDeclaration node) {
@@ -2921,8 +2923,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// the [name] is reference to an instance member.
   ///
   /// See [CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER].
-  void _checkForInstanceAccessToStaticMember(
-      ClassElement? typeReference, Expression? target, SimpleIdentifier name) {
+  void _checkForInstanceAccessToStaticMember(InterfaceElement? typeReference,
+      Expression? target, SimpleIdentifier name) {
     if (_isInComment) {
       // OK, in comment
       return;
@@ -3301,8 +3303,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     var hasCaseNull = false;
     if (expressionType is InterfaceType) {
-      var enumElement = expressionType.element;
-      if (enumElement.isEnum) {
+      var enumElement = expressionType.element2;
+      if (enumElement is EnumElement) {
         var constantNames = enumElement.fields
             .where((field) => field.isEnumConstant)
             .map((field) => field.name)
@@ -3354,7 +3356,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR].
   bool _checkForMixinClassDeclaresConstructor(
-      NamedType mixinName, ClassElement mixinElement) {
+      NamedType mixinName, InterfaceElement mixinElement) {
     for (ConstructorElement constructor in mixinElement.constructors) {
       if (!constructor.isSynthetic && !constructor.isFactory) {
         errorReporter.reportErrorForNode(
@@ -3374,8 +3376,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
   bool _checkForMixinInheritsNotFromObject(
-      NamedType mixinName, ClassElement mixinElement) {
-    if (mixinElement.isEnum) {
+      NamedType mixinName, InterfaceElement mixinElement) {
+    if (mixinElement is EnumElement) {
+      return false;
+    }
+    if (mixinElement is! ClassElement) {
       return false;
     }
 
@@ -3437,7 +3442,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [mixinIndex] in the list of mixins of [_enclosingClass] has concrete
   /// implementations of all the super-invoked members of the [mixinElement].
   bool _checkForMixinSuperInvokedMembers(int mixinIndex, NamedType mixinName,
-      ClassElement mixinElement, InterfaceType mixinType) {
+      InterfaceElement mixinElement, InterfaceType mixinType) {
     var mixinElementImpl = mixinElement as ClassElementImpl;
     if (mixinElementImpl.superInvokedNames.isEmpty) {
       return false;
@@ -3517,7 +3522,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
         names[name] = namedType.name.name;
         var inheritedMember = _inheritanceManager.getMember2(
-          declaredSupertype.element,
+          declaredSupertype.element2,
           Name(library.source.uri, name),
           concrete: true,
         );
@@ -3541,7 +3546,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (NamedType mixinType in withClause.mixinTypes) {
       DartType type = mixinType.typeOrThrow;
       if (type is InterfaceType) {
-        LibraryElement library = type.element.library;
+        LibraryElement library = type.element2.library;
         if (library != _currentLibrary) {
           for (PropertyAccessorElement accessor in type.accessors) {
             if (accessor.isStatic) {
@@ -3592,8 +3597,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     DartType type = namedType.typeOrThrow;
     if (type is InterfaceType) {
-      ClassElement element = type.element;
-      if (element.isEnum || element.isMixin) {
+      final element = type.element2;
+      if (element is EnumElement || element is MixinElement) {
         // We have already reported the error.
         return;
       }
@@ -3632,7 +3637,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superType == null) {
       return;
     }
-    ClassElement superElement = superType.element;
+    final superElement = superType.element2;
     // try to find default generative super constructor
     var superUnnamedConstructor = superElement.unnamedConstructor;
     superUnnamedConstructor = superUnnamedConstructor != null
@@ -3654,7 +3659,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 
-    if (!_typeProvider.isNonSubtypableClass(superType.element)) {
+    if (!_typeProvider.isNonSubtypableClass(superType.element2)) {
       // Don't report this diagnostic for non-subtypable classes because the
       // real problem was already reported.
       errorReporter.reportErrorForToken(
@@ -3675,7 +3680,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       // subclass has only factory constructors.
       return false;
     }
-    ClassElement superElement = superType.element;
+    final superElement = superType.element2;
     if (superElement.constructors.isEmpty) {
       // Exclude empty constructor set, which indicates other errors occurred.
       return false;
@@ -3694,7 +3699,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForNonConstGenerativeEnumConstructor(ConstructorDeclaration node) {
-    if (_enclosingClass?.isEnum == true &&
+    if (_enclosingClass is EnumElement &&
         node.constKeyword == null &&
         node.factoryKeyword == null) {
       errorReporter.reportErrorForName(
@@ -3741,7 +3746,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (variableList.isFinal) return;
 
     var enclosingClass = _enclosingClass;
-    if (enclosingClass == null || !enclosingClass.isEnum) {
+    if (enclosingClass == null || enclosingClass is! EnumElement) {
       return;
     }
 
@@ -4120,11 +4125,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (!detectedRepeatOnIndex[i]) {
         var type = namedTypes[i].type;
         if (type is InterfaceType) {
-          var element = type.element;
+          var element = type.element2;
           for (int j = i + 1; j < count; j++) {
             var otherNode = namedTypes[j];
             var otherType = otherNode.type;
-            if (otherType is InterfaceType && otherType.element == element) {
+            if (otherType is InterfaceType && otherType.element2 == element) {
               detectedRepeatOnIndex[j] = true;
               errorReporter
                   .reportErrorForNode(errorCode, otherNode, [element.name]);
@@ -4205,7 +4210,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER].
   void _checkForStaticAccessToInstanceMember(
-      ClassElement? typeReference, SimpleIdentifier name) {
+      InterfaceElement? typeReference, SimpleIdentifier name) {
     // OK, in comment
     if (_isInComment) {
       return;
@@ -4400,7 +4405,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superType == null) {
       return;
     }
-    ClassElement superElement = superType.element;
+    final superElement = superType.element2;
 
     if (superElement.constructors
         .every((constructor) => constructor.isFactory)) {
@@ -4925,14 +4930,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var superElement = _enclosingClass!.supertype?.element;
+    var superElement = _enclosingClass!.supertype?.element2;
     if (superElement == null) {
       return;
     }
 
     for (var interfaceNode in implementsClause.interfaces) {
       var type = interfaceNode.type;
-      if (type is InterfaceType && type.element == superElement) {
+      if (type is InterfaceType && type.element2 == superElement) {
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
           interfaceNode,
@@ -4972,14 +4977,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var superElement = _enclosingClass!.supertype?.element;
+    var superElement = _enclosingClass!.supertype?.element2;
     if (superElement == null) {
       return;
     }
 
     for (var mixinNode in withClause.mixinTypes) {
       var type = mixinNode.type;
-      if (type is InterfaceType && type.element == superElement) {
+      if (type is InterfaceType && type.element2 == superElement) {
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MIXINS_SUPER_CLASS,
           mixinNode,

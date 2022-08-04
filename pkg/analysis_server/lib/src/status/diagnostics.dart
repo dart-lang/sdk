@@ -516,8 +516,12 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     h3('Pub files');
     buf.writeln('<p>');
+
+    var packageConfig = folder
+        .getChildAssumingFolder(file_paths.dotDartTool)
+        .getChildAssumingFile(file_paths.packageConfigJson);
     buf.writeln(
-        writeOption('Has .packages file', folder.getChild('.packages').exists));
+        writeOption('Has package_config.json file', packageConfig.exists));
     buf.writeln(writeOption('Has pubspec.yaml file',
         folder.getChild(file_paths.pubspecYaml).exists));
     buf.writeln('</p>');

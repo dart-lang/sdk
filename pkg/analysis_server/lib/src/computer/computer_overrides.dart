@@ -106,7 +106,7 @@ class _OverriddenElementsFinder {
 
   final List<Element> _superElements = <Element>[];
   final List<Element> _interfaceElements = <Element>[];
-  final Set<ClassElement> _visited = <ClassElement>{};
+  final Set<InterfaceElement> _visited = {};
 
   factory _OverriddenElementsFinder(Element seed) {
     var class_ = seed.enclosingElement3 as ClassElement;
@@ -143,7 +143,7 @@ class _OverriddenElementsFinder {
     return OverriddenElements(_seed, _superElements, _interfaceElements);
   }
 
-  void _addInterfaceOverrides(ClassElement? class_, bool checkType) {
+  void _addInterfaceOverrides(InterfaceElement? class_, bool checkType) {
     if (class_ == null) {
       return;
     }
@@ -159,13 +159,16 @@ class _OverriddenElementsFinder {
     }
     // interfaces
     for (var interfaceType in class_.interfaces) {
-      _addInterfaceOverrides(interfaceType.element, true);
+      _addInterfaceOverrides(interfaceType.element2, true);
     }
     // super
-    _addInterfaceOverrides(class_.supertype?.element, checkType);
+    if (class_ is ClassElement) {
+      _addInterfaceOverrides(class_.supertype?.element2, checkType);
+    }
   }
 
-  void _addSuperOverrides(ClassElement? class_, {bool withThisType = true}) {
+  void _addSuperOverrides(InterfaceElement? class_,
+      {bool withThisType = true}) {
     if (class_ == null) {
       return;
     }
@@ -180,16 +183,20 @@ class _OverriddenElementsFinder {
       }
     }
 
-    _addSuperOverrides(class_.supertype?.element);
-    for (var mixin_ in class_.mixins) {
-      _addSuperOverrides(mixin_.element);
+    if (class_ is ClassElement) {
+      _addSuperOverrides(class_.supertype?.element2);
     }
-    for (var constraint in class_.superclassConstraints) {
-      _addSuperOverrides(constraint.element);
+    for (var mixin_ in class_.mixins) {
+      _addSuperOverrides(mixin_.element2);
+    }
+    if (class_ is MixinElement) {
+      for (var constraint in class_.superclassConstraints) {
+        _addSuperOverrides(constraint.element2);
+      }
     }
   }
 
-  Element? _lookupMember(ClassElement classElement) {
+  Element? _lookupMember(InterfaceElement classElement) {
     Element? member;
     // method
     if (_kinds.contains(ElementKind.METHOD)) {

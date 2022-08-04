@@ -199,7 +199,7 @@ class DecoratedType implements DecoratedTypeInfo {
     var type = this.type;
     if (type is InterfaceType) {
       return Map<TypeParameterElement, DecoratedType?>.fromIterables(
-          type.element.typeParameters, typeArguments);
+          type.element2.typeParameters, typeArguments);
     } else {
       throw StateError(
           'Tried to convert a non-interface type to a substitution');
@@ -248,7 +248,7 @@ class DecoratedType implements DecoratedTypeInfo {
         }
         return true;
       } else if (thisType is InterfaceType && otherType is InterfaceType) {
-        if (thisType.element != otherType.element) return false;
+        if (thisType.element2 != otherType.element2) return false;
         if (!_compareLists(typeArguments, other.typeArguments)) {
           return false;
         }
@@ -339,7 +339,7 @@ class DecoratedType implements DecoratedTypeInfo {
     if (type is TypeParameterType || type is VoidType) {
       return '$type$trailing';
     } else if (type is InterfaceType) {
-      var name = type.element.name;
+      var name = type.element2.name;
       var args = '';
       if (type.typeArguments.isNotEmpty) {
         args = '<${typeArguments.join(', ')}>';

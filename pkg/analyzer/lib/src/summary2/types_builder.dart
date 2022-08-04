@@ -19,7 +19,7 @@ import 'package:analyzer/src/summary2/type_builder.dart';
 
 /// Return `true` if [type] can be used as a class.
 bool _isInterfaceTypeClass(InterfaceType type) {
-  if (type.element.isMixin) {
+  if (type.element2 is MixinElement) {
     return false;
   }
   return _isInterfaceTypeInterface(type);
@@ -27,7 +27,7 @@ bool _isInterfaceTypeClass(InterfaceType type) {
 
 /// Return `true` if [type] can be used as an interface or a mixin.
 bool _isInterfaceTypeInterface(InterfaceType type) {
-  if (type.element.isEnum) {
+  if (type.element2 is EnumElement) {
     return false;
   }
   if (type.isDartCoreFunction || type.isDartCoreNull) {
@@ -393,11 +393,11 @@ class _MixinInference {
   }
 
   InterfaceType? _findInterfaceTypeForElement(
-    ClassElement element,
+    InterfaceElement element,
     List<InterfaceType> interfaceTypes,
   ) {
     for (var interfaceType in interfaceTypes) {
-      if (interfaceType.element == element) return interfaceType;
+      if (interfaceType.element2 == element) return interfaceType;
     }
     return null;
   }
@@ -409,7 +409,7 @@ class _MixinInference {
     var result = <InterfaceType>[];
     for (var constraint in constraints) {
       var interfaceType = _findInterfaceTypeForElement(
-        constraint.element,
+        constraint.element2,
         interfaceTypes,
       );
 

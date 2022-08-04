@@ -381,7 +381,7 @@ class _MatcherBuilder {
     var targetType = node.prefix.staticType;
     if (targetType is InterfaceType) {
       _addMatcher(
-        components: [node.identifier.name, targetType.element.name],
+        components: [node.identifier.name, targetType.element2.name],
         kinds: const [
           ElementKind.constantKind,
           ElementKind.fieldKind,
@@ -527,7 +527,7 @@ class _MatcherBuilder {
       var type = target.staticType;
       if (type != null) {
         if (type is InterfaceType) {
-          return type.element.name;
+          return type.element2.name;
         } else if (type.isDynamic) {
           // The name is likely to be undefined.
           return target.name;
@@ -538,7 +538,7 @@ class _MatcherBuilder {
     } else if (target != null) {
       var type = target.staticType;
       if (type is InterfaceType) {
-        return type.element.name;
+        return type.element2.name;
       }
       return null;
     }

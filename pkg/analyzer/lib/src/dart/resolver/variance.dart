@@ -36,7 +36,7 @@ class Variance {
       var result = unrelated;
       for (int i = 0; i < type.typeArguments.length; ++i) {
         var argument = type.typeArguments[i];
-        var parameter = type.element.typeParameters[i];
+        var parameter = type.element2.typeParameters[i];
 
         // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
         // variance is added to the interface.

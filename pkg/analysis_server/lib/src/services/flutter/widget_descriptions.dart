@@ -390,7 +390,7 @@ class _WidgetDescriptionComputer {
       var type = parameter.type;
       if (type is InterfaceType) {
         var classDescription = classRegistry.get(
-          type.element,
+          type.element2,
         );
         if (classDescription != null) {
           _addProperties(
@@ -404,7 +404,7 @@ class _WidgetDescriptionComputer {
   }
 
   List<protocol.FlutterWidgetPropertyValueEnumItem> _enumItemsForEnum(
-    ClassElement element,
+    EnumElement element,
   ) {
     return element.fields
         .where((field) => field.isStatic && field.isEnumConstant)
@@ -462,8 +462,8 @@ class _WidgetDescriptionComputer {
       );
     }
     if (type is InterfaceType) {
-      var classElement = type.element;
-      if (classElement.isEnum) {
+      var classElement = type.element2;
+      if (classElement is EnumElement) {
         return protocol.FlutterWidgetPropertyEditor(
           protocol.FlutterWidgetPropertyEditorKind.ENUM,
           enumItems: _enumItemsForEnum(classElement),

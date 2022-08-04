@@ -380,7 +380,7 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
   DecoratedType decoratedConstructorDeclaration(String search) => variables!
       .decoratedElementType(findNode.constructor(search).declaredElement!);
 
-  Map<ClassElement, DecoratedType?> decoratedDirectSupertypes(String name) {
+  Map<InterfaceElement, DecoratedType?> decoratedDirectSupertypes(String name) {
     return variables!.decoratedDirectSupertypes(findElement.classOrMixin(name));
   }
 

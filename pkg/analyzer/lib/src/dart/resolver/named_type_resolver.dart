@@ -237,7 +237,7 @@ class NamedTypeResolver with ScopeHelpers {
     if (element is ClassElement) {
       if (identical(node, withClause_namedType)) {
         for (var mixin in enclosingClass!.mixins) {
-          if (mixin.element == element) {
+          if (mixin.element2 == element) {
             return mixin;
           }
         }

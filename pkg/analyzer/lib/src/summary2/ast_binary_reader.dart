@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
@@ -435,12 +434,17 @@ class AstBinaryReader {
 
   DottedName _readDottedName() {
     var components = _readNodeList<SimpleIdentifier>();
-    return astFactory.dottedName(components);
+    return DottedNameImpl(
+      components: components,
+    );
   }
 
   DoubleLiteral _readDoubleLiteral() {
     var value = _reader.readDouble();
-    var node = AstTestFactory.doubleLiteral(value);
+    var node = DoubleLiteralImpl(
+      literal: StringToken(TokenType.STRING, '$value', -1),
+      value: value,
+    );
     _readExpressionResolution(node);
     return node;
   }

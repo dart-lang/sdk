@@ -341,7 +341,7 @@ class B {}
     var resolvedUnit =
         await session.getResolvedUnit(test.path) as ResolvedUnitResult;
     var typeProvider = resolvedUnit.typeProvider;
-    var intClass = typeProvider.intType.element;
+    var intClass = typeProvider.intType.element2;
 
     var parsedLibrary = session.getParsedLibraryValid(test.path);
 
@@ -564,7 +564,7 @@ class B2 extends X {}
     expect(resolvedLibrary.session, session);
 
     var typeProvider = resolvedLibrary.typeProvider;
-    expect(typeProvider.intType.element.name, 'int');
+    expect(typeProvider.intType.element2.name, 'int');
 
     var libraryElement = resolvedLibrary.element;
 
@@ -612,7 +612,7 @@ class B2 extends X {}
     var resolvedLibrary = await session.getResolvedLibraryValid(test.path);
 
     expect(() {
-      var intClass = resolvedLibrary.typeProvider.intType.element;
+      var intClass = resolvedLibrary.typeProvider.intType.element2;
       resolvedLibrary.getElementDeclaration(intClass);
     }, throwsArgumentError);
   }

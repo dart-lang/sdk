@@ -30,14 +30,14 @@ class CreateMethodOrFunction extends CorrectionProducer {
     var nameNode = node;
     if (nameNode is SimpleIdentifier) {
       // prepare argument expression (to get parameter)
-      ClassElement? targetElement;
+      InterfaceElement? targetElement;
       Expression argument;
       {
         var target = getQualifiedPropertyTarget(node);
         if (target != null) {
           var targetType = target.staticType;
           if (targetType is InterfaceType) {
-            targetElement = targetType.element;
+            targetElement = targetType.element2;
             argument = target.parent as Expression;
           } else {
             return;
@@ -140,7 +140,7 @@ class CreateMethodOrFunction extends CorrectionProducer {
   /// Adds proposal for creating method corresponding to the given
   /// [FunctionType] in the given [ClassElement].
   Future<void> _createMethod(ChangeBuilder builder,
-      ClassElement targetClassElement, FunctionType functionType) async {
+      InterfaceElement targetClassElement, FunctionType functionType) async {
     var name = (node as SimpleIdentifier).name;
     // prepare environment
     var targetSource = targetClassElement.source;

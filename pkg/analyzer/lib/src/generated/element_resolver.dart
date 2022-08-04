@@ -485,7 +485,7 @@ class ElementResolver {
   /// Checks whether the given [expression] is a reference to a class. If it is
   /// then the element representing the class is returned, otherwise `null` is
   /// returned.
-  static ClassElement? getTypeReference(Expression expression) {
+  static InterfaceElement? getTypeReference(Expression expression) {
     if (expression is Identifier) {
       var element = expression.staticElement;
       if (element is ClassElement) {
@@ -493,7 +493,7 @@ class ElementResolver {
       } else if (element is TypeAliasElement) {
         var aliasedType = element.aliasedType;
         if (aliasedType is InterfaceType) {
-          return aliasedType.element;
+          return aliasedType.element2;
         }
       }
     }

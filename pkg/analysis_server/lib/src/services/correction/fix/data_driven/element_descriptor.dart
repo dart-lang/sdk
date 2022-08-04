@@ -153,12 +153,12 @@ class ElementDescriptor {
             // that the method might have been in the element's class.
             return true;
           }
-          if (components[1] == type.element?.name) {
-            return true;
-          }
           if (type is InterfaceType) {
+            if (components[1] == type.element2.name) {
+              return true;
+            }
             for (var supertype in type.allSupertypes) {
-              if (components[1] == supertype.element.name) {
+              if (components[1] == supertype.element2.name) {
                 return true;
               }
             }

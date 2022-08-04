@@ -2,18 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
-import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/test_analysis_context.dart';
-import '../../../util/feature_sets.dart';
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -22,134 +19,117 @@ main() {
 }
 
 @reflectiveTest
-class LegacyTypeAsserterTest {
-  late final TypeProvider typeProvider;
+class LegacyTypeAsserterTest extends PubPackageResolutionTest {
+  InterfaceType get _intNone {
+    return typeProvider.intElement.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
 
-  void setUp() {
-    var analysisContext = TestAnalysisContext();
-    typeProvider = analysisContext.typeProviderLegacy;
+  InterfaceType get _intQuestion {
+    return typeProvider.intElement.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  InterfaceType get _intStar {
+    return typeProvider.intElement.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
   }
 
   test_nullableUnit_expressionStaticType_bottom() async {
-    var identifier = AstTestFactory.identifier3('foo');
-    var unit = _wrapExpression(identifier);
-    identifier.staticType = NeverTypeImpl.instance;
+    await _buildUnit(() => NeverTypeImpl.instance);
     expect(() {
-      LegacyTypeAsserter.assertLegacyTypes(unit);
+      LegacyTypeAsserter.assertLegacyTypes(result.unit);
     }, throwsStateError);
   }
 
   test_nullableUnit_expressionStaticType_bottomQuestion() async {
-    var identifier = AstTestFactory.identifier3('foo');
-    var unit = _wrapExpression(identifier);
-    identifier.staticType = NeverTypeImpl.instanceNullable;
-    LegacyTypeAsserter.assertLegacyTypes(unit);
+    await _buildUnit(() => NeverTypeImpl.instanceNullable);
+    LegacyTypeAsserter.assertLegacyTypes(result.unit);
   }
 
   test_nullableUnit_expressionStaticType_dynamic() async {
-    var identifier = AstTestFactory.identifier3('foo');
-    var unit = _wrapExpression(identifier);
-    identifier.staticType = typeProvider.dynamicType;
-    LegacyTypeAsserter.assertLegacyTypes(unit);
+    await _buildUnit(() => typeProvider.dynamicType);
+    LegacyTypeAsserter.assertLegacyTypes(result.unit);
   }
 
   test_nullableUnit_expressionStaticType_nonNull() async {
-    var identifier = AstTestFactory.identifier3('foo');
-    var unit = _wrapExpression(identifier);
-    identifier.staticType = (typeProvider.intType as TypeImpl)
-        .withNullability(NullabilitySuffix.none);
+    await _buildUnit(() => _intNone);
     expect(() {
-      LegacyTypeAsserter.assertLegacyTypes(unit);
+      LegacyTypeAsserter.assertLegacyTypes(result.unit);
     }, throwsStateError);
   }
 
   test_nullableUnit_expressionStaticType_nonNullTypeArgument() async {
-    var identifier = AstTestFactory.identifier3('foo');
-    var unit = _wrapExpression(identifier);
-    identifier.staticType = typeProvider.listType(
-        (typeProvider.intType as TypeImpl)
-            .withNullability(NullabilitySuffix.question));
-
+    await _buildUnit(
+      () => typeProvider.listElement.instantiate(
+        typeArguments: [_intNone],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+    );
     expect(() {
-      LegacyTypeAsserter.assertLegacyTypes(unit);
+      LegacyTypeAsserter.assertLegacyTypes(result.unit);
     }, throwsStateError);
   }
 
   test_nullableUnit_expressionStaticType_nonNullTypeParameter() async {
-    var identifier = AstTestFactory.identifier3('foo');
-    var unit = _wrapExpression(identifier);
-    identifier.staticType = typeProvider.listElement.instantiate(
-      typeArguments: [
-        TypeParameterElementImpl('E', 0).instantiate(
-          nullabilitySuffix: NullabilitySuffix.none,
-        ),
-      ],
-      nullabilitySuffix: NullabilitySuffix.none,
+    await _buildUnit(
+      () => typeProvider.listElement.instantiate(
+        typeArguments: [
+          findElement.typeParameter('T').instantiate(
+                nullabilitySuffix: NullabilitySuffix.none,
+              ),
+        ],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
     );
     expect(() {
-      LegacyTypeAsserter.assertLegacyTypes(unit);
-    }, throwsStateError);
-  }
-
-  test_nullableUnit_expressionStaticType_nonNullTypeParameterBound() async {
-    var identifier = AstTestFactory.identifier3('foo');
-    var unit = _wrapExpression(identifier);
-    var T = TypeParameterElementImpl.synthetic('T');
-    T.bound = (typeProvider.intType as TypeImpl)
-        .withNullability(NullabilitySuffix.none);
-    identifier.staticType = TypeParameterTypeImpl(
-      element: T,
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-    expect(() {
-      LegacyTypeAsserter.assertLegacyTypes(unit);
+      LegacyTypeAsserter.assertLegacyTypes(result.unit);
     }, throwsStateError);
   }
 
   test_nullableUnit_expressionStaticType_null() async {
-    var identifier = AstTestFactory.identifier3('foo');
-    var unit = _wrapExpression(identifier);
-    identifier.staticType = typeProvider.nullType;
-    LegacyTypeAsserter.assertLegacyTypes(unit);
+    await _buildUnit(
+      () => typeProvider.nullElement.instantiate(
+        typeArguments: [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+    );
+    LegacyTypeAsserter.assertLegacyTypes(result.unit);
   }
 
   test_nullableUnit_expressionStaticType_question() async {
-    var identifier = AstTestFactory.identifier3('foo');
-    var unit = _wrapExpression(identifier);
-    identifier.staticType = (typeProvider.intType as TypeImpl)
-        .withNullability(NullabilitySuffix.question);
+    await _buildUnit(() => _intQuestion);
     expect(() {
-      LegacyTypeAsserter.assertLegacyTypes(unit);
+      LegacyTypeAsserter.assertLegacyTypes(result.unit);
     }, throwsStateError);
   }
 
   test_nullableUnit_expressionStaticType_star() async {
-    var identifier = AstTestFactory.identifier3('foo');
-    var unit = _wrapExpression(identifier);
-    identifier.staticType = (typeProvider.intType as TypeImpl)
-        .withNullability(NullabilitySuffix.star);
-    LegacyTypeAsserter.assertLegacyTypes(unit);
+    await _buildUnit(() => _intStar);
+    LegacyTypeAsserter.assertLegacyTypes(result.unit);
   }
 
   test_nullableUnit_expressionStaticType_void() async {
-    var identifier = AstTestFactory.identifier3('foo');
-    var unit = _wrapExpression(identifier);
-    identifier.staticType = VoidTypeImpl.instance;
-    LegacyTypeAsserter.assertLegacyTypes(unit);
+    await _buildUnit(() => typeProvider.voidType);
+    LegacyTypeAsserter.assertLegacyTypes(result.unit);
   }
 
-  CompilationUnit _wrapExpression(Expression e, {bool nonNullable = false}) {
-    return AstTestFactory.compilationUnit9(
-      declarations: [
-        AstTestFactory.functionDeclaration(
-            null,
-            null,
-            'f',
-            AstTestFactory.functionExpression2(
-                AstTestFactory.formalParameterList(),
-                AstTestFactory.expressionFunctionBody(e)))
-      ],
-      featureSet: nonNullable ? FeatureSets.latest : FeatureSets.language_2_9,
-    );
+  Future<void> _buildUnit(DartType Function() getType) async {
+    await resolveTestCode(r'''
+// @dart = 2.9
+void f<T>(Object? foo) {
+  foo;
+}
+''');
+
+    final foo = findNode.simple('foo;');
+    foo as SimpleIdentifierImpl;
+    foo.staticType = getType();
   }
 }

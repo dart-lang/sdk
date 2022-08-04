@@ -1691,35 +1691,35 @@ class ResolutionReader {
       var type = _readFunctionType();
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType) {
-      var element = readElement() as ClassElement;
+      var element = readElement() as InterfaceElement;
       var typeArguments = _readTypeList();
       var nullability = _readNullability();
       var type = InterfaceTypeImpl(
-        element: element,
+        element2: element,
         typeArguments: typeArguments,
         nullabilitySuffix: nullability,
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
-      var element = readElement() as ClassElement;
+      var element = readElement() as InterfaceElement;
       var type = InterfaceTypeImpl(
-        element: element,
+        element2: element,
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.none,
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
-      var element = readElement() as ClassElement;
+      var element = readElement() as InterfaceElement;
       var type = InterfaceTypeImpl(
-        element: element,
+        element2: element,
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.question,
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_star) {
-      var element = readElement() as ClassElement;
+      var element = readElement() as InterfaceElement;
       var type = InterfaceTypeImpl(
-        element: element,
+        element2: element,
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.star,
       );
@@ -1815,7 +1815,7 @@ class ResolutionReader {
         );
       } else if (type is InterfaceType) {
         return InterfaceTypeImpl(
-          element: type.element,
+          element2: type.element2,
           typeArguments: type.typeArguments,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(

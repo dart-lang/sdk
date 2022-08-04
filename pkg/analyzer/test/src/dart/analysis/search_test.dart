@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Declaration;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
@@ -532,7 +533,8 @@ Random v2;
 
     var v1 = findElement.topVar('v1');
     var v2 = findElement.topVar('v2');
-    var randomElement = v1.type.element as ClassElement;
+    final v1Type = v1.type as InterfaceType;
+    var randomElement = v1Type.element2 as ClassElement;
     var expected = [
       _expectId(v1, SearchResultKind.REFERENCE, 'Random v1;'),
       _expectId(v2, SearchResultKind.REFERENCE, 'Random v2;'),

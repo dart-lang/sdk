@@ -1052,11 +1052,11 @@ class _MockSdkElementsBuilder {
   }
 
   InterfaceType _interfaceType(
-    ClassElement element, {
+    InterfaceElement element, {
     List<DartType> typeArguments = const [],
   }) {
     return InterfaceTypeImpl(
-      element: element,
+      element2: element,
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );

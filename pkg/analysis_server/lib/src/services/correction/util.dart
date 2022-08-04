@@ -530,7 +530,7 @@ class CorrectionUtils {
 
   /// The [ClassElement] the generated code is inserted to, so we can decide if
   /// a type parameter may or may not be used.
-  ClassElement? targetClassElement;
+  InterfaceElement? targetClassElement;
 
   ExecutableElement? targetExecutableElement;
 
@@ -914,7 +914,7 @@ class CorrectionUtils {
     if (type is InterfaceType) {
       return _getTypeCodeElementArguments(
         librariesToImport: librariesToImport,
-        element: type.element,
+        element: type.element2,
         isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
         typeArguments: type.typeArguments,
       );

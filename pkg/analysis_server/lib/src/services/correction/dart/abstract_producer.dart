@@ -54,7 +54,7 @@ abstract class CorrectionProducer extends SingleCorrectionProducer {
 
   /// Return the class, enum or mixin declaration for the given [element].
   Future<ClassOrMixinDeclaration?> getClassOrMixinDeclaration(
-      ClassElement element) async {
+      InterfaceElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
     var node = result?.node;
     if (node is ClassOrMixinDeclaration) {
@@ -76,10 +76,10 @@ abstract class CorrectionProducer extends SingleCorrectionProducer {
 
   /// Return the class element associated with the [target], or `null` if there
   /// is no such class element.
-  ClassElement? getTargetClassElement(Expression target) {
+  InterfaceElement? getTargetClassElement(Expression target) {
     var type = target.staticType;
     if (type is InterfaceType) {
-      return type.element;
+      return type.element2;
     } else if (target is Identifier) {
       var element = target.staticElement;
       if (element is ClassElement) {
