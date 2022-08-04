@@ -299,7 +299,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
     required NullabilitySuffix nullabilitySuffix,
   }) {
     return InterfaceTypeImpl(
-      element: this,
+      element2: this,
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
@@ -436,20 +436,24 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   /// Object contains a definition of the getter it will occur last.
   Iterable<PropertyAccessorElement> _implementationsOfGetter(
       String getterName) sync* {
-    ClassElement? classElement = this;
-    HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
+    final visitedClasses = <InterfaceElement>{};
+    InterfaceElement? classElement = this;
     while (classElement != null && visitedClasses.add(classElement)) {
       var getter = classElement.getGetter(getterName);
       if (getter != null) {
         yield getter;
       }
       for (InterfaceType mixin in classElement.mixins.reversed) {
-        getter = mixin.element.getGetter(getterName);
+        getter = mixin.element2.getGetter(getterName);
         if (getter != null) {
           yield getter;
         }
       }
-      classElement = classElement.supertype?.element;
+      if (classElement is ClassElement) {
+        classElement = classElement.supertype?.element2;
+      } else {
+        break;
+      }
     }
   }
 
@@ -465,20 +469,24 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   /// this class contains a definition of the method it will occur first, if
   /// Object contains a definition of the method it will occur last.
   Iterable<MethodElement> _implementationsOfMethod(String methodName) sync* {
-    ClassElement? classElement = this;
-    HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
+    final visitedClasses = <InterfaceElement>{};
+    InterfaceElement? classElement = this;
     while (classElement != null && visitedClasses.add(classElement)) {
       var method = classElement.getMethod(methodName);
       if (method != null) {
         yield method;
       }
       for (InterfaceType mixin in classElement.mixins.reversed) {
-        method = mixin.element.getMethod(methodName);
+        method = mixin.element2.getMethod(methodName);
         if (method != null) {
           yield method;
         }
       }
-      classElement = classElement.supertype?.element;
+      if (classElement is ClassElement) {
+        classElement = classElement.supertype?.element2;
+      } else {
+        break;
+      }
     }
   }
 
@@ -495,20 +503,24 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   /// Object contains a definition of the setter it will occur last.
   Iterable<PropertyAccessorElement> _implementationsOfSetter(
       String setterName) sync* {
-    ClassElement? classElement = this;
-    HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
+    final visitedClasses = <InterfaceElement>{};
+    InterfaceElement? classElement = this;
     while (classElement != null && visitedClasses.add(classElement)) {
       var setter = classElement.getSetter(setterName);
       if (setter != null) {
         yield setter;
       }
       for (InterfaceType mixin in classElement.mixins.reversed) {
-        setter = mixin.element.getSetter(setterName);
+        setter = mixin.element2.getSetter(setterName);
         if (setter != null) {
           yield setter;
         }
       }
-      classElement = classElement.supertype?.element;
+      if (classElement is ClassElement) {
+        classElement = classElement.supertype?.element2;
+      } else {
+        break;
+      }
     }
   }
 
@@ -689,11 +701,11 @@ class ClassElementImpl extends AbstractClassElementImpl {
 
   @override
   bool get hasNonFinalField {
-    List<ClassElement> classesToVisit = <ClassElement>[];
-    HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
+    final classesToVisit = <InterfaceElement>[];
+    final visitedClasses = <InterfaceElement>{};
     classesToVisit.add(this);
     while (classesToVisit.isNotEmpty) {
-      ClassElement currentElement = classesToVisit.removeAt(0);
+      final currentElement = classesToVisit.removeAt(0);
       if (visitedClasses.add(currentElement)) {
         // check fields
         for (FieldElement field in currentElement.fields) {
@@ -706,13 +718,14 @@ class ClassElementImpl extends AbstractClassElementImpl {
         }
         // check mixins
         for (InterfaceType mixinType in currentElement.mixins) {
-          ClassElement mixinElement = mixinType.element;
-          classesToVisit.add(mixinElement);
+          classesToVisit.add(mixinType.element2);
         }
         // check super
-        InterfaceType? supertype = currentElement.supertype;
-        if (supertype != null) {
-          classesToVisit.add(supertype.element);
+        if (currentElement is ClassElement) {
+          final supertype = currentElement.supertype;
+          if (supertype != null) {
+            classesToVisit.add(supertype.element2);
+          }
         }
       }
     }
@@ -792,7 +805,7 @@ class ClassElementImpl extends AbstractClassElementImpl {
     // No subclasses in the library.
     for (var unit in library.units) {
       for (var class_ in unit.classes) {
-        if (class_.supertype?.element == this) {
+        if (class_.supertype?.element2 == this) {
           return false;
         }
       }
@@ -929,7 +942,7 @@ class ClassElementImpl extends AbstractClassElementImpl {
       return <ConstructorElement>[];
     }
 
-    var superElement = supertype!.element as ClassElementImpl;
+    var superElement = supertype!.element2 as ClassElementImpl;
 
     // First get the list of constructors of the superclass which need to be
     // forwarded to this class.
@@ -975,7 +988,7 @@ class ClassElementImpl extends AbstractClassElementImpl {
         Substitution.fromPairs(superClassParameters, argumentTypes);
 
     bool typeHasInstanceVariables(InterfaceType type) =>
-        type.element.fields.any((e) => !e.isSynthetic);
+        type.element2.fields.any((e) => !e.isSynthetic);
 
     // Now create an implicit constructor for every constructor found above,
     // substituting type parameters as appropriate.
@@ -6342,7 +6355,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     if (aliasedType_ is! InterfaceType) {
       return false;
     }
-    var aliasedClass = aliasedType_.element;
+    var aliasedClass = aliasedType_.element2;
     var typeArguments = aliasedType_.typeArguments;
     var typeParameterCount = typeParameters.length;
     if (typeParameterCount != aliasedClass.typeParameters.length) {
@@ -6356,7 +6369,9 @@ class TypeAliasElementImpl extends _ExistingElementImpl
           !library.typeSystem.isSubtypeOf(aliasedBound, bound)) {
         return false;
       }
-      if (typeParameters[i] != typeArguments[i].element) {
+      final typeArgument = typeArguments[i];
+      if (typeArgument is TypeParameterType &&
+          typeParameters[i] != typeArgument.element) {
         return false;
       }
     }
@@ -6466,7 +6481,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
       );
     } else if (type is InterfaceType) {
       return InterfaceTypeImpl(
-        element: type.element,
+        element2: type.element2,
         typeArguments: type.typeArguments,
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(

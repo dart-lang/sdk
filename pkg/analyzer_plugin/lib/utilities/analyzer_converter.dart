@@ -215,8 +215,7 @@ class AnalyzerConverter {
   plugin.ElementKind _convertElementToElementKind(analyzer.Element element) {
     if (element is analyzer.ClassElement && element.isEnum) {
       return plugin.ElementKind.ENUM;
-    } else if (element is analyzer.FieldElement &&
-        element.isEnumConstant &&
+    } else if (element is analyzer.FieldElement && element.isEnumConstant
         // MyEnum.values and MyEnum.one.index return isEnumConstant = true
         // so these additional checks are necessary.
         // TODO(danrubel) MyEnum.values is constant, but is a list
@@ -225,8 +224,11 @@ class AnalyzerConverter {
         // so should it return isEnumConstant = true?
         // Or should we return ElementKind.ENUM_CONSTANT here
         // in either or both of these cases?
-        element.type.element == element.enclosingElement3) {
-      return plugin.ElementKind.ENUM_CONSTANT;
+        ) {
+      final type = element.type;
+      if (type is InterfaceType && type.element2 == element.enclosingElement3) {
+        return plugin.ElementKind.ENUM_CONSTANT;
+      }
     }
     return convertElementKind(element.kind);
   }

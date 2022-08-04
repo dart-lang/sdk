@@ -533,7 +533,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     List<DecoratedType?> positionalParameters = const <DecoratedType>[];
     Map<String, DecoratedType?> namedParameters =
         const <String, DecoratedType>{};
-    if (type is InterfaceType && type.element.typeParameters.isNotEmpty) {
+    if (type is InterfaceType && type.element2.typeParameters.isNotEmpty) {
       if (node is NamedType) {
         if (node.typeArguments == null) {
           int index = 0;
@@ -918,7 +918,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (onClause != null) {
       supertypes.addAll(onClause.superclassConstraints);
     }
-    var decoratedSupertypes = <ClassElement, DecoratedType?>{};
+    var decoratedSupertypes = <InterfaceElement, DecoratedType?>{};
     _pushNullabilityNodeTarget(
         NullabilityNodeTarget.element(declaredElement).supertype, () {
       for (var supertype in supertypes) {
@@ -933,7 +933,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         } else {
           decoratedSupertype = supertype.accept(this);
         }
-        var class_ = (decoratedSupertype!.type as InterfaceType).element;
+        var class_ = (decoratedSupertype!.type as InterfaceType).element2;
         decoratedSupertypes[class_] = decoratedSupertype;
       }
     });

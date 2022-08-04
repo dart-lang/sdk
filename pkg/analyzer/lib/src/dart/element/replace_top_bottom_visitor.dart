@@ -113,7 +113,7 @@ class ReplaceTopBottomVisitor {
   }
 
   DartType _interfaceType(InterfaceType type, Variance variance) {
-    var typeParameters = type.element.typeParameters;
+    var typeParameters = type.element2.typeParameters;
     if (typeParameters.isEmpty) {
       return type;
     }
@@ -128,7 +128,7 @@ class ReplaceTopBottomVisitor {
     }
 
     return InterfaceTypeImpl(
-      element: type.element,
+      element2: type.element2,
       nullabilitySuffix: type.nullabilitySuffix,
       typeArguments: newTypeArguments,
     );

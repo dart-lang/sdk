@@ -1087,7 +1087,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       } else if (expectedType.isDartCoreString) {
         _addSingleCharacterName(excluded, res, $s);
       } else if (expectedType is InterfaceType) {
-        var className = expectedType.element.name;
+        var className = expectedType.element2.name;
         _addAll(excluded, res, _getCamelWordCombinations(className));
       }
     }
@@ -1102,7 +1102,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   DartType? _getVisibleType(DartType? type,
       {ExecutableElement? methodBeingCopied}) {
     if (type is InterfaceType) {
-      var element = type.element;
+      var element = type.element2;
       if (element.isPrivate &&
           !dartFileEditBuilder._isDefinedLocally(element)) {
         return null;
@@ -1254,7 +1254,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     if (type is InterfaceType) {
       _writeTypeElementArguments(
-        element: type.element,
+        element: type.element2,
         typeArguments: type.typeArguments,
         methodBeingCopied: methodBeingCopied,
       );

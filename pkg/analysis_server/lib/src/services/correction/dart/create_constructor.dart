@@ -77,7 +77,7 @@ class CreateConstructor extends CorrectionProducer {
     }
 
     // prepare target ClassDeclaration
-    var targetElement = targetType.element;
+    var targetElement = targetType.element2;
     var targetResult = await sessionHelper.getElementDeclaration(targetElement);
     if (targetResult == null) {
       return;
@@ -202,7 +202,7 @@ class CreateConstructor extends CorrectionProducer {
   Future<void> _write(
     ChangeBuilder builder,
     Token name,
-    ClassElement targetElement,
+    InterfaceElement targetElement,
     InsertionLocation targetLocation, {
     Token? constructorName,
     bool isConst = false,

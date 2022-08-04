@@ -794,7 +794,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     } else {
       variableType = _getTypeCode(returnTypeObj);
       if (_hasAwait) {
-        if (returnTypeObj.element != typeProvider.futureElement) {
+        if (returnTypeObj is InterfaceType &&
+            returnTypeObj.element2 != typeProvider.futureElement) {
           returnType = _getTypeCode(typeProvider.futureType(returnTypeObj));
         }
       } else {

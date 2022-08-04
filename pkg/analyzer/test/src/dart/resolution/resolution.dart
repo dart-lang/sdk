@@ -43,17 +43,18 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   ClassElement get boolElement => typeProvider.boolElement;
 
-  ClassElement get doubleElement => typeProvider.doubleType.element;
+  ClassElement get doubleElement => typeProvider.doubleElement;
 
   InterfaceType get doubleType => typeProvider.doubleType;
 
-  Element get dynamicElement => typeProvider.dynamicType.element!;
+  Element get dynamicElement =>
+      (typeProvider.dynamicType as DynamicTypeImpl).element;
 
   FeatureSet get featureSet => result.libraryElement.featureSet;
 
   ClassElement get futureElement => typeProvider.futureElement;
 
-  ClassElement get intElement => typeProvider.intType.element;
+  ClassElement get intElement => typeProvider.intElement;
 
   InterfaceType get intType => typeProvider.intType;
 
@@ -69,13 +70,14 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   NeverElementImpl get neverElement => NeverElementImpl.instance;
 
-  ClassElement get numElement => typeProvider.numType.element;
+  ClassElement get numElement => typeProvider.numElement;
 
-  ClassElement get objectElement => typeProvider.objectType.element;
+  ClassElement get objectElement =>
+      typeProvider.objectType.element2 as ClassElement;
 
   InterfaceType get objectType => typeProvider.objectType;
 
-  ClassElement get stringElement => typeProvider.stringType.element;
+  ClassElement get stringElement => typeProvider.stringElement;
 
   InterfaceType get stringType => typeProvider.stringType;
 

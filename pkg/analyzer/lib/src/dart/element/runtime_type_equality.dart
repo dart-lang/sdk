@@ -88,7 +88,7 @@ class RuntimeTypeEqualityVisitor
   @override
   bool visitInterfaceType(InterfaceType T1, DartType T2) {
     if (T2 is InterfaceType &&
-        T1.element == T2.element &&
+        T1.element2 == T2.element2 &&
         _compatibleNullability(T1, T2)) {
       var T1_typeArguments = T1.typeArguments;
       var T2_typeArguments = T2.typeArguments;

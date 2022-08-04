@@ -149,7 +149,7 @@ class CovariantParametersVerifier {
 
     var superMembers = <_SuperMember>[];
     for (var interface in interfaces) {
-      var superMember = _correspondingMember(interface.element, _thisMember);
+      var superMember = _correspondingMember(interface.element2, _thisMember);
       if (superMember != null) {
         superMembers.add(
           _SuperMember(interface, superMember),
@@ -218,7 +218,7 @@ class CovariantParametersVerifier {
   /// Return a member from [classElement] that corresponds to the [proto],
   /// or `null` if no such member exist.
   static ExecutableElement? _correspondingMember(
-    ClassElement classElement,
+    InterfaceElement classElement,
     ExecutableElement proto,
   ) {
     if (proto is MethodElement) {

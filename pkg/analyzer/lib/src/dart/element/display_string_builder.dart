@@ -144,7 +144,7 @@ class ElementDisplayStringBuilder {
   }
 
   void writeInterfaceType(InterfaceType type) {
-    _write(type.element.name);
+    _write(type.element2.name);
     _writeTypeArguments(type.typeArguments);
     _writeNullability(type.nullabilitySuffix);
   }

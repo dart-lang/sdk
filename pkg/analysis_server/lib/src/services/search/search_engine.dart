@@ -53,8 +53,8 @@ abstract class SearchEngine {
 
   /// Returns all subtypes of the given [type].
   ///
-  /// [type] - the [ClassElement] being subtyped by the found matches.
-  Future<Set<ClassElement>> searchAllSubtypes(ClassElement type);
+  /// [type] - the [InterfaceElement] being subtyped by the found matches.
+  Future<Set<InterfaceElement>> searchAllSubtypes(InterfaceElement type);
 
   /// Returns declarations of class members with the given name.
   ///
@@ -75,7 +75,7 @@ abstract class SearchEngine {
   /// Returns direct subtypes of the given [type].
   ///
   /// [type] - the [ClassElement] being subtyped by the found matches.
-  Future<List<SearchMatch>> searchSubtypes(ClassElement type);
+  Future<List<SearchMatch>> searchSubtypes(InterfaceElement type);
 
   /// Returns all the top-level declarations matching the given pattern.
   ///

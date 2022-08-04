@@ -271,7 +271,7 @@ class TopMergeHelper {
   }
 
   InterfaceType _interfaceTypes(InterfaceType T, InterfaceType S) {
-    if (T.element != S.element) {
+    if (T.element2 != S.element2) {
       throw _TopMergeStateError(T, S, 'Different class elements');
     }
 
@@ -284,7 +284,7 @@ class TopMergeHelper {
         T_arguments.length,
         (i) => topMerge(T_arguments[i], S_arguments[i]),
       );
-      return T.element.instantiate(
+      return T.element2.instantiate(
         typeArguments: arguments,
         nullabilitySuffix: NullabilitySuffix.none,
       );

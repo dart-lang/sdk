@@ -320,7 +320,7 @@ class ChangeTo extends CorrectionProducer {
   }
 
   void _updateFinderWithClassMembers(
-      _ClosestElementFinder finder, ClassElement clazz) {
+      _ClosestElementFinder finder, InterfaceElement clazz) {
     var members = getMembers(clazz);
     finder._updateList(members);
   }

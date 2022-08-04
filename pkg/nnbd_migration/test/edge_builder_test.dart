@@ -103,7 +103,7 @@ class AssignmentCheckerTest extends Object
     }
     return DecoratedType(
       InterfaceTypeImpl(
-        element: _myListOfListClass!,
+        element2: _myListOfListClass!,
         typeArguments: [elementType.type!],
         nullabilitySuffix: NullabilitySuffix.star,
       ),
@@ -593,7 +593,7 @@ class EdgeBuilderTest extends EdgeBuilderTestBase {
     await analyze('''
 double f() => double.nan;
 ''');
-    var nanElement = typeProvider.doubleType.element.getField('nan')!;
+    var nanElement = typeProvider.doubleElement.getField('nan')!;
     assertEdge(variables!.decoratedElementType(nanElement).node,
         decoratedTypeAnnotation('double f').node,
         hard: false);
@@ -5049,7 +5049,7 @@ String f(void Function() g) => g.toString();
 ''');
     var toStringReturnType = variables!
         .decoratedElementType(
-            typeProvider.objectType.element.getMethod('toString')!)
+            typeProvider.objectType.element2.getMethod('toString')!)
         .returnType!;
     assertEdge(
         toStringReturnType.node, decoratedTypeAnnotation('String f').node,
@@ -6939,7 +6939,7 @@ int f(int i) => i.hashCode;
     await analyze('int f(void Function() g) => g.hashCode;');
     var hashCodeReturnType = variables!
         .decoratedElementType(
-            typeProvider.objectType.element.getGetter('hashCode')!)
+            typeProvider.objectType.element2.getGetter('hashCode')!)
         .returnType!;
     assertEdge(hashCodeReturnType.node, decoratedTypeAnnotation('int f').node,
         hard: false);
@@ -8254,8 +8254,8 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
   late AssignmentCheckerTest assignmentCheckerTest;
 
   @override
-  DecoratedType asInstanceOf(DecoratedType type, ClassElement? superclass) {
-    var class_ = (type.type as InterfaceType).element;
+  DecoratedType asInstanceOf(DecoratedType type, InterfaceElement? superclass) {
+    var class_ = (type.type as InterfaceType).element2;
     if (class_ == superclass) return type;
     if (superclass!.name == 'Object') {
       return DecoratedType(

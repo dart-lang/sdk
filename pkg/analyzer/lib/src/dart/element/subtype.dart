@@ -301,7 +301,7 @@ class SubtypeHelper {
   }
 
   bool _interfaceArguments(
-    ClassElement element,
+    InterfaceElement element,
     InterfaceType subType,
     InterfaceType superType,
   ) {
@@ -446,8 +446,8 @@ class SubtypeHelper {
       return false;
     }
 
-    var subElement = subType.element;
-    var superElement = superType.element;
+    var subElement = subType.element2;
+    var superElement = superType.element2;
     if (subElement == superElement) {
       return _interfaceArguments(superElement, subType, superType);
     }
@@ -458,7 +458,7 @@ class SubtypeHelper {
     }
 
     for (var interface in subElement.allSupertypes) {
-      if (interface.element == superElement) {
+      if (interface.element2 == superElement) {
         var substitution = Substitution.fromInterfaceType(subType);
         var substitutedInterface =
             substitution.substituteType(interface) as InterfaceType;

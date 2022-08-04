@@ -38,7 +38,7 @@ class RedirectingContributor extends DartCompletionContributor {
         var containingClass =
             parent.thisOrAncestorOfType<ClassOrMixinDeclaration>();
         var superclassElement =
-            containingClass?.declaredElement?.supertype?.element;
+            containingClass?.declaredElement?.supertype?.element2;
         if (superclassElement != null) {
           for (var constructor in superclassElement.constructors) {
             if (constructor.isAccessibleIn2(request.libraryElement)) {

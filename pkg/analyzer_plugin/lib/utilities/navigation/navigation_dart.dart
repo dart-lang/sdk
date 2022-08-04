@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -328,9 +329,8 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       var token = node.keyword;
       if (token != null && token.keyword == Keyword.VAR) {
         var inferredType = node.declaredElement?.type;
-        var element = inferredType?.element;
-        if (element != null) {
-          computer._addRegionForToken(token, element);
+        if (inferredType is InterfaceType) {
+          computer._addRegionForToken(token, inferredType.element2);
         }
       }
     }
@@ -492,13 +492,18 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     /// the given list of [variables], or `null` if not all variable have the
     /// same inferred type.
     Element? getCommonElement(List<VariableDeclaration> variables) {
-      var firstElement = variables[0].declaredElement?.type.element;
-      if (firstElement == null) {
+      final firstType = variables[0].declaredElement?.type;
+      if (firstType is! InterfaceType) {
         return null;
       }
+
+      var firstElement = firstType.element2;
       for (var i = 1; i < variables.length; i++) {
-        var element = variables[1].declaredElement?.type.element;
-        if (element != firstElement) {
+        final type = variables[i].declaredElement?.type;
+        if (type is! InterfaceType) {
+          return null;
+        }
+        if (type.element2 != firstElement) {
           return null;
         }
       }

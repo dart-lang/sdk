@@ -3814,7 +3814,7 @@ class _SwitchExhaustiveness {
 
   factory _SwitchExhaustiveness(DartType expressionType) {
     if (expressionType is InterfaceType) {
-      var enum_ = expressionType.element;
+      var enum_ = expressionType.element2;
       if (enum_ is EnumElementImpl) {
         return _SwitchExhaustiveness._(
           enum_.constants.toSet(),

@@ -617,7 +617,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
   final Set<Element> uniqueElements = <Element>{};
   final List<_Parameter> parameters = [];
 
-  List<ClassElement>? enclosingClasses;
+  List<InterfaceElement>? enclosingClasses;
 
   _ParametersCollector(this.enclosingClass, this.expressionRange);
 
@@ -665,9 +665,9 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
   bool _isMemberOfEnclosingClass(Element element) {
     final enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
-      final enclosingClasses = this.enclosingClasses ??= <ClassElement>[
+      final enclosingClasses = this.enclosingClasses ??= <InterfaceElement>[
         enclosingClass,
-        ...enclosingClass.allSupertypes.map((t) => t.element)
+        ...enclosingClass.allSupertypes.map((t) => t.element2)
       ];
       return enclosingClasses.contains(element.enclosingElement3);
     }

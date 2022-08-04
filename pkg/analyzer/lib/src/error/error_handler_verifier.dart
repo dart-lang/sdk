@@ -251,8 +251,8 @@ class ErrorHandlerVerifier {
   /// Returns whether [element] represents the []
   bool _isDartCoreAsyncType(DartType type, String typeName) =>
       type is InterfaceType &&
-      type.element.name == typeName &&
-      type.element.library.isDartAsync;
+      type.element2.name == typeName &&
+      type.element2.library.isDartAsync;
 }
 
 /// Visits a function body, looking for return statements.

@@ -16,6 +16,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 
 class FlutterConvertToStatelessWidget extends CorrectionProducer {
   @override
@@ -250,15 +251,15 @@ class FlutterConvertToStatelessWidget extends CorrectionProducer {
   }
 
   static bool _isState(ClassElement widgetClassElement, DartType? type) {
-    if (type is! ParameterizedType) return false;
+    if (type is! InterfaceType) return false;
 
-    var typeArguments = type.typeArguments;
-    if (typeArguments.length != 1 ||
-        typeArguments[0].element != widgetClassElement) {
+    final firstArgument = type.typeArguments.singleOrNull;
+    if (firstArgument is! InterfaceType ||
+        firstArgument.element2 != widgetClassElement) {
       return false;
     }
 
-    var classElement = type.element;
+    var classElement = type.element2;
     return classElement is ClassElement &&
         Flutter.instance.isExactState(classElement);
   }
@@ -381,7 +382,8 @@ class _StateUsageVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     super.visitInstanceCreationExpression(node);
-    if (node.staticType?.element != stateClassElement) {
+    final type = node.staticType;
+    if (type is! InterfaceType || type.element2 != stateClassElement) {
       return;
     }
     var methodDeclaration = node.thisOrAncestorOfType<MethodDeclaration>();
@@ -397,9 +399,10 @@ class _StateUsageVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     var type = node.staticType;
-    if (node.methodName.name == 'createState' &&
+    if (type is InterfaceType &&
+        node.methodName.name == 'createState' &&
         (FlutterConvertToStatelessWidget._isState(widgetClassElement, type) ||
-            type?.element == stateClassElement)) {
+            type.element2 == stateClassElement)) {
       used = true;
     }
   }

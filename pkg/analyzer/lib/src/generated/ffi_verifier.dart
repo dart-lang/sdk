@@ -156,7 +156,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (implementsClause != null) {
         final compoundType = node.declaredElement!.thisType;
         final structType = compoundType.superclass!;
-        final ffiLibrary = structType.element.library;
+        final ffiLibrary = structType.element2.library;
         final finalizableElement = ffiLibrary.getType(_finalizableClassName)!;
         final finalizableType = finalizableElement.thisType;
         if (typeSystem.isSubtypeOf(compoundType, finalizableType)) {
@@ -427,7 +427,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           'NativeFieldWrapperClass1') {
         return true;
       }
-      type = type.element.supertype;
+      final element = type.element2;
+      if (element is ClassElement) {
+        type = element.supertype;
+      } else {
+        break;
+      }
     }
     return false;
   }
@@ -538,7 +543,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
       if (nativeType.isCompoundSubtype) {
         if (!allowEmptyStruct) {
-          if (nativeType.element.isEmptyStruct) {
+          if (nativeType.element2.isEmptyStruct) {
             // TODO(dartbug.com/36780): This results in an error message not
             // mentioning empty structs at all.
             return false;
@@ -585,7 +590,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   _PrimitiveDartType _primitiveNativeType(DartType nativeType) {
     if (nativeType is InterfaceType) {
-      final element = nativeType.element;
+      final element = nativeType.element2;
       if (element.isFfiClass) {
         final String name = element.name;
         if (_primitiveIntegerNativeTypes.contains(name)) {
@@ -669,13 +674,16 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (argument is SetOrMapLiteral) {
         for (final element in argument.elements) {
           if (element is MapLiteralEntry) {
-            final name = element.value.staticType?.element?.name;
-            if (name != null &&
-                !_primitiveIntegerNativeTypesFixedSize.contains(name)) {
-              _errorReporter.reportErrorForNode(
+            final valueType = element.value.staticType;
+            if (valueType is InterfaceType) {
+              final name = valueType.element2.name;
+              if (!_primitiveIntegerNativeTypesFixedSize.contains(name)) {
+                _errorReporter.reportErrorForNode(
                   FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
                   element.value,
-                  [name]);
+                  [name],
+                );
+              }
             }
           }
         }
@@ -689,13 +697,16 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     for (final nativeType in mappingValues.values) {
-      final nativeTypeName = nativeType?.type?.element?.name;
-      if (nativeTypeName != null &&
-          !_primitiveIntegerNativeTypesFixedSize.contains(nativeTypeName)) {
-        _errorReporter.reportErrorForNode(
+      final type = nativeType?.type;
+      if (type is InterfaceType) {
+        final nativeTypeName = type.element2.name;
+        if (!_primitiveIntegerNativeTypesFixedSize.contains(nativeTypeName)) {
+          _errorReporter.reportErrorForNode(
             FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
             arguments.first,
-            [nativeTypeName]);
+            [nativeTypeName],
+          );
+        }
       }
     }
   }
@@ -875,7 +886,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     final nativeReturnType = _primitiveNativeType(nativeType);
     if (nativeReturnType == _PrimitiveDartType.int ||
         (nativeType is InterfaceType &&
-            nativeType.superclass?.element.name ==
+            nativeType.superclass?.element2.name ==
                 _abiSpecificIntegerClassName)) {
       return dartType.isDartCoreInt;
     } else if (nativeReturnType == _PrimitiveDartType.double) {
@@ -1001,8 +1012,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         final arrayDimensions = declaredType.arrayDimensions;
         _validateSizeOfAnnotation(fieldType, annotations, arrayDimensions);
       } else if (declaredType.isCompoundSubtype) {
-        final clazz = (declaredType as InterfaceType).element;
-        if (clazz.isEmptyStruct) {
+        final clazz = (declaredType as InterfaceType).element2;
+        if (clazz is ClassElement && clazz.isEmptyStruct) {
           _errorReporter.reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [
             clazz.name,
             clazz.supertype!.getDisplayString(withNullability: false)
@@ -1487,7 +1498,7 @@ extension on Element? {
   }
 }
 
-extension on ClassElement {
+extension on InterfaceElement {
   bool get isEmptyStruct {
     for (final field in fields) {
       final declaredType = field.type;
@@ -1522,17 +1533,17 @@ extension on ExtensionElement {
 extension on DartType? {
   bool get isAbiSpecificInteger {
     final self = this;
-    return self is InterfaceType && self.element.isAbiSpecificInteger;
+    return self is InterfaceType && self.element2.isAbiSpecificInteger;
   }
 
   bool get isStruct {
     final self = this;
-    return self is InterfaceType && self.element.isStruct;
+    return self is InterfaceType && self.element2.isStruct;
   }
 
   bool get isUnion {
     final self = this;
-    return self is InterfaceType && self.element.isUnion;
+    return self is InterfaceType && self.element2.isUnion;
   }
 }
 
@@ -1541,8 +1552,8 @@ extension on DartType {
     DartType iterator = this;
     int dimensions = 0;
     while (iterator is InterfaceType &&
-        iterator.element.name == FfiVerifier._arrayClassName &&
-        iterator.element.isFfiClass) {
+        iterator.element2.name == FfiVerifier._arrayClassName &&
+        iterator.element2.isFfiClass) {
       dimensions++;
       iterator = iterator.typeArguments.single;
     }
@@ -1552,7 +1563,7 @@ extension on DartType {
   bool get isAbiSpecificInteger {
     final self = this;
     if (self is InterfaceType) {
-      final element = self.element;
+      final element = self.element2;
       final name = element.name;
       return name == FfiVerifier._abiSpecificIntegerClassName &&
           element.isFfiClass;
@@ -1565,9 +1576,9 @@ extension on DartType {
   bool get isAbiSpecificIntegerSubtype {
     final self = this;
     if (self is InterfaceType) {
-      final superType = self.element.supertype;
+      final superType = self.element2.supertype;
       if (superType != null) {
-        final superClassElement = superType.element;
+        final superClassElement = superType.element2;
         return superClassElement.name ==
                 FfiVerifier._abiSpecificIntegerClassName &&
             superClassElement.isFfiClass;
@@ -1580,7 +1591,7 @@ extension on DartType {
   bool get isArray {
     final self = this;
     if (self is InterfaceType) {
-      final element = self.element;
+      final element = self.element2;
       return element.name == FfiVerifier._arrayClassName && element.isFfiClass;
     }
     return false;
@@ -1589,7 +1600,7 @@ extension on DartType {
   bool get isCompound {
     final self = this;
     if (self is InterfaceType) {
-      final element = self.element;
+      final element = self.element2;
       final name = element.name;
       return (name == FfiVerifier._structClassName ||
               name == FfiVerifier._unionClassName) &&
@@ -1602,7 +1613,7 @@ extension on DartType {
   bool get isCompoundSubtype {
     final self = this;
     if (self is InterfaceType) {
-      final superType = self.element.supertype;
+      final superType = self.element2.supertype;
       if (superType != null) {
         return superType.isCompound;
       }
@@ -1613,7 +1624,7 @@ extension on DartType {
   bool get isHandle {
     final self = this;
     if (self is InterfaceType) {
-      final element = self.element;
+      final element = self.element2;
       return element.name == 'Handle' && element.isFfiClass;
     }
     return false;
@@ -1623,7 +1634,7 @@ extension on DartType {
   bool get isNativeFunction {
     final self = this;
     if (self is InterfaceType) {
-      final element = self.element;
+      final element = self.element2;
       return element.name == 'NativeFunction' && element.isFfiClass;
     }
     return false;
@@ -1633,7 +1644,7 @@ extension on DartType {
   bool get isNativeType {
     final self = this;
     if (self is InterfaceType) {
-      final element = self.element;
+      final element = self.element2;
       return element.name == 'NativeType' && element.isFfiClass;
     }
     return false;
@@ -1643,9 +1654,9 @@ extension on DartType {
   bool get isOpaqueSubtype {
     final self = this;
     if (self is InterfaceType) {
-      final superType = self.element.supertype;
+      final superType = self.element2.supertype;
       if (superType != null) {
-        final superClassElement = superType.element;
+        final superClassElement = superType.element2;
         return superClassElement.name == FfiVerifier._opaqueClassName &&
             superClassElement.isFfiClass;
       }
@@ -1655,7 +1666,7 @@ extension on DartType {
 
   bool get isPointer {
     final self = this;
-    return self is InterfaceType && self.element.isPointer;
+    return self is InterfaceType && self.element2.isPointer;
   }
 }
 

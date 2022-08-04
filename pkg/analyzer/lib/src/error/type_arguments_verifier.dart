@@ -330,8 +330,8 @@ class TypeArgumentsVerifier {
       typeParameters = alias.element.typeParameters;
       typeArguments = alias.typeArguments;
     } else if (type is InterfaceType) {
-      elementName = type.element.name;
-      typeParameters = type.element.typeParameters;
+      elementName = type.element2.name;
+      typeParameters = type.element2.typeParameters;
       typeArguments = type.typeArguments;
     } else {
       return;

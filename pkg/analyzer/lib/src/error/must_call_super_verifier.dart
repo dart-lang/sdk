@@ -72,16 +72,26 @@ class MustCallSuperVerifier {
     if (element.enclosingElement3 is! ClassElement) {
       return null;
     }
-    var classElement = element.enclosingElement3 as ClassElement;
+    var classElement = element.enclosingElement3 as InterfaceElement;
     String name = element.name;
 
     // Walk up the type hierarchy from [classElement], ignoring direct
     // interfaces.
-    Queue<ClassElement?> superclasses =
-        Queue.of(classElement.mixins.map((i) => i.element))
-          ..addAll(classElement.superclassConstraints.map((i) => i.element))
-          ..add(classElement.supertype?.element);
-    var visitedClasses = <ClassElement>{};
+    final superclasses = Queue<InterfaceElement?>();
+
+    void addToQueue(InterfaceElement element) {
+      superclasses.addAll(element.mixins.map((i) => i.element2));
+      if (element is ClassElement) {
+        superclasses.add(element.supertype?.element2);
+      }
+      if (element is MixinElement) {
+        superclasses
+            .addAll(element.superclassConstraints.map((i) => i.element2));
+      }
+    }
+
+    final visitedClasses = <InterfaceElement>{};
+    addToQueue(classElement);
     while (superclasses.isNotEmpty) {
       var ancestor = superclasses.removeFirst();
       if (ancestor == null || !visitedClasses.add(ancestor)) {
@@ -99,10 +109,7 @@ class MustCallSuperVerifier {
         // documentation of [mustCallSuper].
         return member;
       }
-      superclasses
-        ..addAll(ancestor.mixins.map((i) => i.element))
-        ..addAll(ancestor.superclassConstraints.map((i) => i.element))
-        ..add(ancestor.supertype?.element);
+      addToQueue(ancestor);
     }
     return null;
   }
@@ -144,7 +151,7 @@ extension on InterfaceType? {
   bool isConcrete(String name) {
     var self = this;
     if (self == null) return false;
-    var element = self.element;
+    var element = self.element2;
     return element.lookUpConcreteMethod(name, element.library) != null;
   }
 }

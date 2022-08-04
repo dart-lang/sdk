@@ -143,7 +143,7 @@ class MethodInvocationResolver with ScopeHelpers {
         var aliasedType = element.aliasedType;
         if (aliasedType is InterfaceType) {
           _resolveReceiverTypeLiteral(
-              node, aliasedType.element, nameNode, name, whyNotPromotedList,
+              node, aliasedType.element2, nameNode, name, whyNotPromotedList,
               contextType: contextType);
           return;
         }
@@ -347,7 +347,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// Given that we are accessing a property of the given [classElement] with the
   /// given [propertyName], return the element that represents the property.
   Element? _resolveElement(
-      ClassElement classElement, SimpleIdentifier propertyName) {
+      InterfaceElement classElement, SimpleIdentifier propertyName) {
     // TODO(scheglov) Replace with class hierarchy.
     String name = propertyName.name;
     Element? element;
@@ -819,7 +819,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     String receiverClassName = '<unknown>';
     if (receiverType is InterfaceType) {
-      receiverClassName = receiverType.element.name;
+      receiverClassName = receiverType.element2.name;
     } else if (receiverType is FunctionType) {
       receiverClassName = 'Function';
     }
@@ -835,13 +835,13 @@ class MethodInvocationResolver with ScopeHelpers {
 
   void _resolveReceiverTypeLiteral(
       MethodInvocationImpl node,
-      ClassElement receiver,
+      InterfaceElement receiver,
       SimpleIdentifierImpl nameNode,
       String name,
       List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
     if (node.isCascaded) {
-      receiver = _typeType.element;
+      receiver = _typeType.element2;
     }
 
     var element = _resolveElement(receiver, nameNode);

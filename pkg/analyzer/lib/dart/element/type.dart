@@ -44,6 +44,7 @@ abstract class DartType {
   /// the type has not, or cannot, be associated with an element. The former
   /// case will occur if the element model is not yet complete; the latter case
   /// will occur if this object represents an undefined type.
+  @Deprecated('Check for specific DartType subtype and use element2 instead')
   Element? get element;
 
   /// Return `true` if this type represents the bottom type.
@@ -155,7 +156,7 @@ abstract class DartType {
   ///
   /// For a [TypeParameterType] with a bound (declared or promoted), returns
   /// the interface implemented by the bound.
-  InterfaceType? asInstanceOf(ClassElement element);
+  InterfaceType? asInstanceOf(InterfaceElement element);
 
   /// Return the presentation of this type as it should appear when presented
   /// to users in contexts such as error messages.
@@ -277,8 +278,12 @@ abstract class InterfaceType implements ParameterizedType {
   /// Return a list containing all of the constructors declared in this type.
   List<ConstructorElement> get constructors;
 
+  @Deprecated('Use element2 instead')
   @override
   ClassElement get element;
+
+  /// Return the element representing the declaration of this type.
+  InterfaceElement get element2;
 
   /// Return a list containing all of the interfaces that are implemented by
   /// this interface. Note that this is <b>not</b>, in general, equivalent to
@@ -391,7 +396,10 @@ abstract class InterfaceType implements ParameterizedType {
 }
 
 /// The type `Never` represents the uninhabited bottom type.
-abstract class NeverType implements DartType {}
+abstract class NeverType implements DartType {
+  @override
+  Element get element;
+}
 
 /// A type that can track substituted type parameters, either for itself after
 /// instantiation, or from a surrounding context.

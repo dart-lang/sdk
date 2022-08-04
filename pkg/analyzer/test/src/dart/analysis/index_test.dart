@@ -123,7 +123,7 @@ class B extends p.A {} // 2
 class A {}
 ''');
     ClassElement elementA = findElement.class_('A');
-    ClassElement elementObject = elementA.supertype!.element;
+    final elementObject = elementA.supertype!.element2;
     assertThat(elementObject).isExtendedAt('A {}', true, length: 0);
   }
 

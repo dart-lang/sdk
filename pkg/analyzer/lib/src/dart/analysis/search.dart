@@ -286,7 +286,7 @@ class Search {
   /// [Search] object, so should be only searched by it to avoid duplicate
   /// results; and updated to take ownership if the file is not owned yet.
   Future<List<SearchResult>> subTypes(
-      ClassElement? type, SearchedFiles searchedFiles) async {
+      InterfaceElement? type, SearchedFiles searchedFiles) async {
     if (type == null) {
       return const <SearchResult>[];
     }

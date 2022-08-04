@@ -691,10 +691,12 @@ class TypedLiteralResolver {
     if (literalType.isDynamic) {
       // The literal is ambiguous, and further analysis won't resolve the
       // ambiguity.  Leave it as neither a set nor a map.
-    } else if (literalType.element == _typeProvider.mapElement) {
+    } else if (literalType is InterfaceType &&
+        literalType.element2 == _typeProvider.mapElement) {
       node.becomeMap();
     } else {
-      assert(literalType.element == _typeProvider.setElement);
+      assert(literalType is InterfaceType &&
+          literalType.element2 == _typeProvider.setElement);
       node.becomeSet();
     }
     if (_strictInference &&

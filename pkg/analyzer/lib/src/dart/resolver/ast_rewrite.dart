@@ -184,7 +184,7 @@ class AstRewriter {
             node: node,
             typeIdentifier: target,
             constructorIdentifier: methodName,
-            classElement: aliasedType.element,
+            classElement: aliasedType.element2,
           );
         }
       }
@@ -209,7 +209,7 @@ class AstRewriter {
               node: node,
               typeNameIdentifier: target,
               constructorIdentifier: methodName,
-              classElement: aliasedType.element,
+              classElement: aliasedType.element2,
             );
           }
         }
@@ -262,7 +262,9 @@ class AstRewriter {
         //     typedef X = C;
         //     X.named
         return _toConstructorReference_prefixed(
-            node: node, classElement: aliasedType.element);
+          node: node,
+          classElement: aliasedType.element2,
+        );
       }
     }
     return node;
@@ -350,7 +352,7 @@ class AstRewriter {
           node: node,
           receiver: receiverIdentifier,
           typeArguments: typeArguments,
-          classElement: aliasedType.element,
+          classElement: aliasedType.element2,
         );
       }
     }
@@ -374,7 +376,7 @@ class AstRewriter {
     required MethodInvocationImpl node,
     required PrefixedIdentifierImpl typeNameIdentifier,
     required SimpleIdentifierImpl constructorIdentifier,
-    required ClassElement classElement,
+    required InterfaceElement classElement,
   }) {
     var constructorElement = classElement.getNamedConstructor(
       constructorIdentifier.name,
@@ -408,7 +410,7 @@ class AstRewriter {
 
   AstNode _toConstructorReference_prefixed({
     required PrefixedIdentifierImpl node,
-    required ClassElement classElement,
+    required InterfaceElement classElement,
   }) {
     var name = node.identifier.name;
     var constructorElement = name == 'new'
@@ -435,7 +437,7 @@ class AstRewriter {
     required PropertyAccessImpl node,
     required IdentifierImpl receiver,
     required TypeArgumentListImpl? typeArguments,
-    required ClassElement classElement,
+    required InterfaceElement classElement,
   }) {
     var name = node.propertyName.name;
     var constructorElement = name == 'new'
@@ -514,7 +516,7 @@ class AstRewriter {
     required MethodInvocationImpl node,
     required SimpleIdentifierImpl typeIdentifier,
     required SimpleIdentifierImpl constructorIdentifier,
-    required ClassElement classElement,
+    required InterfaceElement classElement,
   }) {
     var name = constructorIdentifier.name;
     var constructorElement = classElement.getNamedConstructor(name);

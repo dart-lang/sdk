@@ -85,7 +85,7 @@ class ReplacementVisitor
     }
 
     return InterfaceTypeImpl(
-      element: type.element,
+      element2: type.element2,
       typeArguments: newTypeArguments ?? type.typeArguments,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
       alias: newAlias ?? type.alias,
@@ -372,7 +372,7 @@ class ReplacementVisitor
     }
 
     var newTypeArguments = _typeArguments(
-      type.element.typeParameters,
+      type.element2.typeParameters,
       type.typeArguments,
     );
 

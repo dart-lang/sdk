@@ -324,7 +324,7 @@ class _ElementWriter {
         supertype = e.supertype;
       }
       if (supertype != null &&
-          (supertype.element.name != 'Object' || e.mixins.isNotEmpty)) {
+          (supertype.element2.name != 'Object' || e.mixins.isNotEmpty)) {
         _writeType('supertype', supertype);
       }
 
@@ -961,11 +961,6 @@ class _ElementWriter {
 
       var aliasedType = e.aliasedType;
       _writeType('aliasedType', aliasedType);
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
-      // TODO(scheglov) Remove it when we stop providing it everywhere.
-      if (aliasedType is FunctionType) {
-        expect(aliasedType.element, isNull);
-      }
 
       var aliasedElement = e.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElementImpl) {

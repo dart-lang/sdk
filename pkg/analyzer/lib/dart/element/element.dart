@@ -197,18 +197,6 @@ abstract class ClassElement
         _TmpSharedClassElement {
   /// Returns the result of applying augmentations to this class.
   AugmentedClassElement get augmented;
-
-  /// Return the superclass of this class, or `null` if either the class
-  /// represents the class 'Object'. If the superclass was not explicitly
-  /// declared then the implicit superclass 'Object' will be returned.
-  ///
-  /// <b>Note:</b> Because the element model represents the state of the code,
-  /// it is possible for it to be semantically invalid. In particular, it is not
-  /// safe to assume that the inheritance structure of a class does not contain
-  /// a cycle. Clients that traverse the inheritance structure must explicitly
-  /// guard against infinite loops.
-  @override
-  InterfaceType? get supertype;
 }
 
 /// An element that is contained within a [ClassElement].
@@ -1103,10 +1091,6 @@ abstract class EnumElement
         _TmpSharedClassElement {
   /// Returns the result of applying augmentations to this element.
   AugmentedEnumElement get augmented;
-
-  /// Returns `Enum` from `dart:core`.
-  @override
-  InterfaceType? get supertype;
 }
 
 /// Shared interface between [EnumElement] and [EnumAugmentationElement].
@@ -1405,6 +1389,23 @@ abstract class InterfaceElement
   /// superclass constraints.
   List<InterfaceType> get allSupertypes;
 
+  /// Return the superclass of this element.
+  ///
+  /// For [ClassElement] returns `null` only if this class is `Object`. If the
+  /// superclass is not explicitly specified, or the superclass cannot be
+  /// resolved, then the implicit superclass `Object` is returned.
+  ///
+  /// For [EnumElement] returns `Enum` from `dart:core`.
+  ///
+  /// For [MixinElement] always returns `null`.
+  ///
+  /// <b>Note:</b> Because the element model represents the state of the code,
+  /// it is possible for it to be semantically invalid. In particular, it is not
+  /// safe to assume that the inheritance structure of a class does not contain
+  /// a cycle. Clients that traverse the inheritance structure must explicitly
+  /// guard against infinite loops.
+  InterfaceType? get supertype;
+
   /// Return the type of `this` expression for this element.
   ///
   /// For a class like `class MyClass<T, U> {}` the returned type is equivalent
@@ -1451,6 +1452,24 @@ abstract class InterfaceElement
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   });
+
+  /// Return the element representing the method that results from looking up
+  /// the given [methodName] in this class with respect to the given [library],
+  /// ignoring abstract methods, or `null` if the look up fails. The behavior of
+  /// this method is defined by the Dart Language Specification in section
+  /// 16.15.1:
+  /// <blockquote>
+  /// The result of looking up method <i>m</i> in class <i>C</i> with respect to
+  /// library <i>L</i> is: If <i>C</i> declares an instance method named
+  /// <i>m</i> that is accessible to <i>L</i>, then that method is the result of
+  /// the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the
+  /// result of the lookup is the result of looking up method <i>m</i> in
+  /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
+  /// failed.
+  /// </blockquote>
+  /// TODO(scheglov) Deprecate and remove it.
+  MethodElement? lookUpConcreteMethod(
+      String methodName, LibraryElement library);
 
   /// Return the element representing the getter that results from looking up
   /// the given [getterName] in this class with respect to the given [library],
@@ -1502,6 +1521,24 @@ abstract class InterfaceElement
   /// </blockquote>
   /// TODO(scheglov) Deprecate and remove it.
   MethodElement? lookUpMethod(String methodName, LibraryElement library);
+
+  /// Return the element representing the setter that results from looking up
+  /// the given [setterName] in this class with respect to the given [library],
+  /// or `null` if the look up fails. The behavior of this method is defined by
+  /// the Dart Language Specification in section 16.15.2:
+  /// <blockquote>
+  /// The result of looking up getter (respectively setter) <i>m</i> in class
+  /// <i>C</i> with respect to library <i>L</i> is: If <i>C</i> declares an
+  /// instance getter (respectively setter) named <i>m</i> that is accessible to
+  /// <i>L</i>, then that getter (respectively setter) is the result of the
+  /// lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result
+  /// of the lookup is the result of looking up getter (respectively setter)
+  /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
+  /// lookup has failed.
+  /// </blockquote>
+  /// TODO(scheglov) Deprecate and remove it.
+  PropertyAccessorElement? lookUpSetter(
+      String setterName, LibraryElement library);
 }
 
 /// Shared interface between [InterfaceElement] and augmentations.
@@ -1550,6 +1587,10 @@ abstract class InterfaceOrAugmentationElement
 
   /// Return a list containing all of the mixins that are applied to the class
   /// being extended in order to derive the superclass of this class.
+  ///
+  /// [ClassElement] and [EnumElement] can have mixins.
+  ///
+  /// [MixinElement] cannot have mixins, so the empty list is returned.
   ///
   /// <b>Note:</b> Because the element model represents the state of the code,
   /// it is possible for it to be semantically invalid. In particular, it is not
@@ -2491,37 +2532,6 @@ abstract class _TmpSharedClassElement {
   /// TODO(scheglov) Deprecate and remove it.
   List<InterfaceType> get superclassConstraints;
 
-  /// Return the superclass of this class, or `null` if either the class
-  /// represents the class 'Object' or if the class represents a mixin
-  /// declaration. All other classes will have a non-`null` superclass. If the
-  /// superclass was not explicitly declared then the implicit superclass
-  /// 'Object' will be returned.
-  ///
-  /// <b>Note:</b> Because the element model represents the state of the code,
-  /// it is possible for it to be semantically invalid. In particular, it is not
-  /// safe to assume that the inheritance structure of a class does not contain
-  /// a cycle. Clients that traverse the inheritance structure must explicitly
-  /// guard against infinite loops.
-  InterfaceType? get supertype;
-
-  /// Return the element representing the method that results from looking up
-  /// the given [methodName] in this class with respect to the given [library],
-  /// ignoring abstract methods, or `null` if the look up fails. The behavior of
-  /// this method is defined by the Dart Language Specification in section
-  /// 16.15.1:
-  /// <blockquote>
-  /// The result of looking up method <i>m</i> in class <i>C</i> with respect to
-  /// library <i>L</i> is: If <i>C</i> declares an instance method named
-  /// <i>m</i> that is accessible to <i>L</i>, then that method is the result of
-  /// the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the
-  /// result of the lookup is the result of looking up method <i>m</i> in
-  /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
-  /// failed.
-  /// </blockquote>
-  /// TODO(scheglov) Deprecate and remove it.
-  MethodElement? lookUpConcreteMethod(
-      String methodName, LibraryElement library);
-
   /// Return the element representing the getter that results from looking up
   /// the given [getterName] in the superclass of this class with respect to the
   /// given [library], ignoring abstract getters, or `null` if the look up
@@ -2576,23 +2586,5 @@ abstract class _TmpSharedClassElement {
   /// </blockquote>
   /// TODO(scheglov) Deprecate and remove it.
   PropertyAccessorElement? lookUpInheritedConcreteSetter(
-      String setterName, LibraryElement library);
-
-  /// Return the element representing the setter that results from looking up
-  /// the given [setterName] in this class with respect to the given [library],
-  /// or `null` if the look up fails. The behavior of this method is defined by
-  /// the Dart Language Specification in section 16.15.2:
-  /// <blockquote>
-  /// The result of looking up getter (respectively setter) <i>m</i> in class
-  /// <i>C</i> with respect to library <i>L</i> is: If <i>C</i> declares an
-  /// instance getter (respectively setter) named <i>m</i> that is accessible to
-  /// <i>L</i>, then that getter (respectively setter) is the result of the
-  /// lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result
-  /// of the lookup is the result of looking up getter (respectively setter)
-  /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
-  /// lookup has failed.
-  /// </blockquote>
-  /// TODO(scheglov) Deprecate and remove it.
-  PropertyAccessorElement? lookUpSetter(
       String setterName, LibraryElement library);
 }

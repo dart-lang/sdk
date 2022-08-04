@@ -149,7 +149,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
         : CompletionSuggestionKind.INVOCATION;
     for (var type in classElement.allSupertypes) {
       var inheritanceDistance = request.featureComputer
-          .inheritanceDistanceFeature(classElement, type.element);
+          .inheritanceDistanceFeature(classElement, type.element2);
       _addSuggestionsForType(type, inheritanceDistance,
           isFunctionalArgument: isFunctionalArgument);
     }

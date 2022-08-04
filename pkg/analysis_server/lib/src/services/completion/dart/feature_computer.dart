@@ -276,7 +276,8 @@ class FeatureComputer {
   /// must be traversed in the type graph to get from the subtype to the
   /// supertype if the two types are not the same. Return `-1` if the [subclass]
   /// is not a subclass of the [superclass].
-  int inheritanceDistance(ClassElement subclass, ClassElement superclass) {
+  int inheritanceDistance(
+      InterfaceElement subclass, InterfaceElement superclass) {
     // This method is only visible for the metrics computation and might be made
     // private at some future date.
     return _inheritanceDistance(subclass, superclass, {});
@@ -286,7 +287,7 @@ class FeatureComputer {
   /// defined in the [superclass] that is being accessed through an expression
   /// whose static type is the [subclass].
   double inheritanceDistanceFeature(
-      ClassElement subclass, ClassElement superclass) {
+      InterfaceElement subclass, InterfaceElement superclass) {
     var distance = _inheritanceDistance(subclass, superclass, {});
     return _distanceToPercent(distance);
   }
@@ -460,8 +461,8 @@ class FeatureComputer {
   /// cycles in the type graph.
   ///
   /// This is the implementation of [inheritanceDistance].
-  int _inheritanceDistance(ClassElement? subclass, ClassElement superclass,
-      Set<ClassElement> visited) {
+  int _inheritanceDistance(InterfaceElement? subclass,
+      InterfaceElement superclass, Set<InterfaceElement> visited) {
     if (subclass == null) {
       return -1;
     } else if (subclass == superclass) {
@@ -469,19 +470,24 @@ class FeatureComputer {
     } else if (!visited.add(subclass)) {
       return -1;
     }
-    var minDepth =
-        _inheritanceDistance(subclass.supertype?.element, superclass, visited);
+    var minDepth = 0;
+    if (subclass is ClassElement) {
+      minDepth = _inheritanceDistance(
+          subclass.supertype?.element2, superclass, visited);
+    }
 
     void visitTypes(List<InterfaceType> types) {
       for (var type in types) {
-        var depth = _inheritanceDistance(type.element, superclass, visited);
+        var depth = _inheritanceDistance(type.element2, superclass, visited);
         if (minDepth < 0 || (depth >= 0 && depth < minDepth)) {
           minDepth = depth;
         }
       }
     }
 
-    visitTypes(subclass.superclassConstraints);
+    if (subclass is MixinElement) {
+      visitTypes(subclass.superclassConstraints);
+    }
     visitTypes(subclass.mixins);
     visitTypes(subclass.interfaces);
 

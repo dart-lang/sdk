@@ -563,7 +563,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     _addSubtypeForClassDeclaration(node);
     var declaredElement = node.declaredElement!;
     if (node.extendsClause == null) {
-      ClassElement? objectElement = declaredElement.supertype?.element;
+      final objectElement = declaredElement.supertype?.element2;
       recordRelationOffset(objectElement, IndexRelationKind.IS_EXTENDED_BY,
           node.name2.offset, 0, true);
     }
@@ -1024,8 +1024,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     return parent is Combinator || parent is Label;
   }
 
-  void _recordIsAncestorOf(Element descendant, ClassElement ancestor,
-      bool includeThis, List<ClassElement> visitedElements) {
+  void _recordIsAncestorOf(Element descendant, InterfaceElement ancestor,
+      bool includeThis, List<InterfaceElement> visitedElements) {
     if (visitedElements.contains(ancestor)) {
       return;
     }
@@ -1037,21 +1037,26 @@ class _IndexContributor extends GeneralizingAstVisitor {
           ancestor, IndexRelationKind.IS_ANCESTOR_OF, offset, length, false);
     }
     {
-      var superType = ancestor.supertype;
-      if (superType != null) {
-        _recordIsAncestorOf(
-            descendant, superType.element, true, visitedElements);
+      if (ancestor is ClassElement) {
+        var superType = ancestor.supertype;
+        if (superType != null) {
+          _recordIsAncestorOf(
+              descendant, superType.element2, true, visitedElements);
+        }
       }
     }
     for (InterfaceType mixinType in ancestor.mixins) {
-      _recordIsAncestorOf(descendant, mixinType.element, true, visitedElements);
+      _recordIsAncestorOf(
+          descendant, mixinType.element2, true, visitedElements);
     }
-    for (InterfaceType type in ancestor.superclassConstraints) {
-      _recordIsAncestorOf(descendant, type.element, true, visitedElements);
+    if (ancestor is MixinElement) {
+      for (InterfaceType type in ancestor.superclassConstraints) {
+        _recordIsAncestorOf(descendant, type.element2, true, visitedElements);
+      }
     }
     for (InterfaceType implementedType in ancestor.interfaces) {
       _recordIsAncestorOf(
-          descendant, implementedType.element, true, visitedElements);
+          descendant, implementedType.element2, true, visitedElements);
     }
   }
 }

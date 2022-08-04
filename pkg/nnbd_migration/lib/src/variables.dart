@@ -49,7 +49,7 @@ class Variables {
   final _decoratedElementTypes = <Element?, DecoratedType?>{};
 
   final _decoratedDirectSupertypes =
-      <InterfaceElement, Map<ClassElement, DecoratedType?>>{};
+      <InterfaceElement, Map<InterfaceElement, DecoratedType?>>{};
 
   final _decoratedTypeAnnotations = <Source?, Map<int, DecoratedType>>{};
 
@@ -75,7 +75,7 @@ class Variables {
 
   /// Given a [class_], gets the decorated type information for the superclasses
   /// it directly implements/extends/etc.
-  Map<ClassElement, DecoratedType?> decoratedDirectSupertypes(
+  Map<InterfaceElement, DecoratedType?> decoratedDirectSupertypes(
       InterfaceElement class_) {
     return _decoratedDirectSupertypes[class_] ??=
         _decorateDirectSupertypes(class_);
@@ -206,7 +206,7 @@ class Variables {
   /// Associates a [class_] with decorated type information for the superclasses
   /// it directly implements/extends/etc.
   void recordDecoratedDirectSupertypes(ClassElement class_,
-      Map<ClassElement, DecoratedType?> decoratedDirectSupertypes) {
+      Map<InterfaceElement, DecoratedType?> decoratedDirectSupertypes) {
     _decoratedDirectSupertypes[class_] = decoratedDirectSupertypes;
   }
 
@@ -341,7 +341,7 @@ class Variables {
       );
     } else if (type is InterfaceType) {
       return InterfaceTypeImpl(
-        element: type.element,
+        element2: type.element2,
         typeArguments: [
           for (var arg in decoratedType.typeArguments) toFinalType(arg!)
         ],
@@ -417,12 +417,12 @@ class Variables {
 
   /// Creates an entry [_decoratedDirectSupertypes] for an already-migrated
   /// class.
-  Map<ClassElement, DecoratedType> _decorateDirectSupertypes(
+  Map<InterfaceElement, DecoratedType> _decorateDirectSupertypes(
       InterfaceElement class_) {
-    var result = <ClassElement, DecoratedType>{};
+    var result = <InterfaceElement, DecoratedType>{};
     for (var decoratedSupertype
         in _alreadyMigratedCodeDecorator.getImmediateSupertypes(class_)) {
-      var class_ = (decoratedSupertype.type as InterfaceType).element;
+      var class_ = (decoratedSupertype.type as InterfaceType).element2;
       result[class_] = decoratedSupertype;
     }
     return result;

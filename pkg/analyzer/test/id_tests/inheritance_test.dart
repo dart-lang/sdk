@@ -36,7 +36,7 @@ main(List<String> args) async {
 
 String supertypeToString(InterfaceType type) {
   var sb = StringBuffer();
-  sb.write(type.element.name);
+  sb.write(type.element2.name);
   if (type.typeArguments.isNotEmpty) {
     sb.write('<');
     var comma = '';

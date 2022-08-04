@@ -312,7 +312,7 @@ class D<V> extends C<int, V> {}
 class C<T, U> {}
 ''');
     var types = decoratedDirectSupertypes('C');
-    var decorated = types[typeProvider.objectType.element]!;
+    var decorated = types[typeProvider.objectType.element2]!;
     _assertType(decorated.type!, 'Object');
     assertEdge(decorated.node, never, hard: true, checkable: false);
     expect(decorated.typeArguments, isEmpty);
@@ -418,7 +418,7 @@ abstract class D<V> extends Iterable<V> {}
 mixin C<T, U> {}
 ''');
     var types = decoratedDirectSupertypes('C');
-    var decorated = types[typeProvider.objectType.element]!;
+    var decorated = types[typeProvider.objectType.element2]!;
     _assertType(decorated.type!, 'Object');
     assertEdge(decorated.node, never, hard: true, checkable: false);
     expect(decorated.typeArguments, isEmpty);
