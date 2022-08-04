@@ -2351,6 +2351,252 @@ void main(List<String> arguments, SendPort sendPort) {
       expect(count, 1);
     });
 
+    // This test exercises what happens when a change occurs with a single
+    // module of a multi-module compilation.
+    test('recompile to JavaScript with in-body change', () async {
+      // Five libraries, a to e, in two modules, {a, b} and {c, d, e}:
+      //    (a <-> b) -> (c <-> d <-> e)
+      // In body changes are performed on d and e. With advanced invalidation,
+      // not currently enabled, only the module {c, d, e} will be recompiled.
+      File('${tempDir.path}/a.dart')
+        ..createSync()
+        ..writeAsStringSync("""
+import 'b.dart';
+main() {
+  b();
+}
+a() => "<<a>>";
+""");
+      File('${tempDir.path}/b.dart')
+        ..createSync()
+        ..writeAsStringSync("""
+import 'a.dart';
+import 'c.dart';
+b() {
+  a();
+  "<<b>>";
+  c();
+}
+""");
+      File('${tempDir.path}/c.dart')
+        ..createSync()
+        ..writeAsStringSync("""
+import 'd.dart';
+c() {
+  "<<c>>";
+  d();
+}
+""");
+      var fileD = File('${tempDir.path}/d.dart')
+        ..createSync()
+        ..writeAsStringSync("""
+import 'e.dart';
+d() {
+  "<<d>>";
+  e();
+}
+""");
+      var fileE = File('${tempDir.path}/e.dart')
+        ..createSync()
+        ..writeAsStringSync("""
+import 'c.dart';
+e() {
+  c();
+  "<<e>>";
+}
+""");
+      var packageConfig = File('${tempDir.path}/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "a",
+        "rootUri": "../",
+        "packageUri": "./"
+      }
+    ]
+  }
+  ''');
+
+      var entryPoint = 'package:a/a.dart';
+
+      var dillFile = File('${tempDir.path}/app.dill');
+      var sourceFile = File('${dillFile.path}.sources');
+      var manifestFile = File('${dillFile.path}.json');
+      var sourceMapsFile = File('${dillFile.path}.map');
+      var metadataFile = File('${dillFile.path}.metadata');
+      var symbolsFile = File('${dillFile.path}.symbols');
+
+      expect(dillFile.existsSync(), false);
+      expect(sourceFile.existsSync(), false);
+      expect(manifestFile.existsSync(), false);
+      expect(sourceMapsFile.existsSync(), false);
+      expect(metadataFile.existsSync(), false);
+      expect(symbolsFile.existsSync(), false);
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--target=dartdevc',
+        '--packages=${packageConfig.path}',
+        // TODO(johnniwinther): Enable this.
+        //'--enable-experiment=alternative-invalidation-strategy',
+        '--emit-debug-symbols',
+      ];
+
+      final StreamController<List<int>> streamController =
+          StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          StreamController<List<int>>();
+      final IOSink ioSink = IOSink(stdoutStreamController.sink);
+      StreamController<Result> receivedResults = StreamController<Result>();
+      final outputParser = OutputParser(receivedResults);
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(outputParser.listener);
+
+      Future<int> result =
+          starter(args, input: streamController.stream, output: ioSink);
+      streamController.add('compile $entryPoint\n'.codeUnits);
+      int count = 0;
+      receivedResults.stream.listen((Result compiledResult) {
+        switch (count) {
+          case 0:
+            CompilationResult result =
+                CompilationResult.parse(compiledResult.status);
+            expect(result.errorsCount, equals(0));
+            expect(result.filename, dillFile.path);
+            expect(sourceFile.existsSync(), equals(true));
+
+            var source = sourceFile.readAsStringSync();
+            // Split on the comment at the end of each module.
+            var jsModules =
+                source.split(RegExp("\/\/# sourceMappingURL=.*\.map"));
+
+            expect(jsModules[0], contains('<<a>>'));
+            expect(jsModules[0], contains('<<b>>'));
+            expect(jsModules[0], not(contains('<<c>>')));
+            expect(jsModules[0], not(contains('<<d>>')));
+            expect(jsModules[0], not(contains('<<e>>')));
+
+            expect(jsModules[1], not(contains('<<a>>')));
+            expect(jsModules[1], not(contains('<<b>>')));
+            expect(jsModules[1], contains('<<c>>'));
+            expect(jsModules[1], contains('<<d>>'));
+            expect(jsModules[1], contains('<<e>>'));
+
+            streamController.add('accept\n'.codeUnits);
+
+            fileD.writeAsStringSync("""
+import 'e.dart';
+d() {
+  "<<d1>>";
+  "<<d2>>";
+  e();
+}
+""");
+            // Trigger a recompile that invalidates 'd.dart'. The input uri
+            // (a.dart) is passed explicitly.
+            streamController.add('recompile ${entryPoint} abc\n'
+                    '${fileD.uri}\n'
+                    'abc\n'
+                .codeUnits);
+            break;
+          case 1:
+            CompilationResult result =
+                CompilationResult.parse(compiledResult.status);
+            expect(result.errorsCount, equals(0));
+            expect(result.filename, '${dillFile.path}.incremental.dill');
+            File incrementalSourceFile =
+                File('${dillFile.path}.incremental.dill.sources');
+            expect(incrementalSourceFile.existsSync(), equals(true));
+
+            var source = incrementalSourceFile.readAsStringSync();
+            // Split on the comment at the end of each module.
+            var jsModules =
+                source.split(RegExp("\/\/# sourceMappingURL=.*\.map"));
+
+            expect(jsModules[0], contains('<<a>>'));
+            expect(jsModules[0], contains('<<b>>'));
+            expect(jsModules[0], not(contains('<<c>>')));
+            expect(jsModules[0], not(contains('<<d>>')));
+            expect(jsModules[0], not(contains('<<e>>')));
+
+            expect(jsModules[1], not(contains('<<a>>')));
+            expect(jsModules[1], not(contains('<<b>>')));
+            expect(jsModules[1], contains('<<c>>'));
+            expect(jsModules[1], not(contains('<<d>>')));
+            expect(jsModules[1], contains('<<d1>>'));
+            expect(jsModules[1], contains('<<d2>>'));
+            expect(jsModules[1], contains('<<e>>'));
+
+            streamController.add('accept\n'.codeUnits);
+
+            fileE.writeAsStringSync("""
+import 'c.dart';
+e() {
+  c();
+  "<<e1>>";
+  "<<e2>>";
+}
+""");
+            // Trigger a recompile that invalidates 'd.dart'. The input uri
+            // (a.dart) is omitted.
+            streamController.add('recompile abc\n'
+                    '${fileE.uri}\n'
+                    'abc\n'
+                .codeUnits);
+            break;
+            break;
+          case 2:
+            CompilationResult result =
+                CompilationResult.parse(compiledResult.status);
+            expect(result.errorsCount, equals(0));
+            expect(result.filename, '${dillFile.path}.incremental.dill');
+            File incrementalSourceFile =
+                File('${dillFile.path}.incremental.dill.sources');
+            expect(incrementalSourceFile.existsSync(), equals(true));
+
+            var source = incrementalSourceFile.readAsStringSync();
+            // Split on the comment at the end of each module.
+            var jsModules =
+                source.split(RegExp("\/\/# sourceMappingURL=.*\.map"));
+
+            expect(jsModules[0], contains('<<a>>'));
+            expect(jsModules[0], contains('<<b>>'));
+            expect(jsModules[0], not(contains('<<c>>')));
+            expect(jsModules[0], not(contains('<<d>>')));
+            expect(jsModules[0], not(contains('<<e>>')));
+
+            expect(jsModules[1], not(contains('<<a>>')));
+            expect(jsModules[1], not(contains('<<b>>')));
+            expect(jsModules[1], contains('<<c>>'));
+            expect(jsModules[1], not(contains('<<d>>')));
+            expect(jsModules[1], contains('<<d1>>'));
+            expect(jsModules[1], contains('<<d2>>'));
+            expect(jsModules[1], not(contains('<<e>>')));
+            expect(jsModules[1], contains('<<e1>>'));
+            expect(jsModules[1], contains('<<e2>>'));
+
+            streamController.add('accept\n'.codeUnits);
+            outputParser.expectSources = false;
+            streamController.add('quit\n'.codeUnits);
+            break;
+          default:
+            break;
+        }
+        count++;
+      });
+
+      expect(await result, 0);
+      expect(count, 3);
+    });
+
     test('compile to JavaScript all modules with unsound null safety',
         () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
@@ -3275,3 +3521,21 @@ class _MockedBinaryPrinterFactory extends Mock implements BinaryPrinterFactory {
 class _MockedCompiler extends Mock implements CompilerInterface {}
 
 class _MockedIncrementalCompiler extends Mock implements IncrementalCompiler {}
+
+/// Creates a matcher for the negation of [matcher].
+Matcher not(Matcher matcher) => NotMatcher(matcher);
+
+class NotMatcher extends Matcher {
+  final Matcher matcher;
+
+  const NotMatcher(this.matcher);
+
+  @override
+  Description describe(Description description) =>
+      matcher.describe(description.add('not '));
+
+  @override
+  bool matches(item, Map matchState) {
+    return !matcher.matches(item, matchState);
+  }
+}
