@@ -203,14 +203,8 @@ class PackageInfo extends BasicInfo {
       : super(InfoKind.package, name, outputUnit, size, null);
 
   @override
-  T accept<T>(InfoVisitor<T> visitor) {
-    if (visitor is VMProgramInfoVisitor<T>) {
-      return visitor.visitPackage(this);
-    } else {
-      throw ArgumentError(
-          "PackageInfo can only be visited by a VMProgramInfoVisitor");
-    }
-  }
+  T accept<T>(InfoVisitor<T> visitor) =>
+      throw Exception("PackageInfo is not supported by InfoVisitor.");
 }
 
 /// Info associated with a library element.
@@ -620,8 +614,19 @@ abstract class InfoVisitor<T> {
 
 /// A visitor that adds implementation for PackageInfo specifically for building
 /// the VM ProgramInfo Tree from a Dart2js info tree.
-abstract class VMProgramInfoVisitor<T> extends InfoVisitor<T> {
-  T visitPackage(PackageInfo info);
+abstract class VMProgramInfoVisitor<T> {
+  T visitAll(AllInfo info, String outputUnit);
+  T visitProgram(ProgramInfo info);
+  T visitPackage(PackageInfo info, String outputUnit);
+  T visitLibrary(LibraryInfo info, String outputUnit);
+  T visitClass(ClassInfo info);
+  T visitClassType(ClassTypeInfo info);
+  T visitField(FieldInfo info);
+  T visitConstant(ConstantInfo info);
+  T visitFunction(FunctionInfo info);
+  T visitTypedef(TypedefInfo info);
+  T visitClosure(ClosureInfo info);
+  T visitOutput(OutputUnitInfo info);
 }
 
 /// A visitor that recursively walks each portion of the program. Because the
@@ -641,6 +646,11 @@ class RecursiveInfoVisitor extends InfoVisitor<void> {
 
   @override
   void visitProgram(ProgramInfo info) {}
+
+  void visitPackage(PackageInfo info) {
+    throw Exception(
+        "PackageInfo objects are only defined for the VM Devtools format.");
+  }
 
   @override
   void visitLibrary(LibraryInfo info) {
