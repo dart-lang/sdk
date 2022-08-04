@@ -120,11 +120,17 @@ mixin ResolutionTest implements ResourceProviderMixin {
     );
   }
 
-  void assertDartObjectText(DartObject? object, String expected) {
+  void assertDartObjectText(
+    DartObject? object,
+    String expected, {
+    LibraryElement? libraryElement,
+  }) {
+    libraryElement ??= result.libraryElement;
+
     var buffer = StringBuffer();
     DartObjectPrinter(
       sink: buffer,
-      selfUriStr: '${result.libraryElement.source.uri}',
+      selfUriStr: '${libraryElement.source.uri}',
     ).write(object as DartObjectImpl?);
     var actual = buffer.toString();
     if (actual != expected) {

@@ -5,10 +5,13 @@
 @deprecated
 library analyzer.test.constant_test;
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -370,6 +373,46 @@ const [for (var i = 0; i < 4; i++) i]
 
   test_negated_integer() async {
     await _assertValueInt(-42, "-42");
+  }
+
+  /// Even though it is an error to specify a default value for a required
+  /// parameter, we still can evaluate it.
+  test_normalParameter_requiredNamed_hasDefault() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  A({required int x = 42});
+}
+''');
+
+    final unitResult = await _getUnitElement(a);
+    final x = unitResult.findElement.parameter('x');
+    assertDartObjectText(
+      x.computeConstantValue(),
+      r'''
+int 42
+''',
+      libraryElement: unitResult.library,
+    );
+  }
+
+  /// Even though it is an error to specify a default value for a required
+  /// parameter, we still can evaluate it.
+  test_normalParameter_requiredNamed_noDefault() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  A({required int? x});
+}
+''');
+
+    final unitResult = await _getUnitElement(a);
+    final x = unitResult.findElement.parameter('x');
+    assertDartObjectText(
+      x.computeConstantValue(),
+      r'''
+Null null
+''',
+      libraryElement: unitResult.library,
+    );
   }
 
   test_notEqual_boolean_boolean() async {
@@ -927,10 +970,29 @@ $context
     return evaluator.evaluate(expression);
   }
 
+  Future<_UnitElementResult> _getUnitElement(File file) async {
+    final analysisSession = contextFor(file).currentSession;
+    final unitResult = await analysisSession.getUnitElement(file.path);
+    unitResult as UnitElementResult;
+    return _UnitElementResult(unitResult.element);
+  }
+
   EvaluationResultImpl _topVarConstResult(String name) {
     var element = findElement.topVar(name) as ConstTopLevelVariableElementImpl;
     return element.evaluationResult!;
   }
+}
+
+class _UnitElementResult {
+  final CompilationUnitElement element;
+
+  _UnitElementResult(this.element);
+
+  PartFindElement get findElement {
+    return PartFindElement(element);
+  }
+
+  LibraryElement get library => element.library;
 }
 
 extension on VariableElement {
