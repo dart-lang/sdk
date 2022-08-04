@@ -45,28 +45,6 @@ class AstTestFactory {
         rightHandSide: rightHandSide as ExpressionImpl,
       );
 
-  static ExpressionFunctionBodyImpl asyncExpressionFunctionBody(
-          Expression expression) =>
-      astFactory.expressionFunctionBody2(
-        keyword:
-            TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
-        star: null,
-        functionDefinition: TokenFactory.tokenFromType(TokenType.FUNCTION),
-        expression: expression,
-        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-      );
-
-  static ExpressionFunctionBodyImpl asyncGeneratorExpressionFunctionBody(
-          Expression expression) =>
-      astFactory.expressionFunctionBody2(
-        keyword:
-            TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
-        star: TokenFactory.tokenFromType(TokenType.STAR),
-        functionDefinition: TokenFactory.tokenFromType(TokenType.FUNCTION),
-        expression: expression,
-        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-      );
-
   static IndexExpressionImpl cascadedIndexExpression(Expression index) =>
       astFactory.indexExpressionForCascade2(
           period: TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
@@ -224,7 +202,9 @@ class AstTestFactory {
             : TokenFactory.tokenFromType(TokenType.PERIOD),
         initializers: initializers,
         redirectedConstructor: null,
-        body: emptyFunctionBody(),
+        body: EmptyFunctionBodyImpl(
+          semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+        ),
       );
 
   static ConstructorDeclarationImpl constructorDeclaration2(
@@ -285,25 +265,6 @@ class AstTestFactory {
     return astFactory.documentationComment(tokens, references);
   }
 
-  static DoStatementImpl doStatement(Statement body, Expression condition) =>
-      astFactory.doStatement(
-          TokenFactory.tokenFromKeyword(Keyword.DO),
-          body,
-          TokenFactory.tokenFromKeyword(Keyword.WHILE),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          condition,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static DoubleLiteralImpl doubleLiteral(double value) => astFactory
-      .doubleLiteral(TokenFactory.tokenFromString(value.toString()), value);
-
-  static EmptyFunctionBodyImpl emptyFunctionBody() => astFactory
-      .emptyFunctionBody(TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static EmptyStatementImpl emptyStatement() => astFactory
-      .emptyStatement(TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
   static ExportDirectiveImpl exportDirective(
           List<Annotation> metadata, String uri,
           [List<Combinator> combinators = const []]) =>
@@ -320,16 +281,6 @@ class AstTestFactory {
   static ExportDirectiveImpl exportDirective2(String uri,
           [List<Combinator> combinators = const []]) =>
       exportDirective([], uri, combinators);
-
-  static ExpressionFunctionBodyImpl expressionFunctionBody(
-          Expression expression) =>
-      astFactory.expressionFunctionBody2(
-        keyword: null,
-        star: null,
-        functionDefinition: TokenFactory.tokenFromType(TokenType.FUNCTION),
-        expression: expression,
-        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-      );
 
   static ExpressionStatementImpl expressionStatement(Expression expression) =>
       astFactory.expressionStatement(
@@ -807,7 +758,9 @@ class AstTestFactory {
         name: name as SimpleIdentifierImpl,
         typeParameters: null,
         parameters: parameters as FormalParameterListImpl?,
-        body: emptyFunctionBody(),
+        body: EmptyFunctionBodyImpl(
+          semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+        ),
       );
 
   static MethodDeclarationImpl methodDeclaration2(

@@ -37,52 +37,8 @@ class AstFactoryImpl {
       CommentImpl.createDocumentationCommentWithReferences(
           tokens, references ?? <CommentReference>[]);
 
-  DoStatementImpl doStatement(
-          Token doKeyword,
-          Statement body,
-          Token whileKeyword,
-          Token leftParenthesis,
-          Expression condition,
-          Token rightParenthesis,
-          Token semicolon) =>
-      DoStatementImpl(
-          doKeyword,
-          body as StatementImpl,
-          whileKeyword,
-          leftParenthesis,
-          condition as ExpressionImpl,
-          rightParenthesis,
-          semicolon);
-
-  DottedNameImpl dottedName(List<SimpleIdentifier> components) =>
-      DottedNameImpl(components);
-
-  DoubleLiteralImpl doubleLiteral(Token literal, double value) =>
-      DoubleLiteralImpl(literal, value);
-
-  EmptyFunctionBodyImpl emptyFunctionBody(Token semicolon) =>
-      EmptyFunctionBodyImpl(semicolon);
-
-  EmptyStatementImpl emptyStatement(Token semicolon) =>
-      EmptyStatementImpl(semicolon);
-
   CommentImpl endOfLineComment(List<Token> tokens) =>
       CommentImpl.createEndOfLineComment(tokens);
-
-  ExpressionFunctionBodyImpl expressionFunctionBody(Token? keyword,
-          Token functionDefinition, Expression expression, Token? semicolon) =>
-      ExpressionFunctionBodyImpl(keyword, null, functionDefinition,
-          expression as ExpressionImpl, semicolon);
-
-  ExpressionFunctionBodyImpl expressionFunctionBody2({
-    Token? keyword,
-    Token? star,
-    required Token functionDefinition,
-    required Expression expression,
-    Token? semicolon,
-  }) =>
-      ExpressionFunctionBodyImpl(keyword, star, functionDefinition,
-          expression as ExpressionImpl, semicolon);
 
   ExpressionStatementImpl expressionStatement(
           Expression expression, Token? semicolon) =>

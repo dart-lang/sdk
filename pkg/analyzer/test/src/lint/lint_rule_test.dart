@@ -45,7 +45,9 @@ main() {
             CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
         rule.reporter = reporter;
 
-        final node = EmptyStatementImpl(SimpleToken(TokenType.SEMICOLON, 0));
+        final node = EmptyStatementImpl(
+          semicolon: SimpleToken(TokenType.SEMICOLON, 0),
+        );
         rule.reportLint(node, errorCode: customCode);
         expect(reporter.code, customCode);
       });
@@ -55,7 +57,9 @@ main() {
             CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
         rule.reporter = reporter;
 
-        final node = EmptyStatementImpl(SimpleToken(TokenType.SEMICOLON, 0));
+        final node = EmptyStatementImpl(
+          semicolon: SimpleToken(TokenType.SEMICOLON, 0),
+        );
         rule.reportLint(node);
         expect(reporter.code, rule.lintCode);
       });

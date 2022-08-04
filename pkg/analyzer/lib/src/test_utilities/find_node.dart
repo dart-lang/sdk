@@ -163,6 +163,14 @@ class FindNode {
     return _node(search, (n) => n is DoubleLiteral);
   }
 
+  EmptyFunctionBody emptyFunctionBody(String search) {
+    return _node(search, (n) => n is EmptyFunctionBody);
+  }
+
+  EmptyStatement emptyStatement(String search) {
+    return _node(search, (n) => n is EmptyStatement);
+  }
+
   EnumConstantDeclaration enumConstantDeclaration(String search) {
     return _node(search, (n) => n is EnumConstantDeclaration);
   }

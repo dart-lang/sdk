@@ -3530,14 +3530,16 @@ class DoStatementImpl extends StatementImpl implements DoStatement {
   Token semicolon;
 
   /// Initialize a newly created do loop.
-  DoStatementImpl(
-      this.doKeyword,
-      this._body,
-      this.whileKeyword,
-      this.leftParenthesis,
-      this._condition,
-      this.rightParenthesis,
-      this.semicolon) {
+  DoStatementImpl({
+    required this.doKeyword,
+    required StatementImpl body,
+    required this.whileKeyword,
+    required this.leftParenthesis,
+    required ExpressionImpl condition,
+    required this.rightParenthesis,
+    required this.semicolon,
+  })  : _body = body,
+        _condition = condition {
     _becomeParentOf(_body);
     _becomeParentOf(_condition);
   }
@@ -3591,7 +3593,9 @@ class DottedNameImpl extends AstNodeImpl implements DottedName {
   final NodeListImpl<SimpleIdentifier> _components = NodeListImpl._();
 
   /// Initialize a newly created dotted name.
-  DottedNameImpl(List<SimpleIdentifier> components) {
+  DottedNameImpl({
+    required List<SimpleIdentifier> components,
+  }) {
     _components._initialize(this, components);
   }
 
@@ -3636,7 +3640,10 @@ class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   double value;
 
   /// Initialize a newly created floating point literal.
-  DoubleLiteralImpl(this.literal, this.value);
+  DoubleLiteralImpl({
+    required this.literal,
+    required this.value,
+  });
 
   @override
   Token get beginToken => literal;
@@ -3675,7 +3682,9 @@ class EmptyFunctionBodyImpl extends FunctionBodyImpl
   Token semicolon;
 
   /// Initialize a newly created function body.
-  EmptyFunctionBodyImpl(this.semicolon);
+  EmptyFunctionBodyImpl({
+    required this.semicolon,
+  });
 
   @override
   Token get beginToken => semicolon;
@@ -3710,7 +3719,9 @@ class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   Token semicolon;
 
   /// Initialize a newly created empty statement.
-  EmptyStatementImpl(this.semicolon);
+  EmptyStatementImpl({
+    required this.semicolon,
+  });
 
   @override
   Token get beginToken => semicolon;
@@ -4093,8 +4104,13 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   /// Initialize a newly created function body consisting of a block of
   /// statements. The [keyword] can be `null` if the function body is not an
   /// async function body.
-  ExpressionFunctionBodyImpl(this.keyword, this.star, this.functionDefinition,
-      this._expression, this.semicolon) {
+  ExpressionFunctionBodyImpl({
+    required this.keyword,
+    required this.star,
+    required this.functionDefinition,
+    required ExpressionImpl expression,
+    required this.semicolon,
+  }) : _expression = expression {
     _becomeParentOf(_expression);
   }
 

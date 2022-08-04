@@ -829,8 +829,14 @@ class AstBuilder extends StackListener {
       );
     } else {
       // TODO(danrubel): Skip the block rather than parsing it.
-      push(ast.emptyFunctionBody(
-          SyntheticToken(TokenType.SEMICOLON, leftBracket.charOffset)));
+      push(
+        EmptyFunctionBodyImpl(
+          semicolon: SyntheticToken(
+            TokenType.SEMICOLON,
+            leftBracket.charOffset,
+          ),
+        ),
+      );
     }
   }
 
@@ -871,7 +877,9 @@ class AstBuilder extends StackListener {
     } else if (bodyObject is _RedirectingFactoryBody) {
       separator = bodyObject.equalToken;
       redirectedConstructor = bodyObject.constructorName;
-      body = ast.emptyFunctionBody(endToken);
+      body = EmptyFunctionBodyImpl(
+        semicolon: endToken,
+      );
     } else {
       internalProblem(
           templateInternalProblemUnhandled.withArguments(
@@ -952,7 +960,9 @@ class AstBuilder extends StackListener {
     } else if (bodyObject is _RedirectingFactoryBody) {
       separator = bodyObject.equalToken;
       redirectedConstructor = bodyObject.constructorName;
-      body = ast.emptyFunctionBody(endToken);
+      body = EmptyFunctionBodyImpl(
+        semicolon: endToken,
+      );
     } else {
       internalProblem(
           templateInternalProblemUnhandled.withArguments(
@@ -1103,7 +1113,9 @@ class AstBuilder extends StackListener {
     if (bodyObject is FunctionBodyImpl) {
       body = bodyObject;
     } else if (bodyObject is _RedirectingFactoryBody) {
-      body = ast.emptyFunctionBody(endToken);
+      body = EmptyFunctionBodyImpl(
+        semicolon: endToken,
+      );
     } else {
       internalProblem(
           templateInternalProblemUnhandled.withArguments(
@@ -1298,16 +1310,19 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("DoWhileStatement");
 
-    var condition = pop() as ParenthesizedExpression;
-    var body = pop() as Statement;
-    push(ast.doStatement(
-        doKeyword,
-        body,
-        whileKeyword,
-        condition.leftParenthesis,
-        condition.expression,
-        condition.rightParenthesis,
-        semicolon));
+    var condition = pop() as ParenthesizedExpressionImpl;
+    var body = pop() as StatementImpl;
+    push(
+      DoStatementImpl(
+        doKeyword: doKeyword,
+        body: body,
+        whileKeyword: whileKeyword,
+        leftParenthesis: condition.leftParenthesis,
+        condition: condition.expression,
+        rightParenthesis: condition.rightParenthesis,
+        semicolon: semicolon,
+      ),
+    );
   }
 
   @override
@@ -1428,7 +1443,9 @@ class AstBuilder extends StackListener {
     if (bodyObject is FunctionBodyImpl) {
       body = bodyObject;
     } else if (bodyObject is _RedirectingFactoryBody) {
-      body = ast.emptyFunctionBody(endToken);
+      body = EmptyFunctionBodyImpl(
+        semicolon: endToken,
+      );
     } else {
       // Unhandled situation which should never happen.
       // Since this event handler is just a recovery attempt,
@@ -3095,7 +3112,11 @@ class AstBuilder extends StackListener {
     debugEvent("DottedName");
 
     var components = popTypedList2<SimpleIdentifier>(count);
-    push(ast.dottedName(components));
+    push(
+      DottedNameImpl(
+        components: components,
+      ),
+    );
   }
 
   @override
@@ -3111,7 +3132,11 @@ class AstBuilder extends StackListener {
     // TODO(scheglov) Change the parser to not produce these modifiers.
     pop(); // star
     pop(); // async
-    push(ast.emptyFunctionBody(semicolon));
+    push(
+      EmptyFunctionBodyImpl(
+        semicolon: semicolon,
+      ),
+    );
   }
 
   @override
@@ -3119,7 +3144,11 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("EmptyStatement");
 
-    push(ast.emptyStatement(semicolon));
+    push(
+      EmptyStatementImpl(
+        semicolon: semicolon,
+      ),
+    );
   }
 
   @override
@@ -3266,11 +3295,11 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull(';', semicolon));
     debugEvent("ExpressionFunctionBody");
 
-    var expression = pop() as Expression;
+    var expression = pop() as ExpressionImpl;
     var star = pop() as Token?;
     var asyncKeyword = pop() as Token?;
     if (parseFunctionBodies) {
-      push(ast.expressionFunctionBody2(
+      push(ExpressionFunctionBodyImpl(
         keyword: asyncKeyword,
         star: star,
         functionDefinition: arrowToken,
@@ -3278,7 +3307,11 @@ class AstBuilder extends StackListener {
         semicolon: semicolon,
       ));
     } else {
-      push(ast.emptyFunctionBody(semicolon!));
+      push(
+        EmptyFunctionBodyImpl(
+          semicolon: semicolon!,
+        ),
+      );
     }
   }
 
@@ -3672,7 +3705,12 @@ class AstBuilder extends StackListener {
     assert(token.type == TokenType.DOUBLE);
     debugEvent("LiteralDouble");
 
-    push(ast.doubleLiteral(token, double.parse(token.lexeme)));
+    push(
+      DoubleLiteralImpl(
+        literal: token,
+        value: double.parse(token.lexeme),
+      ),
+    );
   }
 
   @override
