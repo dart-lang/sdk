@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/status.dart';
-import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringProblemSeverity;
 import 'package:test_reflective_loader/test_reflective_loader.dart';

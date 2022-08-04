@@ -5,7 +5,7 @@
 import 'dart:convert';
 
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analysis_server/src/services/refactoring/extract_local.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/extract_local.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
