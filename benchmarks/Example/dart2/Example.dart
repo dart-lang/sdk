@@ -17,7 +17,7 @@ class Example extends BenchmarkBase {
   @override
   void setup() {}
 
-  // Not measures teardown code executed after the benchark runs.
+  // Not measured teardown code executed after the benchark runs.
   @override
   void teardown() {}
 }
