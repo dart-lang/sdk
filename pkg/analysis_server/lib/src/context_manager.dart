@@ -11,6 +11,7 @@ import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -138,8 +139,9 @@ abstract class ContextManagerCallbacks {
 /// Class that maintains a mapping from included/excluded paths to a set of
 /// folders that should correspond to analysis contexts.
 class ContextManagerImpl implements ContextManager {
-  /// The [ResourceProvider] using which paths are converted into [Resource]s.
-  final ResourceProvider resourceProvider;
+  /// The [OverlayResourceProvider] used to check for the existence of overlays
+  /// and to convert paths into [Resource].
+  final OverlayResourceProvider resourceProvider;
 
   /// The manager used to access the SDK that should be associated with a
   /// particular context.
@@ -738,7 +740,12 @@ class ContextManagerImpl implements ContextManager {
     }
 
     var collection = _collection;
-    if (collection != null && file_paths.isDart(pathContext, path)) {
+    if (collection != null &&
+        file_paths.isDart(pathContext, path) &&
+        // If this resource has an overlay, then the change on disk will never
+        // affect analysis results so can be skipped. Removing the overlay will
+        // re-read the contents from disk.
+        !resourceProvider.hasOverlay(path)) {
       for (var analysisContext in collection.contexts) {
         switch (type) {
           case ChangeType.ADD:
