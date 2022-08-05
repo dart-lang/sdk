@@ -110,14 +110,6 @@ int Platform::NumberOfProcessors() {
   }
 }
 
-const char* Platform::OperatingSystem() {
-#if DART_HOST_OS_IOS
-  return "ios";
-#else
-  return "macos";
-#endif
-}
-
 const char* Platform::OperatingSystemVersion() {
   std::string version(NSProcessInfoOperatingSystemVersionString());
   return DartUtils::ScopedCopyCString(version.c_str());

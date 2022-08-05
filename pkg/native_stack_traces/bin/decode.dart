@@ -200,7 +200,8 @@ void find(ArgResults options) {
   }
 
   PCOffset? convertAddress(StackTraceHeader header, String s) {
-    final parsedOffset = tryParseSymbolOffset(s, forceHexadecimal);
+    final parsedOffset =
+        tryParseSymbolOffset(s, forceHexadecimal: forceHexadecimal);
     if (parsedOffset != null) return parsedOffset;
 
     final address = tryParseIntAddress(s);
@@ -236,7 +237,7 @@ void find(ArgResults options) {
     isolateStart = address;
   }
 
-  final header = StackTraceHeader(isolateStart, vmStart);
+  final header = StackTraceHeader.fromStarts(isolateStart, vmStart);
 
   final locations = <PCOffset>[];
   for (final String s in [

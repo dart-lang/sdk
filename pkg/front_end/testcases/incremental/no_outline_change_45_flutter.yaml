@@ -6,7 +6,7 @@
 
 type: newworld
 trackWidgetCreation: true
-target: VM
+target: vm
 worlds:
   - entry: main.dart
     experiments: alternative-invalidation-strategy

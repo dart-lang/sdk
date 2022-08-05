@@ -346,10 +346,6 @@ DEFINE_FLAG(bool,
 
 #endif  // !PRODUCT
 
-const char* OS::Name() {
-  return "fuchsia";
-}
-
 intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(getpid());
 }

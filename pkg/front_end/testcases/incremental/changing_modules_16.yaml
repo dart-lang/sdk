@@ -8,7 +8,7 @@
 # This is essentially equivalent to not loading a needed component.
 
 type: newworld
-target: DDC
+target: dartdevc
 modules:
   moduleA:
     moduleA/x/lib.dart: |

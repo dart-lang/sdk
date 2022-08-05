@@ -92,10 +92,6 @@ int Platform::NumberOfProcessors() {
   return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
-const char* Platform::OperatingSystem() {
-  return "android";
-}
-
 const char* Platform::OperatingSystemVersion() {
   char os_version[PROP_VALUE_MAX + 1];
   int os_version_length =

@@ -50,12 +50,12 @@ Future<void> main(List<String> arguments) async {
           }
         } else if (arg.startsWith("--widgetTransformation")) {
           settings.widgetTransformation = true;
-        } else if (arg.startsWith("--target=VM")) {
-          settings.targetString = "VM";
+        } else if (arg.startsWith("--target=vm")) {
+          settings.targetString = "vm";
         } else if (arg.startsWith("--target=flutter")) {
           settings.targetString = "flutter";
-        } else if (arg.startsWith("--target=ddc")) {
-          settings.targetString = "ddc";
+        } else if (arg.startsWith("--target=dartdevc")) {
+          settings.targetString = "dartdevc";
         } else if (arg.startsWith("--target=dart2js")) {
           settings.targetString = "dart2js";
         } else if (arg == "--noTryToDeleteEmptyFilesUpFront") {

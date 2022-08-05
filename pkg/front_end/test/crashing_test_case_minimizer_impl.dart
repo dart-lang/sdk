@@ -735,7 +735,7 @@ class TestMinimizer {
 type: newworld""");
     if (_settings.widgetTransformation) {
       print("trackWidgetCreation: true");
-      print("target: DDC # basically needed for widget creation to be run");
+      print("target: dartdevc # needed for widget creation to be run");
     }
     print("""
 worlds:
@@ -1939,13 +1939,13 @@ worlds:
         trackWidgetCreation: _settings.widgetTransformation);
     Target target;
     switch (_settings.targetString) {
-      case "VM":
+      case "vm":
         target = new VmTarget(targetFlags);
         break;
       case "flutter":
         target = new FlutterTarget(targetFlags);
         break;
-      case "ddc":
+      case "dartdevc":
         target = new DevCompilerTarget(targetFlags);
         break;
       case "dart2js":

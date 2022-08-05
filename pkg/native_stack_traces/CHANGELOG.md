@@ -1,3 +1,8 @@
+## 0.5.1
+
+- Parse new OS and architecture information from non-symbolic stack
+  trace headers and store that information in PCOffsets when available.
+
 ## 0.5.0
 
 - Require Dart >= 2.17 (enhanced enum support)

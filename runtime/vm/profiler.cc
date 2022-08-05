@@ -477,6 +477,18 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
                ", isolate_group=%s(%p), isolate=%s(%p)\n",
                static_cast<intptr_t>(OS::ProcessId()), thread_id,
                isolate_group_name, isolate_group, isolate_name, isolate);
+#if defined(DART_COMPRESSED_POINTERS)
+  const char kCompressedPointers[] = "yes";
+#else
+  const char kCompressedPointers[] = "no";
+#endif
+#if defined(USING_SIMULATOR)
+  const char kUsingSimulator[] = "yes";
+#else
+  const char kUsingSimulator[] = "no";
+#endif
+  OS::PrintErr("os=%s, arch=%s, comp=%s, sim=%s\n", kHostOperatingSystemName,
+               kTargetArchitectureName, kCompressedPointers, kUsingSimulator);
   OS::PrintErr("isolate_instructions=%" Px ", vm_instructions=%" Px "\n",
                source == nullptr
                    ? 0
