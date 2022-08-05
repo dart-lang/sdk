@@ -6,7 +6,7 @@
 # Try to mess up the hierarchy.
 
 type: newworld
-target: DDC
+target: dartdevc
 worlds:
   - entry: main.dart
     experiments: alternative-invalidation-strategy

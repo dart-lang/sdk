@@ -169,15 +169,15 @@ class NewWorldTestProperties {
   static const Property<String?> nnbdMode =
       Property.optional('nnbdMode', StringValue(options: {nnbdMode_strong}));
 
-  static const String target_none = 'None';
-  static const String target_ddc = 'DDC';
+  static const String target_none = 'none';
+  static const String target_dartdevc = 'dartdevc';
   static const String target_dart2js = 'dart2js';
-  static const String target_vm = 'VM';
+  static const String target_vm = 'vm';
 
   static const Property<String?> target = Property.optional(
       'target',
       StringValue(
-          options: {target_none, target_ddc, target_dart2js, target_vm}));
+          options: {target_none, target_dartdevc, target_dart2js, target_vm}));
 }
 
 /// Yaml properties for a [World] within a [NewWorldTest].
@@ -1073,7 +1073,7 @@ class NewWorldTest {
     if (targetName != null) {
       if (targetName == NewWorldTestProperties.target_none) {
         target = new NoneTarget(targetFlags);
-      } else if (targetName == NewWorldTestProperties.target_ddc) {
+      } else if (targetName == NewWorldTestProperties.target_dartdevc) {
         target = new DevCompilerTarget(targetFlags);
       } else if (targetName == NewWorldTestProperties.target_dart2js) {
         target = new Dart2jsTarget("dart2js", targetFlags);
