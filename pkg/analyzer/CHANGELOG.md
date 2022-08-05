@@ -1,4 +1,4 @@
-## 4.4.0-dev
+## 4.4.0
 * Deprecated `ClassDeclaration.isAbstract`, use `abstractKeyword` instead.
 * Deprecated `ClassTypeAlias.isAbstract`, use `abstractKeyword` instead.
 * Deprecated `ClassOrMixinDeclaration.getField`, filter `members` instead.
