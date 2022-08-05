@@ -84,10 +84,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         nodeParameters != null &&
         nodeParameters.parameters.isEmpty &&
         !_isVoid(node.returnType) &&
-        !_beginsWithAsOrTo(node.name.name) &&
+        !_beginsWithAsOrTo(node.name2.lexeme) &&
         !DartTypeUtilities.hasInheritedMethod(node) &&
         _checkBody(node.body)) {
-      rule.reportLint(node.name);
+      rule.reportLintForToken(node.name2);
     }
   }
 

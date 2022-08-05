@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
@@ -53,7 +54,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      var element = node.staticType?.element;
+      var type = node.staticType;
+      if (type is! InterfaceType) return;
+      var element = type.element2;
       if (element is ClassElement) {
         var nodeField =
             node.thisOrAncestorOfType<VariableDeclaration>()?.declaredElement;
@@ -64,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         //   static const a = A();
         //   static const b = A();
         // }
-        if (nodeField?.enclosingElement2 == element) return;
+        if (nodeField?.enclosingElement3 == element) return;
 
         var library = (node.root as CompilationUnit).declaredElement?.library;
         if (library == null) return;

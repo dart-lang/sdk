@@ -62,7 +62,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         classElement.isPublic &&
         hasWidgetAsAscendant(classElement) &&
         classElement.constructors.where((e) => !e.isSynthetic).isEmpty) {
-      rule.reportLint(node.name);
+      rule.reportLintForToken(node.name2);
     }
     super.visitClassDeclaration(node);
   }
@@ -73,10 +73,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (constructorElement == null) {
       return;
     }
-    var classElement = constructorElement.enclosingElement2;
+    var classElement = constructorElement.enclosingElement3;
     if (constructorElement.isPublic &&
         !constructorElement.isFactory &&
         classElement.isPublic &&
+        classElement is ClassElement &&
         hasWidgetAsAscendant(classElement) &&
         !isExactWidget(classElement) &&
         !_hasKeySuperParameterInitializerArg(node) &&
@@ -94,7 +95,8 @@ class _Visitor extends SimpleAstVisitor<void> {
           }
           return false;
         })) {
-      rule.reportLint(node.name ?? node.returnType);
+      var errorNode = node.name2 ?? node.returnType;
+      rule.reportLintForOffset(errorNode.offset, errorNode.length);
     }
     super.visitConstructorDeclaration(node);
   }

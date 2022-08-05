@@ -301,18 +301,19 @@ class _Visitor extends SimpleAstVisitor<void> {
         possibleMethods
             .lookup(NonNullableFunction(library, className, methodName));
 
-    var method = getMethod(type.element.library.name, type.element.name);
+    var element = type.element2;
+    if (element.isSynthetic) {
+      return null;
+    }
+
+    var method = getMethod(element.library.name, element.name);
     if (method != null) {
       return method;
     }
 
-    var element = type.element;
-    if (element.isSynthetic) {
-      return null;
-    }
     for (var supertype in element.allSupertypes) {
-      method =
-          getMethod(supertype.element.library.name, supertype.element.name);
+      var superElement = supertype.element2;
+      method = getMethod(superElement.library.name, superElement.name);
       if (method != null) {
         return method;
       }

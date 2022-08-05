@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
@@ -67,15 +68,15 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  void checkIdentifier(SimpleIdentifier id) {
-    if (!isLowerCamelCase(id.name)) {
-      rule.reportLint(id);
+  void checkIdentifier(Token id) {
+    if (!isLowerCamelCase(id.lexeme)) {
+      rule.reportLintForToken(id);
     }
   }
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    checkIdentifier(node.name);
+    checkIdentifier(node.name2);
   }
 
   @override
@@ -87,7 +88,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitVariableDeclarationList(VariableDeclarationList node) {
     for (var v in node.variables) {
       if (v.isConst) {
-        checkIdentifier(v.name);
+        checkIdentifier(v.name2);
       }
     }
   }

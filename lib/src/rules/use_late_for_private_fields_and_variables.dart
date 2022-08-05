@@ -52,7 +52,7 @@ bool _isPrivateExtension(AstNode parent) {
   if (parent is! ExtensionDeclaration) {
     return false;
   }
-  var parentName = parent.name?.name;
+  var parentName = parent.name2?.lexeme;
   return parentName == null || Identifier.isPrivateName(parentName);
 }
 
@@ -165,7 +165,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
         // enclosing class or any subclass of the enclosing class that are ever
         // accessible outside this library.
         if (parentIsPrivateExtension ||
-            Identifier.isPrivateName(variable.name.name)) {
+            Identifier.isPrivateName(variable.name2.lexeme)) {
           _visit(variable);
         }
       }
@@ -197,7 +197,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     for (var variable in node.variables.variables) {
-      if (Identifier.isPrivateName(variable.name.name)) {
+      if (Identifier.isPrivateName(variable.name2.lexeme)) {
         _visit(variable);
       }
     }

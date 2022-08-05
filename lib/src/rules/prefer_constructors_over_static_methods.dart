@@ -89,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           return;
         }
         if (_hasNewInvocation(returnType, node.body)) {
-          rule.reportLint(node.name);
+          rule.reportLintForToken(node.name2);
         }
       }
     }

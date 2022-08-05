@@ -98,10 +98,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkAssert(
       Expression assertExpression, List<DefaultFormalParameter> params) {
     for (var param in params) {
-      var identifier = param.identifier;
-      if (identifier != null &&
-          _hasAssertNotNull(assertExpression, identifier.name)) {
-        rule.reportLintForToken(identifier.beginToken);
+      var name = param.name;
+      if (name != null && _hasAssertNotNull(assertExpression, name.lexeme)) {
+        rule.reportLintForToken(name);
         params.remove(param);
         return;
       }

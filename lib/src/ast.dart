@@ -4,6 +4,7 @@
 
 /// Common AST helpers.
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
@@ -34,10 +35,10 @@ CompilationUnit? getCompilationUnit(AstNode node) =>
 
 /// Returns a field identifier with the given [name] in the given [decl]'s
 /// variable declaration list or `null` if none is found.
-SimpleIdentifier? getFieldIdentifier(FieldDeclaration decl, String name) {
+Token? getFieldName(FieldDeclaration decl, String name) {
   for (var v in decl.fields.variables) {
-    if (v.name.name == name) {
-      return v.name;
+    if (v.name2.lexeme == name) {
+      return v.name2;
     }
   }
   return null;
@@ -57,7 +58,7 @@ int? getIntValue(Expression expression, LinterContext? context) {
 }
 
 /// Returns the most specific AST node appropriate for associating errors.
-AstNode getNodeToAnnotate(Declaration node) {
+SyntacticEntity getNodeToAnnotate(Declaration node) {
   var mostSpecific = _getNodeToAnnotate(node);
   return mostSpecific ?? node;
 }
@@ -91,17 +92,17 @@ bool hasOverrideAnnotation(Element element) => element.hasOverride;
 bool inPrivateMember(AstNode node) {
   var parent = node.parent;
   if (parent is NamedCompilationUnitMember) {
-    return isPrivate(parent.name);
+    return isPrivate(parent.name2);
   }
   if (parent is ExtensionDeclaration) {
-    return parent.name == null || isPrivate(parent.name);
+    return parent.name2 == null || isPrivate(parent.name2);
   }
   return false;
 }
 
 /// Returns `true` if this element is the `==` method declaration.
 bool isEquals(ClassMember element) =>
-    element is MethodDeclaration && element.name.name == '==';
+    element is MethodDeclaration && element.name2.lexeme == '==';
 
 /// Returns `true` if the keyword associated with this token is `final` or
 /// `const`.
@@ -150,8 +151,8 @@ bool isKeyWord(String id) => Keyword.keywords.containsKey(id);
 bool isMethod(ClassMember m) => m is MethodDeclaration;
 
 /// Check if the given identifier has a private name.
-bool isPrivate(SimpleIdentifier? identifier) =>
-    identifier != null ? Identifier.isPrivateName(identifier.name) : false;
+bool isPrivate(Token? name) =>
+    name != null ? Identifier.isPrivateName(name.lexeme) : false;
 
 /// Returns `true` if the given [ClassMember] is a public method.
 bool isPublicMethod(ClassMember m) {
@@ -276,10 +277,10 @@ bool _checkForSimpleGetter(MethodDeclaration getter, Expression? expression) {
   if (expression is SimpleIdentifier) {
     var staticElement = expression.staticElement;
     if (staticElement is PropertyAccessorElement) {
-      var enclosingElement = getter.declaredElement?.enclosingElement2;
+      var enclosingElement = getter.declaredElement?.enclosingElement3;
       // Skipping library level getters, test that the enclosing element is
       // the same
-      if (staticElement.enclosingElement2 == enclosingElement) {
+      if (staticElement.enclosingElement3 == enclosingElement) {
         return staticElement.isSynthetic && staticElement.variable.isPrivate;
       }
     }
@@ -345,45 +346,45 @@ int? _getIntValue(Expression expression, LinterContext? context,
   return negated ? -value : value;
 }
 
-AstNode? _getNodeToAnnotate(Declaration node) {
+SyntacticEntity? _getNodeToAnnotate(Declaration node) {
   if (node is MethodDeclaration) {
-    return node.name;
+    return node.name2;
   }
   if (node is ConstructorDeclaration) {
-    return node.name;
+    return node.name2;
   }
   if (node is FieldDeclaration) {
     return node.fields;
   }
   if (node is ClassTypeAlias) {
-    return node.name;
+    return node.name2;
   }
   if (node is FunctionTypeAlias) {
-    return node.name;
+    return node.name2;
   }
   if (node is ClassDeclaration) {
-    return node.name;
+    return node.name2;
   }
   if (node is EnumDeclaration) {
-    return node.name;
+    return node.name2;
   }
   if (node is ExtensionDeclaration) {
-    return node.name;
+    return node.name2;
   }
   if (node is FunctionDeclaration) {
-    return node.name;
+    return node.name2;
   }
   if (node is TopLevelVariableDeclaration) {
     return node.variables;
   }
   if (node is EnumConstantDeclaration) {
-    return node.name;
+    return node.name2;
   }
   if (node is TypeParameter) {
-    return node.name;
+    return node.name2;
   }
   if (node is VariableDeclaration) {
-    return node.name;
+    return node.name2;
   }
   return null;
 }
@@ -416,8 +417,8 @@ Element? _getWriteElement(AstNode node) {
 }
 
 bool _hasFieldOrMethod(ClassMember element, String name) =>
-    (element is MethodDeclaration && element.name.name == name) ||
-    (element is FieldDeclaration && getFieldIdentifier(element, name) != null);
+    (element is MethodDeclaration && element.name2.lexeme == name) ||
+    (element is FieldDeclaration && getFieldName(element, name) != null);
 
 /// An [Element] processor function type.
 /// If `true` is returned, children of [element] will be visited.

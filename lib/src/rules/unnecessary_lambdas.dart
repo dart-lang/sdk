@@ -160,7 +160,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     bool matches(Expression argument, FormalParameter parameter) {
       if (argument is SimpleIdentifier) {
-        return argument.name == parameter.identifier?.name;
+        return argument.name == parameter.name?.lexeme;
       }
       return false;
     }

@@ -74,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool isRelativeLibImport(ImportDirective node) {
     // Relative paths from within the `lib` folder are covered by the
     // `always_use_package_imports` lint.
-    var uriContent = node.uriContent;
+    var uriContent = node.uri.stringValue;
     if (uriContent != null) {
       var uri = Uri.tryParse(uriContent);
       if (uri != null && uri.scheme.isEmpty) {

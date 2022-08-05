@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
@@ -114,16 +115,17 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     for (var interface in implementsClause.interfaces) {
-      var element = interface.type?.element;
-      if (element is ClassElement && _overridesEquals(element)) {
+      var interfaceType = interface.type;
+      if (interfaceType is InterfaceType &&
+          _overridesEquals(interfaceType.element2)) {
         rule.reportLint(interface);
       }
     }
   }
 
-  static bool _overridesEquals(ClassElement element) {
+  static bool _overridesEquals(InterfaceElement element) {
     var method = element.lookUpConcreteMethod('==', element.library);
-    var enclosing = method?.enclosingElement2;
+    var enclosing = method?.enclosingElement3;
     return enclosing is ClassElement && !enclosing.isDartCoreObject;
   }
 }

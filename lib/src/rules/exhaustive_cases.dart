@@ -105,12 +105,12 @@ class _Visitor extends SimpleAstVisitor {
   void visitSwitchStatement(SwitchStatement statement) {
     var expressionType = statement.expression.staticType;
     if (expressionType is InterfaceType) {
-      var classElement = expressionType.element;
+      var interfaceElement = expressionType.element2;
       // Handled in analyzer.
-      if (classElement.isEnum) {
+      if (interfaceElement is! ClassElement) {
         return;
       }
-      var enumDescription = classElement.asEnumLikeClass;
+      var enumDescription = interfaceElement.asEnumLikeClass;
       if (enumDescription == null) {
         return;
       }

@@ -105,7 +105,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     var returnType = member.returnType;
     if (returnType.isVoid) return false;
     if (isFutureOrVoid(returnType)) return false;
-    if (returnType.element is NeverType) return false;
 
     return true;
   }

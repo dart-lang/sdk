@@ -85,7 +85,7 @@ class NotAssignedInAllConstructors {
 ''';
 
 bool _containedInFormal(Element element, FormalParameter formal) {
-  var formalField = formal.identifier?.staticElement;
+  var formalField = formal.declaredElement;
   return formalField is FieldFormalParameterElement &&
       formalField.field == element;
 }

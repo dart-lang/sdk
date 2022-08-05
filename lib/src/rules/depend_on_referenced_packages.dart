@@ -112,7 +112,7 @@ class _Visitor extends SimpleAstVisitor {
 
   void _checkDirective(UriBasedDirective node) {
     // Is it a package: uri?
-    var uriContent = node.uriContent;
+    var uriContent = node.uri.stringValue;
     if (uriContent == null) return;
     if (!uriContent.startsWith('package:')) return;
 

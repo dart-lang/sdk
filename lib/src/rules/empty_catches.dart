@@ -81,9 +81,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitCatchClause(CatchClause node) {
     // Skip exceptions named with underscores.
-    var exceptionParameter = node.exceptionParameter;
+    var exceptionParameter = node.exceptionParameter2;
     if (exceptionParameter != null &&
-        exceptionParameter.name.isJustUnderscores) {
+        exceptionParameter.name.lexeme.isJustUnderscores) {
       return;
     }
 

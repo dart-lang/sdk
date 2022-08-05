@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
@@ -74,23 +75,23 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  void checkIdentifier(SimpleIdentifier? id) {
+  void checkIdentifier(Token? id) {
     if (id == null) return;
-    if (!hasLeadingUnderscore(id.name)) return;
-    if (id.name.isJustUnderscores) return;
+    if (!hasLeadingUnderscore(id.lexeme)) return;
+    if (id.lexeme.isJustUnderscores) return;
 
-    rule.reportLint(id);
+    rule.reportLintForToken(id);
   }
 
   @override
   void visitCatchClause(CatchClause node) {
-    checkIdentifier(node.exceptionParameter);
-    checkIdentifier(node.stackTraceParameter);
+    checkIdentifier(node.exceptionParameter2?.name);
+    checkIdentifier(node.stackTraceParameter2?.name);
   }
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    checkIdentifier(node.identifier);
+    checkIdentifier(node.name);
   }
 
   @override
@@ -101,7 +102,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
       // Named parameters produce a `private_optional_parameter` diagnostic.
       if (parameter is! FieldFormalParameter && !parameter.isNamed) {
-        checkIdentifier(parameter.identifier);
+        checkIdentifier(parameter.name);
       }
     }
   }
@@ -109,19 +110,19 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     for (var variable in node.variables.variables) {
-      checkIdentifier(variable.name);
+      checkIdentifier(variable.name2);
     }
   }
 
   @override
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    checkIdentifier(node.functionDeclaration.name);
+    checkIdentifier(node.functionDeclaration.name2);
   }
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     for (var variable in node.variables.variables) {
-      checkIdentifier(variable.name);
+      checkIdentifier(variable.name2);
     }
   }
 }

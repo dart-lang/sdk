@@ -66,8 +66,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         _isExtensionOnNullableType(node.inSetterContext()
             ? (node.thisOrAncestorOfType<AssignmentExpression>())
                 ?.writeElement
-                ?.enclosingElement2
-            : node.staticElement?.enclosingElement2)) {
+                ?.enclosingElement3
+            : node.staticElement?.enclosingElement3)) {
       rule.reportLintForToken(node.question);
     }
   }
@@ -76,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     if (node.isNullAware &&
         _isExtensionOnNullableType(
-            node.methodName.staticElement?.enclosingElement2)) {
+            node.methodName.staticElement?.enclosingElement3)) {
       rule.reportLintForToken(node.operator);
     }
   }
@@ -87,8 +87,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       var realParent = node.thisOrAncestorMatching(
           (p) => p != node && p is! ParenthesizedExpression);
       if (_isExtensionOnNullableType(realParent is AssignmentExpression
-          ? realParent.writeElement?.enclosingElement2
-          : node.propertyName.staticElement?.enclosingElement2)) {
+          ? realParent.writeElement?.enclosingElement3
+          : node.propertyName.staticElement?.enclosingElement3)) {
         rule.reportLintForToken(node.operator);
       }
     }

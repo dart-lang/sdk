@@ -16,13 +16,13 @@ _Predicate _hasConstructorFieldInitializers(
         VariableDeclaration v) =>
     (AstNode n) =>
         n is ConstructorFieldInitializer &&
-        n.fieldName.staticElement == v.name.staticElement;
+        n.fieldName.staticElement == v.declaredElement;
 
 _Predicate _hasFieldFormalParameter(VariableDeclaration v) => (AstNode n) {
       if (n is FieldFormalParameter) {
-        var staticElement = n.identifier.staticElement;
+        var staticElement = n.declaredElement;
         return staticElement is FieldFormalParameterElement &&
-            staticElement.field == v.name.staticElement;
+            staticElement.field == v.declaredElement;
       }
       return false;
     };
@@ -31,7 +31,7 @@ _Predicate _hasReturn(VariableDeclaration v) => (AstNode n) {
       if (n is ReturnStatement) {
         var expression = n.expression;
         if (expression is SimpleIdentifier) {
-          return expression.staticElement == v.name.staticElement;
+          return expression.staticElement == v.declaredElement;
         }
       }
       return false;
@@ -86,7 +86,7 @@ Iterable<AstNode> _findMethodCallbackNodes(Iterable<AstNode> containerNodes,
   return prefixedIdentifiers.where((n) {
     var declaredElement = variable.declaredElement;
     return declaredElement != null &&
-        n.prefix.staticElement == variable.name.staticElement &&
+        n.prefix.staticElement == variable.declaredElement &&
         _hasMatch(predicates, declaredElement.type, n.identifier.token.lexeme);
   });
 }
@@ -97,7 +97,7 @@ Iterable<AstNode> _findMethodInvocationsWithVariableAsArgument(
   return prefixedIdentifiers.where((n) => n.argumentList.arguments
       .whereType<SimpleIdentifier>()
       .map((e) => e.staticElement)
-      .contains(variable.name.staticElement));
+      .contains(variable.declaredElement));
 }
 
 Iterable<AstNode> _findNodesInvokingMethodOnVariable(
@@ -131,7 +131,7 @@ Iterable<AstNode> _findVariableAssignments(
           // Assignment to VariableDeclaration as setter.
           (n.leftHandSide is PropertyAccess &&
               (n.leftHandSide as PropertyAccess).propertyName.token.lexeme ==
-                  variable.name.token.lexeme))
+                  variable.name2.lexeme))
       // Being assigned another reference.
       &&
       n.rightHandSide is SimpleIdentifier);

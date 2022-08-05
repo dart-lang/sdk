@@ -95,13 +95,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (eq != null && hash == null) {
-      rule.reportLint(eq.name, arguments: ['hashCode', '==']);
+      rule.reportLintForToken(eq.name2, arguments: ['hashCode', '==']);
     }
     if (hash != null && eq == null) {
       if (hash is MethodDeclaration) {
-        rule.reportLint(hash.name, arguments: ['==', 'hashCode']);
+        rule.reportLintForToken(hash.name2, arguments: ['==', 'hashCode']);
       } else if (hash is FieldDeclaration) {
-        rule.reportLint(getFieldIdentifier(hash, 'hashCode'),
+        rule.reportLintForToken(getFieldName(hash, 'hashCode'),
             arguments: ['==', 'hashCode']);
       }
     }

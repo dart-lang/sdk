@@ -125,7 +125,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     //  - prevents us from going up to the library scope;
     //  - the requested element must be inherited, or from an extension.
     if (result.isDifferentName) {
-      var enclosing = result.element?.enclosingElement2;
+      var enclosing = result.element?.enclosingElement3;
       return enclosing is ClassElement;
     }
 

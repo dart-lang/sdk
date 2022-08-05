@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
@@ -62,17 +63,17 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    _check(node.name);
+    _check(node.name2);
   }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _check(node.constructorName.name);
+    _check(node.constructorName.name?.token);
   }
 
-  void _check(SimpleIdentifier? name) {
-    if (name?.name == 'new') {
-      rule.reportLint(name);
+  void _check(Token? name) {
+    if (name?.lexeme == 'new') {
+      rule.reportLintForToken(name);
     }
   }
 }

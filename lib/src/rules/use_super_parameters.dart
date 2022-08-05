@@ -119,7 +119,7 @@ class _Visitor extends SimpleAstVisitor {
           !referencedParameters.contains(parameterElement)) {
         if (_checkNamedParameter(
             parameter, parameterElement, constructorElement, superInvocation)) {
-          var identifier = parameter.identifier?.name;
+          var identifier = parameter.name?.lexeme;
           if (identifier != null) {
             identifiers.add(identifier);
           }
@@ -194,7 +194,7 @@ class _Visitor extends SimpleAstVisitor {
           }
 
           match = true;
-          var identifier = constructorParam.identifier?.name;
+          var identifier = constructorParam.name?.lexeme;
           if (identifier != null) {
             convertibleConstructorParams.add(identifier);
           }
@@ -262,13 +262,13 @@ class _Visitor extends SimpleAstVisitor {
 
   void _reportLint(ConstructorDeclaration node, List<String> identifiers) {
     if (identifiers.isEmpty) return;
-    var target = node.name ?? node.returnType;
+    var target = node.name2 ?? node.returnType;
     if (identifiers.length > 1) {
       var msg = identifiers.quotedAndCommaSeparatedWithAnd;
-      rule.reportLint(target,
+      rule.reportLintForOffset(target.offset, target.length,
           errorCode: UseSuperParameters.multipleParams, arguments: [msg]);
     } else {
-      rule.reportLint(target,
+      rule.reportLintForOffset(target.offset, target.length,
           errorCode: UseSuperParameters.singleParam,
           arguments: [identifiers.first]);
     }

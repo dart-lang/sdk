@@ -73,9 +73,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var member in members) {
       var method = member as MethodDeclaration;
       if (method.isGetter) {
-        getters[method.name.toString()] = method;
+        getters[method.name2.lexeme] = method;
       } else if (method.isSetter) {
-        setters[method.name.toString()] = method;
+        setters[method.name2.lexeme] = method;
       }
     }
 
@@ -86,7 +86,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _visitGetter(MethodDeclaration? getter) {
     if (getter != null && isSimpleGetter(getter)) {
-      rule.reportLint(getter.name);
+      rule.reportLintForToken(getter.name2);
     }
   }
 }

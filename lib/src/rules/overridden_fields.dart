@@ -82,7 +82,7 @@ Iterable<InterfaceType> _findAllSupertypesAndMixins(
     interfaces.add(superclass);
   }
   interfaces
-    ..addAll(interface.element.mixins)
+    ..addAll(interface.element2.mixins)
     ..addAll(_findAllSupertypesAndMixins(superclass, accumulator));
   return interfaces.where((i) => i != interface);
 }
@@ -129,7 +129,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (declaredElement != null) {
         var field = _getOverriddenMember(declaredElement);
         if (field != null && !field.isAbstract) {
-          rule.reportLint(variable.name);
+          rule.reportLintForToken(variable.name2);
         }
       }
     }
@@ -154,14 +154,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     bool containsOverriddenMember(InterfaceType i) =>
         i.accessors.any(isOverriddenMember);
-    var enclosingElement = member.enclosingElement2;
+    var enclosingElement = member.enclosingElement3;
     if (enclosingElement is! ClassElement) {
       return null;
     }
     var classElement = enclosingElement;
 
     Iterable<InterfaceType> interfaces;
-    if (classElement.isMixin) {
+    if (classElement is MixinElement) {
       interfaces = _findAllSupertypesInMixin(classElement);
     } else {
       interfaces =

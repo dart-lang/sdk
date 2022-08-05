@@ -81,7 +81,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (node.name.name != 'createState') {
+    if (node.name2.lexeme != 'createState') {
       return;
     }
 

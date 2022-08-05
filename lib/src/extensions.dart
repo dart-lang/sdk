@@ -7,6 +7,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/member.dart'; // ignore: implementation_imports
+import 'package:collection/collection.dart';
 
 import 'util/dart_type_utilities.dart';
 
@@ -127,6 +128,13 @@ extension ClassElementExtension on ClassElement {
   bool get isEnumLikeClass => asEnumLikeClass != null;
 }
 
+extension InterfaceElementExtension on InterfaceElement {
+  /// Returns whether this element is exactly [otherName] declared in
+  /// [otherLibrary].
+  bool isClass(String otherName, String otherLibrary) =>
+      name == otherName && library.name == otherLibrary;
+}
+
 extension AstNodeExtension on AstNode? {
   Element? get canonicalElement {
     var self = this;
@@ -159,16 +167,29 @@ extension BlockExtension on Block {
   }
 }
 
-extension DartTypeExtension on DartType? {
-  bool extendsClass(String? className, String library) =>
-      _extendsClass(this, <ClassElement>{}, className, library);
+extension ClassMemberListExtension on List<ClassMember> {
+  MethodDeclaration? getMethod(String name) => whereType<MethodDeclaration>()
+      .firstWhereOrNull((node) => node.name2.lexeme == name);
+}
 
-  static bool _extendsClass(DartType? type, Set<ClassElement> seenTypes,
-          String? className, String? library) =>
-      type is InterfaceType &&
-      seenTypes.add(type.element) &&
+extension DartTypeExtension on DartType? {
+  bool extendsClass(String? className, String library) {
+    var self = this;
+    if (self is InterfaceType) {
+      return _extendsClass(self, <InterfaceElement>{}, className, library);
+    }
+    return false;
+  }
+
+  static bool _extendsClass(
+          InterfaceType? type,
+          Set<InterfaceElement> seenElements,
+          String? className,
+          String? library) =>
+      type != null &&
+      seenElements.add(type.element2) &&
       (DartTypeUtilities.isClass(type, className, library) ||
-          _extendsClass(type.superclass, seenTypes, className, library));
+          _extendsClass(type.superclass, seenElements, className, library));
 }
 
 extension ExpressionExtension on Expression? {
@@ -179,9 +200,11 @@ extension InterfaceTypeExtension on InterfaceType {
   /// Returns the collection of all interfaces that this type implements,
   /// including itself.
   Iterable<InterfaceType> get implementedInterfaces {
-    void searchSupertypes(InterfaceType? type, Set<ClassElement> alreadyVisited,
+    void searchSupertypes(
+        InterfaceType? type,
+        Set<InterfaceElement> alreadyVisited,
         List<InterfaceType> interfaceTypes) {
-      if (type == null || !alreadyVisited.add(type.element)) {
+      if (type == null || !alreadyVisited.add(type.element2)) {
         return;
       }
       interfaceTypes.add(type);

@@ -104,7 +104,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     // 'noSuchMethod' is mandatory to proxify.
-    if (node.name.name == 'noSuchMethod') return;
+    if (node.name2.lexeme == 'noSuchMethod') return;
 
     // It's ok to override to have better documentation.
     if (node.documentationComment != null) return;
@@ -138,7 +138,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
 
   @override
   void visitSuperExpression(SuperExpression node) {
-    rule.reportLint(declaration.name);
+    rule.reportLintForToken(declaration.name2);
   }
 
   /// Returns whether [declaration] is annotated with any metadata (other than
@@ -254,10 +254,10 @@ class _UnnecessaryOperatorOverrideVisitor
   @override
   void visitBinaryExpression(BinaryExpression node) {
     var parameters = declaration.parameters?.parameters;
-    if (node.operator.type == declaration.name.token.type &&
+    if (node.operator.type == declaration.name2.type &&
         parameters != null &&
         parameters.length == 1 &&
-        parameters.first.identifier?.staticElement ==
+        parameters.first.declaredElement ==
             node.rightOperand.canonicalElement) {
       var leftPart = node.leftOperand.unParenthesized;
       if (leftPart is SuperExpression) {
@@ -270,7 +270,7 @@ class _UnnecessaryOperatorOverrideVisitor
   void visitPrefixExpression(PrefixExpression node) {
     var parameters = declaration.parameters?.parameters;
     if (parameters != null &&
-        node.operator.type == declaration.name.token.type &&
+        node.operator.type == declaration.name2.type &&
         parameters.isEmpty) {
       var operand = node.operand.unParenthesized;
       if (operand is SuperExpression) {
@@ -293,7 +293,7 @@ class _UnnecessarySetterOverrideVisitor
     var parameters = declaration.parameters?.parameters;
     if (parameters != null &&
         parameters.length == 1 &&
-        parameters.first.identifier?.staticElement ==
+        parameters.first.declaredElement ==
             node.rightHandSide.canonicalElement) {
       var leftPart = node.leftHandSide.unParenthesized;
       if (leftPart is PropertyAccess) {

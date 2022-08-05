@@ -106,7 +106,8 @@ class _Visitor extends SimpleAstVisitor {
 
   bool check(Declaration node) {
     if (node.documentationComment == null && !isOverridingMember(node)) {
-      rule.reportLint(getNodeToAnnotate(node));
+      var errorNode = getNodeToAnnotate(node);
+      rule.reportLintForOffset(errorNode.offset, errorNode.length);
       return true;
     }
     return false;
@@ -123,9 +124,9 @@ class _Visitor extends SimpleAstVisitor {
 
     // Identify getter/setter pairs.
     for (var member in members) {
-      if (member is MethodDeclaration && !isPrivate(member.name)) {
+      if (member is MethodDeclaration && !isPrivate(member.name2)) {
         if (member.isGetter) {
-          getters[member.name.name] = member;
+          getters[member.name2.lexeme] = member;
         } else if (member.isSetter) {
           setters.add(member);
         } else {
@@ -144,7 +145,7 @@ class _Visitor extends SimpleAstVisitor {
 
     // But only setters whose getter is missing a doc.
     for (var setter in setters) {
-      var getter = getters[setter.name.name];
+      var getter = getters[setter.name2.lexeme];
       if (getter != null && missingDocs.contains(getter)) {
         check(setter);
       }
@@ -185,7 +186,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    if (!isPrivate(node.name)) {
+    if (!isPrivate(node.name2)) {
       check(node);
     }
   }
@@ -203,10 +204,10 @@ class _Visitor extends SimpleAstVisitor {
     // Identify getter/setter pairs.
     for (var member in node.declarations) {
       if (member is FunctionDeclaration) {
-        var name = member.name;
-        if (!isPrivate(name) && name.name != 'main') {
+        var name = member.name2;
+        if (!isPrivate(name) && name.lexeme != 'main') {
           if (member.isGetter) {
-            getters[member.name.name] = member;
+            getters[member.name2.lexeme] = member;
           } else if (member.isSetter) {
             setters.add(member);
           } else {
@@ -226,7 +227,7 @@ class _Visitor extends SimpleAstVisitor {
 
     // But only setters whose getter is missing a doc.
     for (var setter in setters) {
-      var getter = getters[setter.name.name];
+      var getter = getters[setter.name2.lexeme];
       if (getter != null && missingDocs.contains(getter)) {
         check(setter);
       }
@@ -240,21 +241,21 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (!inPrivateMember(node) && !isPrivate(node.name)) {
+    if (!inPrivateMember(node) && !isPrivate(node.name2)) {
       check(node);
     }
   }
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    if (!inPrivateMember(node) && !isPrivate(node.name)) {
+    if (!inPrivateMember(node) && !isPrivate(node.name2)) {
       check(node);
     }
   }
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    if (isPrivate(node.name)) return;
+    if (isPrivate(node.name2)) return;
 
     check(node);
     checkMethods(node.members);
@@ -262,7 +263,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    if (node.name == null || isPrivate(node.name)) {
+    if (node.name2 == null || isPrivate(node.name2)) {
       return;
     }
 
@@ -274,7 +275,7 @@ class _Visitor extends SimpleAstVisitor {
   void visitFieldDeclaration(FieldDeclaration node) {
     if (!inPrivateMember(node)) {
       for (var field in node.fields.variables) {
-        if (!isPrivate(field.name)) {
+        if (!isPrivate(field.name2)) {
           check(field);
         }
       }
@@ -283,14 +284,14 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    if (!isPrivate(node.name)) {
+    if (!isPrivate(node.name2)) {
       check(node);
     }
   }
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    if (!isPrivate(node.name)) {
+    if (!isPrivate(node.name2)) {
       check(node);
     }
   }
@@ -303,14 +304,14 @@ class _Visitor extends SimpleAstVisitor {
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     for (var decl in node.variables.variables) {
-      if (!isPrivate(decl.name)) {
+      if (!isPrivate(decl.name2)) {
         check(decl);
       }
     }
   }
 
   void _visitClassOrMixin(ClassOrMixinDeclaration node) {
-    if (isPrivate(node.name)) return;
+    if (isPrivate(node.name2)) return;
 
     check(node);
     checkMethods(node.members);

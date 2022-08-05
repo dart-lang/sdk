@@ -108,6 +108,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _isEqualsOverride(MethodDeclaration? declaration) =>
       declaration != null &&
       declaration.isOperator &&
-      declaration.name.name == '==' &&
+      declaration.name2.lexeme == '==' &&
       declaration.parameters?.parameterElements.length == 1;
 }

@@ -17,8 +17,8 @@ typedef _InterfaceTypePredicate = bool Function(InterfaceType type);
 _InterfaceTypePredicate _buildImplementsDefinitionPredicate(
         InterfaceTypeDefinition definition) =>
     (InterfaceType interface) =>
-        interface.element.name == definition.name &&
-        interface.element.library.name == definition.library;
+        interface.element2.name == definition.name &&
+        interface.element2.library.name == definition.library;
 
 /// Returns the first type argument on [definition], as implemented by [type].
 ///

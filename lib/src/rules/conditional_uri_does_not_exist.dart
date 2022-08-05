@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -58,15 +59,15 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConfiguration(Configuration configuration) {
-    String? uriContent = configuration.uri.stringValue;
-    if (uriContent != null) {
-      Source? source = configuration.uriSource;
+    var uri = configuration.resolvedUri;
+    if (uri is DirectiveUriWithRelativeUriString) {
+      var source = uri is DirectiveUriWithSource ? uri.source : null;
       // Checking source with .exists() will not detect the presence of overlays
       // in the analysis server (although running the script when the files
       // don't exist on disk would also fail to find it).
       if (!(source?.exists() ?? false)) {
         rule.reportLint(configuration.uri,
-            arguments: [uriContent], errorCode: code);
+            arguments: [uri.relativeUriString], errorCode: code);
       }
     }
   }

@@ -126,12 +126,12 @@ int compareDirectives(String a, String b) {
 }
 
 bool _isAbsoluteDirective(NamespaceDirective node) {
-  var uriContent = node.uriContent;
+  var uriContent = node.uri.stringValue;
   return uriContent != null && uriContent.contains(':');
 }
 
 bool _isDartDirective(NamespaceDirective node) {
-  var uriContent = node.uriContent;
+  var uriContent = node.uri.stringValue;
   return uriContent != null && uriContent.startsWith('dart:');
 }
 
@@ -140,7 +140,7 @@ bool _isExportDirective(Directive node) => node is ExportDirective;
 bool _isNotDartDirective(NamespaceDirective node) => !_isDartDirective(node);
 
 bool _isPackageDirective(NamespaceDirective node) {
-  var uriContent = node.uriContent;
+  var uriContent = node.uri.stringValue;
   return uriContent != null && uriContent.startsWith('package:');
 }
 
@@ -212,7 +212,7 @@ class _PackageBox {
       _isPackageDirective(node) && !_isOwnPackageDirective(node);
 
   bool _isOwnPackageDirective(NamespaceDirective node) {
-    var uriContent = node.uriContent;
+    var uriContent = node.uri.stringValue;
     return uriContent != null &&
         uriContent.startsWith('package:$_packageName/');
   }
@@ -366,8 +366,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     NamespaceDirective? previousDirective;
     for (var directive in nodes) {
       if (previousDirective != null) {
-        var previousUri = previousDirective.uriContent;
-        var directiveUri = directive.uriContent;
+        var previousUri = previousDirective.uri.stringValue;
+        var directiveUri = directive.uri.stringValue;
         if (previousUri != null &&
             directiveUri != null &&
             compareDirectives(previousUri, directiveUri) > 0) {

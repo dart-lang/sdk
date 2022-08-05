@@ -95,7 +95,7 @@ class DartTypeUtilities {
         definitions.any((d) => isInterface(i, d.name, d.library));
 
     if (type is InterfaceType) {
-      var element = type.element;
+      var element = type.element2;
       return isAnyInterface(type) ||
           !element.isSynthetic && element.allSupertypes.any(isAnyInterface);
     } else {
@@ -110,7 +110,7 @@ class DartTypeUtilities {
     }
     var interfaceType = type;
     bool predicate(InterfaceType i) => isInterface(i, interface, library);
-    var element = interfaceType.element;
+    var element = interfaceType.element2;
     return predicate(interfaceType) ||
         !element.isSynthetic && element.allSupertypes.any(predicate);
   }
@@ -118,8 +118,14 @@ class DartTypeUtilities {
   /// todo (pq): unify and  `isInterface` into a shared method: `isInterfaceType`
   static bool isClass(DartType? type, String? className, String? library) =>
       type is InterfaceType &&
-      type.element.name == className &&
-      type.element.library.name == library;
+      type.element2.name == className &&
+      type.element2.library.name == library;
+
+  /// todo (pq): unify and  `isInterface` into a shared method: `isInterfaceType`
+  static bool isMixin(DartType? type, String? className, String? library) =>
+      type is InterfaceType &&
+      type.element2.name == className &&
+      type.element2.library.name == library;
 
   static bool isConstructorElement(ConstructorElement? element,
           {required String uriStr,
@@ -127,12 +133,12 @@ class DartTypeUtilities {
           required String constructorName}) =>
       element != null &&
       element.library.name == uriStr &&
-      element.enclosingElement2.name == className &&
+      element.enclosingElement3.name == className &&
       element.name == constructorName;
 
   static bool isInterface(
           InterfaceType type, String interface, String library) =>
-      type.element.name == interface && type.element.library.name == library;
+      type.element2.name == interface && type.element2.library.name == library;
 
   static bool isNonNullable(LinterContext context, DartType? type) =>
       type != null && context.typeSystem.isNonNullable(type);
@@ -145,12 +151,12 @@ class DartTypeUtilities {
     if (declaredElement == null) {
       return null;
     }
-    var parent = declaredElement.enclosingElement2;
+    var parent = declaredElement.enclosingElement3;
     if (parent is ClassElement) {
-      return parent.lookUpGetter(node.name.name, declaredElement.library);
+      return parent.lookUpGetter(node.name2.lexeme, declaredElement.library);
     }
     if (parent is ExtensionElement) {
-      return parent.getGetter(node.name.name);
+      return parent.getGetter(node.name2.lexeme);
     }
     return null;
   }
@@ -161,10 +167,10 @@ class DartTypeUtilities {
     if (declaredElement == null) {
       return null;
     }
-    var parent = declaredElement.enclosingElement2;
+    var parent = declaredElement.enclosingElement3;
     if (parent is ClassElement) {
       return parent.lookUpInheritedConcreteGetter(
-          node.name.name, declaredElement.library);
+          node.name2.lexeme, declaredElement.library);
     }
     // Extensions don't inherit.
     return null;
@@ -173,10 +179,10 @@ class DartTypeUtilities {
   static MethodElement? lookUpInheritedConcreteMethod(MethodDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement2;
+      var parent = declaredElement.enclosingElement3;
       if (parent is ClassElement) {
         return parent.lookUpInheritedConcreteMethod(
-            node.name.name, declaredElement.library);
+            node.name2.lexeme, declaredElement.library);
       }
     }
     // Extensions don't inherit.
@@ -187,10 +193,10 @@ class DartTypeUtilities {
       MethodDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement2;
+      var parent = declaredElement.enclosingElement3;
       if (parent is ClassElement) {
         return parent.lookUpInheritedConcreteSetter(
-            node.name.name, declaredElement.library);
+            node.name2.lexeme, declaredElement.library);
       }
     }
     // Extensions don't inherit.
@@ -200,10 +206,10 @@ class DartTypeUtilities {
   static MethodElement? lookUpInheritedMethod(MethodDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement2;
+      var parent = declaredElement.enclosingElement3;
       if (parent is ClassElement) {
         return parent.lookUpInheritedMethod(
-            node.name.name, declaredElement.library);
+            node.name2.lexeme, declaredElement.library);
       }
     }
     return null;
@@ -212,12 +218,12 @@ class DartTypeUtilities {
   static PropertyAccessorElement? lookUpSetter(MethodDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement2;
+      var parent = declaredElement.enclosingElement3;
       if (parent is ClassElement) {
-        return parent.lookUpSetter(node.name.name, declaredElement.library);
+        return parent.lookUpSetter(node.name2.lexeme, declaredElement.library);
       }
       if (parent is ExtensionElement) {
-        return parent.getSetter(node.name.name);
+        return parent.getSetter(node.name2.lexeme);
       }
     }
     return null;
@@ -230,12 +236,12 @@ class DartTypeUtilities {
     var positionalParameters = <Element?>[];
     var positionalArguments = <Element>[];
     for (var parameter in parameters) {
-      var identifier = parameter.identifier;
+      var identifier = parameter.name;
       if (identifier != null) {
         if (parameter.isNamed) {
-          namedParameters[identifier.name] = identifier.staticElement;
+          namedParameters[identifier.lexeme] = parameter.declaredElement;
         } else {
-          positionalParameters.add(identifier.staticElement);
+          positionalParameters.add(parameter.declaredElement);
         }
       }
     }
@@ -335,8 +341,8 @@ class DartTypeUtilities {
         promotedRightType is InterfaceType) {
       // In this case, [leftElement] and [rightElement] each represent
       // the same class, like `int`, or `Iterable<String>`.
-      var leftElement = promotedLeftType.element;
-      var rightElement = promotedRightType.element;
+      var leftElement = promotedLeftType.element2;
+      var rightElement = promotedRightType.element2;
       if (leftElement == rightElement) {
         // In this case, [leftElement] and [rightElement] represent the same
         // class, modulo generics, e.g. `List<int>` and `List<dynamic>`. Now we
@@ -383,10 +389,12 @@ class DartTypeUtilities {
     if (type2 is FunctionType) {
       return false;
     }
-    var element2 = type2.element;
-    if (element2 is ClassElement &&
-        element2.lookUpConcreteMethod('call', element2.library) != null) {
-      return false;
+    if (type2 is InterfaceType) {
+      var element2 = type2.element2;
+      if (element2 is ClassElement &&
+          element2.lookUpConcreteMethod('call', element2.library) != null) {
+        return false;
+      }
     }
     return true;
   }

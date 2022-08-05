@@ -90,7 +90,7 @@ class _BaseVisitor extends RecursiveAstVisitor<void> {
     var constructorElement = node.constructorName.staticElement;
     return constructorElement != null &&
         !constructorElement.isFactory &&
-        constructorElement.enclosingElement2 == classElement;
+        constructorElement.enclosingElement3 == classElement;
   }
 }
 
@@ -150,13 +150,13 @@ class _NonEnumVisitor extends _BaseVisitor {
       throw _InvalidEnumException();
     }
     if (element != classElement) {
-      if (element.supertype?.element == classElement) {
+      if (element.supertype?.element2 == classElement) {
         throw _InvalidEnumException();
       } else if (element.interfaces
-          .map((e) => e.element)
+          .map((e) => e.element2)
           .contains(classElement)) {
         throw _InvalidEnumException();
-      } else if (element.mixins.map((e) => e.element).contains(classElement)) {
+      } else if (element.mixins.map((e) => e.element2).contains(classElement)) {
         // This case won't occur unless there's an error in the source code, but
         // it's easier to check for the condition than it is to check for the
         // diagnostic.
@@ -183,7 +183,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    if (node.isAbstract) return;
+    if (node.abstractKeyword != null) return;
     var classElement = node.declaredElement;
     if (classElement == null) return;
 
@@ -212,7 +212,7 @@ class _Visitor extends SimpleAstVisitor {
           var constructorElement = initializer.constructorName.staticElement;
           if (constructorElement == null) continue;
           if (constructorElement.isFactory) continue;
-          if (constructorElement.enclosingElement2 != classElement) continue;
+          if (constructorElement.enclosingElement3 != classElement) continue;
 
           if (fieldElement.computeConstantValue() == null) continue;
 
@@ -223,7 +223,7 @@ class _Visitor extends SimpleAstVisitor {
         var constructor = member.declaredElement;
         if (constructor == null) return;
         if (!constructor.isFactory && !constructor.isConst) return;
-        var name = member.name?.name;
+        var name = member.name2?.lexeme;
         if (classElement.isPublic &&
             (name == null || !Identifier.isPrivateName(name))) {
           return;
@@ -240,6 +240,6 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    rule.reportLint(node.name);
+    rule.reportLintForToken(node.name2);
   }
 }

@@ -129,10 +129,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter param) {
-    var identifier = param.identifier;
-    if (identifier != null &&
-        param.type == null &&
-        !identifier.name.isJustUnderscores) {
+    var name = param.name;
+    if (name != null && param.type == null && !name.lexeme.isJustUnderscores) {
       if (param.keyword != null) {
         rule.reportLintForToken(param.keyword);
       } else {

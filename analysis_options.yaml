@@ -36,7 +36,7 @@ linter:
     - cancel_subscriptions
 #    - cascade_invocations
     - cast_nullable_to_non_nullable
-    - combinators_ordering
+#    - combinators_ordering
 #    - close_sinks # https://github.com/dart-lang/linter/issues/268
     - comment_references
     - directives_ordering

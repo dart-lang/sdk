@@ -83,16 +83,16 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (!node.isSetter && node.returnType == null) {
-      rule.reportLint(node.name,
-          arguments: [node.name.name], errorCode: functionCode);
+      rule.reportLintForToken(node.name2,
+          arguments: [node.name2.lexeme], errorCode: functionCode);
     }
   }
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (node.returnType == null) {
-      rule.reportLint(node.name,
-          arguments: [node.name.name], errorCode: functionCode);
+      rule.reportLintForToken(node.name2,
+          arguments: [node.name2.lexeme], errorCode: functionCode);
     }
   }
 
@@ -100,9 +100,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (!node.isSetter &&
         node.returnType == null &&
-        node.name.token.type != TokenType.INDEX_EQ) {
-      rule.reportLint(node.name,
-          arguments: [node.name.name], errorCode: methodCode);
+        node.name2.type != TokenType.INDEX_EQ) {
+      rule.reportLintForToken(node.name2,
+          arguments: [node.name2.lexeme], errorCode: methodCode);
     }
   }
 }

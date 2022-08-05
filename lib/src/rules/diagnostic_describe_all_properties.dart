@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 import '../util/flutter_utils.dart';
 
@@ -89,8 +91,7 @@ class _Visitor extends SimpleAstVisitor {
 
   _Visitor(this.rule, this.context);
 
-  void removeReferences(
-      MethodDeclaration? method, List<SimpleIdentifier> properties) {
+  void removeReferences(MethodDeclaration? method, List<Token> properties) {
     if (method == null) {
       return;
     }
@@ -110,13 +111,12 @@ class _Visitor extends SimpleAstVisitor {
         debugName =
             '$debugPrefix${p.name[0].toUpperCase()}${p.name.substring(1)}';
       }
-      properties.removeWhere(
-          (property) => property.name == debugName || property.name == name);
+      properties.removeWhere((property) =>
+          property.lexeme == debugName || property.lexeme == name);
     });
   }
 
-  bool skipForDiagnostic(
-          {Element? element, DartType? type, SimpleIdentifier? name}) =>
+  bool skipForDiagnostic({Element? element, DartType? type, Token? name}) =>
       isPrivate(name) || _isOverridingMember(element) || isWidgetProperty(type);
 
   @override
@@ -127,16 +127,16 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    var properties = <SimpleIdentifier>[];
+    var properties = <Token>[];
     for (var member in node.members) {
       if (member is MethodDeclaration && member.isGetter) {
         if (!member.isStatic &&
             !skipForDiagnostic(
               element: member.declaredElement,
-              name: member.name,
+              name: member.name2,
               type: member.returnType?.type,
             )) {
-          properties.add(member.name);
+          properties.add(member.name2);
         }
       } else if (member is FieldDeclaration) {
         for (var v in member.fields.variables) {
@@ -145,10 +145,10 @@ class _Visitor extends SimpleAstVisitor {
               !declaredElement.isStatic &&
               !skipForDiagnostic(
                 element: declaredElement,
-                name: v.name,
+                name: v.name2,
                 type: declaredElement.type,
               )) {
-            properties.add(v.name);
+            properties.add(v.name2);
           }
         }
       }
@@ -158,8 +158,8 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    var debugFillProperties = node.getMethod('debugFillProperties');
-    var debugDescribeChildren = node.getMethod('debugDescribeChildren');
+    var debugFillProperties = node.members.getMethod('debugFillProperties');
+    var debugDescribeChildren = node.members.getMethod('debugDescribeChildren');
 
     // Remove any defined in debugFillProperties.
     removeReferences(debugFillProperties, properties);
@@ -168,7 +168,7 @@ class _Visitor extends SimpleAstVisitor {
     removeReferences(debugDescribeChildren, properties);
 
     // Flag the rest.
-    properties.forEach(rule.reportLint);
+    properties.forEach(rule.reportLintForToken);
   }
 
   bool _isOverridingMember(Element? member) {

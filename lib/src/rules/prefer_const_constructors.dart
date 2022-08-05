@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -87,7 +88,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      if (element.enclosingElement2.isDartCoreObject) {
+      var enclosingElement = element.enclosingElement3;
+      if (enclosingElement is ClassElement &&
+          enclosingElement.isDartCoreObject) {
         // Skip lint for `new Object()`, because it can be used for Id creation.
         return;
       }

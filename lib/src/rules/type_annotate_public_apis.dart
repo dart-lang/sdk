@@ -83,12 +83,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (!isPrivate(node.name) &&
+    if (!isPrivate(node.name2) &&
         // Only report on top-level functions, not those declared within the
         // scope of another function.
         node.parent is CompilationUnit) {
       if (node.returnType == null && !node.isSetter) {
-        rule.reportLint(node.name);
+        rule.reportLintForToken(node.name2);
       } else {
         node.functionExpression.parameters?.accept(v);
       }
@@ -97,9 +97,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    if (!isPrivate(node.name)) {
+    if (!isPrivate(node.name2)) {
       if (node.returnType == null) {
-        rule.reportLint(node.name);
+        rule.reportLintForToken(node.name2);
       } else {
         node.parameters.accept(v);
       }
@@ -108,9 +108,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (!isPrivate(node.name)) {
+    if (!isPrivate(node.name2)) {
       if (node.returnType == null && !node.isSetter) {
-        rule.reportLint(node.name);
+        rule.reportLintForToken(node.name2);
       } else {
         node.parameters?.accept(v);
       }
@@ -140,7 +140,7 @@ class _VisitorHelper extends RecursiveAstVisitor {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter param) {
     if (param.type == null) {
-      var paramName = param.identifier?.name;
+      var paramName = param.name?.lexeme;
       if (paramName != null && !paramName.isJustUnderscores) {
         rule.reportLint(param);
       }
@@ -149,10 +149,10 @@ class _VisitorHelper extends RecursiveAstVisitor {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    if (!isPrivate(node.name) &&
+    if (!isPrivate(node.name2) &&
         !node.isConst &&
         !(node.isFinal && hasInferredType(node))) {
-      rule.reportLint(node.name);
+      rule.reportLintForToken(node.name2);
     }
   }
 }

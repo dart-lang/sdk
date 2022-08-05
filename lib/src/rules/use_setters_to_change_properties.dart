@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var rightOperand = expression.rightHandSide.canonicalElement;
         var parameterElement = node.declaredElement?.parameters.first;
         if (rightOperand == parameterElement && leftOperand is FieldElement) {
-          rule.reportLint(node.name);
+          rule.reportLintForToken(node.name2);
         }
       }
     }

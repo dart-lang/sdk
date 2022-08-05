@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   bool isRelativeImport(ImportDirective node) {
-    var uriContent = node.uriContent;
+    var uriContent = node.uri.stringValue;
     if (uriContent != null) {
       var uri = Uri.tryParse(uriContent);
       return uri != null && uri.scheme.isEmpty;

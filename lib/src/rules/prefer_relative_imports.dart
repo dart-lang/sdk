@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
@@ -60,20 +61,22 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule, this.context);
 
   bool isPackageSelfReference(ImportDirective node) {
+    var uri = node.element2?.uri;
+    if (uri is! DirectiveUriWithSource) {
+      return false;
+    }
+
     // Is it a package: import?
-    var importUriContent = node.uriContent;
-    if (importUriContent?.startsWith('package:') != true) return false;
+    var importUri = uri.relativeUri;
+    if (!importUri.isScheme('package')) return false;
 
-    var source = node.uriSource;
-    if (source == null) return false;
-
-    var importUri = node.uriSource?.uri;
     var sourceUri = node.element2?.source.uri;
     if (!samePackage(importUri, sourceUri)) return false;
 
     // todo (pq): context.package.contains(source) should work (but does not)
     var packageRoot = context.package?.root;
-    return packageRoot != null && path.isWithin(packageRoot, source.fullName);
+    return packageRoot != null &&
+        path.isWithin(packageRoot, uri.source.fullName);
   }
 
   @override

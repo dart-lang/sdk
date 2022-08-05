@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Declare visit methods for all registered node types.';
@@ -96,17 +97,21 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
     // Unifying and Generalizing visitors are doing the right thing.)
     // For now we flag methods inherited from SimpleAstVisitor since they
     // surely don't do anything.
-    return method?.enclosingElement2.name != 'SimpleAstVisitor';
+    return method?.enclosingElement3.name != 'SimpleAstVisitor';
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (node.target?.staticType?.element?.name != 'NodeLintRegistry') return;
+    var targetType = node.target?.staticType;
+    if (targetType is! InterfaceType) return;
+    if (targetType.element2.name != 'NodeLintRegistry') return;
     var methodName = node.methodName.name;
     if (!methodName.startsWith('add')) return;
     var nodeType = methodName.substring(3);
     var args = node.argumentList.arguments;
-    var visitor = args[1].staticType?.element;
+    var argType = args[1].staticType;
+    if (argType is! InterfaceType) return;
+    var visitor = argType.element2;
     if (visitor is! ClassElement) return;
     if (implements(visitor, 'visit$nodeType')) return;
 
@@ -121,7 +126,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (node.name.name == 'registerNodeProcessors') {
+    if (node.name2.lexeme == 'registerNodeProcessors') {
       node.body.accept(_BodyVisitor(rule));
     }
   }

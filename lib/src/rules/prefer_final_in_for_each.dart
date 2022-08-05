@@ -83,7 +83,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (function != null &&
           loopVariableElement != null &&
           !function.isPotentiallyMutatedInScope(loopVariableElement)) {
-        rule.reportLint(loopVariable.identifier);
+        rule.reportLintForToken(loopVariable.name);
       }
     }
   }

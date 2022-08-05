@@ -81,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (expression is IsExpression && expression.notOperator == null) {
         var target = expression.expression;
         if (target is SimpleIdentifier &&
-            target.name == arg.parameters?.parameters.first.identifier?.name) {
+            target.name == arg.parameters?.parameters.first.name?.lexeme) {
           rule.reportLint(node.methodName);
         }
       }

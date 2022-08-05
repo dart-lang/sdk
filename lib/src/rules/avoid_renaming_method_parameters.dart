@@ -95,7 +95,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (classElement.isPrivate) return;
 
     var parentMethod = classElement.lookUpInheritedMethod(
-        node.name.name, classElement.library);
+        node.name2.lexeme, classElement.library);
 
     if (parentMethod == null) return;
 
@@ -110,11 +110,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     var count = math.min(parameters.length, parentParameters.length);
     for (var i = 0; i < count; i++) {
       if (parentParameters.length <= i) break;
-      var paramIdentifier = parameters[i].identifier;
+      var paramIdentifier = parameters[i].name;
       if (paramIdentifier != null &&
-          paramIdentifier.name != parentParameters[i].name) {
-        rule.reportLint(paramIdentifier,
-            arguments: [paramIdentifier.name, parentParameters[i].name],
+          paramIdentifier.lexeme != parentParameters[i].name) {
+        rule.reportLintForToken(paramIdentifier,
+            arguments: [paramIdentifier.lexeme, parentParameters[i].name],
             errorCode: parameterCode);
       }
     }

@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (declaredElement.mixins.isNotEmpty) {
       return;
     }
-    if (node.isAbstract &&
+    if (node.abstractKeyword != null &&
         node.extendsClause == null &&
         node.members.length == 1) {
       var member = node.members.first;
@@ -77,7 +77,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           member.isAbstract &&
           !member.isGetter &&
           !member.isSetter) {
-        rule.reportLint(node.name);
+        rule.reportLintForToken(node.name2);
       }
     }
   }

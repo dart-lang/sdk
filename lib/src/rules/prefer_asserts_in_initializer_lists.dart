@@ -79,12 +79,12 @@ class _AssertVisitor extends RecursiveAstVisitor {
 
   bool _hasAccessor(PropertyAccessorElement element) {
     var classes = classAndSuperClasses?.classes;
-    return classes != null && classes.contains(element.enclosingElement2);
+    return classes != null && classes.contains(element.enclosingElement3);
   }
 
   bool _hasMethod(MethodElement element) {
     var classes = classAndSuperClasses?.classes;
-    return classes != null && classes.contains(element.enclosingElement2);
+    return classes != null && classes.contains(element.enclosingElement3);
   }
 
   bool _paramMatchesField(
@@ -108,19 +108,19 @@ class _AssertVisitor extends RecursiveAstVisitor {
 /// Lazy cache of elements.
 class _ClassAndSuperClasses {
   final ClassElement? element;
-  final Set<ClassElement> _classes = {};
+  final Set<InterfaceElement> _classes = {};
 
   _ClassAndSuperClasses(this.element);
 
   /// The [element] and its super classes, including mixins.
-  Set<ClassElement> get classes {
+  Set<InterfaceElement> get classes {
     if (_classes.isEmpty) {
-      void addRecursively(ClassElement? element) {
+      void addRecursively(InterfaceElement? element) {
         if (element != null && _classes.add(element)) {
           for (var t in element.mixins) {
-            addRecursively(t.element);
+            addRecursively(t.element2);
           }
-          addRecursively(element.supertype?.element);
+          addRecursively(element.supertype?.element2);
         }
       }
 

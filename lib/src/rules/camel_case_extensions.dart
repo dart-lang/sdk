@@ -62,9 +62,9 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    var name = node.name;
-    if (name != null && !isCamelCase(name.name)) {
-      rule.reportLint(name, arguments: [name.name]);
+    var name = node.name2;
+    if (name != null && !isCamelCase(name.lexeme)) {
+      rule.reportLintForToken(name, arguments: [name.lexeme]);
     }
   }
 }

@@ -101,11 +101,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    if (node.name.token.type != TokenType.EQ_EQ || parameters.length != 1) {
+    if (node.name2.type != TokenType.EQ_EQ || parameters.length != 1) {
       return;
     }
 
-    var parameter = parameters.first.identifier.canonicalElement;
+    var parameter = parameters.first.declaredElement?.canonicalElement;
 
     // Analyzer will produce UNNECESSARY_NULL_COMPARISON_FALSE|TRUE
     // See: https://github.com/dart-lang/linter/issues/2864

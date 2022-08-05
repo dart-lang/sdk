@@ -98,7 +98,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (node.name.token.type == TokenType.EQ_EQ || isHashCode(node)) {
+    if (node.name2.type == TokenType.EQ_EQ || isHashCode(node)) {
       var classElement = _getClassForMethod(node);
       if (classElement != null && !_hasImmutableAnnotation(classElement)) {
         rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
@@ -111,8 +111,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       node.thisOrAncestorOfType<ClassDeclaration>()?.declaredElement;
 
   bool _hasImmutableAnnotation(ClassElement clazz) {
-    var inheritedAndSelfElements = <ClassElement>[
-      ...clazz.allSupertypes.map((t) => t.element),
+    var inheritedAndSelfElements = <InterfaceElement>[
+      ...clazz.allSupertypes.map((t) => t.element2),
       clazz,
     ];
     var inheritedAndSelfAnnotations = inheritedAndSelfElements

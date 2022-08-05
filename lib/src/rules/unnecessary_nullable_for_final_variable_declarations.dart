@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (var variable in node.fields.variables) {
-      if (Identifier.isPrivateName(variable.name.name) || node.isStatic) {
+      if (Identifier.isPrivateName(variable.name2.lexeme) || node.isStatic) {
         _visit(variable);
       }
     }

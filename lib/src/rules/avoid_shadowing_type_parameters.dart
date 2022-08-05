@@ -117,13 +117,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var ancestorTypeParameterNames =
-        ancestorTypeParameters.typeParameters.map((tp) => tp.name.name).toSet();
+    var ancestorTypeParameterNames = ancestorTypeParameters.typeParameters
+        .map((tp) => tp.name2.lexeme)
+        .toSet();
 
     for (var parameter in typeParameters.typeParameters) {
-      if (ancestorTypeParameterNames.contains(parameter.name.name)) {
+      if (ancestorTypeParameterNames.contains(parameter.name2.lexeme)) {
         rule.reportLint(parameter,
-            arguments: [parameter.name.name, ancestorKind]);
+            arguments: [parameter.name2.lexeme, ancestorKind]);
       }
     }
   }

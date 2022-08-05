@@ -59,6 +59,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     //https://github.com/dart-lang/linter/issues/2777
     if (node.semicolon.isSynthetic) return;
 
-    rule.reportLint(node.name);
+    rule.reportLintForToken(node.name2);
   }
 }

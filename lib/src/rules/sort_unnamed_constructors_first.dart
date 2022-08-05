@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Members are sorted by source position in the AST.
     for (var member in members) {
       if (member is ConstructorDeclaration) {
-        if (member.name == null) {
+        if (member.name2 == null) {
           if (seenConstructor) {
             rule.reportLint(member.returnType);
           }

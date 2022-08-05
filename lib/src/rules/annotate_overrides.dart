@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
@@ -68,12 +69,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule, this.context);
 
-  void check(Element? element, AstNode target) {
+  void check(Element? element, Token target) {
     if (element == null || element.hasOverride) return;
 
     var member = getOverriddenMember(element);
     if (member != null) {
-      rule.reportLint(target);
+      rule.reportLintForToken(target);
     }
   }
 
@@ -99,7 +100,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isStatic) return;
 
     for (var field in node.fields.variables) {
-      check(field.declaredElement, field);
+      check(field.declaredElement, field.name2);
     }
   }
 
@@ -107,6 +108,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isStatic) return;
 
-    check(node.declaredElement, node.name);
+    check(node.declaredElement, node.name2);
   }
 }

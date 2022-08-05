@@ -111,7 +111,7 @@ Element? _getLeftElement(AssignmentExpression assignment) =>
     assignment.writeElement?.canonicalElement;
 
 Iterable<Element?> _getParameters(ConstructorDeclaration node) =>
-    node.parameters.parameters.map((e) => e.identifier?.staticElement);
+    node.parameters.parameters.map((e) => e.declaredElement);
 
 Element? _getRightElement(AssignmentExpression assignment) =>
     assignment.rightHandSide.canonicalElement;
@@ -158,8 +158,8 @@ class _Visitor extends SimpleAstVisitor<void> {
           !leftElement.isPrivate &&
           leftElement is FieldElement &&
           !leftElement.isSynthetic &&
-          leftElement.enclosingElement2 ==
-              node.declaredElement?.enclosingElement2 &&
+          leftElement.enclosingElement3 ==
+              node.declaredElement?.enclosingElement3 &&
           parameters.contains(rightElement) &&
           (!parametersUsedMoreThanOnce.contains(rightElement) &&
                   !(rightElement as ParameterElement).isNamed ||
