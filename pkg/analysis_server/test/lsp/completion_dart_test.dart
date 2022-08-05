@@ -35,7 +35,6 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionTest);
-    defineReflectiveTests(CompletionWithPreviewNotImportedCompletionsTest);
     defineReflectiveTests(DartSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionWithoutNullSafetyTest);
@@ -45,9 +44,8 @@ void main() {
 @reflectiveTest
 class CompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
-  CompletionTest({bool previewNotImportedCompletions = false}) {
+  CompletionTest() {
     defaultInitializationOptions = {
-      'previewNotImportedCompletions': previewNotImportedCompletions,
       // Default to a high budget for tests because everything is cold and
       // may take longer to return.
       'completionBudgetMilliseconds': 50000
@@ -2329,12 +2327,6 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_isIncompleteSetIfBudgetExhausted() async {
-    // This test only applies to notImportedCompletions because the completion
-    // will not be truncated due to exhausted budget for suggestion sets.
-    if (this is! CompletionWithPreviewNotImportedCompletionsTest) {
-      return;
-    }
-
     newFile(
       join(projectFolderPath, 'lib', 'other_file.dart'),
       'class InOtherFile {}',
@@ -2675,12 +2667,6 @@ linter:
 $lintsYaml
 ''');
   }
-}
-
-@reflectiveTest
-class CompletionWithPreviewNotImportedCompletionsTest extends CompletionTest {
-  CompletionWithPreviewNotImportedCompletionsTest()
-      : super(previewNotImportedCompletions: true);
 }
 
 @reflectiveTest

@@ -271,10 +271,6 @@ class CompletionItemResolutionInfo implements ToJsonable {
         json, nullLspJsonReporter)) {
       return DartNotImportedCompletionResolutionInfo.fromJson(json);
     }
-    if (DartSuggestionSetCompletionItemResolutionInfo.canParse(
-        json, nullLspJsonReporter)) {
-      return DartSuggestionSetCompletionItemResolutionInfo.fromJson(json);
-    }
     if (PubPackageCompletionItemResolutionInfo.canParse(
         json, nullLspJsonReporter)) {
       return PubPackageCompletionItemResolutionInfo.fromJson(json);
@@ -423,73 +419,6 @@ class DartNotImportedCompletionResolutionInfo
   int get hashCode => Object.hash(
         file,
         libraryUri,
-      );
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class DartSuggestionSetCompletionItemResolutionInfo
-    implements CompletionItemResolutionInfo, ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    DartSuggestionSetCompletionItemResolutionInfo.canParse,
-    DartSuggestionSetCompletionItemResolutionInfo.fromJson,
-  );
-
-  DartSuggestionSetCompletionItemResolutionInfo({
-    required this.file,
-    required this.libId,
-  });
-  static DartSuggestionSetCompletionItemResolutionInfo fromJson(
-      Map<String, Object?> json) {
-    final fileJson = json['file'];
-    final file = fileJson as String;
-    final libIdJson = json['libId'];
-    final libId = libIdJson as int;
-    return DartSuggestionSetCompletionItemResolutionInfo(
-      file: file,
-      libId: libId,
-    );
-  }
-
-  final String file;
-  final int libId;
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['file'] = file;
-    result['libId'] = libId;
-    return result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'file',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      return _canParseInt(obj, reporter, 'libId',
-          allowsUndefined: false, allowsNull: false);
-    } else {
-      reporter.reportError(
-          'must be of type DartSuggestionSetCompletionItemResolutionInfo');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is DartSuggestionSetCompletionItemResolutionInfo &&
-        other.runtimeType == DartSuggestionSetCompletionItemResolutionInfo &&
-        file == other.file &&
-        libId == other.libId;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        file,
-        libId,
       );
 
   @override

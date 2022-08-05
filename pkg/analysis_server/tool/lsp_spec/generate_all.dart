@@ -295,16 +295,6 @@ List<LspEntity> getCustomClasses() {
       [],
     ),
     interface(
-      'DartSuggestionSetCompletionItemResolutionInfo',
-      [
-        // These fields have short-ish names because they're on the payload
-        // for all suggestion-set backed completions.
-        field('file', type: 'string'),
-        field('libId', type: 'int'),
-      ],
-      baseType: 'CompletionItemResolutionInfo',
-    ),
-    interface(
       'DartNotImportedCompletionResolutionInfo',
       [
         field(
