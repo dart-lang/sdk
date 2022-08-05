@@ -91,10 +91,6 @@ class PerfCodeObserver : public CodeObserver {
 
 #endif  // !PRODUCT
 
-const char* OS::Name() {
-  return "android";
-}
-
 intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(getpid());
 }

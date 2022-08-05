@@ -25,7 +25,7 @@ const NativeCompoundType& RunStructTest(dart::Zone* zone,
   char expectation_file_path[kFilePathLength];
   Utils::SNPrint(expectation_file_path, kFilePathLength,
                  "runtime/vm/compiler/ffi/unit_tests/%s/%s_%s.expect", name,
-                 kArch, kOs);
+                 kTargetArchitectureName, kOs);
 
   if (TestCaseBase::update_expectations) {
     Syslog::Print("Updating %s\n", expectation_file_path);

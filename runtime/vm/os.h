@@ -19,7 +19,7 @@ class Zone;
 class OS {
  public:
   // Returns the name of the given OS. For example "linux".
-  static const char* Name();
+  static const char* Name() { return kHostOperatingSystemName; }
 
   // Returns the current process id.
   static intptr_t ProcessId();

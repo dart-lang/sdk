@@ -22,10 +22,6 @@ namespace dart {
 // Defined in vm/os_thread_win.cc
 extern bool private_flag_windows_run_tls_destructors;
 
-const char* OS::Name() {
-  return "windows";
-}
-
 intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(GetCurrentProcessId());
 }

@@ -734,6 +734,74 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
 #endif
 #endif
 
+#if defined(DART_HOST_OS_ANDROID)
+#define kHostOperatingSystemName "android"
+#elif defined(DART_HOST_OS_FUCHSIA)
+#define kHostOperatingSystemName "fuchsia"
+#elif defined(DART_HOST_OS_IOS)
+#define kHostOperatingSystemName "ios"
+#elif defined(DART_HOST_OS_LINUX)
+#define kHostOperatingSystemName "linux"
+#elif defined(DART_HOST_OS_MACOS)
+#define kHostOperatingSystemName "macos"
+#elif defined(DART_HOST_OS_WINDOWS)
+#define kHostOperatingSystemName "windows"
+#else
+#error Host operating system detection failed.
+#endif
+
+#if defined(HOST_ARCH_ARM)
+#define kHostArchitectureName "arm"
+#elif defined(HOST_ARCH_ARM64)
+#define kHostArchitectureName "arm64"
+#elif defined(HOST_ARCH_IA32)
+#define kHostArchitectureName "ia32"
+#elif defined(HOST_ARCH_RISCV32)
+#define kHostArchitectureName "riscv32"
+#elif defined(HOST_ARCH_RISCV64)
+#define kHostArchitectureName "riscv64"
+#elif defined(HOST_ARCH_X64)
+#define kHostArchitectureName "x64"
+#else
+#error Host architecture detection failed.
+#endif
+
+#if defined(TARGET_ARCH_ARM)
+#define kTargetArchitectureName "arm"
+#elif defined(TARGET_ARCH_ARM64)
+#define kTargetArchitectureName "arm64"
+#elif defined(TARGET_ARCH_IA32)
+#define kTargetArchitectureName "ia32"
+#elif defined(TARGET_ARCH_RISCV32)
+#define kTargetArchitectureName "riscv32"
+#elif defined(TARGET_ARCH_RISCV64)
+#define kTargetArchitectureName "riscv64"
+#elif defined(TARGET_ARCH_X64)
+#define kTargetArchitectureName "x64"
+#else
+#error Target architecture detection failed.
+#endif
+
+// The ordering between DART_TARGET_OS_MACOS_IOS and DART_TARGET_OS_MACOS
+// below is important, since the latter is sometimes defined when the former
+// is, and sometimes not (e.g., ffi tests), so we need to test the former
+// before the latter.
+#if defined(DART_TARGET_OS_ANDROID)
+#define kTargetOperatingSystemName "android"
+#elif defined(DART_TARGET_OS_FUCHSIA)
+#define kTargetOperatingSystemName "fuchsia"
+#elif defined(DART_TARGET_OS_LINUX)
+#define kTargetOperatingSystemName "linux"
+#elif defined(DART_TARGET_OS_MACOS_IOS)
+#define kTargetOperatingSystemName "ios"
+#elif defined(DART_TARGET_OS_MACOS)
+#define kTargetOperatingSystemName "macos"
+#elif defined(DART_TARGET_OS_WINDOWS)
+#define kTargetOperatingSystemName "windows"
+#else
+#error Target operating system detection failed.
+#endif
+
 }  // namespace dart
 
 #endif  // RUNTIME_PLATFORM_GLOBALS_H_

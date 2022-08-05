@@ -1451,12 +1451,34 @@ class StubCallInfo extends CallInfo {
 enum InstructionsSection { none, vm, isolate }
 
 /// A program counter address viewed as an offset into the appropriate
-/// instructions section of a Dart snapshot.
+/// instructions section of a Dart snapshot. Includes other information
+/// parsed from the corresponding stack trace header when possible.
 class PCOffset {
+  /// The offset into the corresponding instructions section.
   final int offset;
+
+  /// The instructions section into which this is an offset.
   final InstructionsSection section;
 
-  PCOffset(this.offset, this.section);
+  /// The operating system on which the stack trace was generated, when
+  /// available.
+  final String? os;
+
+  /// The architecture on which the stack trace was generated, when
+  /// available.
+  final String? architecture;
+
+  /// Whether compressed pointers were enabled, when available.
+  final bool? compressedPointers;
+
+  /// Whether the architecture was being simulated, when available.
+  final bool? usingSimulator;
+
+  PCOffset(this.offset, this.section,
+      {this.os,
+      this.architecture,
+      this.compressedPointers,
+      this.usingSimulator});
 
   /// The virtual address for this [PCOffset] in [dwarf].
   int virtualAddressIn(Dwarf dwarf) => dwarf.virtualAddressOf(this);
@@ -1469,7 +1491,7 @@ class PCOffset {
   /// to user or library code is returned.
   Iterable<CallInfo>? callInfoFrom(Dwarf dwarf,
           {bool includeInternalFrames = false}) =>
-      dwarf.callInfoFor(dwarf.virtualAddressOf(this),
+      dwarf.callInfoForPCOffset(this,
           includeInternalFrames: includeInternalFrames);
 
   @override
@@ -1477,10 +1499,38 @@ class PCOffset {
 
   @override
   bool operator ==(Object other) =>
-      other is PCOffset && offset == other.offset && section == other.section;
+      other is PCOffset &&
+      offset == other.offset &&
+      section == other.section &&
+      os == other.os &&
+      architecture == other.architecture &&
+      compressedPointers == other.compressedPointers &&
+      usingSimulator == other.usingSimulator;
 
   @override
-  String toString() => 'PCOffset($section, 0x${offset.toRadixString(16)})';
+  String toString() {
+    final buffer = StringBuffer();
+    buffer
+      ..write('PCOffset(')
+      ..write(section)
+      ..write(', 0x')
+      ..write(offset.toRadixString(16));
+    if (os != null) {
+      buffer
+        ..write(', ')
+        ..write(os!);
+    }
+    if (architecture != null) {
+      if (usingSimulator ?? false) {
+        buffer.write('SIM');
+      }
+      buffer.write(architecture!.toUpperCase());
+      if (compressedPointers ?? false) {
+        buffer.write('C');
+      }
+    }
+    return buffer.toString();
+  }
 }
 
 /// The DWARF debugging information for a Dart snapshot.
@@ -1582,6 +1632,19 @@ class Dwarf {
     }
     return calls;
   }
+
+  /// The call information for the given [PCOffset]. There may be multiple
+  /// [CallInfo] objects returned for a single [PCOffset] when code has been
+  /// inlined.
+  ///
+  /// Returns null if the given address is invalid for the DWARF information.
+  ///
+  /// If [includeInternalFrames] is false, then only information corresponding
+  /// to user or library code is returned.
+  Iterable<CallInfo>? callInfoForPCOffset(PCOffset pcOffset,
+          {bool includeInternalFrames = false}) =>
+      callInfoFor(virtualAddressOf(pcOffset),
+          includeInternalFrames: includeInternalFrames);
 
   /// The virtual address in this DWARF information for the given [PCOffset].
   int virtualAddressOf(PCOffset pcOffset) {

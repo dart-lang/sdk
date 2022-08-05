@@ -1134,35 +1134,28 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
     }
 
 // Generated code must match the host architecture and ABI.
+    buffer.Printf(" %s", kTargetArchitectureName);
 #if defined(TARGET_ARCH_ARM)
 #if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
-    buffer.AddString(" arm-ios");
+    buffer.AddString("-ios");
 #else
-    buffer.AddString(" arm-eabi");
+    buffer.AddString("-eabi");
 #endif
     buffer.AddString(TargetCPUFeatures::hardfp_supported() ? " hardfp"
                                                            : " softfp");
 #elif defined(TARGET_ARCH_ARM64)
 #if defined(DART_TARGET_OS_FUCHSIA)
     // See signal handler cheat in Assembler::EnterFrame.
-    buffer.AddString(" arm64-fuchsia");
+    buffer.AddString("-fuchsia");
 #else
-    buffer.AddString(" arm64-sysv");
+    buffer.AddString("-sysv");
 #endif
-#elif defined(TARGET_ARCH_IA32)
-    buffer.AddString(" ia32");
 #elif defined(TARGET_ARCH_X64)
 #if defined(DART_TARGET_OS_WINDOWS)
-    buffer.AddString(" x64-win");
+    buffer.AddString("-win");
 #else
-    buffer.AddString(" x64-sysv");
+    buffer.AddString("-sysv");
 #endif
-#elif defined(TARGET_ARCH_RISCV32)
-    buffer.AddString(" riscv32");
-#elif defined(TARGET_ARCH_RISCV64)
-    buffer.AddString(" riscv64");
-#else
-#error What architecture?
 #endif
 #if defined(DART_COMPRESSED_POINTERS)
     buffer.AddString(" compressed-pointers");

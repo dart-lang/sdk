@@ -25955,6 +25955,19 @@ const char* StackTrace::ToCString() const {
     OSThread* thread = OSThread::Current();
     buffer.Printf("pid: %" Pd ", tid: %" Pd ", name %s\n", OS::ProcessId(),
                   OSThread::ThreadIdToIntPtr(thread->id()), thread->name());
+#if defined(DART_COMPRESSED_POINTERS)
+    const char kCompressedPointers[] = "yes";
+#else
+    const char kCompressedPointers[] = "no";
+#endif
+#if defined(USING_SIMULATOR)
+    const char kUsingSimulator[] = "yes";
+#else
+    const char kUsingSimulator[] = "no";
+#endif
+    buffer.Printf("os: %s arch: %s comp: %s sim: %s\n",
+                  kHostOperatingSystemName, kTargetArchitectureName,
+                  kCompressedPointers, kUsingSimulator);
     if (auto const build_id = isolate_instructions_image.build_id()) {
       const intptr_t length = isolate_instructions_image.build_id_length();
       buffer.Printf("build_id: '");

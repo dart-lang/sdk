@@ -181,6 +181,25 @@ Future<void> compareTraces(List<String> nonDwarfTrace, DwarfTestOutput output1,
   final tracePCOffsets2 = collectPCOffsets(output2.trace);
   Expect.deepEquals(tracePCOffsets1, tracePCOffsets2);
 
+  if (tracePCOffsets1.isNotEmpty) {
+    final exampleOffset = tracePCOffsets1.first;
+
+    // We run the test program on the same host OS as the test, so any of the
+    // PCOffsets above should have this information.
+    Expect.isNotNull(exampleOffset.os);
+    Expect.isNotNull(exampleOffset.architecture);
+    Expect.isNotNull(exampleOffset.usingSimulator);
+    Expect.isNotNull(exampleOffset.compressedPointers);
+
+    Expect.equals(exampleOffset.os, Platform.operatingSystem);
+    final archString = '${exampleOffset.usingSimulator ? 'SIM' : ''}'
+        '${exampleOffset.architecture.toUpperCase()}'
+        '${exampleOffset.compressedPointers ? 'C' : ''}';
+    final baseBuildDir = path.basename(buildDir);
+    Expect.isTrue(baseBuildDir.endsWith(archString),
+        'Expected $baseBuildDir to end with $archString');
+  }
+
   // Check that translating the DWARF stack trace (without internal frames)
   // matches the symbolic stack trace.
   print("Reading DWARF info from ${dwarfPath}");
@@ -218,16 +237,11 @@ Future<void> compareTraces(List<String> nonDwarfTrace, DwarfTestOutput output1,
   print('Offset of first stub address is $allocateObjectPCOffset1');
   print('Offset of second stub address is $allocateObjectPCOffset2');
 
-  final allocateObjectRelocatedAddress1 =
-      dwarf.virtualAddressOf(allocateObjectPCOffset1);
-  final allocateObjectRelocatedAddress2 =
-      dwarf.virtualAddressOf(allocateObjectPCOffset2);
-
-  final allocateObjectCallInfo1 = dwarf.callInfoFor(
-      allocateObjectRelocatedAddress1,
+  final allocateObjectCallInfo1 = dwarf.callInfoForPCOffset(
+      allocateObjectPCOffset1,
       includeInternalFrames: true);
-  final allocateObjectCallInfo2 = dwarf.callInfoFor(
-      allocateObjectRelocatedAddress2,
+  final allocateObjectCallInfo2 = dwarf.callInfoForPCOffset(
+      allocateObjectPCOffset2,
       includeInternalFrames: true);
 
   Expect.isNotNull(allocateObjectCallInfo1);

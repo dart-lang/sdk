@@ -26,14 +26,6 @@
 
 namespace dart {
 
-const char* OS::Name() {
-#if DART_HOST_OS_IOS
-  return "ios";
-#else
-  return "macos";
-#endif
-}
-
 intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(getpid());
 }
