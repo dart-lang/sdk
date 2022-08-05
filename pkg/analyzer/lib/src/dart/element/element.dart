@@ -1316,6 +1316,16 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     builder.writeCompilationUnitElement(this);
   }
 
+  @override
+  ClassElement? getClass(String className) {
+    for (final class_ in classes) {
+      if (class_.name == className) {
+        return class_;
+      }
+    }
+    return null;
+  }
+
   @Deprecated('Use getEnum2() instead')
   @override
   ClassElement? getEnum(String enumName) {
@@ -1337,6 +1347,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     return null;
   }
 
+  @Deprecated('Use getClass() instead')
   @override
   ClassElement? getType(String className) {
     for (ClassElement class_ in classes) {
@@ -4371,6 +4382,17 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
           ..returnType = typeProvider.futureDynamicType;
   }
 
+  @override
+  ClassElement? getClass(String name) {
+    for (final unitElement in units) {
+      final element = unitElement.getClass(name);
+      if (element != null) {
+        return element;
+      }
+    }
+    return null;
+  }
+
   EnumElement? getEnum(String name) {
     for (final unitElement in units) {
       final element = unitElement.getEnum2(name);
@@ -4387,6 +4409,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     return prefix.imports;
   }
 
+  @Deprecated('Use getClass() instead')
   @override
   ClassElement? getType(String name) {
     for (final unitElement in units) {
@@ -4523,23 +4546,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
       }
     }
     return prefixes.toList(growable: false);
-  }
-
-  static ClassElement? getTypeFromParts(
-      String className,
-      CompilationUnitElement definingCompilationUnit,
-      List<CompilationUnitElement> parts) {
-    var type = definingCompilationUnit.getType(className);
-    if (type != null) {
-      return type;
-    }
-    for (CompilationUnitElement part in parts) {
-      type = part.getType(className);
-      if (type != null) {
-        return type;
-      }
-    }
-    return null;
   }
 }
 

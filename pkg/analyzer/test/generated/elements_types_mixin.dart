@@ -174,7 +174,7 @@ mixin ElementsTypesMixin {
 
   InterfaceType comparableNone(DartType type) {
     var coreLibrary = typeProvider.intElement.library;
-    var element = coreLibrary.getType('Comparable')!;
+    var element = coreLibrary.getClass('Comparable')!;
     return element.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -183,7 +183,7 @@ mixin ElementsTypesMixin {
 
   InterfaceType comparableQuestion(DartType type) {
     var coreLibrary = typeProvider.intElement.library;
-    var element = coreLibrary.getType('Comparable')!;
+    var element = coreLibrary.getClass('Comparable')!;
     return element.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
@@ -192,7 +192,7 @@ mixin ElementsTypesMixin {
 
   InterfaceType comparableStar(DartType type) {
     var coreLibrary = typeProvider.intElement.library;
-    var element = coreLibrary.getType('Comparable')!;
+    var element = coreLibrary.getClass('Comparable')!;
     return element.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.star,

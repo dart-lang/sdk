@@ -1762,7 +1762,7 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
 
   Future<ClassElement> _getClassElement(String path, String name) async {
     var result = (await resolveFile(path)).unit;
-    return result.declaredElement!.getType(name)!;
+    return result.declaredElement!.getClass(name)!;
   }
 
   Future<PropertyAccessorElement> _getTopLevelAccessorElement(

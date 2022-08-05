@@ -13,7 +13,6 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/test_support.dart';
 import '../../../generated/type_system_test.dart';
 import '../resolution/context_collection_resolution.dart';
 
@@ -27,7 +26,6 @@ main() {
     defineReflectiveTests(TypeParameterTypeImplTest);
     defineReflectiveTests(VoidTypeImplTest);
     defineReflectiveTests(ClassElementImplTest);
-    defineReflectiveTests(CompilationUnitElementImplTest);
     defineReflectiveTests(ElementLocationImplTest);
     defineReflectiveTests(ElementImplTest);
     defineReflectiveTests(TopLevelVariableElementImplTest);
@@ -445,27 +443,6 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
 
   LibraryElementImpl _newLibrary() =>
       ElementFactory.library(analysisContext, 'lib');
-}
-
-@reflectiveTest
-class CompilationUnitElementImplTest {
-  void test_getType_declared() {
-    CompilationUnitElementImpl unit =
-        ElementFactory.compilationUnit(source: TestSource("/lib.dart"));
-    String className = "C";
-    ClassElement classElement = ElementFactory.classElement2(className);
-    unit.classes = <ClassElement>[classElement];
-    expect(unit.getType(className), same(classElement));
-  }
-
-  void test_getType_undeclared() {
-    CompilationUnitElementImpl unit =
-        ElementFactory.compilationUnit(source: TestSource("/lib.dart"));
-    String className = "C";
-    ClassElement classElement = ElementFactory.classElement2(className);
-    unit.classes = <ClassElement>[classElement];
-    expect(unit.getType("${className}x"), isNull);
-  }
 }
 
 @reflectiveTest

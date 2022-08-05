@@ -157,7 +157,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         final compoundType = node.declaredElement!.thisType;
         final structType = compoundType.superclass!;
         final ffiLibrary = structType.element2.library;
-        final finalizableElement = ffiLibrary.getType(_finalizableClassName)!;
+        final finalizableElement = ffiLibrary.getClass(_finalizableClassName)!;
         final finalizableType = finalizableElement.thisType;
         if (typeSystem.isSubtypeOf(compoundType, finalizableType)) {
           _errorReporter.reportErrorForToken(

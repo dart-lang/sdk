@@ -226,7 +226,7 @@ class TypeProviderImpl extends TypeProviderBase {
   ClassElement? get enumElement {
     if (!_hasEnumElement) {
       _hasEnumElement = true;
-      _enumElement = _coreLibrary.getType('Enum');
+      _enumElement = _coreLibrary.getClass('Enum');
     }
     return _enumElement;
   }
@@ -520,7 +520,7 @@ class TypeProviderImpl extends TypeProviderBase {
   /// Return the class with the given [name] from the given [library], or
   /// throw a [StateError] if there is no class with the given name.
   ClassElement _getClassElement(LibraryElement library, String name) {
-    var element = library.getType(name);
+    var element = library.getClass(name);
     if (element == null) {
       throw StateError('No definition of type $name');
     }

@@ -417,7 +417,7 @@ main() {}
     LibraryElement aLibrary = aImport.importedLibrary!;
 
     CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
-    ClassElement aClass = aUnitElement.getType('A')!;
+    ClassElement aClass = aUnitElement.getClass('A')!;
     var aGetter = aClass.getField('a')!.getter;
 
     Annotation annotation = unit.declarations[0].metadata.single;
@@ -456,7 +456,7 @@ main() {}
     LibraryElement aLibrary = aImport.importedLibrary!;
 
     CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
-    ClassElement aClass = aUnitElement.getType('A')!;
+    ClassElement aClass = aUnitElement.getClass('A')!;
     ConstructorElement constructor = aClass.unnamedConstructor!;
 
     Annotation annotation = unit.declarations[0].metadata.single;
@@ -497,7 +497,7 @@ main() {}
     LibraryElement aLibrary = aImport.importedLibrary!;
 
     CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
-    ClassElement aClass = aUnitElement.getType('A')!;
+    ClassElement aClass = aUnitElement.getClass('A')!;
     ConstructorElement constructor = aClass.getNamedConstructor('named')!;
 
     Annotation annotation = unit.declarations[0].metadata.single;
@@ -567,7 +567,7 @@ class A {
     CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement!;
 
-    ClassElement aClass = unitElement.getType('A')!;
+    ClassElement aClass = unitElement.getClass('A')!;
     var aGetter = aClass.getField('a')!.getter;
 
     Annotation annotation = unit.declarations[0].metadata.single;
@@ -597,7 +597,7 @@ class A {
     CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement!;
 
-    ClassElement aClass = unitElement.getType('A')!;
+    ClassElement aClass = unitElement.getClass('A')!;
     ConstructorElement constructor = aClass.unnamedConstructor!;
 
     Annotation annotation = unit.declarations[0].metadata.single;
@@ -627,7 +627,7 @@ class A {
     CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement!;
 
-    ClassElement aClass = unitElement.getType('A')!;
+    ClassElement aClass = unitElement.getClass('A')!;
     ConstructorElement constructor = aClass.constructors.single;
 
     Annotation annotation = unit.declarations[0].metadata.single;
@@ -2203,7 +2203,7 @@ main() {
     final aImport = unit.declaredElement!.library.libraryImports[0];
     LibraryElement aLibrary = aImport.importedLibrary!;
 
-    ClassElement cElement = aLibrary.getType('C')!;
+    ClassElement cElement = aLibrary.getClass('C')!;
     ConstructorElement defaultConstructor = cElement.constructors[0];
     ConstructorElement namedConstructor = cElement.constructors[1];
 
@@ -2348,7 +2348,7 @@ class C<T> {
     CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement!;
 
-    ClassElement cElement = unitElement.getType('C')!;
+    ClassElement cElement = unitElement.getClass('C')!;
     ConstructorElement defaultConstructor = cElement.constructors[0];
     ConstructorElement namedConstructor = cElement.constructors[1];
 
@@ -5719,7 +5719,7 @@ const b = p.C.named(); // ref
     await resolveTestFile();
     expect(result.errors, isEmpty);
     var import = findElement.import('package:test/a.dart');
-    var c = import.importedLibrary!.getType('C')!;
+    var c = import.importedLibrary!.getClass('C')!;
 
     {
       var creation = findNode.instanceCreation('C(); // ref');
@@ -7866,7 +7866,7 @@ c.A a2;
 
     LibraryElement bLibrary = bImport.importedLibrary!;
     LibraryElement aLibrary = bLibrary.libraryExports[0].exportedLibrary!;
-    ClassElement aClass = aLibrary.getType('A')!;
+    ClassElement aClass = aLibrary.getClass('A')!;
 
     {
       var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
@@ -8161,7 +8161,7 @@ main() {
     var unitElement = result.unit.declaredElement!;
     var mathImport = unitElement.library.libraryImports[0];
     var foo = mathImport.prefix?.element;
-    var randomElement = mathImport.importedLibrary!.getType('Random')!;
+    var randomElement = mathImport.importedLibrary!.getClass('Random')!;
 
     List<Statement> statements = _getMainStatements(result);
     var statement = statements[0] as ExpressionStatement;

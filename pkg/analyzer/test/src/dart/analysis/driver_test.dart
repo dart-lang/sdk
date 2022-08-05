@@ -1748,8 +1748,8 @@ class B {}
 
     var result = await driver.getLibraryByUri(aUriStr);
     result as LibraryElementResult;
-    expect(result.element.getType('A'), isNotNull);
-    expect(result.element.getType('B'), isNotNull);
+    expect(result.element.getClass('A'), isNotNull);
+    expect(result.element.getClass('B'), isNotNull);
 
     // It is an error to ask for a library when we know that it is a part.
     expect(

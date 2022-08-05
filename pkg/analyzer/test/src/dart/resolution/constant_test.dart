@@ -210,7 +210,7 @@ const a = const A();
 ''');
 
     var aLib = findElement.import('package:test/a.dart').importedLibrary!;
-    var aConstructor = aLib.getType('A')!.constructors.single;
+    var aConstructor = aLib.getClass('A')!.constructors.single;
     var p = aConstructor.parameters.single as DefaultParameterElementImpl;
 
     // To evaluate `const A()` we have to evaluate `{int p}`.
