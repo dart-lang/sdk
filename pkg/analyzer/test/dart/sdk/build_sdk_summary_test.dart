@@ -86,11 +86,11 @@ embedded_libs:
     final dartCore = await analysisSession.getLibrary('dart:core');
     final dartMath = await analysisSession.getLibrary('dart:math');
     final dartUi = await analysisSession.getLibrary('dart:ui');
-    expect(dartAsync.getType('Stream'), isNotNull);
-    expect(dartCore.getType('String'), isNotNull);
-    expect(dartMath.getType('Random'), isNotNull);
-    expect(dartUi.getType('FontStyle'), isNotNull);
-    expect(dartUi.getType('Offset'), isNotNull);
+    expect(dartAsync.getClass('Stream'), isNotNull);
+    expect(dartCore.getClass('String'), isNotNull);
+    expect(dartMath.getClass('Random'), isNotNull);
+    expect(dartUi.getClass('FontStyle'), isNotNull);
+    expect(dartUi.getClass('Offset'), isNotNull);
   }
 
   test_it() async {
@@ -132,9 +132,9 @@ embedded_libs:
     final dartAsync = await analysisSession.getLibrary('dart:async');
     final dartCore = await analysisSession.getLibrary('dart:core');
     final dartMath = await analysisSession.getLibrary('dart:math');
-    expect(dartAsync.getType('Stream'), isNotNull);
-    expect(dartCore.getType('String'), isNotNull);
-    expect(dartMath.getType('Random'), isNotNull);
+    expect(dartAsync.getClass('Stream'), isNotNull);
+    expect(dartCore.getClass('String'), isNotNull);
+    expect(dartMath.getClass('Random'), isNotNull);
   }
 }
 

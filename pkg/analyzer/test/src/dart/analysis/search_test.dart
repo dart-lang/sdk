@@ -2439,7 +2439,7 @@ class A {
 
     var aLibraryResult =
         await driver.getLibraryByUri(aUri) as LibraryElementResult;
-    ClassElement aClass = aLibraryResult.element.getType('A')!;
+    ClassElement aClass = aLibraryResult.element.getClass('A')!;
 
     // Search by 'type'.
     List<SubtypeResult> subtypes =
@@ -2485,7 +2485,7 @@ class A {
 
     var coreLibResult =
         await driver.getLibraryByUri('dart:core') as LibraryElementResult;
-    ClassElement listElement = coreLibResult.element.getType('List')!;
+    ClassElement listElement = coreLibResult.element.getClass('List')!;
 
     var searchedFiles = SearchedFiles();
     var results = await driver.search.subTypes(listElement, searchedFiles);

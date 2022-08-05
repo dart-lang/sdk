@@ -768,7 +768,7 @@ class D {}
 class E {}
 ''');
     CompilationUnit unit = result.unit;
-    ClassElement classC = unit.declaredElement!.getType('C')!;
+    ClassElement classC = unit.declaredElement!.getClass('C')!;
     expect(classC.documentationComment, isNotNull);
   }
 

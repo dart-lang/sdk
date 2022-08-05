@@ -68,7 +68,7 @@ class A {}
 part 'a.dart';
 ''');
     var library = this.result.unit.declaredElement!.library;
-    var element = library.getType('A')!;
+    var element = library.getClass('A')!;
     var result = await getElementDeclaration(element);
     var node = result!.node as ClassDeclaration;
     expect(node.name2.lexeme, 'A');

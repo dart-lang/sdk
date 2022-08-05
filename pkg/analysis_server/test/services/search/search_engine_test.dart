@@ -363,7 +363,7 @@ int t;
 
     var coreLibResult = await driverFor(testFilePath)
         .getLibraryByUri('dart:core') as LibraryElementResult;
-    var intElement = coreLibResult.element.getType('int')!;
+    var intElement = coreLibResult.element.getClass('int')!;
 
     var matches = await searchEngine.searchReferences(intElement);
 

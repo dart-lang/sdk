@@ -1616,7 +1616,7 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    final A = library.getType('A') as ClassElementImpl;
+    final A = library.getClass('A') as ClassElementImpl;
     final error = A.macroApplicationErrors.single;
     error as UnknownMacroApplicationError;
 
@@ -1648,7 +1648,7 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    final A = library.getType('A') as ClassElementImpl;
+    final A = library.getClass('A') as ClassElementImpl;
     final error = A.macroApplicationErrors.single;
     error as UnknownMacroApplicationError;
 
@@ -1680,7 +1680,7 @@ class A {}
       {'package:test/a.dart'}
     ]);
 
-    final A = library.getType('A') as ClassElementImpl;
+    final A = library.getClass('A') as ClassElementImpl;
     final error = A.macroApplicationErrors.single;
     error as UnknownMacroApplicationError;
 
@@ -1797,7 +1797,7 @@ class A {}
       {'package:test/arguments_text.dart'}
     ]);
 
-    final A = library.definingCompilationUnit.getType('A');
+    final A = library.definingCompilationUnit.getClass('A');
     if (expectedErrors != null) {
       expect(_errorsStrForClassElement(A), expectedErrors);
       return;
@@ -1866,7 +1866,7 @@ $declarationCode
     ]);
 
     _assertNoErrorsForClassElement(
-      library.definingCompilationUnit.getType('A'),
+      library.definingCompilationUnit.getClass('A'),
     );
 
     final partUri = library.parts2.single.uri as DirectiveUriWithUnit;

@@ -21321,7 +21321,7 @@ library
           synthetic @-1
             superConstructor: package:test/foo.dart::@class::A::@constructor::•
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element2.source.shortName, 'foo.dart');
   }
 
@@ -21354,7 +21354,7 @@ library
           synthetic @-1
             superConstructor: package:test/foo_io.dart::@class::A::@constructor::•
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element2.source.shortName, 'foo_io.dart');
   }
 
@@ -21387,7 +21387,7 @@ library
           synthetic @-1
             superConstructor: package:test/foo_html.dart::@class::A::@constructor::•
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element2.source.shortName, 'foo_html.dart');
   }
 
@@ -23767,7 +23767,7 @@ library
           synthetic @-1
             superConstructor: package:test/foo.dart::@class::A::@constructor::•
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element2.source.shortName, 'foo.dart');
   }
 
@@ -23798,7 +23798,7 @@ library
           synthetic @-1
             superConstructor: package:test/foo_io.dart::@class::A::@constructor::•
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element2.source.shortName, 'foo_io.dart');
   }
 
@@ -23829,7 +23829,7 @@ library
           synthetic @-1
             superConstructor: package:test/foo_io.dart::@class::A::@constructor::•
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element2.source.shortName, 'foo_io.dart');
   }
 
@@ -23860,7 +23860,7 @@ library
           synthetic @-1
             superConstructor: package:test/foo_html.dart::@class::A::@constructor::•
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element2.source.shortName, 'foo_html.dart');
   }
 
@@ -23891,7 +23891,7 @@ library
           synthetic @-1
             superConstructor: package:test/foo_html.dart::@class::A::@constructor::•
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element2.source.shortName, 'foo_html.dart');
   }
 

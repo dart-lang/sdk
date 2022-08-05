@@ -381,8 +381,8 @@ export 'a.dart';
     // This macro generates `MacroA`, but not `MacroB`.
     {
       final libraryA = await getLibrary('package:test/a.dart');
-      expect(libraryA.getType('MacroA'), isNotNull);
-      expect(libraryA.getType('MacroB'), isNull);
+      expect(libraryA.getClass('MacroA'), isNotNull);
+      expect(libraryA.getClass('MacroB'), isNull);
       // This propagates transitively.
       final libraryB = await getLibrary('package:test/b.dart');
       expect(libraryB.exportNamespace.get('MacroA'), isNotNull);
@@ -402,8 +402,8 @@ export 'a.dart';
     // This macro generates `MacroB`, but not `MacroA`.
     {
       final libraryA = await getLibrary('package:test/a.dart');
-      expect(libraryA.getType('MacroA'), isNull);
-      expect(libraryA.getType('MacroB'), isNotNull);
+      expect(libraryA.getClass('MacroA'), isNull);
+      expect(libraryA.getClass('MacroB'), isNotNull);
       // This propagates transitively.
       final libraryB = await getLibrary('package:test/b.dart');
       expect(libraryB.exportNamespace.get('MacroA'), isNull);

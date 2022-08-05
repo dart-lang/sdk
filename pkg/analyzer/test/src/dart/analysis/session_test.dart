@@ -253,9 +253,9 @@ class B {}
     var session = contextFor(testFile).currentSession;
     var result = await session.getLibraryByUriValid('package:test/test.dart');
     var library = result.element;
-    expect(library.getType('A'), isNotNull);
-    expect(library.getType('B'), isNotNull);
-    expect(library.getType('C'), isNull);
+    expect(library.getClass('A'), isNotNull);
+    expect(library.getClass('B'), isNotNull);
+    expect(library.getClass('C'), isNull);
   }
 
   test_getLibraryByUri_inconsistent() async {
@@ -326,7 +326,7 @@ class B {}
     );
     var parsedLibrary = session.getParsedLibraryValid(test.path);
 
-    var element = libraryResult.element.getType('A')!;
+    var element = libraryResult.element.getClass('A')!;
     var declaration = parsedLibrary.getElementDeclaration(element)!;
     var node = declaration.node as ClassDeclaration;
     expect(node.name2.lexeme, 'A');
@@ -568,9 +568,9 @@ class B2 extends X {}
 
     var libraryElement = resolvedLibrary.element;
 
-    var aClass = libraryElement.getType('A')!;
+    var aClass = libraryElement.getClass('A')!;
 
-    var bClass = libraryElement.getType('B')!;
+    var bClass = libraryElement.getClass('B')!;
 
     var aUnitResult = resolvedLibrary.units[0];
     expect(aUnitResult.path, a.path);

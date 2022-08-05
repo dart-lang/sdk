@@ -274,7 +274,7 @@ class LibraryBuilder {
     final augmentedUnitElement = element.definingCompilationUnit;
     for (final augmentation in unitElement.classes) {
       // TODO(scheglov) if augmentation
-      final augmented = element.getType(augmentation.name);
+      final augmented = element.getClass(augmentation.name);
       if (augmented is ClassElementImpl) {
         augmented.accessors = [
           ...augmented.accessors,

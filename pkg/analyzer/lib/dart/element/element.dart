@@ -293,6 +293,11 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   /// compilation unit.
   List<TypeAliasElement> get typeAliases;
 
+  /// Return the class defined in this compilation unit that has the given
+  /// [name], or `null` if this compilation unit does not define a class with
+  /// the given name.
+  ClassElement? getClass(String name);
+
   /// Return the enum defined in this compilation unit that has the given
   /// [name], or `null` if this compilation unit does not define an enum with
   /// the given name.
@@ -307,6 +312,7 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   /// Return the class defined in this compilation unit that has the given
   /// [name], or `null` if this compilation unit does not define a class with
   /// the given name.
+  @Deprecated('Use getClass() instead')
   ClassElement? getType(String name);
 }
 
@@ -1697,6 +1703,10 @@ abstract class LibraryElement
   /// included using the `part` directive.
   List<CompilationUnitElement> get units;
 
+  /// Return the class defined in this library that has the given [name], or
+  /// `null` if this library does not define a class with the given name.
+  ClassElement? getClass(String name);
+
   /// Return a list containing all of the imports that share the given [prefix],
   /// or an empty array if there are no such imports.
   @Deprecated('Use PrefixElement.imports instead')
@@ -1704,6 +1714,7 @@ abstract class LibraryElement
 
   /// Return the class defined in this library that has the given [name], or
   /// `null` if this library does not define a class with the given name.
+  @Deprecated('Use getClass() instead')
   ClassElement? getType(String className);
 
   /// If a legacy library, return the legacy view on the [element].
