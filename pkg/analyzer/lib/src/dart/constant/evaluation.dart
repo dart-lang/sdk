@@ -63,7 +63,7 @@ class ConstantEvaluationEngine {
 
     var library = constant.library as LibraryElementImpl;
     if (constant is ParameterElementImpl) {
-      if (constant.isOptional) {
+      if (constant is ConstVariableElement) {
         var defaultValue = constant.constantInitializer;
         if (defaultValue != null) {
           RecordingErrorListener errorListener = RecordingErrorListener();

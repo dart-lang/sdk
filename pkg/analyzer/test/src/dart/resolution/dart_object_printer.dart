@@ -36,6 +36,8 @@ class DartObjectPrinter {
       } else if (type.isDartCoreInt) {
         sink.write('int ');
         sink.writeln(object.toIntValue());
+      } else if (type.isDartCoreNull) {
+        sink.writeln('Null null');
       } else if (type.isDartCoreString) {
         sink.write('String ');
         sink.writeln(object.toStringValue());
