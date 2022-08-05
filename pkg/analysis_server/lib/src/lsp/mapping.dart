@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:math';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
@@ -26,8 +25,6 @@ import 'package:analyzer/source/source_range.dart' as server;
 import 'package:analyzer/src/dart/analysis/search.dart' as server
     show DeclarationKind;
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/services/available_declarations.dart';
-import 'package:analyzer/src/services/available_declarations.dart' as dec;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/pair.dart';
 import 'package:collection/collection.dart';
@@ -173,48 +170,6 @@ lsp.WorkspaceEdit createWorkspaceEdit(
   return lsp.WorkspaceEdit(documentChanges: [textDocumentEditsAsUnion]);
 }
 
-lsp.CompletionItemKind? declarationKindToCompletionItemKind(
-  Set<lsp.CompletionItemKind> supportedCompletionKinds,
-  dec.DeclarationKind kind,
-) {
-  bool isSupported(lsp.CompletionItemKind kind) =>
-      supportedCompletionKinds.contains(kind);
-
-  List<lsp.CompletionItemKind> getKindPreferences() {
-    switch (kind) {
-      case dec.DeclarationKind.CLASS:
-      case dec.DeclarationKind.CLASS_TYPE_ALIAS:
-      case dec.DeclarationKind.MIXIN:
-        return const [lsp.CompletionItemKind.Class];
-      case dec.DeclarationKind.CONSTRUCTOR:
-        return const [lsp.CompletionItemKind.Constructor];
-      case dec.DeclarationKind.ENUM:
-        return const [lsp.CompletionItemKind.Enum];
-      case dec.DeclarationKind.ENUM_CONSTANT:
-        return const [
-          lsp.CompletionItemKind.EnumMember,
-          lsp.CompletionItemKind.Enum,
-        ];
-      case dec.DeclarationKind.FUNCTION:
-        return const [lsp.CompletionItemKind.Function];
-      case dec.DeclarationKind.FUNCTION_TYPE_ALIAS:
-        return const [lsp.CompletionItemKind.Class];
-      case dec.DeclarationKind.GETTER:
-        return const [lsp.CompletionItemKind.Property];
-      case dec.DeclarationKind.SETTER:
-        return const [lsp.CompletionItemKind.Property];
-      case dec.DeclarationKind.TYPE_ALIAS:
-        return const [lsp.CompletionItemKind.Class];
-      case dec.DeclarationKind.VARIABLE:
-        return const [lsp.CompletionItemKind.Variable];
-      default:
-        return const [];
-    }
-  }
-
-  return getKindPreferences().firstWhereOrNull(isSupported);
-}
-
 lsp.SymbolKind declarationKindToSymbolKind(
   Set<lsp.SymbolKind> supportedSymbolKinds,
   server.DeclarationKind? kind,
@@ -264,125 +219,6 @@ lsp.SymbolKind declarationKindToSymbolKind(
   // match we'll just have to send a value to avoid a crash.
   return getKindPreferences()
       .firstWhere(isSupported, orElse: () => lsp.SymbolKind.Obj);
-}
-
-lsp.CompletionItem declarationToCompletionItem(
-  LspClientCapabilities capabilities,
-  String file,
-  server.IncludedSuggestionSet includedSuggestionSet,
-  Library library,
-  Map<String, int> tagBoosts,
-  server.LineInfo lineInfo,
-  dec.Declaration declaration,
-  int replacementOffset,
-  int insertLength,
-  int replacementLength, {
-  required bool commitCharactersEnabled,
-  required bool completeFunctionCalls,
-}) {
-  final supportsSnippets = capabilities.completionSnippets;
-
-  // By default, label is the same as the completion text, but may be added to
-  // later (parens/snippets).
-  final completion = getDeclarationName(declaration);
-  var label = completion;
-
-  // isCallable is used to suffix the label with parens so it's clear the item
-  // is callable.
-  final declarationKind = declaration.kind;
-  final isCallable = declarationKind == DeclarationKind.CONSTRUCTOR ||
-      declarationKind == DeclarationKind.FUNCTION ||
-      declarationKind == DeclarationKind.METHOD;
-
-  if (isCallable) {
-    label += declaration.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
-  }
-
-  final insertionRange = toRange(lineInfo, replacementOffset, insertLength);
-  final replacementRange =
-      toRange(lineInfo, replacementOffset, replacementLength);
-
-  final insertTextInfo = _buildInsertText(
-    supportsSnippets: supportsSnippets,
-    commitCharactersEnabled: commitCharactersEnabled,
-    completeFunctionCalls: completeFunctionCalls,
-    isCallable: isCallable,
-    // For SuggestionSets, we don't have a CompletionKind to check if it's
-    // an invocation, but since they do not show in show/hide combinators
-    // we can assume if an item is callable it's probably being used in a context
-    // that can invoke it.
-    isInvocation: isCallable,
-    requiredArgumentListString: declaration.defaultArgumentListString,
-    requiredArgumentListTextRanges: declaration.defaultArgumentListTextRanges,
-    hasOptionalParameters: declaration.parameterNames?.isNotEmpty ?? false,
-    completion: completion,
-    selectionOffset: 0,
-    selectionLength: 0,
-  );
-  final insertText = insertTextInfo.first;
-  final insertTextFormat = insertTextInfo.last;
-  final isMultilineCompletion = insertText.contains('\n');
-
-  final supportsDeprecatedFlag = capabilities.completionDeprecatedFlag;
-  final supportsDeprecatedTag = capabilities.completionItemTags
-      .contains(lsp.CompletionItemTag.Deprecated);
-  final supportsAsIsInsertMode =
-      capabilities.completionInsertTextModes.contains(InsertTextMode.asIs);
-  final supportsInsertReplace = capabilities.insertReplaceCompletionRanges;
-
-  final completionKind = declarationKindToCompletionItemKind(
-      capabilities.completionItemKinds, declaration.kind);
-
-  var relevanceBoost = 0;
-  for (var t in declaration.relevanceTags) {
-    relevanceBoost = max(relevanceBoost, tagBoosts[t] ?? 0);
-  }
-  final itemRelevance = includedSuggestionSet.relevance + relevanceBoost;
-
-  // Because we potentially send thousands of these items, we should minimise
-  // the generated JSON as much as possible - for example using nulls in place
-  // of empty lists/false where possible.
-  return lsp.CompletionItem(
-    label: label,
-    kind: completionKind,
-    tags: nullIfEmpty([
-      if (supportsDeprecatedTag && declaration.isDeprecated)
-        lsp.CompletionItemTag.Deprecated
-    ]),
-    detail: getDeclarationCompletionDetail(declaration, completionKind,
-        supportsDeprecatedFlag || supportsDeprecatedTag),
-    deprecated:
-        supportsDeprecatedFlag && declaration.isDeprecated ? true : null,
-    sortText: relevanceToSortText(itemRelevance),
-    filterText: completion != label
-        ? completion
-        : null, // filterText uses label if not set
-    insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
-        ? insertTextFormat
-        : null, // Defaults to PlainText if not supplied
-    insertTextMode: supportsAsIsInsertMode && isMultilineCompletion
-        ? InsertTextMode.asIs
-        : null,
-    textEdit: supportsInsertReplace && insertionRange != replacementRange
-        ? Either2<InsertReplaceEdit, TextEdit>.t1(
-            InsertReplaceEdit(
-              insert: insertionRange,
-              replace: replacementRange,
-              newText: insertText,
-            ),
-          )
-        : Either2<InsertReplaceEdit, TextEdit>.t2(
-            TextEdit(
-              range: replacementRange,
-              newText: insertText,
-            ),
-          ),
-    // data, used for completionItem/resolve.
-    data: lsp.DartSuggestionSetCompletionItemResolutionInfo(
-      file: file,
-      libId: includedSuggestionSet.id,
-    ),
-  );
 }
 
 lsp.CompletionItemKind? elementKindToCompletionItemKind(
@@ -573,74 +409,6 @@ String? getCompletionDetail(
   } else {
     return prefix.isNotEmpty ? prefix : null;
   }
-}
-
-String? getDeclarationCompletionDetail(
-  dec.Declaration declaration,
-  lsp.CompletionItemKind? completionKind,
-  bool supportsDeprecated,
-) {
-  final parameters = declaration.parameters;
-  final hasParameters = parameters != null && parameters.isNotEmpty;
-  final returnType = declaration.returnType;
-  final hasReturnType = returnType != null && returnType.isNotEmpty;
-
-  final prefix =
-      supportsDeprecated || !declaration.isDeprecated ? '' : '(Deprecated) ';
-
-  if (completionKind == lsp.CompletionItemKind.Property) {
-    // Setters appear as methods with one arg but they also cause getters to not
-    // appear in the completion list, so displaying them as setters is misleading.
-    // To avoid this, always show only the return type, whether it's a getter
-    // or a setter.
-    var suffix = '';
-    if (declaration.kind == dec.DeclarationKind.GETTER) {
-      suffix = declaration.returnType ?? '';
-    } else {
-      // Don't assume setters always have parameters
-      // See https://github.com/dart-lang/sdk/issues/27747
-      if (parameters != null && parameters.isNotEmpty) {
-        // Extract the type part from `(MyType value)`, if there is a type.
-        var spaceIndex = parameters.lastIndexOf(' ');
-        if (spaceIndex > 0) {
-          suffix = parameters.substring(1, spaceIndex);
-        }
-      }
-    }
-    return prefix + suffix;
-  } else if (hasParameters && hasReturnType) {
-    return '$prefix${declaration.parameters} → ${declaration.returnType}';
-  } else if (hasReturnType) {
-    return '$prefix${declaration.returnType}';
-  } else {
-    return prefix.isNotEmpty ? prefix : null;
-  }
-}
-
-String getDeclarationName(Declaration declaration) {
-  final parent = declaration.parent;
-  String completion;
-  switch (declaration.kind) {
-    case DeclarationKind.ENUM_CONSTANT:
-      completion = '${parent!.name}.${declaration.name}';
-      break;
-    case DeclarationKind.GETTER:
-    case DeclarationKind.FIELD:
-      completion = parent != null && parent.name.isNotEmpty
-          ? '${parent.name}.${declaration.name}'
-          : declaration.name;
-      break;
-    case DeclarationKind.CONSTRUCTOR:
-      completion = parent!.name;
-      if (declaration.name.isNotEmpty) {
-        completion += '.${declaration.name}';
-      }
-      break;
-    default:
-      completion = declaration.name;
-      break;
-  }
-  return completion;
 }
 
 List<lsp.DiagnosticTag>? getDiagnosticTags(

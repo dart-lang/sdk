@@ -5,8 +5,6 @@
 import 'dart:math' as math;
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
-import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
@@ -25,7 +23,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -37,10 +34,6 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     with LspPluginRequestHandlerMixin {
   /// Whether to include symbols from libraries that have not been imported.
   final bool suggestFromUnimportedLibraries;
-
-  /// Whether to use [NotImportedContributor] instead of SuggestionSets to
-  /// build completions for not-yet-imported libraries.
-  final bool previewNotImportedCompletions;
 
   /// The budget to use for [NotImportedContributor] computation.
   ///
@@ -59,8 +52,8 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
   CancelableToken? previousRequestCancellationToken;
 
   CompletionHandler(super.server, LspInitializationOptions options)
-      : suggestFromUnimportedLibraries = options.suggestFromUnimportedLibraries,
-        previewNotImportedCompletions = options.previewNotImportedCompletions {
+      : suggestFromUnimportedLibraries =
+            options.suggestFromUnimportedLibraries {
     final budgetMs = options.completionBudgetMilliseconds;
     completionBudgetDuration = budgetMs != null
         ? Duration(milliseconds: budgetMs)
@@ -232,35 +225,6 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     ));
   }
 
-  /// Build a list of existing imports so we can filter out any suggestions
-  /// that resolve to the same underlying declared symbol.
-  /// Map with key "elementName/elementDeclaringLibraryUri"
-  /// Value is a set of imported URIs that import that element.
-  Map<String, Set<String>> _buildLookupOfImportedSymbols(
-      ResolvedUnitResult unit) {
-    final alreadyImportedSymbols = <String, Set<String>>{};
-    final importElementList = unit.libraryElement.libraryImports;
-    for (var import in importElementList) {
-      final importedLibrary = import.importedLibrary;
-      if (importedLibrary == null) continue;
-
-      for (var element in import.namespace.definedNames.values) {
-        final librarySource = element.librarySource;
-        final elementName = element.name;
-        if (librarySource != null && elementName != null) {
-          final declaringLibraryUri = librarySource.uri;
-
-          final key =
-              _createImportedSymbolKey(elementName, declaringLibraryUri);
-          alreadyImportedSymbols
-              .putIfAbsent(key, () => <String>{})
-              .add('${importedLibrary.librarySource.uri}');
-        }
-      }
-    }
-    return alreadyImportedSymbols;
-  }
-
   /// The insert length is the shorter of the replacementLength or the
   /// difference between the replacementOffset and the caret position.
   int _computeInsertLength(
@@ -271,9 +235,6 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     assert(insertLength <= replacementLength);
     return insertLength;
   }
-
-  String _createImportedSymbolKey(String name, Uri declaringUri) =>
-      '$name/$declaringUri';
 
   Future<Iterable<CompletionItem>> _getDartSnippetItems({
     required LspClientCapabilities clientCapabilities,
@@ -332,12 +293,8 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     String? triggerCharacter,
     CancellationToken token,
   ) async {
-    final useSuggestionSets = suggestFromUnimportedLibraries &&
-        capabilities.applyEdit &&
-        !previewNotImportedCompletions;
-    final useNotImportedCompletions = suggestFromUnimportedLibraries &&
-        capabilities.applyEdit &&
-        previewNotImportedCompletions;
+    final useNotImportedCompletions =
+        suggestFromUnimportedLibraries && capabilities.applyEdit;
 
     final completionRequest = DartCompletionRequest.forResolvedUnit(
       resolvedUnit: unit,
@@ -355,15 +312,8 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       }
     }
 
-    Set<ElementKind>? includedElementKinds;
-    Set<String>? includedElementNames;
-    List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags;
     NotImportedSuggestions? notImportedSuggestions;
-    if (useSuggestionSets) {
-      includedElementKinds = <ElementKind>{};
-      includedElementNames = <String>{};
-      includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
-    } else if (useNotImportedCompletions) {
+    if (useNotImportedCompletions) {
       notImportedSuggestions = NotImportedSuggestions();
     }
 
@@ -373,9 +323,6 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           await performance.runAsync('computeSuggestions', (performance) async {
         var contributor = DartCompletionManager(
           budget: CompletionBudget(completionBudgetDuration),
-          includedElementKinds: includedElementKinds,
-          includedElementNames: includedElementNames,
-          includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
           notImportedSuggestions: notImportedSuggestions,
         );
 
@@ -472,115 +419,6 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
             .map(suggestionToCompletionItem)
             .toList();
       });
-
-      // Now compute items in suggestion sets.
-      var includedSuggestionSets = <IncludedSuggestionSet>[];
-      final declarationsTracker = server.declarationsTracker;
-      if (declarationsTracker != null &&
-          includedElementKinds != null &&
-          includedElementNames != null &&
-          includedSuggestionRelevanceTags != null) {
-        performance.run('computeIncludedSetList', (performance) {
-          // Checked in `if` above.
-          includedElementNames!;
-
-          computeIncludedSetList(
-            declarationsTracker,
-            completionRequest,
-            includedSuggestionSets,
-            includedElementNames,
-          );
-        });
-
-        // Build a fast lookup for imported symbols so that we can filter out
-        // duplicates.
-        final alreadyImportedSymbols =
-            performance.run('_buildLookupOfImportedSymbols', (performance) {
-          return _buildLookupOfImportedSymbols(unit);
-        });
-
-        /// Helper to check existing imports to ensure we don't already import
-        /// this element (this exact element from its declaring
-        /// library, not just something with the same name). If we do
-        /// we'll want to skip it.
-        bool isNotImportedOrLibraryIsFirst(Declaration item, Library library) {
-          final declaringUri =
-              item.parent?.locationLibraryUri ?? item.locationLibraryUri!;
-
-          // For enums and named constructors, only the parent enum/class is in
-          // the list of imported symbols so we use the parents name.
-          final nameKey = item.kind == DeclarationKind.ENUM_CONSTANT ||
-                  item.kind == DeclarationKind.CONSTRUCTOR
-              ? item.parent!.name
-              : item.name;
-          final key = _createImportedSymbolKey(nameKey, declaringUri);
-          final importingUris = alreadyImportedSymbols[key];
-
-          // Keep it only if:
-          // - no existing imports include it
-          //     (in which case all libraries will be offered as
-          //     auto-imports)
-          // - this is the first imported URI that includes it
-          //     (we don't want to repeat it for each imported library that
-          //     includes it)
-          return importingUris == null ||
-              importingUris.first == '${library.uri}';
-        }
-
-        /// Helper to filter to only the kinds we should return.
-        bool shouldIncludeKind(Declaration item) =>
-            includedElementKinds!.contains(protocolElementKind(item.kind));
-
-        // Only specific types of child declarations should be included.
-        // This list matches what's in _protocolAvailableSuggestion in
-        // the DAS implementation.
-        bool shouldIncludeChild(Declaration child) =>
-            child.kind == DeclarationKind.CONSTRUCTOR ||
-            child.kind == DeclarationKind.ENUM_CONSTANT;
-
-        performance.run('addIncludedSuggestionSets', (performance) {
-          // Checked in `if` above.
-          includedSuggestionRelevanceTags!;
-
-          // Make a fast lookup for tag relevance.
-          final tagBoosts = <String, int>{};
-          for (final t in includedSuggestionRelevanceTags) {
-            tagBoosts[t.tag] = t.relevanceBoost;
-          }
-
-          for (final includedSet in includedSuggestionSets) {
-            final library = declarationsTracker.getLibrary(includedSet.id);
-            if (library == null) {
-              break;
-            }
-
-            // Collect declarations and their children.
-            final setResults = library.declarations
-                .followedBy(library.declarations
-                    .expand((decl) => decl.children.where(shouldIncludeChild)))
-                .where(fuzzy.declarationMatches)
-                .where(shouldIncludeKind)
-                .where((Declaration item) =>
-                    isNotImportedOrLibraryIsFirst(item, library))
-                .map((item) => declarationToCompletionItem(
-                      capabilities,
-                      unit.path,
-                      includedSet,
-                      library,
-                      tagBoosts,
-                      unit.lineInfo,
-                      item,
-                      completionRequest.replacementOffset,
-                      insertLength,
-                      completionRequest.replacementLength,
-                      commitCharactersEnabled: server
-                          .clientConfiguration.global.previewCommitCharacters,
-                      completeFunctionCalls: completeFunctionCalls,
-                    ));
-            rankedResults.addAll(setResults);
-          }
-        });
-      }
 
       // Add in any snippets.
       final snippetsEnabled =
@@ -873,7 +711,4 @@ class _FuzzyFilterHelper {
 
   bool completionSuggestionMatches(CompletionSuggestion item) =>
       _matcher.score(item.displayText ?? item.completion) > 0;
-
-  bool declarationMatches(Declaration item) =>
-      _matcher.score(getDeclarationName(item)) > 0;
 }

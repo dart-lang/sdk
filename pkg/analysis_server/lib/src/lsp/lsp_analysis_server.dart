@@ -931,7 +931,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
 class LspInitializationOptions {
   final bool onlyAnalyzeProjectsWithOpenFiles;
-  final bool previewNotImportedCompletions;
   final bool suggestFromUnimportedLibraries;
   final bool closingLabels;
   final bool outline;
@@ -941,10 +940,6 @@ class LspInitializationOptions {
   LspInitializationOptions(dynamic options)
       : onlyAnalyzeProjectsWithOpenFiles = options != null &&
             options['onlyAnalyzeProjectsWithOpenFiles'] == true,
-        // Undocumented preview flag to allow easy testing of not imported
-        // completion contributor.
-        previewNotImportedCompletions =
-            options != null && options['previewNotImportedCompletions'] == true,
         // suggestFromUnimportedLibraries defaults to true, so must be
         // explicitly passed as false to disable.
         suggestFromUnimportedLibraries = options == null ||
