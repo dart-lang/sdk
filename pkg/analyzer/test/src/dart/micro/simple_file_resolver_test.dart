@@ -1315,6 +1315,33 @@ var foo = 0;
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
   }
 
+  test_getErrors_library() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+var a = 42
+''');
+
+    final errorsResult = await fileResolver.getErrors2(path: a.path);
+    assertErrorsInList(errorsResult.errors, [
+      error(ParserErrorCode.EXPECTED_TOKEN, 8, 2),
+    ]);
+  }
+
+  test_getErrors_part_hasLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+var a = 42
+''');
+
+    final errorsResult = await fileResolver.getErrors2(path: b.path);
+    assertErrorsInList(errorsResult.errors, [
+      error(ParserErrorCode.EXPECTED_TOKEN, 26, 2),
+    ]);
+  }
+
   test_getErrors_reuse() async {
     addTestFile('var a = b;');
 

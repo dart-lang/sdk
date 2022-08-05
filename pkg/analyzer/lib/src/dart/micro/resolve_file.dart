@@ -316,8 +316,7 @@ class FileResolver {
         performance: performance!,
       );
       var file = fileContext.file;
-      // TODO(scheglov) Casts are unsafe.
-      final kind = file.kind as LibraryFileKind;
+      final kind = file.kind.library ?? file.kind.asLibrary;
 
       final errorsSignatureBuilder = ApiSignature();
       errorsSignatureBuilder.addString(kind.libraryCycle.apiSignature);
