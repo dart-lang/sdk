@@ -656,11 +656,12 @@ void HeapSnapshotWriter::EnsureAvailable(intptr_t needed) {
   ASSERT(buffer_ == nullptr);
 
   intptr_t chunk_size = kPreferredChunkSize;
-  if (chunk_size < needed + kMetadataReservation) {
-    chunk_size = needed + kMetadataReservation;
+  const intptr_t reserved_prefix = writer_->ReserveChunkPrefixSize();
+  if (chunk_size < (reserved_prefix + needed)) {
+    chunk_size = reserved_prefix + needed;
   }
   buffer_ = reinterpret_cast<uint8_t*>(malloc(chunk_size));
-  size_ = kMetadataReservation;
+  size_ = reserved_prefix;
   capacity_ = chunk_size;
 }
 
@@ -669,28 +670,8 @@ void HeapSnapshotWriter::Flush(bool last) {
     return;
   }
 
-  JSONStream js;
-  {
-    JSONObject jsobj(&js);
-    jsobj.AddProperty("jsonrpc", "2.0");
-    jsobj.AddProperty("method", "streamNotify");
-    {
-      JSONObject params(&jsobj, "params");
-      params.AddProperty("streamId", Service::heapsnapshot_stream.id());
-      {
-        JSONObject event(&params, "event");
-        event.AddProperty("type", "Event");
-        event.AddProperty("kind", "HeapSnapshot");
-        event.AddProperty("isolate", thread()->isolate());
-        event.AddPropertyTimeMillis("timestamp", OS::GetCurrentTimeMillis());
-        event.AddProperty("last", last);
-      }
-    }
-  }
+  writer_->WriteChunk(buffer_, size_, last);
 
-  Service::SendEventWithData(Service::heapsnapshot_stream.id(), "HeapSnapshot",
-                             kMetadataReservation, js.buffer()->buffer(),
-                             js.buffer()->length(), buffer_, size_);
   buffer_ = nullptr;
   size_ = 0;
   capacity_ = 0;
@@ -1200,6 +1181,60 @@ class CollectStaticFieldNames : public ObjectVisitor {
   DISALLOW_COPY_AND_ASSIGN(CollectStaticFieldNames);
 };
 
+void VmServiceHeapSnapshotChunkedWriter::WriteChunk(uint8_t* buffer,
+                                                    intptr_t size,
+                                                    bool last) {
+  JSONStream js;
+  {
+    JSONObject jsobj(&js);
+    jsobj.AddProperty("jsonrpc", "2.0");
+    jsobj.AddProperty("method", "streamNotify");
+    {
+      JSONObject params(&jsobj, "params");
+      params.AddProperty("streamId", Service::heapsnapshot_stream.id());
+      {
+        JSONObject event(&params, "event");
+        event.AddProperty("type", "Event");
+        event.AddProperty("kind", "HeapSnapshot");
+        event.AddProperty("isolate", thread()->isolate());
+        event.AddPropertyTimeMillis("timestamp", OS::GetCurrentTimeMillis());
+        event.AddProperty("last", last);
+      }
+    }
+  }
+
+  Service::SendEventWithData(Service::heapsnapshot_stream.id(), "HeapSnapshot",
+                             kMetadataReservation, js.buffer()->buffer(),
+                             js.buffer()->length(), buffer, size);
+}
+
+FileHeapSnapshotWriter::FileHeapSnapshotWriter(Thread* thread,
+                                               const char* filename)
+    : ChunkedWriter(thread) {
+  auto open = Dart::file_open_callback();
+  if (open != nullptr) {
+    file_ = open(filename, /*write=*/true);
+  }
+}
+FileHeapSnapshotWriter::~FileHeapSnapshotWriter() {
+  auto close = Dart::file_close_callback();
+  if (close != nullptr) {
+    close(file_);
+  }
+}
+
+void FileHeapSnapshotWriter::WriteChunk(uint8_t* buffer,
+                                        intptr_t size,
+                                        bool last) {
+  if (file_ != nullptr) {
+    auto write = Dart::file_write_callback();
+    if (write != nullptr) {
+      write(buffer, size, file_);
+    }
+  }
+  free(buffer);
+}
+
 void HeapSnapshotWriter::Write() {
   HeapIterationScope iteration(thread());
 
@@ -1393,6 +1428,8 @@ void HeapSnapshotWriter::Write() {
             ++object_count_;
             isolate->VisitObjectPointers(&visitor,
                                          ValidationPolicy::kDontValidateFrames);
+            isolate->VisitStackPointers(&visitor,
+                                        ValidationPolicy::kDontValidateFrames);
             ++num_isolates;
           },
           /*at_safepoint=*/true);
@@ -1449,9 +1486,13 @@ void HeapSnapshotWriter::Write() {
           visitor.DoCount();
           isolate->VisitObjectPointers(&visitor,
                                        ValidationPolicy::kDontValidateFrames);
+          isolate->VisitStackPointers(&visitor,
+                                      ValidationPolicy::kDontValidateFrames);
           visitor.DoWrite();
           isolate->VisitObjectPointers(&visitor,
                                        ValidationPolicy::kDontValidateFrames);
+          isolate->VisitStackPointers(&visitor,
+                                      ValidationPolicy::kDontValidateFrames);
         },
         /*at_safepoint=*/true);
 

@@ -4545,7 +4545,8 @@ static const MethodParameter* const request_heap_snapshot_params[] = {
 
 static void RequestHeapSnapshot(Thread* thread, JSONStream* js) {
   if (Service::heapsnapshot_stream.enabled()) {
-    HeapSnapshotWriter writer(thread);
+    VmServiceHeapSnapshotChunkedWriter vmservice_writer(thread);
+    HeapSnapshotWriter writer(thread, &vmservice_writer);
     writer.Write();
   }
   // TODO(koda): Provide some id that ties this request to async response(s).

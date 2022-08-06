@@ -319,6 +319,7 @@ namespace dart {
   V(Internal_unsafeCast, 1)                                                    \
   V(Internal_nativeEffect, 1)                                                  \
   V(Internal_collectAllGarbage, 0)                                             \
+  V(Internal_writeHeapSnapshotToFile, 1)                                       \
   V(Internal_makeListFixedLength, 1)                                           \
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
   V(Internal_extractTypeArguments, 2)                                          \
