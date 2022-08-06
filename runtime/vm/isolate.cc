@@ -2825,6 +2825,13 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 }
 
+void Isolate::VisitStackPointers(ObjectPointerVisitor* visitor,
+                                 ValidationPolicy validate_frames) {
+  if (mutator_thread_ != nullptr) {
+    mutator_thread_->VisitObjectPointers(visitor, validate_frames);
+  }
+}
+
 void IsolateGroup::ReleaseStoreBuffers() {
   thread_registry()->ReleaseStoreBuffers();
 }
@@ -3016,9 +3023,7 @@ void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,
   for (Isolate* isolate : isolates_) {
     // Visit mutator thread, even if the isolate isn't entered/scheduled
     // (there might be live API handles to visit).
-    if (isolate->mutator_thread_ != nullptr) {
-      isolate->mutator_thread_->VisitObjectPointers(visitor, validate_frames);
-    }
+    isolate->VisitStackPointers(visitor, validate_frames);
   }
 
   visitor->clear_gc_root_type();
