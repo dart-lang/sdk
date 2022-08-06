@@ -26,6 +26,8 @@ import 'dart:_js_shared_embedded_names' show JsBuiltin, JsGetName;
 
 import 'dart:collection';
 
+import 'dart:convert' show jsonDecode;
+
 import 'dart:async' show Completer, DeferredLoadException, Future, Zone;
 
 import 'dart:_foreign_helper'
@@ -1799,9 +1801,9 @@ fillLiteralSet(values, Set result) {
   return result;
 }
 
-/// Called by generated code to move and stringify properties from an object
+/// Called by generated code to move and JSON-ify properties from an object
 /// to a map literal.
-copyAndStringifyProperties(from, Map to) {
+copyAndJsonifyProperties(from, Map to) {
   if (JS('bool', '!#', from)) return to;
   List keys = JS('JSArray', r'Object.keys(#)', from);
   int index = 0;
@@ -1809,7 +1811,8 @@ copyAndStringifyProperties(from, Map to) {
   while (index < length) {
     var key = getIndex(keys, index++);
     var value = JS('String', r'JSON.stringify(#[#])', from, key);
-    to[key] = value;
+    Map jsonValue = jsonDecode(value);
+    to[key] = jsonValue;
   }
   return to;
 }

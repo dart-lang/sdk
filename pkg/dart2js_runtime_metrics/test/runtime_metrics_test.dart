@@ -8,9 +8,7 @@ import 'package:dart2js_runtime_metrics/runtime_metrics.dart';
 import 'package:expect/expect.dart';
 
 void main() {
-  Map<String, Object> metrics = runtimeMetrics;
-
-  print('metrics: $metrics');
+  Map metrics = runtimeMetrics;
 
   String expectedRuntime;
   if (1.0 is! int) {
@@ -34,6 +32,9 @@ void main() {
 
   if (expectedRuntime == 'dart2js') {
     Expect.isTrue(metrics.containsKey('allocations'));
+    dynamic allocations = metrics['allocations'];
+    // We assume dart:_rti:Rti is always instantiated in the dart2js runtime.
+    Expect.isTrue(allocations.containsKey('dart:_rti:Rti'));
     return;
   }
 
