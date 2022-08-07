@@ -251,8 +251,7 @@ class IntroduceThenChange extends ExpressionChange {
   /// The change that should be made to the value the future completes with.
   final ExpressionChange innerChange;
 
-  IntroduceThenChange(DartType resultType, this.innerChange)
-      : super(resultType);
+  IntroduceThenChange(super.resultType, this.innerChange);
 
   @override
   NullabilityFixDescription get description =>
@@ -1346,7 +1345,7 @@ class NodeChangeForVariableDeclarationList
 /// [ExpressionChange] describing the addition of a comment explaining that a
 /// literal `null` could not be migrated.
 class NoValidMigrationChange extends ExpressionChange {
-  NoValidMigrationChange(DartType resultType) : super(resultType);
+  NoValidMigrationChange(super.resultType);
 
   @override
   NullabilityFixDescription get description =>
@@ -1372,7 +1371,7 @@ class NullCheckChange extends ExpressionChange {
   /// The hint that is causing this `!` to be added, if any.
   final HintComment? hint;
 
-  NullCheckChange(DartType resultType, {this.hint}) : super(resultType);
+  NullCheckChange(super.resultType, {this.hint});
 
   @override
   NullabilityFixDescription get description =>

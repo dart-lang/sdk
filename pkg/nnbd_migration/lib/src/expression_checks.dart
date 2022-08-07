@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/edge_origin.dart';
@@ -36,9 +35,8 @@ class ExpressionChecksOrigin extends EdgeOrigin {
   /// package.
   final bool isSetupAssignment;
 
-  ExpressionChecksOrigin(Source? source, Expression? node, this.checks,
-      {this.isSetupAssignment = false})
-      : super(source, node);
+  ExpressionChecksOrigin(super.source, Expression? super.node, this.checks,
+      {this.isSetupAssignment = false});
 
   @override
   String get description => 'data flow';
