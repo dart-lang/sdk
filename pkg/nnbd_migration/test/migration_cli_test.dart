@@ -46,9 +46,7 @@ const sdkRootPathPosix = '/sdk';
 /// exceptions, so that we can test they are properly propagated to top level.
 class _ExceptionGeneratingInstrumentationListener
     extends InstrumentationListener {
-  _ExceptionGeneratingInstrumentationListener(
-      {MigrationSummary? migrationSummary})
-      : super(migrationSummary: migrationSummary);
+  _ExceptionGeneratingInstrumentationListener({super.migrationSummary});
 
   @override
   void externalDecoratedType(Element element, DecoratedTypeInfo decoratedType) {
@@ -109,8 +107,7 @@ class _MigrationCli extends MigrationCli {
 class _MigrationCliRunner extends MigrationCliRunner {
   Future<void> Function()? _runWhilePreviewServerActive;
 
-  _MigrationCliRunner(_MigrationCli cli, CommandLineOptions options)
-      : super(cli, options);
+  _MigrationCliRunner(_MigrationCli super.cli, super.options);
 
   _MigrationCli get cli => super.cli as _MigrationCli;
 

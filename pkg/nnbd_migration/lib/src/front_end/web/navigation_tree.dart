@@ -9,8 +9,8 @@ class NavigationTreeDirectoryNode extends NavigationTreeNode {
 
   /// Creates a navigation tree node representing a directory.
   NavigationTreeDirectoryNode(
-      {required String? name, required String? path, required this.subtree})
-      : super._(name: name, path: path);
+      {required super.name, required super.path, required this.subtree})
+      : super._();
 
   /// Returns the status by examining [subtree]:
   ///
@@ -121,14 +121,14 @@ class NavigationTreeFileNode extends NavigationTreeNode {
 
   /// Creates a navigation tree node representing a file.
   NavigationTreeFileNode(
-      {required String? name,
-      required String? path,
+      {required super.name,
+      required super.path,
       required this.href,
       required this.editCount,
       required this.wasExplicitlyOptedOut,
       required this.migrationStatus,
       required this.migrationStatusCanBeChanged})
-      : super._(name: name, path: path);
+      : super._();
 
   NavigationTreeNodeType get type => NavigationTreeNodeType.file;
 

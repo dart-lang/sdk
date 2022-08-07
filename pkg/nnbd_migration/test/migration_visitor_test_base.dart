@@ -304,8 +304,7 @@ class InstrumentedVariables extends Variables {
 
   final _expressionChecks = <Expression, ExpressionChecksOrigin>{};
 
-  InstrumentedVariables(NullabilityGraph graph, TypeProvider typeProvider)
-      : super(graph, typeProvider);
+  InstrumentedVariables(super.graph, super.typeProvider);
 
   /// Gets the [ExpressionChecks] associated with the given [expression].
   ExpressionChecksOrigin? checkExpression(Expression expression) =>

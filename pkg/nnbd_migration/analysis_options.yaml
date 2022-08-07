@@ -26,4 +26,5 @@ linter:
     - empty_constructor_bodies
     - empty_statements
     - unnecessary_brace_in_string_interps
+    - use_super_parameters
     - valid_regexps
