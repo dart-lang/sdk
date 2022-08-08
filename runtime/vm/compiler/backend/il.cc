@@ -4911,14 +4911,14 @@ DispatchTableCallInstr* DispatchTableCallInstr::FromCall(
     Value* cid,
     const Function& interface_target,
     const compiler::TableSelector* selector) {
-  InputsArray* args = new (zone) InputsArray(zone, call->ArgumentCount() + 1);
+  InputsArray args(zone, call->ArgumentCount() + 1);
   for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-    args->Add(call->ArgumentValueAt(i)->CopyWithType());
+    args.Add(call->ArgumentValueAt(i)->CopyWithType());
   }
-  args->Add(cid);
-  auto dispatch_table_call = new (zone)
-      DispatchTableCallInstr(call->source(), interface_target, selector, args,
-                             call->type_args_len(), call->argument_names());
+  args.Add(cid);
+  auto dispatch_table_call = new (zone) DispatchTableCallInstr(
+      call->source(), interface_target, selector, std::move(args),
+      call->type_args_len(), call->argument_names());
   return dispatch_table_call;
 }
 
@@ -6351,14 +6351,14 @@ bool Utf8ScanInstr::IsScanFlagsUnboxed() const {
 }
 
 InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
-    ZoneGrowableArray<Value*>* inputs,
+    InputsArray&& inputs,
     intptr_t deopt_id,
     MethodRecognizer::Kind recognized_kind,
     const InstructionSource& source)
-    : VariadicDefinition(inputs, source, deopt_id),
+    : VariadicDefinition(std::move(inputs), source, deopt_id),
       recognized_kind_(recognized_kind),
       token_pos_(source.token_pos) {
-  ASSERT(inputs_->length() == ArgumentCountFor(recognized_kind_));
+  ASSERT(InputCount() == ArgumentCountFor(recognized_kind_));
 }
 
 intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
@@ -6997,13 +6997,13 @@ LocationSummary* CCallInstr::MakeLocationSummaryInternal(
 
 CCallInstr::CCallInstr(
     const compiler::ffi::NativeCallingConvention& native_calling_convention,
-    InputsArray* inputs)
-    : VariadicDefinition(inputs, DeoptId::kNone),
+    InputsArray&& inputs)
+    : VariadicDefinition(std::move(inputs), DeoptId::kNone),
       native_calling_convention_(native_calling_convention) {
 #ifdef DEBUG
   const intptr_t num_inputs =
       native_calling_convention.argument_locations().length() + 1;
-  ASSERT(num_inputs == inputs->length());
+  ASSERT(num_inputs == InputCount());
 #endif
 }
 

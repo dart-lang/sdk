@@ -4,6 +4,8 @@
 
 #include "vm/compiler/frontend/kernel_to_il.h"
 
+#include <utility>
+
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/class_id.h"
@@ -356,11 +358,11 @@ Fragment FlowGraphBuilder::InstanceCall(
     bool receiver_is_not_smi,
     bool is_call_on_this) {
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
-  InputsArray* arguments = GetArguments(total_count);
+  InputsArray arguments = GetArguments(total_count);
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
-      InstructionSource(position), name, kind, arguments, type_args_len,
-      argument_names, checked_argument_count, ic_data_array_, GetNextDeoptId(),
-      interface_target, tearoff_interface_target);
+      InstructionSource(position), name, kind, std::move(arguments),
+      type_args_len, argument_names, checked_argument_count, ic_data_array_,
+      GetNextDeoptId(), interface_target, tearoff_interface_target);
   if ((result_type != NULL) && !result_type->IsTrivial()) {
     call->SetResultType(Z, result_type->ToCompileType(Z));
   }
@@ -413,12 +415,13 @@ Fragment FlowGraphBuilder::CCall(
 
   const intptr_t num_arguments =
       native_calling_convention.argument_locations().length() + 1;
-  InputsArray* arguments = new (Z) InputsArray(num_arguments);
-  arguments->FillWith(nullptr, 0, num_arguments);
+  InputsArray arguments(num_arguments);
+  arguments.FillWith(nullptr, 0, num_arguments);
   for (intptr_t i = num_arguments - 1; i >= 0; --i) {
-    (*arguments)[i] = Pop();
+    arguments[i] = Pop();
   }
-  auto* const call = new (Z) CCallInstr(native_calling_convention, arguments);
+  auto* const call =
+      new (Z) CCallInstr(native_calling_convention, std::move(arguments));
 
   Push(call);
   body <<= call;
@@ -562,10 +565,10 @@ Fragment FlowGraphBuilder::NativeCall(const String& name,
   InlineBailout("kernel::FlowGraphBuilder::NativeCall");
   const intptr_t num_args =
       function.NumParameters() + (function.IsGeneric() ? 1 : 0);
-  InputsArray* arguments = GetArguments(num_args);
-  NativeCallInstr* call = new (Z)
-      NativeCallInstr(name, function, FLAG_link_natives_lazily,
-                      InstructionSource(function.end_token_pos()), arguments);
+  InputsArray arguments = GetArguments(num_args);
+  NativeCallInstr* call = new (Z) NativeCallInstr(
+      name, function, FLAG_link_natives_lazily,
+      InstructionSource(function.end_token_pos()), std::move(arguments));
   Push(call);
   return Fragment(call);
 }
@@ -625,10 +628,10 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       intptr_t type_args_count,
                                       bool use_unchecked_entry) {
   const intptr_t total_count = argument_count + (type_args_count > 0 ? 1 : 0);
-  InputsArray* arguments = GetArguments(total_count);
+  InputsArray arguments = GetArguments(total_count);
   StaticCallInstr* call = new (Z) StaticCallInstr(
       InstructionSource(position), target, type_args_count, argument_names,
-      arguments, ic_data_array_, GetNextDeoptId(), rebind_rule);
+      std::move(arguments), ic_data_array_, GetNextDeoptId(), rebind_rule);
   SetResultTypeForStaticCall(call, target, argument_count, result_type);
   if (use_unchecked_entry) {
     call->set_entry_kind(Code::EntryKind::kUnchecked);

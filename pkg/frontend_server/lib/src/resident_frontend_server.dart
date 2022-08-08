@@ -19,9 +19,21 @@ import 'package:front_end/src/api_unstable/vm.dart';
 
 import '../frontend_server.dart';
 
+/// Floor the system time by this amount in order to correctly detect modified
+/// source files on all platforms. This has no effect on correctness,
+/// but may result in more files being marked as modified than strictly
+/// required.
+const _STAT_GRANULARITY = const Duration(seconds: 1);
+
 extension on DateTime {
-  /// Truncates by [amount]
-  DateTime floorTime(Duration amount) {
+  /// Truncates by [amount].
+  ///
+  /// This is needed because the 1 second granularity on DateTime objects
+  /// returned by file stat on Windows is different than the system time's
+  /// granularity. We must floor the system time
+  /// by 1 second so that if a file is modified within the same second of
+  /// the last compile time, it will be correctly detected as being modified.
+  DateTime floorTime({Duration amount = _STAT_GRANULARITY}) {
     return DateTime.fromMillisecondsSinceEpoch(this.millisecondsSinceEpoch -
         this.millisecondsSinceEpoch % amount.inMilliseconds);
   }
@@ -54,12 +66,12 @@ class ResidentCompiler {
   File _currentPackage;
   ArgResults _compileOptions;
   FrontendCompiler _compiler;
-  DateTime _lastCompileStartTime =
-      DateTime.now().floorTime(Duration(seconds: 1));
+  DateTime _lastCompileStartTime = DateTime.now().floorTime();
   _ResidentState _state = _ResidentState.WAITING_FOR_FIRST_COMPILE;
   final StringBuffer _compilerOutput = StringBuffer();
   final Set<Uri> trackedSources = <Uri>{};
   final List<String> _formattedOutput = <String>[];
+  var incrementalMode = false;
 
   ResidentCompiler(this._entryPoint, this._outputDill, this._compileOptions) {
     _compiler = FrontendCompiler(_compilerOutput);
@@ -70,6 +82,7 @@ class ResidentCompiler {
   /// requests.
   void updateState(ArgResults newOptions) {
     final packages = newOptions['packages'];
+    incrementalMode = newOptions['incremental'] == true;
     _compileOptions = newOptions;
     _currentPackage = packages == null ? null : File(packages);
     // Refresh the compiler's output for the next compile
@@ -78,20 +91,20 @@ class ResidentCompiler {
     _state = _ResidentState.WAITING_FOR_FIRST_COMPILE;
   }
 
-  /// Determines whether the current compile options are outdated with respect
-  /// to the [newOptions]
-  ///
-  /// TODO: account for all compiler options. See vm/bin/kernel_service.dart:88
+  /// The current compiler options are outdated when any option has changed
+  /// since the last compile, or when the packages file has been modified
   bool areOptionsOutdated(ArgResults newOptions) {
-    final packagesPath = newOptions['packages'];
-    return (packagesPath != null && _currentPackage == null) ||
-        (packagesPath == null && _currentPackage != null) ||
-        (_currentPackage != null && _currentPackage.path != packagesPath) ||
-        (_currentPackage != null &&
-            !_lastCompileStartTime.isAfter(_currentPackage
-                .statSync()
-                .modified
-                .floorTime(Duration(seconds: 1))));
+    if (newOptions.arguments.length != _compileOptions.arguments.length) {
+      return true;
+    }
+    if (!newOptions.arguments
+        .toSet()
+        .containsAll(_compileOptions.arguments.toSet())) {
+      return true;
+    }
+    return _currentPackage != null &&
+        !_lastCompileStartTime
+            .isAfter(_currentPackage.statSync().modified.floorTime());
   }
 
   /// Compiles the entry point that this ResidentCompiler is hooked to.
@@ -121,11 +134,11 @@ class ResidentCompiler {
       invalidatedUris
           .forEach((invalidatedUri) => _compiler.invalidate(invalidatedUri));
       _compiler.errors.clear();
-      _lastCompileStartTime = DateTime.now().floorTime(Duration(seconds: 1));
+      _lastCompileStartTime = DateTime.now().floorTime();
       await _compiler.recompileDelta(entryPoint: _entryPoint.path);
     } else {
       _state = _ResidentState.COMPILING;
-      _lastCompileStartTime = DateTime.now().floorTime(Duration(seconds: 1));
+      _lastCompileStartTime = DateTime.now().floorTime();
       _compiler.errors.clear();
       await _compiler.compile(_entryPoint.path, _compileOptions);
     }
@@ -135,13 +148,17 @@ class ResidentCompiler {
         .where((line) => line.isNotEmpty)
         .toList());
     _compilerOutput.clear();
-    // forces the compiler to produce complete kernel files on each
-    // request, even when incrementally compiled.
-    _compiler
-      ..acceptLastDelta()
-      ..resetIncrementalCompiler();
-    _state = _ResidentState.WAITING_FOR_RECOMPILE;
 
+    if (incrementalMode) {
+      // forces the compiler to produce complete kernel files on each
+      // request, even when incrementally compiled.
+      _compiler
+        ..acceptLastDelta()
+        ..resetIncrementalCompiler();
+      _state = _ResidentState.WAITING_FOR_RECOMPILE;
+    } else {
+      _state = _ResidentState.WAITING_FOR_FIRST_COMPILE;
+    }
     return _encodeCompilerOutput(
         _outputDill.path, _formattedOutput, _compiler.errors.length,
         incrementalCompile: incremental);
@@ -186,10 +203,8 @@ class ResidentCompiler {
       DateTime lastKernelCompileTime) async {
     final sourcesToRecompile = <Uri>[];
     for (Uri uri in trackedSources) {
-      final sourceModifiedTime = File(uri.toFilePath())
-          .statSync()
-          .modified
-          .floorTime(Duration(seconds: 1));
+      final sourceModifiedTime =
+          File(uri.toFilePath()).statSync().modified.floorTime();
       if (!lastKernelCompileTime.isAfter(sourceModifiedTime)) {
         sourcesToRecompile.add(uri);
       }
@@ -269,18 +284,7 @@ class ResidentFrontendServer {
         }
         final executablePath = request[_executableString];
         final cachedDillPath = request[_outputString];
-        final options = argParser.parse(<String>[
-          '--sdk-root=${_sdkUri.toFilePath()}',
-          '--incremental',
-          if (request.containsKey(_packageString))
-            '--packages=${request[_packageString]}',
-          '--platform=${_platformKernelUri.path}',
-          '--output-dill=$cachedDillPath',
-          '--target=vm',
-          '--filesystem-scheme',
-          'org-dartlang-root',
-          if (request['verbose'] == true) '--verbose',
-        ]);
+        final options = _generateCompilerOptions(request);
 
         var residentCompiler = compilers[executablePath];
         if (residentCompiler == null) {
@@ -304,6 +308,37 @@ class ResidentFrontendServer {
     }
   }
 
+  /// Generates the compiler options needed to satisfy the [request]
+  static ArgResults _generateCompilerOptions(Map<String, dynamic> request) {
+    return argParser.parse(<String>[
+      '--sdk-root=${_sdkUri.toFilePath()}',
+      if (!request.containsKey('aot')) '--incremental',
+      '--platform=${_platformKernelUri.path}',
+      '--output-dill=${request[_outputString]}',
+      '--target=vm',
+      '--filesystem-scheme',
+      'org-dartlang-root',
+      if (request.containsKey(_packageString))
+        '--packages=${request[_packageString]}',
+      if (request['support-mirrors'] ?? false) '--support-mirrors',
+      if (request['enable-asserts'] ?? false) '--enable-asserts',
+      if (request['sound-null-safety'] ?? false) '--sound-null-safety',
+      if (request['verbosity'] != null) '--verbosity=${request["verbosity"]}',
+      if (request['verbose'] ?? false) '--verbose',
+      if (request['aot'] ?? false) '--aot',
+      if (request['tfa'] ?? false) '--tfa',
+      if (request['rta'] ?? false) '--rta',
+      if (request['tree-shake-write-only-fields'] ?? false)
+        '--tree-shake-write-only-fields',
+      if (request['protobuf-tree-shaker-v2'] ?? false)
+        '--protobuf-tree-shaker-v2',
+      if (request['define'] != null)
+        for (var define in request['define']) define,
+      if (request['enable-experiement'] != null)
+        for (var experiment in request['enable-experiment']) experiment,
+    ]);
+  }
+
   /// Encodes the [message] in JSON to be sent over the socket.
   static String _encodeErrorMessage(String message) =>
       jsonEncode(<String, Object>{"success": false, "errorMessage": message});
@@ -315,12 +350,35 @@ class ResidentFrontendServer {
       {String executable,
       String packages,
       String outputDill,
+      bool supportMirrors,
+      bool enableAsserts,
+      bool soundNullSafety,
+      String verbosity,
+      bool aot,
+      bool tfa,
+      bool rta,
+      bool treeShakeWriteOnlyFields,
+      bool protobufTreeShakerV2,
+      List<String> define,
+      List<String> enableExperiement,
       bool verbose = false}) {
     return jsonEncode(<String, Object>{
       "command": "compile",
       "executable": executable,
-      if (packages != null) "packages": packages,
       "output-dill": outputDill,
+      if (aot != null) "aot": true,
+      if (define != null) "define": define,
+      if (enableAsserts != null) "enable-asserts": true,
+      if (enableExperiement != null) "enable-experiment": enableExperiement,
+      if (packages != null) "packages": packages,
+      if (protobufTreeShakerV2 != null) "protobuf-tree-shaker-v2": true,
+      if (rta != null) "rta": true,
+      if (soundNullSafety != null) "sound-null-safety": soundNullSafety,
+      if (supportMirrors != null) "support-mirrors": true,
+      if (tfa != null) "tfa": true,
+      if (treeShakeWriteOnlyFields != null)
+        "tree-shaker-write-only-fields": true,
+      if (verbosity != null) "verbosity": verbosity,
       "verbose": verbose,
     });
   }
@@ -333,24 +391,53 @@ class ResidentFrontendServer {
 /// ResidentFrontendServer instance.
 Future<Map<String, dynamic>> sendAndReceiveResponse(
     InternetAddress address, int port, String request) async {
+  Socket client;
+  Map<String, dynamic> jsonResponse;
   try {
-    final client = await Socket.connect(address, port);
+    client = await Socket.connect(address, port);
     client.write(request);
-    final data = await client.first;
-    client.destroy();
-    return jsonDecode(String.fromCharCodes(data));
+    final data = String.fromCharCodes(await client.first);
+    jsonResponse = jsonDecode(data);
   } catch (e) {
-    return <String, Object>{"success": false, "errorMessage": e.toString()};
+    jsonResponse = <String, Object>{
+      'success': false,
+      'errorMessage': e.toString(),
+    };
   }
+  if (client != null) {
+    client.destroy();
+  }
+  return jsonResponse;
+}
+
+/// Closes the ServerSocket and removes the [serverInfoFile] that is used
+/// to access this instance of the Resident Frontend Server
+Future<void> residentServerCleanup(
+    ServerSocket server, File serverInfoFile) async {
+  if (serverInfoFile.existsSync()) {
+    serverInfoFile.deleteSync();
+  }
+  await server.close();
+}
+
+/// Starts a timer that will shut down the resident frontend server in
+/// the amount of time specified by [timerDuration], if it is not cancelled.
+Timer startShutdownTimer(
+    Duration timerDuration, ServerSocket server, File serverInfoFile) {
+  return Timer(timerDuration, () async {
+    await residentServerCleanup(server, serverInfoFile);
+  });
 }
 
 /// Listens for compilation commands from socket connections on the
 /// provided [address] and [port].
+/// If the last request exceeds the amount of time specified by
+/// [inactivityTimeout], the server will bring itself down
 Future<StreamSubscription<Socket>> residentListenAndCompile(
-    InternetAddress address, int port, File serverInfoFile) async {
+    InternetAddress address, int port, File serverInfoFile,
+    {Duration inactivityTimeout = const Duration(minutes: 30)}) async {
   ServerSocket server;
   try {
-    // TODO: have server shut itself off after period of inactivity
     server = await ServerSocket.bind(address, port);
     serverInfoFile
       ..writeAsStringSync(
@@ -359,27 +446,30 @@ Future<StreamSubscription<Socket>> residentListenAndCompile(
     print('Error: $e\n');
     return null;
   }
+  var shutdownTimer =
+      startShutdownTimer(inactivityTimeout, server, serverInfoFile);
   print(
-      'Resident Frontend Compiler is listening at ${server.address.address}:${server.port}');
+      'The Resident Frontend Compiler is listening at ${server.address.address}:${server.port}');
+
   return server.listen((client) {
     client.listen((Uint8List data) async {
       String result = await ResidentFrontendServer.handleRequest(
           String.fromCharCodes(data));
       client.write(result);
+      shutdownTimer.cancel();
       if (result == ResidentFrontendServer._shutdownJsonResponse) {
-        if (serverInfoFile.existsSync()) {
-          serverInfoFile.deleteSync();
-        }
-        await server.close();
+        await residentServerCleanup(server, serverInfoFile);
+      } else {
+        shutdownTimer =
+            startShutdownTimer(inactivityTimeout, server, serverInfoFile);
       }
     }, onError: (error) {
       client.close();
     }, onDone: () {
       client.close();
     });
-  }, onError: (_) {
-    if (serverInfoFile.existsSync()) {
-      serverInfoFile.deleteSync();
-    }
+  }, onError: (_) async {
+    shutdownTimer.cancel();
+    await residentServerCleanup(server, serverInfoFile);
   });
 }

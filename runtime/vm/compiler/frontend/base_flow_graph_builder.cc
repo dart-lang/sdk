@@ -4,6 +4,8 @@
 
 #include "vm/compiler/frontend/base_flow_graph_builder.h"
 
+#include <utility>
+
 #include "vm/compiler/backend/range_analysis.h"  // For Range.
 #include "vm/compiler/ffi/call.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
@@ -808,11 +810,11 @@ IndirectEntryInstr* BaseFlowGraphBuilder::BuildIndirectEntry(
                                     GetNextDeoptId());
 }
 
-InputsArray* BaseFlowGraphBuilder::GetArguments(int count) {
-  InputsArray* arguments = new (Z) ZoneGrowableArray<Value*>(Z, count);
-  arguments->SetLength(count);
+InputsArray BaseFlowGraphBuilder::GetArguments(int count) {
+  InputsArray arguments(Z, count);
+  arguments.SetLength(count);
   for (intptr_t i = count - 1; i >= 0; --i) {
-    arguments->data()[i] = Pop();
+    arguments[i] = Pop();
   }
   return arguments;
 }
@@ -1180,10 +1182,10 @@ Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
   const intptr_t total_count =
       (type_args_len > 0 ? 1 : 0) + argument_count +
       /*closure (bare instructions) or function (otherwise)*/ 1;
-  InputsArray* arguments = GetArguments(total_count);
-  ClosureCallInstr* call =
-      new (Z) ClosureCallInstr(arguments, type_args_len, argument_names,
-                               InstructionSource(position), GetNextDeoptId());
+  InputsArray arguments = GetArguments(total_count);
+  ClosureCallInstr* call = new (Z)
+      ClosureCallInstr(std::move(arguments), type_args_len, argument_names,
+                       InstructionSource(position), GetNextDeoptId());
   Push(call);
   result <<= call;
   return result;
@@ -1236,10 +1238,10 @@ Fragment BaseFlowGraphBuilder::InitConstantParameters() {
 Fragment BaseFlowGraphBuilder::InvokeMathCFunction(
     MethodRecognizer::Kind recognized_kind,
     intptr_t num_inputs) {
-  InputsArray* args = GetArguments(num_inputs);
-  auto* instr = new (Z)
-      InvokeMathCFunctionInstr(args, GetNextDeoptId(), recognized_kind,
-                               InstructionSource(TokenPosition::kNoSource));
+  InputsArray args = GetArguments(num_inputs);
+  auto* instr = new (Z) InvokeMathCFunctionInstr(
+      std::move(args), GetNextDeoptId(), recognized_kind,
+      InstructionSource(TokenPosition::kNoSource));
   Push(instr);
   return Fragment(instr);
 }

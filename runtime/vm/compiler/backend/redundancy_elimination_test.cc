@@ -5,6 +5,7 @@
 #include "vm/compiler/backend/redundancy_elimination.h"
 
 #include <functional>
+#include <utility>
 
 #include "vm/compiler/backend/block_builder.h"
 #include "vm/compiler/backend/il_printer.h"
@@ -271,14 +272,14 @@ static void TestAliasingViaRedefinition(
     v1 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v0), slot, InstructionSource()));
     auto v2 = builder.AddDefinition(make_redefinition(&S, H.flow_graph(), v0));
-    auto args = new InputsArray(2);
-    args->Add(new Value(v1));
+    InputsArray args(2);
+    args.Add(new Value(v1));
     if (make_it_escape) {
-      args->Add(new Value(v2));
+      args.Add(new Value(v2));
     }
     call = builder.AddInstruction(new StaticCallInstr(
-        InstructionSource(), blackhole, 0, Array::empty_array(), args,
-        S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
+        InstructionSource(), blackhole, 0, Array::empty_array(),
+        std::move(args), S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
     v4 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v2), slot, InstructionSource()));
     ret = builder.AddInstruction(new ReturnInstr(
@@ -452,21 +453,21 @@ static void TestAliasingViaStore(
     v1 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v0), slot, InstructionSource()));
     auto v2 = builder.AddDefinition(make_redefinition(&S, H.flow_graph(), v5));
-    auto args = new InputsArray(2);
-    args->Add(new Value(v1));
+    InputsArray args(2);
+    args.Add(new Value(v1));
     if (make_it_escape) {
       auto v6 = builder.AddDefinition(
           new LoadFieldInstr(new Value(v2), slot, InstructionSource()));
-      args->Add(new Value(v6));
+      args.Add(new Value(v6));
     } else if (make_host_escape) {
       builder.AddInstruction(
           new StoreFieldInstr(slot, new Value(v2), new Value(v0),
                               kEmitStoreBarrier, InstructionSource()));
-      args->Add(new Value(v5));
+      args.Add(new Value(v5));
     }
     call = builder.AddInstruction(new StaticCallInstr(
-        InstructionSource(), blackhole, 0, Array::empty_array(), args,
-        S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
+        InstructionSource(), blackhole, 0, Array::empty_array(),
+        std::move(args), S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
     v4 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v0), slot, InstructionSource()));
     ret = builder.AddInstruction(new ReturnInstr(
@@ -605,8 +606,8 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
 
     //   array <- StaticCall(...) {_Uint32List}
     array = builder.AddDefinition(new StaticCallInstr(
-        InstructionSource(), function, 0, Array::empty_array(),
-        new InputsArray(), DeoptId::kNone, 0, ICData::kNoRebind));
+        InstructionSource(), function, 0, Array::empty_array(), InputsArray(),
+        DeoptId::kNone, 0, ICData::kNoRebind));
     array->UpdateType(CompileType::FromCid(kTypedDataUint32ArrayCid));
     array->SetResultType(zone, CompileType::FromCid(kTypedDataUint32ArrayCid));
     array->set_is_known_list_constructor(true);
@@ -1425,13 +1426,13 @@ ISOLATE_UNIT_TEST_CASE(CSE_Redefinitions) {
     load2 = builder.AddDefinition(
         new LoadFieldInstr(new Value(redef3), slot, InstructionSource()));
 
-    auto args = new InputsArray(3);
-    args->Add(new Value(load0));
-    args->Add(new Value(load1));
-    args->Add(new Value(load2));
+    InputsArray args(3);
+    args.Add(new Value(load0));
+    args.Add(new Value(load1));
+    args.Add(new Value(load2));
     call = builder.AddInstruction(new StaticCallInstr(
-        InstructionSource(), blackhole, 0, Array::empty_array(), args,
-        S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
+        InstructionSource(), blackhole, 0, Array::empty_array(),
+        std::move(args), S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
 
     ret = builder.AddReturn(new Value(box1));
   }

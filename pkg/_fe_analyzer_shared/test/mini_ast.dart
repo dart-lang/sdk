@@ -377,11 +377,13 @@ class Harness extends Operations<Var, Type> {
     'num* - Object': Type('Never'),
   };
 
+  bool _started = false;
+
   late final FlowAnalysis<Node, Statement, Expression, Var, Type> _flow;
 
-  final bool legacy;
+  bool _legacy = false;
 
-  final Type? thisType;
+  Type? _thisType;
 
   final Map<String, bool> _subtypes = Map.of(_coreSubtypes);
 
@@ -398,15 +400,24 @@ class Harness extends Operations<Var, Type> {
   /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
   /// always, and we need to be able to replicate the old behavior when
   /// analyzing old language versions).
-  final bool respectImplicitlyTypedVarInitializers;
+  bool _respectImplicitlyTypedVarInitializers = true;
 
   final Set<_PropertyElement> _promotableFields = {};
 
-  Harness(
-      {this.legacy = false,
-      String? thisType,
-      this.respectImplicitlyTypedVarInitializers = true})
-      : thisType = thisType == null ? null : Type(thisType);
+  set legacy(bool value) {
+    assert(!_started);
+    _legacy = value;
+  }
+
+  set respectImplicitlyTypedVarInitializers(bool value) {
+    assert(!_started);
+    _respectImplicitlyTypedVarInitializers = value;
+  }
+
+  set thisType(String type) {
+    assert(!_started);
+    _thisType = Type(type);
+  }
 
   MiniIrBuilder get _irBuilder => _typeAnalyzer._irBuilder;
 
@@ -499,16 +510,17 @@ class Harness extends Operations<Var, Type> {
   /// Runs the given [statements] through flow analysis, checking any assertions
   /// they contain.
   void run(List<Statement> statements) {
+    _started = true;
     var assignedVariables = AssignedVariables<Node, Var>();
     var b = block(statements);
     b._preVisit(assignedVariables);
-    _flow = legacy
+    _flow = _legacy
         ? FlowAnalysis<Node, Statement, Expression, Var, Type>.legacy(
             this, assignedVariables)
         : FlowAnalysis<Node, Statement, Expression, Var, Type>(
             this, assignedVariables,
             respectImplicitlyTypedVarInitializers:
-                respectImplicitlyTypedVarInitializers,
+                _respectImplicitlyTypedVarInitializers,
             promotableFields: _promotableFields);
     _typeAnalyzer.dispatchStatement(b);
     _typeAnalyzer.finish();
@@ -1436,7 +1448,7 @@ class _MiniAstTypeAnalyzer {
   FlowAnalysis<Node, Statement, Expression, Var, Type> get flow =>
       _harness._flow;
 
-  Type get thisType => _harness.thisType!;
+  Type get thisType => _harness._thisType!;
 
   void analyzeAssertStatement(Expression condition, Expression? message) {
     flow.assert_begin();
@@ -2019,7 +2031,8 @@ class _ThisOrSuperProperty extends PromotableLValue {
   @override
   Type? _getPromotedType(Harness h) {
     h._irBuilder.atom('this.$propertyName');
-    var member = h._typeAnalyzer._lookupMember(this, h.thisType!, propertyName);
+    var member =
+        h._typeAnalyzer._lookupMember(this, h._thisType!, propertyName);
     return h._flow
         .promotedPropertyType(null, propertyName, member, member._type);
   }

@@ -264,7 +264,7 @@ class BaseFlowGraphBuilder {
   LocalVariable* MakeTemporary(const char* suffix = nullptr);
   Fragment DropTemporary(LocalVariable** temp);
 
-  InputsArray* GetArguments(int count);
+  InputsArray GetArguments(int count);
 
   TargetEntryInstr* BuildTargetEntry();
   FunctionEntryInstr* BuildFunctionEntry(GraphEntryInstr* graph_entry);

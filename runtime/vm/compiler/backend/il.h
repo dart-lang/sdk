@@ -780,7 +780,7 @@ class BinaryFeedback : public ZoneAllocated {
   friend class Cids;
 };
 
-typedef ZoneGrowableArray<Value*> InputsArray;
+typedef GrowableArray<Value*> InputsArray;
 typedef ZoneGrowableArray<PushArgumentInstr*> PushArgumentsArray;
 
 template <typename Trait>
@@ -2534,43 +2534,29 @@ class TemplateDefinition : public CSETrait<Definition, PureDefinition>::Base {
 
 class VariadicDefinition : public Definition {
  public:
-  explicit VariadicDefinition(InputsArray* inputs,
+  explicit VariadicDefinition(InputsArray&& inputs,
                               intptr_t deopt_id = DeoptId::kNone)
-      : Definition(deopt_id), inputs_(inputs) {
-    for (intptr_t i = 0, n = inputs_->length(); i < n; ++i) {
-      SetInputAt(i, (*inputs_)[i]);
+      : Definition(deopt_id), inputs_(std::move(inputs)) {
+    for (intptr_t i = 0, n = inputs_.length(); i < n; ++i) {
+      SetInputAt(i, inputs_[i]);
     }
   }
-  VariadicDefinition(InputsArray* inputs,
+  VariadicDefinition(InputsArray&& inputs,
                      const InstructionSource& source,
                      intptr_t deopt_id = DeoptId::kNone)
-      : Definition(source, deopt_id), inputs_(inputs) {
-    for (intptr_t i = 0, n = inputs_->length(); i < n; ++i) {
-      SetInputAt(i, (*inputs_)[i]);
+      : Definition(source, deopt_id), inputs_(std::move(inputs)) {
+    for (intptr_t i = 0, n = inputs_.length(); i < n; ++i) {
+      SetInputAt(i, inputs_[i]);
     }
   }
-
-  intptr_t InputCount() const { return inputs_->length(); }
-  Value* InputAt(intptr_t i) const { return (*inputs_)[i]; }
-
- protected:
-  InputsArray* inputs_;
-
- private:
-  void RawSetInputAt(intptr_t i, Value* value) { (*inputs_)[i] = value; }
-};
-
-class VariadicDefinitionWithEmbeddedInputs : public Definition {
- public:
-  explicit VariadicDefinitionWithEmbeddedInputs(
-      const intptr_t num_inputs,
-      intptr_t deopt_id = DeoptId::kNone)
+  explicit VariadicDefinition(const intptr_t num_inputs,
+                              intptr_t deopt_id = DeoptId::kNone)
       : Definition(deopt_id), inputs_(num_inputs) {
     inputs_.EnsureLength(num_inputs, nullptr);
   }
-  VariadicDefinitionWithEmbeddedInputs(const intptr_t num_inputs,
-                                       const InstructionSource& source,
-                                       intptr_t deopt_id = DeoptId::kNone)
+  VariadicDefinition(const intptr_t num_inputs,
+                     const InstructionSource& source,
+                     intptr_t deopt_id = DeoptId::kNone)
       : Definition(source, deopt_id), inputs_(num_inputs) {
     inputs_.EnsureLength(num_inputs, nullptr);
   }
@@ -2579,16 +2565,16 @@ class VariadicDefinitionWithEmbeddedInputs : public Definition {
   Value* InputAt(intptr_t i) const { return inputs_[i]; }
 
  protected:
-  GrowableArray<Value*> inputs_;
+  InputsArray inputs_;
 
  private:
   void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 };
 
-class PhiInstr : public VariadicDefinitionWithEmbeddedInputs {
+class PhiInstr : public VariadicDefinition {
  public:
   PhiInstr(JoinEntryInstr* block, intptr_t num_inputs)
-      : VariadicDefinitionWithEmbeddedInputs(num_inputs),
+      : VariadicDefinition(num_inputs),
         block_(block),
         representation_(kTagged),
         is_alive_(false),
@@ -4019,14 +4005,14 @@ class TemplateDartCall : public VariadicDefinition {
   TemplateDartCall(intptr_t deopt_id,
                    intptr_t type_args_len,
                    const Array& argument_names,
-                   InputsArray* inputs,
+                   InputsArray&& inputs,
                    const InstructionSource& source)
-      : VariadicDefinition(inputs, source, deopt_id),
+      : VariadicDefinition(std::move(inputs), source, deopt_id),
         type_args_len_(type_args_len),
         argument_names_(argument_names),
         token_pos_(source.token_pos) {
     ASSERT(argument_names.IsZoneHandle() || argument_names.InVMIsolateHeap());
-    ASSERT(inputs_->length() >= kExtraInputs);
+    ASSERT(InputCount() >= kExtraInputs);
   }
 
   inline StringPtr Selector();
@@ -4054,7 +4040,7 @@ class TemplateDartCall : public VariadicDefinition {
   // Caution: Must override Instruction::ArgumentCount().
   intptr_t ArgumentCount() const {
     return push_arguments_ != nullptr ? push_arguments_->length()
-                                      : inputs_->length() - kExtraInputs;
+                                      : InputCount() - kExtraInputs;
   }
   virtual intptr_t ArgumentsSize() const { return ArgumentCount(); }
 
@@ -4070,15 +4056,15 @@ class TemplateDartCall : public VariadicDefinition {
     ASSERT(push_arguments_ == nullptr);
     ASSERT(push_arguments->length() == ArgumentCount());
     SetPushArguments(push_arguments);
-    ASSERT(inputs_->length() == ArgumentCount() + kExtraInputs);
-    const intptr_t extra_inputs_base = inputs_->length() - kExtraInputs;
+    ASSERT(InputCount() == ArgumentCount() + kExtraInputs);
+    const intptr_t extra_inputs_base = InputCount() - kExtraInputs;
     for (intptr_t i = 0, n = ArgumentCount(); i < n; ++i) {
       InputAt(i)->RemoveFromUseList();
     }
     for (intptr_t i = 0; i < kExtraInputs; ++i) {
       SetInputAt(i, InputAt(extra_inputs_base + i));
     }
-    inputs_->TruncateTo(kExtraInputs);
+    inputs_.TruncateTo(kExtraInputs);
   }
   intptr_t type_args_len() const { return type_args_len_; }
   const Array& argument_names() const { return argument_names_; }
@@ -4100,7 +4086,7 @@ class TemplateDartCall : public VariadicDefinition {
 
 class ClosureCallInstr : public TemplateDartCall<1> {
  public:
-  ClosureCallInstr(InputsArray* inputs,
+  ClosureCallInstr(InputsArray&& inputs,
                    intptr_t type_args_len,
                    const Array& argument_names,
                    const InstructionSource& source,
@@ -4108,7 +4094,7 @@ class ClosureCallInstr : public TemplateDartCall<1> {
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
-                         inputs,
+                         std::move(inputs),
                          source) {}
 
   DECLARE_INSTRUCTION(ClosureCall)
@@ -4131,7 +4117,7 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
   InstanceCallBaseInstr(const InstructionSource& source,
                         const String& function_name,
                         Token::Kind token_kind,
-                        InputsArray* arguments,
+                        InputsArray&& arguments,
                         intptr_t type_args_len,
                         const Array& argument_names,
                         const ICData* ic_data,
@@ -4141,7 +4127,7 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
-                         arguments,
+                         std::move(arguments),
                          source),
         ic_data_(ic_data),
         function_name_(function_name),
@@ -4153,7 +4139,7 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
     ASSERT(function_name.IsNotTemporaryScopedHandle());
     ASSERT(interface_target.IsNotTemporaryScopedHandle());
     ASSERT(tearoff_interface_target.IsNotTemporaryScopedHandle());
-    ASSERT(!arguments->is_empty());
+    ASSERT(InputCount() > 0);
     ASSERT(Token::IsBinaryOperator(token_kind) ||
            Token::IsEqualityOperator(token_kind) ||
            Token::IsRelationalOperator(token_kind) ||
@@ -4270,7 +4256,7 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
       const InstructionSource& source,
       const String& function_name,
       Token::Kind token_kind,
-      InputsArray* arguments,
+      InputsArray&& arguments,
       intptr_t type_args_len,
       const Array& argument_names,
       intptr_t checked_argument_count,
@@ -4282,7 +4268,7 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
             source,
             function_name,
             token_kind,
-            arguments,
+            std::move(arguments),
             type_args_len,
             argument_names,
             GetICData(ic_data_array, deopt_id, /*is_static_call=*/false),
@@ -4295,7 +4281,7 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
       const InstructionSource& source,
       const String& function_name,
       Token::Kind token_kind,
-      InputsArray* arguments,
+      InputsArray&& arguments,
       intptr_t type_args_len,
       const Array& argument_names,
       intptr_t checked_argument_count,
@@ -4305,7 +4291,7 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
       : InstanceCallBaseInstr(source,
                               function_name,
                               token_kind,
-                              arguments,
+                              std::move(arguments),
                               type_args_len,
                               argument_names,
                               /*ic_data=*/nullptr,
@@ -4358,14 +4344,14 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
                                                 const CallTargets& targets,
                                                 bool complete) {
     ASSERT(!call->HasPushArguments());
-    InputsArray* args = new (zone) InputsArray(zone, call->ArgumentCount());
+    InputsArray args(zone, call->ArgumentCount());
     for (intptr_t i = 0, n = call->ArgumentCount(); i < n; ++i) {
-      args->Add(call->ArgumentValueAt(i)->CopyWithType(zone));
+      args.Add(call->ArgumentValueAt(i)->CopyWithType(zone));
     }
     auto new_call = new (zone) PolymorphicInstanceCallInstr(
-        call->source(), call->function_name(), call->token_kind(), args,
-        call->type_args_len(), call->argument_names(), call->ic_data(),
-        call->deopt_id(), call->interface_target(),
+        call->source(), call->function_name(), call->token_kind(),
+        std::move(args), call->type_args_len(), call->argument_names(),
+        call->ic_data(), call->deopt_id(), call->interface_target(),
         call->tearoff_interface_target(), targets, complete);
     new_call->set_result_type(call->result_type());
     new_call->set_entry_kind(call->entry_kind());
@@ -4412,7 +4398,7 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
   PolymorphicInstanceCallInstr(const InstructionSource& source,
                                const String& function_name,
                                Token::Kind token_kind,
-                               InputsArray* arguments,
+                               InputsArray&& arguments,
                                intptr_t type_args_len,
                                const Array& argument_names,
                                const ICData* ic_data,
@@ -4424,7 +4410,7 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
       : InstanceCallBaseInstr(source,
                               function_name,
                               token_kind,
-                              arguments,
+                              std::move(arguments),
                               type_args_len,
                               argument_names,
                               ic_data,
@@ -4454,19 +4440,19 @@ class DispatchTableCallInstr : public TemplateDartCall<1> {
   DispatchTableCallInstr(const InstructionSource& source,
                          const Function& interface_target,
                          const compiler::TableSelector* selector,
-                         InputsArray* arguments,
+                         InputsArray&& arguments,
                          intptr_t type_args_len,
                          const Array& argument_names)
       : TemplateDartCall(DeoptId::kNone,
                          type_args_len,
                          argument_names,
-                         arguments,
+                         std::move(arguments),
                          source),
         interface_target_(interface_target),
         selector_(selector) {
     ASSERT(selector != nullptr);
     ASSERT(interface_target_.IsNotTemporaryScopedHandle());
-    ASSERT(!arguments->is_empty());
+    ASSERT(InputCount() > 0);
   }
 
   static DispatchTableCallInstr* FromCall(
@@ -4839,14 +4825,14 @@ class StaticCallInstr : public TemplateDartCall<0> {
                   const Function& function,
                   intptr_t type_args_len,
                   const Array& argument_names,
-                  InputsArray* arguments,
+                  InputsArray&& arguments,
                   const ZoneGrowableArray<const ICData*>& ic_data_array,
                   intptr_t deopt_id,
                   ICData::RebindRule rebind_rule)
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
-                         arguments,
+                         std::move(arguments),
                          source),
         ic_data_(GetICData(ic_data_array, deopt_id, /*is_static_call=*/true)),
         call_count_(0),
@@ -4863,14 +4849,14 @@ class StaticCallInstr : public TemplateDartCall<0> {
                   const Function& function,
                   intptr_t type_args_len,
                   const Array& argument_names,
-                  InputsArray* arguments,
+                  InputsArray&& arguments,
                   intptr_t deopt_id,
                   intptr_t call_count,
                   ICData::RebindRule rebind_rule)
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
-                         arguments,
+                         std::move(arguments),
                          source),
         ic_data_(NULL),
         call_count_(call_count),
@@ -4891,13 +4877,13 @@ class StaticCallInstr : public TemplateDartCall<0> {
                                    const Function& target,
                                    intptr_t call_count) {
     ASSERT(!call->HasPushArguments());
-    InputsArray* args = new (zone) InputsArray(zone, call->ArgumentCount());
+    InputsArray args(zone, call->ArgumentCount());
     for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-      args->Add(call->ArgumentValueAt(i)->CopyWithType());
+      args.Add(call->ArgumentValueAt(i)->CopyWithType());
     }
     StaticCallInstr* new_call = new (zone) StaticCallInstr(
         call->source(), target, call->type_args_len(), call->argument_names(),
-        args, call->deopt_id(), call_count, ICData::kNoRebind);
+        std::move(args), call->deopt_id(), call_count, ICData::kNoRebind);
     if (call->result_type() != NULL) {
       new_call->result_type_ = call->result_type();
     }
@@ -5192,8 +5178,12 @@ class NativeCallInstr : public TemplateDartCall<0> {
                   const Function& function,
                   bool link_lazily,
                   const InstructionSource& source,
-                  InputsArray* args)
-      : TemplateDartCall(DeoptId::kNone, 0, Array::null_array(), args, source),
+                  InputsArray&& args)
+      : TemplateDartCall(DeoptId::kNone,
+                         0,
+                         Array::null_array(),
+                         std::move(args),
+                         source),
         native_name_(name),
         function_(function),
         native_c_function_(NULL),
@@ -5254,15 +5244,14 @@ class NativeCallInstr : public TemplateDartCall<0> {
 // - The arguments to the native call, marshalled in IL as far as possible.
 // - The argument address.
 // - A TypedData for the return value to populate in machine code (optional).
-class FfiCallInstr : public VariadicDefinitionWithEmbeddedInputs {
+class FfiCallInstr : public VariadicDefinition {
  public:
   FfiCallInstr(intptr_t deopt_id,
                const compiler::ffi::CallMarshaller& marshaller,
                bool is_leaf)
-      : VariadicDefinitionWithEmbeddedInputs(
-            marshaller.NumDefinitions() + 1 +
-                (marshaller.PassTypedData() ? 1 : 0),
-            deopt_id),
+      : VariadicDefinition(marshaller.NumDefinitions() + 1 +
+                               (marshaller.PassTypedData() ? 1 : 0),
+                           deopt_id),
         marshaller_(marshaller),
         is_leaf_(is_leaf) {}
 
@@ -5334,7 +5323,7 @@ class CCallInstr : public VariadicDefinition {
  public:
   CCallInstr(
       const compiler::ffi::NativeCallingConvention& native_calling_convention,
-      InputsArray* inputs);
+      InputsArray&& inputs);
 
   DECLARE_INSTRUCTION(CCall)
 
@@ -6506,8 +6495,8 @@ class MaterializeObjectInstr : public VariadicDefinition {
                          const Class& cls,
                          intptr_t num_elements,
                          const ZoneGrowableArray<const Slot*>& slots,
-                         ZoneGrowableArray<Value*>* values)
-      : VariadicDefinition(values),
+                         InputsArray&& values)
+      : VariadicDefinition(std::move(values)),
         allocation_(allocation),
         cls_(cls),
         num_elements_(num_elements),
@@ -6515,7 +6504,7 @@ class MaterializeObjectInstr : public VariadicDefinition {
         locations_(nullptr),
         visited_for_liveness_(false),
         registers_remapped_(false) {
-    ASSERT(slots_.length() == values->length());
+    ASSERT(slots_.length() == InputCount());
   }
 
   AllocationInstr* allocation() const { return allocation_; }
@@ -8652,7 +8641,7 @@ class FloatToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 // TODO(sjindel): Replace with FFICallInstr.
 class InvokeMathCFunctionInstr : public VariadicDefinition {
  public:
-  InvokeMathCFunctionInstr(ZoneGrowableArray<Value*>* inputs,
+  InvokeMathCFunctionInstr(InputsArray&& inputs,
                            intptr_t deopt_id,
                            MethodRecognizer::Kind recognized_kind,
                            const InstructionSource& source);
