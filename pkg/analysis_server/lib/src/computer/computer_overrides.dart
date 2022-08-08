@@ -27,9 +27,11 @@ class DartUnitOverridesComputer {
   /// Returns the computed occurrences, not `null`.
   List<proto.Override> compute() {
     for (var unitMember in _unit.declarations) {
-      if (unitMember is ClassOrMixinDeclaration) {
+      if (unitMember is ClassDeclaration) {
         _classMembers(unitMember.members);
       } else if (unitMember is EnumDeclaration) {
+        _classMembers(unitMember.members);
+      } else if (unitMember is MixinDeclaration) {
         _classMembers(unitMember.members);
       }
     }

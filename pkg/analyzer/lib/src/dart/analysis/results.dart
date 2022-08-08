@@ -343,7 +343,7 @@ class _DeclarationByElementLocator extends UnifyingAstVisitor<void> {
     }
 
     if (element is ClassElement) {
-      if (node is ClassOrMixinDeclaration) {
+      if (node is ClassDeclaration) {
         if (_hasOffset2(node.name2)) {
           result = node;
         }
@@ -352,6 +352,10 @@ class _DeclarationByElementLocator extends UnifyingAstVisitor<void> {
           result = node;
         }
       } else if (node is EnumDeclaration) {
+        if (_hasOffset2(node.name2)) {
+          result = node;
+        }
+      } else if (node is MixinDeclaration) {
         if (_hasOffset2(node.name2)) {
           result = node;
         }

@@ -39,7 +39,7 @@ void computeSimplyBounded(Linker linker) {
   for (var node in nodes) {
     walker.walk(node);
     var node2 = node._node;
-    if (node2 is ClassOrMixinDeclaration) {
+    if (node2 is ClassDeclaration) {
       var element = node2.declaredElement as ClassElementImpl;
       element.isSimplyBounded = node.isSimplyBounded;
     } else if (node2 is ClassTypeAlias) {
@@ -53,6 +53,9 @@ void computeSimplyBounded(Linker linker) {
       element.isSimplyBounded = node.isSimplyBounded;
     } else if (node2 is FunctionTypeAlias) {
       var element = node2.declaredElement as TypeAliasElementImpl;
+      element.isSimplyBounded = node.isSimplyBounded;
+    } else if (node2 is MixinDeclaration) {
+      var element = node2.declaredElement as MixinElementImpl;
       element.isSimplyBounded = node.isSimplyBounded;
     } else {
       throw UnimplementedError('${node2.runtimeType}');

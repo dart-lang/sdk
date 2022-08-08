@@ -20,6 +20,16 @@ extension AnnotatedNodeExtensions on AnnotatedNode {
 }
 
 extension AstNodeExtensions on AstNode {
+  /// Returns [ExtensionElement] declared by an enclosing node.
+  ExtensionElement? get enclosingExtensionElement {
+    for (final node in withParents) {
+      if (node is ExtensionDeclaration) {
+        return node.declaredElement;
+      }
+    }
+    return null;
+  }
+
   /// Return the [IfStatement] associated with `this`.
   IfStatement? get enclosingIfStatement {
     for (var node in withParents) {
@@ -27,6 +37,18 @@ extension AstNodeExtensions on AstNode {
         return node;
       } else if (node is! Expression) {
         return null;
+      }
+    }
+    return null;
+  }
+
+  /// Returns [InterfaceElement] declared by an enclosing node.
+  InterfaceElement? get enclosingInterfaceElement {
+    for (final node in withParents) {
+      if (node is ClassDeclaration) {
+        return node.declaredElement;
+      } else if (node is MixinDeclaration) {
+        return node.declaredElement;
       }
     }
     return null;

@@ -83,16 +83,19 @@ class LocalReferenceContributor extends DartCompletionContributor {
     if (request.includeIdentifiers) {
       var member = _enclosingMember(request.target);
       if (member != null) {
-        var classOrMixin = member.parent;
-        if (classOrMixin is ClassOrMixinDeclaration) {
-          var declaredElement = classOrMixin.declaredElement;
-          if (declaredElement != null) {
-            memberBuilder = MemberSuggestionBuilder(request, builder);
-            _computeSuggestionsForClass(declaredElement);
-          }
+        var enclosingNode = member.parent;
+        if (enclosingNode is ClassDeclaration) {
+          _addForInterface(enclosingNode.declaredElement!);
+        } else if (enclosingNode is MixinDeclaration) {
+          _addForInterface(enclosingNode.declaredElement!);
         }
       }
     }
+  }
+
+  void _addForInterface(InterfaceElement interface) {
+    memberBuilder = MemberSuggestionBuilder(request, builder);
+    _computeSuggestionsForClass(interface);
   }
 
   void _addSuggestionsForType(InterfaceType type, double inheritanceDistance,
@@ -142,14 +145,14 @@ class LocalReferenceContributor extends DartCompletionContributor {
     }
   }
 
-  void _computeSuggestionsForClass(ClassElement classElement) {
+  void _computeSuggestionsForClass(InterfaceElement interface) {
     var isFunctionalArgument = request.target.isFunctionalArgument();
     classMemberSuggestionKind = isFunctionalArgument
         ? CompletionSuggestionKind.IDENTIFIER
         : CompletionSuggestionKind.INVOCATION;
-    for (var type in classElement.allSupertypes) {
+    for (var type in interface.allSupertypes) {
       var inheritanceDistance = request.featureComputer
-          .inheritanceDistanceFeature(classElement, type.element2);
+          .inheritanceDistanceFeature(interface, type.element2);
       _addSuggestionsForType(type, inheritanceDistance,
           isFunctionalArgument: isFunctionalArgument);
     }

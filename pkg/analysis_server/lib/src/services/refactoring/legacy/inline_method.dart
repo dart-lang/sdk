@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring_inte
 import 'package:analysis_server/src/services/refactoring/legacy/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -159,7 +160,7 @@ Set<String> _getNamesConflictingAt(AstNode node) {
   }
   // fields
   {
-    var enclosingClassElement = getEnclosingClassElement(node);
+    var enclosingClassElement = node.enclosingInterfaceElement;
     if (enclosingClassElement != null) {
       var elements = [
         ...enclosingClassElement.allSupertypes.map((e) => e.element2),

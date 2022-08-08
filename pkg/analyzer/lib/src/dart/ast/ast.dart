@@ -1684,6 +1684,7 @@ class ChildEntity {
 ///        ([ExtendsClause] [WithClause]?)?
 ///        [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
+// ignore: deprecated_member_use_from_same_package
 class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
     implements ClassDeclaration {
   /// The 'abstract' keyword, or `null` if the keyword was absent.
@@ -1838,6 +1839,7 @@ abstract class ClassMemberImpl extends DeclarationImpl implements ClassMember {
   });
 }
 
+@Deprecated('Use ClassDeclaration or MixinDeclaration directly')
 abstract class ClassOrMixinDeclarationImpl
     extends NamedCompilationUnitMemberImpl implements ClassOrMixinDeclaration {
   /// The type parameters for the class or mixin,
@@ -8247,6 +8249,7 @@ class MethodInvocationImpl extends InvocationExpressionImpl
 ///    mixinDeclaration ::=
 ///        metadata? 'mixin' [SimpleIdentifier] [TypeParameterList]?
 ///        [RequiresClause]? [ImplementsClause]? '{' [ClassMember]* '}'
+// ignore: deprecated_member_use_from_same_package
 class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
     implements MixinDeclaration {
   /// Return the 'augment' keyword, or `null` if the keyword was absent.

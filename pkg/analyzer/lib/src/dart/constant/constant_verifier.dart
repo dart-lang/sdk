@@ -1089,7 +1089,7 @@ extension on Expression {
           if (declarationListParent is FieldDeclaration &&
               !declarationListParent.isStatic) {
             var container = declarationListParent.parent;
-            if (container is ClassOrMixinDeclaration) {
+            if (container is ClassDeclaration) {
               var enclosingClass = container.declaredElement;
               if (enclosingClass != null) {
                 // A field initializer of a class with at least one generative

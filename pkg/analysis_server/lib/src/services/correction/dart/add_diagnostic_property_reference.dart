@@ -38,7 +38,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
       return;
     }
 
-    var classDeclaration = node.thisOrAncestorOfType<ClassOrMixinDeclaration>();
+    final classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration == null ||
         !flutter.isDiagnosticable(classDeclaration.declaredElement!.thisType)) {
       return;

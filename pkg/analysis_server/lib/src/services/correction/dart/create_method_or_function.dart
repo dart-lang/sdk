@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -43,9 +44,7 @@ class CreateMethodOrFunction extends CorrectionProducer {
             return;
           }
         } else {
-          var enclosingClass =
-              node.thisOrAncestorOfType<ClassOrMixinDeclaration>();
-          targetElement = enclosingClass?.declaredElement;
+          targetElement = node.enclosingInterfaceElement;
           argument = nameNode;
         }
       }
@@ -145,15 +144,23 @@ class CreateMethodOrFunction extends CorrectionProducer {
     // prepare environment
     var targetSource = targetClassElement.source;
     // prepare insert offset
-    var targetNode = await getClassOrMixinDeclaration(targetClassElement);
-    if (targetNode == null) {
+    CompilationUnitMember? targetNode;
+    List<ClassMember>? classMembers;
+    if (targetClassElement is MixinElement) {
+      final node = targetNode = await getMixinDeclaration(targetClassElement);
+      classMembers = node?.members;
+    } else if (targetClassElement is ClassElement) {
+      final node = targetNode = await getClassDeclaration(targetClassElement);
+      classMembers = node?.members;
+    }
+    if (targetNode == null || classMembers == null) {
       return;
     }
     var insertOffset = targetNode.end - 1;
     // prepare prefix
     var prefix = '  ';
     String sourcePrefix;
-    if (targetNode.members.isEmpty) {
+    if (classMembers.isEmpty) {
       sourcePrefix = '';
     } else {
       sourcePrefix = eol;

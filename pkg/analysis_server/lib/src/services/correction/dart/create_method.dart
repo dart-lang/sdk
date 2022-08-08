@@ -156,7 +156,11 @@ class CreateMethod extends CorrectionProducer {
         return;
       }
       // prepare target ClassDeclaration
-      targetNode = await getClassOrMixinDeclaration(targetClassElement);
+      if (targetClassElement is MixinElement) {
+        targetNode = await getMixinDeclaration(targetClassElement);
+      } else if (targetClassElement is ClassElement) {
+        targetNode = await getClassDeclaration(targetClassElement);
+      }
       if (targetNode == null) {
         return;
       }

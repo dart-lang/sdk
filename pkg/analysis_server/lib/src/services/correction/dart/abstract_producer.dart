@@ -52,12 +52,11 @@ abstract class CorrectionProducer extends SingleCorrectionProducer {
 
   Future<void> compute(ChangeBuilder builder);
 
-  /// Return the class, enum or mixin declaration for the given [element].
-  Future<ClassOrMixinDeclaration?> getClassOrMixinDeclaration(
-      InterfaceElement element) async {
+  /// Return the class for the given [element].
+  Future<ClassDeclaration?> getClassDeclaration(ClassElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
     var node = result?.node;
-    if (node is ClassOrMixinDeclaration) {
+    if (node is ClassDeclaration) {
       return node;
     }
     return null;
@@ -69,6 +68,16 @@ abstract class CorrectionProducer extends SingleCorrectionProducer {
     var result = await sessionHelper.getElementDeclaration(element);
     var node = result?.node;
     if (node is ExtensionDeclaration) {
+      return node;
+    }
+    return null;
+  }
+
+  /// Return the mixin declaration for the given [element].
+  Future<MixinDeclaration?> getMixinDeclaration(MixinElement element) async {
+    var result = await sessionHelper.getElementDeclaration(element);
+    var node = result?.node;
+    if (node is MixinDeclaration) {
       return node;
     }
     return null;
