@@ -4,6 +4,8 @@
 
 #include "vm/compiler/backend/redundancy_elimination.h"
 
+#include <utility>
+
 #include "vm/bit_vector.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
@@ -3730,8 +3732,7 @@ void AllocationSinking::CreateMaterializationAt(
     Instruction* exit,
     Definition* alloc,
     const ZoneGrowableArray<const Slot*>& slots) {
-  ZoneGrowableArray<Value*>* values =
-      new (Z) ZoneGrowableArray<Value*>(slots.length());
+  InputsArray values(slots.length());
 
   // All loads should be inserted before the first materialization so that
   // IR follows the following pattern: loads, materializations, deoptimizing
@@ -3766,7 +3767,7 @@ void AllocationSinking::CreateMaterializationAt(
           new (Z) LoadFieldInstr(new (Z) Value(alloc), *slot, alloc->source());
     }
     flow_graph_->InsertBefore(load_point, load, nullptr, FlowGraph::kValue);
-    values->Add(new (Z) Value(load));
+    values.Add(new (Z) Value(load));
   }
 
   const Class* cls = nullptr;
@@ -3794,7 +3795,7 @@ void AllocationSinking::CreateMaterializationAt(
     UNREACHABLE();
   }
   MaterializeObjectInstr* mat = new (Z) MaterializeObjectInstr(
-      alloc->AsAllocation(), *cls, num_elements, slots, values);
+      alloc->AsAllocation(), *cls, num_elements, slots, std::move(values));
 
   flow_graph_->InsertBefore(exit, mat, nullptr, FlowGraph::kValue);
 
