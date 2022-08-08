@@ -5,9 +5,6 @@
 bigint_parse_radix_test/3: Slow # Issue http://dartbug.com/47050
 bigint_test: Pass, Slow
 
-[ $compiler == dartdevk ]
-regexp/lookbehind_test/01: Skip # Flaky in uncatchable way.  Issue 36280
-
 [ $compiler == dartkp ]
 bigint_parse_radix_test: Slow, Pass # --no_intrinsify
 bigint_test/03: SkipSlow # --no_intrinsify
@@ -58,6 +55,7 @@ bigint_test: Skip # Issue 31659
 bigint_test/03: SkipSlow # modPow is very slow
 bigint_test/15: SkipSlow # modPow is very slow
 list_concurrent_modify_self_test: SkipSlow # missing check causes list to grow to whole heap
+regexp/lookbehind_test/01: Skip # Flaky in uncatchable way.  Issue 36280
 uri_parse_test: Slow, Pass
 uri_test: Slow, Pass
 
