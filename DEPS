@@ -122,7 +122,7 @@ vars = {
   "intl_rev": "7e3a1bbdeff241323f56295d8991c004bef815e6",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "805e6536dd961d66f6b8cd46d8f3e61774f957c9",
-  "linter_rev": "b4afc10055f3009478da1eac1827f9fef42c3759", # 1.26.0
+  "linter_rev": "b677397483251d55ce1aec8d170be7720b53fe26", # dev
   "lints_rev": "8294e5648ab49474541527e2911e72e4c5aefe55",
   "logging_rev": "d10e24844c2e01d3f6d2b5a1a2bb8717359c6a87",
   "markdown_rev": "e3f4bd28c9e61b522f75f291d4d6cfcfeccd83ee", # b/236358256
