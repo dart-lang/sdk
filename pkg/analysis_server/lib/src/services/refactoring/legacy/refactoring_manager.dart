@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     hide AnalysisError, Element;
 import 'package:analysis_server/src/services/correction/status.dart';
@@ -38,7 +38,7 @@ class RefactoringManager {
   static const List<RefactoringProblem> EMPTY_PROBLEM_LIST =
       <RefactoringProblem>[];
 
-  final AnalysisServer server;
+  final LegacyAnalysisServer server;
   final RefactoringWorkspace refactoringWorkspace;
   final SearchEngine searchEngine;
   StreamSubscription? subscriptionToReset;

@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server_abstract.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_cancel_request.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_reject.dart';
@@ -127,7 +127,7 @@ mixin Handler<P, R> {
   }
 }
 
-mixin LspPluginRequestHandlerMixin<T extends AbstractAnalysisServer>
+mixin LspPluginRequestHandlerMixin<T extends AnalysisServer>
     on RequestHandlerMixin<T> {
   Future<List<Response>> requestFromPlugins(
     String path,

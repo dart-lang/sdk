@@ -5,12 +5,12 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:analysis_server/src/analysis_server_abstract.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 
-mixin RequestHandlerMixin<T extends AbstractAnalysisServer> {
+mixin RequestHandlerMixin<T extends AnalysisServer> {
   /// The analysis server that is using this handler to process requests.
   T get server;
 

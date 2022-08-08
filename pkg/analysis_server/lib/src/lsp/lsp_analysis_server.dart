@@ -6,12 +6,12 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
@@ -56,7 +56,7 @@ import 'package:watcher/watcher.dart';
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
 /// that listens on a [CommunicationChannel] for LSP messages and processes
 /// them.
-class LspAnalysisServer extends AbstractAnalysisServer {
+class LspAnalysisServer extends AnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
   LspClientCapabilities? _clientCapabilities;
 
