@@ -1,3 +1,6 @@
+## 4.4.1-dev
+* Update deprecation message for `FormalParameter.identifier`.
+
 ## 4.4.0
 * Deprecated `ClassDeclaration.isAbstract`, use `abstractKeyword` instead.
 * Deprecated `ClassTypeAlias.isAbstract`, use `abstractKeyword` instead.
