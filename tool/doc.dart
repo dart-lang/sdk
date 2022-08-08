@@ -495,7 +495,7 @@ class MarkdownIndexer {
     }
 
     if (filePath == null) {
-      print(buffer.toString());
+      print(buffer);
     } else {
       File('$filePath/index.md').writeAsStringSync(buffer.toString());
     }
@@ -775,7 +775,7 @@ class RuleMarkdownGenerator {
     }
 
     if (filePath == null) {
-      print(buffer.toString());
+      print(buffer);
     } else {
       File('$filePath/$name.md').writeAsStringSync(buffer.toString());
     }

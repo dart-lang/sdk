@@ -187,7 +187,7 @@ class LintScore {
   bool get inFlutter => ruleSets.contains('flutter');
   bool get inRecommended => ruleSets.contains('recommended');
 
-  String get _ruleSets => ruleSets.isNotEmpty ? ' ${ruleSets.toString()}' : '';
+  String get _ruleSets => ruleSets.isNotEmpty ? ' $ruleSets' : '';
 
   String toMarkdown(List<Detail> details) {
     var sb = StringBuffer('| ');
@@ -311,7 +311,7 @@ class ScoreCard {
       for (var bug in bugs) {
         var title = bug.title;
         if (title.contains(lint.name)) {
-          bugReferences.add('#${bug.number.toString()}');
+          bugReferences.add('#${bug.number}');
         }
       }
 
