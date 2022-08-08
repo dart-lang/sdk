@@ -9,9 +9,14 @@ import '../mini_ast.dart';
 import '../mini_types.dart';
 
 main() {
+  late Harness h;
+
+  setUp(() {
+    h = Harness();
+  });
+
   group('API', () {
     test('asExpression_end promotes variables', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       late SsaNode<Type> ssaBeforePromotion;
       h.run([
@@ -24,14 +29,12 @@ main() {
     });
 
     test('asExpression_end handles other expressions', () {
-      var h = Harness();
       h.run([
         expr('Object').as_('int').stmt,
       ]);
     });
 
     test('assert_afterCondition promotes', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -41,7 +44,6 @@ main() {
     });
 
     test('assert_end joins previous and ifTrue states', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       var z = Var('z', 'int?');
@@ -68,7 +70,6 @@ main() {
     });
 
     test('conditional_thenBegin promotes true branch', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -82,7 +83,6 @@ main() {
     });
 
     test('conditional_elseBegin promotes false branch', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -97,7 +97,6 @@ main() {
 
     test('conditional_end keeps promotions common to true and false branches',
         () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       var z = Var('z', 'int?');
@@ -126,7 +125,7 @@ main() {
       // if (... ? (x != null && y != null) : (x != null && z != null)) {
       //   promotes x, but not y or z
       // }
-      var h = Harness();
+
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       var z = Var('z', 'int?');
@@ -151,7 +150,7 @@ main() {
       // } else {
       //   promotes x, but not y or z
       // }
-      var h = Harness();
+
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       var z = Var('z', 'int?');
@@ -173,7 +172,6 @@ main() {
     });
 
     test('declare() sets Ssa', () {
-      var h = Harness();
       var x = Var('x', 'Object');
       h.run([
         declare(x, initialized: false),
@@ -184,7 +182,6 @@ main() {
     });
 
     test('equalityOp(x != null) promotes true branch', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       late SsaNode<Type> ssaBeforePromotion;
       h.run([
@@ -203,7 +200,6 @@ main() {
     });
 
     test('equalityOp(x != null) when x is non-nullable', () {
-      var h = Harness();
       var x = Var('x', 'int');
       h.run([
         declare(x, initialized: true),
@@ -218,7 +214,6 @@ main() {
     });
 
     test('equalityOp(<expr> == <expr>) has no special effect', () {
-      var h = Harness();
       h.run([
         if_(expr('int?').eq(expr('int?')), [
           checkReachable(true),
@@ -229,7 +224,6 @@ main() {
     });
 
     test('equalityOp(<expr> != <expr>) has no special effect', () {
-      var h = Harness();
       h.run([
         if_(expr('int?').notEq(expr('int?')), [
           checkReachable(true),
@@ -240,7 +234,6 @@ main() {
     });
 
     test('equalityOp(x != <null expr>) does not promote', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -253,7 +246,6 @@ main() {
     });
 
     test('equalityOp(x == null) promotes false branch', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       late SsaNode<Type> ssaBeforePromotion;
       h.run([
@@ -272,7 +264,6 @@ main() {
     });
 
     test('equalityOp(x == null) when x is non-nullable', () {
-      var h = Harness();
       var x = Var('x', 'int');
       h.run([
         declare(x, initialized: true),
@@ -287,7 +278,6 @@ main() {
     });
 
     test('equalityOp(null != x) promotes true branch', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       late SsaNode<Type> ssaBeforePromotion;
       h.run([
@@ -304,7 +294,6 @@ main() {
     });
 
     test('equalityOp(<null expr> != x) does not promote', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -317,7 +306,6 @@ main() {
     });
 
     test('equalityOp(null == x) promotes false branch', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       late SsaNode<Type> ssaBeforePromotion;
       h.run([
@@ -334,7 +322,6 @@ main() {
     });
 
     test('equalityOp(null == null) equivalent to true', () {
-      var h = Harness();
       h.run([
         if_(expr('Null').eq(expr('Null')), [
           checkReachable(true),
@@ -345,7 +332,6 @@ main() {
     });
 
     test('equalityOp(null != null) equivalent to false', () {
-      var h = Harness();
       h.run([
         if_(expr('Null').notEq(expr('Null')), [
           checkReachable(false),
@@ -356,7 +342,6 @@ main() {
     });
 
     test('equalityOp(null == non-null) is not equivalent to false', () {
-      var h = Harness();
       h.run([
         if_(expr('Null').eq(expr('int')), [
           checkReachable(true),
@@ -367,7 +352,6 @@ main() {
     });
 
     test('equalityOp(null != non-null) is not equivalent to true', () {
-      var h = Harness();
       h.run([
         if_(expr('Null').notEq(expr('int')), [
           checkReachable(true),
@@ -378,7 +362,6 @@ main() {
     });
 
     test('equalityOp(non-null == null) is not equivalent to false', () {
-      var h = Harness();
       h.run([
         if_(expr('int').eq(expr('Null')), [
           checkReachable(true),
@@ -389,7 +372,6 @@ main() {
     });
 
     test('equalityOp(non-null != null) is not equivalent to true', () {
-      var h = Harness();
       h.run([
         if_(expr('int').notEq(expr('Null')), [
           checkReachable(true),
@@ -400,7 +382,6 @@ main() {
     });
 
     test('conditionEqNull() does not promote write-captured vars', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -417,7 +398,6 @@ main() {
     });
 
     test('declare(initialized: false) assigns new SSA ids', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       h.run([
@@ -428,7 +408,6 @@ main() {
     });
 
     test('declare(initialized: true) assigns new SSA ids', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       h.run([
@@ -439,7 +418,6 @@ main() {
     });
 
     test('doStatement_bodyBegin() un-promotes', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       late SsaNode<Type> ssaBeforeLoop;
       h.run([
@@ -456,7 +434,6 @@ main() {
     });
 
     test('doStatement_bodyBegin() handles write captures in the loop', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -473,7 +450,6 @@ main() {
     });
 
     test('doStatement_conditionBegin() joins continue state', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -494,7 +470,6 @@ main() {
     });
 
     test('doStatement_end() promotes', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -508,7 +483,7 @@ main() {
       // of "why not promoted" functionality: when storing information about an
       // attempt to promote a field (e.g. `x.y != null`) we need to make sure we
       // don't wipe out information about the target variable (`x`).
-      var h = Harness()..addMember('C', 'y', 'Object?');
+      h.addMember('C', 'y', 'Object?');
       var x = Var('x', 'C');
       h.run([
         declare(x, initialized: true),
@@ -522,9 +497,9 @@ main() {
     });
 
     test('equalityOp_end does not set reachability for `this`', () {
-      var h = Harness(thisType: 'C')
-        ..addSubtype('Null', 'C', false)
-        ..addFactor('C', 'Null', 'C');
+      h.thisType = 'C';
+      h.addSubtype('Null', 'C', false);
+      h.addFactor('C', 'Null', 'C');
       h.addSubtype('C', 'Object', true);
       h.run([
         if_(this_.is_('Null'), [
@@ -539,7 +514,7 @@ main() {
 
     group('equalityOp_end does not set reachability for property gets', () {
       test('on a variable', () {
-        var h = Harness()..addMember('C', 'f', 'Object?');
+        h.addMember('C', 'f', 'Object?');
         var x = Var('x', 'C');
         h.run([
           declare(x, initialized: true),
@@ -554,7 +529,7 @@ main() {
       });
 
       test('on an arbitrary expression', () {
-        var h = Harness()..addMember('C', 'f', 'Object?');
+        h.addMember('C', 'f', 'Object?');
         h.run([
           if_(expr('C').property('f').is_('Null'), [
             if_(expr('C').property('f').eq(nullLiteral), [
@@ -567,7 +542,8 @@ main() {
       });
 
       test('on explicit this', () {
-        var h = Harness(thisType: 'C')..addMember('C', 'f', 'Object?');
+        h.thisType = 'C';
+        h.addMember('C', 'f', 'Object?');
         h.run([
           if_(this_.property('f').is_('Null'), [
             if_(this_.property('f').eq(nullLiteral), [
@@ -580,7 +556,8 @@ main() {
       });
 
       test('on implicit this/super', () {
-        var h = Harness(thisType: 'C')..addMember('C', 'f', 'Object?');
+        h.thisType = 'C';
+        h.addMember('C', 'f', 'Object?');
         h.run([
           if_(thisOrSuperProperty('f').is_('Null'), [
             if_(thisOrSuperProperty('f').eq(nullLiteral), [
@@ -594,7 +571,6 @@ main() {
     });
 
     test('finish checks proper nesting', () {
-      var h = Harness();
       var e = expr('Null');
       var s = if_(e, []);
       var flow = FlowAnalysis<Node, Statement, Expression, Var, Type>(
@@ -606,7 +582,6 @@ main() {
     });
 
     test('for_conditionBegin() un-promotes', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       late SsaNode<Type> ssaBeforeLoop;
       h.run([
@@ -628,7 +603,6 @@ main() {
     });
 
     test('for_conditionBegin() handles write captures in the loop', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -649,7 +623,6 @@ main() {
     });
 
     test('for_conditionBegin() handles not-yet-seen variables', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       h.run([
@@ -662,7 +635,6 @@ main() {
     });
 
     test('for_bodyBegin() handles empty condition', () {
-      var h = Harness();
       h.run([
         for_(null, null, checkReachable(true).thenExpr(expr('Null')), []),
         checkReachable(false),
@@ -670,7 +642,6 @@ main() {
     });
 
     test('for_bodyBegin() promotes', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         for_(declare(x, initialized: true), x.expr.notEq(nullLiteral), null, [
@@ -681,7 +652,7 @@ main() {
 
     test('for_bodyBegin() can be used with a null statement', () {
       // This is needed for collection elements that are for-loops.
-      var h = Harness();
+
       var x = Var('x', 'int?');
       h.run([
         for_(declare(x, initialized: true), x.expr.notEq(nullLiteral), null, [],
@@ -693,7 +664,7 @@ main() {
       // To test that the states are properly joined, we have three variables:
       // x, y, and z.  We promote x and y in the continue path, and x and z in
       // the current path.  Inside the updater, only x should be promoted.
-      var h = Harness();
+
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       var z = Var('z', 'int?');
@@ -725,7 +696,7 @@ main() {
       // To test that the states are properly joined, we have three variables:
       // x, y, and z.  We promote x and y in the break path, and x and z in the
       // condition-false path.  After the loop, only x should be promoted.
-      var h = Harness();
+
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       var z = Var('z', 'int?');
@@ -747,7 +718,6 @@ main() {
     });
 
     test('for_end() with break updates Ssa of modified vars', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('x', 'int?');
       late SsaNode<Type> xSsaInsideLoop;
@@ -776,7 +746,6 @@ main() {
     test(
         'for_end() with break updates Ssa of modified vars when types were '
         'tested', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('x', 'int?');
       late SsaNode<Type> xSsaInsideLoop;
@@ -804,7 +773,6 @@ main() {
     });
 
     test('forEach_bodyBegin() un-promotes', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       late SsaNode<Type> ssaBeforeLoop;
       h.run([
@@ -821,7 +789,6 @@ main() {
     });
 
     test('forEach_bodyBegin() handles write captures in the loop', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -838,7 +805,6 @@ main() {
     });
 
     test('forEach_bodyBegin() writes to loop variable', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: false),
@@ -851,7 +817,6 @@ main() {
     });
 
     test('forEach_bodyBegin() does not write capture loop variable', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: false),
@@ -865,7 +830,6 @@ main() {
     });
 
     test('forEach_bodyBegin() pushes conservative join state', () {
-      var h = Harness();
       var x = Var('x', 'int');
       h.run([
         declare(x, initialized: false),
@@ -884,7 +848,6 @@ main() {
     });
 
     test('forEach_end() restores state before loop', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -898,7 +861,6 @@ main() {
 
     test('functionExpression_begin() cancels promotions of self-captured vars',
         () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       h.run([
@@ -932,7 +894,6 @@ main() {
 
     test('functionExpression_begin() cancels promotions of other-captured vars',
         () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       h.run([
@@ -963,7 +924,6 @@ main() {
     });
 
     test('functionExpression_begin() cancels promotions of written vars', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       late SsaNode<Type> ssaBeforeFunction;
@@ -995,7 +955,6 @@ main() {
     });
 
     test('functionExpression_begin() handles not-yet-seen variables', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         localFunction([]),
@@ -1008,7 +967,6 @@ main() {
 
     test('functionExpression_begin() handles not-yet-seen write-captured vars',
         () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       h.run([
@@ -1032,7 +990,6 @@ main() {
     test(
         'functionExpression_end does not propagate "definitely unassigned" '
         'data', () {
-      var h = Harness();
       var x = Var('x', 'int');
       h.run([
         declare(x, initialized: false),
@@ -1051,7 +1008,6 @@ main() {
     });
 
     test('handleBreak handles deep nesting', () {
-      var h = Harness();
       h.run([
         while_(booleanLiteral(true), [
           if_(expr('bool'), [
@@ -1067,7 +1023,6 @@ main() {
     });
 
     test('handleBreak handles mixed nesting', () {
-      var h = Harness();
       h.run([
         while_(booleanLiteral(true), [
           if_(expr('bool'), [
@@ -1084,7 +1039,6 @@ main() {
     });
 
     test('handleContinue handles deep nesting', () {
-      var h = Harness();
       h.run([
         do_([
           if_(expr('bool'), [
@@ -1100,7 +1054,6 @@ main() {
     });
 
     test('handleContinue handles mixed nesting', () {
-      var h = Harness();
       h.run([
         do_([
           if_(expr('bool'), [
@@ -1117,7 +1070,6 @@ main() {
     });
 
     test('ifNullExpression allows ensure guarding', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1136,7 +1088,6 @@ main() {
     });
 
     test('ifNullExpression allows promotion of tested var', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1155,7 +1106,6 @@ main() {
     });
 
     test('ifNullExpression discards promotions unrelated to tested expr', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1174,7 +1124,6 @@ main() {
     });
 
     test('ifNullExpression does not detect when RHS is unreachable', () {
-      var h = Harness();
       h.run([
         expr('int')
             .ifNull(checkReachable(true).thenExpr(expr('int')))
@@ -1185,7 +1134,6 @@ main() {
 
     test('ifNullExpression determines reachability correctly for `Null` type',
         () {
-      var h = Harness();
       h.run([
         expr('Null')
             .ifNull(checkReachable(true).thenExpr(expr('Null')))
@@ -1195,7 +1143,6 @@ main() {
     });
 
     test('ifStatement with early exit promotes in unreachable code', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1210,7 +1157,6 @@ main() {
     });
 
     test('ifStatement_end(false) keeps else branch if then branch exits', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1224,7 +1170,6 @@ main() {
     test(
         'ifStatement_end() discards non-matching expression info from joined '
         'branches', () {
-      var h = Harness();
       var w = Var('w', 'Object');
       var x = Var('x', 'bool');
       var y = Var('y', 'bool');
@@ -1256,7 +1201,6 @@ main() {
     test(
         'ifStatement_end() ignores non-matching SSA info from "then" path if '
         'unreachable', () {
-      var h = Harness();
       var x = Var('x', 'Object');
       late SsaNode<Type> xSsaNodeBeforeIf;
       h.run([
@@ -1277,7 +1221,6 @@ main() {
     test(
         'ifStatement_end() ignores non-matching SSA info from "else" path if '
         'unreachable', () {
-      var h = Harness();
       var x = Var('x', 'Object');
       late SsaNode<Type> xSsaNodeBeforeIf;
       h.run([
@@ -1296,7 +1239,6 @@ main() {
     });
 
     test('initialize() promotes when not final', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declareInitialized(x, expr('int')),
@@ -1305,7 +1247,6 @@ main() {
     });
 
     test('initialize() does not promote when final', () {
-      var h = Harness();
       var x = Var('x', 'int?', isFinal: true);
       h.run([
         declareInitialized(x, expr('int')),
@@ -1316,9 +1257,8 @@ main() {
     group('initialize() promotes implicitly typed vars to type parameter types',
         () {
       test('when not final', () {
-        var h = Harness()
-          ..addSubtype('T&int', 'T', true)
-          ..addFactor('T', 'T&int', 'T');
+        h.addSubtype('T&int', 'T', true);
+        h.addFactor('T', 'T&int', 'T');
         var x = Var('x', 'T', isImplicitlyTyped: true);
         h.run([
           declareInitialized(x, expr('T&int')),
@@ -1327,9 +1267,8 @@ main() {
       });
 
       test('when final', () {
-        var h = Harness()
-          ..addSubtype('T&int', 'T', true)
-          ..addFactor('T', 'T&int', 'T');
+        h.addSubtype('T&int', 'T', true);
+        h.addFactor('T', 'T&int', 'T');
         var x = Var('x', 'T', isFinal: true, isImplicitlyTyped: true);
         h.run([
           declareInitialized(x, expr('T&int')),
@@ -1342,7 +1281,6 @@ main() {
         "initialize() doesn't promote explicitly typed vars to type "
         'parameter types', () {
       test('when not final', () {
-        var h = Harness();
         var x = Var('x', 'T');
         h.run([
           declareInitialized(x, expr('T&int')),
@@ -1351,7 +1289,6 @@ main() {
       });
 
       test('when final', () {
-        var h = Harness();
         var x = Var('x', 'T', isFinal: true);
         h.run([
           declareInitialized(x, expr('T&int')),
@@ -1364,7 +1301,6 @@ main() {
         "initialize() doesn't promote implicitly typed vars to ordinary types",
         () {
       test('when not final', () {
-        var h = Harness();
         var x = Var('x', 'dynamic', isImplicitlyTyped: true);
         h.run([
           declareInitialized(x, expr('Null')),
@@ -1373,7 +1309,6 @@ main() {
       });
 
       test('when final', () {
-        var h = Harness();
         var x = Var('x', 'dynamic', isFinal: true, isImplicitlyTyped: true);
         h.run([
           declareInitialized(x, expr('Null')),
@@ -1383,7 +1318,6 @@ main() {
     });
 
     test('initialize() stores expressionInfo when not late', () {
-      var h = Harness();
       var x = Var('x', 'Object');
       var y = Var('y', 'int?');
       late ExpressionInfo<Type> writtenValueInfo;
@@ -1402,7 +1336,6 @@ main() {
     });
 
     test('initialize() does not store expressionInfo when late', () {
-      var h = Harness();
       var x = Var('x', 'Object', isLate: true);
       var y = Var('y', 'int?');
       h.run([
@@ -1417,7 +1350,7 @@ main() {
     test(
         'initialize() does not store expressionInfo for implicitly typed '
         'vars, pre-bug fix', () {
-      var h = Harness(respectImplicitlyTypedVarInitializers: false);
+      h.respectImplicitlyTypedVarInitializers = false;
       var x = Var('x', 'Object', isImplicitlyTyped: true);
       var y = Var('y', 'int?');
       h.run([
@@ -1432,7 +1365,7 @@ main() {
     test(
         'initialize() stores expressionInfo for implicitly typed '
         'vars, post-bug fix', () {
-      var h = Harness(respectImplicitlyTypedVarInitializers: true);
+      h.respectImplicitlyTypedVarInitializers = true;
       var x = Var('x', 'Object', isImplicitlyTyped: true);
       var y = Var('y', 'int?');
       h.run([
@@ -1447,7 +1380,7 @@ main() {
     test(
         'initialize() stores expressionInfo for explicitly typed '
         'vars, pre-bug fix', () {
-      var h = Harness(respectImplicitlyTypedVarInitializers: false);
+      h.respectImplicitlyTypedVarInitializers = false;
       var x = Var('x', 'Object');
       var y = Var('y', 'int?');
       h.run([
@@ -1461,7 +1394,6 @@ main() {
 
     test('initialize() does not store expressionInfo for trivial expressions',
         () {
-      var h = Harness();
       var x = Var('x', 'Object');
       var y = Var('y', 'int?');
       h.run([
@@ -1485,7 +1417,6 @@ main() {
     void _checkIs(String declaredType, String tryPromoteType,
         String? expectedPromotedTypeThen, String? expectedPromotedTypeElse,
         {bool inverted = false}) {
-      var h = Harness();
       var x = Var('x', declaredType);
       late SsaNode<Type> ssaBeforePromotion;
       h.run([
@@ -1529,7 +1460,6 @@ main() {
     });
 
     test('isExpression_end does nothing if applied to a non-variable', () {
-      var h = Harness();
       h.run([
         if_(expr('Null').is_('int'), [
           checkReachable(true),
@@ -1541,7 +1471,6 @@ main() {
 
     test('isExpression_end does nothing if applied to a non-variable, inverted',
         () {
-      var h = Harness();
       h.run([
         if_(expr('Null').isNot('int'), [
           checkReachable(true),
@@ -1552,7 +1481,6 @@ main() {
     });
 
     test('isExpression_end() does not promote write-captured vars', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1569,7 +1497,6 @@ main() {
     });
 
     test('isExpression_end() handles not-yet-seen variables', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         if_(x.expr.is_('int'), [
@@ -1583,9 +1510,9 @@ main() {
     });
 
     test('isExpression_end() does not set reachability for `this`', () {
-      var h = Harness(thisType: 'C')
-        ..addSubtype('Never', 'C', true)
-        ..addFactor('C', 'Never', 'C');
+      h.thisType = 'C';
+      h.addSubtype('Never', 'C', true);
+      h.addFactor('C', 'Never', 'C');
       h.run([
         if_(this_.is_('Never'), [
           checkReachable(true),
@@ -1597,7 +1524,7 @@ main() {
 
     group('isExpression_end() does not set reachability for property gets', () {
       test('on a variable', () {
-        var h = Harness()..addMember('C', 'f', 'Object?');
+        h.addMember('C', 'f', 'Object?');
         var x = Var('x', 'C');
         h.run([
           declare(x, initialized: true),
@@ -1610,7 +1537,7 @@ main() {
       });
 
       test('on an arbitrary expression', () {
-        var h = Harness()..addMember('C', 'f', 'Object?');
+        h.addMember('C', 'f', 'Object?');
         h.run([
           if_(expr('C').property('f').is_('Never'), [
             checkReachable(true),
@@ -1621,7 +1548,8 @@ main() {
       });
 
       test('on explicit this', () {
-        var h = Harness(thisType: 'C')..addMember('C', 'f', 'Object?');
+        h.thisType = 'C';
+        h.addMember('C', 'f', 'Object?');
         h.run([
           if_(this_.property('f').is_('Never'), [
             checkReachable(true),
@@ -1632,7 +1560,8 @@ main() {
       });
 
       test('on implicit this/super', () {
-        var h = Harness(thisType: 'C')..addMember('C', 'f', 'Object?');
+        h.thisType = 'C';
+        h.addMember('C', 'f', 'Object?');
         h.run([
           if_(thisOrSuperProperty('f').is_('Never'), [
             checkReachable(true),
@@ -1644,7 +1573,6 @@ main() {
     });
 
     test('labeledBlock without break', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1656,7 +1584,6 @@ main() {
     });
 
     test('labeledBlock with break joins', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1673,7 +1600,6 @@ main() {
     });
 
     test('logicalBinaryOp_rightBegin(isAnd: true) promotes in RHS', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1685,7 +1611,6 @@ main() {
     });
 
     test('logicalBinaryOp_rightEnd(isAnd: true) keeps promotions from RHS', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1697,7 +1622,6 @@ main() {
 
     test('logicalBinaryOp_rightEnd(isAnd: false) keeps promotions from RHS',
         () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1708,7 +1632,6 @@ main() {
     });
 
     test('logicalBinaryOp_rightBegin(isAnd: false) promotes in RHS', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1723,7 +1646,7 @@ main() {
       // if (x != null && y != null) {
       //   promotes x and y
       // }
-      var h = Harness();
+
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       h.run([
@@ -1740,7 +1663,7 @@ main() {
       // if (x == null || y == null) {} else {
       //   promotes x and y
       // }
-      var h = Harness();
+
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       h.run([
@@ -1754,7 +1677,6 @@ main() {
     });
 
     test('logicalNot_end() inverts a condition', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1767,7 +1689,6 @@ main() {
     });
 
     test('logicalNot_end() handles null literals', () {
-      var h = Harness();
       h.run([
         // `!null` would be a compile error, but we need to make sure we don't
         // crash.
@@ -1776,7 +1697,6 @@ main() {
     });
 
     test('nonNullAssert_end(x) promotes', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       late SsaNode<Type> ssaBeforePromotion;
       h.run([
@@ -1789,7 +1709,6 @@ main() {
     });
 
     test('nullAwareAccess temporarily promotes', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       late SsaNode<Type> ssaBeforePromotion;
       h.run([
@@ -1809,7 +1728,6 @@ main() {
     });
 
     test('nullAwareAccess does not promote the target of a cascade', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1825,7 +1743,6 @@ main() {
     });
 
     test('nullAwareAccess preserves demotions', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1841,7 +1758,6 @@ main() {
     });
 
     test('nullAwareAccess_end ignores shorting if target is non-nullable', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1859,7 +1775,6 @@ main() {
     });
 
     test('parenthesizedExpression preserves promotion behaviors', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1872,7 +1787,6 @@ main() {
     });
 
     test('promote promotes to a subtype and sets type of interest', () {
-      var h = Harness();
       var x = Var('x', 'num?');
       h.run([
         declare(x, initialized: true),
@@ -1889,7 +1803,6 @@ main() {
     });
 
     test('promote does not promote to a non-subtype', () {
-      var h = Harness();
       var x = Var('x', 'num?');
       h.run([
         declare(x, initialized: true),
@@ -1900,7 +1813,6 @@ main() {
     });
 
     test('promote does not promote if variable is write-captured', () {
-      var h = Harness();
       var x = Var('x', 'num?');
       h.run([
         declare(x, initialized: true),
@@ -1915,7 +1827,7 @@ main() {
 
     test('promotedType handles not-yet-seen variables', () {
       // Note: this is needed for error recovery in the analyzer.
-      var h = Harness();
+
       var x = Var('x', 'int');
       h.run([
         checkNotPromoted(x),
@@ -1924,7 +1836,6 @@ main() {
     });
 
     test('switchStatement_beginCase(false) restores previous promotions', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1948,7 +1859,6 @@ main() {
     });
 
     test('switchStatement_beginCase(false) does not un-promote', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1968,7 +1878,6 @@ main() {
 
     test('switchStatement_beginCase(false) handles write captures in cases',
         () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -1989,7 +1898,6 @@ main() {
     });
 
     test('switchStatement_beginCase(true) un-promotes', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       late SsaNode<Type> ssaBeforeSwitch;
       h.run([
@@ -2014,7 +1922,6 @@ main() {
     });
 
     test('switchStatement_beginCase(true) handles write captures in cases', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -2036,7 +1943,6 @@ main() {
     });
 
     test('switchStatement_end(false) joins break and default', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       var z = Var('z', 'int?');
@@ -2063,7 +1969,6 @@ main() {
     });
 
     test('switchStatement_end(true) joins breaks', () {
-      var h = Harness();
       var w = Var('w', 'int?');
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
@@ -2101,7 +2006,6 @@ main() {
     });
 
     test('switchStatement_end(true) allows fall-through of last case', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -2120,7 +2024,6 @@ main() {
     });
 
     test('tryCatchStatement_bodyEnd() restores pre-try state', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       h.run([
@@ -2140,7 +2043,6 @@ main() {
 
     test('tryCatchStatement_bodyEnd() un-promotes variables assigned in body',
         () {
-      var h = Harness();
       var x = Var('x', 'int?');
       late SsaNode<Type> ssaAfterTry;
       h.run([
@@ -2163,7 +2065,7 @@ main() {
       // Note: it's not necessary for the write capture to survive to the end of
       // the try body, because an exception could occur at any time.  We check
       // this by putting an exit in the try body.
-      var h = Harness();
+
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -2183,7 +2085,6 @@ main() {
 
     test('tryCatchStatement_catchBegin() restores previous post-body state',
         () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -2197,7 +2098,6 @@ main() {
     });
 
     test('tryCatchStatement_catchBegin() initializes vars', () {
-      var h = Harness();
       var e = Var('e', 'int');
       var st = Var('st', 'StackTrace');
       h.run([
@@ -2210,7 +2110,6 @@ main() {
 
     test('tryCatchStatement_catchEnd() joins catch state with after-try state',
         () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       var z = Var('z', 'int?');
@@ -2231,7 +2130,6 @@ main() {
     });
 
     test('tryCatchStatement_catchEnd() joins catch states', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       var z = Var('z', 'int?');
@@ -2254,7 +2152,6 @@ main() {
     });
 
     test('tryFinallyStatement_finallyBegin() restores pre-try state', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       h.run([
@@ -2275,7 +2172,6 @@ main() {
     test(
         'tryFinallyStatement_finallyBegin() un-promotes variables assigned in '
         'body', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       late SsaNode<Type> ssaAtStartOfTry;
       late SsaNode<Type> ssaAfterTry;
@@ -2307,7 +2203,7 @@ main() {
       // Note: it's not necessary for the write capture to survive to the end of
       // the try body, because an exception could occur at any time.  We check
       // this by putting an exit in the try body.
-      var h = Harness();
+
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -2324,7 +2220,6 @@ main() {
     });
 
     test('tryFinallyStatement_end() restores promotions from try body', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       h.run([
@@ -2345,7 +2240,6 @@ main() {
     test(
         'tryFinallyStatement_end() does not restore try body promotions for '
         'variables assigned in finally', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       late SsaNode<Type> xSsaAtEndOfFinally;
@@ -2384,7 +2278,6 @@ main() {
       test(
           'tryFinallyStatement_end() restores SSA nodes from try block when it'
           'is sound to do so', () {
-        var h = Harness();
         var x = Var('x', 'int?');
         var y = Var('y', 'int?');
         late SsaNode<Type> xSsaAtEndOfTry;
@@ -2431,7 +2324,6 @@ main() {
       test(
           'tryFinallyStatement_end() sets unreachable if end of try block '
           'unreachable', () {
-        var h = Harness();
         h.run([
           try_([
             return_(),
@@ -2446,7 +2338,6 @@ main() {
       test(
           'tryFinallyStatement_end() sets unreachable if end of finally block '
           'unreachable', () {
-        var h = Harness();
         h.run([
           try_([
             checkReachable(true),
@@ -2461,7 +2352,6 @@ main() {
       test(
           'tryFinallyStatement_end() handles a variable declared only in the '
           'try block', () {
-        var h = Harness();
         var x = Var('x', 'int?');
         h.run([
           try_([
@@ -2473,7 +2363,6 @@ main() {
       test(
           'tryFinallyStatement_end() handles a variable declared only in the '
           'finally block', () {
-        var h = Harness();
         var x = Var('x', 'int?');
         h.run([
           try_([]).finally_([
@@ -2485,7 +2374,6 @@ main() {
       test(
           'tryFinallyStatement_end() handles a variable that was write '
           'captured in the try block', () {
-        var h = Harness();
         var x = Var('x', 'int?');
         h.run([
           declare(x, initialized: true),
@@ -2503,7 +2391,6 @@ main() {
       test(
           'tryFinallyStatement_end() handles a variable that was write '
           'captured in the finally block', () {
-        var h = Harness();
         var x = Var('x', 'int?');
         h.run([
           declare(x, initialized: true),
@@ -2521,7 +2408,6 @@ main() {
       test(
           'tryFinallyStatement_end() handles a variable that was promoted in '
           'the try block and write captured in the finally block', () {
-        var h = Harness();
         var x = Var('x', 'int?');
         h.run([
           declare(x, initialized: true),
@@ -2547,7 +2433,6 @@ main() {
       test(
           'tryFinallyStatement_end() keeps promotions from both try and '
           'finally blocks when there is no write in the finally block', () {
-        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: true),
@@ -2571,7 +2456,6 @@ main() {
       test(
           'tryFinallyStatement_end() keeps promotions from the finally block '
           'when there is a write in the finally block', () {
-        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: true),
@@ -2593,7 +2477,6 @@ main() {
       test(
           'tryFinallyStatement_end() keeps tests from both the try and finally '
           'blocks', () {
-        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: true),
@@ -2618,7 +2501,6 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables not definitely assigned '
           'in either the try or finally block', () {
-        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: false),
@@ -2641,7 +2523,6 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables definitely assigned in '
           'the try block', () {
-        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: false),
@@ -2662,7 +2543,6 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables definitely assigned in '
           'the finally block', () {
-        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: false),
@@ -2683,7 +2563,6 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables definitely unassigned '
           'in both the try and finally blocks', () {
-        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: false),
@@ -2700,7 +2579,6 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables definitely unassigned '
           'in the try but not the finally block', () {
-        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: false),
@@ -2720,7 +2598,6 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables definitely unassigned '
           'in the finally but not the try block', () {
-        var h = Harness();
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: false),
@@ -2739,7 +2616,6 @@ main() {
     });
 
     test('variableRead() restores promotions from previous write()', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       var z = Var('z', 'bool');
@@ -2773,7 +2649,6 @@ main() {
     });
 
     test('variableRead() restores promotions from previous initialization', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       var z = Var('z', 'bool');
@@ -2806,7 +2681,6 @@ main() {
     });
 
     test('variableRead() rebases old promotions', () {
-      var h = Harness();
       var w = Var('w', 'int?');
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
@@ -2848,7 +2722,7 @@ main() {
       // Note: we have the available infrastructure to do this if we want, but
       // we think it will give an inconsistent feel because comparisons like
       // `if (i == null)` *don't* promote.
-      var h = Harness();
+
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       h.run([
@@ -2870,7 +2744,6 @@ main() {
     });
 
     test('whileStatement_conditionBegin() un-promotes', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       late SsaNode<Type> ssaBeforeLoop;
       h.run([
@@ -2891,7 +2764,6 @@ main() {
 
     test('whileStatement_conditionBegin() handles write captures in the loop',
         () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -2910,7 +2782,6 @@ main() {
     });
 
     test('whileStatement_conditionBegin() handles not-yet-seen variables', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       h.run([
@@ -2923,7 +2794,6 @@ main() {
     });
 
     test('whileStatement_bodyBegin() promotes', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -2937,7 +2807,7 @@ main() {
       // To test that the states are properly joined, we have three variables:
       // x, y, and z.  We promote x and y in the break path, and x and z in the
       // condition-false path.  After the loop, only x should be promoted.
-      var h = Harness();
+
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       var z = Var('z', 'int?');
@@ -2959,7 +2829,6 @@ main() {
     });
 
     test('whileStatement_end() with break updates Ssa of modified vars', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('x', 'int?');
       late SsaNode<Type> xSsaInsideLoop;
@@ -2988,7 +2857,6 @@ main() {
     test(
         'whileStatement_end() with break updates Ssa of modified vars when '
         'types were tested', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('x', 'int?');
       late SsaNode<Type> xSsaInsideLoop;
@@ -3016,7 +2884,6 @@ main() {
     });
 
     test('write() de-promotes and updates Ssa of a promoted variable', () {
-      var h = Harness();
       var x = Var('x', 'Object');
       var y = Var('y', 'int?');
       late SsaNode<Type> ssaBeforeWrite;
@@ -3042,7 +2909,6 @@ main() {
     });
 
     test('write() updates Ssa', () {
-      var h = Harness();
       var x = Var('x', 'Object');
       var y = Var('y', 'int?');
       late SsaNode<Type> ssaBeforeWrite;
@@ -3076,7 +2942,7 @@ main() {
       //   if (b) { /* x promoted again */ }
       // But there are a lot of corner cases to test and it's not clear how much
       // the benefit will be, so for now we're not doing it.
-      var h = Harness();
+
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
       late SsaNode<Type> xSsaBeforeWrite;
@@ -3097,7 +2963,6 @@ main() {
     });
 
     test('write() does not store expressionInfo for trivial expressions', () {
-      var h = Harness();
       var x = Var('x', 'Object');
       var y = Var('y', 'int?');
       late SsaNode<Type> ssaBeforeWrite;
@@ -3123,7 +2988,6 @@ main() {
     });
 
     test('write() permits expression to be null', () {
-      var h = Harness();
       var x = Var('x', 'Object');
       late SsaNode<Type> ssaBeforeWrite;
       h.run([
@@ -3138,7 +3002,6 @@ main() {
     });
 
     test('Infinite loop does not implicitly assign variables', () {
-      var h = Harness();
       var x = Var('x', 'int');
       h.run([
         declare(x, initialized: false),
@@ -3150,7 +3013,6 @@ main() {
     });
 
     test('If(false) does not discard promotions', () {
-      var h = Harness();
       var x = Var('x', 'Object');
       h.run([
         declare(x, initialized: true),
@@ -3163,7 +3025,6 @@ main() {
     });
 
     test('Promotions do not occur when a variable is write-captured', () {
-      var h = Harness();
       var x = Var('x', 'Object');
       h.run([
         declare(x, initialized: true),
@@ -3178,7 +3039,6 @@ main() {
     });
 
     test('Promotion cancellation of write-captured vars survives join', () {
-      var h = Harness();
       var x = Var('x', 'Object');
       h.run([
         declare(x, initialized: true),
@@ -3199,7 +3059,6 @@ main() {
     });
 
     test('issue 47991', () {
-      var h = Harness();
       var b = Var('b', 'bool');
       var i = Var('i', 'int', isFinal: true);
       h.run([
@@ -3444,28 +3303,24 @@ main() {
 
     group('tryPromoteForTypeCheck', () {
       test('unpromoted -> unchanged (same)', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial);
         var s2 = s1._tryPromoteForTypeCheck(h, intVar, 'int').ifTrue;
         expect(s2, same(s1));
       });
 
       test('unpromoted -> unchanged (supertype)', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial);
         var s2 = s1._tryPromoteForTypeCheck(h, intVar, 'Object').ifTrue;
         expect(s2, same(s1));
       });
 
       test('unpromoted -> unchanged (unrelated)', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial);
         var s2 = s1._tryPromoteForTypeCheck(h, intVar, 'String').ifTrue;
         expect(s2, same(s1));
       });
 
       test('unpromoted -> subtype', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial);
         var s2 = s1._tryPromoteForTypeCheck(h, intQVar, 'int').ifTrue;
         expect(s2.reachable.overallReachable, true);
@@ -3476,7 +3331,6 @@ main() {
       });
 
       test('promoted -> unchanged (same)', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
             .ifTrue;
@@ -3485,7 +3339,6 @@ main() {
       });
 
       test('promoted -> unchanged (supertype)', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
             .ifTrue;
@@ -3494,7 +3347,6 @@ main() {
       });
 
       test('promoted -> unchanged (unrelated)', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
             .ifTrue;
@@ -3503,7 +3355,6 @@ main() {
       });
 
       test('promoted -> subtype', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
             .ifTrue;
@@ -3521,14 +3372,13 @@ main() {
 
       test('without declaration', () {
         // This should not happen in valid code, but test that we don't crash.
-        var h = Harness();
+
         var s = FlowModel<Type>(Reachability.initial)._write(
             null, objectQVar, Type('Object?'), new SsaNode<Type>(null), h);
         expect(s.variableInfo[objectQVar], isNull);
       });
 
       test('unchanged', () {
-        var h = Harness();
         var s1 =
             FlowModel<Type>(Reachability.initial)._declare(objectQVar, true);
         var s2 = s1._write(
@@ -3545,7 +3395,6 @@ main() {
       });
 
       test('marks as assigned', () {
-        var h = Harness();
         var s1 =
             FlowModel<Type>(Reachability.initial)._declare(objectQVar, false);
         var s2 = s1._write(
@@ -3561,7 +3410,6 @@ main() {
       });
 
       test('un-promotes fully', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial)
             ._declare(objectQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
@@ -3581,7 +3429,6 @@ main() {
       });
 
       test('un-promotes partially, when no exact match', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial)
             ._declare(objectQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
@@ -3608,7 +3455,6 @@ main() {
       });
 
       test('un-promotes partially, when exact match', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial)
             ._declare(objectQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
@@ -3637,7 +3483,6 @@ main() {
       });
 
       test('leaves promoted, when exact match', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial)
             ._declare(objectQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
@@ -3665,7 +3510,6 @@ main() {
       });
 
       test('leaves promoted, when writing a subtype', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial)
             ._declare(objectQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
@@ -3694,7 +3538,6 @@ main() {
 
       group('Promotes to NonNull of a type of interest', () {
         test('when declared type', () {
-          var h = Harness();
           var x = Var('x', 'int?');
 
           var s1 = FlowModel<Type>(Reachability.initial)._declare(x, true);
@@ -3711,7 +3554,6 @@ main() {
         });
 
         test('when declared type, if write-captured', () {
-          var h = Harness();
           var x = Var('x', 'int?');
 
           var s1 = FlowModel<Type>(Reachability.initial)._declare(x, true);
@@ -3735,7 +3577,6 @@ main() {
         });
 
         test('when promoted', () {
-          var h = Harness();
           var s1 = FlowModel<Type>(Reachability.initial)
               ._declare(objectQVar, true)
               ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
@@ -3757,7 +3598,6 @@ main() {
         });
 
         test('when not promoted', () {
-          var h = Harness();
           var s1 = FlowModel<Type>(Reachability.initial)
               ._declare(objectQVar, true)
               ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
@@ -3780,7 +3620,6 @@ main() {
       });
 
       test('Promotes to type of interest when not previously promoted', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial)
             ._declare(objectQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
@@ -3802,7 +3641,6 @@ main() {
       });
 
       test('Promotes to type of interest when previously promoted', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial)
             ._declare(objectQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
@@ -3827,11 +3665,7 @@ main() {
 
       group('Multiple candidate types of interest', () {
         group('; choose most specific', () {
-          late Harness h;
-
           setUp(() {
-            h = Harness();
-
             // class A {}
             // class B extends A {}
             // class C extends B {}
@@ -3947,7 +3781,6 @@ main() {
 
         group('; ambiguous', () {
           test('; no promotion', () {
-            var h = Harness();
             var s1 = FlowModel<Type>(Reachability.initial)
                 ._declare(objectQVar, true)
                 ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
@@ -3977,7 +3810,6 @@ main() {
         });
 
         test('exact match', () {
-          var h = Harness();
           var s1 = FlowModel<Type>(Reachability.initial)
               ._declare(objectQVar, true)
               ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
@@ -4007,8 +3839,6 @@ main() {
     group('demotion, to NonNull', () {
       test('when promoted via test', () {
         var x = Var('x', 'Object?');
-
-        var h = Harness();
 
         var s1 = FlowModel<Type>(Reachability.initial)
             ._declare(x, true)
@@ -4058,14 +3888,12 @@ main() {
 
     group('markNonNullable', () {
       test('unpromoted -> unchanged', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial);
         var s2 = s1._tryMarkNonNullable(h, intVar).ifTrue;
         expect(s2, same(s1));
       });
 
       test('unpromoted -> promoted', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial);
         var s2 = s1._tryMarkNonNullable(h, intQVar).ifTrue;
         expect(s2.reachable.overallReachable, true);
@@ -4074,7 +3902,6 @@ main() {
       });
 
       test('promoted -> unchanged', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
             .ifTrue;
@@ -4083,7 +3910,6 @@ main() {
       });
 
       test('promoted -> re-promoted', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
             .ifTrue;
@@ -4096,7 +3922,6 @@ main() {
       });
 
       test('promote to Never', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial);
         var s2 = s1._tryMarkNonNullable(h, nullVar).ifTrue;
         expect(s2.reachable.overallReachable, false);
@@ -4107,7 +3932,6 @@ main() {
 
     group('conservativeJoin', () {
       test('unchanged', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial)
             ._declare(intQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
@@ -4124,7 +3948,6 @@ main() {
       });
 
       test('written', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
             .ifTrue
@@ -4141,7 +3964,6 @@ main() {
       });
 
       test('write captured', () {
-        var h = Harness();
         var s1 = FlowModel<Type>(Reachability.initial)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
             .ifTrue
@@ -4160,7 +3982,6 @@ main() {
 
     group('rebaseForward', () {
       test('reachability', () {
-        var h = Harness();
         var reachable = FlowModel<Type>(Reachability.initial);
         var unreachable = reachable.setUnreachable();
         expect(reachable.rebaseForward(h, reachable), same(reachable));
@@ -4174,7 +3995,6 @@ main() {
       });
 
       test('assignments', () {
-        var h = Harness();
         var a = Var('a', 'int');
         var b = Var('b', 'int');
         var c = Var('c', 'int');
@@ -4198,7 +4018,6 @@ main() {
       });
 
       test('write captured', () {
-        var h = Harness();
         var a = Var('a', 'int');
         var b = Var('b', 'int');
         var c = Var('c', 'int');
@@ -4231,7 +4050,6 @@ main() {
       });
 
       test('write captured and promoted', () {
-        var h = Harness();
         var a = Var('a', 'num');
         var s0 = FlowModel<Type>(Reachability.initial)._declare(a, false);
         // In s1, a is write captured.  In s2 it's promoted.
@@ -4250,7 +4068,6 @@ main() {
       test('promotion', () {
         void _check(String? thisType, String? otherType, bool unsafe,
             List<String>? expectedChain) {
-          var h = Harness();
           var x = Var('x', 'Object?');
           var s0 = FlowModel<Type>(Reachability.initial)._declare(x, true);
           var s1 = s0;
@@ -4309,7 +4126,6 @@ main() {
         //   block, the expected promotion chain is [expectedResult].
         void _check(List<String> before, List<String> inTry,
             List<String> inFinally, List<String> expectedResult) {
-          var h = Harness();
           var x = Var('x', 'Object?');
           var initialModel =
               FlowModel<Type>(Reachability.initial)._declare(x, true);
@@ -4361,7 +4177,6 @@ main() {
       });
 
       test('types of interest', () {
-        var h = Harness();
         var a = Var('a', 'Object');
         var s0 = FlowModel<Type>(Reachability.initial)._declare(a, false);
         var s1 = s0._tryPromoteForTypeCheck(h, a, 'int').ifFalse;
@@ -4377,7 +4192,6 @@ main() {
       });
 
       test('variable present in one state but not the other', () {
-        var h = Harness();
         var x = Var('x', 'Object?');
         var s0 = FlowModel<Type>(Reachability.initial);
         var s1 = s0._declare(x, true);
@@ -4394,19 +4208,16 @@ main() {
     var objectType = Type('Object');
 
     test('should handle nulls', () {
-      var h = Harness();
       expect(VariableModel.joinPromotedTypes(null, null, h), null);
       expect(VariableModel.joinPromotedTypes(null, [intType], h), null);
       expect(VariableModel.joinPromotedTypes([intType], null, h), null);
     });
 
     test('should return null if there are no common types', () {
-      var h = Harness();
       expect(VariableModel.joinPromotedTypes([intType], [doubleType], h), null);
     });
 
     test('should return common prefix if there are common types', () {
-      var h = Harness();
       expect(
           VariableModel.joinPromotedTypes(
               [objectType, intType], [objectType, doubleType], h),
@@ -4418,7 +4229,6 @@ main() {
     });
 
     test('should return an input if it is a prefix of the other', () {
-      var h = Harness();
       var prefix = [objectType, numType];
       var largerChain = [objectType, numType, intType];
       expect(VariableModel.joinPromotedTypes(prefix, largerChain, h),
@@ -4429,8 +4239,6 @@ main() {
     });
 
     test('should intersect', () {
-      var h = Harness();
-
       // F <: E <: D <: C <: B <: A
       var A = Type('A');
       var B = Type('B');
@@ -4510,7 +4318,6 @@ main() {
         typeNames.map((t) => Type(t)).toList();
 
     test('simple prefix', () {
-      var h = Harness();
       var s1 = _makeTypes(['double', 'int']);
       var s2 = _makeTypes(['double', 'int', 'bool']);
       var expected = _matchOfInterestSet(['double', 'int', 'bool']);
@@ -4519,7 +4326,6 @@ main() {
     });
 
     test('common prefix', () {
-      var h = Harness();
       var s1 = _makeTypes(['double', 'int', 'String']);
       var s2 = _makeTypes(['double', 'int', 'bool']);
       var expected = _matchOfInterestSet(['double', 'int', 'String', 'bool']);
@@ -4528,7 +4334,6 @@ main() {
     });
 
     test('order mismatch', () {
-      var h = Harness();
       var s1 = _makeTypes(['double', 'int']);
       var s2 = _makeTypes(['int', 'double']);
       var expected = _matchOfInterestSet(['double', 'int']);
@@ -4537,7 +4342,6 @@ main() {
     });
 
     test('small common prefix', () {
-      var h = Harness();
       var s1 = _makeTypes(['int', 'double', 'String', 'bool']);
       var s2 = _makeTypes(['int', 'List', 'bool', 'Future']);
       var expected = _matchOfInterestSet(
@@ -4568,7 +4372,6 @@ main() {
 
     group('without input reuse', () {
       test('promoted with unpromoted', () {
-        var h = Harness();
         var p1 = {
           x: model([intType]),
           y: model(null)
@@ -4585,7 +4388,6 @@ main() {
     });
     group('should re-use an input if possible', () {
       test('identical inputs', () {
-        var h = Harness();
         var p = {
           x: model([intType]),
           y: model([stringType])
@@ -4594,7 +4396,6 @@ main() {
       });
 
       test('one input empty', () {
-        var h = Harness();
         var p1 = {
           x: model([intType]),
           y: model([stringType])
@@ -4605,7 +4406,6 @@ main() {
       });
 
       test('promoted with unpromoted', () {
-        var h = Harness();
         var p1 = {
           x: model([intType])
         };
@@ -4618,7 +4418,6 @@ main() {
       });
 
       test('related type chains', () {
-        var h = Harness();
         var p1 = {
           x: model([intQType, intType])
         };
@@ -4633,7 +4432,6 @@ main() {
       });
 
       test('unrelated type chains', () {
-        var h = Harness();
         var p1 = {
           x: model([intType])
         };
@@ -4648,7 +4446,6 @@ main() {
       });
 
       test('sub-map', () {
-        var h = Harness();
         var xModel = model([intType]);
         var p1 = {
           x: xModel,
@@ -4660,7 +4457,6 @@ main() {
       });
 
       test('sub-map with matched subtype', () {
-        var h = Harness();
         var p1 = {
           x: model([intQType, intType]),
           y: model([stringType])
@@ -4676,7 +4472,6 @@ main() {
       });
 
       test('sub-map with mismatched subtype', () {
-        var h = Harness();
         var p1 = {
           x: model([intQType]),
           y: model([stringType])
@@ -4692,7 +4487,6 @@ main() {
       });
 
       test('assigned', () {
-        var h = Harness();
         var unassigned = model(null, assigned: false);
         var assigned = model(null, assigned: true);
         var p1 = {x: assigned, y: assigned, z: unassigned, w: unassigned};
@@ -4709,7 +4503,6 @@ main() {
       });
 
       test('write captured', () {
-        var h = Harness();
         var intQModel = model([intQType]);
         var writeCapturedModel = intQModel.writeCapture();
         var p1 = {
@@ -4751,14 +4544,12 @@ main() {
             ssaNode: new SsaNode<Type>(null));
 
     test('first is null', () {
-      var h = Harness();
       var s1 = FlowModel.withInfo(Reachability.initial.split(), emptyMap);
       var result = FlowModel.merge(h, null, s1, emptyMap);
       expect(result.reachable, same(Reachability.initial));
     });
 
     test('second is null', () {
-      var h = Harness();
       var splitPoint = Reachability.initial.split();
       var afterSplit = splitPoint.split();
       var s1 = FlowModel.withInfo(afterSplit, emptyMap);
@@ -4767,7 +4558,6 @@ main() {
     });
 
     test('both are reachable', () {
-      var h = Harness();
       var splitPoint = Reachability.initial.split();
       var afterSplit = splitPoint.split();
       var s1 = FlowModel.withInfo(afterSplit, {
@@ -4782,7 +4572,6 @@ main() {
     });
 
     test('first is unreachable', () {
-      var h = Harness();
       var splitPoint = Reachability.initial.split();
       var afterSplit = splitPoint.split();
       var s1 = FlowModel.withInfo(afterSplit.setUnreachable(), {
@@ -4797,7 +4586,6 @@ main() {
     });
 
     test('second is unreachable', () {
-      var h = Harness();
       var splitPoint = Reachability.initial.split();
       var afterSplit = splitPoint.split();
       var s1 = FlowModel.withInfo(afterSplit, {
@@ -4812,7 +4600,6 @@ main() {
     });
 
     test('both are unreachable', () {
-      var h = Harness();
       var splitPoint = Reachability.initial.split();
       var afterSplit = splitPoint.split();
       var s1 = FlowModel.withInfo(afterSplit.setUnreachable(), {
@@ -4843,7 +4630,6 @@ main() {
             ssaNode: new SsaNode<Type>(null));
 
     test('inherits types of interest from other', () {
-      var h = Harness();
       var m1 = FlowModel.withInfo(Reachability.initial, {
         x: model([intType])
       });
@@ -4855,7 +4641,6 @@ main() {
     });
 
     test('handles variable missing from other', () {
-      var h = Harness();
       var m1 = FlowModel.withInfo(Reachability.initial, {
         x: model([intType])
       });
@@ -4864,7 +4649,6 @@ main() {
     });
 
     test('returns identical model when no changes', () {
-      var h = Harness();
       var m1 = FlowModel.withInfo(Reachability.initial, {
         x: model([intType])
       });
@@ -4879,7 +4663,7 @@ main() {
     group('if statement', () {
       group('promotes a variable whose type is shown by its condition', () {
         test('within then-block', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             if_(x.expr.is_('int'), [
@@ -4889,7 +4673,7 @@ main() {
         });
 
         test('but not within else-block', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             if_(x.expr.is_('int'), [], [
@@ -4899,7 +4683,7 @@ main() {
         });
 
         test('unless the then-block mutates it', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             if_(x.expr.is_('int'), [
@@ -4910,7 +4694,7 @@ main() {
         });
 
         test('even if the condition mutates it', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             if_(
@@ -4926,7 +4710,7 @@ main() {
         });
 
         test('even if the else-block mutates it', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             if_(x.expr.is_('int'), [
@@ -4938,7 +4722,7 @@ main() {
         });
 
         test('unless a closure mutates it', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             if_(x.expr.is_('int'), [
@@ -4953,7 +4737,7 @@ main() {
         test(
             'unless a closure in the then-block accesses it and it is mutated '
             'anywhere', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             if_(x.expr.is_('int'), [
@@ -4969,7 +4753,7 @@ main() {
         test(
             'unless a closure in the then-block accesses it and it is mutated '
             'anywhere, even if the access is deeply nested', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             if_(x.expr.is_('int'), [
@@ -4987,7 +4771,7 @@ main() {
         test(
             'even if a closure in the condition accesses it and it is mutated '
             'somewhere', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             if_(
@@ -5004,7 +4788,7 @@ main() {
         test(
             'even if a closure in the else-block accesses it and it is mutated '
             'somewhere', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             if_(x.expr.is_('int'), [
@@ -5021,7 +4805,7 @@ main() {
         test(
             'even if a closure in the then-block accesses it, provided it is '
             'not mutated anywhere', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             if_(x.expr.is_('int'), [
@@ -5035,14 +4819,14 @@ main() {
       });
 
       test('handles arbitrary conditions', () {
-        var h = Harness(legacy: true);
+        h.legacy = true;
         h.run([
           if_(expr('bool'), []),
         ]);
       });
 
       test('handles a condition that is a variable', () {
-        var h = Harness(legacy: true);
+        h.legacy = true;
         var x = Var('x', 'bool');
         h.run([
           if_(x.expr, []),
@@ -5050,7 +4834,7 @@ main() {
       });
 
       test('handles multiple promotions', () {
-        var h = Harness(legacy: true);
+        h.legacy = true;
         var x = Var('x', 'Object');
         var y = Var('y', 'Object');
         h.run([
@@ -5065,7 +4849,7 @@ main() {
     group('conditional expression', () {
       group('promotes a variable whose type is shown by its condition', () {
         test('within then-expression', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             x.expr
@@ -5077,7 +4861,7 @@ main() {
         });
 
         test('but not within else-expression', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             x.expr
@@ -5089,7 +4873,7 @@ main() {
         });
 
         test('unless the then-expression mutates it', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             x.expr
@@ -5105,7 +4889,7 @@ main() {
         });
 
         test('even if the condition mutates it', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             x
@@ -5120,7 +4904,7 @@ main() {
         });
 
         test('even if the else-expression mutates it', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             x.expr
@@ -5132,7 +4916,7 @@ main() {
         });
 
         test('unless a closure mutates it', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             x.expr
@@ -5149,7 +4933,7 @@ main() {
         test(
             'unless a closure in the then-expression accesses it and it is '
             'mutated anywhere', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             x.expr
@@ -5170,7 +4954,7 @@ main() {
         test(
             'even if a closure in the condition accesses it and it is mutated '
             'somewhere', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             localFunction([
@@ -5188,7 +4972,7 @@ main() {
         test(
             'even if a closure in the else-expression accesses it and it is '
             'mutated somewhere', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             x.expr
@@ -5206,7 +4990,7 @@ main() {
         test(
             'even if a closure in the then-expression accesses it, provided it '
             'is not mutated anywhere', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             x.expr
@@ -5225,14 +5009,14 @@ main() {
       });
 
       test('handles arbitrary conditions', () {
-        var h = Harness(legacy: true);
+        h.legacy = true;
         h.run([
           expr('bool').conditional(expr('Object'), expr('Object')).stmt,
         ]);
       });
 
       test('handles a condition that is a variable', () {
-        var h = Harness(legacy: true);
+        h.legacy = true;
         var x = Var('x', 'bool');
         h.run([
           x.expr.conditional(expr('Object'), expr('Object')).stmt,
@@ -5240,7 +5024,7 @@ main() {
       });
 
       test('handles multiple promotions', () {
-        var h = Harness(legacy: true);
+        h.legacy = true;
         var x = Var('x', 'Object');
         var y = Var('y', 'Object');
         h.run([
@@ -5262,7 +5046,7 @@ main() {
       group('and', () {
         group("shows a variable's type", () {
           test('if the lhs shows the type', () {
-            var h = Harness(legacy: true);
+            h.legacy = true;
             var x = Var('x', 'Object');
             h.run([
               if_(x.expr.is_('int').and(expr('bool')), [
@@ -5272,7 +5056,7 @@ main() {
           });
 
           test('if the rhs shows the type', () {
-            var h = Harness(legacy: true);
+            h.legacy = true;
             var x = Var('x', 'Object');
             h.run([
               if_(expr('bool').and(x.expr.is_('int')), [
@@ -5282,7 +5066,7 @@ main() {
           });
 
           test('unless the rhs mutates it', () {
-            var h = Harness(legacy: true);
+            h.legacy = true;
             var x = Var('x', 'Object');
             h.run([
               if_(x.expr.is_('int').and(x.write(expr('bool'))), [
@@ -5293,7 +5077,7 @@ main() {
 
           test('unless the rhs mutates it, even if the rhs also shows the type',
               () {
-            var h = Harness(legacy: true);
+            h.legacy = true;
             var x = Var('x', 'Object');
             h.run([
               if_(
@@ -5308,7 +5092,7 @@ main() {
           });
 
           test('unless a closure mutates it', () {
-            var h = Harness(legacy: true);
+            h.legacy = true;
             var x = Var('x', 'Object');
             h.run([
               if_(x.expr.is_('int').and(expr('bool')), [
@@ -5323,7 +5107,7 @@ main() {
 
         group('promotes a variable whose type is shown by its lhs', () {
           test('within its rhs', () {
-            var h = Harness(legacy: true);
+            h.legacy = true;
             var x = Var('x', 'Object');
             h.run([
               x.expr
@@ -5334,7 +5118,7 @@ main() {
           });
 
           test('unless the lhs mutates it', () {
-            var h = Harness(legacy: true);
+            h.legacy = true;
             var x = Var('x', 'Object');
             h.run([
               x
@@ -5349,7 +5133,7 @@ main() {
           });
 
           test('unless the rhs mutates it', () {
-            var h = Harness(legacy: true);
+            h.legacy = true;
             var x = Var('x', 'Object');
             h.run([
               x.expr
@@ -5360,7 +5144,7 @@ main() {
           });
 
           test('unless a closure mutates it', () {
-            var h = Harness(legacy: true);
+            h.legacy = true;
             var x = Var('x', 'Object');
             h.run([
               x.expr
@@ -5376,7 +5160,7 @@ main() {
           test(
               'unless a closure in the rhs accesses it and it is mutated '
               'anywhere', () {
-            var h = Harness(legacy: true);
+            h.legacy = true;
             var x = Var('x', 'Object');
             h.run([
               x.expr
@@ -5395,7 +5179,7 @@ main() {
           test(
               'even if a closure in the lhs accesses it and it is mutated '
               'somewhere', () {
-            var h = Harness(legacy: true);
+            h.legacy = true;
             var x = Var('x', 'Object');
             h.run([
               localFunction([
@@ -5413,7 +5197,7 @@ main() {
           test(
               'even if a closure in the rhs accesses it, provided it is not '
               'mutated anywhere', () {
-            var h = Harness(legacy: true);
+            h.legacy = true;
             var x = Var('x', 'Object');
             h.run([
               x.expr
@@ -5430,7 +5214,7 @@ main() {
         });
 
         test('uses lhs promotion if rhs is not to a subtype', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           // Note: for this to be an effective test, we need to mutate `x` on
           // the LHS of the outer `&&` so that `x` is not promoted on the RHS
@@ -5450,7 +5234,7 @@ main() {
         });
 
         test('uses rhs promotion if rhs is to a subtype', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             if_(x.expr.is_('num').and(x.expr.is_('int')), [
@@ -5460,7 +5244,7 @@ main() {
         });
 
         test('can handle multiple promotions on lhs', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           var y = Var('y', 'Object');
           h.run([
@@ -5477,7 +5261,7 @@ main() {
         });
 
         test('handles variables', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'bool');
           var y = Var('y', 'bool');
           h.run([
@@ -5486,7 +5270,7 @@ main() {
         });
 
         test('handles arbitrary expressions', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           h.run([
             if_(expr('bool').and(expr('bool')), []),
           ]);
@@ -5494,7 +5278,7 @@ main() {
       });
 
       test('or is ignored', () {
-        var h = Harness(legacy: true);
+        h.legacy = true;
         var x = Var('x', 'Object');
         h.run([
           if_(x.expr.is_('int').or(x.expr.is_('int')), [
@@ -5509,7 +5293,7 @@ main() {
     group('is test', () {
       group("shows a variable's type", () {
         test('normally', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             if_(x.expr.is_('int'), [
@@ -5521,7 +5305,7 @@ main() {
         });
 
         test('unless the test is inverted', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             if_(x.expr.is_('int', isInverted: true), [
@@ -5534,7 +5318,7 @@ main() {
 
         test('unless the tested type is not a subtype of the declared type',
             () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'String');
           h.run([
             if_(x.expr.is_('int'), [
@@ -5546,7 +5330,7 @@ main() {
         });
 
         test("even when the variable's type has been previously promoted", () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             if_(x.expr.is_('num'), [
@@ -5562,7 +5346,7 @@ main() {
         test(
             'unless the tested type is not a subtype of the previously '
             'promoted type', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           var x = Var('x', 'Object');
           h.run([
             if_(x.expr.is_('String'), [
@@ -5576,7 +5360,7 @@ main() {
         });
 
         test('even when the declared type is a type variable', () {
-          var h = Harness(legacy: true);
+          h.legacy = true;
           h.addPromotionException('T', 'int', 'T&int');
           var x = Var('x', 'T');
           h.run([
@@ -5588,7 +5372,7 @@ main() {
       });
 
       test('handles arbitrary expressions', () {
-        var h = Harness(legacy: true);
+        h.legacy = true;
         h.run([
           if_(expr('Object').is_('int'), []),
         ]);
@@ -5597,7 +5381,7 @@ main() {
 
     test('forwardExpression does not re-activate a deeply nested expression',
         () {
-      var h = Harness(legacy: true);
+      h.legacy = true;
       var x = Var('x', 'Object');
       h.run([
         if_(x.expr.is_('int').eq(expr('Object')).thenStmt(block([])), [
@@ -5609,7 +5393,7 @@ main() {
     test(
         'parenthesizedExpression does not re-activate a deeply nested '
         'expression', () {
-      var h = Harness(legacy: true);
+      h.legacy = true;
       var x = Var('x', 'Object');
       h.run([
         if_(x.expr.is_('int').eq(expr('Object')).parenthesized, [
@@ -5619,7 +5403,7 @@ main() {
     });
 
     test('variableRead returns the promoted type if promoted', () {
-      var h = Harness(legacy: true);
+      h.legacy = true;
       var x = Var('x', 'Object');
       h.run([
         if_(
@@ -5637,7 +5421,6 @@ main() {
 
   group('why not promoted', () {
     test('due to assignment', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       late Expression writeExpression;
       h.run([
@@ -5658,7 +5441,6 @@ main() {
     });
 
     test('due to assignment, multiple demotions', () {
-      var h = Harness();
       var x = Var('x', 'Object?');
       late Expression writeExpression;
       h.run([
@@ -5683,7 +5465,6 @@ main() {
     });
 
     test('preserved in join when one branch unreachable', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       late Expression writeExpression;
       h.run([
@@ -5707,7 +5488,6 @@ main() {
     });
 
     test('preserved in later promotions', () {
-      var h = Harness();
       var x = Var('x', 'Object');
       late Expression writeExpression;
       h.run([
@@ -5731,7 +5511,6 @@ main() {
     });
 
     test('re-promotion', () {
-      var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
@@ -5753,7 +5532,8 @@ main() {
 
     group('because property', () {
       test('via explicit this', () {
-        var h = Harness(thisType: 'C')..addMember('C', 'field', 'Object?');
+        h.thisType = 'C';
+        h.addMember('C', 'field', 'Object?');
         h.run([
           if_(this_.property('field').eq(nullLiteral), [
             return_(),
@@ -5767,7 +5547,8 @@ main() {
       });
 
       test('via implicit this/super', () {
-        var h = Harness(thisType: 'C')..addMember('C', 'field', 'Object?');
+        h.thisType = 'C';
+        h.addMember('C', 'field', 'Object?');
         h.run([
           if_(thisOrSuperProperty('field').eq(nullLiteral), [
             return_(),
@@ -5781,7 +5562,7 @@ main() {
       });
 
       test('via variable', () {
-        var h = Harness()..addMember('C', 'field', 'Object?');
+        h.addMember('C', 'field', 'Object?');
         var x = Var('x', 'C');
         h.run([
           declare(x, initialized: true),
@@ -5799,9 +5580,9 @@ main() {
 
     group('because this', () {
       test('explicit', () {
-        var h = Harness(thisType: 'C')
-          ..addSubtype('D', 'C', true)
-          ..addFactor('C', 'D', 'C');
+        h.thisType = 'C';
+        h.addSubtype('D', 'C', true);
+        h.addFactor('C', 'D', 'C');
         h.run([
           if_(this_.isNot('D'), [
             return_(),
@@ -5815,9 +5596,9 @@ main() {
       });
 
       test('implicit', () {
-        var h = Harness(thisType: 'C')
-          ..addSubtype('D', 'C', true)
-          ..addFactor('C', 'D', 'C');
+        h.thisType = 'C';
+        h.addSubtype('D', 'C', true);
+        h.addFactor('C', 'D', 'C');
         h.run([
           if_(this_.isNot('D'), [
             return_(),
@@ -5834,7 +5615,7 @@ main() {
 
   group('Field promotion', () {
     test('promotable field', () {
-      var h = Harness()..addMember('C', '_field', 'Object?', promotable: true);
+      h.addMember('C', '_field', 'Object?', promotable: true);
       var x = Var('x', 'C');
       h.run([
         declare(x, initialized: true),
@@ -5847,8 +5628,8 @@ main() {
     });
 
     test('promotable field, this', () {
-      var h = Harness(thisType: 'C')
-        ..addMember('C', '_field', 'Object?', promotable: true);
+      h.thisType = 'C';
+      h.addMember('C', '_field', 'Object?', promotable: true);
       h.run([
         if_(thisOrSuperProperty('_field').eq(nullLiteral), [
           return_(),
@@ -5859,7 +5640,7 @@ main() {
     });
 
     test('non-promotable field', () {
-      var h = Harness()..addMember('C', '_field', 'Object?', promotable: false);
+      h.addMember('C', '_field', 'Object?', promotable: false);
       var x = Var('x', 'C');
       h.run([
         declare(x, initialized: true),
@@ -5872,8 +5653,8 @@ main() {
     });
 
     test('non-promotable field, this', () {
-      var h = Harness(thisType: 'C')
-        ..addMember('C', '_field', 'Object?', promotable: false);
+      h.thisType = 'C';
+      h.addMember('C', '_field', 'Object?', promotable: false);
       h.run([
         if_(thisOrSuperProperty('_field').eq(nullLiteral), [
           return_(),
@@ -5884,7 +5665,7 @@ main() {
     });
 
     test('multiply promoted', () {
-      var h = Harness()..addMember('C', '_field', 'Object?', promotable: true);
+      h.addMember('C', '_field', 'Object?', promotable: true);
       var x = Var('x', 'C');
       h.run([
         declare(x, initialized: true),
@@ -5900,8 +5681,8 @@ main() {
     });
 
     test('multiply promoted, this', () {
-      var h = Harness(thisType: 'C')
-        ..addMember('C', '_field', 'Object?', promotable: true);
+      h.thisType = 'C';
+      h.addMember('C', '_field', 'Object?', promotable: true);
       h.run([
         if_(thisOrSuperProperty('_field').eq(nullLiteral), [
           return_(),
@@ -5915,11 +5696,10 @@ main() {
     });
 
     test('promotion of target breaks field promotion', () {
-      var h = Harness()
-        ..addMember('B', '_field', 'Object?', promotable: true)
-        ..addMember('C', '_field', 'num?', promotable: true)
-        ..addSubtype('C', 'B', true)
-        ..addFactor('B', 'C', 'B');
+      h.addMember('B', '_field', 'Object?', promotable: true);
+      h.addMember('C', '_field', 'num?', promotable: true);
+      h.addSubtype('C', 'B', true);
+      h.addFactor('B', 'C', 'B');
       var x = Var('x', 'B');
       h.run([
         declare(x, initialized: true),
@@ -5937,11 +5717,10 @@ main() {
     });
 
     test('promotion of target does not break field promotion', () {
-      var h = Harness()
-        ..addMember('B', '_field', 'Object?', promotable: true)
-        ..addMember('C', '_field', 'num?', promotable: true)
-        ..addSubtype('C', 'B', true)
-        ..addFactor('B', 'C', 'B');
+      h.addMember('B', '_field', 'Object?', promotable: true);
+      h.addMember('C', '_field', 'num?', promotable: true);
+      h.addSubtype('C', 'B', true);
+      h.addFactor('B', 'C', 'B');
       var x = Var('x', 'B');
       h.run([
         declare(x, initialized: true),
@@ -5959,11 +5738,10 @@ main() {
     });
 
     test('field not promotable after outer variable demoted', () {
-      var h = Harness()
-        ..addMember('B', '_field', 'Object?', promotable: false)
-        ..addMember('C', '_field', 'Object?', promotable: true)
-        ..addSubtype('C', 'B', true)
-        ..addFactor('B', 'C', 'B');
+      h.addMember('B', '_field', 'Object?', promotable: false);
+      h.addMember('C', '_field', 'Object?', promotable: true);
+      h.addSubtype('C', 'B', true);
+      h.addFactor('B', 'C', 'B');
       var x = Var('x', 'B');
       h.run([
         declare(x, initialized: true),
@@ -5981,11 +5759,10 @@ main() {
     });
 
     test('field promotable after outer variable promoted', () {
-      var h = Harness()
-        ..addMember('B', '_field', 'Object?', promotable: false)
-        ..addMember('C', '_field', 'Object?', promotable: true)
-        ..addSubtype('C', 'B', true)
-        ..addFactor('B', 'C', 'B');
+      h.addMember('B', '_field', 'Object?', promotable: false);
+      h.addMember('C', '_field', 'Object?', promotable: true);
+      h.addSubtype('C', 'B', true);
+      h.addFactor('B', 'C', 'B');
       var x = Var('x', 'B');
       h.run([
         declare(x, initialized: true),
@@ -6003,9 +5780,9 @@ main() {
     });
 
     test('promotion targets properly distinguished', () {
-      var h = Harness(thisType: 'C')
-        ..addMember('C', '_field1', 'Object?', promotable: true)
-        ..addMember('C', '_field2', 'Object?', promotable: true);
+      h.thisType = 'C';
+      h.addMember('C', '_field1', 'Object?', promotable: true);
+      h.addMember('C', '_field2', 'Object?', promotable: true);
       var x = Var('x', 'C');
       var y = Var('x', 'C');
       h.run([
