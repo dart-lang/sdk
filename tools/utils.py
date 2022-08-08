@@ -176,7 +176,7 @@ def HostArchitectures():
             # X64 Macs no longer support IA32.
             return ['x64']
     else:
-        if m in ['aarch64', 'arm64', 'arm64e']:
+        if m in ['aarch64', 'arm64', 'arm64e', 'ARM64']:
             return ['arm64']
         if m in ['armv7l']:
             return ['arm']
