@@ -51,6 +51,26 @@ void g() {
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/49596
+  test_legacyRequired() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class Foo {
+  int? foo;
+  Foo({required this.foo});
+}
+''');
+    await resolveFile(a.path);
+
+    await assertNoDiagnostics(r'''
+// @dart = 2.9
+import 'a.dart';
+
+void f() {
+  Foo(foo: null);
+}
+''');
+  }
+
   test_requiredNullable() async {
     await assertNoDiagnostics(r'''
 void f({required int? x}) { }

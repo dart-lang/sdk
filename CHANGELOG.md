@@ -1,3 +1,20 @@
+# 1.27.0
+
+- fix `avoid_redundant_argument_values` when referencing required 
+  parameters in legacy libraries
+- performance improvements for `use_late_for_private_fields_and_variables`
+- new lint: `use_string_in_part_of_directives`
+- fixed `use_super_parameters` false positive with repeated super
+  parameter references
+- updated `use_late_for_private_fields_and_variables` to handle enums
+- fixed `prefer_contains` false positive when start index is non-zero
+- improved `noop_primitive_operations` to catch `.toString()`
+  in string interpolations
+- updated `public_member_api_docs` to report diagnostics on extension
+  names (instead of bodies)
+- miscellaneous documentation improvements
+- (internal): `DartTypeUtilities` refactoring
+
 # 1.26.0
 
 - new lint: `combinators_ordering`
