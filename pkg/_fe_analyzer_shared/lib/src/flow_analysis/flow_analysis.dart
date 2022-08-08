@@ -2045,23 +2045,21 @@ class FlowModel<Type extends Object> {
   /// Note that the state is only changed if the previous type of [variable] was
   /// potentially nullable.
   ExpressionInfo<Type> tryMarkNonNullable(
-      TypeOperations<Type> typeOperations,
-      ReferenceWithType<Type> referenceWithType,
-      PromotionKeyStore<Object> promotionKeyStore) {
+      FlowModelHelper<Type> helper, ReferenceWithType<Type> referenceWithType) {
     VariableModel<Type> info = _getInfo(referenceWithType.promotionKey);
     if (info.writeCaptured) {
       return new _TrivialExpressionInfo<Type>(this);
     }
 
     Type previousType = referenceWithType.type;
-    Type newType = typeOperations.promoteToNonNull(previousType);
-    if (typeOperations.isSameType(newType, previousType)) {
+    Type newType = helper.typeOperations.promoteToNonNull(previousType);
+    if (helper.typeOperations.isSameType(newType, previousType)) {
       return new _TrivialExpressionInfo<Type>(this);
     }
-    assert(typeOperations.isSubtypeOf(newType, previousType));
+    assert(helper.typeOperations.isSubtypeOf(newType, previousType));
 
-    FlowModel<Type> ifTrue = _finishTypeTest(typeOperations, referenceWithType,
-        info, null, newType, promotionKeyStore);
+    FlowModel<Type> ifTrue =
+        _finishTypeTest(helper, referenceWithType, info, null, newType);
 
     return new ExpressionInfo<Type>(after: this, ifTrue: ifTrue, ifFalse: this);
   }
@@ -2075,26 +2073,23 @@ class FlowModel<Type extends Object> {
   ///
   /// TODO(paulberry): if the type is non-nullable, should this method mark the
   /// variable as definitely assigned?  Does it matter?
-  FlowModel<Type> tryPromoteForTypeCast(
-      TypeOperations<Type> typeOperations,
-      ReferenceWithType<Type> referenceWithType,
-      Type type,
-      PromotionKeyStore<Object> promotionKeyStore) {
+  FlowModel<Type> tryPromoteForTypeCast(FlowModelHelper<Type> helper,
+      ReferenceWithType<Type> referenceWithType, Type type) {
     VariableModel<Type> info = _getInfo(referenceWithType.promotionKey);
     if (info.writeCaptured) {
       return this;
     }
 
     Type previousType = referenceWithType.type;
-    Type? newType = typeOperations.tryPromoteToType(type, previousType);
-    if (newType == null || typeOperations.isSameType(newType, previousType)) {
+    Type? newType = helper.typeOperations.tryPromoteToType(type, previousType);
+    if (newType == null ||
+        helper.typeOperations.isSameType(newType, previousType)) {
       return this;
     }
 
-    assert(typeOperations.isSubtypeOf(newType, previousType),
+    assert(helper.typeOperations.isSubtypeOf(newType, previousType),
         "Expected $newType to be a subtype of $previousType.");
-    return _finishTypeTest(typeOperations, referenceWithType, info, type,
-        newType, promotionKeyStore);
+    return _finishTypeTest(helper, referenceWithType, info, type, newType);
   }
 
   /// Returns an [ExpressionInfo] indicating the result of checking whether the
@@ -2106,11 +2101,8 @@ class FlowModel<Type extends Object> {
   ///
   /// TODO(paulberry): if the type is non-nullable, should this method mark the
   /// variable as definitely assigned?  Does it matter?
-  ExpressionInfo<Type> tryPromoteForTypeCheck(
-      TypeOperations<Type> typeOperations,
-      ReferenceWithType<Type> referenceWithType,
-      Type type,
-      PromotionKeyStore<Object> promotionKeyStore) {
+  ExpressionInfo<Type> tryPromoteForTypeCheck(FlowModelHelper<Type> helper,
+      ReferenceWithType<Type> referenceWithType, Type type) {
     VariableModel<Type> info = _getInfo(referenceWithType.promotionKey);
     if (info.writeCaptured) {
       return new _TrivialExpressionInfo<Type>(this);
@@ -2118,29 +2110,30 @@ class FlowModel<Type extends Object> {
 
     Type previousType = referenceWithType.type;
     FlowModel<Type> ifTrue = this;
-    Type? typeIfSuccess = typeOperations.tryPromoteToType(type, previousType);
+    Type? typeIfSuccess =
+        helper.typeOperations.tryPromoteToType(type, previousType);
     if (typeIfSuccess != null &&
-        !typeOperations.isSameType(typeIfSuccess, previousType)) {
-      assert(typeOperations.isSubtypeOf(typeIfSuccess, previousType),
+        !helper.typeOperations.isSameType(typeIfSuccess, previousType)) {
+      assert(helper.typeOperations.isSubtypeOf(typeIfSuccess, previousType),
           "Expected $typeIfSuccess to be a subtype of $previousType.");
-      ifTrue = _finishTypeTest(typeOperations, referenceWithType, info, type,
-          typeIfSuccess, promotionKeyStore);
+      ifTrue =
+          _finishTypeTest(helper, referenceWithType, info, type, typeIfSuccess);
     }
 
-    Type factoredType = typeOperations.factor(previousType, type);
+    Type factoredType = helper.typeOperations.factor(previousType, type);
     Type? typeIfFalse;
-    if (typeOperations.isNever(factoredType)) {
+    if (helper.typeOperations.isNever(factoredType)) {
       // Promoting to `Never` would mark the code as unreachable.  But it might
       // be reachable due to mixed mode unsoundness.  So don't promote.
       typeIfFalse = null;
-    } else if (typeOperations.isSameType(factoredType, previousType)) {
+    } else if (helper.typeOperations.isSameType(factoredType, previousType)) {
       // No change to the type, so don't promote.
       typeIfFalse = null;
     } else {
       typeIfFalse = factoredType;
     }
-    FlowModel<Type> ifFalse = _finishTypeTest(typeOperations, referenceWithType,
-        info, type, typeIfFalse, promotionKeyStore);
+    FlowModel<Type> ifFalse =
+        _finishTypeTest(helper, referenceWithType, info, type, typeIfFalse);
 
     return new ExpressionInfo<Type>(
         after: this, ifTrue: ifTrue, ifFalse: ifFalse);
@@ -2200,16 +2193,15 @@ class FlowModel<Type extends Object> {
   ///   no redundant or side-promotions)
   /// - The variable should not be write-captured.
   FlowModel<Type> _finishTypeTest(
-      TypeOperations<Type> typeOperations,
+      FlowModelHelper<Type> helper,
       ReferenceWithType<Type> reference,
       VariableModel<Type> info,
       Type? testedType,
-      Type? promotedType,
-      PromotionKeyStore<Object> promotionKeyStore) {
+      Type? promotedType) {
     List<Type> newTested = info.tested;
     if (testedType != null) {
       newTested = VariableModel._addTypeToUniqueList(
-          info.tested, testedType, typeOperations);
+          info.tested, testedType, helper.typeOperations);
     }
 
     List<Type>? newPromotedTypes = info.promotedTypes;
@@ -2217,8 +2209,8 @@ class FlowModel<Type extends Object> {
     if (promotedType != null) {
       newPromotedTypes =
           VariableModel._addToPromotedTypes(info.promotedTypes, promotedType);
-      if (reference.isPromotable(promotionKeyStore) &&
-          typeOperations.isNever(promotedType)) {
+      if (reference.isPromotable(helper) &&
+          helper.typeOperations.isNever(promotedType)) {
         newReachable = reachable.setUnreachable();
       }
     }
@@ -2403,6 +2395,26 @@ class FlowModel<Type extends Object> {
   }
 }
 
+/// Interface used by [FlowModel] and [ReferenceWithType] methods to access
+/// variables in [_FlowAnalysisImpl].
+@visibleForTesting
+abstract class FlowModelHelper<Type extends Object> {
+  /// The set of fields that can be promoted.  The type of the set element is
+  /// `Object?` to match the type of the `propertyMember` argument of
+  /// [promotedFieldType], [propertyGet], and [thisOrSuperPropertyGet].
+  @visibleForTesting
+  Set<Object?> get promotableFields;
+
+  /// The [PromotionKeyStore], which tracks the unique integer assigned to
+  /// everything in the control flow that might be promotable.
+  @visibleForTesting
+  PromotionKeyStore<Object> get promotionKeyStore;
+
+  /// The [TypeOperations], used to access types and check subtyping.
+  @visibleForTesting
+  TypeOperations<Type> get typeOperations;
+}
+
 /// Linked list node representing a set of reasons why a given expression was
 /// not promoted.
 ///
@@ -2490,11 +2502,6 @@ class PromotionKeyStore<Variable extends Object> {
   /// Null list elements are considered equivalent to an empty map (this allows
   /// us so save memory due to the fact that most entries will not be accessed).
   final List<Map<String, int>?> _properties = [];
-
-  /// The set of fields that can be promoted.  The type of the set element is
-  /// `Object?` to match the type of the `propertyMember` argument of
-  /// [promotedFieldType], [propertyGet], and [thisOrSuperPropertyGet].
-  late final Set<Object?> _promotableFields;
 
   int getProperty(int targetKey, String propertyName) =>
       (_properties[targetKey] ??= {})[propertyName] ??= _makeNewKey(null);
@@ -2694,8 +2701,8 @@ class ReferenceWithType<Type extends Object> {
 
   ReferenceWithType(this.promotionKey, this.type);
 
-  bool isPromotable(PromotionKeyStore<Object> promotionKeyStore) =>
-      promotionKeyStore.variableForKey(promotionKey) != null;
+  bool isPromotable(FlowModelHelper<Type> helper) =>
+      helper.promotionKeyStore.variableForKey(promotionKey) != null;
 
   @override
   String toString() => 'ReferenceWithType($promotionKey, $type)';
@@ -3450,7 +3457,9 @@ class _DemotionResult<Type extends Object> {
 
 class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         Expression extends Object, Variable extends Object, Type extends Object>
-    implements FlowAnalysis<Node, Statement, Expression, Variable, Type> {
+    implements
+        FlowAnalysis<Node, Statement, Expression, Variable, Type>,
+        FlowModelHelper<Type> {
   /// The [Operations], used to access types, check subtyping, and query
   /// variable types.
   @override
@@ -3493,13 +3502,16 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// analyzing old language versions).
   final bool respectImplicitlyTypedVarInitializers;
 
-  final PromotionKeyStore<Variable> _promotionKeyStore;
+  @override
+  final PromotionKeyStore<Variable> promotionKeyStore;
+
+  @override
+  final Set<Object?> promotableFields;
 
   _FlowAnalysisImpl(this.operations, this._assignedVariables,
       {required this.respectImplicitlyTypedVarInitializers,
-      Set<Object?> promotableFields = const {}})
-      : _promotionKeyStore = _assignedVariables._promotionKeyStore {
-    _promotionKeyStore._promotableFields = promotableFields;
+      this.promotableFields = const {}})
+      : promotionKeyStore = _assignedVariables._promotionKeyStore {
     if (!_assignedVariables._isFinished) {
       _assignedVariables.finish();
     }
@@ -3515,12 +3527,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   bool get isReachable => _current.reachable.overallReachable;
 
   @override
+  TypeOperations<Type> get typeOperations => operations;
+
+  @override
   void asExpression_end(Expression subExpression, Type type) {
     ReferenceWithType<Type>? referenceWithType =
         _getExpressionReference(subExpression);
     if (referenceWithType == null) return;
-    _current = _current.tryPromoteForTypeCast(
-        operations, referenceWithType, type, _promotionKeyStore);
+    _current = _current.tryPromoteForTypeCast(this, referenceWithType, type);
   }
 
   @override
@@ -3593,7 +3607,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void declare(Variable variable, bool initialized) {
     _current = _current.declare(
-        _promotionKeyStore.keyForVariable(variable), initialized);
+        promotionKeyStore.keyForVariable(variable), initialized);
   }
 
   @override
@@ -3656,14 +3670,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       // either result is possible.
     } else if (leftOperandInfo._expressionInfo is _NullInfo<Type> &&
         rhsReference != null) {
-      ExpressionInfo<Type> equalityInfo = _current.tryMarkNonNullable(
-          operations, rhsReference, _promotionKeyStore);
+      ExpressionInfo<Type> equalityInfo =
+          _current.tryMarkNonNullable(this, rhsReference);
       _storeExpressionInfo(
           wholeExpression, notEqual ? equalityInfo : equalityInfo.invert());
     } else if (rightOperandInfo._expressionInfo is _NullInfo<Type> &&
         lhsReference != null) {
-      ExpressionInfo<Type> equalityInfo = _current.tryMarkNonNullable(
-          operations, lhsReference, _promotionKeyStore);
+      ExpressionInfo<Type> equalityInfo =
+          _current.tryMarkNonNullable(this, lhsReference);
       _storeExpressionInfo(
           wholeExpression, notEqual ? equalityInfo : equalityInfo.invert());
     }
@@ -3801,9 +3815,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     FlowModel<Type> shortcutState;
     _current = _current.split();
     if (lhsReference != null) {
-      shortcutState = _current
-          .tryMarkNonNullable(operations, lhsReference, _promotionKeyStore)
-          .ifTrue;
+      shortcutState = _current.tryMarkNonNullable(this, lhsReference).ifTrue;
     } else {
       shortcutState = _current;
     }
@@ -3864,7 +3876,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       {required bool isFinal,
       required bool isLate,
       required bool isImplicitlyTyped}) {
-    int variableKey = _promotionKeyStore.keyForVariable(variable);
+    int variableKey = promotionKeyStore.keyForVariable(variable);
     ExpressionInfo<Type>? expressionInfo;
     if (isLate) {
       // Don't get expression info for late variables, since we don't know when
@@ -3885,11 +3897,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (isImplicitlyTyped && operations.isTypeParameterType(initializerType)) {
       _current = _current
           .tryPromoteForTypeCheck(
-              operations,
+              this,
               new ReferenceWithType<Type>(variableKey,
                   promotedType(variable) ?? operations.variableType(variable)),
-              initializerType,
-              _promotionKeyStore)
+              initializerType)
           .ifTrue;
     }
   }
@@ -3897,7 +3908,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   bool isAssigned(Variable variable) {
     return _current
-        .infoFor(_promotionKeyStore.keyForVariable(variable))
+        .infoFor(promotionKeyStore.keyForVariable(variable))
         .assigned;
   }
 
@@ -3907,8 +3918,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     ReferenceWithType<Type>? subExpressionReference =
         _getExpressionReference(subExpression);
     if (subExpressionReference != null) {
-      ExpressionInfo<Type> expressionInfo = _current.tryPromoteForTypeCheck(
-          operations, subExpressionReference, type, _promotionKeyStore);
+      ExpressionInfo<Type> expressionInfo =
+          _current.tryPromoteForTypeCheck(this, subExpressionReference, type);
       _storeExpressionInfo(
           isExpression, isNot ? expressionInfo.invert() : expressionInfo);
     }
@@ -3917,7 +3928,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   bool isUnassigned(Variable variable) {
     return _current
-        .infoFor(_promotionKeyStore.keyForVariable(variable))
+        .infoFor(promotionKeyStore.keyForVariable(variable))
         .unassigned;
   }
 
@@ -4004,9 +4015,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     ReferenceWithType<Type>? operandReference =
         _getExpressionReference(operand);
     if (operandReference != null) {
-      _current = _current
-          .tryMarkNonNullable(operations, operandReference, _promotionKeyStore)
-          .ifTrue;
+      _current = _current.tryMarkNonNullable(this, operandReference).ifTrue;
     }
   }
 
@@ -4025,9 +4034,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _stack.add(new _NullAwareAccessContext<Type>(_current));
     ReferenceWithType<Type>? targetReference = _getExpressionReference(target);
     if (targetReference != null) {
-      _current = _current
-          .tryMarkNonNullable(operations, targetReference, _promotionKeyStore)
-          .ifTrue;
+      _current = _current.tryMarkNonNullable(this, targetReference).ifTrue;
     }
   }
 
@@ -4052,7 +4059,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   Type? promotedType(Variable variable) {
     return _current
-        .infoFor(_promotionKeyStore.keyForVariable(variable))
+        .infoFor(promotionKeyStore.keyForVariable(variable))
         .promotedTypes
         ?.last;
   }
@@ -4066,7 +4073,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   SsaNode<Type>? ssaNodeForTesting(Variable variable) => _current
-      .variableInfo[_promotionKeyStore.keyForVariable(variable)]?.ssaNode;
+      .variableInfo[promotionKeyStore.keyForVariable(variable)]?.ssaNode;
 
   @override
   void switchStatement_beginCase(bool hasLabel, Node node) {
@@ -4111,7 +4118,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _storeExpressionReference(
         expression,
         new ReferenceWithType<Type>(
-            _promotionKeyStore.thisPromotionKey, staticType));
+            promotionKeyStore.thisPromotionKey, staticType));
   }
 
   @override
@@ -4149,12 +4156,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _current = context._beforeCatch!;
     if (exceptionVariable != null) {
       int exceptionVariableKey =
-          _promotionKeyStore.keyForVariable(exceptionVariable);
+          promotionKeyStore.keyForVariable(exceptionVariable);
       _current = _current.declare(exceptionVariableKey, true);
     }
     if (stackTraceVariable != null) {
       int stackTraceVariableKey =
-          _promotionKeyStore.keyForVariable(stackTraceVariable);
+          promotionKeyStore.keyForVariable(stackTraceVariable);
       _current = _current.declare(stackTraceVariableKey, true);
     }
   }
@@ -4197,7 +4204,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   Type? variableRead(Expression expression, Variable variable) {
-    int variableKey = _promotionKeyStore.keyForVariable(variable);
+    int variableKey = promotionKeyStore.keyForVariable(variable);
     VariableModel<Type> variableModel = _current._getInfo(variableKey);
     Type? promotedType = variableModel.promotedTypes?.last;
     Type currentType = promotedType ?? operations.variableType(variable);
@@ -4256,20 +4263,20 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   Map<Type, NonPromotionReason> Function() whyNotPromotedImplicitThis(
       Type staticType) {
     VariableModel<Type>? currentThisInfo =
-        _current.variableInfo[_promotionKeyStore.thisPromotionKey];
+        _current.variableInfo[promotionKeyStore.thisPromotionKey];
     if (currentThisInfo == null) {
       return () => {};
     }
     return _getNonPromotionReasons(
         new ReferenceWithType<Type>(
-            _promotionKeyStore.thisPromotionKey, staticType),
+            promotionKeyStore.thisPromotionKey, staticType),
         currentThisInfo);
   }
 
   @override
   void write(Node node, Variable variable, Type writtenType,
       Expression? writtenExpression) {
-    int variableKey = _promotionKeyStore.keyForVariable(variable);
+    int variableKey = promotionKeyStore.keyForVariable(variable);
     ExpressionInfo<Type>? expressionInfo = writtenExpression == null
         ? null
         : _getExpressionInfo(writtenExpression);
@@ -4348,7 +4355,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       }
     } else {
       Variable? variable =
-          _promotionKeyStore.variableForKey(reference.promotionKey);
+          promotionKeyStore.variableForKey(reference.promotionKey);
       if (variable == null) {
         List<Type>? promotedTypes = currentVariableInfo.promotedTypes;
         if (promotedTypes != null) {
@@ -4386,7 +4393,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       String propertyName, Object? propertyMember, Type staticType) {
     int targetKey;
     if (target == null) {
-      targetKey = _promotionKeyStore.thisPromotionKey;
+      targetKey = promotionKeyStore.thisPromotionKey;
     } else {
       ReferenceWithType<Type>? targetReference =
           _getExpressionReference(target);
@@ -4394,15 +4401,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       targetKey = targetReference.promotionKey;
     }
     _PropertyReferenceWithType<Type> propertyReference =
-        new _PropertyReferenceWithType<Type>(
-            propertyName,
-            propertyMember,
-            _promotionKeyStore.getProperty(targetKey, propertyName),
-            staticType);
+        new _PropertyReferenceWithType<Type>(propertyName, propertyMember,
+            promotionKeyStore.getProperty(targetKey, propertyName), staticType);
     if (wholeExpression != null) {
       _storeExpressionReference(wholeExpression, propertyReference);
     }
-    if (!propertyReference.isPromotable(_promotionKeyStore)) return null;
+    if (!propertyReference.isPromotable(this)) {
+      return null;
+    }
     Type? promotedType =
         _current.infoFor(propertyReference.promotionKey).promotedTypes?.last;
     if (promotedType == null ||
@@ -5093,8 +5099,8 @@ class _PropertyReferenceWithType<Type extends Object>
       this.propertyName, this.propertyMember, super.promotionKey, super.type);
 
   @override
-  bool isPromotable(PromotionKeyStore<Object> promotionKeyStore) =>
-      promotionKeyStore._promotableFields.contains(propertyMember);
+  bool isPromotable(FlowModelHelper<Type> helper) =>
+      helper.promotableFields.contains(propertyMember);
 
   @override
   String toString() =>
