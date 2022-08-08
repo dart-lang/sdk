@@ -109,6 +109,46 @@ void main() async {
       expect(compileResult['output-dill'], equals(cachedDill.path));
     });
 
+    test('compile options', () async {
+      executable.writeAsStringSync('void main() { int x = 1; }');
+      final compileResult1 = jsonDecode(
+          await ResidentFrontendServer.handleRequest(
+              ResidentFrontendServer.createCompileJSON(
+        executable: executable.path,
+        packages: package.path,
+        outputDill: cachedDill.path,
+        supportMirrors: true,
+        enableAsserts: true,
+        soundNullSafety: true,
+        verbosity: 'all',
+        define: <String>['-Dvar=2'],
+        enableExperiement: <String>['experiemental-flag=vm_name'],
+      )));
+
+      expect(compileResult1['success'], true);
+      expect(compileResult1['errorCount'], 0);
+    });
+
+    test('produces aot kernel', () async {
+      final compileResult1 = jsonDecode(
+          await ResidentFrontendServer.handleRequest(
+              ResidentFrontendServer.createCompileJSON(
+        executable: executable.path,
+        packages: package.path,
+        outputDill: cachedDill.path,
+        soundNullSafety: true,
+        verbosity: 'all',
+        aot: true,
+        tfa: true,
+        rta: true,
+        treeShakeWriteOnlyFields: true,
+        protobufTreeShakerV2: true,
+      )));
+
+      expect(compileResult1['success'], true);
+      expect(compileResult1['errorCount'], 0);
+    });
+
     test('no package_config.json provided', () async {
       final compileResult = jsonDecode(
           await ResidentFrontendServer.handleRequest(
@@ -501,6 +541,25 @@ void main() async {
 
       expect(shutdownResult, equals(<String, dynamic>{"shutdown": true}));
       expect(serverInfo.existsSync(), false);
+    });
+
+    test('timed shutdown', () async {
+      await residentListenAndCompile(
+          InternetAddress.loopbackIPv4, 0, serverInfo,
+          inactivityTimeout: Duration(milliseconds: 100));
+
+      expect(serverInfo.existsSync(), true);
+      final info = serverInfo.readAsStringSync();
+      final address = InternetAddress(
+          info.substring(info.indexOf(':') + 1, info.indexOf(' ')));
+      final port = int.parse(info.substring(info.lastIndexOf(':') + 1));
+
+      await Future.delayed(Duration(milliseconds: 150));
+      expect(serverInfo.existsSync(), false);
+
+      final shutdownResult = await sendAndReceiveResponse(
+          address, port, ResidentFrontendServer.shutdownCommand);
+      expect(shutdownResult['errorMessage'], contains('SocketException'));
     });
 
     test('resident server starter', () async {
