@@ -1,44 +1,37 @@
 {
-    "jessie_amd64": {
-        "Revision": "7031a828c5dcedc937bbf375c42daab08ca6162f",
-        "Sha1Sum": "046a82b027f069bdde98424850490c315e2f31f9",
-        "SysrootDir": "debian_jessie_amd64-sysroot",
-        "Tarball": "debian_jessie_amd64_sysroot.tgz"
+    "bullseye_amd64": {
+        "Sha1Sum": "cb4fa34f1faddafb72cace35faf62a611f2ca7c9",
+        "SysrootDir": "debian_bullseye_amd64-sysroot",
+        "Tarball": "debian_bullseye_amd64_sysroot.tar.xz"
     },
-    "jessie_arm": {
-        "Revision": "7031a828c5dcedc937bbf375c42daab08ca6162f",
-        "Sha1Sum": "7addeb28195f7f367cbaba46cdba99925a0646b2",
-        "SysrootDir": "debian_jessie_arm-sysroot",
-        "Tarball": "debian_jessie_arm_sysroot.tgz"
+    "bullseye_arm": {
+        "Sha1Sum": "a1084eba943f797a1c9aee8d5f8213ed680315a8",
+        "SysrootDir": "debian_bullseye_arm-sysroot",
+        "Tarball": "debian_bullseye_arm_sysroot.tar.xz"
     },
-    "jessie_arm64": {
-        "Revision": "7031a828c5dcedc937bbf375c42daab08ca6162f",
-        "Sha1Sum": "1b853d8082321256fe646589558da3980875d767",
-        "SysrootDir": "debian_jessie_arm64-sysroot",
-        "Tarball": "debian_jessie_arm64_sysroot.tgz"
+    "bullseye_arm64": {
+        "Sha1Sum": "f00ece500aef0ff2a431a07de48bd3e1aa6d1caf",
+        "SysrootDir": "debian_bullseye_arm64-sysroot",
+        "Tarball": "debian_bullseye_arm64_sysroot.tar.xz"
     },
-    "jessie_i386": {
-        "Revision": "7031a828c5dcedc937bbf375c42daab08ca6162f",
-        "Sha1Sum": "7edfe877ea71473def2d9e6958474d76c9ff98b6",
-        "SysrootDir": "debian_jessie_i386-sysroot",
-        "Tarball": "debian_jessie_i386_sysroot.tgz"
+    "bullseye_armel": {
+        "Sha1Sum": "54ccf4898fe923b22141c9e21e80b455dec47ecf",
+        "SysrootDir": "debian_bullseye_armel-sysroot",
+        "Tarball": "debian_bullseye_armel_sysroot.tar.xz"
     },
-    "jessie_mips": {
-        "Revision": "7031a828c5dcedc937bbf375c42daab08ca6162f",
-        "Sha1Sum": "3d0c5640a39e264d7180df2bac1192308f8a256e",
-        "SysrootDir": "debian_jessie_mips-sysroot",
-        "Tarball": "debian_jessie_mips_sysroot.tgz"
+    "bullseye_i386": {
+        "Sha1Sum": "07bb72368889fea19a1f123aa11528f0d792121b",
+        "SysrootDir": "debian_bullseye_i386-sysroot",
+        "Tarball": "debian_bullseye_i386_sysroot.tar.xz"
     },
-    "precise_amd64": {
-        "Revision": "7031a828c5dcedc937bbf375c42daab08ca6162f",
-        "Sha1Sum": "69e1d3c9efda92ba265ce7bb653be546e8dde7e4",
-        "SysrootDir": "ubuntu_precise_amd64-sysroot",
-        "Tarball": "ubuntu_precise_amd64_sysroot.tgz"
+    "bullseye_mips": {
+        "Sha1Sum": "f19f07f7e62edbf837d6e7f173aea3f47110c2ba",
+        "SysrootDir": "debian_bullseye_mips-sysroot",
+        "Tarball": "debian_bullseye_mips_sysroot.tar.xz"
     },
-    "trusty_arm": {
-        "Revision": "7031a828c5dcedc937bbf375c42daab08ca6162f",
-        "Sha1Sum": "d1591e8fc6a273af1fbf3d1a864f098081d06dd1",
-        "SysrootDir": "ubuntu_trusty_arm-sysroot",
-        "Tarball": "ubuntu_trusty_arm_sysroot.tgz"
+    "bullseye_mips64el": {
+        "Sha1Sum": "3cfc9e7fe2d0cad3873bbce8fc3ffde510ed5638",
+        "SysrootDir": "debian_bullseye_mips64el-sysroot",
+        "Tarball": "debian_bullseye_mips64el_sysroot.tar.xz"
     }
 }
