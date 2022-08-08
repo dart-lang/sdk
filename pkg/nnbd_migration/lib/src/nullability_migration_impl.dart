@@ -223,7 +223,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       unit.accept(EdgeBuilder(
           result.typeProvider,
           result.typeSystem,
-          _variables,
+          _variables!,
           _graph,
           unit.declaredElement!.source,
           _permissive! ? listener : null,

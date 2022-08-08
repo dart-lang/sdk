@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/analysis_server_abstract.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 
 /// A class that can be used to configure an analysis server instance to better
 /// support intermittent file systems.
@@ -23,5 +23,5 @@ abstract class DetachableFileSystemManager {
       List<String> excludedPaths);
 
   /// Called exactly once before any calls to [setAnalysisRoots].
-  void setAnalysisServer(AbstractAnalysisServer server);
+  void setAnalysisServer(AnalysisServer server);
 }

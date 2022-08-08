@@ -4,9 +4,9 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/analytics/noop_analytics.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
@@ -89,7 +89,7 @@ class BazelWorkspaceAnalysisServerTest extends ContextResolutionTest {
 class ContextResolutionTest with ResourceProviderMixin {
   final TestPluginManager pluginManager = TestPluginManager();
   late final MockServerChannel serverChannel;
-  late final AnalysisServer server;
+  late final LegacyAnalysisServer server;
 
   final List<GeneralAnalysisService> _analysisGeneralServices = [];
   final Map<AnalysisService, List<String>> _analysisFileSubscriptions = {};
@@ -172,7 +172,7 @@ class ContextResolutionTest with ResourceProviderMixin {
 
     serverChannel.notifications.listen(processNotification);
 
-    server = AnalysisServer(
+    server = LegacyAnalysisServer(
       serverChannel,
       resourceProvider,
       AnalysisServerOptions(),

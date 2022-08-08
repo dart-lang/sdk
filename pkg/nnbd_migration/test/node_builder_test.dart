@@ -23,11 +23,11 @@ class NodeBuilderTest extends MigrationVisitorTestBase {
   /// Gets the [DecoratedType] associated with the function declaration whose
   /// name matches [search].
   DecoratedType decoratedFunctionType(String search) =>
-      variables!.decoratedElementType(
+      variables.decoratedElementType(
           findNode.functionDeclaration(search).declaredElement!);
 
   DecoratedType? decoratedTypeParameterBound(String search) =>
-      variables!.decoratedTypeParameterBound(
+      variables.decoratedTypeParameterBound(
           findNode.typeParameter(search).declaredElement!);
 
   Future<void> test_catch_clause_with_stacktrace_with_on() async {
@@ -37,10 +37,10 @@ void f() {
 }
 ''');
     var exceptionType =
-        variables!.decoratedElementType(findNode.simple('ex').staticElement!);
+        variables.decoratedElementType(findNode.simple('ex').staticElement!);
     expect(exceptionType.node, TypeMatcher<NullabilityNodeMutable>());
     var stackTraceType =
-        variables!.decoratedElementType(findNode.simple('st').staticElement!);
+        variables.decoratedElementType(findNode.simple('st').staticElement!);
     assertEdge(stackTraceType.node, never, hard: true, checkable: false);
   }
 
@@ -51,10 +51,10 @@ void f() {
 }
 ''');
     var exceptionType =
-        variables!.decoratedElementType(findNode.simple('ex').staticElement!);
+        variables.decoratedElementType(findNode.simple('ex').staticElement!);
     expect(exceptionType.node!.isImmutable, false);
     var stackTraceType =
-        variables!.decoratedElementType(findNode.simple('st').staticElement!);
+        variables.decoratedElementType(findNode.simple('st').staticElement!);
     assertEdge(stackTraceType.node, never, hard: true, checkable: false);
   }
 
@@ -75,7 +75,7 @@ void f() {
 }
 ''');
     var exceptionType =
-        variables!.decoratedElementType(findNode.simple('ex').staticElement!);
+        variables.decoratedElementType(findNode.simple('ex').staticElement!);
     expect(exceptionType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
@@ -86,7 +86,7 @@ void f() {
 }
 ''');
     var exceptionType =
-        variables!.decoratedElementType(findNode.simple('ex').staticElement!);
+        variables.decoratedElementType(findNode.simple('ex').staticElement!);
     expect(exceptionType.node!.isImmutable, false);
   }
 
@@ -102,14 +102,14 @@ class D = C with M;
     var constructors = findElement.class_('D').constructors;
     expect(constructors, hasLength(2));
     var a = findElement.constructor('a', of: 'D');
-    var aType = variables!.decoratedElementType(a);
+    var aType = variables.decoratedElementType(a);
     _assertType(aType.type!, 'D Function()');
     expect(aType.node, same(never));
     expect(aType.typeArguments, isEmpty);
     _assertType(aType.returnType!.type!, 'D');
     expect(aType.returnType!.node, same(never));
     var b = findElement.constructor('b', of: 'D');
-    var bType = variables!.decoratedElementType(b);
+    var bType = variables.decoratedElementType(b);
     _assertType(bType.type!, 'D Function()');
     expect(bType.node, same(never));
     expect(bType.typeArguments, isEmpty);
@@ -131,7 +131,7 @@ class D = C with M;
     var constructors = findElement.class_('D').constructors;
     expect(constructors, hasLength(4));
     var a = findElement.constructor('a', of: 'D');
-    var aType = variables!.decoratedElementType(a);
+    var aType = variables.decoratedElementType(a);
     _assertType(aType.type!, 'D Function(int)');
     expect(aType.node, same(never));
     expect(aType.typeArguments, isEmpty);
@@ -143,7 +143,7 @@ class D = C with M;
         TypeMatcher<NullabilityNodeMutable>());
     expect(aType.namedParameters, isEmpty);
     var b = findElement.constructor('b', of: 'D');
-    var bType = variables!.decoratedElementType(b);
+    var bType = variables.decoratedElementType(b);
     _assertType(bType.type!, 'D Function([int])');
     expect(bType.node, same(never));
     expect(bType.typeArguments, isEmpty);
@@ -155,7 +155,7 @@ class D = C with M;
         TypeMatcher<NullabilityNodeMutable>());
     expect(bType.namedParameters, isEmpty);
     var c = findElement.constructor('c', of: 'D');
-    var cType = variables!.decoratedElementType(c);
+    var cType = variables.decoratedElementType(c);
     _assertType(cType.type!, 'D Function({int i})');
     expect(cType.node, same(never));
     expect(cType.typeArguments, isEmpty);
@@ -168,7 +168,7 @@ class D = C with M;
     expect(cType.namedParameters!['i']!.node,
         TypeMatcher<NullabilityNodeMutable>());
     var d = findElement.constructor('d', of: 'D');
-    var dType = variables!.decoratedElementType(d);
+    var dType = variables.decoratedElementType(d);
     _assertType(dType.type!, 'D Function(List<int>)');
     expect(dType.node, same(never));
     expect(dType.typeArguments, isEmpty);
@@ -195,7 +195,7 @@ mixin M {}
 class D<U> = C<U> with M;
 ''');
     var dConstructor = findElement.unnamedConstructor('D');
-    var dConstructorType = variables!.decoratedElementType(dConstructor);
+    var dConstructorType = variables.decoratedElementType(dConstructor);
     _assertType(dConstructorType.type!, 'D<U> Function(U)');
     expect(dConstructorType.node, same(never));
     expect(dConstructorType.typeFormals, isEmpty);
@@ -217,7 +217,7 @@ class C {}
 ''');
     var defaultConstructor = findElement.class_('C').constructors.single;
     var decoratedConstructorType =
-        variables!.decoratedElementType(defaultConstructor);
+        variables.decoratedElementType(defaultConstructor);
     _assertType(decoratedConstructorType.type!, 'C Function()');
     expect(decoratedConstructorType.node, same(never));
     _assertType(decoratedConstructorType.returnType!.type!, 'C');
@@ -230,7 +230,7 @@ class C<T, U> {}
 ''');
     var defaultConstructor = findElement.class_('C').constructors.single;
     var decoratedConstructorType =
-        variables!.decoratedElementType(defaultConstructor);
+        variables.decoratedElementType(defaultConstructor);
     _assertType(decoratedConstructorType.type!, 'C<T, U> Function()');
     expect(decoratedConstructorType.node, same(never));
     expect(decoratedConstructorType.typeArguments, isEmpty);
@@ -482,7 +482,7 @@ f(void Function() g) {
 }
 ''');
     expect(
-        variables!
+        variables
             .decoratedElementType(findNode.simple('e)').staticElement!)
             .node!
             .displayName,
@@ -640,7 +640,7 @@ class D extends C<int> {}
   Future<void> test_displayName_typeParameterBound_implicit() async {
     await analyze('class C<T extends num> {}');
     expect(
-        variables!
+        variables
             .decoratedTypeParameterBound(
                 findElement.class_('C').typeParameters[0])!
             .node!
@@ -684,7 +684,7 @@ class C {
 }
 ''');
     var decoratedType =
-        variables!.decoratedElementType(findNode.simple('x').staticElement!);
+        variables.decoratedElementType(findNode.simple('x').staticElement!);
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -695,7 +695,7 @@ class C {
 }
 ''');
     var decoratedType =
-        variables!.decoratedElementType(findNode.simple('x').staticElement!);
+        variables.decoratedElementType(findNode.simple('x').staticElement!);
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
@@ -707,7 +707,7 @@ class C {
 }
 ''');
     var decoratedType =
-        variables!.decoratedElementType(findNode.simple('x').staticElement!);
+        variables.decoratedElementType(findNode.simple('x').staticElement!);
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -720,7 +720,7 @@ class C {
     var decoratedType = decoratedTypeAnnotation('int');
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(
-        variables!.decoratedElementType(findNode
+        variables.decoratedElementType(findNode
             .fieldDeclaration('f')
             .fields
             .variables[0]
@@ -737,8 +737,8 @@ class C {
 ''');
     var ctor = findElement.unnamedConstructor('C');
     var ctorParam = ctor.parameters[0];
-    var ctorType = variables!.decoratedElementType(ctor);
-    var ctorParamType = variables!.decoratedElementType(ctorParam);
+    var ctorType = variables.decoratedElementType(ctor);
+    var ctorParamType = variables.decoratedElementType(ctorParam);
     expect(ctorType.positionalParameters![0], same(ctorParamType));
     expect(ctorParamType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(ctorParamType.namedParameters!['i'],
@@ -755,8 +755,8 @@ class C {
 ''');
     var ctor = findElement.unnamedConstructor('C');
     var ctorParam = ctor.parameters[0];
-    var ctorType = variables!.decoratedElementType(ctor);
-    var ctorParamType = variables!.decoratedElementType(ctorParam);
+    var ctorType = variables.decoratedElementType(ctor);
+    var ctorParamType = variables.decoratedElementType(ctorParam);
     expect(ctorType.positionalParameters![0], same(ctorParamType));
     expect(ctorParamType.node, TypeMatcher<NullabilityNodeMutable>());
     _assertType(ctorParamType.namedParameters!['i']!.type!, 'dynamic');
@@ -773,8 +773,8 @@ class C {
 ''');
     var ctor = findElement.unnamedConstructor('C');
     var ctorParam = ctor.parameters[0];
-    var ctorType = variables!.decoratedElementType(ctor);
-    var ctorParamType = variables!.decoratedElementType(ctorParam);
+    var ctorType = variables.decoratedElementType(ctor);
+    var ctorParamType = variables.decoratedElementType(ctorParam);
     expect(ctorType.positionalParameters![0], same(ctorParamType));
     expect(ctorParamType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(ctorParamType.positionalParameters![0],
@@ -791,8 +791,8 @@ class C {
 ''');
     var ctor = findElement.unnamedConstructor('C');
     var ctorParam = ctor.parameters[0];
-    var ctorType = variables!.decoratedElementType(ctor);
-    var ctorParamType = variables!.decoratedElementType(ctorParam);
+    var ctorType = variables.decoratedElementType(ctor);
+    var ctorParamType = variables.decoratedElementType(ctorParam);
     expect(ctorType.positionalParameters![0], same(ctorParamType));
     expect(ctorParamType.node, TypeMatcher<NullabilityNodeMutable>());
     _assertType(ctorParamType.positionalParameters![0]!.type!, 'dynamic');
@@ -808,8 +808,8 @@ class C {
 ''');
     var ctor = findElement.unnamedConstructor('C');
     var ctorParam = ctor.parameters[0];
-    var ctorType = variables!.decoratedElementType(ctor);
-    var ctorParamType = variables!.decoratedElementType(ctorParam);
+    var ctorType = variables.decoratedElementType(ctor);
+    var ctorParamType = variables.decoratedElementType(ctorParam);
     expect(ctorType.positionalParameters![0], same(ctorParamType));
     expect(ctorParamType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(ctorParamType.returnType, same(decoratedTypeAnnotation('int')));
@@ -824,8 +824,8 @@ class C {
 ''');
     var ctor = findElement.unnamedConstructor('C');
     var ctorParam = ctor.parameters[0];
-    var ctorType = variables!.decoratedElementType(ctor);
-    var ctorParamType = variables!.decoratedElementType(ctorParam);
+    var ctorType = variables.decoratedElementType(ctor);
+    var ctorParamType = variables.decoratedElementType(ctorParam);
     expect(ctorType.positionalParameters![0], same(ctorParamType));
     expect(ctorParamType.node, TypeMatcher<NullabilityNodeMutable>());
     _assertType(ctorParamType.returnType!.type!, 'dynamic');
@@ -841,7 +841,7 @@ class C {
 }
 ''');
     expect(
-        variables!.getRequiredHint(
+        variables.getRequiredHint(
             testSource, findNode.fieldFormalParameter('this.s')),
         isNotNull);
   }
@@ -855,7 +855,7 @@ class C {
 }
 ''');
     expect(
-        variables!.getRequiredHint(
+        variables.getRequiredHint(
             testSource, findNode.fieldFormalParameter('this.s')),
         isNotNull);
   }
@@ -869,7 +869,7 @@ class C {
 }
 ''');
     expect(
-        variables!.getRequiredHint(
+        variables.getRequiredHint(
             testSource, findNode.fieldFormalParameter('this.s')),
         isNotNull);
   }
@@ -883,7 +883,7 @@ class C {
 }
 ''');
     expect(
-        variables!.getRequiredHint(
+        variables.getRequiredHint(
             testSource, findNode.fieldFormalParameter('this.s')),
         isNotNull);
   }
@@ -926,8 +926,7 @@ class C {
     await analyze('''
 void f({/*required*/ String s}) {}
 ''');
-    expect(
-        variables!.getRequiredHint(testSource, findNode.simpleParameter('s')),
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
         isNotNull);
   }
 
@@ -936,8 +935,7 @@ void f({/*required*/ String s}) {}
     await analyze('''
 void f({@deprecated /*required*/ String s}) {}
 ''');
-    expect(
-        variables!.getRequiredHint(testSource, findNode.simpleParameter('s')),
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
         isNotNull);
   }
 
@@ -949,8 +947,8 @@ class C {
 }
 ''');
     expect(
-        variables!
-            .getRequiredHint(testSource, findNode.simpleParameter('String s')),
+        variables.getRequiredHint(
+            testSource, findNode.simpleParameter('String s')),
         isNotNull);
   }
 
@@ -959,8 +957,7 @@ class C {
     await analyze('''
 void f({/*required*/ final String s}) {}
 ''');
-    expect(
-        variables!.getRequiredHint(testSource, findNode.simpleParameter('s')),
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
         isNotNull);
   }
 
@@ -969,8 +966,7 @@ void f({/*required*/ final String s}) {}
     await analyze('''
 void f({/*required*/ s}) {}
 ''');
-    expect(
-        variables!.getRequiredHint(testSource, findNode.simpleParameter('s')),
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
         isNotNull);
   }
 
@@ -978,8 +974,7 @@ void f({/*required*/ s}) {}
     await analyze('''
 void f({/*required*/ var s}) {}
 ''');
-    expect(
-        variables!.getRequiredHint(testSource, findNode.simpleParameter('s')),
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
         isNotNull);
   }
 
@@ -1035,7 +1030,7 @@ void f() {
     var functionExpressionElement =
         findNode.simpleParameter('int i').declaredElement!.enclosingElement3!;
     var decoratedType =
-        variables!.decoratedElementType(functionExpressionElement);
+        variables.decoratedElementType(functionExpressionElement);
     expect(decoratedType.positionalParameters![0],
         same(decoratedTypeAnnotation('int i')));
     expect(decoratedType.node, same(never));
@@ -1052,7 +1047,7 @@ void f() {
     var functionExpressionElement =
         findNode.simpleParameter('int i').declaredElement!.enclosingElement3!;
     var decoratedType =
-        variables!.decoratedElementType(functionExpressionElement);
+        variables.decoratedElementType(functionExpressionElement);
     expect(
         decoratedType.returnType!.node, TypeMatcher<NullabilityNodeMutable>());
   }
@@ -1062,8 +1057,7 @@ void f() {
 typedef T F<T, U>(U u);
 ''');
     var element = findElement.typeAlias('F');
-    var decoratedType =
-        variables!.decoratedElementType(element.aliasedElement!);
+    var decoratedType = variables.decoratedElementType(element.aliasedElement!);
     var t = element.typeParameters[0];
     var u = element.typeParameters[1];
     // typeFormals should be empty because this is not a generic function type,
@@ -1087,7 +1081,7 @@ typedef T F<T, U>(U u);
     await analyze('''
 typedef F();
 ''');
-    var decoratedType = variables!
+    var decoratedType = variables
         .decoratedElementType(findElement.typeAlias('F').aliasedElement!);
     expect(decoratedType.returnType!.type!.isDynamic, isTrue);
     expect(decoratedType.returnType!.node!.isImmutable, false);
@@ -1098,7 +1092,7 @@ typedef F();
     await analyze('''
 typedef int F(String s);
 ''');
-    var decoratedType = variables!
+    var decoratedType = variables
         .decoratedElementType(findElement.typeAlias('F').aliasedElement!);
     expect(decoratedType.returnType, same(decoratedTypeAnnotation('int')));
     expect(decoratedType.typeFormals, isEmpty);
@@ -1112,7 +1106,7 @@ typedef int F(String s);
 void f({/*required*/ void s()}) {}
 ''');
     expect(
-        variables!.getRequiredHint(
+        variables.getRequiredHint(
             testSource, findNode.functionTypedFormalParameter('s')),
         isNotNull);
   }
@@ -1123,7 +1117,7 @@ void f({/*required*/ void s()}) {}
 void f({/*required*/ s()}) {}
 ''');
     expect(
-        variables!.getRequiredHint(
+        variables.getRequiredHint(
             testSource, findNode.functionTypedFormalParameter('s')),
         isNotNull);
   }
@@ -1134,8 +1128,8 @@ void f(void g({int i})) {}
 ''');
     var f = findElement.function('f');
     var g = f.parameters[0];
-    var fType = variables!.decoratedElementType(f);
-    var gType = variables!.decoratedElementType(g);
+    var fType = variables.decoratedElementType(f);
+    var gType = variables.decoratedElementType(g);
     expect(fType.positionalParameters![0], same(gType));
     expect(gType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(gType.namedParameters!['i'], same(decoratedTypeAnnotation('int')));
@@ -1148,8 +1142,8 @@ void f(void g({i})) {}
 ''');
     var f = findElement.function('f');
     var g = f.parameters[0];
-    var fType = variables!.decoratedElementType(f);
-    var gType = variables!.decoratedElementType(g);
+    var fType = variables.decoratedElementType(f);
+    var gType = variables.decoratedElementType(g);
     expect(fType.positionalParameters![0], same(gType));
     expect(gType.node, TypeMatcher<NullabilityNodeMutable>());
     _assertType(gType.namedParameters!['i']!.type!, 'dynamic');
@@ -1163,8 +1157,8 @@ void f(void g(int i)) {}
 ''');
     var f = findElement.function('f');
     var g = f.parameters[0];
-    var fType = variables!.decoratedElementType(f);
-    var gType = variables!.decoratedElementType(g);
+    var fType = variables.decoratedElementType(f);
+    var gType = variables.decoratedElementType(g);
     expect(fType.positionalParameters![0], same(gType));
     expect(gType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(
@@ -1178,8 +1172,8 @@ void f(void g(i)) {}
 ''');
     var f = findElement.function('f');
     var g = f.parameters[0];
-    var fType = variables!.decoratedElementType(f);
-    var gType = variables!.decoratedElementType(g);
+    var fType = variables.decoratedElementType(f);
+    var gType = variables.decoratedElementType(g);
     expect(fType.positionalParameters![0], same(gType));
     expect(gType.node, TypeMatcher<NullabilityNodeMutable>());
     _assertType(gType.positionalParameters![0]!.type!, 'dynamic');
@@ -1192,8 +1186,8 @@ void f(int g()) {}
 ''');
     var f = findElement.function('f');
     var g = f.parameters[0];
-    var fType = variables!.decoratedElementType(f);
-    var gType = variables!.decoratedElementType(g);
+    var fType = variables.decoratedElementType(f);
+    var gType = variables.decoratedElementType(g);
     expect(fType.positionalParameters![0], same(gType));
     expect(gType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(gType.returnType, same(decoratedTypeAnnotation('int')));
@@ -1205,8 +1199,8 @@ void f(g()) {}
 ''');
     var f = findElement.function('f');
     var g = f.parameters[0];
-    var fType = variables!.decoratedElementType(f);
-    var gType = variables!.decoratedElementType(g);
+    var fType = variables.decoratedElementType(f);
+    var gType = variables.decoratedElementType(g);
     expect(fType.positionalParameters![0], same(gType));
     expect(gType.node, TypeMatcher<NullabilityNodeMutable>());
     _assertType(gType.returnType!.type!, 'dynamic');
@@ -1298,8 +1292,7 @@ void f(void Function(int) x) {}
 typedef F = T Function<T, U>(U u);
 ''');
     var element = findElement.typeAlias('F');
-    var decoratedType =
-        variables!.decoratedElementType(element.aliasedElement!);
+    var decoratedType = variables.decoratedElementType(element.aliasedElement!);
     expect(decoratedType,
         same(decoratedGenericFunctionTypeAnnotation('T Function')));
     expect(decoratedType.typeFormals, hasLength(2));
@@ -1323,8 +1316,7 @@ typedef F = T Function<T, U>(U u);
 typedef F<T, U> = T Function(U u);
 ''');
     var element = findElement.typeAlias('F');
-    var decoratedType =
-        variables!.decoratedElementType(element.aliasedElement!);
+    var decoratedType = variables.decoratedElementType(element.aliasedElement!);
     expect(decoratedType,
         same(decoratedGenericFunctionTypeAnnotation('T Function')));
     var t = element.typeParameters[0];
@@ -1350,7 +1342,7 @@ typedef F<T, U> = T Function(U u);
     await analyze('''
 typedef F = Function();
 ''');
-    var decoratedType = variables!
+    var decoratedType = variables
         .decoratedElementType(findElement.typeAlias('F').aliasedElement!);
     expect(decoratedType,
         same(decoratedGenericFunctionTypeAnnotation('Function')));
@@ -1363,7 +1355,7 @@ typedef F = Function();
     await analyze('''
 typedef F = int Function(String s);
 ''');
-    var decoratedType = variables!
+    var decoratedType = variables
         .decoratedElementType(findElement.typeAlias('F').aliasedElement!);
     expect(decoratedType,
         same(decoratedGenericFunctionTypeAnnotation('int Function')));
@@ -1379,7 +1371,7 @@ typedef F = int Function(String s);
     await analyze('''
 var x = [1];
 ''');
-    final node = variables!
+    final node = variables
         .decoratedElementType(findNode
             .topLevelVariableDeclaration('x')
             .variables
@@ -1394,7 +1386,7 @@ var x = [1];
     await analyze('''
 var x = 1;
 ''');
-    final node = variables!
+    final node = variables
         .decoratedElementType(findNode
             .topLevelVariableDeclaration('x')
             .variables
@@ -1555,7 +1547,7 @@ main() {
 }
 ''');
     var decoratedType =
-        variables!.decoratedElementType(findNode.simple('x').staticElement!);
+        variables.decoratedElementType(findNode.simple('x').staticElement!);
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -1566,7 +1558,7 @@ main() {
 }
 ''');
     var decoratedType =
-        variables!.decoratedElementType(findNode.simple('x').staticElement!);
+        variables.decoratedElementType(findNode.simple('x').staticElement!);
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
@@ -1578,7 +1570,7 @@ main() {
 }
 ''');
     var decoratedType =
-        variables!.decoratedElementType(findNode.simple('x').staticElement!);
+        variables.decoratedElementType(findNode.simple('x').staticElement!);
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -1589,7 +1581,7 @@ main() {
 }
 ''');
     var decoratedType =
-        variables!.decoratedElementType(findNode.simple('x').staticElement!);
+        variables.decoratedElementType(findNode.simple('x').staticElement!);
     expect(decoratedType.returnType!.node!.displayName,
         'return type of main.x (test.dart:2:7)');
   }
@@ -1601,7 +1593,7 @@ main() {
 }
 ''');
     var decoratedType =
-        variables!.decoratedElementType(findNode.simple('x').staticElement!);
+        variables.decoratedElementType(findNode.simple('x').staticElement!);
     expect(decoratedType.typeArguments[0]!.node!.displayName,
         'type argument 0 of main.x (test.dart:2:7)');
     expect(decoratedType.typeArguments[1]!.node!.displayName,
@@ -1812,7 +1804,7 @@ void foo({List<int> values})  {
 void f(x) {}
 ''');
     var decoratedType =
-        variables!.decoratedElementType(findNode.simple('x').staticElement!);
+        variables.decoratedElementType(findNode.simple('x').staticElement!);
     expect(decoratedFunctionType('f').positionalParameters![0],
         same(decoratedType));
     expect(decoratedType.type!.isDynamic, isTrue);
@@ -1861,8 +1853,7 @@ void f({/*required*/ String s}) {}
     expect(decoratedType.node, isNot(never));
     expect(decoratedType.node, isNot(always));
     expect(functionType.namedParameters!['s']!.node!.isPossiblyOptional, false);
-    expect(
-        variables!.getRequiredHint(testSource, findNode.simpleParameter('s')),
+    expect(variables.getRequiredHint(testSource, findNode.simpleParameter('s')),
         isNotNull);
   }
 
@@ -1923,7 +1914,7 @@ int f() => 0;
 var x;
 ''');
     var decoratedType =
-        variables!.decoratedElementType(findNode.simple('x').staticElement!);
+        variables.decoratedElementType(findNode.simple('x').staticElement!);
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -1932,7 +1923,7 @@ var x;
 var x = 1;
 ''');
     var decoratedType =
-        variables!.decoratedElementType(findNode.simple('x').staticElement!);
+        variables.decoratedElementType(findNode.simple('x').staticElement!);
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
@@ -1942,7 +1933,7 @@ dynamic f() {}
 var x = f();
 ''');
     var decoratedType =
-        variables!.decoratedElementType(findNode.simple('x').staticElement!);
+        variables.decoratedElementType(findNode.simple('x').staticElement!);
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -2083,7 +2074,7 @@ F<int> f;
     // from the ones in the typedef (they will be unified by the edge builder).
     // This is necessary because there is no guarantee of whether the typedef or
     // its usage will be visited first.
-    var typedefDecoratedType = variables!
+    var typedefDecoratedType = variables
         .decoratedElementType(findElement.typeAlias('F').aliasedElement!);
     var decoratedType = decoratedTypeAnnotation('F<int>');
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
@@ -2104,7 +2095,7 @@ F f;
     // from the ones in the typedef (they will be unified by the edge builder).
     // This is necessary because there is no guarantee of whether the typedef or
     // its usage will be visited first.
-    var typedefDecoratedType = variables!
+    var typedefDecoratedType = variables
         .decoratedElementType(findElement.typeAlias('F').aliasedElement!);
     var decoratedType = decoratedTypeAnnotation('F f');
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
@@ -2134,7 +2125,7 @@ F f;
     // from the ones in the typedef (they will be unified by the edge builder).
     // This is necessary because there is no guarantee of whether the typedef or
     // its usage will be visited first.
-    var typedefDecoratedType = variables!
+    var typedefDecoratedType = variables
         .decoratedElementType(findElement.typeAlias('F').aliasedElement!);
     var decoratedType = decoratedTypeAnnotation('F f');
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
@@ -2198,40 +2189,40 @@ typedef F = void Function();
   Future<void> test_variableDeclaration_late_final_hint_simple() async {
     await analyze('/*late final*/ int i;');
     expect(
-        variables!
-            .getLateHint(testSource, findNode.variableDeclarationList('int i')),
+        variables.getLateHint(
+            testSource, findNode.variableDeclarationList('int i')),
         isNotNull);
   }
 
   Future<void> test_variableDeclaration_late_hint_after_metadata() async {
     await analyze('@deprecated /*late*/ int i;');
     expect(
-        variables!
-            .getLateHint(testSource, findNode.variableDeclarationList('int i')),
+        variables.getLateHint(
+            testSource, findNode.variableDeclarationList('int i')),
         isNotNull);
   }
 
   Future<void> test_variableDeclaration_late_hint_multiple_comments() async {
     await analyze('/*other*/ /*late*/ int i;');
     expect(
-        variables!
-            .getLateHint(testSource, findNode.variableDeclarationList('int i')),
+        variables.getLateHint(
+            testSource, findNode.variableDeclarationList('int i')),
         isNotNull);
   }
 
   Future<void> test_variableDeclaration_late_hint_simple() async {
     await analyze('/*late*/ int i;');
     expect(
-        variables!
-            .getLateHint(testSource, findNode.variableDeclarationList('int i')),
+        variables.getLateHint(
+            testSource, findNode.variableDeclarationList('int i')),
         isNotNull);
   }
 
   Future<void> test_variableDeclaration_late_hint_with_spaces() async {
     await analyze('/* late */ int i;');
     expect(
-        variables!
-            .getLateHint(testSource, findNode.variableDeclarationList('int i')),
+        variables.getLateHint(
+            testSource, findNode.variableDeclarationList('int i')),
         isNotNull);
   }
 

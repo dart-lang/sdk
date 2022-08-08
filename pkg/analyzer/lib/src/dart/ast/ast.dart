@@ -3417,7 +3417,7 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
     return _parameter.endToken;
   }
 
-  @Deprecated('Use identifier2 instead')
+  @Deprecated('Use name instead')
   @override
   SimpleIdentifierImpl? get identifier => _parameter.identifier;
 
@@ -4806,7 +4806,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
     return question ?? _parameters?.endToken ?? name;
   }
 
-  @Deprecated('Use identifier2 instead')
+  @Deprecated('Use name instead')
   @override
   SimpleIdentifierImpl get identifier => super.identifier!;
 
@@ -5066,7 +5066,7 @@ abstract class FormalParameterImpl extends AstNodeImpl
   @override
   ParameterElement? declaredElement;
 
-  @Deprecated('Use identifier2 instead')
+  @Deprecated('Use name instead')
   @override
   SimpleIdentifierImpl? get identifier;
 
@@ -6007,7 +6007,7 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   @override
   Token get endToken => question ?? _parameters.endToken;
 
-  @Deprecated('Use identifier2 instead')
+  @Deprecated('Use name instead')
   @override
   SimpleIdentifierImpl get identifier => super.identifier!;
 
@@ -10900,7 +10900,7 @@ class SuperFormalParameterImpl extends NormalFormalParameterImpl
     return question ?? _parameters?.endToken ?? name;
   }
 
-  @Deprecated('Use identifier2 instead')
+  @Deprecated('Use name instead')
   @override
   SimpleIdentifierImpl get identifier => super.identifier!;
 

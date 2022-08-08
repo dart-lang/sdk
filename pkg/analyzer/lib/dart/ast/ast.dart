@@ -1547,7 +1547,7 @@ abstract class DeclaredIdentifier implements Declaration {
   LocalVariableElement? get declaredElement;
 
   /// Return the name of the variable being declared.
-  @Deprecated('Use identifier2 instead')
+  @Deprecated('Use name instead')
   SimpleIdentifier get identifier;
 
   /// Return `true` if this variable was declared with the 'const' modifier.
@@ -2077,7 +2077,7 @@ abstract class FieldDeclaration implements ClassMember {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FieldFormalParameter implements NormalFormalParameter {
-  @Deprecated('Use identifier2 instead')
+  @Deprecated('Use name instead')
   @override
   SimpleIdentifier get identifier;
 
@@ -2206,7 +2206,7 @@ abstract class FormalParameter implements AstNode {
   /// Return the name of the parameter being declared, or `null` if the
   /// parameter doesn't have a name, such as when it's part of a generic
   /// function type.
-  @Deprecated('Use identifier2 instead')
+  @Deprecated('Use name instead')
   SimpleIdentifier? get identifier;
 
   /// Return `true` if this parameter was declared with the 'const' modifier.
@@ -2616,7 +2616,7 @@ abstract class FunctionTypeAlias implements TypeAlias {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypedFormalParameter implements NormalFormalParameter {
-  @Deprecated('Use identifier2 instead')
+  @Deprecated('Use name instead')
   @override
   SimpleIdentifier get identifier;
 
@@ -4381,7 +4381,7 @@ abstract class SuperExpression implements Expression {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class SuperFormalParameter implements NormalFormalParameter {
-  @Deprecated('Use identifier2 instead')
+  @Deprecated('Use name instead')
   @override
   SimpleIdentifier get identifier;
 

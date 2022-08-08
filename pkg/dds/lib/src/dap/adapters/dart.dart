@@ -79,14 +79,14 @@ var _subscribeToOutputStreams = false;
 final _trailingSemicolonPattern = RegExp(r';$');
 
 /// An implementation of [AttachRequestArguments] that includes all fields used
-/// by the base Dart debug adapter.
+/// by the Dart CLI and test debug adapters.
 ///
 /// This class represents the data passed from the client editor to the debug
 /// adapter in attachRequest, which is a request to start debugging an
 /// application.
 ///
-/// Specialised adapters (such as Flutter) will likely have their own versions
-/// of this class.
+/// Specialized adapters (such as Flutter) have their own versions of this
+/// class.
 class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
     implements AttachRequestArguments {
   /// The VM Service URI to attach to.
@@ -114,6 +114,8 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
   }) : super(
           name: name,
           cwd: cwd,
+          // env is not supported for Dart attach because we don't spawn a process.
+          env: null,
           restart: restart,
           additionalProjectPaths: additionalProjectPaths,
           debugSdkLibraries: debugSdkLibraries,
@@ -203,8 +205,7 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
     required this.restart,
     required this.name,
     required this.cwd,
-    // TODO(dantup): This can be made required after Flutter DAP is passing it.
-    this.env,
+    required this.env,
     required this.additionalProjectPaths,
     required this.debugSdkLibraries,
     required this.debugExternalPackageLibraries,
@@ -2083,14 +2084,14 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 }
 
 /// An implementation of [LaunchRequestArguments] that includes all fields used
-/// by the base Dart debug adapter.
+/// by the Dart CLI and test debug adapters.
 ///
 /// This class represents the data passed from the client editor to the debug
 /// adapter in launchRequest, which is a request to start debugging an
 /// application.
 ///
-/// Specialised adapters (such as Flutter) will likely have their own versions
-/// of this class.
+/// Specialized adapters (such as Flutter) have their own versions of this
+/// class.
 class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     implements LaunchRequestArguments {
   /// If noDebug is true the launch request should launch the program without
