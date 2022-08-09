@@ -41,7 +41,7 @@ class EncapsulateField extends CorrectionProducer {
     }
     var field = fields.first;
     var nameToken = field.name2;
-    var fieldElement = field.declaredElement as FieldElement;
+    var fieldElement = field.declaredElement2 as FieldElement;
     // should have a public name
     var name = nameToken.lexeme;
     if (Identifier.isPrivateName(name)) {

@@ -1714,7 +1714,7 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
   NativeClauseImpl? _nativeClause;
 
   @override
-  ClassElement? declaredElement;
+  ClassElement? declaredElement2;
 
   /// Initialize a newly created class declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the class does not have the
@@ -1744,6 +1744,10 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
     _becomeParentOf(_extendsClause);
     _becomeParentOf(_withClause);
   }
+
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ClassElement? get declaredElement => declaredElement2;
 
   @override
   ExtendsClauseImpl? get extendsClause => _extendsClause;
@@ -1978,7 +1982,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   ImplementsClauseImpl? _implementsClause;
 
   @override
-  ClassElement? declaredElement;
+  ClassElement? declaredElement2;
 
   /// Initialize a newly created class type alias. Either or both of the
   /// [comment] and [metadata] can be `null` if the class type alias does not
@@ -2009,6 +2013,10 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     _becomeParentOf(_withClause);
     _becomeParentOf(_implementsClause);
   }
+
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ClassElement? get declaredElement => declaredElement2;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -2784,7 +2792,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   /// structure has not been resolved or if this constructor could not be
   /// resolved.
   @override
-  ConstructorElement? declaredElement;
+  ConstructorElement? declaredElement2;
 
   /// Initialize a newly created constructor declaration. The [externalKeyword]
   /// can be `null` if the constructor is not external. Either or both of the
@@ -2832,6 +2840,10 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   set body(FunctionBody functionBody) {
     _body = _becomeParentOf(functionBody as FunctionBodyImpl);
   }
+
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ConstructorElement? get declaredElement => declaredElement2;
 
   @override
   Token get endToken {
@@ -3268,7 +3280,7 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   SimpleIdentifierImpl _identifier;
 
   @override
-  LocalVariableElement? declaredElement;
+  LocalVariableElement? declaredElement2;
 
   /// Initialize a newly created formal parameter. Either or both of the
   /// [comment] and [metadata] can be `null` if the declaration does not have
@@ -3285,6 +3297,10 @@ class DeclaredIdentifierImpl extends DeclarationImpl
     _becomeParentOf(_type);
     _becomeParentOf(_identifier);
   }
+
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  LocalVariableElement? get declaredElement => declaredElement2;
 
   @override
   Token get endToken => _identifier.endToken;
@@ -3801,7 +3817,7 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   SimpleIdentifierImpl _name;
 
   @override
-  FieldElement? declaredElement;
+  FieldElement? declaredElement2;
 
   @override
   final EnumConstantArgumentsImpl? arguments;
@@ -3821,6 +3837,10 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
     _becomeParentOf(_name);
     _becomeParentOf(arguments);
   }
+
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  FieldElement? get declaredElement => declaredElement2;
 
   @override
   Token get endToken => (arguments ?? _name).endToken;
@@ -3902,7 +3922,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   Token rightBracket;
 
   @override
-  ClassElement? declaredElement;
+  EnumElement? declaredElement2;
 
   /// Initialize a newly created enumeration declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the declaration does not have
@@ -3933,6 +3953,10 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   NodeListImpl<EnumConstantDeclaration> get constants => _constants;
+
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ClassElement? get declaredElement => declaredElement2 as ClassElement?;
 
   @override
   Token get endToken => rightBracket;
@@ -4427,7 +4451,8 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   Token rightBracket;
 
-  ExtensionElement? _declaredElement;
+  @override
+  ExtensionElement? declaredElement2;
 
   ExtensionDeclarationImpl({
     required super.comment,
@@ -4454,13 +4479,9 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     _members._initialize(this, members);
   }
 
+  @Deprecated('Use declaredElement2 instead')
   @override
-  ExtensionElement? get declaredElement => _declaredElement;
-
-  /// Set the element declared by this declaration to the given [element].
-  set declaredElement(ExtensionElement? element) {
-    _declaredElement = element;
-  }
+  ExtensionElement? get declaredElement => declaredElement2;
 
   @override
   Token get endToken => rightBracket;
@@ -4686,6 +4707,9 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
 
   @override
   Element? get declaredElement => null;
+
+  @override
+  Element? get declaredElement2 => null;
 
   @override
   Token get endToken => semicolon;
@@ -5519,7 +5543,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   FunctionExpressionImpl _functionExpression;
 
   @override
-  ExecutableElement? declaredElement;
+  ExecutableElement? declaredElement2;
 
   /// Initialize a newly created function declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the function does not have the
@@ -5541,6 +5565,10 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     _becomeParentOf(_returnType);
     _becomeParentOf(_functionExpression);
   }
+
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ExecutableElement? get declaredElement => declaredElement2;
 
   @override
   Token get endToken => _functionExpression.endToken;
@@ -5881,7 +5909,7 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
   FormalParameterListImpl _parameters;
 
   @override
-  TypeAliasElement? declaredElement;
+  TypeAliasElement? declaredElement2;
 
   /// Initialize a newly created function type alias. Either or both of the
   /// [comment] and [metadata] can be `null` if the function does not have the
@@ -5904,6 +5932,10 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
   }
+
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  TypeAliasElement? get declaredElement => declaredElement2;
 
   @override
   FormalParameterListImpl get parameters => _parameters;
@@ -6199,7 +6231,7 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
   Token equals;
 
   @override
-  Element? declaredElement;
+  Element? declaredElement2;
 
   /// Returns a newly created generic type alias. Either or both of the
   /// [comment] and [metadata] can be `null` if the variable list does not have
@@ -6219,6 +6251,10 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_type);
   }
+
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  Element? get declaredElement => declaredElement2;
 
   /// The type of function being defined by the alias.
   ///
@@ -7956,7 +7992,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
   /// a [PropertyAccessorElement] if this represents the declaration of either a
   /// getter or a setter.
   @override
-  ExecutableElement? declaredElement;
+  ExecutableElement? declaredElement2;
 
   /// Initialize a newly created method declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the declaration does not have
@@ -7997,6 +8033,10 @@ class MethodDeclarationImpl extends ClassMemberImpl
   set body(FunctionBody functionBody) {
     _body = _becomeParentOf(functionBody as FunctionBodyImpl);
   }
+
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ExecutableElement? get declaredElement => declaredElement2;
 
   @override
   Token get endToken => _body.endToken;
@@ -8263,7 +8303,7 @@ class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
   OnClauseImpl? _onClause;
 
   @override
-  ClassElement? declaredElement;
+  MixinElement? declaredElement2;
 
   /// Initialize a newly created mixin declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the mixin does not have the
@@ -8287,6 +8327,10 @@ class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
   }) : _onClause = onClause {
     _becomeParentOf(_onClause);
   }
+
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ClassElement? get declaredElement => declaredElement2 as ClassElement?;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -11335,6 +11379,9 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   Element? get declaredElement => null;
 
   @override
+  Element? get declaredElement2 => null;
+
+  @override
   Token get endToken => semicolon;
 
   @override
@@ -11665,7 +11712,7 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   TypeAnnotationImpl? _bound;
 
   @override
-  TypeParameterElement? declaredElement;
+  TypeParameterElement? declaredElement2;
 
   /// Initialize a newly created type parameter. Either or both of the [comment]
   /// and [metadata] can be `null` if the parameter does not have the
@@ -11690,6 +11737,10 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   set bound(TypeAnnotation? type) {
     _bound = _becomeParentOf(type as TypeAnnotationImpl?);
   }
+
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  TypeParameterElement? get declaredElement => declaredElement2;
 
   @override
   Token get endToken {
@@ -11884,7 +11935,7 @@ class VariableDeclarationImpl extends DeclarationImpl
   SimpleIdentifierImpl _name;
 
   @override
-  VariableElement? declaredElement;
+  VariableElement? declaredElement2;
 
   /// The equal sign separating the variable name from the initial value, or
   /// `null` if the initial value was not specified.
@@ -11913,6 +11964,10 @@ class VariableDeclarationImpl extends DeclarationImpl
     _becomeParentOf(_name);
     _becomeParentOf(_initializer);
   }
+
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  VariableElement? get declaredElement => declaredElement2;
 
   /// This overridden implementation of [documentationComment] looks in the
   /// grandparent node for Dartdoc comments if no documentation is specifically

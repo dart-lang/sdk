@@ -212,7 +212,7 @@ class LibraryBuilder {
               executable.body.accept(collector);
             }
           }
-          var element = declaration.declaredElement as MixinElementImpl;
+          var element = declaration.declaredElement2 as MixinElementImpl;
           element.superInvokedNames = names.toList();
         }
       }

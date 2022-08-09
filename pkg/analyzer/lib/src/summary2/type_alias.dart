@@ -15,12 +15,12 @@ class TypeAliasSelfReferenceFinder {
           if (node is FunctionTypeAlias) {
             var finder = _Finder(linker, node);
             finder.functionTypeAlias(node);
-            var element = node.declaredElement as TypeAliasElementImpl;
+            var element = node.declaredElement2 as TypeAliasElementImpl;
             element.hasSelfReference = finder.hasSelfReference;
           } else if (node is GenericTypeAlias) {
             var finder = _Finder(linker, node);
             finder.genericTypeAlias(node);
-            var element = node.declaredElement as TypeAliasElementImpl;
+            var element = node.declaredElement2 as TypeAliasElementImpl;
             element.hasSelfReference = finder.hasSelfReference;
           }
         }

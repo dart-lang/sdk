@@ -106,7 +106,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     bool prevTreatFinalInstanceVarAsConst = treatFinalInstanceVarAsConst;
-    if (node.declaredElement!.constructors
+    if (node.declaredElement2!.constructors
         .any((ConstructorElement e) => e.isConst)) {
       // Instance vars marked "final" need to be included in the dependency
       // graph, since constant constructors implicitly use the values in their
@@ -124,7 +124,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
     if (node.constKeyword != null) {
-      var element = node.declaredElement;
+      var element = node.declaredElement2;
       if (element != null) {
         constantsToCompute.add(element);
         constantsToCompute.addAll(element.parameters);
@@ -145,7 +145,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     super.visitEnumConstantDeclaration(node);
 
-    var element = node.declaredElement as ConstFieldElementImpl;
+    var element = node.declaredElement2 as ConstFieldElementImpl;
     constantsToCompute.add(element);
 
     var constantInitializer = element.constantInitializer!;
@@ -156,7 +156,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   void visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     var initializer = node.initializer;
-    var element = node.declaredElement!;
+    var element = node.declaredElement2!;
     if (initializer != null &&
         (node.isConst ||
             treatFinalInstanceVarAsConst &&

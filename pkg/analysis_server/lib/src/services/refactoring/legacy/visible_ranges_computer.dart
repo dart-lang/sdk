@@ -37,7 +37,7 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
     var loop = node.parent;
     if (loop != null) {
       for (var variable in node.variables.variables) {
-        _addLocalVariable(loop, variable.declaredElement);
+        _addLocalVariable(loop, variable.declaredElement2);
         variable.initializer?.accept(this);
       }
     }
@@ -47,7 +47,7 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     var block = node.parent?.parent;
     if (block is Block) {
-      var element = node.declaredElement as FunctionElement;
+      var element = node.declaredElement2 as FunctionElement;
       _map[element] = range.node(block);
     }
 
@@ -59,7 +59,7 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
     var block = node.parent;
     if (block != null) {
       for (var variable in node.variables.variables) {
-        _addLocalVariable(block, variable.declaredElement);
+        _addLocalVariable(block, variable.declaredElement2);
         variable.initializer?.accept(this);
       }
     }

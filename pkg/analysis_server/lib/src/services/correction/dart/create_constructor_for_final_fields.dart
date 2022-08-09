@@ -29,7 +29,7 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
     }
 
     var className = classDeclaration.name2.lexeme;
-    var superType = classDeclaration.declaredElement?.supertype;
+    var superType = classDeclaration.declaredElement2?.supertype;
     if (superType == null) {
       return;
     }

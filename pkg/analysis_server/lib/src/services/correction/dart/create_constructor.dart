@@ -109,7 +109,7 @@ class CreateConstructor extends CorrectionProducer {
     if (grandParent is! EnumDeclaration) {
       return;
     }
-    var targetElement = grandParent.declaredElement;
+    var targetElement = grandParent.declaredElement2;
     if (targetElement == null) {
       return;
     }

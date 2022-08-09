@@ -46,7 +46,7 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name2,
-          classElement: declaration.declaredElement as AbstractClassElementImpl,
+          classElement: declaration.declaredElement2!,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           superclass: declaration.extendsClause?.superclass,
@@ -61,7 +61,7 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name2,
-          classElement: declaration.declaredElement as AbstractClassElementImpl,
+          classElement: declaration.declaredElement2!,
           implementsClause: declaration.implementsClause,
           superclass: declaration.superclass,
           withClause: declaration.withClause,
@@ -75,7 +75,7 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name2,
-          classElement: declaration.declaredElement as AbstractClassElementImpl,
+          classElement: declaration.declaredElement2!,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           withClause: declaration.withClause,
@@ -89,7 +89,7 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name2,
-          classElement: declaration.declaredElement as AbstractClassElementImpl,
+          classElement: declaration.declaredElement2!,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           onClause: declaration.onClause,
@@ -122,7 +122,7 @@ class _ClassVerifier {
   final FeatureSet featureSet;
   final LibraryElementImpl library;
   final Uri libraryUri;
-  final AbstractClassElementImpl classElement;
+  final InterfaceElement classElement;
 
   final Token classNameToken;
   final List<ClassMember> members;
@@ -161,7 +161,9 @@ class _ClassVerifier {
       return true;
     }
 
+    final classElement = this.classElement;
     if (classElement is! EnumElement &&
+        classElement is ClassElement &&
         !classElement.isAbstract &&
         implementsDartCoreEnum) {
       reporter.reportErrorForToken(
@@ -186,7 +188,9 @@ class _ClassVerifier {
     if (classElement.supertype != null) {
       directSuperInterfaces.add(classElement.supertype!);
     }
-    directSuperInterfaces.addAll(classElement.superclassConstraints);
+    if (classElement is MixinElement) {
+      directSuperInterfaces.addAll(classElement.superclassConstraints);
+    }
 
     // Each mixin in `class C extends S with M0, M1, M2 {}` is equivalent to:
     //   class S&M0 extends S { ...members of M0... }
@@ -211,7 +215,7 @@ class _ClassVerifier {
       if (member is FieldDeclaration) {
         var fieldList = member.fields;
         for (var field in fieldList.variables) {
-          var fieldElement = field.declaredElement as FieldElement;
+          var fieldElement = field.declaredElement2 as FieldElement;
           _checkDeclaredMember(field.name2, libraryUri, fieldElement.getter);
           _checkDeclaredMember(field.name2, libraryUri, fieldElement.setter);
           if (!member.isStatic && classElement is! EnumElement) {
@@ -227,7 +231,7 @@ class _ClassVerifier {
           continue;
         }
 
-        _checkDeclaredMember(member.name2, libraryUri, member.declaredElement,
+        _checkDeclaredMember(member.name2, libraryUri, member.declaredElement2,
             methodParameterNodes: member.parameters?.parameters);
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
           _checkIllegalConcreteEnumMemberDeclaration(member.name2);
@@ -246,7 +250,7 @@ class _ClassVerifier {
       errorReporter: reporter,
     ).checkInterface(classElement, interface);
 
-    if (!classElement.isAbstract) {
+    if (!(classElement as ClassElement).isAbstract) {
       List<ExecutableElement>? inheritedAbstract;
 
       for (var name in interface.map.keys) {
@@ -402,12 +406,14 @@ class _ClassVerifier {
       return false;
     }
 
-    var interfaceElement = type.element2;
+    final typeElement = type.element2;
 
-    if (interfaceElement is ClassElement &&
-        interfaceElement.isDartCoreEnum &&
+    final classElement = this.classElement;
+    if (typeElement is ClassElement &&
+        typeElement.isDartCoreEnum &&
         library.featureSet.isEnabled(Feature.enhanced_enums)) {
-      if (classElement.isAbstract || classElement is EnumElement) {
+      if (classElement is ClassElement && classElement.isAbstract ||
+          classElement is EnumElement) {
         return false;
       }
       reporter.reportErrorForNode(
@@ -417,7 +423,7 @@ class _ClassVerifier {
       return true;
     }
 
-    if (typeProvider.isNonSubtypableClass(interfaceElement)) {
+    if (typeProvider.isNonSubtypableClass(typeElement)) {
       reporter.reportErrorForNode(errorCode, namedType, [type]);
       return true;
     }
@@ -671,14 +677,19 @@ class _ClassVerifier {
   }
 
   void _checkIllegalConcreteEnumMemberDeclaration(Token name) {
-    if (implementsDartCoreEnum &&
-        !classElement.isDartCoreEnumImpl &&
-        const {'index', 'hashCode', '=='}.contains(name.lexeme)) {
-      reporter.reportErrorForToken(
-        CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
-        name,
-        [name.lexeme],
-      );
+    if (implementsDartCoreEnum) {
+      final classElement = this.classElement;
+      if (classElement is ClassElementImpl &&
+              !classElement.isDartCoreEnumImpl ||
+          classElement is EnumElementImpl) {
+        if (const {'index', 'hashCode', '=='}.contains(name.lexeme)) {
+          reporter.reportErrorForToken(
+            CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+            name,
+            [name.lexeme],
+          );
+        }
+      }
     }
   }
 
@@ -918,7 +929,7 @@ class _ClassVerifier {
   }
 
   bool _reportNoCombinedSuperSignature(MethodDeclaration node) {
-    var element = node.declaredElement;
+    var element = node.declaredElement2;
     if (element is MethodElementImpl) {
       var inferenceError = element.typeInferenceError;
       if (inferenceError?.kind ==

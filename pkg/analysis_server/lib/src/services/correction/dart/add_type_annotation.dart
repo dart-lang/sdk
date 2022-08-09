@@ -104,7 +104,7 @@ class AddTypeAnnotation extends CorrectionProducer {
       var targetClassDeclaration =
           target.thisOrAncestorOfType<ClassDeclaration>();
       if (targetClassDeclaration != null) {
-        utils.targetClassElement = targetClassDeclaration.declaredElement;
+        utils.targetClassElement = targetClassDeclaration.declaredElement2;
       }
     }
   }
@@ -115,7 +115,7 @@ class AddTypeAnnotation extends CorrectionProducer {
     if (declaredIdentifier.type != null) {
       return;
     }
-    var type = declaredIdentifier.declaredElement!.type;
+    var type = declaredIdentifier.declaredElement2!.type;
     if (type is! InterfaceType && type is! FunctionType) {
       return;
     }
@@ -183,7 +183,7 @@ class AddTypeAnnotation extends CorrectionProducer {
     if (statement is! VariableDeclarationStatement || block is! Block) {
       return null;
     }
-    var element = variable.declaredElement;
+    var element = variable.declaredElement2;
     if (element is! LocalVariableElement) {
       return null;
     }

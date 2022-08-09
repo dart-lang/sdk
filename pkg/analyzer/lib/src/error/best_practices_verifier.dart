@@ -155,10 +155,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             HintCode.INVALID_IMMUTABLE_ANNOTATION, node, []);
       }
     } else if (element.isInternal) {
-      var parentElement = parent is Declaration ? parent.declaredElement : null;
+      var parentElement =
+          parent is Declaration ? parent.declaredElement2 : null;
       if (parent is TopLevelVariableDeclaration) {
         for (VariableDeclaration variable in parent.variables.variables) {
-          var element = variable.declaredElement as TopLevelVariableElement;
+          var element = variable.declaredElement2 as TopLevelVariableElement;
           if (Identifier.isPrivateName(element.name)) {
             _errorReporter.reportErrorForNode(
                 HintCode.INVALID_INTERNAL_ANNOTATION, variable, []);
@@ -166,14 +167,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         }
       } else if (parent is FieldDeclaration) {
         for (VariableDeclaration variable in parent.fields.variables) {
-          var element = variable.declaredElement as FieldElement;
+          var element = variable.declaredElement2 as FieldElement;
           if (Identifier.isPrivateName(element.name)) {
             _errorReporter.reportErrorForNode(
                 HintCode.INVALID_INTERNAL_ANNOTATION, variable, []);
           }
         }
       } else if (parent is ConstructorDeclaration) {
-        var class_ = parent.declaredElement!.enclosingElement3;
+        var class_ = parent.declaredElement2!.enclosingElement3;
         if (class_.isPrivate || (parentElement?.isPrivate ?? false)) {
           _errorReporter.reportErrorForNode(
               HintCode.INVALID_INTERNAL_ANNOTATION, node, []);
@@ -255,7 +256,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         if (parent is TopLevelVariableDeclaration) {
           for (VariableDeclaration variable in parent.variables.variables) {
             var variableElement =
-                variable.declaredElement as TopLevelVariableElement;
+                variable.declaredElement2 as TopLevelVariableElement;
 
             if (Identifier.isPrivateName(variableElement.name)) {
               reportInvalidAnnotation(variableElement);
@@ -268,7 +269,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           }
         } else if (parent is FieldDeclaration) {
           for (VariableDeclaration variable in parent.fields.variables) {
-            var fieldElement = variable.declaredElement as FieldElement;
+            var fieldElement = variable.declaredElement2 as FieldElement;
             if (parent.isStatic && element.isVisibleForOverriding == true) {
               reportInvalidVisibleForOverriding(fieldElement);
             }
@@ -277,8 +278,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               reportInvalidAnnotation(fieldElement);
             }
           }
-        } else if (parent.declaredElement != null) {
-          final declaredElement = parent.declaredElement!;
+        } else if (parent.declaredElement2 != null) {
+          final declaredElement = parent.declaredElement2!;
           if (element.isVisibleForOverriding &&
               !declaredElement.isInstanceMember) {
             reportInvalidVisibleForOverriding(declaredElement);
@@ -377,7 +378,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var element = node.declaredElement as ClassElementImpl;
+    var element = node.declaredElement2 as ClassElementImpl;
     _enclosingClass = element;
     _invalidAccessVerifier._enclosingClass = element;
 
@@ -421,7 +422,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var element = node.declaredElement as ConstructorElementImpl;
+    var element = node.declaredElement2 as ConstructorElementImpl;
     if (!_isNonNullableByDefault && element.isFactory) {
       if (node.body is BlockFunctionBody) {
         // Check the block for a return statement, if not, create the hint.
@@ -470,7 +471,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       super.visitFieldDeclaration(node);
       for (var field in node.fields.variables) {
         ExecutableElement? getOverriddenPropertyAccessor() {
-          final element = field.declaredElement;
+          final element = field.declaredElement2;
           if (element is PropertyAccessorElement || element is FieldElement) {
             Name name = Name(_currentLibrary.source.uri, element!.name);
             Element enclosingElement = element.enclosingElement3!;
@@ -526,7 +527,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
-    ExecutableElement element = node.declaredElement!;
+    ExecutableElement element = node.declaredElement2!;
     _deprecatedVerifier.pushInDeprecatedValue(element.hasDeprecated);
     if (element.hasDoNotStore) {
       _inDoNotStoreMember = true;
@@ -641,7 +642,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
-    var element = node.declaredElement!;
+    var element = node.declaredElement2!;
     var enclosingElement = element.enclosingElement3;
 
     Name name = Name(_currentLibrary.source.uri, element.name);
@@ -716,7 +717,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    var element = node.declaredElement as ClassElementImpl;
+    var element = node.declaredElement2 as ClassElementImpl;
     _enclosingClass = element;
     _invalidAccessVerifier._enclosingClass = _enclosingClass;
 
@@ -1049,7 +1050,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return nonFinalFields;
     }
 
-    var element = node.declaredElement as ClassElement;
+    var element = node.declaredElement2 as ClassElement;
     if (isOrInheritsImmutable(element, HashSet<ClassElement>())) {
       Iterable<String> nonFinalFields =
           definedOrInheritedNonFinalInstanceFields(
@@ -1170,7 +1171,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     // ClassElement, but [_checkForInvalidSealedSuperclass] should only be
     // called with a [ClassOrMixinDeclaration], or a [ClassTypeAlias]. The
     // `declaredElement` of these specific classes is a [ClassElement].
-    var element = node.declaredElement as ClassElement;
+    var element = node.declaredElement2 as ClassElement;
     // TODO(srawlins): Perhaps replace this with a getter on Element, like
     // `Element.hasOrInheritsSealed`?
     for (InterfaceType supertype in element.allSupertypes) {
@@ -1451,7 +1452,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
           HintCode.RETURN_OF_DO_NOT_STORE,
           entry.key,
-          [entry.value.name!, parent.declaredElement!.displayName],
+          [entry.value.name!, parent.declaredElement2!.displayName],
         );
       }
     }

@@ -47,7 +47,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   @override
   void visitClassElement(ClassElement element) {
     if (opType.includeTypeNameSuggestions) {
-      builder.suggestClass(element, prefix: prefix);
+      builder.suggestInterface(element, prefix: prefix);
     }
     if (opType.includeConstructorSuggestions) {
       _addConstructorSuggestions(element);

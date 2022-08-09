@@ -446,7 +446,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   _IndexContributor(this.assembler);
 
-  void recordIsAncestorOf(ClassElement descendant) {
+  void recordIsAncestorOf(InterfaceElement descendant) {
     _recordIsAncestorOf(descendant, descendant, false, <ClassElement>[]);
   }
 
@@ -561,7 +561,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     _addSubtypeForClassDeclaration(node);
-    var declaredElement = node.declaredElement!;
+    var declaredElement = node.declaredElement2!;
     if (node.extendsClause == null) {
       final objectElement = declaredElement.supertype?.element2;
       recordRelationOffset(objectElement, IndexRelationKind.IS_EXTENDED_BY,
@@ -574,7 +574,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     _addSubtypeForClassTypeAlis(node);
-    recordIsAncestorOf(node.declaredElement!);
+    recordIsAncestorOf(node.declaredElement2!);
     super.visitClassTypeAlias(node);
   }
 
@@ -681,7 +681,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       memberNodes: node.members,
     );
 
-    var declaredElement = node.declaredElement!;
+    var declaredElement = node.declaredElement2!;
     recordIsAncestorOf(declaredElement);
     super.visitEnumDeclaration(node);
   }
@@ -770,7 +770,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
     _addSubtypeForMixinDeclaration(node);
-    recordIsAncestorOf(node.declaredElement!);
+    recordIsAncestorOf(node.declaredElement2!);
     super.visitMixinDeclaration(node);
   }
 

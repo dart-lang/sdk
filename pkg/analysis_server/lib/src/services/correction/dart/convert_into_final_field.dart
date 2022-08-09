@@ -42,7 +42,7 @@ class ConvertIntoFinalField extends CorrectionProducer {
 
     // Check that there is no corresponding setter.
     {
-      var element = getter.declaredElement;
+      var element = getter.declaredElement2;
       if (element == null) {
         return;
       }

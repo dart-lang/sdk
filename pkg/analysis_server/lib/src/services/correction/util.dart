@@ -255,13 +255,13 @@ AstNode? getEnclosingClassOrUnitMember(AstNode input) {
 ExecutableElement? getEnclosingExecutableElement(AstNode input) {
   for (var node in input.withParents) {
     if (node is FunctionDeclaration) {
-      return node.declaredElement;
+      return node.declaredElement2;
     }
     if (node is ConstructorDeclaration) {
-      return node.declaredElement;
+      return node.declaredElement2;
     }
     if (node is MethodDeclaration) {
-      return node.declaredElement;
+      return node.declaredElement2;
     }
   }
   return null;

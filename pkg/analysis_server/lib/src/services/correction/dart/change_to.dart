@@ -141,7 +141,7 @@ class ChangeTo extends CorrectionProducer {
     if (target == null) {
       var clazz = this.node.thisOrAncestorOfType<ClassDeclaration>();
       if (clazz != null) {
-        var classElement = clazz.declaredElement!;
+        var classElement = clazz.declaredElement2!;
         _updateFinderWithClassMembers(finder, classElement);
       }
     } else if (target is ExtensionOverride) {
@@ -292,7 +292,7 @@ class ChangeTo extends CorrectionProducer {
       var targetClassNode = parent.thisOrAncestorOfType<ClassDeclaration>();
       if (targetClassNode == null) return;
 
-      var targetClassElement = targetClassNode.declaredElement!;
+      var targetClassElement = targetClassNode.declaredElement2!;
       var superType = targetClassElement.supertype;
       if (superType == null) return;
 

@@ -203,11 +203,11 @@ class Variables {
     (_conditionalDiscards[source] ??= {})[node.offset] = conditionalDiscard;
   }
 
-  /// Associates a [class_] with decorated type information for the superclasses
+  /// Associates a [interface] with decorated type information for the superclasses
   /// it directly implements/extends/etc.
-  void recordDecoratedDirectSupertypes(ClassElement class_,
+  void recordDecoratedDirectSupertypes(InterfaceElement interface,
       Map<InterfaceElement, DecoratedType?> decoratedDirectSupertypes) {
-    _decoratedDirectSupertypes[class_] = decoratedDirectSupertypes;
+    _decoratedDirectSupertypes[interface] = decoratedDirectSupertypes;
   }
 
   /// Associates decorated type information with the given [element].

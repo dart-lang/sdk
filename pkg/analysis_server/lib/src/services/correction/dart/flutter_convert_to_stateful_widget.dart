@@ -35,7 +35,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
     }
 
     // Must be a StatelessWidget subclass.
-    var widgetClassElement = widgetClass.declaredElement!;
+    var widgetClassElement = widgetClass.declaredElement2!;
     var superType = widgetClassElement.supertype;
     if (superType == null || !flutter.isExactlyStatelessWidgetType(superType)) {
       return;
@@ -66,7 +66,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
     for (var member in widgetClass.members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (var fieldNode in member.fields.variables) {
-          var fieldElement = fieldNode.declaredElement as FieldElement;
+          var fieldElement = fieldNode.declaredElement2 as FieldElement;
           if (!fieldsAssignedInConstructors.contains(fieldElement)) {
             nodesToMove.add(member);
             elementsToMove.add(fieldElement);
@@ -84,7 +84,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
         }
       } else if (member is MethodDeclaration && !member.isStatic) {
         nodesToMove.add(member);
-        elementsToMove.add(member.declaredElement!);
+        elementsToMove.add(member.declaredElement2!);
       }
     }
 

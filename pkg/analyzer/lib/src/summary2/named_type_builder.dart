@@ -319,7 +319,7 @@ class NamedTypeBuilder extends TypeBuilder {
   static List<TypeParameterElement> _typeParameters(TypeParameterList? node) {
     if (node != null) {
       return node.typeParameters
-          .map<TypeParameterElement>((p) => p.declaredElement!)
+          .map<TypeParameterElement>((p) => p.declaredElement2!)
           .toList();
     } else {
       return const <TypeParameterElement>[];

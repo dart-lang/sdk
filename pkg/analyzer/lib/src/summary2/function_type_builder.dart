@@ -208,6 +208,6 @@ class FunctionTypeBuilder extends TypeBuilder {
     TypeParameterList? node,
   ) {
     if (node == null) return const [];
-    return node.typeParameters.map((n) => n.declaredElement!).toList();
+    return node.typeParameters.map((n) => n.declaredElement2!).toList();
   }
 }

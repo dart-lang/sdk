@@ -95,7 +95,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   T? computeNodeValue(Id id, AstNode node);
 
   Id createClassId(Declaration node) {
-    var element = node.declaredElement!;
+    var element = node.declaredElement2!;
     return ClassId(element.name!);
   }
 
@@ -109,7 +109,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   }
 
   Id createMemberId(Declaration node) {
-    var element = node.declaredElement!;
+    var element = node.declaredElement2!;
     return computeMemberId(element);
   }
 

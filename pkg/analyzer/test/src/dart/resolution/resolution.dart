@@ -689,7 +689,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else if (node is ConstructorReference) {
       return node.constructorName.staticElement;
     } else if (node is Declaration) {
-      return node.declaredElement;
+      return node.declaredElement2;
     } else if (node is ExtensionOverride) {
       return node.staticElement;
     } else if (node is FormalParameter) {

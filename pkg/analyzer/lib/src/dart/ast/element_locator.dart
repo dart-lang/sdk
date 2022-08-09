@@ -38,7 +38,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitClassDeclaration(ClassDeclaration node) {
-    return node.declaredElement;
+    return node.declaredElement2;
   }
 
   @override
@@ -48,7 +48,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitConstructorDeclaration(ConstructorDeclaration node) {
-    return node.declaredElement;
+    return node.declaredElement2;
   }
 
   @override
@@ -75,17 +75,17 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitFunctionDeclaration(FunctionDeclaration node) {
-    return node.declaredElement;
+    return node.declaredElement2;
   }
 
   @override
   Element? visitFunctionTypeAlias(FunctionTypeAlias node) {
-    return node.declaredElement;
+    return node.declaredElement2;
   }
 
   @override
   Element? visitGenericTypeAlias(GenericTypeAlias node) {
-    return node.declaredElement;
+    return node.declaredElement2;
   }
 
   @override
@@ -103,14 +103,14 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
       if (identical(returnType, node)) {
         var name = parent.name2;
         if (name != null) {
-          return parent.declaredElement;
+          return parent.declaredElement2;
         }
         var element = node.staticElement;
         if (element is ClassElement) {
           return element.unnamedConstructor;
         }
       } else if (parent.name2 == node.endToken) {
-        return parent.declaredElement;
+        return parent.declaredElement2;
       }
     } else if (parent is LibraryIdentifier) {
       var grandParent = parent.parent;
@@ -148,7 +148,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitMethodDeclaration(MethodDeclaration node) {
-    return node.declaredElement;
+    return node.declaredElement2;
   }
 
   @override
@@ -194,11 +194,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitTypeParameter(TypeParameter node) {
-    return node.declaredElement;
+    return node.declaredElement2;
   }
 
   @override
   Element? visitVariableDeclaration(VariableDeclaration node) {
-    return node.declaredElement;
+    return node.declaredElement2;
   }
 }

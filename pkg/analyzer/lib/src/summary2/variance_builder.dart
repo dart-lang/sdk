@@ -164,7 +164,7 @@ class VarianceBuilder {
     try {
       for (var parameter in parameterList.typeParameters) {
         var variance = _computeFunctionType(
-          parameter.declaredElement!,
+          parameter.declaredElement2!,
           returnType: node.returnType?.type,
           typeFormals: null,
           parameters: FunctionTypeBuilder.getParameters(
@@ -210,7 +210,7 @@ class VarianceBuilder {
     _visit.add(node);
     try {
       for (var parameter in parameterList.typeParameters) {
-        var variance = _compute(parameter.declaredElement!, type);
+        var variance = _compute(parameter.declaredElement2!, type);
         _setVariance(parameter, variance);
       }
     } finally {
@@ -247,7 +247,7 @@ class VarianceBuilder {
   }
 
   static void _setVariance(TypeParameter node, Variance variance) {
-    var element = node.declaredElement as TypeParameterElementImpl;
+    var element = node.declaredElement2 as TypeParameterElementImpl;
     element.variance = variance;
   }
 }

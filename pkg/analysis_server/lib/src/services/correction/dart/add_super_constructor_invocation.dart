@@ -24,7 +24,7 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
       return;
     }
 
-    var targetClassElement = targetClassNode.declaredElement!;
+    var targetClassElement = targetClassNode.declaredElement2!;
     var superType = targetClassElement.supertype;
     if (superType == null) {
       return;

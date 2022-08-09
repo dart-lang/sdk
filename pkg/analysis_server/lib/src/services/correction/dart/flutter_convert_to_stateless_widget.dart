@@ -36,7 +36,7 @@ class FlutterConvertToStatelessWidget extends CorrectionProducer {
     }
 
     // Must be a StatefulWidget subclass.
-    var widgetClassElement = widgetClass.declaredElement!;
+    var widgetClassElement = widgetClass.declaredElement2!;
     var superType = widgetClassElement.supertype;
     if (superType == null || !flutter.isExactlyStatefulWidgetType(superType)) {
       return;
@@ -46,7 +46,7 @@ class FlutterConvertToStatelessWidget extends CorrectionProducer {
     if (createStateMethod == null) return;
 
     var stateClass = _findStateClass(widgetClassElement);
-    var stateClassElement = stateClass?.declaredElement;
+    var stateClassElement = stateClass?.declaredElement2;
     if (stateClass == null ||
         stateClassElement == null ||
         !Identifier.isPrivateName(stateClass.name2.lexeme) ||
@@ -84,7 +84,7 @@ class FlutterConvertToStatelessWidget extends CorrectionProducer {
           return;
         }
         for (var fieldNode in member.fields.variables) {
-          var fieldElement = fieldNode.declaredElement as FieldElement;
+          var fieldElement = fieldNode.declaredElement2 as FieldElement;
           if (!fieldsAssignedInConstructors.contains(fieldElement)) {
             nodesToMove.add(member);
             elementsToMove.add(fieldElement);
@@ -106,7 +106,7 @@ class FlutterConvertToStatelessWidget extends CorrectionProducer {
         }
         if (!_isDefaultOverride(member)) {
           nodesToMove.add(member);
-          elementsToMove.add(member.declaredElement!);
+          elementsToMove.add(member.declaredElement2!);
         }
       }
     }
@@ -391,7 +391,7 @@ class _StateUsageVisitor extends RecursiveAstVisitor<void> {
         methodDeclaration?.thisOrAncestorOfType<ClassDeclaration>();
 
     if (methodDeclaration?.name2.lexeme != 'createState' ||
-        classDeclaration?.declaredElement != widgetClassElement) {
+        classDeclaration?.declaredElement2 != widgetClassElement) {
       used = true;
     }
   }

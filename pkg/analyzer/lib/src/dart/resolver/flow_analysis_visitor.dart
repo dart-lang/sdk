@@ -280,7 +280,7 @@ class FlowAnalysisHelper {
       var variables = node.variables;
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
-        flow!.declare(variable.declaredElement as PromotableElement,
+        flow!.declare(variable.declaredElement2 as PromotableElement,
             variable.initializer != null);
       }
     }
@@ -627,7 +627,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         grandParent is FieldDeclaration) {
       throw StateError('Should not visit top level declarations');
     }
-    var declaredElement = node.declaredElement as PromotableElement;
+    var declaredElement = node.declaredElement2 as PromotableElement;
     assignedVariables.declare(declaredElement);
     if (declaredElement.isLate && node.initializer != null) {
       assignedVariables.beginNode();
@@ -678,7 +678,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
           assignedVariables.write(element);
         }
       } else if (forLoopParts is ForEachPartsWithDeclaration) {
-        var variable = forLoopParts.loopVariable.declaredElement!;
+        var variable = forLoopParts.loopVariable.declaredElement2!;
         assignedVariables.declare(variable);
       } else {
         throw StateError('Unrecognized for loop parts');

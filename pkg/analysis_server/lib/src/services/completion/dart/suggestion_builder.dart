@@ -322,22 +322,6 @@ class SuggestionBuilder {
     );
   }
 
-  /// Add a suggestion for a [classElement]. If the class can only be
-  /// referenced using a prefix, then the [prefix] should be provided.
-  void suggestClass(ClassElement classElement, {String? prefix}) {
-    var relevance = _computeTopLevelRelevance(classElement,
-        elementType: _instantiateInterfaceElement(classElement));
-    _addBuilder(
-      _createCompletionSuggestionBuilder(
-        classElement,
-        kind: CompletionSuggestionKind.IDENTIFIER,
-        prefix: prefix,
-        relevance: relevance,
-        isNotImported: isNotImportedLibrary,
-      ),
-    );
-  }
-
   /// Add a suggestion to insert a closure matching the given function [type].
   /// If [includeTrailingComma] is `true` then the completion text will include
   /// a trailing comma, such as when the closure is part of an argument list.
@@ -452,7 +436,7 @@ class SuggestionBuilder {
   void suggestElement(Element element,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
     if (element is ClassElement) {
-      suggestClass(element);
+      suggestInterface(element);
     } else if (element is ConstructorElement) {
       suggestConstructor(element, kind: kind);
     } else if (element is ExtensionElement) {
@@ -584,6 +568,22 @@ class SuggestionBuilder {
         parameterTypes: [],
         requiredParameterCount: 0,
         hasNamedParameters: false,
+      ),
+    );
+  }
+
+  /// Add a suggestion for a [element]. If the class can only be
+  /// referenced using a prefix, then the [prefix] should be provided.
+  void suggestInterface(InterfaceElement element, {String? prefix}) {
+    var relevance = _computeTopLevelRelevance(element,
+        elementType: _instantiateInterfaceElement(element));
+    _addBuilder(
+      _createCompletionSuggestionBuilder(
+        element,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        prefix: prefix,
+        relevance: relevance,
+        isNotImported: isNotImportedLibrary,
       ),
     );
   }

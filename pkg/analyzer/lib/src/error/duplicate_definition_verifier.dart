@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -46,12 +45,12 @@ class DuplicateDefinitionVerifier {
   }
 
   void checkClass(ClassDeclaration node) {
-    _checkClassMembers(node.declaredElement!, node.members);
+    _checkClassMembers(node.declaredElement2!, node.members);
   }
 
   /// Check that there are no members with the same name.
   void checkEnum(EnumDeclaration node) {
-    var enumElement = node.declaredElement as EnumElementImpl;
+    var enumElement = node.declaredElement2!;
     var enumName = enumElement.name;
 
     var constructorNames = <String>{};
@@ -62,14 +61,14 @@ class DuplicateDefinitionVerifier {
 
     for (EnumConstantDeclaration constant in node.constants) {
       _checkDuplicateIdentifier(staticGetters, constant.name2,
-          element: constant.declaredElement!);
+          element: constant.declaredElement2!);
       _checkValuesDeclarationInEnum(constant.name2);
     }
 
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
         if (member.returnType.name == enumElement.name) {
-          var name = member.declaredElement!.name;
+          var name = member.declaredElement2!.name;
           if (!constructorNames.add(name)) {
             if (name.isEmpty) {
               _errorReporter.reportErrorForName(
@@ -91,7 +90,7 @@ class DuplicateDefinitionVerifier {
           _checkDuplicateIdentifier(
             member.isStatic ? staticGetters : instanceGetters,
             identifier,
-            element: field.declaredElement!,
+            element: field.declaredElement2!,
             setterScope: member.isStatic ? staticSetters : instanceSetters,
           );
           _checkValuesDeclarationInEnum(identifier);
@@ -100,7 +99,7 @@ class DuplicateDefinitionVerifier {
         _checkDuplicateIdentifier(
           member.isStatic ? staticGetters : instanceGetters,
           member.name2,
-          element: member.declaredElement!,
+          element: member.declaredElement2!,
           setterScope: member.isStatic ? staticSetters : instanceSetters,
         );
         if (!(member.isStatic && member.isSetter)) {
@@ -126,7 +125,7 @@ class DuplicateDefinitionVerifier {
     }
 
     _checkConflictingConstructorAndStatic(
-      classElement: enumElement,
+      interfaceElement: enumElement,
       staticGetters: staticGetters,
       staticSetters: staticSetters,
     );
@@ -200,7 +199,7 @@ class DuplicateDefinitionVerifier {
           _checkDuplicateIdentifier(
             member.isStatic ? staticGetters : instanceGetters,
             identifier,
-            element: field.declaredElement!,
+            element: field.declaredElement2!,
             setterScope: member.isStatic ? staticSetters : instanceSetters,
           );
         }
@@ -208,7 +207,7 @@ class DuplicateDefinitionVerifier {
         _checkDuplicateIdentifier(
           member.isStatic ? staticGetters : instanceGetters,
           member.name2,
-          element: member.declaredElement!,
+          element: member.declaredElement2!,
           setterScope: member.isStatic ? staticSetters : instanceSetters,
         );
       }
@@ -254,12 +253,12 @@ class DuplicateDefinitionVerifier {
     Map<String, Element> definedNames = HashMap<String, Element>();
     for (VariableDeclaration variable in node.variables) {
       _checkDuplicateIdentifier(definedNames, variable.name2,
-          element: variable.declaredElement!);
+          element: variable.declaredElement2!);
     }
   }
 
   void checkMixin(MixinDeclaration node) {
-    _checkClassMembers(node.declaredElement!, node.members);
+    _checkClassMembers(node.declaredElement2!, node.members);
   }
 
   /// Check that all of the parameters have unique names.
@@ -283,13 +282,13 @@ class DuplicateDefinitionVerifier {
       if (statement is VariableDeclarationStatement) {
         for (VariableDeclaration variable in statement.variables.variables) {
           _checkDuplicateIdentifier(definedNames, variable.name2,
-              element: variable.declaredElement!);
+              element: variable.declaredElement2!);
         }
       } else if (statement is FunctionDeclarationStatement) {
         _checkDuplicateIdentifier(
           definedNames,
           statement.functionDeclaration.name2,
-          element: statement.functionDeclaration.declaredElement!,
+          element: statement.functionDeclaration.declaredElement2!,
         );
       }
     }
@@ -300,7 +299,7 @@ class DuplicateDefinitionVerifier {
     Map<String, Element> definedNames = HashMap<String, Element>();
     for (TypeParameter parameter in node.typeParameters) {
       _checkDuplicateIdentifier(definedNames, parameter.name2,
-          element: parameter.declaredElement!);
+          element: parameter.declaredElement2!);
     }
   }
 
@@ -358,22 +357,22 @@ class DuplicateDefinitionVerifier {
         var identifier = member.name2;
         if (identifier != null) {
           _checkDuplicateIdentifier(definedGetters, identifier,
-              element: member.declaredElement!, setterScope: definedSetters);
+              element: member.declaredElement2!, setterScope: definedSetters);
         }
       } else if (member is NamedCompilationUnitMember) {
         _checkDuplicateIdentifier(definedGetters, member.name2,
-            element: member.declaredElement!, setterScope: definedSetters);
+            element: member.declaredElement2!, setterScope: definedSetters);
       } else if (member is TopLevelVariableDeclaration) {
         for (VariableDeclaration variable in member.variables.variables) {
           _checkDuplicateIdentifier(definedGetters, variable.name2,
-              element: variable.declaredElement!, setterScope: definedSetters);
+              element: variable.declaredElement2!, setterScope: definedSetters);
         }
       }
     }
   }
 
   /// Check that there are no members with the same name.
-  void _checkClassMembers(ClassElement element, List<ClassMember> members) {
+  void _checkClassMembers(InterfaceElement element, List<ClassMember> members) {
     var constructorNames = HashSet<String>();
     var instanceGetters = HashMap<String, Element>();
     var instanceSetters = HashMap<String, Element>();
@@ -405,7 +404,7 @@ class DuplicateDefinitionVerifier {
           _checkDuplicateIdentifier(
             member.isStatic ? staticGetters : instanceGetters,
             field.name2,
-            element: field.declaredElement!,
+            element: field.declaredElement2!,
             setterScope: member.isStatic ? staticSetters : instanceSetters,
           );
         }
@@ -413,14 +412,14 @@ class DuplicateDefinitionVerifier {
         _checkDuplicateIdentifier(
           member.isStatic ? staticGetters : instanceGetters,
           member.name2,
-          element: member.declaredElement!,
+          element: member.declaredElement2!,
           setterScope: member.isStatic ? staticSetters : instanceSetters,
         );
       }
     }
 
     _checkConflictingConstructorAndStatic(
-      classElement: element,
+      interfaceElement: element,
       staticGetters: staticGetters,
       staticSetters: staticSetters,
     );
@@ -462,11 +461,11 @@ class DuplicateDefinitionVerifier {
   }
 
   void _checkConflictingConstructorAndStatic({
-    required ClassElement classElement,
+    required InterfaceElement interfaceElement,
     required Map<String, Element> staticGetters,
     required Map<String, Element> staticSetters,
   }) {
-    for (var constructor in classElement.constructors) {
+    for (var constructor in interfaceElement.constructors) {
       var name = constructor.name;
       var staticMember = staticGetters[name] ?? staticSetters[name];
       if (staticMember is PropertyAccessorElement) {
@@ -578,7 +577,7 @@ class DuplicateDefinitionVerifier {
   }
 
   ExecutableElement? _getInheritedMember(
-      ClassElement element, String baseName) {
+      InterfaceElement element, String baseName) {
     var libraryUri = _currentLibrary.source.uri;
 
     var getterName = Name(libraryUri, baseName);
@@ -592,7 +591,7 @@ class DuplicateDefinitionVerifier {
   }
 
   ExecutableElement? _getInterfaceMember(
-      ClassElement element, String baseName) {
+      InterfaceElement element, String baseName) {
     var libraryUri = _currentLibrary.source.uri;
 
     var getterName = Name(libraryUri, baseName);

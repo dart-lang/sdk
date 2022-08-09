@@ -120,7 +120,7 @@ extension on MethodDeclaration {
   /// Return the element that this method overrides, or `null` if this method
   /// doesn't override any inherited member.
   ExecutableElement? overriddenElement() {
-    var element = declaredElement;
+    var element = declaredElement2;
     if (element != null) {
       var enclosingElement = element.enclosingElement3;
       if (enclosingElement is ClassElement) {

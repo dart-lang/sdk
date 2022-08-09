@@ -8,14 +8,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/export.dart';
 
-/// The scope defined by a class.
-class ClassScope extends EnclosedScope {
-  ClassScope(super.parent, ClassElement element) {
-    element.accessors.forEach(_addPropertyAccessor);
-    element.methods.forEach(_addGetter);
-  }
-}
-
 /// The scope for the initializers in a constructor.
 class ConstructorInitializerScope extends EnclosedScope {
   ConstructorInitializerScope(super.parent, ConstructorElement element) {
@@ -105,6 +97,14 @@ class ImportedElement {
     required this.element,
     required this.isFromDeprecatedExport,
   });
+}
+
+/// The scope defined by an interface element.
+class InterfaceScope extends EnclosedScope {
+  InterfaceScope(super.parent, InterfaceElement element) {
+    element.accessors.forEach(_addPropertyAccessor);
+    element.methods.forEach(_addGetter);
+  }
 }
 
 class LibraryOrAugmentationScope extends EnclosedScope {
