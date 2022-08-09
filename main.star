@@ -18,7 +18,9 @@ load(
     "//lib/defaults.star",
     "arm64",
     "chrome",
+    "experimental",
     "firefox",
+    "focal",
     "js_engines",
     "mac",
     "no_android",
@@ -534,16 +536,22 @@ dart.ci_sandbox_builder(
     triggered_by = None,
 )
 
-# Builder that tests the dev Linux image. When the image autoroller detects
-# successful builds of this builder with the dev image, it the current dev image
-# becomes the new prod image. Newly created bots will than use the updated
-# image. The `vm-precomp-ffi-qemu-linux-release-arm` is  used because qemu is
-# the primary difference, it passes all tests, triggers no shards and runs a few
-# different builds. See also https://crbug.com/1207358.
+# Builders that test the dev Linux images. When the image autoroller detects
+# successful builds of these builders with a dev images, that dev image becomes
+# the new prod image. Newly created bots will than use the updated image. The
+# `vm-precomp-ffi-qemu-linux-release-arm` and the `vm-canary-linux-debug`
+# are used because qemu is the main difference on focal, they don't trigger
+# shards and run a few different builds. See also https://crbug.com/1207358.
 cron.nightly_builder(
     "vm-precomp-ffi-qemu-linux-release-arm-experimental",
     channels = [],
-    dimensions = {"host_class": "experimental"},
+    dimensions = [experimental, focal],
+    notifies = "infra",
+)
+cron.nightly_builder(
+    "vm-canary-linux-debug-experimental",
+    channels = [],
+    dimensions = experimental,
     notifies = "infra",
 )
 

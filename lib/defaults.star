@@ -24,8 +24,11 @@ _PINNED_XCODE = {"$depot_tools/osx_sdk": {"sdk_version": "12d4e"}}
 
 _ARM64 = {"cpu": "arm64"}
 _MAC = {"os": "Mac"}
-_LINUX = {"os": "Ubuntu-18"}
+_BIONIC = {"os": "Ubuntu-18"}
+_FOCAL = {"os": "Ubuntu-20"}
 _WINDOWS = {"os": "Windows"}
+
+_EXPERIMENTAL = {"host_class": "experimental"}
 
 def _union(x, overrides):
     """ Creates a new dict with the values from all passed dictionaries
@@ -64,7 +67,9 @@ defaults = struct(
 # Dimensions
 
 arm64 = _ARM64
-linux = _LINUX
+experimental = _EXPERIMENTAL
+focal = _FOCAL
+linux = _BIONIC
 mac = _MAC
 windows = _WINDOWS
 
