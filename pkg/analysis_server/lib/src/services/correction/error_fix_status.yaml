@@ -1746,7 +1746,9 @@ LintCode.no_runtimeType_toString:
 LintCode.non_constant_identifier_names:
   status: hasFix
 LintCode.noop_primitive_operations:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    There should be a fix to remove the invocation of `toString`.
 LintCode.null_check_on_nullable_type_parameter:
   status: hasFix
   notes: |-
@@ -1977,7 +1979,10 @@ LintCode.use_setters_to_change_properties:
 LintCode.use_string_buffers:
   status: needsEvaluation
 LintCode.use_string_in_part_of_directives:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    There should be a fix to replace the library name with the URI of the
+    library.
 LintCode.use_super_parameters:
   status: hasFix
 LintCode.use_test_throws_matchers:
