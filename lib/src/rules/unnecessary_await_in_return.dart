@@ -90,7 +90,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parent is FunctionExpression) {
       returnType = parent.declaredElement?.returnType;
     } else if (parent is MethodDeclaration) {
-      returnType = parent.declaredElement?.returnType;
+      returnType = parent.declaredElement2?.returnType;
     } else if (parent is Block) {
       // removing await in try block changes the behaviour
       return;

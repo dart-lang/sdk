@@ -209,7 +209,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
         units.expand((unit) => nullableAccess[unit] ?? const {}).toSet();
     for (var unit in units) {
       for (var variable in lateables[unit] ?? const <VariableDeclaration>[]) {
-        if (!allNullableAccess.contains(variable.declaredElement)) {
+        if (!allNullableAccess.contains(variable.declaredElement2)) {
           rule.reporter.reportError(AnalysisError(
               unit.source, variable.offset, variable.length, rule.lintCode));
         }
@@ -224,7 +224,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
     if (variable.isSynthetic) {
       return;
     }
-    var declaredElement = variable.declaredElement;
+    var declaredElement = variable.declaredElement2;
     if (declaredElement == null ||
         context.typeSystem.isNonNullable(declaredElement.type)) {
       return;

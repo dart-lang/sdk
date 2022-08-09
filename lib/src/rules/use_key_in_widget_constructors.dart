@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var classElement = node.declaredElement;
+    var classElement = node.declaredElement2;
     if (classElement != null &&
         classElement.isPublic &&
         hasWidgetAsAscendant(classElement) &&
@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var constructorElement = node.declaredElement;
+    var constructorElement = node.declaredElement2;
     if (constructorElement == null) {
       return;
     }

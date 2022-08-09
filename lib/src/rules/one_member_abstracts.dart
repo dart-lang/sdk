@@ -59,7 +59,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var declaredElement = node.declaredElement;
+    var declaredElement = node.declaredElement2;
     if (declaredElement == null) {
       return;
     }

@@ -16,13 +16,13 @@ _Predicate _hasConstructorFieldInitializers(
         VariableDeclaration v) =>
     (AstNode n) =>
         n is ConstructorFieldInitializer &&
-        n.fieldName.staticElement == v.declaredElement;
+        n.fieldName.staticElement == v.declaredElement2;
 
 _Predicate _hasFieldFormalParameter(VariableDeclaration v) => (AstNode n) {
       if (n is FieldFormalParameter) {
         var staticElement = n.declaredElement;
         return staticElement is FieldFormalParameterElement &&
-            staticElement.field == v.declaredElement;
+            staticElement.field == v.declaredElement2;
       }
       return false;
     };
@@ -31,7 +31,7 @@ _Predicate _hasReturn(VariableDeclaration v) => (AstNode n) {
       if (n is ReturnStatement) {
         var expression = n.expression;
         if (expression is SimpleIdentifier) {
-          return expression.staticElement == v.declaredElement;
+          return expression.staticElement == v.declaredElement2;
         }
       }
       return false;
@@ -48,7 +48,7 @@ _VisitVariableDeclaration _buildVariableReporter(
         Map<DartTypePredicate, String> predicates) =>
     (VariableDeclaration variable) {
       if (!predicates.keys.any((DartTypePredicate p) {
-        var declaredElement = variable.declaredElement;
+        var declaredElement = variable.declaredElement2;
         return declaredElement != null && p(declaredElement.type);
       })) {
         return;
@@ -84,9 +84,9 @@ Iterable<AstNode> _findMethodCallbackNodes(Iterable<AstNode> containerNodes,
     VariableDeclaration variable, Map<DartTypePredicate, String> predicates) {
   var prefixedIdentifiers = containerNodes.whereType<PrefixedIdentifier>();
   return prefixedIdentifiers.where((n) {
-    var declaredElement = variable.declaredElement;
+    var declaredElement = variable.declaredElement2;
     return declaredElement != null &&
-        n.prefix.staticElement == variable.declaredElement &&
+        n.prefix.staticElement == variable.declaredElement2 &&
         _hasMatch(predicates, declaredElement.type, n.identifier.token.lexeme);
   });
 }
@@ -97,7 +97,7 @@ Iterable<AstNode> _findMethodInvocationsWithVariableAsArgument(
   return prefixedIdentifiers.where((n) => n.argumentList.arguments
       .whereType<SimpleIdentifier>()
       .map((e) => e.staticElement)
-      .contains(variable.declaredElement));
+      .contains(variable.declaredElement2));
 }
 
 Iterable<AstNode> _findNodesInvokingMethodOnVariable(
@@ -105,7 +105,7 @@ Iterable<AstNode> _findNodesInvokingMethodOnVariable(
         VariableDeclaration variable,
         Map<DartTypePredicate, String> predicates) =>
     classNodes.where((AstNode n) {
-      var declaredElement = variable.declaredElement;
+      var declaredElement = variable.declaredElement2;
       return declaredElement != null &&
           n is MethodInvocation &&
           ((_hasMatch(predicates, declaredElement.type, n.methodName.name) &&
@@ -146,7 +146,7 @@ bool _hasMatch(Map<DartTypePredicate, String> predicates, DartType type,
 
 bool _isElementEqualToVariable(
     Element? propertyElement, VariableDeclaration variable) {
-  var variableElement = variable.declaredElement;
+  var variableElement = variable.declaredElement2;
   return propertyElement == variableElement ||
       propertyElement is PropertyAccessorElement &&
           propertyElement.variable == variableElement;
@@ -162,7 +162,7 @@ bool _isInvocationThroughCascadeExpression(
   if (identifier is SimpleIdentifier) {
     var element = identifier.staticElement;
     if (element is PropertyAccessorElement) {
-      return element.variable == variable.declaredElement;
+      return element.variable == variable.declaredElement2;
     }
   }
   return false;

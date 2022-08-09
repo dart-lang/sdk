@@ -68,7 +68,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (_isAsync(node.declaredElement) &&
+    if (_isAsync(node.declaredElement2) &&
         _isVoid(node.returnType) &&
         node.name2.lexeme != 'main') {
       rule.reportLintForToken(node.name2);
@@ -77,7 +77,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (_isAsync(node.declaredElement) && _isVoid(node.returnType)) {
+    if (_isAsync(node.declaredElement2) && _isVoid(node.returnType)) {
       rule.reportLintForToken(node.name2);
     }
   }

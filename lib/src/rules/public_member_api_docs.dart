@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
@@ -113,7 +114,7 @@ class _Visitor extends SimpleAstVisitor {
     return false;
   }
 
-  void checkMethods(NodeList<ClassMember> members) {
+  void checkMethods(List<ClassMember> members) {
     // Check methods
 
     var getters = <String, MethodDeclaration>{};
@@ -177,11 +178,11 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   bool isOverridingMember(Declaration node) =>
-      getOverriddenMember(node.declaredElement) != null;
+      getOverriddenMember(node.declaredElement2) != null;
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _visitClassOrMixin(node);
+    _visitMembers(node, node.name2, node.members);
   }
 
   @override
@@ -298,7 +299,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    _visitClassOrMixin(node);
+    _visitMembers(node, node.name2, node.members);
   }
 
   @override
@@ -310,10 +311,10 @@ class _Visitor extends SimpleAstVisitor {
     }
   }
 
-  void _visitClassOrMixin(ClassOrMixinDeclaration node) {
-    if (isPrivate(node.name2)) return;
+  void _visitMembers(Declaration node, Token name, List<ClassMember> members) {
+    if (isPrivate(name)) return;
 
     check(node);
-    checkMethods(node.members);
+    checkMethods(members);
   }
 }

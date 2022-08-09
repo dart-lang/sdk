@@ -278,7 +278,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _addElementToEnvironment(
-        _UndefinedExpression.forElement(node.declaredElement));
+        _UndefinedExpression.forElement(node.declaredElement2));
     node.visitChildren(this);
   }
 

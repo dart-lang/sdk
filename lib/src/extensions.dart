@@ -226,16 +226,12 @@ extension InterfaceTypeExtension on InterfaceType {
 extension MethodDeclarationExtension on MethodDeclaration {
   /// Returns whether this method is an override of a method in any supertype.
   bool get isOverride {
-    var parent = this.parent;
-    if (parent is! ClassOrMixinDeclaration) {
-      return false;
-    }
-    var name = declaredElement?.name;
+    var name = declaredElement2?.name;
     if (name == null) {
       return false;
     }
-    var parentElement = parent.declaredElement;
-    if (parentElement == null) {
+    var parentElement = declaredElement2?.enclosingElement3;
+    if (parentElement is! InterfaceElement) {
       return false;
     }
     var parentLibrary = parentElement.library;

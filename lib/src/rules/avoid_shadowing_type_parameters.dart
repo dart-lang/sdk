@@ -93,15 +93,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     var parent = node.parent;
 
     while (parent != null) {
-      if (parent is ClassOrMixinDeclaration) {
-        _checkForShadowing(typeParameters, parent.typeParameters,
-            parent is ClassDeclaration ? 'class' : 'mixin');
+      if (parent is ClassDeclaration) {
+        _checkForShadowing(typeParameters, parent.typeParameters, 'class');
       } else if (parent is EnumDeclaration) {
         _checkForShadowing(typeParameters, parent.typeParameters, 'enum');
       } else if (parent is ExtensionDeclaration) {
         _checkForShadowing(typeParameters, parent.typeParameters, 'extension');
       } else if (parent is MethodDeclaration) {
         _checkForShadowing(typeParameters, parent.typeParameters, 'method');
+      } else if (parent is MixinDeclaration) {
+        _checkForShadowing(typeParameters, parent.typeParameters, 'mixin');
       } else if (parent is FunctionDeclaration) {
         _checkForShadowing(typeParameters,
             parent.functionExpression.typeParameters, 'function');

@@ -145,7 +145,7 @@ class _NonEnumVisitor extends _BaseVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var element = node.declaredElement;
+    var element = node.declaredElement2;
     if (element == null) {
       throw _InvalidEnumException();
     }
@@ -184,7 +184,7 @@ class _Visitor extends SimpleAstVisitor {
   @override
   visitClassDeclaration(ClassDeclaration node) {
     if (node.abstractKeyword != null) return;
-    var classElement = node.declaredElement;
+    var classElement = node.declaredElement2;
     if (classElement == null) return;
 
     // Enums can only extend Object.
@@ -203,7 +203,7 @@ class _Visitor extends SimpleAstVisitor {
       if (member is FieldDeclaration) {
         if (!member.isStatic) continue;
         for (var field in member.fields.variables) {
-          var fieldElement = field.declaredElement;
+          var fieldElement = field.declaredElement2;
           if (fieldElement is! FieldElement) continue;
           if (field.isSynthetic || !field.isConst) continue;
           var initializer = field.initializer;
@@ -220,7 +220,7 @@ class _Visitor extends SimpleAstVisitor {
         }
       }
       if (member is ConstructorDeclaration) {
-        var constructor = member.declaredElement;
+        var constructor = member.declaredElement2;
         if (constructor == null) return;
         if (!constructor.isFactory && !constructor.isConst) return;
         var name = member.name2?.lexeme;
