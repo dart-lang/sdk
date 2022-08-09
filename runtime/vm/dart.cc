@@ -1133,30 +1133,43 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
                              FLAG_branch_coverage);
     }
 
-// Generated code must match the host architecture and ABI.
-    buffer.Printf(" %s", kTargetArchitectureName);
-#if defined(TARGET_ARCH_ARM)
-#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
-    buffer.AddString("-ios");
-#else
-    buffer.AddString("-eabi");
-#endif
-    buffer.AddString(TargetCPUFeatures::hardfp_supported() ? " hardfp"
-                                                           : " softfp");
-#elif defined(TARGET_ARCH_ARM64)
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // See signal handler cheat in Assembler::EnterFrame.
-    buffer.AddString("-fuchsia");
-#else
-    buffer.AddString("-sysv");
-#endif
+    // Generated code must match the host architecture and ABI. We check the
+    // strong condition of matching on operating system so that
+    // Platform.isAndroid etc can be compile-time constants.
+#if defined(TARGET_ARCH_IA32)
+    buffer.AddString(" ia32");
 #elif defined(TARGET_ARCH_X64)
-#if defined(DART_TARGET_OS_WINDOWS)
-    buffer.AddString("-win");
+    buffer.AddString(" x64");
+#elif defined(TARGET_ARCH_ARM)
+    buffer.AddString(" arm");
+#elif defined(TARGET_ARCH_ARM64)
+    buffer.AddString(" arm64");
+#elif defined(TARGET_ARCH_RISCV32)
+    buffer.AddString(" riscv32");
+#elif defined(TARGET_ARCH_RISCV64)
+    buffer.AddString(" riscv64");
 #else
-    buffer.AddString("-sysv");
+#error What architecture?
 #endif
+
+#if defined(DART_TARGET_OS_ANDROID)
+    buffer.AddString(" android");
+#elif defined(DART_TARGET_OS_FUCHSIA)
+    buffer.AddString(" fuchsia");
+#elif defined(DART_TARGET_OS_MACOS)
+#if defined(DART_TARGET_OS_MACOS_IOS)
+    buffer.AddString(" ios");
+#else
+    buffer.AddString(" macos");
 #endif
+#elif defined(DART_TARGET_OS_LINUX)
+    buffer.AddString(" linux");
+#elif defined(DART_TARGET_OS_WINDOWS)
+    buffer.AddString(" windows");
+#else
+#error What operating system?
+#endif
+
 #if defined(DART_COMPRESSED_POINTERS)
     buffer.AddString(" compressed-pointers");
 #else
