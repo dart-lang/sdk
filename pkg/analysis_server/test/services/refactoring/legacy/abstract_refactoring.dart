@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringProblemSeverity, SourceChange, SourceEdit;
 import 'package:test/test.dart';
 
-import '../../abstract_single_unit.dart';
+import '../../../abstract_single_unit.dart';
 
 int findIdentifierLength(String search) {
   var length = 0;
