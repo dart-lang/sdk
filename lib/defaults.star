@@ -9,7 +9,7 @@ _PROPERTIES = {"clobber": True}
 _DIMENSIONS = {
     "cpu": "x86-64",
     "host_class": "default",
-    "os": "Linux",
+    "os": "Ubuntu-18",
     "pool": "luci.dart.try",
 }
 _CACHES = {
@@ -24,7 +24,7 @@ _PINNED_XCODE = {"$depot_tools/osx_sdk": {"sdk_version": "12d4e"}}
 
 _ARM64 = {"cpu": "arm64"}
 _MAC = {"os": "Mac"}
-_LINUX = {"os": "Linux"}
+_LINUX = {"os": "Ubuntu-18"}
 _WINDOWS = {"os": "Windows"}
 
 def _union(x, overrides):

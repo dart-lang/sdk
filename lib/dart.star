@@ -6,7 +6,7 @@ Defines rules that can be used to define dart builders.
 """
 
 load("//lib/accounts.star", "accounts")
-load("//lib/defaults.star", "defaults")
+load("//lib/defaults.star", "defaults", "linux", "mac", "windows")
 load("//lib/paths.star", "paths")
 load("//lib/priority.star", "priority")
 
@@ -58,7 +58,7 @@ def _with_goma(goma, dimensions, properties):
         goma_properties = {}
         goma_properties.update(_GOMA_RBE)
 
-        enable_ats = dimensions["os"] == "Linux"
+        enable_ats = dimensions["os"] == linux["os"]
 
         goma_properties["enable_ats"] = enable_ats
         updated_properties.setdefault("$build/goma", goma_properties)
@@ -186,12 +186,14 @@ def _builder(
     properties = defaults.properties(properties)
 
     os = dimensions["os"]
-    if "win" in name and os != "Windows":
-        fail("builder %s should be a Windows builder" % name)
-    if "mac" in name and os != "Mac":
-        fail("builder %s should be a macOS builder" % name)
-    if "linux" in name and os != "Linux":
-        fail("builder %s should be a Linux builder" % name)
+
+    def expect_os(os_pattern, expected_os):
+        if os_pattern in name and os != expected_os:
+            fail("builder %s should be a %s builder but was %s" % (name, expected_os, os))
+
+    expect_os("-win", windows["os"])
+    expect_os("-linux", linux["os"])
+    expect_os("-mac", mac["os"])
 
     def builder(channel, notifies, triggered_by):
         if channel == "try":
