@@ -502,6 +502,20 @@ class TypeSystemImpl implements TypeSystem {
     return inferrer.upwardsInfer();
   }
 
+  @override
+  InterfaceType instantiateInterfaceToBounds({
+    required InterfaceElement element,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    final typeParameters = element.typeParameters;
+    final typeArguments = _defaultTypeArguments(typeParameters);
+    final type = element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+    return toLegacyTypeIfOptOut(type) as InterfaceType;
+  }
+
   /// Given a [DartType] [type], if [type] is an uninstantiated
   /// parameterized type then instantiate the parameters to their
   /// bounds. See the issue for the algorithm description.
@@ -517,6 +531,7 @@ class TypeSystemImpl implements TypeSystem {
     return instantiateType(type, arguments);
   }
 
+  @Deprecated('Use instantiateInterface/TypeAliasToBounds() instead')
   @override
   DartType instantiateToBounds2({
     ClassElement? classElement,
@@ -524,23 +539,15 @@ class TypeSystemImpl implements TypeSystem {
     required NullabilitySuffix nullabilitySuffix,
   }) {
     if (classElement != null) {
-      var typeParameters = classElement.typeParameters;
-      var typeArguments = _defaultTypeArguments(typeParameters);
-      var type = classElement.instantiate(
-        typeArguments: typeArguments,
+      return instantiateInterfaceToBounds(
+        element: classElement,
         nullabilitySuffix: nullabilitySuffix,
       );
-      type = toLegacyTypeIfOptOut(type) as InterfaceType;
-      return type;
     } else if (typeAliasElement != null) {
-      var typeParameters = typeAliasElement.typeParameters;
-      var typeArguments = _defaultTypeArguments(typeParameters);
-      var type = typeAliasElement.instantiate(
-        typeArguments: typeArguments,
+      return instantiateTypeAliasToBounds(
+        element: typeAliasElement,
         nullabilitySuffix: nullabilitySuffix,
       );
-      type = toLegacyTypeIfOptOut(type);
-      return type;
     } else {
       throw ArgumentError('Missing element');
     }
@@ -562,6 +569,20 @@ class TypeSystemImpl implements TypeSystem {
     } else {
       return type;
     }
+  }
+
+  @override
+  DartType instantiateTypeAliasToBounds({
+    required TypeAliasElement element,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    final typeParameters = element.typeParameters;
+    final typeArguments = _defaultTypeArguments(typeParameters);
+    final type = element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+    return toLegacyTypeIfOptOut(type);
   }
 
   /// Given uninstantiated [typeFormals], instantiate them to their bounds.
