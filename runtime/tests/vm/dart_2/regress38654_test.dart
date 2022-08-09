@@ -156,7 +156,7 @@ Set<int> foo1(int par1, bool par2) {
                     Map.from({6: var9[var1], 28: foo0(), 36: '8+'})));
             var9[((-93 * loc1[loc2]) +
                 (((!((!(par2)))) || (!(par2)))
-                    ? (var4 ~/ JsonUtf8Encoder.DEFAULT_BUFFER_SIZE)
+                    ? (var4 ~/ 42)
                     : -9223372032559775745))] ??= var6;
           }
           var3 = ((!((loc1[loc0] != (false ? (--var4) : var1)))) ||

@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../../abstract_context.dart';
-import '../../../../../services/refactoring/abstract_rename.dart';
+import '../../../../../services/refactoring/legacy/abstract_rename.dart';
 
 void main() {
   defineReflectiveSuite(() {

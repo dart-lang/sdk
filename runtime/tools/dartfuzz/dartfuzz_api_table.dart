@@ -973,8 +973,6 @@ class DartLib {
     DartLib('Int8List.bytesPerElement', [DartType.VOID, DartType.VOID], false),
     DartLib('Isolate.beforeNextEvent', [DartType.VOID, DartType.VOID], false),
     DartLib('Isolate.immediate', [DartType.VOID, DartType.VOID], false),
-    DartLib('JsonUtf8Encoder.DEFAULT_BUFFER_SIZE',
-        [DartType.VOID, DartType.VOID], false),
     DartLib('OSError.noErrorCode', [DartType.VOID, DartType.VOID], false),
     DartLib(
         'RangeError.checkNotNegative',
@@ -1785,8 +1783,6 @@ class DartLib {
     DartLib('Int8List.bytesPerElement', [DartType.VOID, DartType.VOID], false),
     DartLib('Isolate.beforeNextEvent', [DartType.VOID, DartType.VOID], false),
     DartLib('Isolate.immediate', [DartType.VOID, DartType.VOID], false),
-    DartLib('JsonUtf8Encoder.DEFAULT_BUFFER_SIZE',
-        [DartType.VOID, DartType.VOID], false),
     DartLib('OSError.noErrorCode', [DartType.VOID, DartType.VOID], false),
     DartLib(
         'RangeError.checkNotNegative',
