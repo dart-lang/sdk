@@ -6434,8 +6434,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ]);
 
   bool _reifyFunctionType(FunctionNode f) {
-    if (!_currentLibrary!.importUri.isScheme('dart')) return true;
     var parent = f.parent;
+    if (parent is FunctionDeclaration &&
+        (isLateLoweredLocalGetter(parent.variable) ||
+            isLateLoweredLocalSetter(parent.variable))) {
+      // Late local variables are lowered to local get and set functions.
+      // These functions should never need to be tagged with their types.
+      return false;
+    }
+    if (!_currentLibrary!.importUri.isScheme('dart')) return true;
 
     // SDK libraries can skip reification if they request it.
     bool reifyFunctionTypes(Expression a) =>
