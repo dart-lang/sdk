@@ -1466,32 +1466,10 @@ void TypedDataSpecializer::EnsureIsInitialized() {
   td_class = typed_data.LookupClass(Symbols::iface());                         \
   ASSERT(!td_class.IsNull());                                                  \
   direct_implementors = td_class.direct_implementors();                        \
-  if (!HasThirdPartyImplementor(direct_implementors)) {                        \
-    member_name = td_class.RareType();                                         \
-  }
+  member_name = td_class.RareType();
 
   PUBLIC_TYPED_DATA_CLASS_LIST(INIT_HANDLE)
 #undef INIT_HANDLE
-}
-
-bool TypedDataSpecializer::HasThirdPartyImplementor(
-    const GrowableObjectArray& direct_implementors) {
-  // Check if there are non internal/external/view implementors.
-  for (intptr_t i = 0; i < direct_implementors.Length(); ++i) {
-    implementor_ ^= direct_implementors.At(i);
-
-    // We only consider [implementor_] a 3rd party implementor if it was
-    // finalized by the class finalizer, since only then can we have concrete
-    // instances of the [implementor_].
-    if (implementor_.is_finalized()) {
-      const classid_t cid = implementor_.id();
-      if (!IsTypedDataClassId(cid) && !IsTypedDataViewClassId(cid) &&
-          !IsExternalTypedDataClassId(cid)) {
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 void TypedDataSpecializer::VisitInstanceCall(InstanceCallInstr* call) {
@@ -1609,6 +1587,7 @@ void TypedDataSpecializer::ReplaceWithIndexSet(TemplateDartCall<0>* call,
   if (value->Type()->is_nullable()) {
     AppendNullCheck(call, &value);
   }
+  AppendMutableCheck(call, &array);
   AppendBoundsCheck(call, array, &index);
   AppendStoreIndexed(call, array, index, value, cid);
 
@@ -1621,6 +1600,16 @@ void TypedDataSpecializer::AppendNullCheck(TemplateDartCall<0>* call,
   auto check =
       new (Z) CheckNullInstr(new (Z) Value(*value), Symbols::OptimizedOut(),
                              call->deopt_id(), call->source());
+  flow_graph_->InsertBefore(call, check, call->env(), FlowGraph::kValue);
+
+  // Use data dependency as control dependency.
+  *value = check;
+}
+
+void TypedDataSpecializer::AppendMutableCheck(TemplateDartCall<0>* call,
+                                              Definition** value) {
+  auto check = new (Z) CheckWritableInstr(new (Z) Value(*value),
+                                          call->deopt_id(), call->source());
   flow_graph_->InsertBefore(call, check, call->env(), FlowGraph::kValue);
 
   // Use data dependency as control dependency.

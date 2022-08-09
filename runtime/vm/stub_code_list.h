@@ -120,6 +120,8 @@ namespace dart {
   V(NullCastErrorSharedWithoutFPURegs)                                         \
   V(RangeErrorSharedWithFPURegs)                                               \
   V(RangeErrorSharedWithoutFPURegs)                                            \
+  V(WriteErrorSharedWithFPURegs)                                               \
+  V(WriteErrorSharedWithoutFPURegs)                                            \
   V(StackOverflowSharedWithFPURegs)                                            \
   V(StackOverflowSharedWithoutFPURegs)                                         \
   V(DoubleToInteger)                                                           \

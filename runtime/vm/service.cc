@@ -5711,6 +5711,7 @@ static void GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
     DEFINE_ADD_VALUE_F_CID(TypedData##clazz)                                   \
     DEFINE_ADD_VALUE_F_CID(TypedData##clazz##View)                             \
     DEFINE_ADD_VALUE_F_CID(ExternalTypedData##clazz)                           \
+    DEFINE_ADD_VALUE_F_CID(UnmodifiableTypedData##clazz##View)                 \
   }
   CLASS_LIST_TYPED_DATA(DEFINE_ADD_MAP_KEY)
 #undef DEFINE_ADD_MAP_KEY

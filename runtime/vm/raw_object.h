@@ -163,10 +163,10 @@ class UntaggedObject {
     kNewBit = 3,                  // Generational barrier target.
     kOldBit = 4,                  // Incremental barrier source.
     kOldAndNotRememberedBit = 5,  // Generational barrier source.
-    kReservedTagPos = 6,
-    kReservedTagSize = 2,
+    kImmutableBit = 6,
+    kReservedBit = 7,
 
-    kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 8
+    kSizeTagPos = kReservedBit + 1,  // = 8
     kSizeTagSize = 8,
     kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
     kClassIdTagSize = 16,
@@ -252,8 +252,9 @@ class UntaggedObject {
   class OldAndNotRememberedBit
       : public BitField<uword, bool, kOldAndNotRememberedBit, 1> {};
 
-  class ReservedBits
-      : public BitField<uword, intptr_t, kReservedTagPos, kReservedTagSize> {};
+  class ImmutableBit : public BitField<uword, bool, kImmutableBit, 1> {};
+
+  class ReservedBit : public BitField<uword, intptr_t, kReservedBit, 1> {};
 
   // Assumes this is a heap object.
   bool IsNewObject() const {
