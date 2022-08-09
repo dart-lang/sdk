@@ -79,7 +79,7 @@ class AstFinder {
   /// with the given [className] in the given compilation [unit].
   static FieldElement? getFieldInClassElement(
       CompilationUnit unit, String className, String fieldName) {
-    return getFieldInClass(unit, className, fieldName).declaredElement
+    return getFieldInClass(unit, className, fieldName).declaredElement2
         as FieldElement;
   }
 
@@ -155,7 +155,7 @@ class AstFinder {
   /// Return the top-level variable element with the given [name].
   static TopLevelVariableElement getTopLevelVariableElement(
       CompilationUnit unit, String name) {
-    return getTopLevelVariable(unit, name).declaredElement
+    return getTopLevelVariable(unit, name).declaredElement2
         as TopLevelVariableElement;
   }
 }

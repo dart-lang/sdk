@@ -27,10 +27,10 @@ class BlockScope {
         NodeList<VariableDeclaration> variables = statement.variables.variables;
         int variableCount = variables.length;
         for (int j = 0; j < variableCount; j++) {
-          yield variables[j].declaredElement!;
+          yield variables[j].declaredElement2!;
         }
       } else if (statement is FunctionDeclarationStatement) {
-        yield statement.functionDeclaration.declaredElement!;
+        yield statement.functionDeclaration.declaredElement2!;
       }
     }
   }

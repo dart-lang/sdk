@@ -34,7 +34,7 @@ class RenameMethodParameter extends CorrectionProducer {
     if (methodParameters == null) return;
 
     var classDeclaration = method.parent as Declaration;
-    var classElement = classDeclaration.declaredElement;
+    var classElement = classDeclaration.declaredElement2;
     if (classElement is! ClassElement) return;
 
     var parentMethod = classElement.lookUpInheritedMethod(

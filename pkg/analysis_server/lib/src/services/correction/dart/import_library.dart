@@ -356,11 +356,11 @@ class ImportLibrary extends MultiCorrectionProducer {
     DartType? enclosingThisType(AstNode node) {
       var parent = node.parent;
       if (parent is ClassDeclaration) {
-        return parent.declaredElement?.thisType;
+        return parent.declaredElement2?.thisType;
       } else if (parent is ExtensionDeclaration) {
         return parent.extendedType.type;
       } else if (parent is MixinDeclaration) {
-        return parent.declaredElement?.thisType;
+        return parent.declaredElement2?.thisType;
       } else {
         return null;
       }

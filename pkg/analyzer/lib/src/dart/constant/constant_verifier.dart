@@ -132,7 +132,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       _validateConstantArguments(argumentList);
     }
 
-    var element = node.declaredElement as ConstFieldElementImpl;
+    var element = node.declaredElement2 as ConstFieldElementImpl;
     var result = element.evaluationResult;
     if (result != null) {
       _reportErrors(result.errors, null);
@@ -290,7 +290,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     super.visitVariableDeclaration(node);
     var initializer = node.initializer;
     if (initializer != null && (node.isConst || node.isFinal)) {
-      var element = node.declaredElement as VariableElementImpl;
+      var element = node.declaredElement2 as VariableElementImpl;
       var result = element.evaluationResult;
       if (result == null) {
         // Variables marked "const" should have had their values computed by
@@ -1090,7 +1090,7 @@ extension on Expression {
               !declarationListParent.isStatic) {
             var container = declarationListParent.parent;
             if (container is ClassDeclaration) {
-              var enclosingClass = container.declaredElement;
+              var enclosingClass = container.declaredElement2;
               if (enclosingClass != null) {
                 // A field initializer of a class with at least one generative
                 // const constructor does not constitute a constant context, but

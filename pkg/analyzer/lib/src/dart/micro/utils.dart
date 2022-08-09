@@ -277,7 +277,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
 
   @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
-    var e = node.declaredElement;
+    var e = node.declaredElement2;
     if (e == element) {
       if (e!.name.isEmpty) {
         references.add(

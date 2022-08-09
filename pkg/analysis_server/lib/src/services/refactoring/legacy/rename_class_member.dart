@@ -22,15 +22,15 @@ import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/// Checks if creating a method with the given [name] in [classElement] will
+/// Checks if creating a method with the given [name] in [interfaceElement] will
 /// cause any conflicts.
 Future<RefactoringStatus> validateCreateMethod(
     SearchEngine searchEngine,
     AnalysisSessionHelper sessionHelper,
-    ClassElement classElement,
+    InterfaceElement interfaceElement,
     String name) {
   return _CreateClassMemberValidator(
-          searchEngine, sessionHelper, classElement, name)
+          searchEngine, sessionHelper, interfaceElement, name)
       .validate();
 }
 
@@ -127,7 +127,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 class _BaseClassMemberValidator {
   final SearchEngine searchEngine;
   final AnalysisSessionHelper sessionHelper;
-  final ClassElement elementClass;
+  final InterfaceElement interfaceElement;
   final ElementKind elementKind;
   final String name;
 
@@ -136,21 +136,21 @@ class _BaseClassMemberValidator {
   _BaseClassMemberValidator(
     this.searchEngine,
     this.sessionHelper,
-    this.elementClass,
+    this.interfaceElement,
     this.elementKind,
     this.name,
   );
 
-  LibraryElement get library => elementClass.library;
+  LibraryElement get library => interfaceElement.library;
 
   void _checkClassAlreadyDeclares() {
     // check if there is a member with "newName" in the same ClassElement
-    for (var newNameMember in getChildren(elementClass, name)) {
+    for (var newNameMember in getChildren(interfaceElement, name)) {
       result.addError(
         format(
           "{0} '{1}' already declares {2} with name '{3}'.",
-          capitalize(elementClass.kind.displayName),
-          elementClass.displayName,
+          capitalize(interfaceElement.kind.displayName),
+          interfaceElement.displayName,
           getElementKindName(newNameMember),
           name,
         ),
@@ -164,7 +164,7 @@ class _BaseClassMemberValidator {
     required Set<InterfaceElement> subClasses,
   }) async {
     var superClasses =
-        elementClass.allSupertypes.map((e) => e.element2).toSet();
+        interfaceElement.allSupertypes.map((e) => e.element2).toSet();
     // check shadowing in the hierarchy
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
@@ -201,12 +201,12 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
   _CreateClassMemberValidator(
       SearchEngine searchEngine,
       AnalysisSessionHelper sessionHelper,
-      ClassElement elementClass,
+      InterfaceElement interfaceElement,
       String name)
       : super(
           searchEngine,
           sessionHelper,
-          elementClass,
+          interfaceElement,
           ElementKind.METHOD,
           name,
         );
@@ -214,13 +214,13 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
   Future<RefactoringStatus> validate() async {
     _checkClassAlreadyDeclares();
     // do chained computations
-    var subClasses = await searchEngine.searchAllSubtypes(elementClass);
+    var subClasses = await searchEngine.searchAllSubtypes(interfaceElement);
     // check shadowing of class names
-    if (elementClass.name == name) {
+    if (interfaceElement.name == name) {
       result.addError(
         'Created ${elementKind.displayName} has the same name as the '
-        "declaring ${elementClass.kind.displayName} '$name'.",
-        newLocation_fromElement(elementClass),
+        "declaring ${interfaceElement.kind.displayName} '$name'.",
+        newLocation_fromElement(interfaceElement),
       );
     }
     // check shadowing in the hierarchy
@@ -274,7 +274,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     _checkClassAlreadyDeclares();
     // do chained computations
     await _prepareReferences();
-    var subClasses = await searchEngine.searchAllSubtypes(elementClass);
+    var subClasses = await searchEngine.searchAllSubtypes(interfaceElement);
     // check shadowing of class names
     for (var element in elements) {
       var enclosingElement = element.enclosingElement3;

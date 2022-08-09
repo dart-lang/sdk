@@ -20,7 +20,7 @@ class MustCallSuperVerifier {
     if (node.isStatic || node.isAbstract) {
       return;
     }
-    var element = node.declaredElement!;
+    var element = node.declaredElement2!;
     var overridden = _findOverriddenMemberWithMustCallSuper(element);
     if (overridden == null) {
       return;
@@ -136,7 +136,7 @@ class MustCallSuperVerifier {
 
   void _verifySuperIsCalled(MethodDeclaration node, String methodName,
       String? overriddenEnclosingName) {
-    var declaredElement = node.declaredElement as ExecutableElementImpl;
+    var declaredElement = node.declaredElement2 as ExecutableElementImpl;
     if (!declaredElement.invokesSuperSelf) {
       // Overridable elements are always enclosed in named elements, so it is
       // safe to assume [overriddenEnclosingName] is non-`null`.

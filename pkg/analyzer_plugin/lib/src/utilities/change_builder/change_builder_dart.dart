@@ -1910,13 +1910,13 @@ class _EnclosingElementFinder {
     var node = NodeLocator2(offset).searchWithin(target);
     while (node != null) {
       if (node is ClassDeclaration) {
-        enclosingClass = node.declaredElement;
+        enclosingClass = node.declaredElement2;
       } else if (node is ConstructorDeclaration) {
-        enclosingExecutable = node.declaredElement;
+        enclosingExecutable = node.declaredElement2;
       } else if (node is MethodDeclaration) {
-        enclosingExecutable = node.declaredElement;
+        enclosingExecutable = node.declaredElement2;
       } else if (node is FunctionDeclaration) {
-        enclosingExecutable = node.declaredElement;
+        enclosingExecutable = node.declaredElement2;
       }
       node = node.parent;
     }

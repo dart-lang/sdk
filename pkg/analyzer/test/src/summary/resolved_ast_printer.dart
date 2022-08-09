@@ -213,7 +213,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -224,7 +224,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -282,7 +282,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -337,7 +337,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -407,7 +407,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNamedChildEntities(node);
       if (_withResolution) {
         _writeElement('constructorElement', node.constructorElement);
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -418,7 +418,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -473,7 +473,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -544,8 +544,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-        _writeType('declaredElementType', node.declaredElement!.type);
+        _writeElement('declaredElement', node.declaredElement2);
+        _writeType('declaredElementType', node.declaredElement2!.type);
       }
     });
   }
@@ -600,7 +600,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -638,7 +638,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -813,8 +813,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-        _writeType('declaredElementType', node.declaredElement!.type);
+        _writeElement('declaredElement', node.declaredElement2);
+        _writeType('declaredElementType', node.declaredElement2!.type);
       }
     });
   }
@@ -837,7 +837,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -1145,7 +1145,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -1182,7 +1182,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -1201,7 +1201,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }

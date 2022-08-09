@@ -59,7 +59,7 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
           continue;
         }
         for (var variable in variables) {
-          if (variable.declaredElement == node.staticElement) {
+          if (variable.declaredElement2 == node.staticElement) {
             var abstractKeyword = member.abstractKeyword;
             if (abstractKeyword != null) {
               await builder.addDartFileEdit(file, (builder) {

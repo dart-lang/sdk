@@ -36,7 +36,7 @@ class AddCallSuper extends CorrectionProducer {
     if (methodDeclaration == null) return;
     var classElement = methodDeclaration
         .thisOrAncestorOfType<ClassDeclaration>()
-        ?.declaredElement;
+        ?.declaredElement2;
     if (classElement == null) return;
 
     var name = Name(classElement.library.source.uri, node.name);

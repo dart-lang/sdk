@@ -272,7 +272,7 @@ class DeprecatedMemberUseVerifier {
 
       for (; node != null; node = node.parent) {
         if (node is ConstructorDeclaration) {
-          if (node.declaredElement == definingFunction) {
+          if (node.declaredElement2 == definingFunction) {
             return true;
           }
         } else if (node is FunctionExpression) {
@@ -280,7 +280,7 @@ class DeprecatedMemberUseVerifier {
             return true;
           }
         } else if (node is MethodDeclaration) {
-          if (node.declaredElement == definingFunction) {
+          if (node.declaredElement2 == definingFunction) {
             return true;
           }
         }

@@ -377,7 +377,7 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
   /// Gets the [DecoratedType] associated with the constructor declaration whose
   /// name matches [search].
   DecoratedType decoratedConstructorDeclaration(String search) => variables
-      .decoratedElementType(findNode.constructor(search).declaredElement!);
+      .decoratedElementType(findNode.constructor(search).declaredElement2!);
 
   Map<InterfaceElement, DecoratedType?> decoratedDirectSupertypes(String name) {
     return variables.decoratedDirectSupertypes(findElement.classOrMixin(name));
@@ -394,7 +394,7 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
   /// name matches [search].
   DecoratedType decoratedMethodType(String search) =>
       variables.decoratedElementType(
-          findNode.methodDeclaration(search).declaredElement!);
+          findNode.methodDeclaration(search).declaredElement2!);
 
   /// Gets the [DecoratedType] associated with the type annotation whose text
   /// is [text].

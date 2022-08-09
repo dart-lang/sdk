@@ -40,7 +40,8 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
 
     final classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration == null ||
-        !flutter.isDiagnosticable(classDeclaration.declaredElement!.thisType)) {
+        !flutter
+            .isDiagnosticable(classDeclaration.declaredElement2!.thisType)) {
       return;
     }
 
@@ -194,13 +195,13 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
   DartType? _getReturnType(AstNode node) {
     if (node is MethodDeclaration) {
       // Getter.
-      var element = node.declaredElement;
+      var element = node.declaredElement2;
       if (element is PropertyAccessorElement) {
         return element.returnType;
       }
     } else if (node is VariableDeclaration) {
       // Field.
-      var element = node.declaredElement;
+      var element = node.declaredElement2;
       if (element is FieldElement) {
         return element.type;
       }

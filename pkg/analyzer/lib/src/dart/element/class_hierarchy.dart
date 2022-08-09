@@ -11,7 +11,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 class ClassHierarchy {
   final Map<InterfaceElement, _Hierarchy> _map = {};
 
-  List<ClassHierarchyError> errors(ClassElement element) {
+  List<ClassHierarchyError> errors(InterfaceElement element) {
     return _getHierarchy(element).errors;
   }
 

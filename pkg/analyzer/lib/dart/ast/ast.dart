@@ -863,7 +863,7 @@ abstract class ClassAugmentationDeclaration
   Token get augmentKeyword;
 
   @override
-  ClassAugmentationElement? get declaredElement;
+  ClassAugmentationElement? get declaredElement2;
 }
 
 /// The declaration of a class.
@@ -882,8 +882,12 @@ abstract class ClassDeclaration
         ClassOrAugmentationDeclaration,
         // ignore: deprecated_member_use_from_same_package
         ClassOrMixinDeclaration {
+  @Deprecated('Use declaredElement2 instead')
   @override
   ClassElement? get declaredElement;
+
+  @override
+  ClassElement? get declaredElement2;
 
   /// Returns the implements clause for the class/mixin, or `null` if the
   /// class/mixin does not implement any interfaces.
@@ -946,6 +950,9 @@ abstract class ClassOrAugmentationDeclaration
 
   /// Returns the token representing the 'class' keyword.
   Token get classKeyword;
+
+  @override
+  ClassOrAugmentationElement? get declaredElement2;
 
   /// Returns the `extends` clause for this class, or `null` if the class
   /// does not extend any other class.
@@ -1031,8 +1038,12 @@ abstract class ClassTypeAlias implements TypeAlias {
   /// defining an abstract class.
   Token? get abstractKeyword;
 
+  @Deprecated('Use declaredElement2 instead')
   @override
   ClassElement? get declaredElement;
+
+  @override
+  ClassElement? get declaredElement2;
 
   /// Return the token for the '=' separating the name from the definition.
   Token get equals;
@@ -1387,8 +1398,12 @@ abstract class ConstructorDeclaration implements ClassMember {
   /// not a const constructor.
   Token? get constKeyword;
 
+  @Deprecated('Use declaredElement2 instead')
   @override
   ConstructorElement? get declaredElement;
+
+  @override
+  ConstructorElement? get declaredElement2;
 
   /// Return the token for the 'external' keyword to the given [token].
   Token? get externalKeyword;
@@ -1567,7 +1582,13 @@ abstract class Declaration implements AnnotatedNode {
   /// Return the element associated with this declaration, or `null` if either
   /// this node corresponds to a list of declarations or if the AST structure
   /// has not been resolved.
+  @Deprecated('Use declaredElement2 instead')
   Element? get declaredElement;
+
+  /// Return the element associated with this declaration, or `null` if either
+  /// this node corresponds to a list of declarations or if the AST structure
+  /// has not been resolved.
+  Element? get declaredElement2;
 }
 
 /// The declaration of a single identifier.
@@ -1577,8 +1598,12 @@ abstract class Declaration implements AnnotatedNode {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DeclaredIdentifier implements Declaration {
+  @Deprecated('Use declaredElement2 instead')
   @override
   LocalVariableElement? get declaredElement;
+
+  @override
+  LocalVariableElement? get declaredElement2;
 
   /// Return the name of the variable being declared.
   @Deprecated('Use name instead')
@@ -1793,8 +1818,12 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
   /// Return the enumeration constants being declared.
   NodeList<EnumConstantDeclaration> get constants;
 
+  @Deprecated('Use declaredElement2 instead')
   @override
   ClassElement? get declaredElement;
+
+  @override
+  EnumElement? get declaredElement2;
 
   /// Return the 'enum' keyword.
   Token get enumKeyword;
@@ -1966,8 +1995,12 @@ abstract class ExtendsClause implements AstNode {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExtensionDeclaration implements CompilationUnitMember {
+  @Deprecated('Use declaredElement2 instead')
   @override
   ExtensionElement? get declaredElement;
+
+  @override
+  ExtensionElement? get declaredElement2;
 
   /// Return the type that is being extended.
   TypeAnnotation get extendedType;
@@ -2508,8 +2541,12 @@ abstract class FunctionBody implements AstNode {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionDeclaration implements NamedCompilationUnitMember {
+  @Deprecated('Use declaredElement2 instead')
   @override
   ExecutableElement? get declaredElement;
+
+  @override
+  ExecutableElement? get declaredElement2;
 
   /// Return the token representing the 'external' keyword, or `null` if this is
   /// not an external function.
@@ -2627,8 +2664,12 @@ abstract class FunctionReference
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypeAlias implements TypeAlias {
+  @Deprecated('Use declaredElement2 instead')
   @override
   TypeAliasElement? get declaredElement;
+
+  @override
+  TypeAliasElement? get declaredElement2;
 
   /// Return the parameters associated with the function type.
   FormalParameterList get parameters;
@@ -3424,8 +3465,12 @@ abstract class MethodDeclaration implements ClassMember {
   /// Return the body of the method.
   FunctionBody get body;
 
+  @Deprecated('Use declaredElement2 instead')
   @override
   ExecutableElement? get declaredElement;
+
+  @override
+  ExecutableElement? get declaredElement2;
 
   /// Return the token for the 'external' keyword, or `null` if the constructor
   /// is not external.
@@ -3552,7 +3597,7 @@ abstract class MixinAugmentationDeclaration
   Token get augmentKeyword;
 
   @override
-  MixinAugmentationElement? get declaredElement;
+  MixinAugmentationElement? get declaredElement2;
 }
 
 /// The declaration of a mixin.
@@ -3567,12 +3612,12 @@ abstract class MixinDeclaration
         MixinOrAugmentationDeclaration,
         // ignore: deprecated_member_use_from_same_package
         ClassOrMixinDeclaration {
-  // TODO(scheglov) Uncomment when removed [ClassOrMixinDeclaration].
-  // @override
-  // MixinElement get declaredElement;
-
+  @Deprecated('Use declaredElement2 instead')
   @override
   ClassElement? get declaredElement;
+
+  @override
+  MixinElement? get declaredElement2;
 
   /// Returns the implements clause for the class/mixin, or `null` if the
   /// class/mixin does not implement any interfaces.
@@ -3604,13 +3649,12 @@ abstract class MixinDeclaration
 @experimental
 abstract class MixinOrAugmentationDeclaration
     implements NamedCompilationUnitMember {
+  @override
+  MixinOrAugmentationElement? get declaredElement2;
+
   /// Returns the `implements` clause for the mixin, or `null` if the mixin
   /// does not implement any interfaces.
   ImplementsClause? get implementsClause;
-
-  // @override
-  // TODO(scheglov) Uncomment when removed [ClassOrMixinDeclaration].
-  // MixinOrAugmentationElement get declaredElement;
 
   /// Returns the left curly bracket.
   Token get leftBracket;
@@ -4018,6 +4062,85 @@ abstract class PropertyAccess
   /// a cascade expression.
   Expression? get target;
 }
+
+/// A record type.
+///
+/// recordType ::=
+///     '(' recordTypeFields ',' recordTypeNamedFields ')'
+///   | '(' recordTypeFields ','? ')'
+///   | '(' recordTypeNamedFields ')'
+///
+/// recordTypeFields ::= recordTypeField ( ',' recordTypeField )*
+///
+/// recordTypeField ::= metadata type identifier?
+///
+/// recordTypeNamedFields ::=
+///     '{' recordTypeNamedField
+///     ( ',' recordTypeNamedField )* ','? '}'
+///
+/// recordTypeNamedField ::= metadata type identifier
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordTypeAnnotation implements TypeAnnotation {
+  /// The optional named fields.
+  RecordTypeAnnotationNamedFields? get namedFields;
+
+  /// The positional fields (might be empty).
+  NodeList<RecordTypeAnnotationPositionalField> get positionalFields;
+}
+
+/// A field in a [RecordTypeAnnotation].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordTypeAnnotationField implements AstNode {
+  /// The comma at the end of the field, either before the next field,
+  /// or optional after the last field.
+  Token? get comma;
+
+  /// The annotations associated with the field.
+  NodeList<Annotation> get metadata;
+
+  /// The optional name of the field.
+  Token? get name;
+
+  /// The type of the field.
+  TypeAnnotation get type;
+}
+
+/// A named field in a [RecordTypeAnnotation].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordTypeAnnotationNamedField
+    implements RecordTypeAnnotationField {
+  /// The name of the field.
+  @override
+  Token get name;
+}
+
+/// The portion of a [RecordTypeAnnotation] with named fields.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordTypeAnnotationNamedFields implements AstNode {
+  /// The fields contained in the block.
+  NodeList<RecordTypeAnnotationNamedField> get fields;
+
+  /// The left curly bracket.
+  Token get leftBracket;
+
+  /// The right curly bracket.
+  Token get rightBracket;
+}
+
+/// A positional field in a [RecordTypeAnnotation].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordTypeAnnotationPositionalField
+    implements RecordTypeAnnotationField {}
 
 /// The invocation of a constructor in the same class from within a
 /// constructor's initialization list.
@@ -4668,6 +4791,7 @@ abstract class TypeAlias implements NamedCompilationUnitMember {
 ///    type ::=
 ///        [NamedType]
 ///      | [GenericFunctionType]
+///      | [RecordTypeAnnotation]
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeAnnotation implements AstNode {
@@ -4747,8 +4871,12 @@ abstract class TypeParameter implements Declaration {
   /// explicit upper bound.
   TypeAnnotation? get bound;
 
+  @Deprecated('Use declaredElement2 instead')
   @override
   TypeParameterElement? get declaredElement;
+
+  @override
+  TypeParameterElement? get declaredElement2;
 
   /// Return the token representing the 'extends' keyword, or `null` if there is
   /// no explicit upper bound.
@@ -4826,8 +4954,12 @@ abstract class UriBasedDirective implements Directive {
 // Consider changing the class hierarchy so that [VariableDeclaration] does not
 // extend [Declaration].
 abstract class VariableDeclaration implements Declaration {
+  @Deprecated('Use declaredElement2 instead')
   @override
   VariableElement? get declaredElement;
+
+  @override
+  VariableElement? get declaredElement2;
 
   /// Return the equal sign separating the variable name from the initial value,
   /// or `null` if the initial value was not specified.

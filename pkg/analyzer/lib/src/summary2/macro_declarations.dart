@@ -52,7 +52,7 @@ class DeclarationBuilder {
     }
 
     for (final entry in fromNode._classMap.entries) {
-      final element = entry.key.declaredElement as ClassElement;
+      final element = entry.key.declaredElement2!;
       final declaration = entry.value;
       declaration.element = element;
       fromElement._classMap[element] = declaration;
@@ -214,7 +214,7 @@ class DeclarationBuilderFromNode {
     assert(!_classMap.containsKey(node));
     return IntrospectableClassDeclarationImpl._(
       id: macro.RemoteInstance.uniqueId,
-      identifier: _declaredIdentifier(node.name2, node.declaredElement!),
+      identifier: _declaredIdentifier(node.name2, node.declaredElement2!),
       typeParameters: _typeParameters(node.typeParameters),
       interfaces: _typeAnnotations(node.implementsClause?.interfaces),
       isAbstract: node.abstractKeyword != null,
@@ -290,7 +290,7 @@ class DeclarationBuilderFromNode {
   ) {
     return macro.TypeParameterDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
-      identifier: _declaredIdentifier(node.name2, node.declaredElement!),
+      identifier: _declaredIdentifier(node.name2, node.declaredElement2!),
       bound: node.bound.mapOrNull(_typeAnnotation),
     );
   }

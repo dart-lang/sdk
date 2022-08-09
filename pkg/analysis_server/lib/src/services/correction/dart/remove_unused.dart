@@ -42,8 +42,8 @@ class RemoveUnusedElement extends _RemoveUnused {
         referencedNode is MethodDeclaration ||
         referencedNode is VariableDeclaration) {
       final element = referencedNode is Declaration
-          ? referencedNode.declaredElement!
-          : (referencedNode as NamedCompilationUnitMember).declaredElement!;
+          ? referencedNode.declaredElement2!
+          : (referencedNode as NamedCompilationUnitMember).declaredElement2!;
       final references = _findAllReferences(unit, element);
       // todo (pq): consider filtering for references that are limited to within the class.
       if (references.length == 1) {
@@ -92,7 +92,7 @@ class RemoveUnusedField extends _RemoveUnused {
       return;
     }
 
-    final element = declaration.declaredElement;
+    final element = declaration.declaredElement2;
     if (element is! FieldElement) {
       return;
     }

@@ -68,7 +68,7 @@ class DartUnitOverridesComputer {
         if (classMember.isStatic) {
           continue;
         }
-        _addOverride(classMember.name2, classMember.declaredElement);
+        _addOverride(classMember.name2, classMember.declaredElement2);
       }
       if (classMember is FieldDeclaration) {
         if (classMember.isStatic) {
@@ -76,7 +76,7 @@ class DartUnitOverridesComputer {
         }
         List<VariableDeclaration> fields = classMember.fields.variables;
         for (var field in fields) {
-          _addOverride(field.name2, field.declaredElement);
+          _addOverride(field.name2, field.declaredElement2);
         }
       }
     }

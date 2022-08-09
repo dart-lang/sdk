@@ -414,7 +414,7 @@ class DartUnitOutlineComputer {
 
   /// Returns `true` if the given [element] is not `null` and deprecated.
   static bool _isDeprecated(Declaration declaration) {
-    var element = declaration.declaredElement;
+    var element = declaration.declaredElement2;
     return element != null && element.hasDeprecated;
   }
 

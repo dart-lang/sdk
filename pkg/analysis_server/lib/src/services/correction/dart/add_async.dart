@@ -41,10 +41,10 @@ class AddAsync extends CorrectionProducer {
       DartType? returnType;
       if (parent is FunctionDeclaration) {
         body = parent.functionExpression.body;
-        returnType = parent.declaredElement!.returnType;
+        returnType = parent.declaredElement2!.returnType;
       } else if (parent is MethodDeclaration) {
         body = parent.body;
-        returnType = parent.declaredElement!.returnType;
+        returnType = parent.declaredElement2!.returnType;
       }
       if (body == null || returnType == null) {
         return;

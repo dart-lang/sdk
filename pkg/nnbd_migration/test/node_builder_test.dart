@@ -24,11 +24,11 @@ class NodeBuilderTest extends MigrationVisitorTestBase {
   /// name matches [search].
   DecoratedType decoratedFunctionType(String search) =>
       variables.decoratedElementType(
-          findNode.functionDeclaration(search).declaredElement!);
+          findNode.functionDeclaration(search).declaredElement2!);
 
   DecoratedType? decoratedTypeParameterBound(String search) =>
       variables.decoratedTypeParameterBound(
-          findNode.typeParameter(search).declaredElement!);
+          findNode.typeParameter(search).declaredElement2!);
 
   Future<void> test_catch_clause_with_stacktrace_with_on() async {
     await analyze('''
@@ -724,7 +724,7 @@ class C {
             .fieldDeclaration('f')
             .fields
             .variables[0]
-            .declaredElement!),
+            .declaredElement2!),
         same(decoratedType));
   }
 
@@ -1376,7 +1376,7 @@ var x = [1];
             .topLevelVariableDeclaration('x')
             .variables
             .variables[0]
-            .declaredElement!)
+            .declaredElement2!)
         .typeArguments[0]!
         .node!;
     expect(node.hintActions, isEmpty);
@@ -1391,7 +1391,7 @@ var x = 1;
             .topLevelVariableDeclaration('x')
             .variables
             .variables[0]
-            .declaredElement!)
+            .declaredElement2!)
         .node!;
     expect(node.hintActions, isEmpty);
   }

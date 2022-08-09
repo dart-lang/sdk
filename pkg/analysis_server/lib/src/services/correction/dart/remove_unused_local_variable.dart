@@ -31,7 +31,7 @@ class RemoveUnusedLocalVariable extends CorrectionProducer {
       return;
     }
 
-    var element = declaration.declaredElement;
+    var element = declaration.declaredElement2;
     if (element is! LocalVariableElement) {
       return;
     }

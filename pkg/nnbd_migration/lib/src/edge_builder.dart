@@ -669,7 +669,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         node is ExtensionDeclaration ||
         node is MixinDeclaration);
     try {
-      _currentClassOrExtension = node.declaredElement;
+      _currentClassOrExtension = node.declaredElement2;
 
       List<ClassMember> members;
       if (node is ClassDeclaration) {
@@ -685,8 +685,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           if (member is FieldDeclaration &&
               _variables.getLateHint(source, member.fields) == null)
             for (var field in member.fields.variables)
-              if (!field.declaredElement!.isStatic && field.initializer == null)
-                (field.declaredElement as FieldElement?)
+              if (!field.declaredElement2!.isStatic &&
+                  field.initializer == null)
+                (field.declaredElement2 as FieldElement?)
       };
       if (_currentClassOrExtension is ClassElement &&
           (_currentClassOrExtension as ClassElement)
@@ -709,7 +710,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _dispatch(node.superclass);
     _dispatch(node.implementsClause);
     _dispatch(node.withClause);
-    var classElement = node.declaredElement!;
+    var classElement = node.declaredElement2!;
     var supertype = classElement.supertype!;
     var superElement = supertype.element2;
     for (var constructorElement in classElement.constructors) {
@@ -803,7 +804,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _dispatch(node.redirectedConstructor?.type.typeArguments);
     _handleExecutableDeclaration(
         node,
-        node.declaredElement!,
+        node.declaredElement2!,
         node.metadata,
         null,
         node.parameters,
@@ -994,7 +995,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _flowAnalysis = null;
         _assignedVariables = null;
       }
-      var declaredElement = node.declaredElement;
+      var declaredElement = node.declaredElement2;
       if (declaredElement is PropertyAccessorElement) {
         if (declaredElement.isGetter) {
           var setter = declaredElement.correspondingSetter;
@@ -1364,12 +1365,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (BuiltValueTransformer.findNullableAnnotation(node) != null) {
       _graph.makeNullable(
           _variables
-              .decoratedElementType(node.declaredElement!.declaration)
+              .decoratedElementType(node.declaredElement2!.declaration)
               .returnType!
               .node!,
           BuiltValueNullableOrigin(source, node));
     }
-    _handleExecutableDeclaration(node, node.declaredElement!, node.metadata,
+    _handleExecutableDeclaration(node, node.declaredElement2!, node.metadata,
         node.returnType, node.parameters, null, node.body, null);
     _dispatch(node.typeParameters);
     return null;
@@ -1891,7 +1892,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var nullabilityNode = NullabilityNode.forInferredType(target);
     var class_ = node.thisOrAncestorOfType<ClassDeclaration>()!;
     var decoratedSupertype = _decoratedClassHierarchy!.getDecoratedSupertype(
-        class_.declaredElement!, callee.enclosingElement3);
+        class_.declaredElement2!, callee.enclosingElement3);
     var typeArguments = decoratedSupertype.typeArguments;
     Iterable<DartType?> typeArgumentTypes;
     typeArgumentTypes = typeArguments.map((t) => t!.type);
@@ -1995,7 +1996,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var variable in node.variables) {
       _dispatchList(variable.metadata);
       var initializer = variable.initializer;
-      var declaredElement = variable.declaredElement!;
+      var declaredElement = variable.declaredElement2!;
       if (isTopLevel) {
         assert(_flowAnalysis == null);
         _createFlowAnalysis(variable, null);
@@ -2067,7 +2068,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     //
     // We cannot make a hard edge from y to never in this case.
     if (node.variables.length == 1) {
-      _postDominatedLocals.add(node.variables.single.declaredElement!);
+      _postDominatedLocals.add(node.variables.single.declaredElement2!);
     }
 
     return null;
@@ -2893,7 +2894,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       Element? lhsElement;
       DecoratedType? lhsType;
       if (parts is ForEachPartsWithDeclaration) {
-        var variableElement = parts.loopVariable.declaredElement!;
+        var variableElement = parts.loopVariable.declaredElement2!;
         _flowAnalysis!.declare(variableElement, true);
         lhsElement = variableElement;
         _dispatch(parts.loopVariable.type);

@@ -203,7 +203,7 @@ class CodeChecker extends RecursiveAstVisitor {
     _visitForEachParts(
       node,
       node.loopVariable.name,
-      node.loopVariable.declaredElement,
+      node.loopVariable.declaredElement2,
     );
     node.visitChildren(this);
   }
@@ -564,7 +564,7 @@ class CodeChecker extends RecursiveAstVisitor {
     FunctionType functionType;
     var parent = body.parent;
     if (parent is Declaration) {
-      functionType = _elementType(parent.declaredElement!) as FunctionType;
+      functionType = _elementType(parent.declaredElement2!) as FunctionType;
     } else {
       assert(parent is FunctionExpression);
       functionType = (parent as FunctionExpression).staticType as FunctionType;

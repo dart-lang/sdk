@@ -85,9 +85,9 @@ class LocalReferenceContributor extends DartCompletionContributor {
       if (member != null) {
         var enclosingNode = member.parent;
         if (enclosingNode is ClassDeclaration) {
-          _addForInterface(enclosingNode.declaredElement!);
+          _addForInterface(enclosingNode.declaredElement2!);
         } else if (enclosingNode is MixinDeclaration) {
-          _addForInterface(enclosingNode.declaredElement!);
+          _addForInterface(enclosingNode.declaredElement2!);
         }
       }
     }
@@ -217,14 +217,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredClass(ClassDeclaration declaration) {
-    _declaredClassElement(declaration.declaredElement);
+    _declaredInterfaceElement(declaration.declaredElement2);
   }
 
   @override
   void declaredClassTypeAlias(ClassTypeAlias declaration) {
-    var declaredElement = declaration.declaredElement;
+    var declaredElement = declaration.declaredElement2;
     if (declaredElement != null && opType.includeTypeNameSuggestions) {
-      builder.suggestClass(declaredElement);
+      builder.suggestInterface(declaredElement);
     }
   }
 
@@ -235,12 +235,12 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredEnum(EnumDeclaration declaration) {
-    _declaredClassElement(declaration.declaredElement);
+    _declaredInterfaceElement(declaration.declaredElement2);
   }
 
   @override
   void declaredExtension(ExtensionDeclaration declaration) {
-    var declaredElement = declaration.declaredElement;
+    var declaredElement = declaration.declaredElement2;
     if (declaredElement != null &&
         visibilityTracker._isVisible(declaredElement) &&
         opType.includeReturnValueSuggestions &&
@@ -251,7 +251,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
-    var field = varDecl.declaredElement;
+    var field = varDecl.declaredElement2;
     if (field is FieldElement &&
         ((visibilityTracker._isVisible(field) &&
                 opType.includeReturnValueSuggestions &&
@@ -260,7 +260,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       var inheritanceDistance = 0.0;
       var enclosingClass = request.target.containingNode
           .thisOrAncestorOfType<ClassDeclaration>();
-      var enclosingElement = enclosingClass?.declaredElement;
+      var enclosingElement = enclosingClass?.declaredElement2;
       if (enclosingElement != null) {
         var enclosingElement = field.enclosingElement3;
         if (enclosingElement is ClassElement) {
@@ -274,7 +274,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredFunction(FunctionDeclaration declaration) {
-    if (visibilityTracker._isVisible(declaration.declaredElement) &&
+    if (visibilityTracker._isVisible(declaration.declaredElement2) &&
         (opType.includeReturnValueSuggestions ||
             opType.includeVoidReturnSuggestions)) {
       if (declaration.isSetter) {
@@ -287,7 +287,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           return;
         }
       }
-      var declaredElement = declaration.declaredElement;
+      var declaredElement = declaration.declaredElement2;
       if (declaredElement is FunctionElement) {
         builder.suggestTopLevelFunction(declaredElement, kind: _defaultKind);
       } else if (declaredElement is PropertyAccessorElement) {
@@ -298,7 +298,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
-    var declaredElement = declaration.declaredElement;
+    var declaredElement = declaration.declaredElement2;
     if (declaredElement != null && opType.includeTypeNameSuggestions) {
       builder.suggestTypeAlias(declaredElement);
     }
@@ -306,7 +306,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredGenericTypeAlias(GenericTypeAlias declaration) {
-    var declaredElement = declaration.declaredElement;
+    var declaredElement = declaration.declaredElement2;
     if (declaredElement is TypeAliasElement &&
         opType.includeTypeNameSuggestions) {
       builder.suggestTypeAlias(declaredElement);
@@ -332,7 +332,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredMethod(MethodDeclaration declaration) {
-    var element = declaration.declaredElement;
+    var element = declaration.declaredElement2;
     if (visibilityTracker._isVisible(element) &&
         (opType.includeReturnValueSuggestions ||
             opType.includeVoidReturnSuggestions) &&
@@ -345,7 +345,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         if (enclosingElement is ClassElement) {
           inheritanceDistance = request.featureComputer
               .inheritanceDistanceFeature(
-                  enclosingClass.declaredElement!, enclosingElement);
+                  enclosingClass.declaredElement2!, enclosingElement);
         }
       }
       if (element is MethodElement) {
@@ -360,12 +360,12 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredMixin(MixinDeclaration declaration) {
-    var declaredElement = declaration.declaredElement;
+    var declaredElement = declaration.declaredElement2;
     if (!inExtendsClause &&
         declaredElement != null &&
         visibilityTracker._isVisible(declaredElement) &&
         opType.includeTypeNameSuggestions) {
-      builder.suggestClass(declaredElement);
+      builder.suggestInterface(declaredElement);
     }
   }
 
@@ -387,7 +387,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl) {
-    var variableElement = varDecl.declaredElement;
+    var variableElement = varDecl.declaredElement2;
     if (variableElement is TopLevelVariableElement &&
         visibilityTracker._isVisible(variableElement) &&
         opType.includeReturnValueSuggestions) {
@@ -400,7 +400,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredTypeParameter(TypeParameter node) {
-    var declaredElement = node.declaredElement;
+    var declaredElement = node.declaredElement2;
     if (declaredElement != null &&
         visibilityTracker._isVisible(declaredElement) &&
         opType.includeTypeNameSuggestions) {
@@ -414,17 +414,19 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     super.visitExtendsClause(node);
   }
 
-  void _declaredClassElement(ClassElement? class_) {
-    if (class_ != null && visibilityTracker._isVisible(class_)) {
+  void _declaredInterfaceElement(InterfaceElement? element) {
+    if (element != null && visibilityTracker._isVisible(element)) {
       if (opType.includeTypeNameSuggestions) {
-        builder.suggestClass(class_);
+        builder.suggestInterface(element);
       }
 
       if (!opType.isPrefixed &&
           opType.includeConstructorSuggestions &&
-          class_ is! EnumElement) {
-        for (final constructor in class_.constructors) {
-          if (!class_.isAbstract || constructor.isFactory) {
+          element is ClassElement &&
+          // TODO(scheglov) Remove when separated EnumElement from ClassElement
+          element is! EnumElement) {
+        for (final constructor in element.constructors) {
+          if (!element.isAbstract || constructor.isFactory) {
             builder.suggestConstructor(constructor);
           }
         }
@@ -435,7 +437,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         final contextType = request.contextType;
         if (contextType is InterfaceType) {
           // TODO(scheglov) This looks not ideal - we should suggest getters.
-          for (final field in class_.fields) {
+          for (final field in element.fields) {
             if (field.isStatic &&
                 typeSystem.isSubtypeOf(field.type, contextType)) {
               builder.suggestStaticField(field);

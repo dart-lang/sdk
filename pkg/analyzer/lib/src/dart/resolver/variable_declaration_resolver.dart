@@ -39,7 +39,7 @@ class VariableDeclarationResolver {
       return;
     }
 
-    var element = node.declaredElement!;
+    var element = node.declaredElement2!;
     var isTopLevel =
         element is FieldElement || element is TopLevelVariableElement;
 

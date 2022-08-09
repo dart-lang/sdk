@@ -713,7 +713,7 @@ void foo<T>(int T) {}
 void foo(void Function<T>(String T) b) {}
 ''');
     var node = findNode.simple('T)');
-    var T = findNode.typeParameter('T>').declaredElement!;
+    var T = findNode.typeParameter('T>').declaredElement2!;
     _resultRequested(node, 'T', false, T);
   }
 

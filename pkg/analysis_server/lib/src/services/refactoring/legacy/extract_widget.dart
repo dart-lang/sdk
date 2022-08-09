@@ -184,7 +184,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
     // Find the enclosing class.
     _enclosingClassNode = node?.thisOrAncestorOfType<ClassDeclaration>();
-    _enclosingClassElement = _enclosingClassNode?.declaredElement;
+    _enclosingClassElement = _enclosingClassNode?.declaredElement2;
 
     // new MyWidget(...)
     var newExpression = _flutter.identifyNewExpression(node);
@@ -372,7 +372,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   /// Replace invocations of the [_method] with instantiations of the new
   /// widget class.
   void _replaceInvocationsWithInstantiations(DartFileEditBuilder builder) {
-    var collector = _MethodInvocationsCollector(_method!.declaredElement!);
+    var collector = _MethodInvocationsCollector(_method!.declaredElement2!);
     _enclosingClassNode!.accept(collector);
     for (var invocation in collector.invocations) {
       List<Expression> arguments = invocation.argumentList.arguments;

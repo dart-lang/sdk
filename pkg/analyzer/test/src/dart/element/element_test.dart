@@ -1514,8 +1514,10 @@ f() {
   }
 }
 ''');
-    expect(findNode.variableDeclaration('x = 0').declaredElement!.location,
-        isNot(findNode.variableDeclaration('x = 1').declaredElement!.location));
+    expect(
+        findNode.variableDeclaration('x = 0').declaredElement2!.location,
+        isNot(
+            findNode.variableDeclaration('x = 1').declaredElement2!.location));
   }
 }
 
