@@ -119,12 +119,6 @@ static bool IsCallRecursive(const Function& function, Definition* call) {
   return false;
 }
 
-// Helper to get the default value of a formal parameter.
-static ConstantInstr* GetDefaultValue(intptr_t i,
-                                      const ParsedFunction& parsed_function) {
-  return new ConstantInstr(parsed_function.DefaultParameterValueAt(i));
-}
-
 // Helper to get result type from call (or nullptr otherwise).
 static CompileType* ResultType(Definition* call) {
   if (auto static_call = call->AsStaticCall()) {
@@ -994,7 +988,7 @@ class CallSiteInliner : public ValueObject {
                                   FlowGraph* graph) {
     ConstantInstr* constant = argument->definition()->AsConstant();
     if (constant != NULL) {
-      return new (Z) ConstantInstr(constant->value());
+      return graph->GetConstant(constant->value());
     } else {
       ParameterInstr* param = new (Z)
           ParameterInstr(i, -1, graph->graph_entry(), kNoRepresentation);
@@ -1733,7 +1727,7 @@ class CallSiteInliner : public ValueObject {
       for (intptr_t i = arg_count - first_arg_index; i < param_count; ++i) {
         const Instance& object =
             parsed_function.DefaultParameterValueAt(i - fixed_param_count);
-        ConstantInstr* constant = new (Z) ConstantInstr(object);
+        ConstantInstr* constant = callee_graph->GetConstant(object);
         arguments->Add(NULL);
         param_stubs->Add(constant);
       }
@@ -1750,8 +1744,10 @@ class CallSiteInliner : public ValueObject {
     // Fast path when no optional named parameters are given.
     if (argument_names_count == 0) {
       for (intptr_t i = 0; i < param_count - fixed_param_count; ++i) {
+        const Instance& object = parsed_function.DefaultParameterValueAt(i);
+        ConstantInstr* constant = callee_graph->GetConstant(object);
         arguments->Add(NULL);
-        param_stubs->Add(GetDefaultValue(i, parsed_function));
+        param_stubs->Add(constant);
       }
       return true;
     }
@@ -1788,8 +1784,10 @@ class CallSiteInliner : public ValueObject {
         param_stubs->Add(
             CreateParameterStub(first_arg_index + i, arg, callee_graph));
       } else {
-        param_stubs->Add(
-            GetDefaultValue(i - fixed_param_count, parsed_function));
+        const Instance& object =
+            parsed_function.DefaultParameterValueAt(i - fixed_param_count);
+        ConstantInstr* constant = callee_graph->GetConstant(object);
+        param_stubs->Add(constant);
       }
     }
     return argument_names_count == match_count;
