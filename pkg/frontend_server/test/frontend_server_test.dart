@@ -2443,8 +2443,7 @@ e() {
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
         '--packages=${packageConfig.path}',
-        // TODO(johnniwinther): Enable this.
-        //'--enable-experiment=alternative-invalidation-strategy',
+        '--enable-experiment=alternative-invalidation-strategy',
         '--emit-debug-symbols',
       ];
 
@@ -2521,19 +2520,13 @@ d() {
             var jsModules =
                 source.split(RegExp("\/\/# sourceMappingURL=.*\.map"));
 
-            expect(jsModules[0], contains('<<a>>'));
-            expect(jsModules[0], contains('<<b>>'));
-            expect(jsModules[0], not(contains('<<c>>')));
+            expect(jsModules[0], not(contains('<<a>>')));
+            expect(jsModules[0], not(contains('<<b>>')));
+            expect(jsModules[0], contains('<<c>>'));
             expect(jsModules[0], not(contains('<<d>>')));
-            expect(jsModules[0], not(contains('<<e>>')));
-
-            expect(jsModules[1], not(contains('<<a>>')));
-            expect(jsModules[1], not(contains('<<b>>')));
-            expect(jsModules[1], contains('<<c>>'));
-            expect(jsModules[1], not(contains('<<d>>')));
-            expect(jsModules[1], contains('<<d1>>'));
-            expect(jsModules[1], contains('<<d2>>'));
-            expect(jsModules[1], contains('<<e>>'));
+            expect(jsModules[0], contains('<<d1>>'));
+            expect(jsModules[0], contains('<<d2>>'));
+            expect(jsModules[0], contains('<<e>>'));
 
             streamController.add('accept\n'.codeUnits);
 
@@ -2567,21 +2560,15 @@ e() {
             var jsModules =
                 source.split(RegExp("\/\/# sourceMappingURL=.*\.map"));
 
-            expect(jsModules[0], contains('<<a>>'));
-            expect(jsModules[0], contains('<<b>>'));
-            expect(jsModules[0], not(contains('<<c>>')));
+            expect(jsModules[0], not(contains('<<a>>')));
+            expect(jsModules[0], not(contains('<<b>>')));
+            expect(jsModules[0], contains('<<c>>'));
             expect(jsModules[0], not(contains('<<d>>')));
+            expect(jsModules[0], contains('<<d1>>'));
+            expect(jsModules[0], contains('<<d2>>'));
             expect(jsModules[0], not(contains('<<e>>')));
-
-            expect(jsModules[1], not(contains('<<a>>')));
-            expect(jsModules[1], not(contains('<<b>>')));
-            expect(jsModules[1], contains('<<c>>'));
-            expect(jsModules[1], not(contains('<<d>>')));
-            expect(jsModules[1], contains('<<d1>>'));
-            expect(jsModules[1], contains('<<d2>>'));
-            expect(jsModules[1], not(contains('<<e>>')));
-            expect(jsModules[1], contains('<<e1>>'));
-            expect(jsModules[1], contains('<<e2>>'));
+            expect(jsModules[0], contains('<<e1>>'));
+            expect(jsModules[0], contains('<<e2>>'));
 
             streamController.add('accept\n'.codeUnits);
             outputParser.expectSources = false;
