@@ -26,7 +26,7 @@ import '../builder/type_alias_builder.dart';
 import '../names.dart';
 import '../problems.dart' show unsupported;
 import '../type_inference/inference_visitor.dart';
-import '../type_inference/type_inferrer.dart';
+import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
 
 int getExtensionTypeParameterCount(Arguments arguments) {

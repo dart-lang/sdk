@@ -255,6 +255,7 @@ void FlowGraph::AddToGraphInitialDefinitions(Definition* defn) {
 
 void FlowGraph::AddToInitialDefinitions(BlockEntryWithInitialDefs* entry,
                                         Definition* defn) {
+  ASSERT(defn->previous() == nullptr);
   defn->set_previous(entry);
   if (auto par = defn->AsParameter()) {
     par->set_block(entry);  // set cached block
@@ -1224,9 +1225,14 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
     if (inlining_parameters != NULL) {
       for (intptr_t i = 0; i < function().NumParameters(); ++i) {
         Definition* defn = (*inlining_parameters)[inlined_type_args_param + i];
-        AllocateSSAIndex(defn);
-        AddToInitialDefinitions(function_entry, defn);
-
+        if (defn->IsConstant()) {
+          ASSERT(defn->previous() == graph_entry_);
+          ASSERT(defn->HasSSATemp());
+        } else {
+          ASSERT(defn->previous() == nullptr);
+          AllocateSSAIndex(defn);
+          AddToInitialDefinitions(function_entry, defn);
+        }
         intptr_t index = EnvIndex(parsed_function_.RawParameterVariable(i));
         (*env)[index] = defn;
       }
@@ -1246,8 +1252,14 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
       } else {
         defn = (*inlining_parameters)[0];
       }
-      AllocateSSAIndex(defn);
-      AddToInitialDefinitions(function_entry, defn);
+      if (defn->IsConstant()) {
+        ASSERT(defn->previous() == graph_entry_);
+        ASSERT(defn->HasSSATemp());
+      } else {
+        ASSERT(defn->previous() == nullptr);
+        AllocateSSAIndex(defn);
+        AddToInitialDefinitions(function_entry, defn);
+      }
       (*env)[RawTypeArgumentEnvIndex()] = defn;
     }
 

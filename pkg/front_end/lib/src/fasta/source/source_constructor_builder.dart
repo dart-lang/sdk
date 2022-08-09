@@ -51,7 +51,7 @@ import '../source/source_enum_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 import '../source/source_member_builder.dart';
-import '../type_inference/type_inferrer.dart';
+import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'source_field_builder.dart';
