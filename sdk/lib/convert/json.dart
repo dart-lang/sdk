@@ -386,8 +386,6 @@ class JsonEncoder extends Converter<Object?, String> {
 class JsonUtf8Encoder extends Converter<Object?, List<int>> {
   /// Default buffer size used by the JSON-to-UTF-8 encoder.
   static const int _defaultBufferSize = 256;
-  @deprecated
-  static const int DEFAULT_BUFFER_SIZE = _defaultBufferSize;
 
   /// Indentation used in pretty-print mode, `null` if not pretty.
   final List<int>? _indent;

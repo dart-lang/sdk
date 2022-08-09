@@ -4,7 +4,13 @@
 
 ### Libraries
 
-#### `dart:developer`
+#### `dart:convert`
+
+- **Breaking change** [#34233][]: The previously deprecated API
+  [`DEFAULT_BUFFER_SIZE`][] in [`JsonUtf8Encoder`] has been removed.
+
+[#34233]: https://github.com/dart-lang/sdk/issues/34233
+[`DEFAULT_BUFFER_SIZE`]: https://api.dart.dev/stable/2.17.6/dart-convert/JsonUtf8Encoder/DEFAULT_BUFFER_SIZE-constant.html
 
 #### `dart:developer`
 
@@ -15,7 +21,7 @@
   and `extensionErrorMin`.
 
 [#34233]: https://github.com/dart-lang/sdk/issues/34233
-[`ServiceExtensionResponse`]: https://api.dart.dev/stable/dart-developer/ServiceExtensionResponse-class.html#constants
+[`ServiceExtensionResponse`]: https://api.dart.dev/stable/2.17.6/dart-developer/ServiceExtensionResponse-class.html#constants
 
 - Deprecated `UserTag.MAX_USER_TAGS` in favor of `UserTag.maxUserTags`.
 
