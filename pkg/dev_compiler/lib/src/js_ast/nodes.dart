@@ -365,12 +365,15 @@ class Program extends Node {
   /// Top-level statements in the program.
   final List<ModuleItem> body;
 
+  // Top-level comments prepended to the compiled program.
+  final List<Comment> header;
+
   /// The module's own name.
   ///
   /// This is not used in ES6, but is provided to allow module lowering.
   final String? name;
 
-  Program(this.body, {this.scriptTag, this.name});
+  Program(this.body, {this.scriptTag, this.name, this.header = const []});
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitProgram(this);
@@ -382,7 +385,8 @@ class Program extends Node {
   }
 
   @override
-  Program _clone() => Program(body);
+  Program _clone() =>
+      Program(body, scriptTag: scriptTag, name: name, header: header);
 }
 
 abstract class Statement extends ModuleItem {
