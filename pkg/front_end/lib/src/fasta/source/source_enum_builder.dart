@@ -52,7 +52,7 @@ import '../modifier.dart' show constMask, hasInitializerMask, staticMask;
 
 import '../constant_context.dart';
 import '../scope.dart';
-import '../type_inference/type_inferrer.dart';
+import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart';
 import 'name_scheme.dart';
