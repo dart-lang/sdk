@@ -1126,7 +1126,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     kernel.Reference? reference = showHideClause.findShownReference(
         name, callSiteAccessKind, classHierarchy);
     if (reference != null) {
-      return new ObjectAccessTarget.interfaceMember(reference.asMember,
+      return new ObjectAccessTarget.interfaceMember(
+          receiverType, reference.asMember,
           isPotentiallyNullable: isPotentiallyNullable);
     } else {
       return defaultTarget;
@@ -1187,8 +1188,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     if (targetMember != null) {
       assert(targetKind != null);
-      return new ObjectAccessTarget.extensionMember(
-          targetMember, targetTearoff, targetKind!, receiverType.typeArguments);
+      return new ObjectAccessTarget.extensionMember(receiverType, targetMember,
+          targetTearoff, targetKind!, receiverType.typeArguments);
     } else {
       return defaultTarget;
     }
@@ -1288,6 +1289,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             if (thisBuilder.isField) {
               if (thisBuilder.isExternal) {
                 target = new ObjectAccessTarget.extensionMember(
+                    receiverType,
                     setter ? thisBuilder.writeTarget! : thisBuilder.readTarget!,
                     thisBuilder.readTarget,
                     setter ? ProcedureKind.Setter : ProcedureKind.Getter,
@@ -1296,6 +1298,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               }
             } else {
               target = new ObjectAccessTarget.extensionMember(
+                  receiverType,
                   setter ? thisBuilder.writeTarget! : thisBuilder.invokeTarget!,
                   thisBuilder.readTarget,
                   thisBuilder.kind!,
@@ -1346,7 +1349,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       return bestSoFar!.target;
     } else {
       if (noneMoreSpecific.isNotEmpty) {
-        return new AmbiguousExtensionAccessTarget(noneMoreSpecific);
+        return new AmbiguousExtensionAccessTarget(
+            receiverType, noneMoreSpecific);
       }
     }
     return defaultTarget;
@@ -1390,7 +1394,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       if (member != null) {
         // Null implements all Object members so this is not considered a
         // potentially nullable access.
-        return new ObjectAccessTarget.objectMember(member);
+        return new ObjectAccessTarget.objectMember(receiverType, member);
       }
       if (includeExtensionMethods && receiverBound is! DynamicType) {
         ObjectAccessTarget? target = _findExtensionMember(
@@ -1407,8 +1411,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     if (receiverBound is FunctionType && name == callName) {
       return isReceiverTypePotentiallyNullable
-          ? const ObjectAccessTarget.nullableCallFunction()
-          : const ObjectAccessTarget.callFunction();
+          ? new ObjectAccessTarget.nullableCallFunction(receiverType)
+          : new ObjectAccessTarget.callFunction(receiverType);
     } else if (receiverBound is NeverType) {
       switch (receiverBound.nullability) {
         case Nullability.nonNullable:
@@ -1433,7 +1437,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Member? interfaceMember =
         _getInterfaceMember(classNode, name, isSetter, fileOffset);
     if (interfaceMember != null) {
-      target = new ObjectAccessTarget.interfaceMember(interfaceMember,
+      target = new ObjectAccessTarget.interfaceMember(
+          receiverType, interfaceMember,
           isPotentiallyNullable: isReceiverTypePotentiallyNullable);
     } else if (receiverBound is DynamicType) {
       target = const ObjectAccessTarget.dynamic();
@@ -1443,8 +1448,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         receiverBound.classNode == coreTypes.functionClass &&
         name == callName) {
       target = isReceiverTypePotentiallyNullable
-          ? const ObjectAccessTarget.nullableCallFunction()
-          : const ObjectAccessTarget.callFunction();
+          ? new ObjectAccessTarget.nullableCallFunction(receiverType)
+          : new ObjectAccessTarget.callFunction(receiverType);
     } else if (libraryFeatures.extensionTypes.isEnabled &&
         receiverBound is ExtensionType) {
       target = _findDirectExtensionTypeMember(receiverBound, name, fileOffset,
@@ -1557,86 +1562,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return type;
   }
 
-  /// Returns the type of [target] when accessed as a getter on [receiverType].
-  ///
-  /// For instance
-  ///
-  ///    class Class<T> {
-  ///      T method() {}
-  ///      T getter => null;
-  ///    }
-  ///
-  ///    Class<int> c = ...
-  ///    c.method; // The getter type is `int Function()`.
-  ///    c.getter; // The getter type is `int`.
-  ///
-  DartType getGetterType(ObjectAccessTarget target, DartType receiverType) {
-    switch (target.kind) {
-      case ObjectAccessTargetKind.callFunction:
-      case ObjectAccessTargetKind.nullableCallFunction:
-        return receiverType;
-      case ObjectAccessTargetKind.invalid:
-        return const InvalidType();
-      case ObjectAccessTargetKind.dynamic:
-      case ObjectAccessTargetKind.missing:
-      case ObjectAccessTargetKind.ambiguous:
-        return const DynamicType();
-      case ObjectAccessTargetKind.never:
-        return const NeverType.nonNullable();
-      case ObjectAccessTargetKind.instanceMember:
-      case ObjectAccessTargetKind.objectMember:
-      case ObjectAccessTargetKind.nullableInstanceMember:
-        return getGetterTypeForMemberTarget(target.member!, receiverType);
-      case ObjectAccessTargetKind.extensionMember:
-      case ObjectAccessTargetKind.nullableExtensionMember:
-        switch (target.extensionMethodKind) {
-          case ProcedureKind.Method:
-          case ProcedureKind.Operator:
-            FunctionType functionType = target.member!.function!
-                .computeFunctionType(libraryBuilder.nonNullable);
-            List<TypeParameter> extensionTypeParameters = functionType
-                .typeParameters
-                .take(target.inferredExtensionTypeArguments.length)
-                .toList();
-            Substitution substitution = Substitution.fromPairs(
-                extensionTypeParameters, target.inferredExtensionTypeArguments);
-            DartType resultType = substitution.substituteType(new FunctionType(
-                functionType.positionalParameters.skip(1).toList(),
-                functionType.returnType,
-                libraryBuilder.nonNullable,
-                namedParameters: functionType.namedParameters,
-                typeParameters: functionType.typeParameters
-                    .skip(target.inferredExtensionTypeArguments.length)
-                    .toList(),
-                requiredParameterCount:
-                    functionType.requiredParameterCount - 1));
-            if (!isNonNullableByDefault) {
-              resultType = legacyErasure(resultType);
-            }
-            return resultType;
-          case ProcedureKind.Getter:
-            FunctionType functionType = target.member!.function!
-                .computeFunctionType(libraryBuilder.nonNullable);
-            List<TypeParameter> extensionTypeParameters = functionType
-                .typeParameters
-                .take(target.inferredExtensionTypeArguments.length)
-                .toList();
-            Substitution substitution = Substitution.fromPairs(
-                extensionTypeParameters, target.inferredExtensionTypeArguments);
-            DartType resultType =
-                substitution.substituteType(functionType.returnType);
-            if (!isNonNullableByDefault) {
-              resultType = legacyErasure(resultType);
-            }
-            return resultType;
-          case ProcedureKind.Setter:
-          case ProcedureKind.Factory:
-            break;
-        }
-    }
-    throw unhandled('$target', 'getGetterType', -1, null);
-  }
-
   /// Returns the getter type of [interfaceMember] on a receiver of type
   /// [receiverType].
   ///
@@ -1673,63 +1598,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return calleeType;
   }
 
-  /// Returns the type of [target] when accessed as an invocation on
-  /// [receiverType].
-  ///
-  /// If the target is known not to be invokable [unknownFunction] is returned.
-  ///
-  /// For instance
-  ///
-  ///    class Class<T> {
-  ///      T method() {}
-  ///      T Function() getter1 => null;
-  ///      T getter2 => null;
-  ///    }
-  ///
-  ///    Class<int> c = ...
-  ///    c.method; // The getter type is `int Function()`.
-  ///    c.getter1; // The getter type is `int Function()`.
-  ///    c.getter2; // The getter type is [unknownFunction].
-  ///
-  FunctionType getFunctionType(
-      ObjectAccessTarget target, DartType receiverType) {
-    switch (target.kind) {
-      case ObjectAccessTargetKind.callFunction:
-      case ObjectAccessTargetKind.nullableCallFunction:
-        return _getFunctionType(receiverType);
-      case ObjectAccessTargetKind.dynamic:
-      case ObjectAccessTargetKind.never:
-      case ObjectAccessTargetKind.invalid:
-      case ObjectAccessTargetKind.missing:
-      case ObjectAccessTargetKind.ambiguous:
-        return unknownFunction;
-      case ObjectAccessTargetKind.instanceMember:
-      case ObjectAccessTargetKind.objectMember:
-      case ObjectAccessTargetKind.nullableInstanceMember:
-        return _getFunctionType(
-            getGetterTypeForMemberTarget(target.member!, receiverType));
-      case ObjectAccessTargetKind.extensionMember:
-      case ObjectAccessTargetKind.nullableExtensionMember:
-        switch (target.extensionMethodKind) {
-          case ProcedureKind.Method:
-          case ProcedureKind.Operator:
-            FunctionType functionType = target.member!.function!
-                .computeFunctionType(libraryBuilder.nonNullable);
-            if (!isNonNullableByDefault) {
-              functionType = legacyErasure(functionType) as FunctionType;
-            }
-            return functionType;
-          case ProcedureKind.Getter:
-            // TODO(johnniwinther): Handle implicit .call on extension getter.
-            return _getFunctionType(target.member!.function!.returnType);
-          case ProcedureKind.Setter:
-          case ProcedureKind.Factory:
-            break;
-        }
-    }
-    throw unhandled('$target', 'getFunctionType', -1, null);
-  }
-
   /// Returns the type of the receiver argument in an access to an extension
   /// member on [extension] with the given extension [typeArguments].
   DartType getExtensionReceiverType(
@@ -1741,236 +1609,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       return substitution.substituteType(receiverType);
     }
     return receiverType;
-  }
-
-  /// Returns the return type of the invocation of [target] on [receiverType].
-  // TODO(johnniwinther): Cleanup [getFunctionType], [getReturnType],
-  // [getIndexKeyType] and [getIndexSetValueType]. We shouldn't need that many.
-  DartType getReturnType(ObjectAccessTarget target, DartType receiverType) {
-    switch (target.kind) {
-      case ObjectAccessTargetKind.instanceMember:
-      case ObjectAccessTargetKind.objectMember:
-      case ObjectAccessTargetKind.nullableInstanceMember:
-        FunctionType functionType = _getFunctionType(
-            getGetterTypeForMemberTarget(target.member!, receiverType));
-        return functionType.returnType;
-      case ObjectAccessTargetKind.extensionMember:
-      case ObjectAccessTargetKind.nullableExtensionMember:
-        switch (target.extensionMethodKind) {
-          case ProcedureKind.Operator:
-            FunctionType functionType = target.member!.function!
-                .computeFunctionType(libraryBuilder.nonNullable);
-            DartType returnType = functionType.returnType;
-            if (functionType.typeParameters.isNotEmpty) {
-              Substitution substitution = Substitution.fromPairs(
-                  functionType.typeParameters,
-                  target.inferredExtensionTypeArguments);
-              returnType = substitution.substituteType(returnType);
-            }
-            if (!isNonNullableByDefault) {
-              returnType = legacyErasure(returnType);
-            }
-            return returnType;
-          default:
-            throw unhandled('$target', 'getFunctionType', -1, null);
-        }
-      case ObjectAccessTargetKind.never:
-        return const NeverType.nonNullable();
-      case ObjectAccessTargetKind.invalid:
-        return const InvalidType();
-      case ObjectAccessTargetKind.callFunction:
-      case ObjectAccessTargetKind.nullableCallFunction:
-      case ObjectAccessTargetKind.dynamic:
-      case ObjectAccessTargetKind.missing:
-      case ObjectAccessTargetKind.ambiguous:
-        break;
-    }
-    return const DynamicType();
-  }
-
-  DartType getPositionalParameterTypeForTarget(
-      ObjectAccessTarget target, DartType receiverType, int index) {
-    switch (target.kind) {
-      case ObjectAccessTargetKind.instanceMember:
-      case ObjectAccessTargetKind.objectMember:
-      case ObjectAccessTargetKind.nullableInstanceMember:
-        FunctionType functionType = _getFunctionType(
-            getGetterTypeForMemberTarget(target.member!, receiverType));
-        if (functionType.positionalParameters.length > index) {
-          return functionType.positionalParameters[index];
-        }
-        break;
-      case ObjectAccessTargetKind.extensionMember:
-      case ObjectAccessTargetKind.nullableExtensionMember:
-        FunctionType functionType = target.member!.function!
-            .computeFunctionType(libraryBuilder.nonNullable);
-        if (functionType.positionalParameters.length > index + 1) {
-          DartType keyType = functionType.positionalParameters[index + 1];
-          if (functionType.typeParameters.isNotEmpty) {
-            Substitution substitution = Substitution.fromPairs(
-                functionType.typeParameters,
-                target.inferredExtensionTypeArguments);
-            keyType = substitution.substituteType(keyType);
-          }
-          if (!isNonNullableByDefault) {
-            keyType = legacyErasure(keyType);
-          }
-          return keyType;
-        }
-        break;
-      case ObjectAccessTargetKind.invalid:
-        return const InvalidType();
-      case ObjectAccessTargetKind.callFunction:
-      case ObjectAccessTargetKind.nullableCallFunction:
-      case ObjectAccessTargetKind.dynamic:
-      case ObjectAccessTargetKind.never:
-      case ObjectAccessTargetKind.missing:
-      case ObjectAccessTargetKind.ambiguous:
-        break;
-    }
-    return const DynamicType();
-  }
-
-  /// Returns the type of the 'key' parameter in an [] or []= implementation.
-  ///
-  /// For instance
-  ///
-  ///    class Class<K, V> {
-  ///      V operator [](K key) => null;
-  ///      void operator []=(K key, V value) {}
-  ///    }
-  ///
-  ///    extension Extension<K, V> on Class<K, V> {
-  ///      V operator [](K key) => null;
-  ///      void operator []=(K key, V value) {}
-  ///    }
-  ///
-  ///    new Class<int, String>()[0];             // The key type is `int`.
-  ///    new Class<int, String>()[0] = 'foo';     // The key type is `int`.
-  ///    Extension<int, String>(null)[0];         // The key type is `int`.
-  ///    Extension<int, String>(null)[0] = 'foo'; // The key type is `int`.
-  ///
-  DartType getIndexKeyType(ObjectAccessTarget target, DartType receiverType) {
-    switch (target.kind) {
-      case ObjectAccessTargetKind.instanceMember:
-      case ObjectAccessTargetKind.objectMember:
-      case ObjectAccessTargetKind.nullableInstanceMember:
-        FunctionType functionType = _getFunctionType(
-            getGetterTypeForMemberTarget(target.member!, receiverType));
-        if (functionType.positionalParameters.length >= 1) {
-          return functionType.positionalParameters[0];
-        }
-        break;
-      case ObjectAccessTargetKind.extensionMember:
-      case ObjectAccessTargetKind.nullableExtensionMember:
-        switch (target.extensionMethodKind) {
-          case ProcedureKind.Operator:
-            FunctionType functionType = target.member!.function!
-                .computeFunctionType(libraryBuilder.nonNullable);
-            if (functionType.positionalParameters.length >= 2) {
-              DartType keyType = functionType.positionalParameters[1];
-              if (functionType.typeParameters.isNotEmpty) {
-                Substitution substitution = Substitution.fromPairs(
-                    functionType.typeParameters,
-                    target.inferredExtensionTypeArguments);
-                keyType = substitution.substituteType(keyType);
-              }
-              if (!isNonNullableByDefault) {
-                keyType = legacyErasure(keyType);
-              }
-              return keyType;
-            }
-            break;
-          default:
-            throw unhandled('$target', 'getFunctionType', -1, null);
-        }
-        break;
-      case ObjectAccessTargetKind.invalid:
-        return const InvalidType();
-      case ObjectAccessTargetKind.callFunction:
-      case ObjectAccessTargetKind.nullableCallFunction:
-      case ObjectAccessTargetKind.dynamic:
-      case ObjectAccessTargetKind.never:
-      case ObjectAccessTargetKind.missing:
-      case ObjectAccessTargetKind.ambiguous:
-        break;
-    }
-    return const DynamicType();
-  }
-
-  /// Returns the type of the 'value' parameter in an []= implementation.
-  ///
-  /// For instance
-  ///
-  ///    class Class<K, V> {
-  ///      void operator []=(K key, V value) {}
-  ///    }
-  ///
-  ///    extension Extension<K, V> on Class<K, V> {
-  ///      void operator []=(K key, V value) {}
-  ///    }
-  ///
-  ///    new Class<int, String>()[0] = 'foo';     // The value type is `String`.
-  ///    Extension<int, String>(null)[0] = 'foo'; // The value type is `String`.
-  ///
-  DartType getIndexSetValueType(
-      ObjectAccessTarget target, DartType? receiverType) {
-    switch (target.kind) {
-      case ObjectAccessTargetKind.instanceMember:
-      case ObjectAccessTargetKind.objectMember:
-      case ObjectAccessTargetKind.nullableInstanceMember:
-        FunctionType functionType = _getFunctionType(
-            getGetterTypeForMemberTarget(target.member!, receiverType!));
-        if (functionType.positionalParameters.length >= 2) {
-          return functionType.positionalParameters[1];
-        }
-        break;
-      case ObjectAccessTargetKind.extensionMember:
-      case ObjectAccessTargetKind.nullableExtensionMember:
-        switch (target.extensionMethodKind) {
-          case ProcedureKind.Operator:
-            FunctionType functionType = target.member!.function!
-                .computeFunctionType(libraryBuilder.nonNullable);
-            if (functionType.positionalParameters.length >= 3) {
-              DartType indexType = functionType.positionalParameters[2];
-              if (functionType.typeParameters.isNotEmpty) {
-                Substitution substitution = Substitution.fromPairs(
-                    functionType.typeParameters,
-                    target.inferredExtensionTypeArguments);
-                indexType = substitution.substituteType(indexType);
-              }
-              if (!isNonNullableByDefault) {
-                indexType = legacyErasure(indexType);
-              }
-              return indexType;
-            }
-            break;
-          default:
-            throw unhandled('$target', 'getFunctionType', -1, null);
-        }
-        break;
-      case ObjectAccessTargetKind.invalid:
-        return const InvalidType();
-      case ObjectAccessTargetKind.callFunction:
-      case ObjectAccessTargetKind.nullableCallFunction:
-      case ObjectAccessTargetKind.dynamic:
-      case ObjectAccessTargetKind.never:
-      case ObjectAccessTargetKind.missing:
-      case ObjectAccessTargetKind.ambiguous:
-        break;
-    }
-    return const DynamicType();
-  }
-
-  FunctionType _getFunctionType(DartType calleeType) {
-    calleeType = resolveTypeParameter(calleeType);
-    if (calleeType is FunctionType) {
-      if (!isNonNullableByDefault) {
-        calleeType = legacyErasure(calleeType);
-      }
-      return calleeType as FunctionType;
-    }
-    return unknownFunction;
   }
 
   FunctionType getFunctionTypeForImplicitCall(DartType calleeType) {
@@ -2014,81 +1652,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       return member.abstractForwardingStubTarget!;
     }
     return member;
-  }
-
-  DartType getSetterType(ObjectAccessTarget target, DartType receiverType) {
-    switch (target.kind) {
-      case ObjectAccessTargetKind.dynamic:
-      case ObjectAccessTargetKind.never:
-      case ObjectAccessTargetKind.missing:
-      case ObjectAccessTargetKind.ambiguous:
-        return const DynamicType();
-      case ObjectAccessTargetKind.invalid:
-        return const InvalidType();
-      case ObjectAccessTargetKind.instanceMember:
-      case ObjectAccessTargetKind.objectMember:
-      case ObjectAccessTargetKind.nullableInstanceMember:
-        Member interfaceMember = target.member!;
-        Class memberClass = interfaceMember.enclosingClass!;
-        DartType setterType;
-        if (interfaceMember is Procedure) {
-          assert(interfaceMember.kind == ProcedureKind.Setter);
-          List<VariableDeclaration> setterParameters =
-              interfaceMember.function.positionalParameters;
-          setterType = setterParameters.length > 0
-              ? setterParameters[0].type
-              : const DynamicType();
-        } else if (interfaceMember is Field) {
-          setterType = interfaceMember.type;
-        } else {
-          throw unhandled(interfaceMember.runtimeType.toString(),
-              'getSetterType', -1, null);
-        }
-        if (memberClass.typeParameters.isNotEmpty) {
-          receiverType = resolveTypeParameter(receiverType);
-          if (receiverType is InterfaceType) {
-            setterType = Substitution.fromPairs(
-                    memberClass.typeParameters,
-                    classHierarchy.getTypeArgumentsAsInstanceOf(
-                        receiverType, memberClass)!)
-                .substituteType(setterType);
-          }
-        }
-        if (!isNonNullableByDefault) {
-          setterType = legacyErasure(setterType);
-        }
-        return setterType;
-      case ObjectAccessTargetKind.extensionMember:
-      case ObjectAccessTargetKind.nullableExtensionMember:
-        switch (target.extensionMethodKind) {
-          case ProcedureKind.Setter:
-            FunctionType functionType = target.member!.function!
-                .computeFunctionType(libraryBuilder.nonNullable);
-            List<TypeParameter> extensionTypeParameters = functionType
-                .typeParameters
-                .take(target.inferredExtensionTypeArguments.length)
-                .toList();
-            Substitution substitution = Substitution.fromPairs(
-                extensionTypeParameters, target.inferredExtensionTypeArguments);
-            DartType setterType = substitution
-                .substituteType(functionType.positionalParameters[1]);
-            if (!isNonNullableByDefault) {
-              setterType = legacyErasure(setterType);
-            }
-            return setterType;
-          case ProcedureKind.Method:
-          case ProcedureKind.Getter:
-          case ProcedureKind.Factory:
-          case ProcedureKind.Operator:
-            break;
-        }
-        // TODO(johnniwinther): Compute the right setter type.
-        return const DynamicType();
-      case ObjectAccessTargetKind.callFunction:
-      case ObjectAccessTargetKind.nullableCallFunction:
-        break;
-    }
-    throw unhandled(target.runtimeType.toString(), 'getSetterType', -1, null);
   }
 
   DartType getTypeArgumentOf(DartType type, Class class_) {
@@ -3105,8 +2668,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // ignore: unnecessary_null_comparison
     assert(isImplicitCall != null);
     assert(target.isExtensionMember || target.isNullableExtensionMember);
-    DartType calleeType = getGetterType(target, receiverType);
-    FunctionType functionType = getFunctionType(target, receiverType);
+    DartType calleeType = target.getGetterType(this);
+    FunctionType functionType = target.getFunctionType(this);
 
     if (target.extensionMethodKind == ProcedureKind.Getter) {
       StaticInvocation staticInvocation = transformExtensionMethodInvocation(
@@ -3219,7 +2782,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // ignore: unnecessary_null_comparison
     assert(isImplicitCall != null);
     assert(target.isCallFunction || target.isNullableCallFunction);
-    FunctionType declaredFunctionType = getFunctionType(target, receiverType);
+    FunctionType declaredFunctionType = target.getFunctionType(this);
     InvocationInferenceResult result = inferInvocation(
         visitor, typeContext, fileOffset, declaredFunctionType, arguments,
         hoistedExpressions: hoistedExpressions,
@@ -3356,8 +2919,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
 
-    DartType calleeType = getGetterType(target, receiverType);
-    FunctionType declaredFunctionType = getFunctionType(target, receiverType);
+    DartType calleeType = target.getGetterType(this);
+    FunctionType declaredFunctionType = target.getFunctionType(this);
 
     bool contravariantCheck = false;
     if (receiver is! ThisExpression &&
@@ -3517,7 +3080,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
 
-    DartType calleeType = getGetterType(target, receiverType);
+    DartType calleeType = target.getGetterType(this);
     FunctionType functionType = getFunctionTypeForImplicitCall(calleeType);
 
     List<VariableDeclaration>? locallyHoistedExpressions;
@@ -3706,7 +3269,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         target.isNullableInstanceMember);
     Field field = target.member as Field;
 
-    DartType calleeType = getGetterType(target, receiverType);
+    DartType calleeType = target.getGetterType(this);
     FunctionType functionType = getFunctionTypeForImplicitCall(calleeType);
 
     List<VariableDeclaration>? locallyHoistedExpressions;
@@ -3909,8 +3472,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 isExpressionInvocation: isExpressionInvocation);
           } else {
             bool isSpecialCasedBinaryOperator =
-                isSpecialCasedBinaryOperatorForReceiverType(
-                    target, receiverType);
+                target.isSpecialCasedBinaryOperatorForReceiverType(this);
             return _inferInstanceMethodInvocation(
                 visitor,
                 fileOffset,
@@ -3924,7 +3486,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 isImplicitCall: isImplicitCall,
                 isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
                 isSpecialCasedTernaryOperator:
-                    isSpecialCasedTernaryOperator(target));
+                    target.isSpecialCasedTernaryOperator(this));
           }
         } else {
           return _inferInstanceFieldInvocation(
@@ -4075,27 +3637,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
   }
 
-  bool isSpecialCasedBinaryOperatorForReceiverType(
-      ObjectAccessTarget target, DartType receiverType) {
-    return (target.isInstanceMember ||
-            target.isObjectMember ||
-            target.isNullableInstanceMember) &&
-        target.member is Procedure &&
-        typeSchemaEnvironment.isSpecialCasesBinaryForReceiverType(
-            target.member as Procedure, receiverType,
-            isNonNullableByDefault: isNonNullableByDefault);
-  }
-
-  bool isSpecialCasedTernaryOperator(ObjectAccessTarget target) {
-    return (target.isInstanceMember ||
-            target.isObjectMember ||
-            target.isNullableInstanceMember) &&
-        target.member is Procedure &&
-        typeSchemaEnvironment.isSpecialCasedTernaryOperator(
-            target.member as Procedure,
-            isNonNullableByDefault: isNonNullableByDefault);
-  }
-
   /// Performs the core type inference algorithm for super method invocations.
   ExpressionInferenceResult inferSuperMethodInvocation(
       InferenceVisitor visitor,
@@ -4106,14 +3647,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       Procedure? procedure) {
     int fileOffset = expression.fileOffset;
     ObjectAccessTarget target = procedure != null
-        ? new ObjectAccessTarget.interfaceMember(procedure,
+        ? new ObjectAccessTarget.interfaceMember(thisType!, procedure,
             isPotentiallyNullable: false)
         : const ObjectAccessTarget.missing();
     DartType receiverType = thisType!;
     bool isSpecialCasedBinaryOperator =
-        isSpecialCasedBinaryOperatorForReceiverType(target, receiverType);
-    DartType calleeType = getGetterType(target, receiverType);
-    FunctionType functionType = getFunctionType(target, receiverType);
+        target.isSpecialCasedBinaryOperatorForReceiverType(this);
+    DartType calleeType = target.getGetterType(this);
+    FunctionType functionType = target.getFunctionType(this);
     if (procedure != null) {
       calleeType =
           computeTypeFromSuperClass(procedure.enclosingClass!, calleeType);
@@ -4150,11 +3691,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ExpressionInferenceResult inferSuperPropertyGet(
       Expression expression, Name name, DartType typeContext, Member? member) {
     ObjectAccessTarget readTarget = member != null
-        ? new ObjectAccessTarget.interfaceMember(member,
+        ? new ObjectAccessTarget.interfaceMember(thisType!, member,
             isPotentiallyNullable: false)
         : const ObjectAccessTarget.missing();
-    DartType receiverType = thisType!;
-    DartType inferredType = getGetterType(readTarget, receiverType);
+    DartType inferredType = readTarget.getGetterType(this);
     if (member != null) {
       inferredType =
           computeTypeFromSuperClass(member.enclosingClass!, inferredType);
@@ -4306,7 +3846,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       if (interfaceMember is Field ||
           interfaceMember is Procedure &&
               interfaceMember.kind == ProcedureKind.Getter) {
-        DartType getType = getGetterType(target, receiverType);
+        DartType getType = target.getGetterType(this);
         if (getType is DynamicType) {
           return MethodContravarianceCheckKind.none;
         }
@@ -5570,12 +5110,14 @@ enum ObjectAccessTargetKind {
 /// `o.foo = ...`.
 class ObjectAccessTarget {
   final ObjectAccessTargetKind kind;
+  final DartType? receiverType;
   final Member? member;
 
-  const ObjectAccessTarget.internal(this.kind, this.member);
+  const ObjectAccessTarget.internal(this.kind, this.receiverType, this.member);
 
   /// Creates an access to the instance [member].
-  factory ObjectAccessTarget.interfaceMember(Member member,
+  factory ObjectAccessTarget.interfaceMember(
+      DartType receiverType, Member member,
       {required bool isPotentiallyNullable}) {
     // ignore: unnecessary_null_comparison
     assert(member != null);
@@ -5585,19 +5127,22 @@ class ObjectAccessTarget {
         isPotentiallyNullable
             ? ObjectAccessTargetKind.nullableInstanceMember
             : ObjectAccessTargetKind.instanceMember,
+        receiverType,
         member);
   }
 
   /// Creates an access to the Object [member].
-  factory ObjectAccessTarget.objectMember(Member member) {
+  factory ObjectAccessTarget.objectMember(
+      DartType receiverType, Member member) {
     // ignore: unnecessary_null_comparison
     assert(member != null);
     return new ObjectAccessTarget.internal(
-        ObjectAccessTargetKind.objectMember, member);
+        ObjectAccessTargetKind.objectMember, receiverType, member);
   }
 
   /// Creates an access to the extension [member].
   factory ObjectAccessTarget.extensionMember(
+      DartType receiverType,
       Member member,
       Member? tearoffTarget,
       ProcedureKind kind,
@@ -5606,33 +5151,34 @@ class ObjectAccessTarget {
 
   /// Creates an access to a 'call' method on a function, i.e. a function
   /// invocation.
-  const ObjectAccessTarget.callFunction()
-      : this.internal(ObjectAccessTargetKind.callFunction, null);
+  const ObjectAccessTarget.callFunction(DartType receiverType)
+      : this.internal(ObjectAccessTargetKind.callFunction, receiverType, null);
 
   /// Creates an access to a 'call' method on a potentially nullable function,
   /// i.e. a function invocation.
-  const ObjectAccessTarget.nullableCallFunction()
-      : this.internal(ObjectAccessTargetKind.nullableCallFunction, null);
+  const ObjectAccessTarget.nullableCallFunction(DartType receiverType)
+      : this.internal(
+            ObjectAccessTargetKind.nullableCallFunction, receiverType, null);
 
   /// Creates an access on a dynamic receiver type with no known target.
   const ObjectAccessTarget.dynamic()
-      : this.internal(ObjectAccessTargetKind.dynamic, null);
+      : this.internal(ObjectAccessTargetKind.dynamic, null, null);
 
   /// Creates an access on a receiver of type Never with no known target.
   const ObjectAccessTarget.never()
-      : this.internal(ObjectAccessTargetKind.never, null);
+      : this.internal(ObjectAccessTargetKind.never, null, null);
 
   /// Creates an access with no target due to an invalid receiver type.
   ///
   /// This is not in itself an error but a consequence of another error.
   const ObjectAccessTarget.invalid()
-      : this.internal(ObjectAccessTargetKind.invalid, null);
+      : this.internal(ObjectAccessTargetKind.invalid, null, null);
 
   /// Creates an access with no target.
   ///
   /// This is an error case.
   const ObjectAccessTarget.missing()
-      : this.internal(ObjectAccessTargetKind.missing, null);
+      : this.internal(ObjectAccessTargetKind.missing, null, null);
 
   /// Returns `true` if this is an access to an instance member.
   bool get isInstanceMember => kind == ObjectAccessTargetKind.instanceMember;
@@ -5711,6 +5257,462 @@ class ObjectAccessTarget {
   Member? get tearoffTarget =>
       throw new UnsupportedError('ObjectAccessTarget.tearoffTarget');
 
+  FunctionType _getFunctionType(
+      InferenceVisitorBase base, DartType calleeType) {
+    calleeType = base.resolveTypeParameter(calleeType);
+    if (calleeType is FunctionType) {
+      if (!base.isNonNullableByDefault) {
+        calleeType = legacyErasure(calleeType);
+      }
+      return calleeType as FunctionType;
+    }
+    return base.unknownFunction;
+  }
+
+  /// Returns the type of [target] when accessed as an invocation on
+  /// [receiverType].
+  ///
+  /// If the target is known not to be invokable [unknownFunction] is returned.
+  ///
+  /// For instance
+  ///
+  ///    class Class<T> {
+  ///      T method() {}
+  ///      T Function() getter1 => null;
+  ///      T getter2 => null;
+  ///    }
+  ///
+  ///    Class<int> c = ...
+  ///    c.method; // The getter type is `int Function()`.
+  ///    c.getter1; // The getter type is `int Function()`.
+  ///    c.getter2; // The getter type is [unknownFunction].
+  ///
+  FunctionType getFunctionType(InferenceVisitorBase base) {
+    switch (kind) {
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.nullableCallFunction:
+        return _getFunctionType(base, receiverType!);
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
+      case ObjectAccessTargetKind.invalid:
+      case ObjectAccessTargetKind.missing:
+      case ObjectAccessTargetKind.ambiguous:
+        return base.unknownFunction;
+      case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.objectMember:
+      case ObjectAccessTargetKind.nullableInstanceMember:
+        return _getFunctionType(
+            base, base.getGetterTypeForMemberTarget(member!, receiverType!));
+      case ObjectAccessTargetKind.extensionMember:
+      case ObjectAccessTargetKind.nullableExtensionMember:
+        switch (extensionMethodKind) {
+          case ProcedureKind.Method:
+          case ProcedureKind.Operator:
+            FunctionType functionType = member!.function!
+                .computeFunctionType(base.libraryBuilder.nonNullable);
+            if (!base.isNonNullableByDefault) {
+              functionType = legacyErasure(functionType) as FunctionType;
+            }
+            return functionType;
+          case ProcedureKind.Getter:
+            // TODO(johnniwinther): Handle implicit .call on extension getter.
+            return _getFunctionType(base, member!.function!.returnType);
+          case ProcedureKind.Setter:
+          case ProcedureKind.Factory:
+            break;
+        }
+    }
+    throw unhandled('$this', 'getFunctionType', -1, null);
+  }
+
+  /// Returns the type of [target] when accessed as a getter on [receiverType].
+  ///
+  /// For instance
+  ///
+  ///    class Class<T> {
+  ///      T method() {}
+  ///      T getter => null;
+  ///    }
+  ///
+  ///    Class<int> c = ...
+  ///    c.method; // The getter type is `int Function()`.
+  ///    c.getter; // The getter type is `int`.
+  ///
+  DartType getGetterType(InferenceVisitorBase base) {
+    switch (kind) {
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.nullableCallFunction:
+        return receiverType!;
+      case ObjectAccessTargetKind.invalid:
+        return const InvalidType();
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.missing:
+      case ObjectAccessTargetKind.ambiguous:
+        return const DynamicType();
+      case ObjectAccessTargetKind.never:
+        return const NeverType.nonNullable();
+      case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.objectMember:
+      case ObjectAccessTargetKind.nullableInstanceMember:
+        return base.getGetterTypeForMemberTarget(member!, receiverType!);
+      case ObjectAccessTargetKind.extensionMember:
+      case ObjectAccessTargetKind.nullableExtensionMember:
+        switch (extensionMethodKind) {
+          case ProcedureKind.Method:
+          case ProcedureKind.Operator:
+            FunctionType functionType = member!.function!
+                .computeFunctionType(base.libraryBuilder.nonNullable);
+            List<TypeParameter> extensionTypeParameters = functionType
+                .typeParameters
+                .take(inferredExtensionTypeArguments.length)
+                .toList();
+            Substitution substitution = Substitution.fromPairs(
+                extensionTypeParameters, inferredExtensionTypeArguments);
+            DartType resultType = substitution.substituteType(new FunctionType(
+                functionType.positionalParameters.skip(1).toList(),
+                functionType.returnType,
+                base.libraryBuilder.nonNullable,
+                namedParameters: functionType.namedParameters,
+                typeParameters: functionType.typeParameters
+                    .skip(inferredExtensionTypeArguments.length)
+                    .toList(),
+                requiredParameterCount:
+                    functionType.requiredParameterCount - 1));
+            if (!base.isNonNullableByDefault) {
+              resultType = legacyErasure(resultType);
+            }
+            return resultType;
+          case ProcedureKind.Getter:
+            FunctionType functionType = member!.function!
+                .computeFunctionType(base.libraryBuilder.nonNullable);
+            List<TypeParameter> extensionTypeParameters = functionType
+                .typeParameters
+                .take(inferredExtensionTypeArguments.length)
+                .toList();
+            Substitution substitution = Substitution.fromPairs(
+                extensionTypeParameters, inferredExtensionTypeArguments);
+            DartType resultType =
+                substitution.substituteType(functionType.returnType);
+            if (!base.isNonNullableByDefault) {
+              resultType = legacyErasure(resultType);
+            }
+            return resultType;
+          case ProcedureKind.Setter:
+          case ProcedureKind.Factory:
+            break;
+        }
+    }
+    throw unhandled('$this', 'getGetterType', -1, null);
+  }
+
+  DartType getSetterType(InferenceVisitorBase base) {
+    switch (kind) {
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
+      case ObjectAccessTargetKind.missing:
+      case ObjectAccessTargetKind.ambiguous:
+        return const DynamicType();
+      case ObjectAccessTargetKind.invalid:
+        return const InvalidType();
+      case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.objectMember:
+      case ObjectAccessTargetKind.nullableInstanceMember:
+        Member interfaceMember = member!;
+        Class memberClass = interfaceMember.enclosingClass!;
+        DartType setterType;
+        if (interfaceMember is Procedure) {
+          assert(interfaceMember.kind == ProcedureKind.Setter);
+          List<VariableDeclaration> setterParameters =
+              interfaceMember.function.positionalParameters;
+          setterType = setterParameters.length > 0
+              ? setterParameters[0].type
+              : const DynamicType();
+        } else if (interfaceMember is Field) {
+          setterType = interfaceMember.type;
+        } else {
+          throw unhandled(interfaceMember.runtimeType.toString(),
+              'getSetterType', -1, null);
+        }
+        if (memberClass.typeParameters.isNotEmpty) {
+          DartType resolvedReceiverType =
+              base.resolveTypeParameter(receiverType!);
+          if (resolvedReceiverType is InterfaceType) {
+            setterType = Substitution.fromPairs(
+                    memberClass.typeParameters,
+                    base.classHierarchy.getTypeArgumentsAsInstanceOf(
+                        resolvedReceiverType, memberClass)!)
+                .substituteType(setterType);
+          }
+        }
+        if (!base.isNonNullableByDefault) {
+          setterType = legacyErasure(setterType);
+        }
+        return setterType;
+      case ObjectAccessTargetKind.extensionMember:
+      case ObjectAccessTargetKind.nullableExtensionMember:
+        switch (extensionMethodKind) {
+          case ProcedureKind.Setter:
+            FunctionType functionType = member!.function!
+                .computeFunctionType(base.libraryBuilder.nonNullable);
+            List<TypeParameter> extensionTypeParameters = functionType
+                .typeParameters
+                .take(inferredExtensionTypeArguments.length)
+                .toList();
+            Substitution substitution = Substitution.fromPairs(
+                extensionTypeParameters, inferredExtensionTypeArguments);
+            DartType setterType = substitution
+                .substituteType(functionType.positionalParameters[1]);
+            if (!base.isNonNullableByDefault) {
+              setterType = legacyErasure(setterType);
+            }
+            return setterType;
+          case ProcedureKind.Method:
+          case ProcedureKind.Getter:
+          case ProcedureKind.Factory:
+          case ProcedureKind.Operator:
+            break;
+        }
+        // TODO(johnniwinther): Compute the right setter type.
+        return const DynamicType();
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.nullableCallFunction:
+        break;
+    }
+    throw unhandled(runtimeType.toString(), 'getSetterType', -1, null);
+  }
+
+  bool isSpecialCasedBinaryOperatorForReceiverType(InferenceVisitorBase base) {
+    return (isInstanceMember || isObjectMember || isNullableInstanceMember) &&
+        member is Procedure &&
+        base.typeSchemaEnvironment.isSpecialCasesBinaryForReceiverType(
+            member as Procedure, receiverType!,
+            isNonNullableByDefault: base.isNonNullableByDefault);
+  }
+
+  bool isSpecialCasedTernaryOperator(InferenceVisitorBase base) {
+    return (isInstanceMember || isObjectMember || isNullableInstanceMember) &&
+        member is Procedure &&
+        base.typeSchemaEnvironment.isSpecialCasedTernaryOperator(
+            member as Procedure,
+            isNonNullableByDefault: base.isNonNullableByDefault);
+  }
+
+  /// Returns the type of the 'key' parameter in an [] or []= implementation.
+  ///
+  /// For instance
+  ///
+  ///    class Class<K, V> {
+  ///      V operator [](K key) => null;
+  ///      void operator []=(K key, V value) {}
+  ///    }
+  ///
+  ///    extension Extension<K, V> on Class<K, V> {
+  ///      V operator [](K key) => null;
+  ///      void operator []=(K key, V value) {}
+  ///    }
+  ///
+  ///    new Class<int, String>()[0];             // The key type is `int`.
+  ///    new Class<int, String>()[0] = 'foo';     // The key type is `int`.
+  ///    Extension<int, String>(null)[0];         // The key type is `int`.
+  ///    Extension<int, String>(null)[0] = 'foo'; // The key type is `int`.
+  ///
+  DartType getIndexKeyType(InferenceVisitorBase base) {
+    switch (kind) {
+      case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.objectMember:
+      case ObjectAccessTargetKind.nullableInstanceMember:
+        FunctionType functionType = _getFunctionType(
+            base, base.getGetterTypeForMemberTarget(member!, receiverType!));
+        if (functionType.positionalParameters.length >= 1) {
+          return functionType.positionalParameters[0];
+        }
+        break;
+      case ObjectAccessTargetKind.extensionMember:
+      case ObjectAccessTargetKind.nullableExtensionMember:
+        switch (extensionMethodKind) {
+          case ProcedureKind.Operator:
+            FunctionType functionType = member!.function!
+                .computeFunctionType(base.libraryBuilder.nonNullable);
+            if (functionType.positionalParameters.length >= 2) {
+              DartType keyType = functionType.positionalParameters[1];
+              if (functionType.typeParameters.isNotEmpty) {
+                Substitution substitution = Substitution.fromPairs(
+                    functionType.typeParameters,
+                    inferredExtensionTypeArguments);
+                keyType = substitution.substituteType(keyType);
+              }
+              if (!base.isNonNullableByDefault) {
+                keyType = legacyErasure(keyType);
+              }
+              return keyType;
+            }
+            break;
+          default:
+            throw unhandled('$this', 'getFunctionType', -1, null);
+        }
+        break;
+      case ObjectAccessTargetKind.invalid:
+        return const InvalidType();
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.nullableCallFunction:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
+      case ObjectAccessTargetKind.missing:
+      case ObjectAccessTargetKind.ambiguous:
+        break;
+    }
+    return const DynamicType();
+  }
+
+  /// Returns the type of the 'value' parameter in an []= implementation.
+  ///
+  /// For instance
+  ///
+  ///    class Class<K, V> {
+  ///      void operator []=(K key, V value) {}
+  ///    }
+  ///
+  ///    extension Extension<K, V> on Class<K, V> {
+  ///      void operator []=(K key, V value) {}
+  ///    }
+  ///
+  ///    new Class<int, String>()[0] = 'foo';     // The value type is `String`.
+  ///    Extension<int, String>(null)[0] = 'foo'; // The value type is `String`.
+  ///
+  DartType getIndexSetValueType(InferenceVisitorBase base) {
+    switch (kind) {
+      case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.objectMember:
+      case ObjectAccessTargetKind.nullableInstanceMember:
+        FunctionType functionType = _getFunctionType(
+            base, base.getGetterTypeForMemberTarget(member!, receiverType!));
+        if (functionType.positionalParameters.length >= 2) {
+          return functionType.positionalParameters[1];
+        }
+        break;
+      case ObjectAccessTargetKind.extensionMember:
+      case ObjectAccessTargetKind.nullableExtensionMember:
+        switch (extensionMethodKind) {
+          case ProcedureKind.Operator:
+            FunctionType functionType = member!.function!
+                .computeFunctionType(base.libraryBuilder.nonNullable);
+            if (functionType.positionalParameters.length >= 3) {
+              DartType indexType = functionType.positionalParameters[2];
+              if (functionType.typeParameters.isNotEmpty) {
+                Substitution substitution = Substitution.fromPairs(
+                    functionType.typeParameters,
+                    inferredExtensionTypeArguments);
+                indexType = substitution.substituteType(indexType);
+              }
+              if (!base.isNonNullableByDefault) {
+                indexType = legacyErasure(indexType);
+              }
+              return indexType;
+            }
+            break;
+          default:
+            throw unhandled('$this', 'getFunctionType', -1, null);
+        }
+        break;
+      case ObjectAccessTargetKind.invalid:
+        return const InvalidType();
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.nullableCallFunction:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
+      case ObjectAccessTargetKind.missing:
+      case ObjectAccessTargetKind.ambiguous:
+        break;
+    }
+    return const DynamicType();
+  }
+
+  /// Returns the return type of the invocation of [target] on [receiverType].
+  // TODO(johnniwinther): Cleanup [getFunctionType], [getReturnType],
+  // [getIndexKeyType] and [getIndexSetValueType]. We shouldn't need that many.
+  DartType getReturnType(InferenceVisitorBase base) {
+    switch (kind) {
+      case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.objectMember:
+      case ObjectAccessTargetKind.nullableInstanceMember:
+        FunctionType functionType = _getFunctionType(
+            base, base.getGetterTypeForMemberTarget(member!, receiverType!));
+        return functionType.returnType;
+      case ObjectAccessTargetKind.extensionMember:
+      case ObjectAccessTargetKind.nullableExtensionMember:
+        switch (extensionMethodKind) {
+          case ProcedureKind.Operator:
+            FunctionType functionType = member!.function!
+                .computeFunctionType(base.libraryBuilder.nonNullable);
+            DartType returnType = functionType.returnType;
+            if (functionType.typeParameters.isNotEmpty) {
+              Substitution substitution = Substitution.fromPairs(
+                  functionType.typeParameters, inferredExtensionTypeArguments);
+              returnType = substitution.substituteType(returnType);
+            }
+            if (!base.isNonNullableByDefault) {
+              returnType = legacyErasure(returnType);
+            }
+            return returnType;
+          default:
+            throw unhandled('$this', 'getFunctionType', -1, null);
+        }
+      case ObjectAccessTargetKind.never:
+        return const NeverType.nonNullable();
+      case ObjectAccessTargetKind.invalid:
+        return const InvalidType();
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.nullableCallFunction:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.missing:
+      case ObjectAccessTargetKind.ambiguous:
+        break;
+    }
+    return const DynamicType();
+  }
+
+  DartType getPositionalParameterTypeForTarget(
+      InferenceVisitorBase base, int index) {
+    switch (kind) {
+      case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.objectMember:
+      case ObjectAccessTargetKind.nullableInstanceMember:
+        FunctionType functionType = _getFunctionType(
+            base, base.getGetterTypeForMemberTarget(member!, receiverType!));
+        if (functionType.positionalParameters.length > index) {
+          return functionType.positionalParameters[index];
+        }
+        break;
+      case ObjectAccessTargetKind.extensionMember:
+      case ObjectAccessTargetKind.nullableExtensionMember:
+        FunctionType functionType = member!.function!
+            .computeFunctionType(base.libraryBuilder.nonNullable);
+        if (functionType.positionalParameters.length > index + 1) {
+          DartType keyType = functionType.positionalParameters[index + 1];
+          if (functionType.typeParameters.isNotEmpty) {
+            Substitution substitution = Substitution.fromPairs(
+                functionType.typeParameters, inferredExtensionTypeArguments);
+            keyType = substitution.substituteType(keyType);
+          }
+          if (!base.isNonNullableByDefault) {
+            keyType = legacyErasure(keyType);
+          }
+          return keyType;
+        }
+        break;
+      case ObjectAccessTargetKind.invalid:
+        return const InvalidType();
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.nullableCallFunction:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
+      case ObjectAccessTargetKind.missing:
+      case ObjectAccessTargetKind.ambiguous:
+        break;
+    }
+    return const DynamicType();
+  }
+
   @override
   String toString() => 'ObjectAccessTarget($kind,$member)';
 }
@@ -5723,13 +5725,18 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
   @override
   final List<DartType> inferredExtensionTypeArguments;
 
-  ExtensionAccessTarget(Member member, this.tearoffTarget,
-      this.extensionMethodKind, this.inferredExtensionTypeArguments,
+  ExtensionAccessTarget(
+      DartType receiverType,
+      Member member,
+      this.tearoffTarget,
+      this.extensionMethodKind,
+      this.inferredExtensionTypeArguments,
       {bool isPotentiallyNullable: false})
       : super.internal(
             isPotentiallyNullable
                 ? ObjectAccessTargetKind.nullableExtensionMember
                 : ObjectAccessTargetKind.extensionMember,
+            receiverType,
             member);
 
   @override
@@ -5742,8 +5749,8 @@ class AmbiguousExtensionAccessTarget extends ObjectAccessTarget {
   @override
   final List<ExtensionAccessCandidate> candidates;
 
-  AmbiguousExtensionAccessTarget(this.candidates)
-      : super.internal(ObjectAccessTargetKind.ambiguous, null);
+  AmbiguousExtensionAccessTarget(DartType receiverType, this.candidates)
+      : super.internal(ObjectAccessTargetKind.ambiguous, receiverType, null);
 
   @override
   String toString() => 'AmbiguousExtensionAccessTarget($kind,$candidates)';
