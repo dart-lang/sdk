@@ -1,4 +1,4 @@
-## 4.5.0-dev
+## 4.5.0
 * Update deprecation message for `FormalParameter.identifier`.
 * Deprecated `ClassOrMixinDeclaration`, use `ClassDeclaration` and `MixinDeclaration` directly.
 * Deprecated `Declaration.declaredElement`, use `declaredElement2` instead.
