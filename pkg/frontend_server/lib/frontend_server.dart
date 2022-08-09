@@ -37,7 +37,6 @@ import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart';
 
 import 'src/javascript_bundle.dart';
-import 'src/strong_components.dart';
 
 ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -387,7 +386,7 @@ class FrontendCompiler implements CompilerInterface {
   ArgResults _options;
 
   IncrementalCompiler _generator;
-  JavaScriptBundler _bundler;
+  IncrementalJavaScriptBundler _bundler;
 
   WidgetCache _widgetCache;
 
@@ -611,7 +610,8 @@ class FrontendCompiler implements CompilerInterface {
 
       if (_compilerOptions.target.name == 'dartdevc') {
         await writeJavascriptBundle(results, _kernelBinaryFilename,
-            options['filesystem-scheme'], options['dartdevc-module-format']);
+            options['filesystem-scheme'], options['dartdevc-module-format'],
+            fullComponent: true);
       }
       await writeDillFile(results, _kernelBinaryFilename,
           filterExternal: importDill != null || options['minimal-kernel'],
@@ -670,16 +670,30 @@ class FrontendCompiler implements CompilerInterface {
 
   /// Write a JavaScript bundle containg the provided component.
   Future<void> writeJavascriptBundle(KernelCompilationResults results,
-      String filename, String fileSystemScheme, String moduleFormat) async {
+      String filename, String fileSystemScheme, String moduleFormat,
+      {bool fullComponent}) async {
+    assert(fullComponent != null);
     var packageConfig = await loadPackageConfigUri(
         _compilerOptions.packagesFileUri ??
             File('.dart_tool/package_config.json').absolute.uri);
     var soundNullSafety = _compilerOptions.nnbdMode == NnbdMode.Strong;
     final Component component = results.component;
-    // Compute strongly connected components.
-    final strongComponents = StrongComponents(component,
-        results.loadedLibraries, _mainSource, _compilerOptions.fileSystem);
-    await strongComponents.computeModules();
+
+    _bundler ??= IncrementalJavaScriptBundler(
+      _compilerOptions.fileSystem,
+      results.loadedLibraries,
+      fileSystemScheme,
+      useDebuggerModuleNames: useDebuggerModuleNames,
+      emitDebugMetadata: emitDebugMetadata,
+      moduleFormat: moduleFormat,
+      soundNullSafety: soundNullSafety,
+    );
+    if (fullComponent) {
+      await _bundler.initialize(component, _mainSource);
+    } else {
+      await _bundler.invalidate(
+          component, _generator.lastKnownGoodResult?.component, _mainSource);
+    }
 
     // Create JavaScript bundler.
     final File sourceFile = File('$filename.sources');
@@ -690,13 +704,7 @@ class FrontendCompiler implements CompilerInterface {
     if (!sourceFile.parent.existsSync()) {
       sourceFile.parent.createSync(recursive: true);
     }
-    _bundler = JavaScriptBundler(
-        component, strongComponents, fileSystemScheme, packageConfig,
-        useDebuggerModuleNames: useDebuggerModuleNames,
-        emitDebugMetadata: emitDebugMetadata,
-        emitDebugSymbols: emitDebugSymbols,
-        moduleFormat: moduleFormat,
-        soundNullSafety: soundNullSafety);
+
     final sourceFileSink = sourceFile.openWrite();
     final manifestFileSink = manifestFile.openWrite();
     final sourceMapsFileSink = sourceMapsFile.openWrite();
@@ -706,7 +714,7 @@ class FrontendCompiler implements CompilerInterface {
     final kernel2JsCompilers = await _bundler.compile(
         results.classHierarchy,
         results.coreTypes,
-        results.loadedLibraries,
+        packageConfig,
         sourceFileSink,
         manifestFileSink,
         sourceMapsFileSink,
@@ -845,7 +853,8 @@ class FrontendCompiler implements CompilerInterface {
 
     if (_compilerOptions.target.name == 'dartdevc') {
       await writeJavascriptBundle(results, _kernelBinaryFilename,
-          _options['filesystem-scheme'], _options['dartdevc-module-format']);
+          _options['filesystem-scheme'], _options['dartdevc-module-format'],
+          fullComponent: false);
     } else {
       await writeDillFile(results, _kernelBinaryFilename,
           incrementalSerializer: _generator.incrementalSerializer);

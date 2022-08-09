@@ -1,13 +1,14 @@
 library dart2js_info.bin.to_devtools_format;
 
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' as io;
 
 import 'package:args/command_runner.dart';
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/io.dart';
 import 'package:dart2js_info/src/util.dart' show longName, libraryGroupName;
 import 'package:vm_snapshot_analysis/program_info.dart' as vm;
+import 'package:vm_snapshot_analysis/treemap.dart';
 import 'usage_exception.dart';
 
 /// Command that converts a `--dump-info` JSON output into a format ingested by Devtools.
@@ -37,14 +38,78 @@ class DevtoolsFormatCommand extends Command<void> with PrintUsageException {
     }
     final outputPath = args['out'];
     final AllInfo allInfo = await infoFromFile(args.rest.first);
+
+    /// Mapping between the filename of the outputUnit and the name
+    /// of the corresponding outputUnit root to store in the treemap.
+    final Map<String, String> treemapRoots = {};
+
+    /// Mapping between the filename and size of the outputUnit.
+    final Map<String, int> treemapSizes = {};
+    for (var outputUnit in allInfo.outputUnits) {
+      treemapRoots[outputUnit.filename] = outputUnit.name;
+      treemapSizes[outputUnit.filename] = outputUnit.size;
+    }
     final builder = ProgramInfoBuilder(allInfo);
-    vm.ProgramInfo programInfo = builder.build(allInfo);
-    Map<String, dynamic> programInfoTree = programInfo.toJson();
-    // TODO: convert the programInfo tree to a treemap
-    if (outputPath == null) {
-      print(jsonEncode(programInfoTree));
+    final outputUnits = builder.outputUnitMap(allInfo);
+
+    /// For deferred apps, VM Devtools expects an artificial root whose children
+    /// are a single main unit followed by each of the deferred units. For non-
+    /// deferred apps, VM Devtools expects a root with its children in the main
+    /// unit.
+    Map<String, dynamic> output = {};
+    output['n'] = '';
+    output['type'] = "web";
+
+    if (outputUnits.length == 1) {
+      vm.ProgramInfo programInfoTree =
+          builder.build(allInfo, outputUnits.keys.first);
+      Map<String, dynamic> treeMap = treemapFromInfo(programInfoTree);
+      output = treeMap;
+      output['n'] = 'Root';
     } else {
-      await File(outputPath).writeAsString(jsonEncode(programInfoTree));
+      output['n'] = "ArtificialRoot";
+      output['children'] = [];
+      Map<String, dynamic> mainOutput = {};
+      List<dynamic> deferredOutputs = [];
+      for (var outputUnitName in outputUnits.keys) {
+        vm.ProgramInfo programInfoTree = builder.build(allInfo, outputUnitName);
+        Map<String, dynamic> treeMap = treemapFromInfo(programInfoTree);
+        treeMap['n'] = treemapRoots[outputUnitName];
+        if (treeMap['n'] == 'main') {
+          mainOutput.addAll(treeMap);
+          treeMap['isDeferred'] = false;
+          // recursively visit children
+          List<dynamic> mainStack = [];
+          mainStack.add(treeMap);
+          while (mainStack.isNotEmpty) {
+            var item = mainStack.removeLast();
+            item['isDeferred'] = false;
+            mainStack.addAll(item['children'] ?? []);
+          }
+        } else {
+          Map<String, dynamic> deferredOutput = {};
+          deferredOutput.addAll(treeMap);
+          treeMap['isDeferred'] = true;
+          List<dynamic> deferredStack = [];
+          deferredStack.add(treeMap);
+          while (deferredStack.isNotEmpty) {
+            var item = deferredStack.removeLast();
+            item['isDeferred'] = true;
+            deferredStack.addAll(item['children'] ?? []);
+          }
+          deferredOutputs.add(deferredOutput);
+        }
+        treeMap['value'] = treemapSizes[outputUnitName];
+      }
+      output['children'].add(mainOutput);
+      for (var deferredUnit in deferredOutputs) {
+        output['children'].add(deferredUnit);
+      }
+    }
+    if (outputPath == null) {
+      print(jsonEncode(output));
+    } else {
+      await io.File(outputPath).writeAsString(jsonEncode(output));
     }
   }
 }
@@ -59,15 +124,9 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
 
   final program = vm.ProgramInfo();
 
-  final List<vm.ProgramInfoNode> outputInfo = [];
-
   /// Mapping between the filename of the outputUnit and the [vm.ProgramInfo]
   /// subtree representing a program unit (main or deferred).
   final Map<String, vm.ProgramInfo> outputUnits = {};
-
-  /// Mapping between the name of the library [vm.ProgramInfoNode]
-  /// object and its corresponding outputUnit [vm.ProgramInfo] tree.
-  final Map<String, vm.ProgramInfo> libraryUnits = {};
 
   /// Mapping between the name of an [Info] object and the corresponding
   /// [vm.ProgramInfoNode] object.
@@ -81,10 +140,6 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
   /// filename of the outputUnit.
   String compositeName(String name, String outputUnitName) =>
       "$name/$outputUnitName";
-
-  /// Mapping between the name of a [Info] object and the corresponding
-  /// [vm.ProgramInfoNode] object.
-  final Map<String, vm.ProgramInfoNode> infoNodesById = {};
 
   /// Mapping between the composite name of a package and the corresponding
   /// [vm.ProgramInfoNode] objects of [vm.NodeType.packageNode].
@@ -114,7 +169,6 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
       newPackage.size = libraryInfo.size;
       packageInfoNodes[compositePackageName] = newPackage;
       outputUnit.root.children[compositePackageName] = newPackage;
-      outputInfo.add(newPackage);
       var packageNode = infoNodesByName[compositePackageName];
       assert(packageNode == null,
           "encountered package with duplicated name: $compositePackageName");
@@ -145,7 +199,6 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
     assert(libraryNode == null,
         "encountered library with duplicated name: $compositeLibraryName");
     infoNodesByName[compositeLibraryName] = newLibrary;
-    outputInfo.add(newLibrary);
   }
 
   void makeFunction(FunctionInfo functionInfo) {
@@ -177,7 +230,6 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
       assert(functionNode == null,
           "encountered function with duplicated name: $newFunction.name");
       infoNodesByName[newFunction.name] = newFunction;
-      outputInfo.add(newFunction);
     }
   }
 
@@ -209,7 +261,6 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
       assert(classNode == null,
           "encountered class with duplicated name: $newClass.name");
       infoNodesByName[newClass.name] = newClass;
-      outputInfo.add(newClass);
     }
   }
 
@@ -244,7 +295,6 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
       assert(fieldNode == null,
           "encountered field with duplicated name: $newField.name");
       infoNodesByName[newField.name] = newField;
-      outputInfo.add(newField);
     }
   }
 
@@ -261,7 +311,6 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
     assert(constantNode == null,
         "encountered constant with duplicated name: $newConstant.name");
     infoNodesByName[newConstant.name] = newConstant;
-    outputInfo.add(newConstant);
   }
 
   void makeTypedef(TypedefInfo typedefInfo) {
@@ -275,7 +324,6 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
     vm.ProgramInfoNode? typedefNode = infoNodesByName[newTypedef.name];
     assert(typedefNode == null,
         "encountered constant with duplicated name: $newTypedef.name");
-    outputInfo.add(newTypedef);
   }
 
   void makeClassType(ClassTypeInfo classTypeInfo) {
@@ -301,7 +349,6 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
       assert(classTypeNode == null,
           "encountered classType with duplicated name: $newClassType.name");
       infoNodesByName[newClassType.name] = newClassType;
-      outputInfo.add(newClassType);
     }
   }
 
@@ -334,23 +381,7 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
       assert(closureNode == null,
           "encountered closure with duplicated name: $newClosure.name");
       infoNodesByName[newClosure.name] = newClosure;
-      outputInfo.add(newClosure);
     }
-  }
-
-  @override
-  vm.ProgramInfoNode visitAll(AllInfo info, String outputUnitName) {
-    outputInfo.add(outputUnits[outputUnitName]!.root);
-    visitProgram(info.program!);
-    for (var package in info.packages) {
-      visitPackage(package, outputUnitName);
-    }
-    for (var library in info.libraries) {
-      visitLibrary(library, outputUnitName);
-    }
-    info.constants.forEach(makeConstant);
-    info.constants.forEach(visitConstant);
-    return outputUnits[outputUnitName]!.root;
   }
 
   @override
@@ -361,6 +392,19 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
     outputUnits[info.filename] = newUnit;
     outputUnits[info.filename]!.root.size = info.size;
     return outputUnits[info.filename]!.root;
+  }
+
+  @override
+  vm.ProgramInfoNode visitAll(AllInfo info, String outputUnitName) {
+    for (var package in info.packages) {
+      visitPackage(package, outputUnitName);
+    }
+    for (var library in info.libraries) {
+      visitLibrary(library, outputUnitName);
+    }
+    info.constants.forEach(makeConstant);
+    info.constants.forEach(visitConstant);
+    return outputUnits[outputUnitName]!.root;
   }
 
   @override
@@ -440,7 +484,9 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
     return infoNodesByName[info.name]!;
   }
 
-  vm.ProgramInfo build(AllInfo info) {
+  /// Populate a map of the name of each outputUnit to the [vm.ProgramInfo]
+  /// subtree representing each outputUnit.
+  Map<String, vm.ProgramInfo> outputUnitMap(AllInfo info) {
     info.outputUnits.forEach(visitOutput);
     for (var outputUnitName in outputUnits.keys) {
       for (var library in info.libraries) {
@@ -448,10 +494,11 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
         makeLibrary(library, outputUnitName);
       }
     }
-    for (var outputUnitName in outputUnits.keys) {
-      visitAll(info, outputUnitName);
-      program.root.children[outputUnitName] = outputUnits[outputUnitName]!.root;
-    }
-    return program;
+    return outputUnits;
+  }
+
+  vm.ProgramInfo build(AllInfo info, String outputUnitName) {
+    visitAll(info, outputUnitName);
+    return outputUnits[outputUnitName]!;
   }
 }

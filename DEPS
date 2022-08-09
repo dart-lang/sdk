@@ -669,32 +669,32 @@ hooks = [
     'action': ['python3', 'sdk/tools/generate_sdk_version_file.py'],
   },
   {
-    # Pull Debian sysroot for i386 Linux
-    'name': 'sysroot_i386',
+    'name': 'sysroot_arm',
     'pattern': '.',
+    'condition': 'checkout_linux',
     'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
-               '--arch', 'i386'],
+               '--arch=arm'],
   },
   {
-    # Pull Debian sysroot for amd64 Linux
-    'name': 'sysroot_amd64',
+    'name': 'sysroot_arm64',
     'pattern': '.',
+    'condition': 'checkout_linux',
     'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
-               '--arch', 'amd64'],
+               '--arch=arm64'],
   },
   {
-    # Pull Debian sysroot for arm Linux
-    'name': 'sysroot_amd64',
+    'name': 'sysroot_x86',
     'pattern': '.',
+    'condition': 'checkout_linux',
     'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
-               '--arch', 'arm'],
+               '--arch=x86'],
   },
   {
-    # Pull Debian jessie sysroot for arm64 Linux
-    'name': 'sysroot_amd64',
+    'name': 'sysroot_x64',
     'pattern': '.',
+    'condition': 'checkout_linux',
     'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
-               '--arch', 'arm64'],
+               '--arch=x64'],
   },
   {
     'name': 'buildtools',

@@ -56,6 +56,53 @@ void main() {
     });
   });
 
+  test('no circular imports with partial component', () {
+    final uriA = Uri.file('/a.dart');
+    final libraryA = Library(
+      uriA,
+      fileUri: uriA,
+    );
+    final uriB = Uri.file('/b.dart');
+    final libraryB = Library(
+      uriB,
+      fileUri: uriB,
+      dependencies: [
+        LibraryDependency.import(libraryA),
+      ],
+    );
+    final uriC = Uri.file('/c.dart');
+    final libraryC = Library(
+      uriC,
+      fileUri: uriC,
+      dependencies: [
+        LibraryDependency.import(libraryB),
+      ],
+    );
+    final partialA = Library(
+      uriA,
+      fileUri: uriA,
+    );
+    final testComponent = Component(libraries: [
+      libraryA,
+      libraryB,
+      libraryC,
+    ]);
+    final StrongComponents strongComponents =
+        StrongComponents(testComponent, {}, uriC);
+    strongComponents.computeModules({uriA: partialA});
+
+    expect(strongComponents.modules, {
+      uriA: [partialA],
+      uriB: [libraryB],
+      uriC: [libraryC],
+    });
+    expect(strongComponents.moduleAssignment, {
+      uriA: uriA,
+      uriB: uriB,
+      uriC: uriC,
+    });
+  });
+
   test('circular imports are combined into single module', () {
     final libraryA = Library(
       Uri.file('/a.dart'),
