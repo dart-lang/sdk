@@ -585,8 +585,11 @@ class _MixinsInference {
   /// hierarchies for all classes being linked, indiscriminately.
   void _resetHierarchies(List<AstNode> declarations) {
     for (var declaration in declarations) {
-      if (declaration is ClassOrMixinDeclaration) {
+      if (declaration is ClassDeclaration) {
         var element = declaration.declaredElement as ClassElementImpl;
+        element.library.session.classHierarchy.remove(element);
+      } else if (declaration is MixinDeclaration) {
+        var element = declaration.declaredElement as MixinElementImpl;
         element.library.session.classHierarchy.remove(element);
       }
     }

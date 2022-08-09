@@ -116,7 +116,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.extendsClause?.accept(this);
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
-    _buildClassOrMixin(node);
+    _buildClass(node);
   }
 
   @override
@@ -876,7 +876,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
-    _buildClassOrMixin(node);
+    _buildMixin(node);
   }
 
   @override
@@ -1091,7 +1091,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     return _buildAnnotationsWithUnit(_unitElement, nodeList);
   }
 
-  void _buildClassOrMixin(ClassOrMixinDeclaration node) {
+  void _buildClass(ClassDeclaration node) {
     var element = node.declaredElement as ClassElementImpl;
     var hasConstConstructor = node.members.any((e) {
       return e is ConstructorDeclaration && e.constKeyword != null;
@@ -1103,7 +1103,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
 
-    if (node is ClassDeclaration && holder.constructors.isEmpty) {
+    if (holder.constructors.isEmpty) {
       holder.addConstructor(
         ConstructorElementImpl('', -1)..isSynthetic = true,
       );
@@ -1134,6 +1134,26 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         element.typeParameters = holder.typeParameters;
       }
     });
+  }
+
+  void _buildMixin(MixinDeclaration node) {
+    var element = node.declaredElement as MixinElementImpl;
+    var hasConstConstructor = node.members.any((e) {
+      return e is ConstructorDeclaration && e.constKeyword != null;
+    });
+    // TODO(scheglov) don't create a duplicate
+    var holder = _EnclosingContext(element.reference!, element,
+        hasConstConstructor: hasConstConstructor);
+    _withEnclosing(holder, () {
+      _visitPropertyFirst<FieldDeclaration>(node.members);
+    });
+
+    element.accessors = holder.propertyAccessors;
+    element.constructors = holder.constructors;
+    element.fields = holder.properties.whereType<FieldElement>().toList();
+    element.methods = holder.methods;
+
+    _resolveConstructorFieldFormals(element);
   }
 
   void _buildSyntheticVariable({

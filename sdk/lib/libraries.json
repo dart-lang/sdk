@@ -171,6 +171,9 @@
           "_internal/wasm/lib/symbol_patch.dart"
         ]
       },
+      "_js_annotations": {
+        "uri": "js/_js_annotations.dart"
+      },
       "_js_helper": {
         "uri": "_internal/wasm/lib/js_helper.dart"
       },

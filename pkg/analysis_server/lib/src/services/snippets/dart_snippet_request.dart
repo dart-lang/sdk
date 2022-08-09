@@ -84,7 +84,9 @@ class DartSnippetRequest {
         return SnippetContext.inBlock;
       }
 
-      if (node is ClassOrMixinDeclaration || node is ExtensionDeclaration) {
+      if (node is ClassDeclaration ||
+          node is ExtensionDeclaration ||
+          node is MixinDeclaration) {
         return SnippetContext.inClass;
       }
 

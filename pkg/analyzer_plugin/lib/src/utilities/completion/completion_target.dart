@@ -118,10 +118,18 @@ class CompletionTarget {
   /// otherwise this is `null`.
   ParameterElement? _parameterElement;
 
-  /// The enclosing [ClassElement], or `null` if not in a class.
-  late final ClassElement? enclosingClassElement = containingNode
-      .thisOrAncestorOfType<ClassOrMixinDeclaration>()
-      ?.declaredElement;
+  /// The enclosing [InterfaceElement], or `null` if not in a class.
+  late final InterfaceElement? enclosingInterfaceElement = () {
+    final unitMember =
+        containingNode.thisOrAncestorOfType<CompilationUnitMember>();
+    if (unitMember is ClassDeclaration) {
+      return unitMember.declaredElement;
+    } else if (unitMember is MixinDeclaration) {
+      return unitMember.declaredElement;
+    } else {
+      return null;
+    }
+  }();
 
   /// The enclosing [ExtensionElement], or `null` if not in an extension.
   late final ExtensionElement? enclosingExtensionElement = containingNode

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -19,23 +20,18 @@ class OverrideContributor extends DartCompletionContributor {
     if (target == null) {
       return;
     }
-    var classDecl =
-        target.enclosingNode.thisOrAncestorOfType<ClassOrMixinDeclaration>();
-    if (classDecl == null) {
-      return;
-    }
 
     var inheritance = InheritanceManager3();
 
     // Generate a collection of inherited members
-    var classElem = classDecl.declaredElement;
-    if (classElem == null) {
+    var interfaceElement = target.enclosingNode.enclosingInterfaceElement;
+    if (interfaceElement == null) {
       return;
     }
-    var interface = inheritance.getInterface(classElem);
+    var interface = inheritance.getInterface(interfaceElement);
     var interfaceMap = interface.map;
     var namesToOverride =
-        _namesToOverride(classElem.librarySource.uri, interface);
+        _namesToOverride(interfaceElement.librarySource.uri, interface);
 
     // Build suggestions
     for (var name in namesToOverride) {
@@ -52,7 +48,12 @@ class OverrideContributor extends DartCompletionContributor {
   /// then return that identifier, otherwise return `null`.
   _Target? _getTargetId(CompletionTarget target) {
     var node = target.containingNode;
-    if (node is ClassOrMixinDeclaration) {
+    if (node is ClassDeclaration) {
+      var entity = target.entity;
+      if (entity is FieldDeclaration) {
+        return _getTargetIdFromVarList(entity.fields);
+      }
+    } else if (node is MixinDeclaration) {
       var entity = target.entity;
       if (entity is FieldDeclaration) {
         return _getTargetIdFromVarList(entity.fields);

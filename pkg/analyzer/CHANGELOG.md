@@ -1,5 +1,6 @@
-## 4.4.1-dev
+## 4.5.0-dev
 * Update deprecation message for `FormalParameter.identifier`.
+* Deprecated `ClassOrMixinDeclaration`, use `ClassDeclaration` and `MixinDeclaration` directly.
 
 ## 4.4.0
 * Deprecated `ClassDeclaration.isAbstract`, use `abstractKeyword` instead.

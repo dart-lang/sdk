@@ -41,8 +41,21 @@
 
 #### Linter
 
-Updated the Linter to `1.26.0`, which includes changes that
+Updated the Linter to `1.27.0`, which includes changes that
 
+- fix `avoid_redundant_argument_values` when referencing required 
+  parameters in legacy libraries.
+- improve performance for `use_late_for_private_fields_and_variables`.
+- add new lint: `use_string_in_part_of_directives`.
+- fix `use_super_parameters` false positives with repeated super
+  parameter references.
+- update `use_late_for_private_fields_and_variables` to handle enums.
+- fix `prefer_contains` false positives when a start index is non-zero.
+- improve `noop_primitive_operations` to catch `.toString()`
+  in string interpolations.
+- update `public_member_api_docs` to report diagnostics on extension
+  names (instead of bodies).
+- add miscellaneous documentation improvements.
 - add new lint: `combinators_ordering`.
 - fix `use_colored_box` and `use_decorated_box` to not over-report on containers without
   a child.

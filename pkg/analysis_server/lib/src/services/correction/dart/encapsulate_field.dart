@@ -53,16 +53,21 @@ class EncapsulateField extends CorrectionProducer {
     }
 
     // Should be in a class or mixin.
-    if (fieldDeclaration.parent is! ClassOrMixinDeclaration) {
+    List<ClassMember> classMembers;
+    final parent = fieldDeclaration.parent;
+    if (parent is ClassDeclaration) {
+      classMembers = parent.members;
+    } else if (parent is MixinDeclaration) {
+      classMembers = parent.members;
+    } else {
       return;
     }
-    var classDeclaration = fieldDeclaration.parent as ClassOrMixinDeclaration;
 
     await builder.addDartFileEdit(file, (builder) {
       // rename field
       builder.addSimpleReplacement(range.token(nameToken), '_$name');
       // update references in constructors
-      for (var member in classDeclaration.members) {
+      for (var member in classMembers) {
         if (member is ConstructorDeclaration) {
           for (var parameter in member.parameters.parameters) {
             var identifier = parameter.name;

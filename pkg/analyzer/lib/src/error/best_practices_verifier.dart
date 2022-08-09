@@ -148,7 +148,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             .reportErrorForNode(HintCode.INVALID_FACTORY_ANNOTATION, node, []);
       }
     } else if (element.isImmutable) {
-      if (parent is! ClassOrMixinDeclaration && parent is! ClassTypeAlias) {
+      if (parent is! ClassDeclaration &&
+          parent is! ClassTypeAlias &&
+          parent is! MixinDeclaration) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_IMMUTABLE_ANNOTATION, node, []);
       }

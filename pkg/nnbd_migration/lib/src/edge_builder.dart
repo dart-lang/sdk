@@ -665,12 +665,20 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   DecoratedType? visitClassOrMixinOrExtensionDeclaration(
       CompilationUnitMember node) {
-    assert(node is ClassOrMixinDeclaration || node is ExtensionDeclaration);
+    assert(node is ClassDeclaration ||
+        node is ExtensionDeclaration ||
+        node is MixinDeclaration);
     try {
       _currentClassOrExtension = node.declaredElement;
-      var members = node is ClassOrMixinDeclaration
-          ? node.members
-          : (node as ExtensionDeclaration).members;
+
+      List<ClassMember> members;
+      if (node is ClassDeclaration) {
+        members = node.members;
+      } else if (node is ExtensionDeclaration) {
+        members = node.members;
+      } else {
+        members = (node as MixinDeclaration).members;
+      }
 
       _fieldsNotInitializedAtDeclaration = {
         for (var member in members)
@@ -2354,7 +2362,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
-  void _dispatchList(NodeList? nodeList) {
+  void _dispatchList(List<AstNode>? nodeList) {
     if (nodeList == null) return;
     for (var node in nodeList) {
       _dispatch(node);

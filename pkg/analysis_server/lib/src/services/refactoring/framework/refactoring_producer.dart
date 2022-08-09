@@ -41,6 +41,13 @@ abstract class RefactoringProducer {
   /// Return the helper used to efficiently access resolved units.
   AnalysisSessionHelper get sessionHelper => _context.sessionHelper;
 
+  /// Return `true` if the client has support for command parameters. Subclasses
+  /// that produce command parameters that don't have a default value must not
+  /// create a refactoring if this getter returns `false`.
+  bool get supportsCommandParameters =>
+      _context.server.clientCapabilities?.codeActionCommandParameterSupport ==
+      true;
+
   /// Return the title of this refactoring.
   String get title;
 

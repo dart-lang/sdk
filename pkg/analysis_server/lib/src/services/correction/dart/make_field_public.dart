@@ -31,33 +31,39 @@ class MakeFieldPublic extends CorrectionProducer {
     if (parent is MethodDeclaration &&
         parent.name2 == token &&
         parent.isGetter) {
+      NodeList<ClassMember> members;
       var container = parent.parent;
-      if (container is ClassOrMixinDeclaration) {
-        var members = container.members;
-        MethodDeclaration? setter;
-        VariableDeclaration? field;
-        for (var member in members) {
-          if (member is MethodDeclaration &&
-              member.name2.lexeme == getterName &&
-              member.isSetter) {
-            setter = member;
-          } else if (member is FieldDeclaration) {
-            for (var variable in member.fields.variables) {
-              if (variable.name2.lexeme == _fieldName) {
-                field = variable;
-              }
+      if (container is ClassDeclaration) {
+        members = container.members;
+      } else if (container is MixinDeclaration) {
+        members = container.members;
+      } else {
+        return;
+      }
+
+      MethodDeclaration? setter;
+      VariableDeclaration? field;
+      for (var member in members) {
+        if (member is MethodDeclaration &&
+            member.name2.lexeme == getterName &&
+            member.isSetter) {
+          setter = member;
+        } else if (member is FieldDeclaration) {
+          for (var variable in member.fields.variables) {
+            if (variable.name2.lexeme == _fieldName) {
+              field = variable;
             }
           }
         }
-        if (setter == null || field == null) {
-          return;
-        }
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleReplacement(range.token(field!.name2), getterName);
-          builder.removeMember(members, parent);
-          builder.removeMember(members, setter!);
-        });
       }
+      if (setter == null || field == null) {
+        return;
+      }
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleReplacement(range.token(field!.name2), getterName);
+        builder.removeMember(members, parent);
+        builder.removeMember(members, setter!);
+      });
     }
   }
 }

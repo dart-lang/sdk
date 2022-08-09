@@ -82,6 +82,7 @@ class LspClientCapabilities {
   final Set<CompletionItemKind> completionItemKinds;
   final Set<InsertTextMode> completionInsertTextModes;
   final bool experimentalSnippetTextEdit;
+  final bool codeActionCommandParameterSupport;
 
   LspClientCapabilities(this.raw)
       : applyEdit = raw.workspace?.applyEdit ?? false,
@@ -142,6 +143,13 @@ class LspClientCapabilities {
         experimentalSnippetTextEdit =
             raw.experimental is Map<String, Object?> &&
                 (raw.experimental as Map<String, Object?>)['snippetTextEdit'] ==
+                    true,
+        codeActionCommandParameterSupport =
+            raw.experimental is Map<String, Object?> &&
+                (raw.experimental as Map<String, Object?>)['dartCodeAction']
+                    is Map<String, Object?> &&
+                ((raw.experimental as Map<String, Object?>)['dartCodeAction']
+                        as Map<String, Object?>)['commandParameterSupport'] ==
                     true;
 
   static Set<MarkupKind>? _completionDocumentationFormats(

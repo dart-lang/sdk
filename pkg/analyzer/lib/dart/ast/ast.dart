@@ -878,14 +878,42 @@ abstract class ClassAugmentationDeclaration
 // TODO(scheglov) Add `ClassOrAugmentationElement get declaredElement`,
 // when [ClassOrMixinDeclaration] is gone.
 abstract class ClassDeclaration
-    implements ClassOrAugmentationDeclaration, ClassOrMixinDeclaration {
+    implements
+        ClassOrAugmentationDeclaration,
+        // ignore: deprecated_member_use_from_same_package
+        ClassOrMixinDeclaration {
+  @override
+  ClassElement? get declaredElement;
+
+  /// Returns the implements clause for the class/mixin, or `null` if the
+  /// class/mixin does not implement any interfaces.
+  @override
+  ImplementsClause? get implementsClause;
+
   /// Return `true` if this class is declared to be an abstract class.
   @Deprecated('Use abstractKeyword instead')
   bool get isAbstract;
 
+  /// Returns the left curly bracket.
+  @override
+  Token get leftBracket;
+
+  /// Returns the members defined by the class/mixin.
+  @override
+  NodeList<ClassMember> get members;
+
   /// Return the native clause for this class, or `null` if the class does not
   /// have a native clause.
   NativeClause? get nativeClause;
+
+  /// Returns the right curly bracket.
+  @override
+  Token get rightBracket;
+
+  /// Returns the type parameters for the class/mixin, or `null` if the
+  /// class/mixin does not have any type parameters.
+  @override
+  TypeParameterList? get typeParameters;
 
   /// Return the constructor declared in the class with the given [name], or
   /// `null` if there is no such constructor.
@@ -950,26 +978,32 @@ abstract class ClassOrAugmentationDeclaration
 /// The declaration of a class or mixin.
 ///
 /// Clients may not extend, implement or mix-in this class.
-// TODO(scheglov) Deprecate and remove.
+@Deprecated('Use ClassDeclaration or MixinDeclaration directly')
 abstract class ClassOrMixinDeclaration implements NamedCompilationUnitMember {
+  @Deprecated('Use ClassDeclaration or MixinDeclaration directly')
   @override
   ClassElement? get declaredElement;
 
   /// Returns the implements clause for the class/mixin, or `null` if the
   /// class/mixin does not implement any interfaces.
+  @Deprecated('Use ClassDeclaration or MixinDeclaration directly')
   ImplementsClause? get implementsClause;
 
   /// Returns the left curly bracket.
+  @Deprecated('Use ClassDeclaration or MixinDeclaration directly')
   Token get leftBracket;
 
   /// Returns the members defined by the class/mixin.
+  @Deprecated('Use ClassDeclaration or MixinDeclaration directly')
   NodeList<ClassMember> get members;
 
   /// Returns the right curly bracket.
+  @Deprecated('Use ClassDeclaration or MixinDeclaration directly')
   Token get rightBracket;
 
   /// Returns the type parameters for the class/mixin, or `null` if the
   /// class/mixin does not have any type parameters.
+  @Deprecated('Use ClassDeclaration or MixinDeclaration directly')
   TypeParameterList? get typeParameters;
 
   /// Returns the field declared in the class/mixin with the given [name], or
@@ -3529,10 +3563,38 @@ abstract class MixinAugmentationDeclaration
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MixinDeclaration
-    implements MixinOrAugmentationDeclaration, ClassOrMixinDeclaration {
+    implements
+        MixinOrAugmentationDeclaration,
+        // ignore: deprecated_member_use_from_same_package
+        ClassOrMixinDeclaration {
   // TODO(scheglov) Uncomment when removed [ClassOrMixinDeclaration].
   // @override
   // MixinElement get declaredElement;
+
+  @override
+  ClassElement? get declaredElement;
+
+  /// Returns the implements clause for the class/mixin, or `null` if the
+  /// class/mixin does not implement any interfaces.
+  @override
+  ImplementsClause? get implementsClause;
+
+  /// Returns the left curly bracket.
+  @override
+  Token get leftBracket;
+
+  /// Returns the members defined by the class/mixin.
+  @override
+  NodeList<ClassMember> get members;
+
+  /// Returns the right curly bracket.
+  @override
+  Token get rightBracket;
+
+  /// Returns the type parameters for the class/mixin, or `null` if the
+  /// class/mixin does not have any type parameters.
+  @override
+  TypeParameterList? get typeParameters;
 }
 
 /// Shared interface between [MixinDeclaration] and

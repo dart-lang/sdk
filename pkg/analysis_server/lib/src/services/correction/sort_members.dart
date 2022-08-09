@@ -90,14 +90,16 @@ class MemberSorter {
     }
   }
 
-  /// Sorts all members of all [ClassOrMixinDeclaration]s.
+  /// Sorts all class members.
   void _sortClassesMembers() {
     for (var unitMember in unit.declarations) {
-      if (unitMember is ClassOrMixinDeclaration) {
+      if (unitMember is ClassDeclaration) {
         _sortClassMembers(unitMember.members);
       } else if (unitMember is EnumDeclaration) {
         _sortClassMembers(unitMember.members);
       } else if (unitMember is ExtensionDeclaration) {
+        _sortClassMembers(unitMember.members);
+      } else if (unitMember is MixinDeclaration) {
         _sortClassMembers(unitMember.members);
       }
     }
@@ -165,7 +167,7 @@ class MemberSorter {
     for (var member in unit.declarations) {
       _MemberKind kind;
       String name;
-      if (member is ClassOrMixinDeclaration) {
+      if (member is ClassDeclaration) {
         kind = _MemberKind.UNIT_CLASS;
         name = member.name2.lexeme;
       } else if (member is ClassTypeAlias) {
@@ -197,6 +199,9 @@ class MemberSorter {
         name = member.name2.lexeme;
       } else if (member is GenericTypeAlias) {
         kind = _MemberKind.UNIT_GENERIC_TYPE_ALIAS;
+        name = member.name2.lexeme;
+      } else if (member is MixinDeclaration) {
+        kind = _MemberKind.UNIT_CLASS;
         name = member.name2.lexeme;
       } else if (member is TopLevelVariableDeclaration) {
         var variableDeclaration = member;

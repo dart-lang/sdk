@@ -233,11 +233,6 @@ String getElementQualifiedName(Element element) {
   }
 }
 
-/// If the given [node] is in a class, enum or mixin declaration, return the
-/// declared [ClassElement]. Otherwise return `null`.
-ClassElement? getEnclosingClassElement(AstNode node) =>
-    node.thisOrAncestorOfType<ClassOrMixinDeclaration>()?.declaredElement;
-
 /// Returns a class or an unit member enclosing the given [input].
 AstNode? getEnclosingClassOrUnitMember(AstNode input) {
   var member = input;
@@ -287,11 +282,6 @@ AstNode? getEnclosingExecutableNode(AstNode input) {
   }
   return null;
 }
-
-/// If the given [node] is in an extension, return the declared
-/// [ExtensionElement]. Otherwise return `null`.
-ExtensionElement? getEnclosingExtensionElement(AstNode node) =>
-    node.thisOrAncestorOfType<ExtensionDeclaration>()?.declaredElement;
 
 /// Returns [getExpressionPrecedence] for the parent of [node], or
 /// ASSIGNMENT_PRECEDENCE if the parent node is a [ParenthesizedExpression].
@@ -1225,27 +1215,33 @@ class CorrectionUtils {
   }
 
   Token? _getLeftBracket(CompilationUnitMember declaration) {
-    if (declaration is ClassOrMixinDeclaration) {
+    if (declaration is ClassDeclaration) {
       return declaration.leftBracket;
     } else if (declaration is ExtensionDeclaration) {
+      return declaration.leftBracket;
+    } else if (declaration is MixinDeclaration) {
       return declaration.leftBracket;
     }
     return null;
   }
 
   List<ClassMember>? _getMembers(CompilationUnitMember declaration) {
-    if (declaration is ClassOrMixinDeclaration) {
+    if (declaration is ClassDeclaration) {
       return declaration.members;
     } else if (declaration is ExtensionDeclaration) {
+      return declaration.members;
+    } else if (declaration is MixinDeclaration) {
       return declaration.members;
     }
     return null;
   }
 
   Token? _getRightBracket(CompilationUnitMember declaration) {
-    if (declaration is ClassOrMixinDeclaration) {
+    if (declaration is ClassDeclaration) {
       return declaration.rightBracket;
     } else if (declaration is ExtensionDeclaration) {
+      return declaration.rightBracket;
+    } else if (declaration is MixinDeclaration) {
       return declaration.rightBracket;
     }
     return null;
