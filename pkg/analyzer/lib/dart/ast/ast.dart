@@ -4019,6 +4019,85 @@ abstract class PropertyAccess
   Expression? get target;
 }
 
+/// A record type.
+///
+/// recordType ::=
+///     '(' recordTypeFields ',' recordTypeNamedFields ')'
+///   | '(' recordTypeFields ','? ')'
+///   | '(' recordTypeNamedFields ')'
+///
+/// recordTypeFields ::= recordTypeField ( ',' recordTypeField )*
+///
+/// recordTypeField ::= metadata type identifier?
+///
+/// recordTypeNamedFields ::=
+///     '{' recordTypeNamedField
+///     ( ',' recordTypeNamedField )* ','? '}'
+///
+/// recordTypeNamedField ::= metadata type identifier
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordTypeAnnotation implements TypeAnnotation {
+  /// The optional named fields.
+  RecordTypeAnnotationNamedFields? get namedFields;
+
+  /// The positional fields (might be empty).
+  NodeList<RecordTypeAnnotationPositionalField> get positionalFields;
+}
+
+/// A field in a [RecordTypeAnnotation].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordTypeAnnotationField implements AstNode {
+  /// The comma at the end of the field, either before the next field,
+  /// or optional after the last field.
+  Token? get comma;
+
+  /// The annotations associated with the field.
+  NodeList<Annotation> get metadata;
+
+  /// The optional name of the field.
+  Token? get name;
+
+  /// The type of the field.
+  TypeAnnotation get type;
+}
+
+/// A named field in a [RecordTypeAnnotation].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordTypeAnnotationNamedField
+    implements RecordTypeAnnotationField {
+  /// The name of the field.
+  @override
+  Token get name;
+}
+
+/// The portion of a [RecordTypeAnnotation] with named fields.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordTypeAnnotationNamedFields implements AstNode {
+  /// The fields contained in the block.
+  NodeList<RecordTypeAnnotationNamedField> get fields;
+
+  /// The left curly bracket.
+  Token get leftBracket;
+
+  /// The right curly bracket.
+  Token get rightBracket;
+}
+
+/// A positional field in a [RecordTypeAnnotation].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordTypeAnnotationPositionalField
+    implements RecordTypeAnnotationField {}
+
 /// The invocation of a constructor in the same class from within a
 /// constructor's initialization list.
 ///
@@ -4668,6 +4747,7 @@ abstract class TypeAlias implements NamedCompilationUnitMember {
 ///    type ::=
 ///        [NamedType]
 ///      | [GenericFunctionType]
+///      | [RecordTypeAnnotation]
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeAnnotation implements AstNode {
