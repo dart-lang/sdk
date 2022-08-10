@@ -7,7 +7,6 @@
 type: newworld
 worlds:
   - entry: app/main.dart
-    experiments: alternative-invalidation-strategy
     sources:
       app/.dart_tool/package_config.json: |
         {
@@ -35,7 +34,6 @@ worlds:
     expectedLibraryCount: 3
 
   - entry: app/main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:

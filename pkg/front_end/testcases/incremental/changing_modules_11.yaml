@@ -57,6 +57,8 @@ worlds:
         - Class A2
       package:module/b.dart:
         - Class B
+    advancedInvalidation: modulesToLoad
+
   - entry: main.dart
     worldType: updated
     expectInitializeFromDill: false
@@ -75,3 +77,4 @@ worlds:
         - Class A2
       package:module/b.dart:
         - Class B
+    advancedInvalidation: modulesToLoad

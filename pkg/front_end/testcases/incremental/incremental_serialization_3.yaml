@@ -113,3 +113,4 @@ worlds:
         }
     expectedLibraryCount: 5
     incrementalSerializationDoesWork: true
+    advancedInvalidation: noDirectlyInvalidated

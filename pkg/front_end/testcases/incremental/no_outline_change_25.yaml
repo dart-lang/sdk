@@ -12,7 +12,6 @@ type: newworld
 worlds:
   - entry: main.dart
     errors: true
-    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         class Foo {
@@ -29,7 +28,6 @@ worlds:
     expectedLibraryCount: 1
   - entry: main.dart
     errors: true
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:

@@ -16,11 +16,14 @@ worlds:
         asdf
     expectedLibraryCount: 2
     errors: true
+
   - entry: main.dart
     errors: true
     worldType: updated
     expectInitializeFromDill: false
     expectedLibraryCount: 2
+    advancedInvalidation: noDirectlyInvalidated
+
   - entry: main.dart
     sources:
       main.dart: |
@@ -29,12 +32,16 @@ worlds:
         asdf
     expectedLibraryCount: 2
     errors: true
+    advancedInvalidation: noDirectlyInvalidated
+
   - entry: main.dart
     errors: true
     worldType: updated
     invalidate:
       - main.dart
     expectedLibraryCount: 2
+    advancedInvalidation: bodiesOnly
+
   - entry: main.dart
     errors: true
     worldType: updated
@@ -44,6 +51,8 @@ worlds:
       b.dart: |
         asdf;
     expectedLibraryCount: 2
+    advancedInvalidation: problemsInLibrary
+
   - entry: main.dart
     errors: false
     worldType: updated
@@ -53,3 +62,4 @@ worlds:
       b.dart: |
         asdf() {}
     expectedLibraryCount: 2
+    advancedInvalidation: problemsInLibrary

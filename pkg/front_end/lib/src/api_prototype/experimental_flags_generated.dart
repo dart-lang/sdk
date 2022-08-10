@@ -53,11 +53,11 @@ class ExperimentalFlag {
   static const ExperimentalFlag alternativeInvalidationStrategy =
       const ExperimentalFlag(
           name: 'alternative-invalidation-strategy',
-          isEnabledByDefault: false,
+          isEnabledByDefault: true,
           isExpired: false,
-          enabledVersion: const Version(2, 19),
-          experimentEnabledVersion: const Version(2, 19),
-          experimentReleasedVersion: const Version(2, 19));
+          enabledVersion: const Version(2, 18),
+          experimentEnabledVersion: const Version(2, 18),
+          experimentReleasedVersion: const Version(2, 18));
 
   static const ExperimentalFlag constFunctions = const ExperimentalFlag(
       name: 'const-functions',

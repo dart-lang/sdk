@@ -13,6 +13,7 @@ worlds:
         part ' package:foo/bar.dart';
     expectedLibraryCount: 1
     errors: true
+
   - entry: main.dart
     errors: false
     worldType: updated
@@ -26,3 +27,4 @@ worlds:
     expectedLibraryCount: 1
     uriToSourcesOnlyIncludes:
       - main.dart
+    advancedInvalidation: problemsInLibrary

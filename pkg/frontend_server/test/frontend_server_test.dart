@@ -2443,7 +2443,6 @@ e() {
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
         '--packages=${packageConfig.path}',
-        '--enable-experiment=alternative-invalidation-strategy',
         '--emit-debug-symbols',
       ];
 

@@ -571,6 +571,13 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
   DECLARE_INSTRUCTION_NO_BACKEND(type)                                         \
   DECLARE_INSTRUCTION_BACKEND()
 
+// Functions required in all abstract instruction classes.
+#define DECLARE_ABSTRACT_INSTRUCTION(type)                                     \
+  /* Prevents allocating an instance of abstract instruction */                \
+  /* even if it has a concrete base class. */                                  \
+  virtual Tag tag() const = 0;                                                 \
+  DEFINE_INSTRUCTION_TYPE_CHECK(type)
+
 #define DECLARE_COMPARISON_METHODS                                             \
   virtual LocationSummary* MakeLocationSummary(Zone* zone, bool optimizing)    \
       const;                                                                   \
@@ -1615,7 +1622,7 @@ class BlockEntryInstr : public TemplateInstruction<0, NoThrow> {
 
   InstructionsIterable instructions() { return InstructionsIterable(this); }
 
-  DEFINE_INSTRUCTION_TYPE_CHECK(BlockEntry)
+  DECLARE_ABSTRACT_INSTRUCTION(BlockEntry)
 
  protected:
   BlockEntryInstr(intptr_t block_id,
@@ -3384,7 +3391,7 @@ class ComparisonInstr : public Definition {
            (operation_cid() == other_comparison->operation_cid());
   }
 
-  DEFINE_INSTRUCTION_TYPE_CHECK(Comparison)
+  DECLARE_ABSTRACT_INSTRUCTION(Comparison)
 
  protected:
   ComparisonInstr(const InstructionSource& source,
@@ -4200,7 +4207,7 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
   void mark_as_call_on_this() { is_call_on_this_ = true; }
   bool is_call_on_this() const { return is_call_on_this_; }
 
-  DEFINE_INSTRUCTION_TYPE_CHECK(InstanceCallBase);
+  DECLARE_ABSTRACT_INSTRUCTION(InstanceCallBase);
 
   bool receiver_is_not_smi() const { return receiver_is_not_smi_; }
   void set_receiver_is_not_smi(bool value) { receiver_is_not_smi_ = value; }
@@ -6315,7 +6322,7 @@ class AllocationInstr : public Definition {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-  DEFINE_INSTRUCTION_TYPE_CHECK(Allocation);
+  DECLARE_ABSTRACT_INSTRUCTION(Allocation);
 
  private:
   const TokenPosition token_pos_;
@@ -6574,7 +6581,7 @@ class ArrayAllocationInstr : public AllocationInstr {
     return num_elements()->BoundSmiConstant();
   }
 
-  DEFINE_INSTRUCTION_TYPE_CHECK(ArrayAllocation);
+  DECLARE_ABSTRACT_INSTRUCTION(ArrayAllocation);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ArrayAllocationInstr);
@@ -7155,7 +7162,7 @@ class BoxIntegerInstr : public BoxInstr {
 
   virtual bool CanTriggerGC() const { return !ValueFitsSmi(); }
 
-  DEFINE_INSTRUCTION_TYPE_CHECK(BoxInteger)
+  DECLARE_ABSTRACT_INSTRUCTION(BoxInteger)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxIntegerInstr);
@@ -7328,7 +7335,7 @@ class UnboxIntegerInstr : public UnboxInstr {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  DEFINE_INSTRUCTION_TYPE_CHECK(UnboxInteger)
+  DECLARE_ABSTRACT_INSTRUCTION(UnboxInteger)
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -7739,7 +7746,7 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-  DEFINE_INSTRUCTION_TYPE_CHECK(UnaryIntegerOp)
+  DECLARE_ABSTRACT_INSTRUCTION(UnaryIntegerOp)
 
  private:
   const Token::Kind op_kind_;
@@ -7893,7 +7900,7 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-  DEFINE_INSTRUCTION_TYPE_CHECK(BinaryIntegerOp)
+  DECLARE_ABSTRACT_INSTRUCTION(BinaryIntegerOp)
 
  protected:
   void InferRangeHelper(const Range* left_range,
@@ -8104,7 +8111,7 @@ class ShiftIntegerOpInstr : public BinaryIntegerOpInstr {
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  DEFINE_INSTRUCTION_TYPE_CHECK(ShiftIntegerOp)
+  DECLARE_ABSTRACT_INSTRUCTION(ShiftIntegerOp)
 
  protected:
   static const intptr_t kShiftCountLimit = 63;

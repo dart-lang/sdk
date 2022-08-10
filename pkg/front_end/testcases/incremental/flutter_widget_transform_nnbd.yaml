@@ -79,3 +79,4 @@ worlds:
 
         Foo foo = const Foo();
     expectedLibraryCount: 4
+    advancedInvalidation: outlineChange

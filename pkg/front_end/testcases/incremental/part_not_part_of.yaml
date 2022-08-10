@@ -21,6 +21,7 @@ worlds:
     invalidate:
       - main.dart
     expectedLibraryCount: 2
+    advancedInvalidation: problemsInLibrary
 
   - entry: main.dart
     errors: true
@@ -29,3 +30,4 @@ worlds:
     invalidate:
       - lib.dart
     expectedLibraryCount: 2
+    advancedInvalidation: bodiesOnly

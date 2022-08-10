@@ -62,3 +62,4 @@ worlds:
       - main.dart
     expectInitializeFromDill: false
     expectedLibraryCount: 3
+    advancedInvalidation: bodiesOnly

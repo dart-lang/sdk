@@ -36,11 +36,14 @@ worlds:
         class Baz extends Bar<int> implements Foo<String> {}
     expectedLibraryCount: 3
     errors: true
+
   - entry: main.dart
     errors: true
     worldType: updated
     expectInitializeFromDill: false
     expectedLibraryCount: 3
+    advancedInvalidation: noDirectlyInvalidated
+
   - entry: main.dart
     sources:
       .dart_tool/package_config.json: |
@@ -69,12 +72,16 @@ worlds:
         class Baz extends Bar<int> implements Foo<String> {}
     expectedLibraryCount: 3
     errors: true
+    advancedInvalidation: noDirectlyInvalidated
+
   - entry: main.dart
     errors: true
     worldType: updated
     invalidate:
       - main.dart
     expectedLibraryCount: 3
+    advancedInvalidation: bodiesOnly
+
   - entry: main.dart
     errors: false
     worldType: updated
@@ -89,3 +96,4 @@ worlds:
 
         class Baz extends Bar<int> {}
     expectedLibraryCount: 3
+    advancedInvalidation: outlineChange

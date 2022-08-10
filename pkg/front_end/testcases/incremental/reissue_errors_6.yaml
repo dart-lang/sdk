@@ -19,6 +19,7 @@ worlds:
         class Bar<X extends Foo<Never>> {}
     expectedLibraryCount: 2
     errors: true
+
   - entry: main.dart
     errors: true
     worldType: updated
@@ -30,6 +31,8 @@ worlds:
         class Foo {}
     expectInitializeFromDill: false
     expectedLibraryCount: 2
+    advancedInvalidation: outlineChange
+
   - entry: main.dart
     errors: false
     worldType: updated
@@ -45,4 +48,4 @@ worlds:
         class Bar<X extends Foo<Never>> {}
     expectInitializeFromDill: false
     expectedLibraryCount: 2
- 
+    advancedInvalidation: problemsInLibrary

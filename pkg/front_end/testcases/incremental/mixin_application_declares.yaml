@@ -6,7 +6,6 @@ type: newworld
 target: none
 worlds:
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     sources:
       main_lib1.dart: |
         class SuperClass {
@@ -32,7 +31,6 @@ worlds:
         }
     expectedLibraryCount: 3
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -48,7 +46,6 @@ worlds:
     expectedLibraryCount: 3
     advancedInvalidation: bodiesOnly
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:

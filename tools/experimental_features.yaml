@@ -109,10 +109,6 @@ features:
   variance:
     help: "Sound variance"
 
-  alternative-invalidation-strategy:
-    help: "Alternative invalidation strategy for incremental compilation."
-    category: "CFE"
-
   value-class:
     help: "Value class"
 
@@ -138,6 +134,11 @@ features:
 # Flags below this line are shipped, retired, or rejected, cannot be specified
 # on the command line, and will eventually be removed.
 #
+
+  alternative-invalidation-strategy:
+    help: "Alternative invalidation strategy for incremental compilation."
+    category: "CFE"
+    enabledIn: '2.18.0'
 
   nonfunction-type-aliases:
     help: "Type aliases define a <type>, not just a <functionType>"

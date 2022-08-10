@@ -7,7 +7,6 @@
 type: newworld
 worlds:
   - entry: first.dart
-    experiments: alternative-invalidation-strategy
     sources:
       first.dart: |
         library first;
@@ -25,7 +24,6 @@ worlds:
         method2() {}
     expectedLibraryCount: 1
   - entry: first.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:

@@ -36,3 +36,4 @@ worlds:
           return 2;
         }
     expectedLibraryCount: 1
+    advancedInvalidation: outlineChange

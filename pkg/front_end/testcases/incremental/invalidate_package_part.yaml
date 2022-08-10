@@ -59,6 +59,7 @@ worlds:
           ]
         }
     expectedLibraryCount: 1
+    advancedInvalidation: bodiesOnly
   - entry: "package:example/main.dart"
     invalidate:
       - "package:example/b.dart"
@@ -87,3 +88,4 @@ worlds:
           ]
         }
     expectedLibraryCount: 1
+    advancedInvalidation: bodiesOnly

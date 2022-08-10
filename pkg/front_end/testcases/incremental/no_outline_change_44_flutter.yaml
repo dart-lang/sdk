@@ -9,7 +9,6 @@ trackWidgetCreation: true
 target: dartdevc # basically needed for widget creation to be run
 worlds:
   - entry: flutter_gallery/lib/main.dart
-    experiments: alternative-invalidation-strategy
     sources:
       flutter_gallery/.dart_tool/package_config.json: |
         {
@@ -35,7 +34,6 @@ worlds:
     expectedLibraryCount: 3
 
   - entry: flutter_gallery/lib/main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:

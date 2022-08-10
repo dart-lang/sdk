@@ -17,6 +17,7 @@ worlds:
       lib3.dart: |
         // empty
     expectedLibraryCount: 4
+
   - entry: main.dart
     expectInitializeFromDill: false
     worldType: updated
@@ -27,6 +28,8 @@ worlds:
         class Duplicate {}
     expectedLibraryCount: 4
     errors: true
+    advancedInvalidation: outlineChange
+
   - entry: main.dart
     expectInitializeFromDill: false
     worldType: updated
@@ -40,3 +43,4 @@ worlds:
         }
     expectedLibraryCount: 4
     errors: true
+    advancedInvalidation: bodiesOnly

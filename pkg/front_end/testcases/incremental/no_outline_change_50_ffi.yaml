@@ -8,7 +8,6 @@
 type: newworld
 worlds:
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         import "dart:ffi";
@@ -36,7 +35,6 @@ worlds:
     expectedLibraryCount: 4
 
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:

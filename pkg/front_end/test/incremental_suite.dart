@@ -265,9 +265,15 @@ class WorldProperties {
       Property.optional("expectedSyntheticLibraryCount", IntValue());
 
   /// The expected result of the advanced invalidation.
-  static const Property<AdvancedInvalidationResult?> advancedInvalidation =
+  ///
+  /// If omitted, this defaults to `noDirectlyInvalidated` which corresponds
+  /// to the advanced invalidation result of the initial compilation. This means
+  /// that all subsequent world entries must specify the expected advanced
+  /// invalidation result.
+  static const Property<AdvancedInvalidationResult> advancedInvalidation =
       Property.optional(
-          "advancedInvalidation", EnumValue(AdvancedInvalidationResult.values));
+          "advancedInvalidation", EnumValue(AdvancedInvalidationResult.values),
+          defaultValue: AdvancedInvalidationResult.noDirectlyInvalidated);
 
   static const Property<bool> checkEntries =
       Property.optional("checkEntries", BoolValue(), defaultValue: false);
@@ -821,7 +827,7 @@ class World {
   final bool incrementalSerializationDoesWork;
 
   /// The expected result of the advanced invalidation.
-  final AdvancedInvalidationResult? advancedInvalidation;
+  final AdvancedInvalidationResult advancedInvalidation;
 
   final bool checkEntries;
   final bool checkInvalidatedFiles;
@@ -941,7 +947,7 @@ class World {
     int? expectedSyntheticLibraryCount =
         WorldProperties.expectedSyntheticLibraryCount.read(world, keys);
 
-    AdvancedInvalidationResult? advancedInvalidation =
+    AdvancedInvalidationResult advancedInvalidation =
         WorldProperties.advancedInvalidation.read(world, keys);
 
     bool checkEntries = WorldProperties.checkEntries.read(world, keys);
@@ -1493,18 +1499,16 @@ class NewWorldTest {
         }
       }
 
-      if (world.advancedInvalidation != null) {
-        AdvancedInvalidationResult? actualAdvancedInvalidation =
-            compiler.recorderForTesting.advancedInvalidationResult;
-        if (world.advancedInvalidation != actualAdvancedInvalidation) {
-          return new Result<TestData>(
-              data,
-              UnexpectedAdvancedInvalidation,
-              "Expected advancedInvalidation: "
-              "${world.advancedInvalidation}, "
-              "advancedInvalidation: "
-              "${actualAdvancedInvalidation}.");
-        }
+      AdvancedInvalidationResult? actualAdvancedInvalidation =
+          compiler.recorderForTesting.advancedInvalidationResult;
+      if (world.advancedInvalidation != actualAdvancedInvalidation) {
+        return new Result<TestData>(
+            data,
+            UnexpectedAdvancedInvalidation,
+            "Expected advancedInvalidation: "
+            "${world.advancedInvalidation}, "
+            "advancedInvalidation: "
+            "${actualAdvancedInvalidation}.");
       }
 
       if (!world.noFullComponent) {

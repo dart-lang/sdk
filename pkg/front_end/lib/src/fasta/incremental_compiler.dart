@@ -2829,6 +2829,8 @@ enum AdvancedInvalidationResult {
   modulesToLoad,
 
   /// Nothing directly invalidated, no need for advanced invalidation.
+  // TODO(johnniwinther): Split this into multiple values that describe what led
+  // to there being no directly invalidated libraries.
   noDirectlyInvalidated,
 
   /// Package config has been updated, advanced invalidation is not supported.

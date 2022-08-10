@@ -79,3 +79,4 @@ worlds:
         - Field constB
       package:moduleC/lib.dart:
         - Field constC
+    advancedInvalidation: modulesToLoad
