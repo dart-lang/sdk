@@ -53,7 +53,7 @@ import 'method_invocation_test.dart' as method_invocation;
 import 'mixin_test.dart' as mixin_resolution;
 import 'namespace_test.dart' as namespace;
 import 'node_text_expectations.dart';
-import 'non_nullable_bazel_workspace_test.dart' as non_nullable_bazel_workspace;
+import 'non_nullable_blaze_workspace_test.dart' as non_nullable_blaze_workspace;
 import 'non_nullable_test.dart' as non_nullable;
 import 'optional_const_test.dart' as optional_const;
 import 'part_test.dart' as part_;
@@ -120,7 +120,7 @@ main() {
     method_invocation.main();
     mixin_resolution.main();
     namespace.main();
-    non_nullable_bazel_workspace.main();
+    non_nullable_blaze_workspace.main();
     non_nullable.main();
     optional_const.main();
     part_.main();

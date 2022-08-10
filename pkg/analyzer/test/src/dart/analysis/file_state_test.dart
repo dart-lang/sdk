@@ -30,14 +30,14 @@ import '../resolution/node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FileSystemStateTest);
-    defineReflectiveTests(FileSystemState_BazelWorkspaceTest);
+    defineReflectiveTests(FileSystemState_BlazeWorkspaceTest);
     defineReflectiveTests(FileSystemState_PubPackageTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
-class FileSystemState_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
+class FileSystemState_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
   void test_getFileForUri_hasGenerated_askGeneratedFirst() async {
     var relPath = 'dart/my/test/a.dart';
     var writablePath = convertPath('$workspaceRootPath/$relPath');

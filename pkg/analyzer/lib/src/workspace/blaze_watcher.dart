@@ -14,10 +14,10 @@ import 'package:watcher/watcher.dart';
 
 Future<void> _isolateMain(SendPort sendPort) async {
   var fromMainIsolate = ReceivePort();
-  var bazelIsolate = BazelFileWatcherIsolate(
+  var blazeIsolate = BlazeFileWatcherIsolate(
       fromMainIsolate, sendPort, PhysicalResourceProvider.INSTANCE)
     ..start();
-  await bazelIsolate.hasFinished;
+  await blazeIsolate.hasFinished;
 }
 
 /// Exposes the ability to poll for changes in generated files.
@@ -26,7 +26,7 @@ Future<void> _isolateMain(SendPort sendPort) async {
 /// file might be located, but after the first time we actually find the file,
 /// we can only focus on that particular path, since the files should be
 /// consistently in the same place after rebuilds.
-class BazelFilePoller {
+class BlazeFilePoller {
   /// The possible "candidate" paths that we watch.
   final List<String> _candidates;
 
@@ -40,7 +40,7 @@ class BazelFilePoller {
   /// path.
   String? _validPath;
 
-  BazelFilePoller(this._provider, this._candidates);
+  BlazeFilePoller(this._provider, this._candidates);
 
   /// Checks if the file corresponding to the watched path has changed and
   /// returns the event or `null` if nothing changed.
@@ -109,7 +109,7 @@ class BazelFilePoller {
   _ModifiedInfo? _pollOne(String path) {
     try {
       // This might seem a bit convoluted but is necessary to deal with a
-      // symlink to a directory (e.g., `bazel-bin`).
+      // symlink to a directory (e.g., `blaze-bin`).
 
       var pathResource = _provider.getResource(path);
       var symlinkTarget = pathResource.resolveSymbolicLinksSync().path;
@@ -135,11 +135,11 @@ class BazelFilePoller {
 
 /// The watcher implementation that runs in a separate isolate.
 ///
-/// It'll try to detect when Bazel finished running (through [PollTrigger] which
-/// usually will be [_BazelInvocationWatcher]) and then poll all the files to
+/// It'll try to detect when Blaze finished running (through [PollTrigger] which
+/// usually will be [_BlazeInvocationWatcher]) and then poll all the files to
 /// find any changes, which will be sent to the main isolate as
-/// [BazelWatcherEvents].
-class BazelFileWatcherIsolate {
+/// [BlazeWatcherEvents].
+class BlazeFileWatcherIsolate {
   final ReceivePort _fromMainIsolate;
   final SendPort _toMainIsolate;
   late final StreamSubscription _fromMainIsolateSubscription;
@@ -154,14 +154,14 @@ class BazelFileWatcherIsolate {
 
   /// Resource provider used for polling.
   ///
-  /// NB: The default [PollTrigger] (i.e., [_BazelInvocationWatcher]) uses
+  /// NB: The default [PollTrigger] (i.e., [_BlazeInvocationWatcher]) uses
   /// `dart:io` directly. So for testing both [_provider] and
   /// [_pollTriggerFactory] should be provided.
   final ResourceProvider _provider;
 
   final _hasFinished = Completer<void>();
 
-  BazelFileWatcherIsolate(
+  BlazeFileWatcherIsolate(
       this._fromMainIsolate, this._toMainIsolate, this._provider,
       {PollTrigger Function(String)? pollTriggerFactory}) {
     _pollTriggerFactory = pollTriggerFactory ?? _defaultPollTrigger;
@@ -170,7 +170,7 @@ class BazelFileWatcherIsolate {
   Future<void> get hasFinished => _hasFinished.future;
 
   void handleRequest(dynamic request) async {
-    if (request is BazelWatcherStartWatching) {
+    if (request is BlazeWatcherStartWatching) {
       var workspaceData = _perWorkspaceData[request.workspace];
       if (workspaceData == null) {
         var trigger = _pollTriggerFactory(request.workspace);
@@ -186,8 +186,8 @@ class BazelFileWatcherIsolate {
         return;
       }
       workspaceData.pollers[requestedPath] =
-          BazelFilePoller(_provider, request.info.candidatePaths)..start();
-    } else if (request is BazelWatcherStopWatching) {
+          BlazeFilePoller(_provider, request.info.candidatePaths)..start();
+    } else if (request is BlazeWatcherStopWatching) {
       var workspaceData = _perWorkspaceData[request.workspace];
       if (workspaceData == null) return;
       var count = workspaceData.watched.remove(request.requestedPath);
@@ -199,7 +199,7 @@ class BazelFileWatcherIsolate {
           _perWorkspaceData.remove(request.workspace);
         }
       }
-    } else if (request is BazelWatcherShutdownIsolate) {
+    } else if (request is BlazeWatcherShutdownIsolate) {
       unawaited(_fromMainIsolateSubscription.cancel());
       _fromMainIsolate.close();
       for (var data in _perWorkspaceData.values) {
@@ -211,8 +211,8 @@ class BazelFileWatcherIsolate {
     } else {
       // We don't have access to the `InstrumentationService` so we send the
       // message to the main isolate to log it.
-      _toMainIsolate.send(BazelWatcherError(
-          'BazelFileWatcherIsolate got unexpected request: $request'));
+      _toMainIsolate.send(BlazeWatcherError(
+          'BlazeFileWatcherIsolate got unexpected request: $request'));
     }
   }
 
@@ -228,14 +228,14 @@ class BazelFileWatcherIsolate {
   }
 
   /// Starts listening for messages from the main isolate and sends it
-  /// [BazelWatcherIsolateStarted].
+  /// [BlazeWatcherIsolateStarted].
   void start() {
     _fromMainIsolateSubscription = _fromMainIsolate.listen(handleRequest);
-    _toMainIsolate.send(BazelWatcherIsolateStarted(_fromMainIsolate.sendPort));
+    _toMainIsolate.send(BlazeWatcherIsolateStarted(_fromMainIsolate.sendPort));
   }
 
   PollTrigger _defaultPollTrigger(String workspacePath) =>
-      _BazelInvocationWatcher(_provider, workspacePath);
+      _BlazeInvocationWatcher(_provider, workspacePath);
 
   void _pollAllWatchers(String workspace) {
     try {
@@ -245,7 +245,7 @@ class BazelFileWatcherIsolate {
         if (event != null) events.add(event);
       }
       if (events.isNotEmpty) {
-        _toMainIsolate.send(BazelWatcherEvents(events));
+        _toMainIsolate.send(BlazeWatcherEvents(events));
       }
     } on Exception catch (_) {
       // This shouldn't really happen, but we shouldn't crash when polling
@@ -264,27 +264,27 @@ class BazelFileWatcherIsolate {
 /// the requests until the isolate has started.
 ///
 /// The isolate is started lazily on the first request to watch a path, so
-/// instantiating [BazelFileWatcherService] is very cheap.
+/// instantiating [BlazeFileWatcherService] is very cheap.
 ///
 /// The protocol when communicating with the isolate:
-/// 1. The watcher isolate sends to the main one a [BazelWatcherIsolateStarted]
-///    and expects a [BazelWatcherInitializeIsolate] to be sent from the main
+/// 1. The watcher isolate sends to the main one a [BlazeWatcherIsolateStarted]
+///    and expects a [BlazeWatcherInitializeIsolate] to be sent from the main
 ///    isolate as a reply.
 /// 2. The main isolate can request to start watching a file by sending
-///    [BazelWatcherStartWatching] request. There is no response expected.
-/// 3. The watcher isolate will send a [BazelWatcherEvents] notification when
+///    [BlazeWatcherStartWatching] request. There is no response expected.
+/// 3. The watcher isolate will send a [BlazeWatcherEvents] notification when
 ///    changes are detected. Again, no response from the main isolate is
 ///    expected.
-/// 4. The main isolate will send a [BazelWatcherShutdownIsolate] when the
+/// 4. The main isolate will send a [BlazeWatcherShutdownIsolate] when the
 ///    isolate is supposed to shut down. No more messages should be exchanged
 ///    afterwards.
-class BazelFileWatcherService {
+class BlazeFileWatcherService {
   final InstrumentationService _instrumetation;
 
   final _events = StreamController<List<WatchEvent>>.broadcast();
 
   /// Buffers files to watch until the isolate is ready.
-  final _buffer = <BazelWatcherMessage>[];
+  final _buffer = <BlazeWatcherMessage>[];
 
   late final ReceivePort _fromIsolatePort;
   late final SendPort _toIsolatePort;
@@ -296,7 +296,7 @@ class BazelFileWatcherService {
   /// True if the isolate is ready to watch files.
   final _isolateHasStarted = Completer<void>();
 
-  BazelFileWatcherService(this._instrumetation);
+  BlazeFileWatcherService(this._instrumetation);
 
   Stream<List<WatchEvent>> get events => _events.stream;
 
@@ -305,7 +305,7 @@ class BazelFileWatcherService {
   /// isolate.
   void shutdown() {
     if (_isolateHasStarted.isCompleted) {
-      _toIsolatePort.send(BazelWatcherShutdownIsolate());
+      _toIsolatePort.send(BlazeWatcherShutdownIsolate());
     }
     if (_isolateIsStarting) {
       _fromIsolateSubscription.cancel();
@@ -314,10 +314,10 @@ class BazelFileWatcherService {
     _events.close();
   }
 
-  void startWatching(String workspace, BazelSearchInfo info) {
+  void startWatching(String workspace, BlazeSearchInfo info) {
     assert(!_events.isClosed);
     _startIsolateIfNeeded();
-    var request = BazelWatcherStartWatching(workspace, info);
+    var request = BlazeWatcherStartWatching(workspace, info);
     if (!_isolateHasStarted.isCompleted) {
       _buffer.add(request);
     } else {
@@ -327,7 +327,7 @@ class BazelFileWatcherService {
 
   void stopWatching(String workspace, String requestedPath) {
     assert(!_events.isClosed);
-    var request = BazelWatcherStopWatching(workspace, requestedPath);
+    var request = BlazeWatcherStopWatching(workspace, requestedPath);
     if (!_isolateHasStarted.isCompleted) {
       _buffer.add(request);
     } else {
@@ -336,16 +336,16 @@ class BazelFileWatcherService {
   }
 
   void _handleIsolateMessage(dynamic message) {
-    if (message is BazelWatcherIsolateStarted) {
+    if (message is BlazeWatcherIsolateStarted) {
       _toIsolatePort = message.sendPort;
       _isolateHasStarted.complete();
-    } else if (message is BazelWatcherEvents) {
+    } else if (message is BlazeWatcherEvents) {
       _events.add(message.events);
-    } else if (message is BazelWatcherError) {
+    } else if (message is BlazeWatcherError) {
       _instrumetation.logError(message.message);
     } else {
       _instrumetation.logError(
-          'Received unexpected message from BazelFileWatcherIsolate: $message');
+          'Received unexpected message from BlazeFileWatcherIsolate: $message');
     }
   }
 
@@ -367,53 +367,53 @@ class BazelFileWatcherService {
   }
 }
 
-/// Notification that we issue when searching for generated files in a Bazel
+/// Notification that we issue when searching for generated files in a Blaze
 /// workspace.
 ///
 /// This allows clients to watch for changes to the generated files.
-class BazelSearchInfo {
+class BlazeSearchInfo {
   /// Candidate paths that we searched.
   final List<String> candidatePaths;
 
   /// Absolute path that we tried searching for.
   ///
   /// This is not necessarily the path of the actual file that will be used. See
-  /// `BazelWorkspace.findFile` for details.
+  /// `BlazeWorkspace.findFile` for details.
   final String requestedPath;
 
-  BazelSearchInfo(this.requestedPath, this.candidatePaths);
+  BlazeSearchInfo(this.requestedPath, this.candidatePaths);
 }
 
-class BazelWatcherError implements BazelWatcherMessage {
+class BlazeWatcherError implements BlazeWatcherMessage {
   final String message;
-  BazelWatcherError(this.message);
+  BlazeWatcherError(this.message);
 }
 
-class BazelWatcherEvents implements BazelWatcherMessage {
+class BlazeWatcherEvents implements BlazeWatcherMessage {
   final List<WatchEvent> events;
-  BazelWatcherEvents(this.events);
+  BlazeWatcherEvents(this.events);
 }
 
 /// Sent by the watcher isolate to transfer the [SendPort] to the main isolate.
-class BazelWatcherIsolateStarted implements BazelWatcherMessage {
+class BlazeWatcherIsolateStarted implements BlazeWatcherMessage {
   final SendPort sendPort;
-  BazelWatcherIsolateStarted(this.sendPort);
+  BlazeWatcherIsolateStarted(this.sendPort);
 }
 
-abstract class BazelWatcherMessage {}
+abstract class BlazeWatcherMessage {}
 
-class BazelWatcherShutdownIsolate implements BazelWatcherMessage {}
+class BlazeWatcherShutdownIsolate implements BlazeWatcherMessage {}
 
-class BazelWatcherStartWatching implements BazelWatcherMessage {
+class BlazeWatcherStartWatching implements BlazeWatcherMessage {
   final String workspace;
-  final BazelSearchInfo info;
-  BazelWatcherStartWatching(this.workspace, this.info);
+  final BlazeSearchInfo info;
+  BlazeWatcherStartWatching(this.workspace, this.info);
 }
 
-class BazelWatcherStopWatching implements BazelWatcherMessage {
+class BlazeWatcherStopWatching implements BlazeWatcherMessage {
   final String workspace;
   final String requestedPath;
-  BazelWatcherStopWatching(this.workspace, this.requestedPath);
+  BlazeWatcherStopWatching(this.workspace, this.requestedPath);
 }
 
 class FileInfo {
@@ -428,15 +428,15 @@ abstract class PollTrigger {
   void cancel();
 }
 
-/// Watches for finished Bazel invocations.
+/// Watches for finished Blaze invocations.
 ///
-/// The idea here is to detect when Bazel finished running and use that to
-/// trigger polling. To detect that we use the `command.log` file that bazel
+/// The idea here is to detect when Blaze finished running and use that to
+/// trigger polling. To detect that we use the `command.log` file that Blaze
 /// continuously updates as the build progresses. We find that file based on [1]:
 ///
-/// - In the workspace directory there should be a `bazel-out` symlink whose
+/// - In the workspace directory there should be a `blaze-out` symlink whose
 ///   target should be of the form:
-///   `[...]/<hash of workspace>/execroot/<workspace name>/bazel-out`
+///   `[...]/<hash of workspace>/execroot/<workspace name>/blaze-out`
 /// - The file should be in `[...]/<hash of workspace>/command.log`.
 ///
 /// In other words, we need to get the target of the symlink and then trim three
@@ -446,7 +446,7 @@ abstract class PollTrigger {
 ///
 /// NB: We're not using a [ResourceProvider] because it doesn't support finding a
 /// target of a symlink.
-class _BazelInvocationWatcher implements PollTrigger {
+class _BlazeInvocationWatcher implements PollTrigger {
   /// Determines how often do we check for `command.log` changes.
   ///
   /// Note that on some systems the granularity is about 1s, so let's set this
@@ -465,10 +465,10 @@ class _BazelInvocationWatcher implements PollTrigger {
   final ResourceProvider _provider;
   final String _workspacePath;
   late final Timer _timer;
-  BazelFilePoller? _poller;
+  BlazeFilePoller? _poller;
   String? _commandLogPath;
 
-  _BazelInvocationWatcher(this._provider, this._workspacePath) {
+  _BlazeInvocationWatcher(this._provider, this._workspacePath) {
     _timer = Timer.periodic(_pollInterval, _poll);
   }
 
@@ -509,7 +509,7 @@ class _BazelInvocationWatcher implements PollTrigger {
       _commandLogPath ??= await _getCommandLogPath();
       if (_commandLogPath == null) return;
 
-      _poller ??= BazelFilePoller(_provider, [_commandLogPath!]);
+      _poller ??= BlazeFilePoller(_provider, [_commandLogPath!]);
       var event = _poller!.poll();
       if (event == null) return;
 
@@ -529,7 +529,7 @@ class _BazelInvocationWatcher implements PollTrigger {
 /// Data used to determines if a file has changed.
 ///
 /// This turns out to be important for tracking files that change a lot, like
-/// the `command.log` that we use to detect the finished build.  Bazel writes to
+/// the `command.log` that we use to detect the finished build.  Blaze writes to
 /// the file continuously and because the resolution of a timestamp is pretty
 /// low, it's quite possible to receive the same timestamp even though the file
 /// has changed.  We use its length to remedy that.  It's not perfect (for that
@@ -589,8 +589,8 @@ class _Multiset<T> {
 }
 
 class _PerWorkspaceData {
-  /// For each requested file stores the corresponding [BazelFilePoller].
-  final pollers = <String, BazelFilePoller>{};
+  /// For each requested file stores the corresponding [BlazeFilePoller].
+  final pollers = <String, BlazeFilePoller>{};
 
   /// Keeps count of the number of requests to watch a file, so that we can stop
   /// watching when we reach 0 clients.

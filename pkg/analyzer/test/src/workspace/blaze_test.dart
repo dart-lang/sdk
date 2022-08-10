@@ -6,7 +6,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:async/async.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -15,19 +15,19 @@ import '../../generated/test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BazelFileUriResolverTest);
-    defineReflectiveTests(BazelPackageUriResolverTest);
-    defineReflectiveTests(BazelWorkspaceTest);
-    defineReflectiveTests(BazelWorkspacePackageTest);
+    defineReflectiveTests(BlazeFileUriResolverTest);
+    defineReflectiveTests(BlazePackageUriResolverTest);
+    defineReflectiveTests(BlazeWorkspaceTest);
+    defineReflectiveTests(BlazeWorkspacePackageTest);
   });
 }
 
 @reflectiveTest
-class BazelFileUriResolverTest with ResourceProviderMixin {
-  late final BazelWorkspace workspace;
-  late final BazelFileUriResolver resolver;
+class BlazeFileUriResolverTest with ResourceProviderMixin {
+  late final BlazeWorkspace workspace;
+  late final BlazeFileUriResolver resolver;
 
-  void test_resolveAbsolute_bazelBin_exists() {
+  void test_resolveAbsolute_blazeBin_exists() {
     _addResources([
       '/workspace/WORKSPACE',
       '/workspace/bazel-bin/my/test/a.dart',
@@ -81,7 +81,7 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
     );
   }
 
-  void test_resolveAbsolute_writableUri_bazelBin_hasWritable() {
+  void test_resolveAbsolute_writableUri_blazeBin_hasWritable() {
     _addResources([
       '/workspace/WORKSPACE',
       '/workspace/my/test/a.dart',
@@ -93,7 +93,7 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
     );
   }
 
-  void test_resolveAbsolute_writableUri_bazelBin_noWritable() {
+  void test_resolveAbsolute_writableUri_blazeBin_noWritable() {
     _addResources([
       '/workspace/WORKSPACE',
       '/workspace/bazel-bin/my/test/a.dart',
@@ -104,7 +104,7 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
     );
   }
 
-  void test_resolveAbsolute_writableUri_bazelGenfiles_hasWritable() {
+  void test_resolveAbsolute_writableUri_blazeGenfiles_hasWritable() {
     _addResources([
       '/workspace/WORKSPACE',
       '/workspace/my/test/a.dart',
@@ -116,7 +116,7 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
     );
   }
 
-  void test_resolveAbsolute_writableUri_bazelGenfiles_noWritable() {
+  void test_resolveAbsolute_writableUri_blazeGenfiles_noWritable() {
     _addResources([
       '/workspace/WORKSPACE',
       '/workspace/bazel-genfiles/my/test/a.dart',
@@ -157,11 +157,11 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
         newFile(path, '');
       }
     }
-    workspace = BazelWorkspace.find(
+    workspace = BlazeWorkspace.find(
       resourceProvider,
       getFolder('/workspace').path,
     )!;
-    resolver = BazelFileUriResolver(workspace);
+    resolver = BlazeFileUriResolver(workspace);
   }
 
   void _assertResolve(
@@ -184,9 +184,9 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
 }
 
 @reflectiveTest
-class BazelPackageUriResolverTest with ResourceProviderMixin {
-  late final BazelWorkspace workspace;
-  late final BazelPackageUriResolver resolver;
+class BlazePackageUriResolverTest with ResourceProviderMixin {
+  late final BlazeWorkspace workspace;
+  late final BlazePackageUriResolver resolver;
 
   void test_resolveAbsolute_bin() {
     _addResources([
@@ -652,8 +652,8 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
       }
     }
     workspace =
-        BazelWorkspace.find(resourceProvider, convertPath(workspacePath))!;
-    resolver = BazelPackageUriResolver(workspace);
+        BlazeWorkspace.find(resourceProvider, convertPath(workspacePath))!;
+    resolver = BlazePackageUriResolver(workspace);
   }
 
   void _assertNoResolve(String uriStr) {
@@ -683,9 +683,9 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
 }
 
 @reflectiveTest
-class BazelWorkspacePackageTest with ResourceProviderMixin {
-  late final BazelWorkspace workspace;
-  BazelWorkspacePackage? package;
+class BlazeWorkspacePackageTest with ResourceProviderMixin {
+  late final BlazeWorkspace workspace;
+  BlazeWorkspacePackage? package;
 
   void test_contains_differentPackage_summarySource() {
     _setUpPackage();
@@ -767,7 +767,7 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
       '/ws/blaze-out/host/bin/some/code/code.dart',
       '/ws/blaze-bin/some/code/code.dart',
     ]);
-    workspace = BazelWorkspace.find(
+    workspace = BlazeWorkspace.find(
       resourceProvider,
       convertPath('/ws/some/code/testing'),
     )!;
@@ -786,7 +786,7 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
         convertPath('/ws/blaze-out/k8-opt/bin/news/lib/news_base.pb.dart');
     newFile('/ws/news/BUILD', '');
     newFile(path, '');
-    workspace = BazelWorkspace.find(resourceProvider, path)!;
+    workspace = BlazeWorkspace.find(resourceProvider, path)!;
 
     var package = workspace.findPackageFor(path);
     expect(package, isNull);
@@ -797,7 +797,7 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
       '/ws/WORKSPACE',
       '/ws/bazel-genfiles',
     ]);
-    workspace = BazelWorkspace.find(
+    workspace = BlazeWorkspace.find(
       resourceProvider,
       convertPath('/ws/some/code'),
     )!;
@@ -812,7 +812,7 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
       '/ws/blaze-out/host/bin/some/code/code.packages',
       '/ws/some/code/lib/code.dart',
     ]);
-    workspace = BazelWorkspace.find(
+    workspace = BlazeWorkspace.find(
       resourceProvider,
       convertPath('/ws/some/code'),
       lookForBuildFileSubstitutes: false,
@@ -830,7 +830,7 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
       '/ws/blaze-out/k8-opt/bin/some/code/',
       '/ws/some/code/lib/code.dart',
     ]);
-    workspace = BazelWorkspace.find(
+    workspace = BlazeWorkspace.find(
       resourceProvider,
       convertPath('/ws/some/code'),
     )!;
@@ -848,7 +848,7 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
       '/ws/blaze-out/host/bin/some/code/code.packages',
       '/ws/some/code/lib/code.dart',
     ]);
-    workspace = BazelWorkspace.find(
+    workspace = BlazeWorkspace.find(
       resourceProvider,
       convertPath('/ws/some/code'),
     )!;
@@ -868,7 +868,7 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
       '/ws/some/code/lib/code.dart',
       '/ws/some/code/testing/lib/testing.dart',
     ]);
-    workspace = BazelWorkspace.find(
+    workspace = BlazeWorkspace.find(
       resourceProvider,
       convertPath('/ws/some/code/testing'),
     )!;
@@ -916,7 +916,7 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
       '/ws/some/code/lib/code.dart',
     ]);
 
-    workspace = BazelWorkspace.find(
+    workspace = BlazeWorkspace.find(
       resourceProvider,
       convertPath('/ws/some/code'),
     )!;
@@ -932,17 +932,17 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
 }
 
 @reflectiveTest
-class BazelWorkspaceTest with ResourceProviderMixin {
-  late final BazelWorkspace workspace;
+class BlazeWorkspaceTest with ResourceProviderMixin {
+  late final BlazeWorkspace workspace;
 
-  void test_bazelNotifications() async {
+  void test_blazeNotifications() async {
     _addResources([
       '/workspace/WORKSPACE',
       '/workspace/bazel-bin/my/module/test1.dart',
     ]);
-    var workspace = BazelWorkspace.find(
+    var workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'))!;
-    var notifications = StreamQueue(workspace.bazelCandidateFiles);
+    var notifications = StreamQueue(workspace.blazeCandidateFiles);
 
     var file1 =
         workspace.findFile(convertPath('/workspace/my/module/test1.dart'))!;
@@ -972,7 +972,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
   void test_find_fail_notAbsolute() {
     expect(
         () =>
-            BazelWorkspace.find(resourceProvider, convertPath('not_absolute')),
+            BlazeWorkspace.find(resourceProvider, convertPath('not_absolute')),
         throwsA(const TypeMatcher<ArgumentError>()));
   }
 
@@ -981,7 +981,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
       '/workspace/blaze-out/host/bin/',
       '/workspace/my/module/BUILD',
     ]);
-    var workspace = BazelWorkspace.find(
+    var workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
@@ -1002,7 +1002,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
       '/workspace/blaze-out/',
       '/workspace/my/module/',
     ]);
-    var workspace = BazelWorkspace.find(
+    var workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
@@ -1016,7 +1016,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
       '/workspace/blaze-out/k8-fastbuild/bin/',
       '/workspace/my/module/',
     ]);
-    var workspace = BazelWorkspace.find(
+    var workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
@@ -1035,7 +1035,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
       '/Users/user/test/prime/',
       '/Users/user/test/prime/bazel-genfiles/',
     ]);
-    var workspace = BazelWorkspace.find(
+    var workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/Users/user/test/prime/my/module'))!;
     expect(workspace.root, convertPath('/Users/user/test/prime'));
     expect(workspace.readonly, convertPath('/Users/user/test/READONLY/prime'));
@@ -1051,7 +1051,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
       '/Users/user/test/prime/WORKSPACE',
       '/Users/user/test/prime/bazel-genfiles/',
     ]);
-    var workspace = BazelWorkspace.find(
+    var workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/Users/user/test/prime/my/module'))!;
     expect(workspace.root, convertPath('/Users/user/test/prime'));
     expect(workspace.readonly, isNull);
@@ -1067,7 +1067,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
       '/Users/user/test/prime/',
       '/Users/user/test/prime/blaze-genfiles/',
     ]);
-    var workspace = BazelWorkspace.find(
+    var workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/Users/user/test/prime/my/module'))!;
     expect(workspace.root, convertPath('/Users/user/test/prime'));
     expect(workspace.readonly, convertPath('/Users/user/test/READONLY/prime'));
@@ -1082,7 +1082,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
       '/workspace/WORKSPACE',
       '/workspace/bazel-genfiles/',
     ]);
-    var workspace = BazelWorkspace.find(
+    var workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
@@ -1095,7 +1095,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
       '/workspace/WORKSPACE',
       '/workspace/bazel-genfiles/',
     ]);
-    var workspace = BazelWorkspace.find(
+    var workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
@@ -1109,7 +1109,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
       '/workspace/bazel-genfiles/',
     ]);
     var workspace =
-        BazelWorkspace.find(resourceProvider, convertPath('/workspace'))!;
+        BlazeWorkspace.find(resourceProvider, convertPath('/workspace'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
     expect(workspace.binPaths.single, convertPath('/workspace/bazel-bin'));
@@ -1122,7 +1122,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
       '/workspace/blaze-genfiles/',
     ]);
     var workspace =
-        BazelWorkspace.find(resourceProvider, convertPath('/workspace'))!;
+        BlazeWorkspace.find(resourceProvider, convertPath('/workspace'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
     expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
@@ -1130,20 +1130,20 @@ class BazelWorkspaceTest with ResourceProviderMixin {
   }
 
   void test_find_null_noWorkspaceMarkers() {
-    var workspace = BazelWorkspace.find(
+    var workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'));
     expect(workspace, isNull);
   }
 
   void test_find_null_noWorkspaceMarkers_inRoot() {
-    var workspace = BazelWorkspace.find(resourceProvider, convertPath('/'));
+    var workspace = BlazeWorkspace.find(resourceProvider, convertPath('/'));
     expect(workspace, isNull);
   }
 
   void test_find_null_symlinkPrefix() {
-    String prefix = BazelWorkspace.defaultSymlinkPrefix;
+    String prefix = BlazeWorkspace.defaultSymlinkPrefix;
     newFile('/workspace/WORKSPACE', '');
-    var workspace = BazelWorkspace.find(
+    var workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
@@ -1162,7 +1162,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
       '/Users/user/test/prime/bazel-genfiles/my/module/test3.dart',
       '/Users/user/test/READONLY/prime/other/module/test4.dart',
     ]);
-    workspace = BazelWorkspace.find(
+    workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/Users/user/test/prime/my/module'))!;
     _expectFindFile('/Users/user/test/prime/my/module/test1.dart',
         equals: '/Users/user/test/prime/my/module/test1.dart');
@@ -1182,7 +1182,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
       '/Users/user/test/prime/my/module/test.dart',
       '/Users/user/test/READONLY/prime/my/module/test.dart',
     ]);
-    workspace = BazelWorkspace.find(
+    workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/Users/user/test/prime/my/module'))!;
     _expectFindFile('/Users/user/test/prime/my/module/test.dart',
         equals: '/Users/user/test/prime/my/module/test.dart');
@@ -1197,7 +1197,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
       '/workspace/bazel-bin/my/module/test2.dart',
       '/workspace/bazel-genfiles/my/module/test3.dart',
     ]);
-    workspace = BazelWorkspace.find(
+    workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'))!;
     _expectFindFile('/workspace/my/module/test1.dart',
         equals: '/workspace/my/module/test1.dart');
@@ -1218,7 +1218,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
     }
   }
 
-  /// Expect that [BazelWorkspace.findFile], given [path], returns [equals].
+  /// Expect that [BlazeWorkspace.findFile], given [path], returns [equals].
   void _expectFindFile(String path, {required String equals}) =>
       expect(workspace.findFile(convertPath(path))!.path, convertPath(equals));
 }

@@ -41,7 +41,7 @@ class CiderAssistsComputerTest extends CiderServiceTest {
   @override
   void setUp() {
     super.setUp();
-    BazelMockPackages.instance.addFlutter(resourceProvider);
+    BlazeMockPackages.instance.addFlutter(resourceProvider);
   }
 
   Future<void> test_addReturnType() async {

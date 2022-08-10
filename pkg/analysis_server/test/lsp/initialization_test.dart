@@ -43,7 +43,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
             as Map<String, Object?>);
   }
 
-  Future<void> test_bazelWorkspace() async {
+  Future<void> test_blazeWorkspace() async {
     var workspacePath = '/home/user/ws';
     // Make it a Bazel workspace.
     newFile(convertPath('$workspacePath/WORKSPACE'), '');
@@ -811,7 +811,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.includedPaths, equals([file1]));
   }
 
-  Future<void> test_nonProjectFiles_bazelWorkspace() async {
+  Future<void> test_nonProjectFiles_blazeWorkspace() async {
     final file1 = convertPath('/home/nonProject/file1.dart');
     newFile(file1, '');
 

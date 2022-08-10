@@ -17,7 +17,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/workspace/basic.dart';
-import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
@@ -376,7 +376,7 @@ class ContextLocatorImpl implements ContextLocator {
     var rootPath = folder.path;
 
     Workspace? workspace;
-    workspace = BazelWorkspace.find(resourceProvider, rootPath,
+    workspace = BlazeWorkspace.find(resourceProvider, rootPath,
         lookForBuildFileSubstitutes: false);
     workspace = _mostSpecificWorkspace(
         workspace, GnWorkspace.find(resourceProvider, rootPath));

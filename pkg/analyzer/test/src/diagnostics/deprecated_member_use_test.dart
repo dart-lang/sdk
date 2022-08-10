@@ -14,7 +14,7 @@ main() {
     defineReflectiveTests(
       DeprecatedMemberUse_BasicWorkspace_WithoutNullSafetyTest,
     );
-    defineReflectiveTests(DeprecatedMemberUse_BazelWorkspaceTest);
+    defineReflectiveTests(DeprecatedMemberUse_BlazeWorkspaceTest);
     defineReflectiveTests(DeprecatedMemberUse_GnWorkspaceTest);
     defineReflectiveTests(DeprecatedMemberUse_PackageBuildWorkspaceTest);
 
@@ -22,7 +22,7 @@ main() {
       DeprecatedMemberUseFromSamePackage_BasicWorkspaceTest,
     );
     defineReflectiveTests(
-      DeprecatedMemberUseFromSamePackage_BazelWorkspaceTest,
+      DeprecatedMemberUseFromSamePackage_BlazeWorkspaceTest,
     );
     defineReflectiveTests(
       DeprecatedMemberUseFromSamePackage_PackageBuildWorkspaceTest,
@@ -330,8 +330,8 @@ void f(A a) {
 }
 
 @reflectiveTest
-class DeprecatedMemberUse_BazelWorkspaceTest
-    extends BazelWorkspaceResolutionTest {
+class DeprecatedMemberUse_BlazeWorkspaceTest
+    extends BlazeWorkspaceResolutionTest {
   test_dart() async {
     newFile('$workspaceRootPath/foo/bar/lib/a.dart', r'''
 @deprecated
@@ -353,7 +353,7 @@ void f(A a) {}
 class A {}
 ''');
 
-    assertBazelWorkspaceFor(testFile);
+    assertBlazeWorkspaceFor(testFile);
 
     await assertErrorsInCode(r'''
 import 'package:aaa/a.dart';
@@ -1557,8 +1557,8 @@ void f() {
 }
 
 @reflectiveTest
-class DeprecatedMemberUseFromSamePackage_BazelWorkspaceTest
-    extends BazelWorkspaceResolutionTest {
+class DeprecatedMemberUseFromSamePackage_BlazeWorkspaceTest
+    extends BlazeWorkspaceResolutionTest {
   test_it() async {
     newFile('$myPackageLibPath/a.dart', r'''
 @deprecated

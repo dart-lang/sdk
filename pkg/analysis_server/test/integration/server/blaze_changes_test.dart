@@ -19,12 +19,12 @@ void main() {
   }
 
   defineReflectiveSuite(() {
-    defineReflectiveTests(BazelChangesTest);
+    defineReflectiveTests(BlazeChangesTest);
   });
 }
 
 @reflectiveTest
-class BazelChangesTest extends AbstractAnalysisServerIntegrationTest {
+class BlazeChangesTest extends AbstractAnalysisServerIntegrationTest {
   var processedNotification = Completer<void>();
 
   /// Path to the `command.log` file.
@@ -32,12 +32,12 @@ class BazelChangesTest extends AbstractAnalysisServerIntegrationTest {
   /// Writing to it should trigger our change detection to run.
   late String commandLogPath;
 
-  late String bazelRoot;
+  late String blazeRoot;
   late String tmpPath;
   late String workspacePath;
-  late String bazelOrBlazeOutPath;
-  late String bazelOrBlazeBinPath;
-  late String bazelOrBlazeGenfilesPath;
+  late String blazeOutPath;
+  late String blazeBinPath;
+  late String blazeGenfilesPath;
   late Directory oldSourceDirectory;
 
   String inTmpDir(String relative) =>
@@ -61,21 +61,21 @@ class BazelChangesTest extends AbstractAnalysisServerIntegrationTest {
     sourceDirectory = Directory(inWorkspace('third_party/dart/project'));
     sourceDirectory.createSync(recursive: true);
 
-    bazelRoot = inTmpDir('bazel_or_blaze_root');
-    Directory(bazelRoot).createSync(recursive: true);
+    blazeRoot = inTmpDir('bazel_or_blaze_root');
+    Directory(blazeRoot).createSync(recursive: true);
 
-    bazelOrBlazeOutPath =
-        '$bazelRoot/execroot/bazel_or_blaze_workspace/bazel_or_blaze-out';
-    bazelOrBlazeBinPath =
-        '$bazelRoot/execroot/bazel_or_blaze_workspace/bazel_or_blaze-out/bin';
-    bazelOrBlazeGenfilesPath =
-        '$bazelRoot/execroot/bazel_or_blaze_workspace/bazel_or_blaze-out/genfiles';
+    blazeOutPath =
+        '$blazeRoot/execroot/bazel_or_blaze_workspace/bazel_or_blaze-out';
+    blazeBinPath =
+        '$blazeRoot/execroot/bazel_or_blaze_workspace/bazel_or_blaze-out/bin';
+    blazeGenfilesPath =
+        '$blazeRoot/execroot/bazel_or_blaze_workspace/bazel_or_blaze-out/genfiles';
 
-    Directory(inTmpDir(bazelOrBlazeOutPath)).createSync(recursive: true);
-    Directory(inTmpDir(bazelOrBlazeBinPath)).createSync(recursive: true);
-    Directory(inTmpDir(bazelOrBlazeGenfilesPath)).createSync(recursive: true);
+    Directory(inTmpDir(blazeOutPath)).createSync(recursive: true);
+    Directory(inTmpDir(blazeBinPath)).createSync(recursive: true);
+    Directory(inTmpDir(blazeGenfilesPath)).createSync(recursive: true);
 
-    commandLogPath = inTmpDir('$bazelRoot/command.log');
+    commandLogPath = inTmpDir('$blazeRoot/command.log');
   }
 
   @override
@@ -83,13 +83,6 @@ class BazelChangesTest extends AbstractAnalysisServerIntegrationTest {
     Directory(tmpPath).deleteSync(recursive: true);
     sourceDirectory = oldSourceDirectory;
     await super.tearDown();
-  }
-
-  // Add a bit more time -- the isolate take a while to start when the test is
-  // not run from a snapshot.
-  @TestTimeout(Timeout.factor(2))
-  Future<void> test_bazelChanges() async {
-    await testChangesImpl('bazel');
   }
 
   // Add a bit more time -- the isolate take a while to start when the test is
@@ -137,7 +130,7 @@ void f() { my_fun(); }
 
     await resetCompleterAndErrors();
     var generatedFilePath = inWorkspace(
-        '$bazelOrBlazeGenfilesPath/third_party/dart/project/lib/generated.dart');
+        '$blazeGenfilesPath/third_party/dart/project/lib/generated.dart');
     writeFile(generatedFilePath, 'my_fun() {}');
     _createSymlinks(prefix);
     writeFile(commandLogPath, 'Build completed successfully');
@@ -174,9 +167,9 @@ void f() { my_fun(); }
   }
 
   void _createSymlinks(String prefix) {
-    Link(inWorkspace('$prefix-out')).createSync(bazelOrBlazeOutPath);
-    Link(inWorkspace('$prefix-bin')).createSync(bazelOrBlazeBinPath);
-    Link(inWorkspace('$prefix-genfiles')).createSync(bazelOrBlazeGenfilesPath);
+    Link(inWorkspace('$prefix-out')).createSync(blazeOutPath);
+    Link(inWorkspace('$prefix-bin')).createSync(blazeBinPath);
+    Link(inWorkspace('$prefix-genfiles')).createSync(blazeGenfilesPath);
   }
 
   void _deleteSymlinks(String prefix) {

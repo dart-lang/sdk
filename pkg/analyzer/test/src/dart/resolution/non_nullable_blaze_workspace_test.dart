@@ -11,12 +11,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NonNullableBazelWorkspaceTest);
+    defineReflectiveTests(NonNullableBlazeWorkspaceTest);
   });
 }
 
 @reflectiveTest
-class NonNullableBazelWorkspaceTest extends BazelWorkspaceResolutionTest {
+class NonNullableBlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
   @override
   bool get isNullSafetyEnabled => true;
 

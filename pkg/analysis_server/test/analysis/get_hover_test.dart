@@ -11,14 +11,14 @@ import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AnalysisHoverBazelTest);
+    defineReflectiveTests(AnalysisHoverBlazeTest);
     defineReflectiveTests(AnalysisHoverTest);
   });
 }
 
 @reflectiveTest
-class AnalysisHoverBazelTest extends BazelWorkspaceAnalysisServerTest {
-  Future<void> test_bazel_notOwnedUri() async {
+class AnalysisHoverBlazeTest extends BlazeWorkspaceAnalysisServerTest {
+  Future<void> test_blaze_notOwnedUri() async {
     newFile(
       '$workspaceRootPath/bazel-genfiles/dart/my/lib/test.dart',
       '// generated',

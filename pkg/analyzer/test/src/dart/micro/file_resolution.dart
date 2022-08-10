@@ -17,7 +17,7 @@ import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:crypto/crypto.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
@@ -88,7 +88,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   ///
   /// We do this the first time, and to test reusing results from [byteStore].
   void createFileResolver() {
-    var workspace = BazelWorkspace.find(
+    var workspace = BlazeWorkspace.find(
       resourceProvider,
       testFile.path,
     )!;

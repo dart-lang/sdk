@@ -37,7 +37,7 @@ main() {
     defineReflectiveTests(AnalysisDriverSchedulerTest);
     defineReflectiveTests(AnalysisDriverTest);
     defineReflectiveTests(AnalysisDriver_PubPackageTest);
-    defineReflectiveTests(AnalysisDriver_BazelWorkspaceTest);
+    defineReflectiveTests(AnalysisDriver_BlazeWorkspaceTest);
   });
 }
 
@@ -54,7 +54,7 @@ Future pumpEventQueue([int times = 5000]) {
 }
 
 @reflectiveTest
-class AnalysisDriver_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
+class AnalysisDriver_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
   void test_nestedLib_notCanonicalUri() async {
     var outerLibPath = '$workspaceRootPath/my/outer/lib';
 

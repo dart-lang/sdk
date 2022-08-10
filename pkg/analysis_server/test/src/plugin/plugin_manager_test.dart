@@ -491,7 +491,7 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     expect(files.packages, packageConfigFile);
   }
 
-  void test_pathsFor_withPubspec_inBazelWorkspace() {
+  void test_pathsFor_withPubspec_inBlazeWorkspace() {
     //
     // Build a Bazel workspace containing four packages, including the plugin.
     //

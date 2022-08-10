@@ -14,13 +14,13 @@ import '../resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisSessionImplTest);
-    defineReflectiveTests(AnalysisSessionImpl_BazelWorkspaceTest);
+    defineReflectiveTests(AnalysisSessionImpl_BlazeWorkspaceTest);
   });
 }
 
 @reflectiveTest
-class AnalysisSessionImpl_BazelWorkspaceTest
-    extends BazelWorkspaceResolutionTest {
+class AnalysisSessionImpl_BlazeWorkspaceTest
+    extends BlazeWorkspaceResolutionTest {
   void test_getErrors_notFileOfUri() async {
     var relPath = 'dart/my/lib/a.dart';
     newFile('$workspaceRootPath/bazel-bin/$relPath', '');

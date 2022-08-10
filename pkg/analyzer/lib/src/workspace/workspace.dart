@@ -7,15 +7,15 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Abstract superclass of classes that provide information about the workspace
 /// in which analysis is being performed.
 abstract class Workspace {
-  /// Return true iff this [Workspace] is a [BazelWorkspace].
-  bool get isBazel => false;
+  /// Return true iff this [Workspace] is a [BlazeWorkspace].
+  bool get isBlaze => false;
 
   /// Return `true` if the read state of configuration files is consistent
   /// with their current state on the file system.

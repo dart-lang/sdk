@@ -132,7 +132,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     newFolder('/ws/some/code');
     var gnWorkspace =
         GnWorkspace.find(resourceProvider, convertPath('/ws/some/code'))!;
-    expect(gnWorkspace.isBazel, isFalse);
+    expect(gnWorkspace.isBlaze, isFalse);
     return gnWorkspace;
   }
 }
