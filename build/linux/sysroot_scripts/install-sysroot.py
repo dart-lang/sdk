@@ -54,7 +54,7 @@ ARCH_TRANSLATIONS = {
     'mips64': 'mips64el',
 }
 
-DEFAULT_TARGET_PLATFORM = 'bullseye'
+DEFAULT_TARGET_PLATFORM = 'stretch'
 
 
 class Error(Exception):
@@ -116,6 +116,7 @@ def GetSysrootDict(target_platform, target_arch):
 
 def InstallSysroot(target_platform, target_arch):
   sysroot_dict = GetSysrootDict(target_platform, target_arch)
+  revision = sysroot_dict['Revision']
   tarball_filename = sysroot_dict['Tarball']
   tarball_sha1sum = sysroot_dict['Sha1Sum']
   # TODO(thestig) Consider putting this elsewhere to avoid having to recreate
@@ -123,7 +124,7 @@ def InstallSysroot(target_platform, target_arch):
   linux_dir = os.path.dirname(SCRIPT_DIR)
   sysroot = os.path.join(linux_dir, sysroot_dict['SysrootDir'])
 
-  url = '%s/%s/%s/%s' % (URL_PREFIX, URL_PATH, tarball_sha1sum,
+  url = '%s/%s/%s/%s' % (URL_PREFIX, URL_PATH, revision,
                          tarball_filename)
 
   stamp = os.path.join(sysroot, '.stamp')

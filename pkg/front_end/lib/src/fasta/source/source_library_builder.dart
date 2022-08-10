@@ -3242,10 +3242,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           });
       }
     }
+    Uri firstUri = uri!;
+    Uri secondUri = otherUri!;
+    if (firstUri.toString().compareTo(secondUri.toString()) > 0) {
+      firstUri = secondUri;
+      secondUri = uri;
+    }
     if (isExport) {
       Template<Message Function(String name, Uri uri, Uri uri2)> template =
           templateDuplicatedExport;
-      Message message = template.withArguments(name, uri!, otherUri!);
+      Message message = template.withArguments(name, firstUri, secondUri);
       addProblem(message, charOffset, noLength, fileUri);
     }
     Template<Message Function(String name, Uri uri, Uri uri2)> builderTemplate =
@@ -3256,8 +3262,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         name,
         // TODO(ahe): We should probably use a context object here
         // instead of including URIs in this message.
-        uri!,
-        otherUri!);
+        firstUri,
+        secondUri);
     // We report the error lazily (setting suppressMessage to false) because the
     // spec 18.1 states that 'It is not an error if N is introduced by two or
     // more imports but never referred to.'
