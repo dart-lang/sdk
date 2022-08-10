@@ -255,7 +255,15 @@ abstract class Expression extends Node {
 /// Test harness for creating flow analysis tests.  This class implements all
 /// the [Operations] needed by flow analysis, as well as other methods needed
 /// for testing.
-class Harness extends Operations<Var, Type> implements FlowModelHelper<Type> {
+class FlowAnalysisTestHarness extends Harness implements FlowModelHelper<Type> {
+  @override
+  final PromotionKeyStore<Var> promotionKeyStore = PromotionKeyStore();
+
+  @override
+  TypeOperations<Type> get typeOperations => this;
+}
+
+class Harness with TypeOperations<Type> implements Operations<Var, Type> {
   static const Map<String, bool> _coreSubtypes = const {
     'bool <: int': false,
     'bool <: Object': true,
@@ -402,11 +410,7 @@ class Harness extends Operations<Var, Type> implements FlowModelHelper<Type> {
   /// analyzing old language versions).
   bool _respectImplicitlyTypedVarInitializers = true;
 
-  @override
   final Set<_PropertyElement> promotableFields = {};
-
-  @override
-  final PromotionKeyStore<Var> promotionKeyStore = PromotionKeyStore();
 
   set legacy(bool value) {
     assert(!_started);
@@ -422,9 +426,6 @@ class Harness extends Operations<Var, Type> implements FlowModelHelper<Type> {
     assert(!_started);
     _thisType = Type(type);
   }
-
-  @override
-  TypeOperations<Type> get typeOperations => this;
 
   MiniIrBuilder get _irBuilder => _typeAnalyzer._irBuilder;
 

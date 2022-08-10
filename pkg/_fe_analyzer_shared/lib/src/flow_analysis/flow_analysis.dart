@@ -2476,8 +2476,7 @@ abstract class NonPromotionReasonVisitor<R, Node extends Object,
 
 /// Operations on types and variables, abstracted from concrete type interfaces.
 abstract class Operations<Variable extends Object, Type extends Object>
-    extends TypeOperations<Type> implements VariableOperations<Variable, Type> {
-}
+    implements TypeOperations<Type>, VariableOperations<Variable, Type> {}
 
 /// This data structure assigns a unique integer identifier to everything that
 /// might undergo promotion in the user's code (local variables and properties).
@@ -2774,7 +2773,10 @@ enum TypeClassification {
 }
 
 /// Operations on types, abstracted from concrete type interfaces.
-abstract class TypeOperations<Type extends Object> {
+///
+/// This mixin provides default implementations for some members that won't need
+/// to be overridden very frequently.
+mixin TypeOperations<Type extends Object> {
   /// Classifies the given type into one of the three categories defined by
   /// the [TypeClassification] enum.
   TypeClassification classifyType(Type type);
