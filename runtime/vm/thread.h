@@ -121,10 +121,6 @@ class Thread;
     StubCode::RangeErrorSharedWithoutFPURegs().ptr(), nullptr)                 \
   V(CodePtr, range_error_shared_with_fpu_regs_stub_,                           \
     StubCode::RangeErrorSharedWithFPURegs().ptr(), nullptr)                    \
-  V(CodePtr, write_error_shared_without_fpu_regs_stub_,                        \
-    StubCode::WriteErrorSharedWithoutFPURegs().ptr(), nullptr)                 \
-  V(CodePtr, write_error_shared_with_fpu_regs_stub_,                           \
-    StubCode::WriteErrorSharedWithFPURegs().ptr(), nullptr)                    \
   V(CodePtr, allocate_mint_with_fpu_regs_stub_,                                \
     StubCode::AllocateMintSharedWithFPURegs().ptr(), nullptr)                  \
   V(CodePtr, allocate_mint_without_fpu_regs_stub_,                             \

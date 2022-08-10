@@ -671,21 +671,6 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
       /*allow_return=*/false, perform_runtime_call);
 }
 
-void StubCodeCompiler::GenerateWriteError(Assembler* assembler,
-                                          bool with_fpu_regs) {
-  auto perform_runtime_call = [&]() {
-    __ CallRuntime(kWriteErrorRuntimeEntry, /*argument_count=*/0);
-    __ Breakpoint();
-  };
-
-  GenerateSharedStubGeneric(
-      assembler, /*save_fpu_registers=*/with_fpu_regs,
-      with_fpu_regs
-          ? target::Thread::write_error_shared_with_fpu_regs_stub_offset()
-          : target::Thread::write_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false, perform_runtime_call);
-}
-
 // Input parameters:
 //   RSP : points to return address.
 //   RSP + 8 : address of return value.

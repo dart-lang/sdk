@@ -180,8 +180,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     // Validate 'this' is a typed data view.
     const uword view_header = ReadHeaderRelaxed(view);
     ASSERT(!IsForwarding(view_header) || view->IsOldObject());
-    ASSERT(IsTypedDataViewClassId(view->GetClassIdMayBeSmi()) ||
-           IsUnmodifiableTypedDataViewClassId(view->GetClassIdMayBeSmi()));
+    ASSERT(IsTypedDataViewClassId(view->GetClassIdMayBeSmi()));
 
     // Validate that the backing store is not a forwarding word. There is a data
     // race reader the backing store's header unless there is only one worker.

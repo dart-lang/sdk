@@ -144,10 +144,6 @@ DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
 
-DEFINE_RUNTIME_ENTRY(WriteError, 0) {
-  Exceptions::ThrowUnsupportedError("Cannot modify an unmodifiable list");
-}
-
 static void NullErrorHelper(Zone* zone,
                             const String& selector,
                             bool is_param_name = false) {

@@ -315,10 +315,7 @@ intptr_t UntaggedObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
     }
 #undef RAW_VISITPOINTERS
     case kByteDataViewCid:
-    case kUnmodifiableByteDataViewCid:
-#define RAW_VISITPOINTERS(clazz)                                               \
-  case kTypedData##clazz##ViewCid:                                             \
-  case kUnmodifiableTypedData##clazz##ViewCid:
+#define RAW_VISITPOINTERS(clazz) case kTypedData##clazz##ViewCid:
       CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS) {
         auto raw_obj = static_cast<TypedDataViewPtr>(this);
         size =

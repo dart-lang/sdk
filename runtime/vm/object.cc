@@ -684,8 +684,6 @@ void Object::InitVtables() {
     builtin_vtables_[kTypedData##clazz##Cid] = fake_internal_handle.vtable();  \
     TypedDataView fake_view_handle;                                            \
     builtin_vtables_[kTypedData##clazz##ViewCid] = fake_view_handle.vtable();  \
-    builtin_vtables_[kUnmodifiableTypedData##clazz##ViewCid] =                 \
-        fake_view_handle.vtable();                                             \
     ExternalTypedData fake_external_handle;                                    \
     builtin_vtables_[kExternalTypedData##clazz##Cid] =                         \
         fake_external_handle.vtable();                                         \
@@ -696,7 +694,6 @@ void Object::InitVtables() {
   {
     TypedDataView fake_handle;
     builtin_vtables_[kByteDataViewCid] = fake_handle.vtable();
-    builtin_vtables_[kUnmodifiableByteDataViewCid] = fake_handle.vtable();
   }
 
   {
@@ -2115,20 +2112,12 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
   cls =                                                                        \
       Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid, isolate_group); \
   RegisterPrivateClass(cls, Symbols::_##clazz##View(), lib);                   \
-  pending_classes.Add(cls);                                                    \
-  cls = Class::NewUnmodifiableTypedDataViewClass(                              \
-      kUnmodifiableTypedData##clazz##ViewCid, isolate_group);                  \
-  RegisterPrivateClass(cls, Symbols::_Unmodifiable##clazz##View(), lib);       \
   pending_classes.Add(cls);
 
     CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
 
     cls = Class::NewTypedDataViewClass(kByteDataViewCid, isolate_group);
     RegisterPrivateClass(cls, Symbols::_ByteDataView(), lib);
-    pending_classes.Add(cls);
-    cls = Class::NewUnmodifiableTypedDataViewClass(kUnmodifiableByteDataViewCid,
-                                                   isolate_group);
-    RegisterPrivateClass(cls, Symbols::_UnmodifiableByteDataView(), lib);
     pending_classes.Add(cls);
 
 #undef REGISTER_TYPED_DATA_VIEW_CLASS
@@ -2513,15 +2502,10 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
 #undef REGISTER_TYPED_DATA_CLASS
 #define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
-  cls =                                                                        \
-      Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid, isolate_group); \
-  cls = Class::NewUnmodifiableTypedDataViewClass(                              \
-      kUnmodifiableTypedData##clazz##ViewCid, isolate_group);
+  cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid, isolate_group);
     CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
 #undef REGISTER_TYPED_DATA_VIEW_CLASS
     cls = Class::NewTypedDataViewClass(kByteDataViewCid, isolate_group);
-    cls = Class::NewUnmodifiableTypedDataViewClass(kUnmodifiableByteDataViewCid,
-                                                   isolate_group);
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid,       \
                                          isolate_group);
@@ -2893,7 +2877,6 @@ bool Class::HasCompressedPointers() const {
   case kTypedData##clazz##Cid:                                                 \
     return dart::TypedData::ContainsCompressedPointers();                      \
   case kTypedData##clazz##ViewCid:                                             \
-  case kUnmodifiableTypedData##clazz##ViewCid:                                 \
     return dart::TypedDataView::ContainsCompressedPointers();                  \
   case kExternalTypedData##clazz##Cid:                                         \
     return dart::ExternalTypedData::ContainsCompressedPointers();
@@ -4915,26 +4898,6 @@ ClassPtr Class::NewTypedDataClass(intptr_t class_id,
 ClassPtr Class::NewTypedDataViewClass(intptr_t class_id,
                                       IsolateGroup* isolate_group) {
   ASSERT(IsTypedDataViewClassId(class_id));
-  const intptr_t host_instance_size = TypedDataView::InstanceSize();
-  const intptr_t target_instance_size = compiler::target::RoundedAllocationSize(
-      RTN::TypedDataView::InstanceSize());
-  Class& result = Class::Handle(New<TypedDataView, RTN::TypedDataView>(
-      class_id, isolate_group, /*register_class=*/false));
-  result.set_instance_size(host_instance_size, target_instance_size);
-
-  const intptr_t host_next_field_offset = TypedDataView::NextFieldOffset();
-  const intptr_t target_next_field_offset =
-      RTN::TypedDataView::NextFieldOffset();
-  result.set_next_field_offset(host_next_field_offset,
-                               target_next_field_offset);
-  result.set_is_prefinalized();
-  isolate_group->class_table()->Register(result);
-  return result.ptr();
-}
-
-ClassPtr Class::NewUnmodifiableTypedDataViewClass(intptr_t class_id,
-                                                  IsolateGroup* isolate_group) {
-  ASSERT(IsUnmodifiableTypedDataViewClassId(class_id));
   const intptr_t host_instance_size = TypedDataView::InstanceSize();
   const intptr_t target_instance_size = compiler::target::RoundedAllocationSize(
       RTN::TypedDataView::InstanceSize());
@@ -8183,7 +8146,7 @@ void Function::SetIsOptimizable(bool value) const {
 
 bool Function::ForceOptimize() const {
   return RecognizedKindForceOptimize() || IsFfiTrampoline() ||
-         IsTypedDataViewFactory() || IsUnmodifiableTypedDataViewFactory();
+         IsTypedDataViewFactory();
 }
 
 bool Function::RecognizedKindForceOptimize() const {
@@ -11361,7 +11324,6 @@ static intptr_t GetListLength(const Object& value) {
 
 static intptr_t GetListLengthOffset(intptr_t cid) {
   if (IsTypedDataClassId(cid) || IsTypedDataViewClassId(cid) ||
-      IsUnmodifiableTypedDataViewClassId(cid) ||
       IsExternalTypedDataClassId(cid)) {
     return TypedData::length_offset();
   } else if (cid == kArrayCid || cid == kImmutableArrayCid) {
@@ -19959,7 +19921,7 @@ bool Instance::IsValidFieldOffset(intptr_t offset) const {
 
 intptr_t Instance::ElementSizeFor(intptr_t cid) {
   if (IsExternalTypedDataClassId(cid) || IsTypedDataClassId(cid) ||
-      IsTypedDataViewClassId(cid) || IsUnmodifiableTypedDataViewClassId(cid)) {
+      IsTypedDataViewClassId(cid)) {
     return TypedDataBase::ElementSizeInBytes(cid);
   }
   switch (cid) {
@@ -25347,8 +25309,14 @@ TypedDataPtr TypedData::New(intptr_t class_id,
 }
 
 const char* TypedData::ToCString() const {
-  const Class& cls = Class::Handle(clazz());
-  return cls.ScrubbedNameCString();
+  switch (GetClassId()) {
+#define CASE_TYPED_DATA_CLASS(clazz)                                           \
+  case kTypedData##clazz##Cid:                                                 \
+    return #clazz;
+    CLASS_LIST_TYPED_DATA(CASE_TYPED_DATA_CLASS);
+#undef CASE_TYPED_DATA_CLASS
+  }
+  return "TypedData";
 }
 
 FinalizablePersistentHandle* ExternalTypedData::AddFinalizer(
@@ -25426,13 +25394,12 @@ const char* TypedDataBase::ToCString() const {
 }
 
 const char* TypedDataView::ToCString() const {
-  const Class& cls = Class::Handle(clazz());
-  return cls.ScrubbedNameCString();
+  auto zone = Thread::Current()->zone();
+  return OS::SCreate(zone, "TypedDataView(cid: %" Pd ")", GetClassId());
 }
 
 const char* ExternalTypedData::ToCString() const {
-  const Class& cls = Class::Handle(clazz());
-  return cls.ScrubbedNameCString();
+  return "ExternalTypedData";
 }
 
 PointerPtr Pointer::New(const AbstractType& type_arg,

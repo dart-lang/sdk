@@ -203,8 +203,6 @@ class ObjectPointerVisitor;
   RW(Code, null_cast_error_stub_without_fpu_regs_stub)                         \
   RW(Code, range_error_stub_with_fpu_regs_stub)                                \
   RW(Code, range_error_stub_without_fpu_regs_stub)                             \
-  RW(Code, write_error_stub_with_fpu_regs_stub)                                \
-  RW(Code, write_error_stub_without_fpu_regs_stub)                             \
   RW(Code, allocate_mint_with_fpu_regs_stub)                                   \
   RW(Code, allocate_mint_without_fpu_regs_stub)                                \
   RW(Code, stack_overflow_stub_with_fpu_regs_stub)                             \
@@ -293,8 +291,6 @@ class ObjectPointerVisitor;
      NullCastErrorSharedWithoutFPURegs)                                        \
   DO(range_error_stub_with_fpu_regs_stub, RangeErrorSharedWithFPURegs)         \
   DO(range_error_stub_without_fpu_regs_stub, RangeErrorSharedWithoutFPURegs)   \
-  DO(write_error_stub_with_fpu_regs_stub, WriteErrorSharedWithFPURegs)         \
-  DO(write_error_stub_without_fpu_regs_stub, WriteErrorSharedWithoutFPURegs)   \
   DO(allocate_mint_with_fpu_regs_stub, AllocateMintSharedWithFPURegs)          \
   DO(allocate_mint_without_fpu_regs_stub, AllocateMintSharedWithoutFPURegs)    \
   DO(stack_overflow_stub_with_fpu_regs_stub, StackOverflowSharedWithFPURegs)   \
