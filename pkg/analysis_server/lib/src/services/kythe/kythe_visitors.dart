@@ -14,7 +14,7 @@ import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show KytheEntry, KytheVName;
@@ -85,7 +85,7 @@ String _getPath(ResourceProvider provider, Element? e,
   }
 
   var path = source.fullName;
-  var bazelWorkspace = BazelWorkspace.find(provider, path);
+  var bazelWorkspace = BlazeWorkspace.find(provider, path);
   if (bazelWorkspace != null) {
     return provider.pathContext.relative(path, from: bazelWorkspace.root);
   }

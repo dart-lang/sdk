@@ -74,8 +74,8 @@ mixin ResourceProviderMixin {
     return newAnalysisOptionsYamlFile(directoryPath, content);
   }
 
-  File newBazelBuildFile(String directoryPath, String content) {
-    String path = join(directoryPath, file_paths.bazelBuild);
+  File newBlazeBuildFile(String directoryPath, String content) {
+    String path = join(directoryPath, file_paths.blazeBuild);
     return newFile(path, content);
   }
 

@@ -211,7 +211,7 @@ class DeclarationsContext {
     }
 
     var contextPathList = <String>[];
-    if (!_analysisContext.contextRoot.workspace.isBazel) {
+    if (!_analysisContext.contextRoot.workspace.isBlaze) {
       _Package? package;
       for (var candidatePackage in _packages) {
         if (candidatePackage.contains(path)) {
@@ -341,7 +341,7 @@ class DeclarationsContext {
     var pubPathPrefixToPathList = <String, List<String>>{};
 
     for (var path in _analysisContext.contextRoot.analyzedFiles()) {
-      if (file_paths.isBazelBuild(pathContext, path)) {
+      if (file_paths.isBlazeBuild(pathContext, path)) {
         var file = _tracker._resourceProvider.getFile(path);
         var packageFolder = file.parent;
         _packages.add(_Package(packageFolder));

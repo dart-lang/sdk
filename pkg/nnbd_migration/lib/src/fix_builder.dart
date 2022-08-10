@@ -334,9 +334,9 @@ class MigrationResolutionHooksImpl
       _flowAnalysis;
 
   /// Deferred processing that should be performed once we have finished
-  /// evaluating the type of a method invocation.
-  final Map<MethodInvocation, DartType Function(DartType)>
-      _deferredMethodInvocationProcessing = {};
+  /// evaluating the type of an expression.
+  final Map<Expression, DartType Function(DartType)>
+      _deferredExpressionProcessing = {};
 
   final Map<Expression, DartType?> _contextTypes = {};
 
@@ -598,6 +598,32 @@ class MigrationResolutionHooksImpl
 
   DartType _addCastOrNullCheck(
       Expression node, DartType expressionType, DartType contextType) {
+    var expressionFutureTypeArgument = _getFutureTypeArgument(expressionType);
+    var contextFutureOrTypeArgument = _getFutureOrTypeArgument(contextType);
+    var parent = node.parent;
+    if (parent is AwaitExpression &&
+        expressionFutureTypeArgument != null &&
+        contextFutureOrTypeArgument != null) {
+      // `node` is an expression inside an await expression, and is a Future of
+      // a nullable type. The context type is a FutureOr...
+      var nonNullType = _fixBuilder._typeSystem
+          .promoteToNonNull(expressionFutureTypeArgument);
+      if (_fixBuilder._typeSystem.isSubtypeOf(nonNullType, contextType)) {
+        // ... and a null-check will get us where we need to be; add a
+        // null-check to the outer await, instead of adding a cast to FutureOr
+        // inside the await.
+        var change = _createExpressionChange(
+            parent, expressionFutureTypeArgument, contextType);
+        var checks = _fixBuilder._variables!
+            .expressionChecks(_fixBuilder.source, parent);
+        var info = AtomicEditInfo(change.description, checks?.edges ?? {});
+        (_fixBuilder._getChange(parent) as NodeChangeForExpression)
+            .addExpressionChange(change, info);
+        _deferredExpressionProcessing[parent] = (_) => change.resultType;
+        return expressionType;
+      }
+    }
+
     var checks =
         _fixBuilder._variables!.expressionChecks(_fixBuilder.source, node);
     var change = _createExpressionChange(node, expressionType, contextType);
@@ -682,6 +708,16 @@ class MigrationResolutionHooksImpl
     return finalType as InterfaceType;
   }
 
+  DartType? _getFutureOrTypeArgument(DartType type) {
+    if (type is InterfaceType && type.isDartAsyncFutureOr) {
+      var typeArguments = type.typeArguments;
+      if (typeArguments.isNotEmpty) {
+        return typeArguments.first;
+      }
+    }
+    return null;
+  }
+
   DartType? _getFutureTypeArgument(DartType type) {
     if (type is InterfaceType && type.isDartAsyncFuture) {
       var typeArguments = type.typeArguments;
@@ -718,11 +754,9 @@ class MigrationResolutionHooksImpl
 
   DartType _modifyRValueType(Expression node, DartType type,
       {DartType? context}) {
-    if (node is MethodInvocation) {
-      var deferredProcessing = _deferredMethodInvocationProcessing.remove(node);
-      if (deferredProcessing != null) {
-        type = deferredProcessing(type);
-      }
+    var deferredProcessing = _deferredExpressionProcessing.remove(node);
+    if (deferredProcessing != null) {
+      type = deferredProcessing(type);
     }
     var hint =
         _fixBuilder._variables!.getNullCheckHint(_fixBuilder.source, node);
@@ -860,7 +894,7 @@ class MigrationResolutionHooksImpl
       (_fixBuilder._getChange(transformationInfo.methodInvocation.argumentList)
               as NodeChangeForArgumentList)
           .dropArgument(transformationInfo.orElseArgument, info);
-      _deferredMethodInvocationProcessing[transformationInfo.methodInvocation] =
+      _deferredExpressionProcessing[transformationInfo.methodInvocation] =
           (methodInvocationType) => _fixBuilder._typeSystem
               .makeNullable(methodInvocationType as TypeImpl);
       return type;

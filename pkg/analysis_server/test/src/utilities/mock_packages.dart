@@ -39,13 +39,13 @@ void _cacheFiles(Map<String, String> cachedFiles) {
 
 /// Helper for copying files from "tests/mock_packages" to memory file system
 /// for Bazel.
-class BazelMockPackages {
-  static final BazelMockPackages instance = BazelMockPackages._();
+class BlazeMockPackages {
+  static final BlazeMockPackages instance = BlazeMockPackages._();
 
   /// The mapping from relative Posix paths of files to the file contents.
   final Map<String, String> _cachedFiles = {};
 
-  BazelMockPackages._() {
+  BlazeMockPackages._() {
     _cacheFiles(_cachedFiles);
   }
 

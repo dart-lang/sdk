@@ -21,7 +21,7 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/basic.dart';
-import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
@@ -89,7 +89,7 @@ class AnalysisOptionsFileConfig {
   }
 }
 
-class BazelWorkspaceResolutionTest extends ContextResolutionTest {
+class BlazeWorkspaceResolutionTest extends ContextResolutionTest {
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
@@ -116,7 +116,7 @@ class BazelWorkspaceResolutionTest extends ContextResolutionTest {
   @override
   void verifyCreatedCollection() {
     super.verifyCreatedCollection();
-    assertBazelWorkspaceFor(testFile);
+    assertBlazeWorkspaceFor(testFile);
   }
 }
 
@@ -163,9 +163,9 @@ abstract class ContextResolutionTest
     expect(workspace, TypeMatcher<BasicWorkspace>());
   }
 
-  void assertBazelWorkspaceFor(File file) {
+  void assertBlazeWorkspaceFor(File file) {
     var workspace = contextFor(file).contextRoot.workspace;
-    expect(workspace, TypeMatcher<BazelWorkspace>());
+    expect(workspace, TypeMatcher<BlazeWorkspace>());
   }
 
   void assertDriverStateString(

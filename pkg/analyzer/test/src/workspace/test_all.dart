@@ -5,8 +5,8 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'basic_test.dart' as basic;
-import 'bazel_test.dart' as bazel;
-import 'bazel_watcher_test.dart' as bazel_watcher;
+import 'blaze_test.dart' as blaze;
+import 'blaze_watcher_test.dart' as blaze_watcher;
 import 'gn_test.dart' as gn;
 import 'package_build_test.dart' as package_build;
 import 'pub_test.dart' as pub;
@@ -14,8 +14,8 @@ import 'pub_test.dart' as pub;
 main() {
   defineReflectiveSuite(() {
     basic.main();
-    bazel.main();
-    bazel_watcher.main();
+    blaze.main();
+    blaze_watcher.main();
     gn.main();
     package_build.main();
     pub.main();

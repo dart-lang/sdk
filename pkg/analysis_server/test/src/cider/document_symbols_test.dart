@@ -146,7 +146,7 @@ R fb<R, P>(P p) {}
   }
 
   void test_isTest_isTestGroup() async {
-    BazelMockPackages.instance.addMeta(resourceProvider);
+    BlazeMockPackages.instance.addMeta(resourceProvider);
 
     var outline = await _compute('''
 import 'package:meta/meta.dart';

@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer/src/workspace/bazel.dart';
-import 'package:analyzer/src/workspace/bazel_watcher.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
+import 'package:analyzer/src/workspace/blaze_watcher.dart';
 import 'package:async/async.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -15,15 +15,15 @@ import 'package:watcher/watcher.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BazelWatcherTest);
+    defineReflectiveTests(BlazeWatcherTest);
   });
 }
 
 @reflectiveTest
-class BazelWatcherTest with ResourceProviderMixin {
-  late final BazelWorkspace workspace;
+class BlazeWatcherTest with ResourceProviderMixin {
+  late final BlazeWorkspace workspace;
 
-  void test_bazelFileWatcher() async {
+  void test_blazeFileWatcher() async {
     _addResources([
       '/workspace/WORKSPACE',
     ]);
@@ -31,7 +31,7 @@ class BazelWatcherTest with ResourceProviderMixin {
       convertPath('/workspace/bazel-bin/my/module/test1.dart'),
       convertPath('/workspace/bazel-genfiles/my/module/test1.dart'),
     ];
-    var watcher = BazelFilePoller(resourceProvider, candidates);
+    var watcher = BlazeFilePoller(resourceProvider, candidates);
 
     // First do some tests with the first candidate path.
     _addResources([candidates[0]]);
@@ -68,7 +68,7 @@ class BazelWatcherTest with ResourceProviderMixin {
     expect(watcher.poll(), isNull);
   }
 
-  void test_bazelFileWatcherIsolate() async {
+  void test_blazeFileWatcherIsolate() async {
     _addResources([
       '/workspace/WORKSPACE',
     ]);
@@ -86,28 +86,28 @@ class BazelWatcherTest with ResourceProviderMixin {
     // We'll directly call `handleRequest` to avoid any problems with various
     // interleavings of async functions.
     var dummyRecPort = ReceivePort();
-    var watcher = BazelFileWatcherIsolate(
+    var watcher = BlazeFileWatcherIsolate(
         dummyRecPort, recPort.sendPort, resourceProvider,
         pollTriggerFactory: (_) => trigger)
       ..start();
     var queue = StreamQueue(recPort);
 
-    await queue.next as BazelWatcherIsolateStarted;
+    await queue.next as BlazeWatcherIsolateStarted;
 
-    watcher.handleRequest(BazelWatcherStartWatching(
+    watcher.handleRequest(BlazeWatcherStartWatching(
         convertPath('/workspace'),
-        BazelSearchInfo(
+        BlazeSearchInfo(
             convertPath('/workspace/my/module/test1.dart'), candidates1)));
-    watcher.handleRequest(BazelWatcherStartWatching(
+    watcher.handleRequest(BlazeWatcherStartWatching(
         convertPath('/workspace'),
-        BazelSearchInfo(
+        BlazeSearchInfo(
             convertPath('/workspace/my/module/test2.dart'), candidates2)));
 
     // First do some tests with the first candidate path.
     _addResources([candidates1[0]]);
 
     trigger.controller.add('');
-    var events = (await queue.next as BazelWatcherEvents).events;
+    var events = (await queue.next as BlazeWatcherEvents).events;
 
     expect(events, hasLength(1));
     expect(events[0].path, candidates1[0]);
@@ -117,7 +117,7 @@ class BazelWatcherTest with ResourceProviderMixin {
     _addResources([candidates2[1]]);
 
     trigger.controller.add('');
-    events = (await queue.next as BazelWatcherEvents).events;
+    events = (await queue.next as BlazeWatcherEvents).events;
 
     expect(events, hasLength(1));
     expect(events[0].path, candidates2[1]);
@@ -125,17 +125,17 @@ class BazelWatcherTest with ResourceProviderMixin {
 
     expect(watcher.numWatchedFiles(), 2);
 
-    watcher.handleRequest(BazelWatcherStopWatching(convertPath('/workspace'),
+    watcher.handleRequest(BlazeWatcherStopWatching(convertPath('/workspace'),
         convertPath('/workspace/my/module/test1.dart')));
 
     expect(watcher.numWatchedFiles(), 1);
 
-    watcher.handleRequest(BazelWatcherStopWatching(convertPath('/workspace'),
+    watcher.handleRequest(BlazeWatcherStopWatching(convertPath('/workspace'),
         convertPath('/workspace/my/module/test2.dart')));
 
     expect(watcher.numWatchedFiles(), 0);
 
-    watcher.handleRequest(BazelWatcherShutdownIsolate());
+    watcher.handleRequest(BlazeWatcherShutdownIsolate());
     await watcher.hasFinished;
 
     // We need to do this manually, since it's the callers responsibility to
@@ -144,7 +144,7 @@ class BazelWatcherTest with ResourceProviderMixin {
     recPort.close();
   }
 
-  void test_bazelFileWatcherIsolate_multipleWorkspaces() async {
+  void test_blazeFileWatcherIsolate_multipleWorkspaces() async {
     _addResources([
       '/workspace1/WORKSPACE',
       '/workspace2/WORKSPACE',
@@ -176,28 +176,28 @@ class BazelWatcherTest with ResourceProviderMixin {
     // We'll directly call `handleRequest` to avoid any problems with various
     // interleavings of async functions.
     var dummyRecPort = ReceivePort();
-    var watcher = BazelFileWatcherIsolate(
+    var watcher = BlazeFileWatcherIsolate(
         dummyRecPort, recPort.sendPort, resourceProvider,
         pollTriggerFactory: triggerFactory)
       ..start();
     var queue = StreamQueue(recPort);
 
-    await queue.next as BazelWatcherIsolateStarted;
+    await queue.next as BlazeWatcherIsolateStarted;
 
-    watcher.handleRequest(BazelWatcherStartWatching(
+    watcher.handleRequest(BlazeWatcherStartWatching(
         convertPath('/workspace1'),
-        BazelSearchInfo(
+        BlazeSearchInfo(
             convertPath('/workspace1/my/module/test1.dart'), candidates1)));
-    watcher.handleRequest(BazelWatcherStartWatching(
+    watcher.handleRequest(BlazeWatcherStartWatching(
         convertPath('/workspace2'),
-        BazelSearchInfo(
+        BlazeSearchInfo(
             convertPath('/workspace2/my/module/test2.dart'), candidates2)));
 
     // First do some tests with the first candidate path.
     _addResources([candidates1[0]]);
 
     trigger1!.controller.add('');
-    var events = (await queue.next as BazelWatcherEvents).events;
+    var events = (await queue.next as BlazeWatcherEvents).events;
 
     expect(events, hasLength(1));
     expect(events[0].path, candidates1[0]);
@@ -207,7 +207,7 @@ class BazelWatcherTest with ResourceProviderMixin {
     _addResources([candidates2[1]]);
 
     trigger2!.controller.add('');
-    events = (await queue.next as BazelWatcherEvents).events;
+    events = (await queue.next as BlazeWatcherEvents).events;
 
     expect(events, hasLength(1));
     expect(events[0].path, candidates2[1]);
@@ -215,17 +215,17 @@ class BazelWatcherTest with ResourceProviderMixin {
 
     expect(watcher.numWatchedFiles(), 2);
 
-    watcher.handleRequest(BazelWatcherStopWatching(convertPath('/workspace1'),
+    watcher.handleRequest(BlazeWatcherStopWatching(convertPath('/workspace1'),
         convertPath('/workspace1/my/module/test1.dart')));
 
     expect(watcher.numWatchedFiles(), 1);
 
-    watcher.handleRequest(BazelWatcherStopWatching(convertPath('/workspace2'),
+    watcher.handleRequest(BlazeWatcherStopWatching(convertPath('/workspace2'),
         convertPath('/workspace2/my/module/test2.dart')));
 
     expect(watcher.numWatchedFiles(), 0);
 
-    watcher.handleRequest(BazelWatcherShutdownIsolate());
+    watcher.handleRequest(BlazeWatcherShutdownIsolate());
     await watcher.hasFinished;
 
     // We need to do this manually, since it's the callers responsibility to
@@ -234,7 +234,7 @@ class BazelWatcherTest with ResourceProviderMixin {
     recPort.close();
   }
 
-  void test_bazelFileWatcherWithFolder() async {
+  void test_blazeFileWatcherWithFolder() async {
     _addResources([
       '/workspace/WORKSPACE',
     ]);
@@ -248,7 +248,7 @@ class BazelWatcherTest with ResourceProviderMixin {
       convertPath('/workspace/bazel-out'),
       convertPath('/workspace/blaze-out'),
     ];
-    var watcher = BazelFilePoller(resourceProvider, candidates);
+    var watcher = BlazeFilePoller(resourceProvider, candidates);
 
     // First do some tests with the first candidate path.
     addFolder(candidates[0]);

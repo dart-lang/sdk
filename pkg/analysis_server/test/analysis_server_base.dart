@@ -71,7 +71,7 @@ class AnalysisOptionsFileConfig {
   }
 }
 
-class BazelWorkspaceAnalysisServerTest extends ContextResolutionTest {
+class BlazeWorkspaceAnalysisServerTest extends ContextResolutionTest {
   String get myPackageLibPath => '$myPackageRootPath/lib';
 
   String get myPackageRootPath => '$workspaceRootPath/dart/my';

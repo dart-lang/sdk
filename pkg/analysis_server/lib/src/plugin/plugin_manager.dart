@@ -18,7 +18,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/glob.dart';
-import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
@@ -438,7 +438,7 @@ class PluginManager {
       // because we won't be running pub.
       return _computeFiles(pluginFolder);
     }
-    var workspace = BazelWorkspace.find(resourceProvider, pluginFolder.path) ??
+    var workspace = BlazeWorkspace.find(resourceProvider, pluginFolder.path) ??
         GnWorkspace.find(resourceProvider, pluginFolder.path);
     if (workspace != null) {
       // Similarly, we won't be running pub if we're in a workspace because

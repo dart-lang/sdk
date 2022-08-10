@@ -19,14 +19,14 @@ import 'mocks.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AnalysisDomainBazelTest);
+    defineReflectiveTests(AnalysisDomainBlazeTest);
     defineReflectiveTests(AnalysisDomainPubTest);
     defineReflectiveTests(SetSubscriptionsTest);
   });
 }
 
 @reflectiveTest
-class AnalysisDomainBazelTest extends _AnalysisDomainTest {
+class AnalysisDomainBlazeTest extends _AnalysisDomainTest {
   String get myPackageLibPath => '$myPackageRootPath/lib';
 
   String get myPackageRootPath => '$workspaceRootPath/dart/my';
@@ -41,7 +41,7 @@ class AnalysisDomainBazelTest extends _AnalysisDomainTest {
 
   Future<void> test_fileSystem_changeFile_buildFile() async {
     // This BUILD file does not enable null safety.
-    newBazelBuildFile(myPackageRootPath, '');
+    newBlazeBuildFile(myPackageRootPath, '');
 
     newFile(myPackageTestFilePath, '''
 void f(int? a) {}
@@ -54,7 +54,7 @@ void f(int? a) {}
     assertHasErrors(myPackageTestFilePath);
 
     // Enable null safety.
-    newBazelBuildFile(myPackageRootPath, '''
+    newBlazeBuildFile(myPackageRootPath, '''
 dart_package(null_safety = True)
 ''');
 
