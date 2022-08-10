@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../util/dart_type_utilities.dart';
 
 Element? _getLeftElement(AssignmentExpression assignment) =>
     assignment.writeElement?.canonicalElement;
@@ -351,7 +350,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
         return false;
       }
 
-      for (var ref in DartTypeUtilities.traverseNodesInDFS(condition)) {
+      for (var ref in condition.traverseNodesInDFS()) {
         if (ref is SimpleIdentifier) {
           var element = ref.staticElement;
           if (element == null) {

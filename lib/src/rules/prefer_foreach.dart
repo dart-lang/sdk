@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../util/dart_type_utilities.dart';
 
 const _desc = r'Use `forEach` to only apply a function to all the elements.';
 
@@ -109,7 +108,8 @@ class _PreferForEachVisitor extends SimpleAstVisitor {
         arguments.first.canonicalElement == element &&
         (target == null ||
             target.canonicalElement != element &&
-                !DartTypeUtilities.traverseNodesInDFS(target)
+                !target
+                    .traverseNodesInDFS()
                     .map((e) => e.canonicalElement)
                     .contains(element))) {
       rule.reportLint(forEachStatement);

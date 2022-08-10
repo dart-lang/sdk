@@ -95,17 +95,16 @@ class _Visitor extends SimpleAstVisitor {
     if (method == null) {
       return;
     }
-    DartTypeUtilities.traverseNodesInDFS(method.body)
-        .whereType<SimpleIdentifier>()
-        .forEach((p) {
+    for (var p
+        in method.body.traverseNodesInDFS().whereType<SimpleIdentifier>()) {
       String debugName;
       String name;
       const debugPrefix = 'debug';
       if (p.name.startsWith(debugPrefix) &&
           p.name.length > debugPrefix.length) {
         debugName = p.name;
-        name =
-            '${p.name[debugPrefix.length].toLowerCase()}${p.name.substring(debugPrefix.length + 1)}';
+        name = '${p.name[debugPrefix.length].toLowerCase()}'
+            '${p.name.substring(debugPrefix.length + 1)}';
       } else {
         name = p.name;
         debugName =
@@ -113,7 +112,7 @@ class _Visitor extends SimpleAstVisitor {
       }
       properties.removeWhere((property) =>
           property.lexeme == debugName || property.lexeme == name);
-    });
+    }
   }
 
   bool skipForDiagnostic({Element? element, DartType? type, Token? name}) =>

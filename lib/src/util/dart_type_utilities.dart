@@ -20,7 +20,7 @@ bool canonicalElementsAreEqual(Element? element1, Element? element2) =>
 
 /// Returns whether the canonical elements from two nodes are equal.
 ///
-/// As in, [AstNodeExtension.canonicalElement], the two nodes must be
+/// As in, [NullableAstNodeExtension.canonicalElement], the two nodes must be
 /// [Expression]s in order to be compared (otherwise `false` is returned).
 ///
 /// The two nodes must both be a [SimpleIdentifier], [PrefixedIdentifier], or
@@ -77,7 +77,7 @@ bool canonicalElementsFromIdentifiersAreEqual(
 }
 
 class DartTypeUtilities {
-  @Deprecated('Replace with type.extendsClass')
+  @Deprecated('Replace with `type.extendsClass`')
   static bool extendsClass(
           DartType? type, String? className, String? library) =>
       type.extendsClass(className, library!);
@@ -279,23 +279,10 @@ class DartTypeUtilities {
     return true;
   }
 
-  /// Builds the list resulting from traversing the node in DFS and does not
-  /// include the node itself, it excludes the nodes for which the exclusion
-  /// predicate returns true, if not provided, all is included.
+  @Deprecated('Replace with `node.traverseNodesInDFS`')
   static Iterable<AstNode> traverseNodesInDFS(AstNode node,
-      {AstNodePredicate? excludeCriteria}) {
-    var nodes = <AstNode>{};
-    void recursiveCall(node) {
-      if (node is AstNode &&
-          (excludeCriteria == null || !excludeCriteria(node))) {
-        nodes.add(node);
-        node.childEntities.forEach(recursiveCall);
-      }
-    }
-
-    node.childEntities.forEach(recursiveCall);
-    return nodes;
-  }
+          {AstNodePredicate? excludeCriteria}) =>
+      node.traverseNodesInDFS(excludeCriteria: excludeCriteria);
 
   /// Returns whether [leftType] and [rightType] are _definitely_ unrelated.
   ///

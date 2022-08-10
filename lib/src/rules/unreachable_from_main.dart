@@ -11,7 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = 'Unreachable top-level members in executable libraries.';
 
@@ -89,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var declarationByElement = <Element, Declaration>{};
     for (var declaration in topDeclarations) {
-      var element = declaration.declaredElement;
+      var element = declaration.declaredElement2;
       if (element != null) {
         if (element is TopLevelVariableElement) {
           declarationByElement[element] = declaration;
@@ -105,27 +105,27 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // The following map contains for every declaration the set of the
     // declarations it references.
-    var dependencies = Map<Declaration, Set<Declaration>>.fromIterable(
-      topDeclarations,
-      value: (declaration) =>
-          DartTypeUtilities.traverseNodesInDFS(declaration as Declaration)
-              .expand((e) => [
-                    if (e is SimpleIdentifier) e.staticElement,
-                    // with `id++` staticElement of `id` is null
-                    if (e is CompoundAssignmentExpression) ...[
-                      e.readElement,
-                      e.writeElement,
-                    ],
-                  ])
-              .whereNotNull()
-              .map((e) => e.thisOrAncestorMatching((a) =>
-                  a.enclosingElement3 == null ||
-                  a.enclosingElement3 is CompilationUnitElement))
-              .map((e) => declarationByElement[e])
-              .whereNotNull()
-              .where((e) => e != declaration)
-              .toSet(),
-    );
+    var dependencies = {
+      for (var declaration in topDeclarations)
+        declaration: declaration
+            .traverseNodesInDFS()
+            .expand((e) => [
+                  if (e is SimpleIdentifier) e.staticElement,
+                  // with `id++` staticElement of `id` is null
+                  if (e is CompoundAssignmentExpression) ...[
+                    e.readElement,
+                    e.writeElement,
+                  ],
+                ])
+            .whereNotNull()
+            .map((e) => e.thisOrAncestorMatching((a) =>
+                a.enclosingElement3 == null ||
+                a.enclosingElement3 is CompilationUnitElement))
+            .map((e) => declarationByElement[e])
+            .whereNotNull()
+            .where((e) => e != declaration)
+            .toSet(),
+    };
 
     var usedMembers = entryPoints.toSet();
     // The following variable will be used to visit every reachable declaration
@@ -144,7 +144,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     var unusedMembers = topDeclarations.difference(usedMembers).where((e) {
-      var element = e.declaredElement;
+      var element = e.declaredElement2;
       return element != null &&
           element.isPublic &&
           !element.hasVisibleForTesting;

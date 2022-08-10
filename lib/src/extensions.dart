@@ -135,7 +135,7 @@ extension InterfaceElementExtension on InterfaceElement {
       name == otherName && library.name == otherLibrary;
 }
 
-extension AstNodeExtension on AstNode? {
+extension NullableAstNodeExtension on AstNode? {
   Element? get canonicalElement {
     var self = this;
     if (self is Expression) {
@@ -148,6 +148,36 @@ extension AstNodeExtension on AstNode? {
     }
     return null;
   }
+}
+
+extension AstNodeExtension on AstNode {
+  /// Builds the list resulting from traversing the node in DFS and does not
+  /// include the node itself.
+  ///
+  /// It excludes the nodes for which the [excludeCriteria] returns true. If
+  /// [excludeCriteria] is not provided, all nodes are included.
+  Iterable<AstNode> traverseNodesInDFS({AstNodePredicate? excludeCriteria}) {
+    var nodes = <AstNode>{};
+    var nodesToVisit = List.of(childNodes);
+    if (excludeCriteria == null) {
+      while (nodesToVisit.isNotEmpty) {
+        var node = nodesToVisit.removeAt(0);
+        nodes.add(node);
+        nodesToVisit.insertAll(0, node.childNodes);
+      }
+    } else {
+      while (nodesToVisit.isNotEmpty) {
+        var node = nodesToVisit.removeAt(0);
+        if (excludeCriteria(node)) continue;
+        nodes.add(node);
+        nodesToVisit.insertAll(0, node.childNodes);
+      }
+    }
+
+    return nodes;
+  }
+
+  Iterable<AstNode> get childNodes => childEntities.whereType<AstNode>();
 }
 
 extension BlockExtension on Block {

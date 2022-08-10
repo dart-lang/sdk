@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../util/dart_type_utilities.dart';
 
 const _desc = r'Cascade consecutive method invocations on the same reference.';
 
@@ -273,7 +272,7 @@ class _CascadableExpression {
     return expressionBox.isCritical &&
         criticalNodes.any((node) =>
             isCriticalNode(node) ||
-            DartTypeUtilities.traverseNodesInDFS(node).any(isCriticalNode));
+            node.traverseNodesInDFS().any(isCriticalNode));
   }
 }
 

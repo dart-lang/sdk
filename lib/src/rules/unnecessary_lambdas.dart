@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc = r"Don't create a lambda when a tear-off will do.";
@@ -42,10 +43,10 @@ bool _containsNullAwareInvocationInChain(AstNode? node) =>
         (node is IndexExpression &&
             _containsNullAwareInvocationInChain(node.target)));
 
-Iterable<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
-    DartTypeUtilities.traverseNodesInDFS(node)
-        .whereType<SimpleIdentifier>()
-        .map((e) => e.staticElement);
+Iterable<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) => node
+    .traverseNodesInDFS()
+    .whereType<SimpleIdentifier>()
+    .map((e) => e.staticElement);
 
 class UnnecessaryLambdas extends LintRule {
   UnnecessaryLambdas()

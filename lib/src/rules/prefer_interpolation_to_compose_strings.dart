@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Use interpolation to compose strings and values.';
 
@@ -61,21 +61,21 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.operator.type == TokenType.PLUS) {
       var leftOperand = node.leftOperand;
       var rightOperand = node.rightOperand;
-      //OK(#735): str1 + str2
+      // OK(#735): `str1 + str2`
       if (leftOperand is! StringLiteral && rightOperand is! StringLiteral) {
         return;
       }
-      //OK(#2490): str1 + r''
+      // OK(#2490): `str1 + r''`
       if (leftOperand is SimpleStringLiteral && leftOperand.isRaw ||
           rightOperand is SimpleStringLiteral && rightOperand.isRaw) {
         return;
       }
-      //OK: 'foo' + 'bar'
+      // OK: `'foo' + 'bar'`
       if (leftOperand is StringLiteral && rightOperand is StringLiteral) {
         return;
       }
       if (leftOperand.staticType?.isDartCoreString ?? false) {
-        DartTypeUtilities.traverseNodesInDFS(node).forEach(skippedNodes.add);
+        node.traverseNodesInDFS().forEach(skippedNodes.add);
         rule.reportLint(node);
       }
     }

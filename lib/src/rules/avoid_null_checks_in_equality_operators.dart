@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../util/dart_type_utilities.dart';
 
 const _desc = r"Don't check for null in custom == operators.";
 
@@ -121,7 +120,8 @@ class _Visitor extends SimpleAstVisitor<void> {
             (_isParameterWithQuestionQuestion(node, parameter) ||
                 _isComparingParameterWithNull(node, parameter)));
 
-    DartTypeUtilities.traverseNodesInDFS(node.body)
+    node.body
+        .traverseNodesInDFS()
         .where(checkIfParameterIsNull)
         .forEach(rule.reportLint);
   }

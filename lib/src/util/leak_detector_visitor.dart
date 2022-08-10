@@ -10,7 +10,7 @@ import 'package:meta/meta.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 _Predicate _hasConstructorFieldInitializers(
         VariableDeclaration v) =>
@@ -54,7 +54,7 @@ _VisitVariableDeclaration _buildVariableReporter(
         return;
       }
 
-      var containerNodes = DartTypeUtilities.traverseNodesInDFS(container);
+      var containerNodes = container.traverseNodesInDFS();
 
       var validators = <Iterable<AstNode>>[];
       for (var f in predicateBuilders) {

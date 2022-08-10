@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Property getter recursively returns itself.';
 
@@ -108,12 +108,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _verifyElement(AstNode node, ExecutableElement? element) {
-    var nodes = DartTypeUtilities.traverseNodesInDFS(node);
-    nodes
-        .where((n) =>
-            n is SimpleIdentifier &&
-            element == n.staticElement &&
-            (n.accept(visitor) ?? false))
+    node
+        .traverseNodesInDFS()
+        .whereType<SimpleIdentifier>()
+        .where(
+            (n) => element == n.staticElement && (n.accept(visitor) ?? false))
         .forEach(rule.reportLint);
   }
 }

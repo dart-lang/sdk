@@ -103,8 +103,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportLint(node);
       return;
     }
-    DartTypeUtilities.traverseNodesInDFS(node,
-            excludeCriteria: _isFunctionExpression)
+    node
+        .traverseNodesInDFS(excludeCriteria: _isFunctionExpression)
         .where(_isReturnNull)
         .forEach(rule.reportLint);
   }

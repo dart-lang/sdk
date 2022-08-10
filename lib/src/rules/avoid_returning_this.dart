@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../util/dart_type_utilities.dart';
 
 const _desc =
     r'Avoid returning this from methods just to enable a fluent interface.';
@@ -99,8 +98,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var body = node.body;
     if (body is BlockFunctionBody) {
-      var returnStatements = DartTypeUtilities.traverseNodesInDFS(body.block,
-              excludeCriteria: _isFunctionExpression)
+      var returnStatements = body.block
+          .traverseNodesInDFS(excludeCriteria: _isFunctionExpression)
           .where(_isReturnStatement);
       if (returnStatements.isNotEmpty && returnStatements.every(_returnsThis)) {
         rule.reportLintForToken(node.name2);
