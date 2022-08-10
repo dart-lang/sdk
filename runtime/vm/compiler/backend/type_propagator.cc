@@ -686,6 +686,11 @@ CompileType CompileType::Dynamic() {
                      &Object::dynamic_type());
 }
 
+CompileType CompileType::DynamicOrSentinel() {
+  return CompileType(kCanBeNull, kCanBeSentinel, kDynamicCid,
+                     &Object::dynamic_type());
+}
+
 CompileType CompileType::Null() {
   return CompileType(kCanBeNull, kCannotBeSentinel, kNullCid,
                      &Type::ZoneHandle(Type::NullType()));
@@ -1262,6 +1267,11 @@ CompileType ParameterInstr::ComputeType() const {
       TraceStrongModeType(this, inferred_type);
       return *inferred_type;
     }
+  }
+
+  if (block_->IsCatchBlockEntry()) {
+    // Parameter of a catch block may correspond to a late local variable.
+    return CompileType::DynamicOrSentinel();
   }
 
   return CompileType::Dynamic();
