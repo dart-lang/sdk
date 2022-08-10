@@ -10,6 +10,7 @@ import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -46,7 +47,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_blazeWorkspace() async {
     var workspacePath = '/home/user/ws';
     // Make it a Bazel workspace.
-    newFile(convertPath('$workspacePath/WORKSPACE'), '');
+    newFile('$workspacePath/${file_paths.blazeWorkspaceMarker}', '');
 
     var packagePath = '$workspacePath/team/project1';
 
@@ -816,7 +817,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     newFile(file1, '');
 
     // Make /home a bazel workspace.
-    newFile(convertPath('/home/WORKSPACE'), '');
+    newFile('/home/${file_paths.blazeWorkspaceMarker}', '');
 
     await initialize(allowEmptyRootUri: true);
 

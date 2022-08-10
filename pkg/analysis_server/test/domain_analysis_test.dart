@@ -9,6 +9,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
@@ -36,7 +37,7 @@ class AnalysisDomainBlazeTest extends _AnalysisDomainTest {
   @override
   void setUp() {
     super.setUp();
-    newFile('$workspaceRootPath/WORKSPACE', '');
+    newFile('$workspaceRootPath/${file_paths.blazeWorkspaceMarker}', '');
   }
 
   Future<void> test_fileSystem_changeFile_buildFile() async {

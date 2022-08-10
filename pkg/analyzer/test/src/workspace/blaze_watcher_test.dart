@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/blaze_watcher.dart';
 import 'package:async/async.dart';
@@ -25,7 +26,7 @@ class BlazeWatcherTest with ResourceProviderMixin {
 
   void test_blazeFileWatcher() async {
     _addResources([
-      '/workspace/WORKSPACE',
+      '/workspace/${file_paths.blazeWorkspaceMarker}',
     ]);
     var candidates = [
       convertPath('/workspace/bazel-bin/my/module/test1.dart'),
@@ -70,7 +71,7 @@ class BlazeWatcherTest with ResourceProviderMixin {
 
   void test_blazeFileWatcherIsolate() async {
     _addResources([
-      '/workspace/WORKSPACE',
+      '/workspace/${file_paths.blazeWorkspaceMarker}',
     ]);
     var candidates1 = [
       convertPath('/workspace/bazel-bin/my/module/test1.dart'),
@@ -146,8 +147,8 @@ class BlazeWatcherTest with ResourceProviderMixin {
 
   void test_blazeFileWatcherIsolate_multipleWorkspaces() async {
     _addResources([
-      '/workspace1/WORKSPACE',
-      '/workspace2/WORKSPACE',
+      '/workspace1/${file_paths.blazeWorkspaceMarker}',
+      '/workspace2/${file_paths.blazeWorkspaceMarker}',
     ]);
     var candidates1 = [
       convertPath('/workspace1/bazel-bin/my/module/test1.dart'),
@@ -236,7 +237,7 @@ class BlazeWatcherTest with ResourceProviderMixin {
 
   void test_blazeFileWatcherWithFolder() async {
     _addResources([
-      '/workspace/WORKSPACE',
+      '/workspace/${file_paths.blazeWorkspaceMarker}',
     ]);
 
     // The `_addResources`/`_deleteResources` functions recognize a folder by a

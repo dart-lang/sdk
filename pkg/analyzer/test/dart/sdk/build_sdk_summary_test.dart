@@ -10,6 +10,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -67,7 +68,7 @@ embedded_libs:
     // Pub workspace does not support SDK summaries.
     // So, we use Bazel workspace.
     const workspacePath = '/workspace';
-    newFile('$workspacePath/WORKSPACE', '');
+    newFile('$workspacePath/${file_paths.blazeWorkspaceMarker}', '');
     final myPackageRoot = getFolder('$workspacePath/dart/my');
 
     final collection = AnalysisContextCollectionImpl(
@@ -114,7 +115,7 @@ embedded_libs:
     // Pub workspace does not support SDK summaries.
     // So, we use Bazel workspace.
     const workspacePath = '/workspace';
-    newFile('$workspacePath/WORKSPACE', '');
+    newFile('$workspacePath/${file_paths.blazeWorkspaceMarker}', '');
     final myPackageRoot = getFolder('$workspacePath/dart/my');
 
     final collection = AnalysisContextCollectionImpl(

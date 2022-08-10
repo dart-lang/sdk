@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -56,7 +57,7 @@ class BlazeChangesTest extends AbstractAnalysisServerIntegrationTest {
             .resolveSymbolicLinksSync())
         .path;
     workspacePath = inTmpDir('workspace_root');
-    writeFile(inWorkspace('WORKSPACE'), '');
+    writeFile(inWorkspace(file_paths.blazeWorkspaceMarker), '');
 
     sourceDirectory = Directory(inWorkspace('third_party/dart/project'));
     sourceDirectory.createSync(recursive: true);

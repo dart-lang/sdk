@@ -17,6 +17,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
@@ -82,7 +83,7 @@ class BlazeWorkspaceAnalysisServerTest extends ContextResolutionTest {
 
   @override
   void createDefaultFiles() {
-    newFile('$workspaceRootPath/WORKSPACE', '');
+    newFile('$workspaceRootPath/${file_paths.blazeWorkspaceMarker}', '');
   }
 }
 
