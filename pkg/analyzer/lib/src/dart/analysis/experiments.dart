@@ -7,7 +7,7 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments_impl.dart';
 import 'package:meta/meta.dart';
-import 'package:pub_semver/src/version.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/src/dart/analysis/experiments_impl.dart'
     show

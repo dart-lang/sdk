@@ -18,6 +18,10 @@ analyzer:
     # require some work to reach compliance.
     # See: https://github.com/dart-lang/sdk/issues/48784
     avoid_renaming_method_parameters: ignore
+    # We sometimes name test classes with an underscore, and have a consistent
+    # practice of doing so. We do not have an problems of naming classes with
+    # snake_case, so we're not missing much by disabling it. Re-enable when we
+    # can ignore a lint rule for a certain path.
     camel_case_types: ignore
     constant_identifier_names: ignore
     hash_and_equals: ignore

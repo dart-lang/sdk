@@ -55,6 +55,10 @@ class _ExperimentsGenerator {
 // 'dart pkg/analyzer/tool/experiments/generate.dart' to update.
 
 part of 'experiments.dart';
+
+// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
+// code, as they match names declared in the source configuration files.
+// ignore_for_file: constant_identifier_names
 ''');
 
   Map<String, dynamic>? _features;

@@ -2017,27 +2017,26 @@ class _InitializersEvaluationResult {
 /// [_InstanceCreationEvaluator.evaluate] is the main entrypoint.
 class _InstanceCreationEvaluator {
   /// Parameter to "fromEnvironment" methods that denotes the default value.
-  static const String _default_value_param = 'defaultValue';
+  static const String _defaultValueParam = 'defaultValue';
 
   /// Source of RegExp matching declarable operator names.
   /// From sdk/lib/internal/symbol.dart.
-  static const String _operator_pattern =
+  static const String _operatorPattern =
       "(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
 
   /// Source of RegExp matching any public identifier.
   /// From sdk/lib/internal/symbol.dart.
-  static const String _public_identifier_pattern =
-      "(?!$_reserved_word_pattern\\b(?!\\\$))[a-zA-Z\$][\\w\$]*";
+  static const String _publicIdentifierPattern =
+      "(?!$_reservedWordPattern\\b(?!\\\$))[a-zA-Z\$][\\w\$]*";
 
   /// RegExp that validates a non-empty non-private symbol.
   /// From sdk/lib/internal/symbol.dart.
-  static final RegExp _public_symbol_pattern =
-      RegExp('^(?:$_operator_pattern\$|'
-          '$_public_identifier_pattern(?:=?\$|[.](?!\$)))+?\$');
+  static final RegExp _publicSymbolPattern = RegExp('^(?:$_operatorPattern\$|'
+      '$_publicIdentifierPattern(?:=?\$|[.](?!\$)))+?\$');
 
   /// Source of RegExp matching Dart reserved words.
   /// From sdk/lib/internal/symbol.dart.
-  static const String _reserved_word_pattern =
+  static const String _reservedWordPattern =
       "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|"
       "d(?:efault|o)|e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|"
       "i[fns]|n(?:ew|ull)|ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|"
@@ -2285,10 +2284,10 @@ class _InstanceCreationEvaluator {
     if (argumentCount == 2) {
       var secondArgument = arguments[1];
       if (secondArgument is NamedExpression) {
-        if (!(secondArgument.name.label.name == _default_value_param)) {
+        if (!(secondArgument.name.label.name == _defaultValueParam)) {
           return false;
         }
-        var defaultValueType = _namedValues[_default_value_param]!.type;
+        var defaultValueType = _namedValues[_defaultValueParam]!.type;
         if (!(defaultValueType == expectedDefaultValueType ||
             defaultValueType == typeProvider.nullType)) {
           return false;
@@ -2653,7 +2652,7 @@ class _InstanceCreationEvaluator {
   /// Determine whether the given string is a valid name for a public symbol
   /// (i.e. whether it is allowed for a call to the Symbol constructor).
   static bool _isValidPublicSymbol(String name) =>
-      name.isEmpty || name == "void" || _public_symbol_pattern.hasMatch(name);
+      name.isEmpty || name == "void" || _publicSymbolPattern.hasMatch(name);
 }
 
 extension RuntimeExtensions on TypeSystemImpl {

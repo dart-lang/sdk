@@ -12,7 +12,7 @@ import 'package:yaml/yaml.dart';
 /// will be added to the [embedderYamls] map.
 class EmbedderYamlLocator {
   /// The name of the embedder files being searched for.
-  static const String EMBEDDER_FILE_NAME = '_embedder.yaml';
+  static const String _embedderFileName = '_embedder.yaml';
 
   /// A mapping from a package's library directory to the parsed YamlMap.
   final Map<Folder, YamlMap> embedderYamls = HashMap<Folder, YamlMap>();
@@ -74,10 +74,10 @@ class EmbedderYamlLocator {
     packageMap.values.forEach(_processPackage);
   }
 
-  /// Read and return the contents of [libDir]/[EMBEDDER_FILE_NAME], or `null`
+  /// Read and return the contents of [libDir]/[_embedderFileName], or `null`
   /// if the file doesn't exist.
   String? _readEmbedderYaml(Folder libDir) {
-    var file = libDir.getChildAssumingFile(EMBEDDER_FILE_NAME);
+    var file = libDir.getChildAssumingFile(_embedderFileName);
     try {
       return file.readAsStringSync();
     } on FileSystemException {

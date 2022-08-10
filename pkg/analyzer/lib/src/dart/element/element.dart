@@ -1899,120 +1899,119 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
 class ElementAnnotationImpl implements ElementAnnotation {
   /// The name of the top-level variable used to mark that a function always
   /// throws, for dead code purposes.
-  static const String _ALWAYS_THROWS_VARIABLE_NAME = "alwaysThrows";
+  static const String _alwaysThrowsVariableName = 'alwaysThrows';
 
   /// The name of the class used to mark an element as being deprecated.
-  static const String _DEPRECATED_CLASS_NAME = "Deprecated";
+  static const String _deprecatedClassName = 'Deprecated';
 
   /// The name of the top-level variable used to mark an element as being
   /// deprecated.
-  static const String _DEPRECATED_VARIABLE_NAME = "deprecated";
+  static const String _deprecatedVariableName = 'deprecated';
 
   /// The name of the top-level variable used to mark an element as not to be
   /// stored.
-  static const String _DO_NOT_STORE_VARIABLE_NAME = "doNotStore";
+  static const String _doNotStoreVariableName = 'doNotStore';
 
   /// The name of the top-level variable used to mark a method as being a
   /// factory.
-  static const String _FACTORY_VARIABLE_NAME = "factory";
+  static const String _factoryVariableName = 'factory';
 
   /// The name of the top-level variable used to mark a class and its subclasses
   /// as being immutable.
-  static const String _IMMUTABLE_VARIABLE_NAME = "immutable";
+  static const String _immutableVariableName = 'immutable';
 
   /// The name of the top-level variable used to mark an element as being
   /// internal to its package.
-  static const String _INTERNAL_VARIABLE_NAME = "internal";
+  static const String _internalVariableName = 'internal';
 
   /// The name of the top-level variable used to mark a constructor as being
   /// literal.
-  static const String _LITERAL_VARIABLE_NAME = "literal";
+  static const String _literalVariableName = 'literal';
 
   /// The name of the top-level variable used to mark a type as having
   /// "optional" type arguments.
-  static const String _OPTIONAL_TYPE_ARGS_VARIABLE_NAME = "optionalTypeArgs";
+  static const String _optionalTypeArgsVariableName = 'optionalTypeArgs';
 
   /// The name of the top-level variable used to mark a function as running
   /// a single test.
-  static const String _IS_TEST_VARIABLE_NAME = "isTest";
+  static const String _isTestVariableName = 'isTest';
 
   /// The name of the top-level variable used to mark a function as running
   /// a test group.
-  static const String _IS_TEST_GROUP_VARIABLE_NAME = "isTestGroup";
+  static const String _isTestGroupVariableName = 'isTestGroup';
 
   /// The name of the class used to JS annotate an element.
-  static const String _JS_CLASS_NAME = "JS";
+  static const String _jsClassName = 'JS';
 
   /// The name of `js` library, used to define JS annotations.
-  static const String _JS_LIB_NAME = "js";
+  static const String _jsLibName = 'js';
 
   /// The name of `meta` library, used to define analysis annotations.
-  static const String _META_LIB_NAME = "meta";
+  static const String _metaLibName = 'meta';
 
   /// The name of `meta_meta` library, used to define annotations for other
   /// annotations.
-  static const String _META_META_LIB_NAME = "meta_meta";
+  static const String _metaMetaLibName = 'meta_meta';
 
   /// The name of the top-level variable used to mark a method as requiring
   /// subclasses to override this method.
-  static const String _MUST_BE_OVERRIDDEN = "mustBeOverridden";
+  static const String _mustBeOverridden = 'mustBeOverridden';
 
   /// The name of the top-level variable used to mark a method as requiring
   /// overriders to call super.
-  static const String _MUST_CALL_SUPER_VARIABLE_NAME = "mustCallSuper";
+  static const String _mustCallSuperVariableName = 'mustCallSuper';
 
   /// The name of `angular.meta` library, used to define angular analysis
   /// annotations.
-  static const String _NG_META_LIB_NAME = "angular.meta";
+  static const String _angularMetaLibName = 'angular.meta';
 
   /// The name of the top-level variable used to mark a member as being nonVirtual.
-  static const String _NON_VIRTUAL_VARIABLE_NAME = "nonVirtual";
+  static const String _nonVirtualVariableName = 'nonVirtual';
 
   /// The name of the top-level variable used to mark a method as being expected
   /// to override an inherited method.
-  static const String _OVERRIDE_VARIABLE_NAME = "override";
+  static const String _overrideVariableName = 'override';
 
   /// The name of the top-level variable used to mark a method as being
   /// protected.
-  static const String _PROTECTED_VARIABLE_NAME = "protected";
+  static const String _protectedVariableName = 'protected';
 
   /// The name of the top-level variable used to mark a class as implementing a
   /// proxy object.
-  static const String PROXY_VARIABLE_NAME = "proxy";
+  static const String _proxyVariableName = 'proxy';
 
   /// The name of the class used to mark a parameter as being required.
-  static const String _REQUIRED_CLASS_NAME = "Required";
+  static const String _requiredClassName = 'Required';
 
   /// The name of the top-level variable used to mark a parameter as being
   /// required.
-  static const String _REQUIRED_VARIABLE_NAME = "required";
+  static const String _requiredVariableName = 'required';
 
   /// The name of the top-level variable used to mark a class as being sealed.
-  static const String _SEALED_VARIABLE_NAME = "sealed";
+  static const String _sealedVariableName = 'sealed';
 
   /// The name of the class used to annotate a class as an annotation with a
   /// specific set of target element kinds.
-  static const String _TARGET_CLASS_NAME = 'Target';
+  static const String _targetClassName = 'Target';
 
   /// The name of the class used to mark a returned element as requiring use.
-  static const String _USE_RESULT_CLASS_NAME = "UseResult";
+  static const String _useResultClassName = 'UseResult';
 
   /// The name of the top-level variable used to mark a returned element as
   /// requiring use.
-  static const String _USE_RESULT_VARIABLE_NAME = "useResult";
+  static const String _useResultVariableName = 'useResult';
 
   /// The name of the top-level variable used to mark a member as being visible
   /// for overriding only.
-  static const String _VISIBLE_FOR_OVERRIDING_NAME = 'visibleForOverriding';
+  static const String _visibleForOverridingName = 'visibleForOverriding';
 
   /// The name of the top-level variable used to mark a method as being
   /// visible for templates.
-  static const String _VISIBLE_FOR_TEMPLATE_VARIABLE_NAME =
-      "visibleForTemplate";
+  static const String _visibleForTemplateVariableName = 'visibleForTemplate';
 
   /// The name of the top-level variable used to mark a method as being
   /// visible for testing.
-  static const String _VISIBLE_FOR_TESTING_VARIABLE_NAME = "visibleForTesting";
+  static const String _visibleForTestingVariableName = 'visibleForTesting';
 
   @override
   Element? element;
@@ -2041,7 +2040,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   AnalysisContext get context => compilationUnit.library.context;
 
   @override
-  bool get isAlwaysThrows => _isPackageMetaGetter(_ALWAYS_THROWS_VARIABLE_NAME);
+  bool get isAlwaysThrows => _isPackageMetaGetter(_alwaysThrowsVariableName);
 
   @override
   bool get isConstantEvaluated => evaluationResult != null;
@@ -2051,55 +2050,54 @@ class ElementAnnotationImpl implements ElementAnnotation {
     final element = this.element;
     if (element is ConstructorElement) {
       return element.library.isDartCore &&
-          element.enclosingElement3.name == _DEPRECATED_CLASS_NAME;
+          element.enclosingElement3.name == _deprecatedClassName;
     } else if (element is PropertyAccessorElement) {
       return element.library.isDartCore &&
-          element.name == _DEPRECATED_VARIABLE_NAME;
+          element.name == _deprecatedVariableName;
     }
     return false;
   }
 
   @override
-  bool get isDoNotStore => _isPackageMetaGetter(_DO_NOT_STORE_VARIABLE_NAME);
+  bool get isDoNotStore => _isPackageMetaGetter(_doNotStoreVariableName);
 
   @override
-  bool get isFactory => _isPackageMetaGetter(_FACTORY_VARIABLE_NAME);
+  bool get isFactory => _isPackageMetaGetter(_factoryVariableName);
 
   @override
-  bool get isImmutable => _isPackageMetaGetter(_IMMUTABLE_VARIABLE_NAME);
+  bool get isImmutable => _isPackageMetaGetter(_immutableVariableName);
 
   @override
-  bool get isInternal => _isPackageMetaGetter(_INTERNAL_VARIABLE_NAME);
+  bool get isInternal => _isPackageMetaGetter(_internalVariableName);
 
   @override
-  bool get isIsTest => _isPackageMetaGetter(_IS_TEST_VARIABLE_NAME);
+  bool get isIsTest => _isPackageMetaGetter(_isTestVariableName);
 
   @override
-  bool get isIsTestGroup => _isPackageMetaGetter(_IS_TEST_GROUP_VARIABLE_NAME);
+  bool get isIsTestGroup => _isPackageMetaGetter(_isTestGroupVariableName);
 
   @override
   bool get isJS =>
-      _isConstructor(libraryName: _JS_LIB_NAME, className: _JS_CLASS_NAME);
+      _isConstructor(libraryName: _jsLibName, className: _jsClassName);
 
   @override
-  bool get isLiteral => _isPackageMetaGetter(_LITERAL_VARIABLE_NAME);
+  bool get isLiteral => _isPackageMetaGetter(_literalVariableName);
 
   @override
-  bool get isMustBeOverridden => _isPackageMetaGetter(_MUST_BE_OVERRIDDEN);
+  bool get isMustBeOverridden => _isPackageMetaGetter(_mustBeOverridden);
 
   @override
-  bool get isMustCallSuper =>
-      _isPackageMetaGetter(_MUST_CALL_SUPER_VARIABLE_NAME);
+  bool get isMustCallSuper => _isPackageMetaGetter(_mustCallSuperVariableName);
 
   @override
-  bool get isNonVirtual => _isPackageMetaGetter(_NON_VIRTUAL_VARIABLE_NAME);
+  bool get isNonVirtual => _isPackageMetaGetter(_nonVirtualVariableName);
 
   @override
   bool get isOptionalTypeArgs =>
-      _isPackageMetaGetter(_OPTIONAL_TYPE_ARGS_VARIABLE_NAME);
+      _isPackageMetaGetter(_optionalTypeArgsVariableName);
 
   @override
-  bool get isOverride => _isDartCoreGetter(_OVERRIDE_VARIABLE_NAME);
+  bool get isOverride => _isDartCoreGetter(_overrideVariableName);
 
   /// Return `true` if this is an annotation of the form
   /// `@pragma("vm:entry-point")`.
@@ -2113,42 +2111,41 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }
 
   @override
-  bool get isProtected => _isPackageMetaGetter(_PROTECTED_VARIABLE_NAME);
+  bool get isProtected => _isPackageMetaGetter(_protectedVariableName);
 
   @override
-  bool get isProxy => _isDartCoreGetter(PROXY_VARIABLE_NAME);
+  bool get isProxy => _isDartCoreGetter(_proxyVariableName);
 
   @override
   bool get isRequired =>
       _isConstructor(
-          libraryName: _META_LIB_NAME, className: _REQUIRED_CLASS_NAME) ||
-      _isPackageMetaGetter(_REQUIRED_VARIABLE_NAME);
+          libraryName: _metaLibName, className: _requiredClassName) ||
+      _isPackageMetaGetter(_requiredVariableName);
 
   @override
-  bool get isSealed => _isPackageMetaGetter(_SEALED_VARIABLE_NAME);
+  bool get isSealed => _isPackageMetaGetter(_sealedVariableName);
 
   @override
   bool get isTarget => _isConstructor(
-      libraryName: _META_META_LIB_NAME, className: _TARGET_CLASS_NAME);
+      libraryName: _metaMetaLibName, className: _targetClassName);
 
   @override
   bool get isUseResult =>
       _isConstructor(
-          libraryName: _META_LIB_NAME, className: _USE_RESULT_CLASS_NAME) ||
-      _isPackageMetaGetter(_USE_RESULT_VARIABLE_NAME);
+          libraryName: _metaLibName, className: _useResultClassName) ||
+      _isPackageMetaGetter(_useResultVariableName);
 
   @override
   bool get isVisibleForOverriding =>
-      _isPackageMetaGetter(_VISIBLE_FOR_OVERRIDING_NAME);
+      _isPackageMetaGetter(_visibleForOverridingName);
 
   @override
   bool get isVisibleForTemplate => _isTopGetter(
-      libraryName: _NG_META_LIB_NAME,
-      name: _VISIBLE_FOR_TEMPLATE_VARIABLE_NAME);
+      libraryName: _angularMetaLibName, name: _visibleForTemplateVariableName);
 
   @override
   bool get isVisibleForTesting =>
-      _isPackageMetaGetter(_VISIBLE_FOR_TESTING_VARIABLE_NAME);
+      _isPackageMetaGetter(_visibleForTestingVariableName);
 
   @override
   LibraryElement get library => compilationUnit.library;
@@ -2194,7 +2191,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   bool _isPackageMetaGetter(String name) {
     return _isTopGetter(
-      libraryName: _META_LIB_NAME,
+      libraryName: _metaLibName,
       name: name,
     );
   }
@@ -2845,7 +2842,7 @@ abstract class ElementImplWithFunctionType implements Element {
 /// A concrete implementation of an [ElementLocation].
 class ElementLocationImpl implements ElementLocation {
   /// The character used to separate components in the encoded form.
-  static const int _SEPARATOR_CHAR = 0x3B;
+  static const int _separatorChar = 0x3B;
 
   /// The path to the element whose location is represented by this object.
   late final List<String> _components;
@@ -2889,7 +2886,7 @@ class ElementLocationImpl implements ElementLocation {
     int length = _components.length;
     for (int i = 0; i < length; i++) {
       if (i > 0) {
-        buffer.writeCharCode(_SEPARATOR_CHAR);
+        buffer.writeCharCode(_separatorChar);
       }
       _encode(buffer, _components[i]);
     }
@@ -2932,10 +2929,10 @@ class ElementLocationImpl implements ElementLocation {
     int length = encoding.length;
     while (index < length) {
       int currentChar = encoding.codeUnitAt(index);
-      if (currentChar == _SEPARATOR_CHAR) {
+      if (currentChar == _separatorChar) {
         if (index + 1 < length &&
-            encoding.codeUnitAt(index + 1) == _SEPARATOR_CHAR) {
-          buffer.writeCharCode(_SEPARATOR_CHAR);
+            encoding.codeUnitAt(index + 1) == _separatorChar) {
+          buffer.writeCharCode(_separatorChar);
           index += 2;
         } else {
           components.add(buffer.toString());
@@ -2956,8 +2953,8 @@ class ElementLocationImpl implements ElementLocation {
     int length = component.length;
     for (int i = 0; i < length; i++) {
       int currentChar = component.codeUnitAt(i);
-      if (currentChar == _SEPARATOR_CHAR) {
-        buffer.writeCharCode(_SEPARATOR_CHAR);
+      if (currentChar == _separatorChar) {
+        buffer.writeCharCode(_separatorChar);
       }
       buffer.writeCharCode(currentChar);
     }

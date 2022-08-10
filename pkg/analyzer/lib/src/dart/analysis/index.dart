@@ -237,7 +237,7 @@ class _ElementRelationInfo {
 ///  - Call [assemble] to produce the final unit index.
 class _IndexAssembler {
   /// The string to use in place of the `null` string.
-  static const NULL_STRING = '--nullString--';
+  static const _nullString = '--nullString--';
 
   /// Map associating referenced elements with their [_ElementInfo]s.
   final Map<Element, _ElementInfo> elementMap = {};
@@ -275,7 +275,7 @@ class _IndexAssembler {
   late final _StringInfo nullString;
 
   _IndexAssembler() {
-    nullString = _getStringInfo(NULL_STRING);
+    nullString = _getStringInfo(_nullString);
   }
 
   void addElementRelation(Element element, IndexRelationKind kind, int offset,

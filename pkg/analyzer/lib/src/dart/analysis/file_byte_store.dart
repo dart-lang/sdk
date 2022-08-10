@@ -232,7 +232,7 @@ class FileByteStore implements ByteStore {
 /// So, we need to embed some validation into data itself. This class append the
 /// version and the checksum to data.
 class FileByteStoreValidator {
-  static const List<int> _VERSION = [0x01, 0x00];
+  static const List<int> _version = [0x01, 0x00];
 
   /// If the [rawBytes] have the valid version and checksum, extract and
   /// return the data from it. Otherwise return `null`.
@@ -244,7 +244,7 @@ class FileByteStoreValidator {
     int len = rawBytes.length - 4;
 
     // Check the version.
-    if (rawBytes[len + 0] != _VERSION[0] || rawBytes[len + 1] != _VERSION[1]) {
+    if (rawBytes[len + 0] != _version[0] || rawBytes[len + 1] != _version[1]) {
       return null;
     }
 
@@ -270,8 +270,8 @@ class FileByteStoreValidator {
     bytes.setRange(0, len, data);
 
     // Put the version.
-    bytes[len + 0] = _VERSION[0];
-    bytes[len + 1] = _VERSION[1];
+    bytes[len + 0] = _version[0];
+    bytes[len + 1] = _version[1];
 
     // Put the checksum of the data.
     int checksum = fletcher16(data);

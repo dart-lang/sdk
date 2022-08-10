@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:path/src/context.dart';
+import 'package:path/path.dart';
 
 /// An implementation of a URI converter based on an analysis driver.
 class DriverBasedUriConverter implements UriConverter {
