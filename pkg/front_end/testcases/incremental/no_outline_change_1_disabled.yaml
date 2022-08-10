@@ -36,6 +36,8 @@ worlds:
           Bar(this.foo);
         }
     expectedLibraryCount: 4
+    advancedInvalidation: disabled
+
   - entry: actualMain.dart
     experiments: no-alternative-invalidation-strategy
     worldType: updated

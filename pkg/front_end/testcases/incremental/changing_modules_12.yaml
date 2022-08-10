@@ -54,3 +54,4 @@ worlds:
     expectedContent:
       org-dartlang-test:///main.dart:
         - Class Foo
+    advancedInvalidation: modulesToLoad

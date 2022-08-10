@@ -20,3 +20,4 @@ worlds:
     invalidate:
       - main.dart
     expectedLibraryCount: 1
+    advancedInvalidation: problemsInLibrary

@@ -92,6 +92,8 @@ worlds:
       package:example/a.dart:
         - Procedure a
         - Field example
+    advancedInvalidation: modulesToLoad
+
   - entry: main.dart
     worldType: updated
     expectInitializeFromDill: false
@@ -125,3 +127,4 @@ worlds:
       package:example/a.dart:
         - Procedure a
         - Field example
+    advancedInvalidation: modulesToLoad

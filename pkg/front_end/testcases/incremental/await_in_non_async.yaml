@@ -16,6 +16,7 @@ worlds:
         foo() {}
     expectedLibraryCount: 1
     expectsPlatform: true
+
   - entry: main.dart
     errors: true
     warnings: false
@@ -31,3 +32,4 @@ worlds:
         foo() {}
     expectedLibraryCount: 1
     expectsPlatform: true
+    advancedInvalidation: bodiesOnly

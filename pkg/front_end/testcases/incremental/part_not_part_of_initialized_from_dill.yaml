@@ -25,6 +25,7 @@ worlds:
       lib.dart: |
         methodFromLib() {}
     expectedLibraryCount: 2
+    advancedInvalidation: problemsInLibrary
 
   - entry: main.dart
     errors: true
@@ -37,3 +38,4 @@ worlds:
       lib.dart: |
         methodFromLib() {}
     expectedLibraryCount: 2
+    advancedInvalidation: bodiesOnly

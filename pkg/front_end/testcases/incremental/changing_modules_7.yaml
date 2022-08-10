@@ -94,6 +94,8 @@ worlds:
         - Class Class3b
       package:module/lib4.dart:
         - Class Class4
+    advancedInvalidation: modulesToLoad
+
   - entry: compileme.dart
     fromComponent: true
     expectInitializeFromDill: false
@@ -146,3 +148,4 @@ worlds:
         - Class Class3b
       package:module/lib4.dart:
         - Class Class4
+    advancedInvalidation: modulesToLoad

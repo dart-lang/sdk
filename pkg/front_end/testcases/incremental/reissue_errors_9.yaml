@@ -26,6 +26,7 @@ worlds:
         }
     expectedLibraryCount: 2
     errors: false
+
   - entry: main.dart
     errors: true
     worldType: updated
@@ -48,6 +49,8 @@ worlds:
         const fooField2 = fooField;
     expectInitializeFromDill: false
     expectedLibraryCount: 4
+    advancedInvalidation: outlineChange
+
   - entry: main.dart
     errors: false
     worldType: updated
@@ -59,3 +62,4 @@ worlds:
         const fooField = const Foo(1);
     expectInitializeFromDill: false
     expectedLibraryCount: 4
+    advancedInvalidation: problemsInLibrary

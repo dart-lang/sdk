@@ -49,3 +49,4 @@ worlds:
           "packages": []
         }
     expectedLibraryCount: 1
+    advancedInvalidation: noDirectlyInvalidated

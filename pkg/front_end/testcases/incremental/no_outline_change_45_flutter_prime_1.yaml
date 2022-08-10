@@ -9,7 +9,6 @@ trackWidgetCreation: true
 target: vm
 worlds:
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         class Foo {
@@ -21,7 +20,6 @@ worlds:
     expectedLibraryCount: 1
 
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:

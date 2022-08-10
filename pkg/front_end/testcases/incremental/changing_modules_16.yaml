@@ -47,3 +47,4 @@ worlds:
         - Procedure main
       package:module/lib.dart:
         - Procedure foo
+    advancedInvalidation: modulesToLoad

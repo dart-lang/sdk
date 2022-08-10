@@ -71,3 +71,4 @@ worlds:
 
         class Foo extends Widget {}
     expectedLibraryCount: 3
+    advancedInvalidation: bodiesOnly

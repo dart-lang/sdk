@@ -7,7 +7,6 @@
 type: newworld
 worlds:
   - entry: structs.dart
-    experiments: alternative-invalidation-strategy
     errors: true
     sources:
       structs.dart: |
@@ -21,7 +20,6 @@ worlds:
     expectedLibraryCount: 1
 
   - entry: structs.dart
-    experiments: alternative-invalidation-strategy
     errors: true
     worldType: updated
     expectInitializeFromDill: false

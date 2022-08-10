@@ -43,3 +43,4 @@ worlds:
     invalidate:
       - main.dart
     expectedLibraryCount: 2
+    advancedInvalidation: bodiesOnly

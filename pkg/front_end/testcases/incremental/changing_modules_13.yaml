@@ -43,3 +43,4 @@ worlds:
     modules:
       - module
     expectedLibraryCount: 2
+    advancedInvalidation: modulesToLoad

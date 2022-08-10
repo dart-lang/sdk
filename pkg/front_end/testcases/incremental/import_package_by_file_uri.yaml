@@ -8,7 +8,6 @@
 type: newworld
 worlds:
   - entry: package:foo/main.dart
-    experiments: alternative-invalidation-strategy
     checkEntries: false
     sources:
       .dart_tool/package_config.json: |
@@ -29,7 +28,6 @@ worlds:
     expectedLibraryCount: 3 # main twice --- one for the package and one for the file uri.
 
   - entry: package:foo/main.dart
-    experiments: alternative-invalidation-strategy
     checkEntries: false
     worldType: updated
     expectInitializeFromDill: false

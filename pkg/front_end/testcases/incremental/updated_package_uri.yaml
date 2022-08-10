@@ -40,6 +40,7 @@ worlds:
           ]
         }
     expectedLibraryCount: 3
+
   - entry: main.dart
     worldType: updated
     expectInitializeFromDill: false
@@ -60,3 +61,4 @@ worlds:
         }
     packageConfigFile: .dart_tool/package_config2.json
     expectedLibraryCount: 2
+    advancedInvalidation: packageUpdate

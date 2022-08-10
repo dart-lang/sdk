@@ -28,6 +28,7 @@ worlds:
           print("hello");
         }
     expectedLibraryCount: 2
+    advancedInvalidation: outlineChange
   - entry: main.dart
     expectInitializeFromDill: false
     worldType: updated
@@ -41,3 +42,4 @@ worlds:
           prefix.method();
         }
     expectedLibraryCount: 2
+    advancedInvalidation: bodiesOnly

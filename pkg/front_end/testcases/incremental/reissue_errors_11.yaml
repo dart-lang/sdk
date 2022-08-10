@@ -25,6 +25,7 @@ worlds:
         }
     expectedLibraryCount: 2
     errors: false
+
   - entry: main.dart
     errors: true
     worldType: updated
@@ -47,6 +48,8 @@ worlds:
         bar() {}
     expectInitializeFromDill: false
     expectedLibraryCount: 3
+    advancedInvalidation: outlineChange
+
   - entry: main.dart
     errors: false
     worldType: updated
@@ -62,3 +65,4 @@ worlds:
         bar() {}
     expectInitializeFromDill: false
     expectedLibraryCount: 3
+    advancedInvalidation: problemsInLibrary

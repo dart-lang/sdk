@@ -14,6 +14,7 @@ worlds:
           list[index] = value;
         }
     expectedLibraryCount: 1
+
   - entry: set-Int8List.dart
     worldType: updated
     checkInvalidatedFiles: false
@@ -27,6 +28,8 @@ worlds:
           list[index] = value;
         }
     expectedLibraryCount: 1
+    advancedInvalidation: noDirectlyInvalidated
+
   - entry: set-Uint8List.dart
     worldType: updated
     checkInvalidatedFiles: false
@@ -40,3 +43,4 @@ worlds:
           list[index] = value;
         }
     expectedLibraryCount: 1
+    advancedInvalidation: noDirectlyInvalidated
