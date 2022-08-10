@@ -183,8 +183,8 @@ class LibraryBuilder {
       enum_.element.supertype =
           typeProvider.enumType ?? typeProvider.objectType;
       var valuesType = typeProvider.listType(
-        element.typeSystem.instantiateToBounds2(
-          classElement: enum_.element,
+        element.typeSystem.instantiateInterfaceToBounds(
+          element: enum_.element,
           nullabilitySuffix: typeProvider.objectType.nullabilitySuffix,
         ),
       );

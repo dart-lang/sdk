@@ -1,9 +1,11 @@
-## 4.5.0-dev
+## 4.5.0
 * Update deprecation message for `FormalParameter.identifier`.
 * Deprecated `ClassOrMixinDeclaration`, use `ClassDeclaration` and `MixinDeclaration` directly.
-* Deprecate `Declaration.declaredElement`, use `declaredElement2` instead.
+* Deprecated `Declaration.declaredElement`, use `declaredElement2` instead.
   This is necessary to separate `ClassElement`, `EnumElement`, and `MixinElement`.
-  And, in the future, augmentations like `ClassAugmentationElement`, etc. 
+  And, in the future, augmentations like `ClassAugmentationElement`, etc.
+* Deprecated `TypeSystem.instantiateToBounds2()`, use `instantiateInterfaceToBounds()` or
+  `instantiateTypeAliasToBounds()` instead.
 
 ## 4.4.0
 * Deprecated `ClassDeclaration.isAbstract`, use `abstractKeyword` instead.

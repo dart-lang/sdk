@@ -5107,3 +5107,445 @@ void _offsetAlignmentCheck(int offset, int alignment) {
         'BYTES_PER_ELEMENT ($alignment)');
   }
 }
+
+@patch
+abstract class UnmodifiableByteBufferView implements Uint8List {
+  factory UnmodifiableByteBufferView(ByteBuffer data) =
+      _UnmodifiableByteBufferView;
+}
+
+@patch
+abstract class UnmodifiableByteDataView implements ByteData {
+  factory UnmodifiableByteDataView(ByteData data) =>
+      new _UnmodifiableByteDataView._((data as _ByteDataView).buffer._data,
+          data.offsetInBytes, data.lengthInBytes);
+}
+
+@patch
+abstract class UnmodifiableUint8ListView implements Uint8List {
+  factory UnmodifiableUint8ListView(Uint8List list) =>
+      new _UnmodifiableUint8ArrayView._(list, list.offsetInBytes, list.length);
+}
+
+@patch
+abstract class UnmodifiableInt8ListView implements Int8List {
+  factory UnmodifiableInt8ListView(Int8List list) =>
+      new _UnmodifiableInt8ArrayView._(list, list.offsetInBytes, list.length);
+}
+
+@patch
+abstract class UnmodifiableUint8ClampedListView implements Uint8ClampedList {
+  factory UnmodifiableUint8ClampedListView(Uint8ClampedList list) =>
+      new _UnmodifiableUint8ClampedArrayView._(
+          list, list.offsetInBytes, list.length);
+}
+
+@patch
+abstract class UnmodifiableUint16ListView implements Uint16List {
+  factory UnmodifiableUint16ListView(Uint16List list) =>
+      new _UnmodifiableUint16ArrayView._(list, list.offsetInBytes, list.length);
+}
+
+@patch
+abstract class UnmodifiableInt16ListView implements Int16List {
+  factory UnmodifiableInt16ListView(Int16List list) =>
+      new _UnmodifiableInt16ArrayView._(list, list.offsetInBytes, list.length);
+}
+
+@patch
+abstract class UnmodifiableUint32ListView implements Uint32List {
+  factory UnmodifiableUint32ListView(Uint32List list) =>
+      new _UnmodifiableUint32ArrayView._(list, list.offsetInBytes, list.length);
+}
+
+@patch
+abstract class UnmodifiableInt32ListView implements Int32List {
+  factory UnmodifiableInt32ListView(Int32List list) =>
+      new _UnmodifiableInt32ArrayView._(list, list.offsetInBytes, list.length);
+}
+
+@patch
+abstract class UnmodifiableUint64ListView implements Uint64List {
+  factory UnmodifiableUint64ListView(Uint64List list) =>
+      new _UnmodifiableUint64ArrayView._(list, list.offsetInBytes, list.length);
+}
+
+@patch
+abstract class UnmodifiableInt64ListView implements Int64List {
+  factory UnmodifiableInt64ListView(Int64List list) =>
+      new _UnmodifiableInt64ArrayView._(list, list.offsetInBytes, list.length);
+}
+
+@patch
+abstract class UnmodifiableInt32x4ListView implements Int32x4List {
+  factory UnmodifiableInt32x4ListView(Int32x4List list) =>
+      new _UnmodifiableInt32x4ArrayView._(
+          list, list.offsetInBytes, list.length);
+}
+
+@patch
+abstract class UnmodifiableFloat32x4ListView implements Float32x4List {
+  factory UnmodifiableFloat32x4ListView(Float32x4List list) =>
+      new _UnmodifiableFloat32x4ArrayView._(
+          list, list.offsetInBytes, list.length);
+}
+
+@patch
+abstract class UnmodifiableFloat64x2ListView implements Float64x2List {
+  factory UnmodifiableFloat64x2ListView(Float64x2List list) =>
+      new _UnmodifiableFloat64x2ArrayView._(
+          list, list.offsetInBytes, list.length);
+}
+
+@patch
+abstract class UnmodifiableFloat32ListView implements Float32List {
+  factory UnmodifiableFloat32ListView(Float32List list) =>
+      new _UnmodifiableFloat32ArrayView._(
+          list, list.offsetInBytes, list.length);
+}
+
+@patch
+abstract class UnmodifiableFloat64ListView implements Float64List {
+  factory UnmodifiableFloat64ListView(Float64List list) =>
+      new _UnmodifiableFloat64ArrayView._(
+          list, list.offsetInBytes, list.length);
+}
+
+@pragma("vm:entry-point")
+class _UnmodifiableInt8ArrayView extends _Int8ArrayView
+    implements UnmodifiableInt8ListView {
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _UnmodifiableInt8ArrayView)
+  @pragma("vm:external-name", "TypedDataView_Int8ArrayView_new")
+  external factory _UnmodifiableInt8ArrayView._(
+      Int8List buffer, int offsetInBytes, int length);
+
+  void operator []=(int index, int value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+}
+
+@pragma("vm:entry-point")
+class _UnmodifiableUint8ArrayView extends _Uint8ArrayView
+    implements UnmodifiableUint8ListView {
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _UnmodifiableUint8ArrayView)
+  @pragma("vm:external-name", "TypedDataView_Uint8ArrayView_new")
+  external factory _UnmodifiableUint8ArrayView._(
+      Uint8List buffer, int offsetInBytes, int length);
+
+  void operator []=(int index, int value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+}
+
+@pragma("vm:entry-point")
+class _UnmodifiableUint8ClampedArrayView extends _Uint8ClampedArrayView
+    implements UnmodifiableUint8ClampedListView {
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _UnmodifiableUint8ClampedArrayView)
+  @pragma("vm:external-name", "TypedDataView_Uint8ClampedArrayView_new")
+  external factory _UnmodifiableUint8ClampedArrayView._(
+      Uint8ClampedList buffer, int offsetInBytes, int length);
+
+  void operator []=(int index, int value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+}
+
+@pragma("vm:entry-point")
+class _UnmodifiableInt16ArrayView extends _Int16ArrayView
+    implements UnmodifiableInt16ListView {
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _UnmodifiableInt16ArrayView)
+  @pragma("vm:external-name", "TypedDataView_Int16ArrayView_new")
+  external factory _UnmodifiableInt16ArrayView._(
+      Int16List buffer, int offsetInBytes, int length);
+
+  void operator []=(int index, int value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+}
+
+@pragma("vm:entry-point")
+class _UnmodifiableUint16ArrayView extends _Uint16ArrayView
+    implements UnmodifiableUint16ListView {
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _UnmodifiableUint16ArrayView)
+  @pragma("vm:external-name", "TypedDataView_Uint16ArrayView_new")
+  external factory _UnmodifiableUint16ArrayView._(
+      Uint16List buffer, int offsetInBytes, int length);
+
+  void operator []=(int index, int value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+}
+
+@pragma("vm:entry-point")
+class _UnmodifiableInt32ArrayView extends _Int32ArrayView
+    implements UnmodifiableInt32ListView {
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _UnmodifiableInt32ArrayView)
+  @pragma("vm:external-name", "TypedDataView_Int32ArrayView_new")
+  external factory _UnmodifiableInt32ArrayView._(
+      Int32List buffer, int offsetInBytes, int length);
+
+  void operator []=(int index, int value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+}
+
+@pragma("vm:entry-point")
+class _UnmodifiableUint32ArrayView extends _Uint32ArrayView
+    implements UnmodifiableUint32ListView {
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _UnmodifiableUint32ArrayView)
+  @pragma("vm:external-name", "TypedDataView_Uint32ArrayView_new")
+  external factory _UnmodifiableUint32ArrayView._(
+      Uint32List buffer, int offsetInBytes, int length);
+
+  void operator []=(int index, int value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+}
+
+@pragma("vm:entry-point")
+class _UnmodifiableInt64ArrayView extends _Int64ArrayView
+    implements UnmodifiableInt64ListView {
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _UnmodifiableInt64ArrayView)
+  @pragma("vm:external-name", "TypedDataView_Int64ArrayView_new")
+  external factory _UnmodifiableInt64ArrayView._(
+      Int64List buffer, int offsetInBytes, int length);
+
+  void operator []=(int index, int value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+}
+
+@pragma("vm:entry-point")
+class _UnmodifiableUint64ArrayView extends _Uint64ArrayView
+    implements UnmodifiableUint64ListView {
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _UnmodifiableUint64ArrayView)
+  @pragma("vm:external-name", "TypedDataView_Uint64ArrayView_new")
+  external factory _UnmodifiableUint64ArrayView._(
+      Uint64List buffer, int offsetInBytes, int length);
+
+  void operator []=(int index, int value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+}
+
+@pragma("vm:entry-point")
+class _UnmodifiableFloat32ArrayView extends _Float32ArrayView
+    implements UnmodifiableFloat32ListView {
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _UnmodifiableFloat32ArrayView)
+  @pragma("vm:external-name", "TypedDataView_Float32ArrayView_new")
+  external factory _UnmodifiableFloat32ArrayView._(
+      Float32List buffer, int offsetInBytes, int length);
+
+  void operator []=(int index, double value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+}
+
+@pragma("vm:entry-point")
+class _UnmodifiableFloat64ArrayView extends _Float64ArrayView
+    implements UnmodifiableFloat64ListView {
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _UnmodifiableFloat64ArrayView)
+  @pragma("vm:external-name", "TypedDataView_Float64ArrayView_new")
+  external factory _UnmodifiableFloat64ArrayView._(
+      Float64List buffer, int offsetInBytes, int length);
+
+  void operator []=(int index, double value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+}
+
+@pragma("vm:entry-point")
+class _UnmodifiableFloat32x4ArrayView extends _Float32x4ArrayView
+    implements UnmodifiableFloat32x4ListView {
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _UnmodifiableFloat32x4ArrayView)
+  @pragma("vm:external-name", "TypedDataView_Float32x4ArrayView_new")
+  external factory _UnmodifiableFloat32x4ArrayView._(
+      Float32x4List buffer, int offsetInBytes, int length);
+
+  void operator []=(int index, Float32x4 value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+}
+
+@pragma("vm:entry-point")
+class _UnmodifiableInt32x4ArrayView extends _Int32x4ArrayView
+    implements UnmodifiableInt32x4ListView {
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _UnmodifiableInt32x4ArrayView)
+  @pragma("vm:external-name", "TypedDataView_Int32x4ArrayView_new")
+  external factory _UnmodifiableInt32x4ArrayView._(
+      Int32x4List buffer, int offsetInBytes, int length);
+
+  void operator []=(int index, Int32x4 value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+}
+
+@pragma("vm:entry-point")
+class _UnmodifiableFloat64x2ArrayView extends _Float64x2ArrayView
+    implements UnmodifiableFloat64x2ListView {
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _UnmodifiableFloat64x2ArrayView)
+  @pragma("vm:external-name", "TypedDataView_Float64x2ArrayView_new")
+  external factory _UnmodifiableFloat64x2ArrayView._(
+      Float64x2List buffer, int offsetInBytes, int length);
+
+  void operator []=(int index, Float64x2 value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+}
+
+@pragma("vm:entry-point")
+class _UnmodifiableByteDataView extends _ByteDataView
+    implements UnmodifiableByteDataView {
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _UnmodifiableByteDataView)
+  @pragma("vm:external-name", "TypedDataView_ByteDataView_new")
+  external factory _UnmodifiableByteDataView._(
+      _TypedList buffer, int offsetInBytes, int length);
+
+  void setInt8(int byteOffset, int value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  void setUint8(int byteOffset, int value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  void setInt16(int byteOffset, int value, [Endian endian = Endian.big]) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  void setUint16(int byteOffset, int value, [Endian endian = Endian.big]) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  void setInt32(int byteOffset, int value, [Endian endian = Endian.big]) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  void setUint32(int byteOffset, int value, [Endian endian = Endian.big]) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  void setInt64(int byteOffset, int value, [Endian endian = Endian.big]) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  void setUint64(int byteOffset, int value, [Endian endian = Endian.big]) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  void setFloat32(int byteOffset, double value, [Endian endian = Endian.big]) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  void setFloat64(int byteOffset, double value, [Endian endian = Endian.big]) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  void setFloat32x4(int byteOffset, Float32x4 value,
+      [Endian endian = Endian.big]) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
+}
+
+class _UnmodifiableByteBufferView extends _ByteBuffer
+    implements UnmodifiableByteBufferView {
+  _UnmodifiableByteBufferView(_ByteBuffer data) : super(data._data);
+
+  int get lengthInBytes => _data.lengthInBytes;
+
+  Uint8List asUint8List([int offsetInBytes = 0, int? length]) =>
+      new UnmodifiableUint8ListView(super.asUint8List(offsetInBytes, length));
+
+  Int8List asInt8List([int offsetInBytes = 0, int? length]) =>
+      new UnmodifiableInt8ListView(super.asInt8List(offsetInBytes, length));
+
+  Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int? length]) =>
+      new UnmodifiableUint8ClampedListView(
+          super.asUint8ClampedList(offsetInBytes, length));
+
+  Uint16List asUint16List([int offsetInBytes = 0, int? length]) =>
+      new UnmodifiableUint16ListView(super.asUint16List(offsetInBytes, length));
+
+  Int16List asInt16List([int offsetInBytes = 0, int? length]) =>
+      new UnmodifiableInt16ListView(super.asInt16List(offsetInBytes, length));
+
+  Uint32List asUint32List([int offsetInBytes = 0, int? length]) =>
+      new UnmodifiableUint32ListView(super.asUint32List(offsetInBytes, length));
+
+  Int32List asInt32List([int offsetInBytes = 0, int? length]) =>
+      new UnmodifiableInt32ListView(super.asInt32List(offsetInBytes, length));
+
+  Uint64List asUint64List([int offsetInBytes = 0, int? length]) =>
+      new UnmodifiableUint64ListView(super.asUint64List(offsetInBytes, length));
+
+  Int64List asInt64List([int offsetInBytes = 0, int? length]) =>
+      new UnmodifiableInt64ListView(super.asInt64List(offsetInBytes, length));
+
+  Int32x4List asInt32x4List([int offsetInBytes = 0, int? length]) =>
+      new UnmodifiableInt32x4ListView(
+          super.asInt32x4List(offsetInBytes, length));
+
+  Float32List asFloat32List([int offsetInBytes = 0, int? length]) =>
+      new UnmodifiableFloat32ListView(
+          super.asFloat32List(offsetInBytes, length));
+
+  Float64List asFloat64List([int offsetInBytes = 0, int? length]) =>
+      new UnmodifiableFloat64ListView(
+          super.asFloat64List(offsetInBytes, length));
+
+  Float32x4List asFloat32x4List([int offsetInBytes = 0, int? length]) =>
+      new UnmodifiableFloat32x4ListView(
+          super.asFloat32x4List(offsetInBytes, length));
+
+  Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]) =>
+      new UnmodifiableFloat64x2ListView(
+          super.asFloat64x2List(offsetInBytes, length));
+
+  ByteData asByteData([int offsetInBytes = 0, int? length]) =>
+      new UnmodifiableByteDataView(super.asByteData(offsetInBytes, length));
+}

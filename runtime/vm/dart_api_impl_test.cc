@@ -2139,6 +2139,30 @@ TEST_CASE(DartAPI_TypedDataViewListIsTypedData) {
   EXPECT_VALID(view_obj);
   // Test that the API considers it a TypedData object.
   EXPECT(Dart_IsTypedData(view_obj));
+  EXPECT_EQ(Dart_TypedData_kInt8, Dart_GetTypeOfTypedData(view_obj));
+}
+
+TEST_CASE(DartAPI_UnmodifiableTypedDataViewListIsTypedData) {
+  const int kSize = 1000;
+
+  const char* kScriptChars =
+      "import 'dart:typed_data';\n"
+      "List testMain(int size) {\n"
+      "  var a = new Int8List(size);\n"
+      "  var view = new UnmodifiableInt8ListView(a);\n"
+      "  return view;\n"
+      "}\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Create a typed data view object.
+  Dart_Handle dart_args[1];
+  dart_args[0] = Dart_NewInteger(kSize);
+  Dart_Handle view_obj = Dart_Invoke(lib, NewString("testMain"), 1, dart_args);
+  EXPECT_VALID(view_obj);
+  // Test that the API considers it a TypedData object.
+  EXPECT(Dart_IsTypedData(view_obj));
+  EXPECT_EQ(Dart_TypedData_kInt8, Dart_GetTypeOfTypedData(view_obj));
 }
 
 TEST_CASE(DartAPI_TypedDataAccess) {
@@ -2758,6 +2782,59 @@ TEST_CASE(DartAPI_TypedDataViewDirectAccessUnverified) {
 TEST_CASE(DartAPI_TypedDataViewDirectAccessVerified) {
   FLAG_verify_acquired_data = true;
   TestTypedDataViewDirectAccess();
+}
+
+static void TestUnmodifiableTypedDataViewDirectAccess() {
+  const char* kScriptChars =
+      "import 'dart:typed_data';\n"
+      "List main() {"
+      "  var list = new Int8List(100);"
+      "  for (var i = 0; i < 100; i++) {"
+      "    list[i] = i;"
+      "  }"
+      "  return new UnmodifiableInt8ListView(list);"
+      "}\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Test with a typed data view object.
+  Dart_Handle view_obj;
+  view_obj = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(view_obj);
+
+  const int kLength = 100;
+  Dart_TypedData_Type type;
+  void* data;
+  intptr_t len;
+  Dart_Handle result = Dart_TypedDataAcquireData(view_obj, &type, &data, &len);
+  EXPECT(!Thread::Current()->IsAtSafepoint());
+  EXPECT_VALID(result);
+  EXPECT_EQ(Dart_TypedData_kInt8, type);
+  EXPECT_EQ(kLength, len);
+  int8_t* dataP = reinterpret_cast<int8_t*>(data);
+  for (int i = 0; i < kLength; i++) {
+    EXPECT_EQ(i, dataP[i]);
+  }
+
+  // Now try allocating a string with outstanding Acquires and it should
+  // return an error.
+  result = NewString("We expect an error here");
+  EXPECT_ERROR(result, "Callbacks into the Dart VM are currently prohibited");
+
+  // Release direct access to the typed data object.
+  EXPECT(!Thread::Current()->IsAtSafepoint());
+  result = Dart_TypedDataReleaseData(view_obj);
+  EXPECT_VALID(result);
+}
+
+TEST_CASE(DartAPI_UnmodifiableTypedDataViewDirectAccessUnverified) {
+  FLAG_verify_acquired_data = false;
+  TestUnmodifiableTypedDataViewDirectAccess();
+}
+
+TEST_CASE(DartAPI_UnmodifiableTypedDataViewDirectAccessVerified) {
+  FLAG_verify_acquired_data = true;
+  TestUnmodifiableTypedDataViewDirectAccess();
 }
 
 static void TestByteDataDirectAccess() {

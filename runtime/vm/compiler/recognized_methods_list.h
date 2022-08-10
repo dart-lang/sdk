@@ -65,6 +65,36 @@ namespace dart {
   V(_Float32x4ArrayView, ._, TypedData_Float32x4ArrayView_factory, 0x665eaec0) \
   V(_Int32x4ArrayView, ._, TypedData_Int32x4ArrayView_factory, 0x04b05d05)     \
   V(_Float64x2ArrayView, ._, TypedData_Float64x2ArrayView_factory, 0x42e25ba4) \
+  V(_UnmodifiableByteDataView, ._,                                             \
+    TypedData_UnmodifiableByteDataView_factory, 0x9afe180b)                    \
+  V(_UnmodifiableInt8ArrayView, ._,                                            \
+    TypedData_UnmodifiableInt8ArrayView_factory, 0x00abba25)                   \
+  V(_UnmodifiableUint8ArrayView, ._,                                           \
+    TypedData_UnmodifiableUint8ArrayView_factory, 0xe5b8c03d)                  \
+  V(_UnmodifiableUint8ClampedArrayView, ._,                                    \
+    TypedData_UnmodifiableUint8ClampedArrayView_factory, 0x5c27f33b)           \
+  V(_UnmodifiableInt16ArrayView, ._,                                           \
+    TypedData_UnmodifiableInt16ArrayView_factory, 0xf6289e0a)                  \
+  V(_UnmodifiableUint16ArrayView, ._,                                          \
+    TypedData_UnmodifiableUint16ArrayView_factory, 0xdef1a94f)                 \
+  V(_UnmodifiableInt32ArrayView, ._,                                           \
+     TypedData_UnmodifiableInt32ArrayView_factory, 0x0fe051e7)                 \
+  V(_UnmodifiableUint32ArrayView, ._,                                          \
+    TypedData_UnmodifiableUint32ArrayView_factory, 0xaa3dc2ac)                 \
+  V(_UnmodifiableInt64ArrayView, ._,                                           \
+    TypedData_UnmodifiableInt64ArrayView_factory, 0x9d6c6158)                  \
+  V(_UnmodifiableUint64ArrayView, ._,                                          \
+    TypedData_UnmodifiableUint64ArrayView_factory, 0x869e7cad)                 \
+  V(_UnmodifiableFloat32ArrayView, ._,                                         \
+    TypedData_UnmodifiableFloat32ArrayView_factory, 0xd9ec2cee)                \
+  V(_UnmodifiableFloat64ArrayView, ._,                                         \
+    TypedData_UnmodifiableFloat64ArrayView_factory, 0x99b7f7dd)                \
+  V(_UnmodifiableFloat32x4ArrayView, ._,                                       \
+    TypedData_UnmodifiableFloat32x4ArrayView_factory, 0x009c5c35)              \
+  V(_UnmodifiableInt32x4ArrayView, ._,                                         \
+    TypedData_UnmodifiableInt32x4ArrayView_factory, 0x72ad81a7)                \
+  V(_UnmodifiableFloat64x2ArrayView, ._,                                       \
+    TypedData_UnmodifiableFloat64x2ArrayView_factory, 0x7081db93)              \
   V(Int8List, ., TypedData_Int8Array_factory, 0x660dd888)                      \
   V(Uint8List, ., TypedData_Uint8Array_factory, 0xede3f64f)                    \
   V(Uint8ClampedList, ., TypedData_Uint8ClampedArray_factory, 0x28063755)      \

@@ -460,7 +460,10 @@ config("runtime_library") {
   }
 
   if (is_linux) {
-    libs += [ "dl" ]
+    libs += [
+      "dl",
+      "pthread",
+    ]
   } else if (is_android) {
     # Android standard library setup.
     if (is_clang) {
