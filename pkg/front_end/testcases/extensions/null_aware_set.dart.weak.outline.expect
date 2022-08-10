@@ -1,0 +1,11 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+extension _extension#0 on core::Object {
+  set f = self::_extension#0|set#f;
+}
+static method _extension#0|set#f(lowered final core::Object #this, core::int x) → void
+  ;
+static method fun(core::String? s) → void
+  ;

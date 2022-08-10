@@ -1,0 +1,5 @@
+extension on Object {
+  set f(int x) {}
+}
+
+void fun(String? s) {}
