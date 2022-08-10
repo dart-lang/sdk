@@ -448,9 +448,8 @@ Fragment BaseFlowGraphBuilder::AddIntptrIntegers() {
 
 Fragment BaseFlowGraphBuilder::UnboxSmiToIntptr() {
   Value* value = Pop();
-  auto untagged = new (Z)
-      UnboxIntegerInstr(kUnboxedIntPtr, UnboxIntegerInstr::kNoTruncation, value,
-                        DeoptId::kNone, Instruction::kNotSpeculative);
+  auto untagged = UnboxInstr::Create(kUnboxedIntPtr, value, DeoptId::kNone,
+                                     Instruction::kNotSpeculative);
   Push(untagged);
   return Fragment(untagged);
 }
