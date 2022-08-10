@@ -877,6 +877,24 @@ Future<int?> test() async {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_await_nullable_future_to_non_nullable() async {
+    var content = '''
+Future<String> foo() async => null;
+
+Future<String/*!*/> bar() async {
+  return await foo();
+}
+''';
+    var expected = '''
+Future<String?> foo() async => null;
+
+Future<String> bar() async {
+  return (await foo())!;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void>
       test_back_propagation_stops_at_implicitly_typed_variables() async {
     var content = '''
@@ -4744,7 +4762,7 @@ Future<List<int/*!*/>> getInts() {
 }
 ''';
     // TODO(paulberry): this is not a good migration.  Really we should produce
-    // getNullableInts.then((value) => value.cast());
+    // `getNullableInts().then((value) => value.cast());`.
     var expected = '''
 Future<List<int?>> getNullableInts() async {
   return [null];
