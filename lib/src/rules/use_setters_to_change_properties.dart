@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           expression.operator.type == TokenType.EQ) {
         var leftOperand = expression.writeElement?.canonicalElement;
         var rightOperand = expression.rightHandSide.canonicalElement;
-        var parameterElement = node.declaredElement?.parameters.first;
+        var parameterElement = node.declaredElement2?.parameters.first;
         if (rightOperand == parameterElement && leftOperand is FieldElement) {
           rule.reportLintForToken(node.name2);
         }

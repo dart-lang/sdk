@@ -156,7 +156,7 @@ bool isPrivate(Token? name) =>
 
 /// Returns `true` if the given [ClassMember] is a public method.
 bool isPublicMethod(ClassMember m) {
-  var declaredElement = m.declaredElement;
+  var declaredElement = m.declaredElement2;
   return declaredElement != null && isMethod(m) && declaredElement.isPublic;
 }
 
@@ -277,7 +277,7 @@ bool _checkForSimpleGetter(MethodDeclaration getter, Expression? expression) {
   if (expression is SimpleIdentifier) {
     var staticElement = expression.staticElement;
     if (staticElement is PropertyAccessorElement) {
-      var enclosingElement = getter.declaredElement?.enclosingElement3;
+      var enclosingElement = getter.declaredElement2?.enclosingElement3;
       // Skipping library level getters, test that the enclosing element is
       // the same
       if (staticElement.enclosingElement3 == enclosingElement) {

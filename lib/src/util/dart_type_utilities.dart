@@ -147,7 +147,7 @@ class DartTypeUtilities {
   static bool isNullLiteral(Expression? expression) => expression.isNullLiteral;
 
   static PropertyAccessorElement? lookUpGetter(MethodDeclaration node) {
-    var declaredElement = node.declaredElement;
+    var declaredElement = node.declaredElement2;
     if (declaredElement == null) {
       return null;
     }
@@ -163,7 +163,7 @@ class DartTypeUtilities {
 
   static PropertyAccessorElement? lookUpInheritedConcreteGetter(
       MethodDeclaration node) {
-    var declaredElement = node.declaredElement;
+    var declaredElement = node.declaredElement2;
     if (declaredElement == null) {
       return null;
     }
@@ -177,7 +177,7 @@ class DartTypeUtilities {
   }
 
   static MethodElement? lookUpInheritedConcreteMethod(MethodDeclaration node) {
-    var declaredElement = node.declaredElement;
+    var declaredElement = node.declaredElement2;
     if (declaredElement != null) {
       var parent = declaredElement.enclosingElement3;
       if (parent is ClassElement) {
@@ -191,7 +191,7 @@ class DartTypeUtilities {
 
   static PropertyAccessorElement? lookUpInheritedConcreteSetter(
       MethodDeclaration node) {
-    var declaredElement = node.declaredElement;
+    var declaredElement = node.declaredElement2;
     if (declaredElement != null) {
       var parent = declaredElement.enclosingElement3;
       if (parent is ClassElement) {
@@ -204,7 +204,7 @@ class DartTypeUtilities {
   }
 
   static MethodElement? lookUpInheritedMethod(MethodDeclaration node) {
-    var declaredElement = node.declaredElement;
+    var declaredElement = node.declaredElement2;
     if (declaredElement != null) {
       var parent = declaredElement.enclosingElement3;
       if (parent is ClassElement) {
@@ -216,7 +216,7 @@ class DartTypeUtilities {
   }
 
   static PropertyAccessorElement? lookUpSetter(MethodDeclaration node) {
-    var declaredElement = node.declaredElement;
+    var declaredElement = node.declaredElement2;
     if (declaredElement != null) {
       var parent = declaredElement.enclosingElement3;
       if (parent is ClassElement) {

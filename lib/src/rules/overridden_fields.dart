@@ -125,7 +125,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     for (var variable in node.fields.variables) {
-      var declaredElement = variable.declaredElement;
+      var declaredElement = variable.declaredElement2;
       if (declaredElement != null) {
         var field = _getOverriddenMember(declaredElement);
         if (field != null && !field.isAbstract) {

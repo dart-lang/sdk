@@ -78,15 +78,17 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isOperator) return;
 
     var parent = node.parent;
-    if (parent is ClassOrMixinDeclaration || parent is EnumDeclaration) {
+    if (parent is ClassDeclaration ||
+        parent is EnumDeclaration ||
+        parent is MixinDeclaration) {
       if (node.isOverride) {
         return;
       }
 
-      var returnType = node.declaredElement?.returnType;
+      var returnType = node.declaredElement2?.returnType;
       if (returnType is InterfaceType &&
           // ignore: cast_nullable_to_non_nullable
-          returnType.element2 == (parent as Declaration).declaredElement) {
+          returnType.element2 == (parent as Declaration).declaredElement2) {
       } else {
         return;
       }

@@ -144,7 +144,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
   /// Returns whether [declaration] is annotated with any metadata (other than
   /// `@override` or `@Override`).
   bool _addsMetadata() {
-    var metadata = declaration.declaredElement?.metadata;
+    var metadata = declaration.declaredElement2?.metadata;
     if (metadata != null) {
       for (var annotation in metadata) {
         if (annotation.isOverride) continue;
@@ -163,7 +163,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
   /// This indicates that [_inheritedMethod] may have been overridden in order
   /// to expand its visibility.
   bool _makesPublicFromProtected() {
-    var declaredElement = declaration.declaredElement;
+    var declaredElement = declaration.declaredElement2;
     if (declaredElement == null) return false;
     if (declaredElement.hasProtected) {
       return false;
@@ -172,7 +172,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
   }
 
   bool _haveSameDeclaration() {
-    var declaredElement = declaration.declaredElement;
+    var declaredElement = declaration.declaredElement2;
     if (declaredElement == null) {
       return false;
     }

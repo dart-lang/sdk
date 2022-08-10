@@ -98,8 +98,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _visitGetterSetter(MethodDeclaration getter, MethodDeclaration? setter) {
     if (setter == null) return;
-    var getterElement = getter.declaredElement;
-    var setterElement = setter.declaredElement;
+    var getterElement = getter.declaredElement2;
+    var setterElement = setter.declaredElement2;
     if (getterElement == null || setterElement == null) return;
     if (isSimpleSetter(setter) &&
         isSimpleGetter(getter) &&

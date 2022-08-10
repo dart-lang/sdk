@@ -92,7 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var element = node.declaredElement;
+    var element = node.declaredElement2;
     _verifyElement(node.functionExpression, element);
   }
 
@@ -103,7 +103,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var element = node.declaredElement;
+    var element = node.declaredElement2;
     _verifyElement(node.body, element);
   }
 
