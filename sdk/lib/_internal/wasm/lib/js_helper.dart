@@ -6,6 +6,7 @@
 library dart.js_helper;
 
 import 'dart:_internal';
+import 'dart:typed_data';
 import 'dart:wasm';
 
 /// [JSValue] is the root of the JS interop object hierarchy.
@@ -23,16 +24,21 @@ class JSValue {
 }
 
 extension StringToJS on String {
-  JSValue toJS() => JSValue(jsStringFromDartString(this));
+  WasmAnyRef toAnyRef() => jsStringFromDartString(this);
+  JSValue toJS() => JSValue(toAnyRef());
 }
 
 extension ListOfObjectToJS on List<Object?> {
-  JSValue toJS() => JSValue(jsArrayFromDartList(this));
+  WasmAnyRef toAnyRef() => jsArrayFromDartList(this);
+  JSValue toJS() => JSValue(toAnyRef());
 }
 
 extension ObjectToJS on Object {
   JSValue toJS() => JSValue(jsObjectFromDartObject(this));
 }
+
+WasmAnyRef? getConstructorString(String constructor) =>
+    getPropertyRaw(globalThisRaw(), constructor.toAnyRef());
 
 Object jsObjectToDartObject(WasmAnyRef ref) => unsafeCastOpaque<Object>(ref);
 
@@ -60,6 +66,39 @@ external bool isJSSymbol(WasmAnyRef? o);
 @pragma("wasm:import", "dart2wasm.isJSFunction")
 external bool isJSFunction(WasmAnyRef? o);
 
+@pragma("wasm:import", "dart2wasm.isJSInt8Array")
+external bool isJSInt8Array(WasmAnyRef object);
+
+@pragma("wasm:import", "dart2wasm.isJSUint8Array")
+external bool isJSUint8Array(WasmAnyRef object);
+
+@pragma("wasm:import", "dart2wasm.isJSUint8ClampedArray")
+external bool isJSUint8ClampedArray(WasmAnyRef object);
+
+@pragma("wasm:import", "dart2wasm.isJSInt16Array")
+external bool isJSInt16Array(WasmAnyRef object);
+
+@pragma("wasm:import", "dart2wasm.isJSUint16Array")
+external bool isJSUint16Array(WasmAnyRef object);
+
+@pragma("wasm:import", "dart2wasm.isJSInt32Array")
+external bool isJSInt32Array(WasmAnyRef object);
+
+@pragma("wasm:import", "dart2wasm.isJSUint32Array")
+external bool isJSUint32Array(WasmAnyRef object);
+
+@pragma("wasm:import", "dart2wasm.isJSFloat32Array")
+external bool isJSFloat32Array(WasmAnyRef object);
+
+@pragma("wasm:import", "dart2wasm.isJSFloat64Array")
+external bool isJSFloat64Array(WasmAnyRef object);
+
+@pragma("wasm:import", "dart2wasm.isJSArrayBuffer")
+external bool isJSArrayBuffer(WasmAnyRef object);
+
+@pragma("wasm:import", "dart2wasm.isJSDataView")
+external bool isJSDataView(WasmAnyRef object);
+
 @pragma("wasm:import", "dart2wasm.isJSArray")
 external bool isJSArray(WasmAnyRef? o);
 
@@ -73,6 +112,9 @@ external bool isJSObject(WasmAnyRef? o);
 external double toDartNumber(WasmAnyRef ref);
 
 @pragma("wasm:import", "dart2wasm.roundtrip")
+external WasmAnyRef toJSNumber(double d);
+
+@pragma("wasm:import", "dart2wasm.roundtrip")
 external bool toDartBool(WasmAnyRef ref);
 
 @pragma("wasm:import", "dart2wasm.objectLength")
@@ -83,6 +125,38 @@ external WasmAnyRef? objectReadIndex(WasmAnyRef ref, int index);
 
 @pragma("wasm:import", "dart2wasm.unwrapJSWrappedDartFunction")
 external Object? unwrapJSWrappedDartFunction(WasmAnyRef f);
+
+@pragma("wasm:import", "dart2wasm.int8ArrayFromDartInt8List")
+external WasmAnyRef jsInt8ArrayFromDartInt8List(Int8List list);
+
+@pragma("wasm:import", "dart2wasm.uint8ArrayFromDartUint8List")
+external WasmAnyRef jsUint8ArrayFromDartUint8List(Uint8List list);
+
+@pragma("wasm:import", "dart2wasm.uint8ClampedArrayFromDartUint8ClampedList")
+external WasmAnyRef jsUint8ClampedArrayFromDartUint8ClampedList(
+    Uint8ClampedList list);
+
+@pragma("wasm:import", "dart2wasm.int16ArrayFromDartInt16List")
+external WasmAnyRef jsInt16ArrayFromDartInt16List(Int16List list);
+
+@pragma("wasm:import", "dart2wasm.uint16ArrayFromDartUint16List")
+external WasmAnyRef jsUint16ArrayFromDartUint16List(Uint16List list);
+
+@pragma("wasm:import", "dart2wasm.int32ArrayFromDartInt32List")
+external WasmAnyRef jsInt32ArrayFromDartInt32List(Int32List list);
+
+@pragma("wasm:import", "dart2wasm.uint32ArrayFromDartUint32List")
+external WasmAnyRef jsUint32ArrayFromDartUint32List(Uint32List list);
+
+@pragma("wasm:import", "dart2wasm.float32ArrayFromDartFloat32List")
+external WasmAnyRef jsFloat32ArrayFromDartFloat32List(Float32List list);
+
+@pragma("wasm:import", "dart2wasm.float64ArrayFromDartFloat64List")
+external WasmAnyRef jsFloat64ArrayFromDartFloat64List(Float64List list);
+
+@pragma("wasm:import", "dart2wasm.dataViewFromDartByteData")
+external WasmAnyRef jsDataViewFromDartByteData(
+    ByteData data, double byteLength);
 
 @pragma("wasm:import", "dart2wasm.arrayFromDartList")
 external WasmAnyRef jsArrayFromDartList(List<Object?> list);
@@ -127,6 +201,13 @@ external WasmAnyRef? callMethodVarArgsRaw(
 // NOTE: We are not currently replacing functions returned from JS.
 Map<Function, JSValue> functionToJSWrapper = {};
 
+WasmAnyRef jsArrayBufferFromDartByteBuffer(ByteBuffer buffer) {
+  ByteData byteData = ByteData.view(buffer);
+  WasmAnyRef dataView =
+      jsDataViewFromDartByteData(byteData, byteData.lengthInBytes.toDouble());
+  return getPropertyRaw(dataView, 'buffer'.toAnyRef())!;
+}
+
 WasmAnyRef? jsifyRaw(Object? object) {
   if (object == null) {
     return null;
@@ -138,8 +219,32 @@ WasmAnyRef? jsifyRaw(Object? object) {
     return object.toAnyRef();
   } else if (object is String) {
     return jsStringFromDartString(object);
+  } else if (object is Int8List) {
+    return jsInt8ArrayFromDartInt8List(object);
+  } else if (object is Uint8List) {
+    return jsUint8ArrayFromDartUint8List(object);
+  } else if (object is Uint8ClampedList) {
+    return jsUint8ClampedArrayFromDartUint8ClampedList(object);
+  } else if (object is Int16List) {
+    return jsInt16ArrayFromDartInt16List(object);
+  } else if (object is Uint16List) {
+    return jsUint16ArrayFromDartUint16List(object);
+  } else if (object is Int32List) {
+    return jsInt32ArrayFromDartInt32List(object);
+  } else if (object is Uint32List) {
+    return jsUint32ArrayFromDartUint32List(object);
+  } else if (object is Float32List) {
+    return jsFloat32ArrayFromDartFloat32List(object);
+  } else if (object is Float64List) {
+    return jsFloat64ArrayFromDartFloat64List(object);
+  } else if (object is ByteBuffer) {
+    return jsArrayBufferFromDartByteBuffer(object);
+  } else if (object is ByteData) {
+    return jsDataViewFromDartByteData(object, object.lengthInBytes.toDouble());
   } else if (object is List<Object?>) {
     return jsArrayFromDartList(object);
+  } else if (object is num) {
+    return toJSNumber(object.toDouble());
   } else {
     return jsObjectFromDartObject(object);
   }
@@ -163,6 +268,28 @@ Object? dartifyRaw(WasmAnyRef? ref) {
     return toDartNumber(ref);
   } else if (isJSString(ref)) {
     return jsStringToDartString(ref);
+  } else if (isJSInt8Array(ref)) {
+    return toDartInt8List(ref);
+  } else if (isJSUint8Array(ref)) {
+    return toDartUint8List(ref);
+  } else if (isJSUint8ClampedArray(ref)) {
+    return toDartUint8ClampedList(ref);
+  } else if (isJSInt16Array(ref)) {
+    return toDartInt16List(ref);
+  } else if (isJSUint16Array(ref)) {
+    return toDartUint16List(ref);
+  } else if (isJSInt32Array(ref)) {
+    return toDartInt32List(ref);
+  } else if (isJSUint32Array(ref)) {
+    return toDartUint32List(ref);
+  } else if (isJSFloat32Array(ref)) {
+    return toDartFloat32List(ref);
+  } else if (isJSFloat64Array(ref)) {
+    return toDartFloat64List(ref);
+  } else if (isJSArrayBuffer(ref)) {
+    return toDartByteBuffer(ref);
+  } else if (isJSDataView(ref)) {
+    return toDartByteData(ref);
   } else if (isJSArray(ref)) {
     return toDartList(ref);
   } else if (isJSWrappedDartFunction(ref)) {
@@ -177,6 +304,81 @@ Object? dartifyRaw(WasmAnyRef? ref) {
   } else {
     return jsObjectToDartObject(ref);
   }
+}
+
+Int8List toDartInt8List(WasmAnyRef ref) =>
+    jsIntTypedArrayToDartIntTypedData(ref, (size) => Int8List(size))
+        as Int8List;
+
+Uint8List toDartUint8List(WasmAnyRef ref) =>
+    jsIntTypedArrayToDartIntTypedData(ref, (size) => Uint8List(size))
+        as Uint8List;
+
+Uint8ClampedList toDartUint8ClampedList(WasmAnyRef ref) =>
+    jsIntTypedArrayToDartIntTypedData(ref, (size) => Uint8ClampedList(size))
+        as Uint8ClampedList;
+
+Int16List toDartInt16List(WasmAnyRef ref) =>
+    jsIntTypedArrayToDartIntTypedData(ref, (size) => Int16List(size))
+        as Int16List;
+
+Uint16List toDartUint16List(WasmAnyRef ref) =>
+    jsIntTypedArrayToDartIntTypedData(ref, (size) => Uint16List(size))
+        as Uint16List;
+
+Int32List toDartInt32List(WasmAnyRef ref) =>
+    jsIntTypedArrayToDartIntTypedData(ref, (size) => Int32List(size))
+        as Int32List;
+
+Uint32List toDartUint32List(WasmAnyRef ref) =>
+    jsIntTypedArrayToDartIntTypedData(ref, (size) => Uint32List(size))
+        as Uint32List;
+
+Float32List toDartFloat32List(WasmAnyRef ref) =>
+    jsFloatTypedArrayToDartFloatTypedData(ref, (size) => Float32List(size))
+        as Float32List;
+
+Float64List toDartFloat64List(WasmAnyRef ref) =>
+    jsFloatTypedArrayToDartFloatTypedData(ref, (size) => Float64List(size))
+        as Float64List;
+
+ByteBuffer toDartByteBuffer(WasmAnyRef ref) =>
+    toDartByteData(callConstructorVarArgsRaw(
+            getConstructorString('DataView')!, [JSValue(ref)].toAnyRef()))
+        .buffer;
+
+ByteData toDartByteData(WasmAnyRef ref) {
+  int length =
+      toDartNumber(getPropertyRaw(ref, 'byteLength'.toAnyRef())!).toInt();
+  ByteData data = ByteData(length);
+  for (int i = 0; i < length; i++) {
+    data.setUint8(
+        i,
+        toDartNumber(callMethodVarArgsRaw(
+                ref, 'getUint8'.toAnyRef(), [i].toAnyRef())!)
+            .toInt());
+  }
+  return data;
+}
+
+List<double> jsFloatTypedArrayToDartFloatTypedData(
+    WasmAnyRef ref, List<double> makeTypedData(int size)) {
+  int length = objectLength(ref).toInt();
+  List<double> list = makeTypedData(length);
+  for (int i = 0; i < length; i++) {
+    list[i] = toDartNumber(objectReadIndex(ref, i)!);
+  }
+  return list;
+}
+
+List<int> jsIntTypedArrayToDartIntTypedData(
+    WasmAnyRef ref, List<int> makeTypedData(int size)) {
+  int length = objectLength(ref).toInt();
+  List<int> list = makeTypedData(length);
+  for (int i = 0; i < length; i++) {
+    list[i] = toDartNumber(objectReadIndex(ref, i)!).toInt();
+  }
+  return list;
 }
 
 List<Object?> toDartList(WasmAnyRef ref) => List<Object?>.generate(
@@ -203,3 +405,7 @@ double _listLength(List list) => list.length.toDouble();
 @pragma("wasm:export", "\$listRead")
 WasmAnyRef? _listRead(List<Object?> list, double index) =>
     jsifyRaw(list[index.toInt()]);
+
+@pragma("wasm:export", "\$byteDataGetUint8")
+double _byteDataGetUint8(ByteData byteData, double index) =>
+    byteData.getUint8(index.toInt()).toDouble();
