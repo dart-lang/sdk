@@ -236,9 +236,6 @@ class DartTypeUtilities {
   static Element? getCanonicalElementFromIdentifier(AstNode? rawNode) =>
       rawNode.canonicalElement;
 
-  static bool hasInheritedMethod(MethodDeclaration node) =>
-      lookUpInheritedMethod(node) != null;
-
   static bool implementsAnyInterface(
       DartType type, Iterable<InterfaceTypeDefinition> definitions) {
     bool isAnyInterface(InterfaceType i) =>
@@ -283,89 +280,6 @@ class DartTypeUtilities {
 
   @Deprecated('Replace with `expression.isNullLiteral`')
   static bool isNullLiteral(Expression? expression) => expression.isNullLiteral;
-
-  static PropertyAccessorElement? lookUpGetter(MethodDeclaration node) {
-    var declaredElement = node.declaredElement2;
-    if (declaredElement == null) {
-      return null;
-    }
-    var parent = declaredElement.enclosingElement3;
-    if (parent is ClassElement) {
-      return parent.lookUpGetter(node.name2.lexeme, declaredElement.library);
-    }
-    if (parent is ExtensionElement) {
-      return parent.getGetter(node.name2.lexeme);
-    }
-    return null;
-  }
-
-  static PropertyAccessorElement? lookUpInheritedConcreteGetter(
-      MethodDeclaration node) {
-    var declaredElement = node.declaredElement2;
-    if (declaredElement == null) {
-      return null;
-    }
-    var parent = declaredElement.enclosingElement3;
-    if (parent is ClassElement) {
-      return parent.lookUpInheritedConcreteGetter(
-          node.name2.lexeme, declaredElement.library);
-    }
-    // Extensions don't inherit.
-    return null;
-  }
-
-  static MethodElement? lookUpInheritedConcreteMethod(MethodDeclaration node) {
-    var declaredElement = node.declaredElement2;
-    if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement3;
-      if (parent is ClassElement) {
-        return parent.lookUpInheritedConcreteMethod(
-            node.name2.lexeme, declaredElement.library);
-      }
-    }
-    // Extensions don't inherit.
-    return null;
-  }
-
-  static PropertyAccessorElement? lookUpInheritedConcreteSetter(
-      MethodDeclaration node) {
-    var declaredElement = node.declaredElement2;
-    if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement3;
-      if (parent is ClassElement) {
-        return parent.lookUpInheritedConcreteSetter(
-            node.name2.lexeme, declaredElement.library);
-      }
-    }
-    // Extensions don't inherit.
-    return null;
-  }
-
-  static MethodElement? lookUpInheritedMethod(MethodDeclaration node) {
-    var declaredElement = node.declaredElement2;
-    if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement3;
-      if (parent is ClassElement) {
-        return parent.lookUpInheritedMethod(
-            node.name2.lexeme, declaredElement.library);
-      }
-    }
-    return null;
-  }
-
-  static PropertyAccessorElement? lookUpSetter(MethodDeclaration node) {
-    var declaredElement = node.declaredElement2;
-    if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement3;
-      if (parent is ClassElement) {
-        return parent.lookUpSetter(node.name2.lexeme, declaredElement.library);
-      }
-      if (parent is ExtensionElement) {
-        return parent.getSetter(node.name2.lexeme);
-      }
-    }
-    return null;
-  }
 
   @Deprecated('Use `argumentsMatchParameters`')
   static bool matchesArgumentsWithParameters(NodeList<Expression> arguments,

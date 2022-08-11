@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc = r'Avoid positional boolean parameters.';
@@ -92,7 +93,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         !node.isSetter &&
         !declaredElement.isPrivate &&
         !node.isOperator &&
-        !DartTypeUtilities.hasInheritedMethod(node) &&
+        !node.hasInheritedMethod &&
         !_isOverridingMember(declaredElement)) {
       var parametersToLint =
           node.parameters?.parameters.where(_isFormalParameterToLint);

@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc =
     r'Start the name of the method with to/_to or as/_as if applicable.';
@@ -85,7 +85,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         nodeParameters.parameters.isEmpty &&
         !_isVoid(node.returnType) &&
         !_beginsWithAsOrTo(node.name2.lexeme) &&
-        !DartTypeUtilities.hasInheritedMethod(node) &&
+        !node.hasInheritedMethod &&
         _checkBody(node.body)) {
       rule.reportLintForToken(node.name2);
     }

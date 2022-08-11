@@ -213,7 +213,7 @@ class _UnnecessaryGetterOverrideVisitor
 
   @override
   ExecutableElement? getInheritedElement(MethodDeclaration node) =>
-      DartTypeUtilities.lookUpInheritedConcreteGetter(node);
+      node.lookUpInheritedConcreteGetter();
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
@@ -228,8 +228,7 @@ class _UnnecessaryMethodOverrideVisitor
   _UnnecessaryMethodOverrideVisitor(super.rule);
 
   @override
-  ExecutableElement? getInheritedElement(node) =>
-      DartTypeUtilities.lookUpInheritedMethod(node);
+  ExecutableElement? getInheritedElement(node) => node.lookUpInheritedMethod();
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
@@ -249,7 +248,7 @@ class _UnnecessaryOperatorOverrideVisitor
 
   @override
   ExecutableElement? getInheritedElement(node) =>
-      DartTypeUtilities.lookUpInheritedConcreteMethod(node);
+      node.lookUpInheritedConcreteMethod();
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
@@ -286,7 +285,7 @@ class _UnnecessarySetterOverrideVisitor
 
   @override
   ExecutableElement? getInheritedElement(node) =>
-      DartTypeUtilities.lookUpInheritedConcreteSetter(node);
+      node.lookUpInheritedConcreteSetter();
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {

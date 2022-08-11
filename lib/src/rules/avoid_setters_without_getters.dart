@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Avoid setters without getters.';
 
@@ -44,12 +44,6 @@ class Good {
 
 ''';
 
-bool _hasGetter(MethodDeclaration node) =>
-    DartTypeUtilities.lookUpGetter(node) != null;
-
-bool _hasInheritedSetter(MethodDeclaration node) =>
-    DartTypeUtilities.lookUpInheritedConcreteSetter(node) != null;
-
 class AvoidSettersWithoutGetters extends LintRule {
   AvoidSettersWithoutGetters()
       : super(
@@ -86,8 +80,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMembers(NodeList<ClassMember> members) {
     for (var member in members.whereType<MethodDeclaration>()) {
       if (member.isSetter &&
-          !_hasInheritedSetter(member) &&
-          !_hasGetter(member)) {
+          member.lookUpInheritedConcreteSetter() == null &&
+          member.lookUpGetter() == null) {
         rule.reportLintForToken(member.name2);
       }
     }

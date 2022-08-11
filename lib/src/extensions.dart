@@ -267,6 +267,8 @@ extension InterfaceTypeExtension on InterfaceType {
 }
 
 extension MethodDeclarationExtension on MethodDeclaration {
+  bool get hasInheritedMethod => lookUpInheritedMethod() != null;
+
   /// Returns whether this method is an override of a method in any supertype.
   bool get isOverride {
     var name = declaredElement2?.name;
@@ -292,5 +294,72 @@ extension MethodDeclarationExtension on MethodDeclaration {
       return parentElement.allSupertypes
           .any((t) => t.lookUpMethod2(name, parentLibrary) != null);
     }
+  }
+
+  PropertyAccessorElement? lookUpGetter() {
+    var declaredElement = declaredElement2;
+    if (declaredElement == null) {
+      return null;
+    }
+    var parent = declaredElement.enclosingElement3;
+    if (parent is ClassElement) {
+      return parent.lookUpGetter(name2.lexeme, declaredElement.library);
+    }
+    if (parent is ExtensionElement) {
+      return parent.getGetter(name2.lexeme);
+    }
+    return null;
+  }
+
+  PropertyAccessorElement? lookUpInheritedConcreteGetter() {
+    var declaredElement = declaredElement2;
+    if (declaredElement == null) {
+      return null;
+    }
+    var parent = declaredElement.enclosingElement3;
+    if (parent is ClassElement) {
+      return parent.lookUpInheritedConcreteGetter(
+          name2.lexeme, declaredElement.library);
+    }
+    // Extensions don't inherit.
+    return null;
+  }
+
+  MethodElement? lookUpInheritedConcreteMethod() {
+    var declaredElement = declaredElement2;
+    if (declaredElement != null) {
+      var parent = declaredElement.enclosingElement3;
+      if (parent is ClassElement) {
+        return parent.lookUpInheritedConcreteMethod(
+            name2.lexeme, declaredElement.library);
+      }
+    }
+    // Extensions don't inherit.
+    return null;
+  }
+
+  PropertyAccessorElement? lookUpInheritedConcreteSetter() {
+    var declaredElement = declaredElement2;
+    if (declaredElement != null) {
+      var parent = declaredElement.enclosingElement3;
+      if (parent is ClassElement) {
+        return parent.lookUpInheritedConcreteSetter(
+            name2.lexeme, declaredElement.library);
+      }
+    }
+    // Extensions don't inherit.
+    return null;
+  }
+
+  MethodElement? lookUpInheritedMethod() {
+    var declaredElement = declaredElement2;
+    if (declaredElement != null) {
+      var parent = declaredElement.enclosingElement3;
+      if (parent is ClassElement) {
+        return parent.lookUpInheritedMethod(
+            name2.lexeme, declaredElement.library);
+      }
+    }
+    return null;
   }
 }
