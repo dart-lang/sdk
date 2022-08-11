@@ -919,6 +919,21 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kTypedData_Float32x4ArrayView_factory:
     case MethodRecognizer::kTypedData_Int32x4ArrayView_factory:
     case MethodRecognizer::kTypedData_Float64x2ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableByteDataView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt8ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint8ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint8ClampedArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt16ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint16ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat64x2ArrayView_factory:
     case MethodRecognizer::kTypedData_Int8Array_factory:
     case MethodRecognizer::kTypedData_Uint8Array_factory:
     case MethodRecognizer::kTypedData_Uint8ClampedArray_factory:
@@ -1065,122 +1080,27 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += TailCall(resume_stub);
       break;
     }
+#define CASE(name)                                                             \
+  case MethodRecognizer::kTypedData_##name##_factory:                          \
+    body += BuildTypedDataFactoryConstructor(function, kTypedData##name##Cid); \
+    break;                                                                     \
+  case MethodRecognizer::kTypedData_##name##View_factory:                      \
+    body += BuildTypedDataViewFactoryConstructor(function,                     \
+                                                 kTypedData##name##ViewCid);   \
+    break;                                                                     \
+  case MethodRecognizer::kTypedData_Unmodifiable##name##View_factory:          \
+    body += BuildTypedDataViewFactoryConstructor(                              \
+        function, kUnmodifiableTypedData##name##ViewCid);                      \
+    break;
+      CLASS_LIST_TYPED_DATA(CASE)
+#undef CASE
     case MethodRecognizer::kTypedData_ByteDataView_factory:
       body += BuildTypedDataViewFactoryConstructor(function, kByteDataViewCid);
       break;
-    case MethodRecognizer::kTypedData_Int8ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(function,
-                                                   kTypedDataInt8ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint8ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(function,
-                                                   kTypedDataUint8ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint8ClampedArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableByteDataView_factory:
       body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataUint8ClampedArrayViewCid);
+          function, kUnmodifiableByteDataViewCid);
       break;
-    case MethodRecognizer::kTypedData_Int16ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(function,
-                                                   kTypedDataInt16ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint16ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataUint16ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Int32ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(function,
-                                                   kTypedDataInt32ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint32ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataUint32ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Int64ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(function,
-                                                   kTypedDataInt64ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint64ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataUint64ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Float32ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataFloat32ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Float64ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataFloat64ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Float32x4ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataFloat32x4ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Int32x4ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataInt32x4ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Float64x2ArrayView_factory:
-      body += BuildTypedDataViewFactoryConstructor(
-          function, kTypedDataFloat64x2ArrayViewCid);
-      break;
-    case MethodRecognizer::kTypedData_Int8Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataInt8ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint8Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataUint8ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint8ClampedArray_factory:
-      body += BuildTypedDataFactoryConstructor(function,
-                                               kTypedDataUint8ClampedArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Int16Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataInt16ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint16Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataUint16ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Int32Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataInt32ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint32Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataUint32ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Int64Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataInt64ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Uint64Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataUint64ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Float32Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataFloat32ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Float64Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataFloat64ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Float32x4Array_factory:
-      body += BuildTypedDataFactoryConstructor(function,
-                                               kTypedDataFloat32x4ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Int32x4Array_factory:
-      body +=
-          BuildTypedDataFactoryConstructor(function, kTypedDataInt32x4ArrayCid);
-      break;
-    case MethodRecognizer::kTypedData_Float64x2Array_factory:
-      body += BuildTypedDataFactoryConstructor(function,
-                                               kTypedDataFloat64x2ArrayCid);
-      break;
-
     case MethodRecognizer::kObjectEquals:
       ASSERT_EQUAL(function.NumParameters(), 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));

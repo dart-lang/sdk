@@ -1,3 +1,6 @@
+## 4.6.0-dev
+* Added `DartType.element2`, so that `InterfaceType.element2` overrides it.
+
 ## 4.5.0
 * Update deprecation message for `FormalParameter.identifier`.
 * Deprecated `ClassOrMixinDeclaration`, use `ClassDeclaration` and `MixinDeclaration` directly.

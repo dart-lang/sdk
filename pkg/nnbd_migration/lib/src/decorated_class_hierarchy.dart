@@ -114,8 +114,8 @@ class DecoratedClassHierarchy {
 
     if (typeType is TypeParameterType) {
       final innerType = _getInterfaceType(
-          _variables!.decoratedTypeParameterBound(typeType.element)!);
-      return type.substitute({typeType.element: innerType});
+          _variables!.decoratedTypeParameterBound(typeType.element2)!);
+      return type.substitute({typeType.element2: innerType});
     }
 
     throw ArgumentError('$type is an unexpected type');

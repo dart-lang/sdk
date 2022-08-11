@@ -384,12 +384,12 @@ class DecoratedTypeTest extends Object
     expect(
         ((type.typeFormals[0].bound as InterfaceType).typeArguments[0]
                 as TypeParameterType)
-            .element,
+            .element2,
         same(type.typeFormals[1]));
     expect(
         ((type.typeFormals[2].bound as InterfaceType).typeArguments[0]
                 as TypeParameterType)
-            .element,
+            .element2,
         same(type.typeFormals[1]));
   }
 
@@ -404,7 +404,7 @@ class DecoratedTypeTest extends Object
     expect(
         ((type.parameters[0].type as InterfaceType).typeArguments[0]
                 as TypeParameterType)
-            .element,
+            .element2,
         same(type.typeFormals[0]));
   }
 
@@ -419,7 +419,7 @@ class DecoratedTypeTest extends Object
     expect(
         ((type.parameters[0].type as InterfaceType).typeArguments[0]
                 as TypeParameterType)
-            .element,
+            .element2,
         same(type.typeFormals[0]));
   }
 
@@ -434,7 +434,7 @@ class DecoratedTypeTest extends Object
     expect(
         ((type.parameters[0].type as InterfaceType).typeArguments[0]
                 as TypeParameterType)
-            .element,
+            .element2,
         same(type.typeFormals[0]));
   }
 
@@ -449,7 +449,7 @@ class DecoratedTypeTest extends Object
     expect(
         ((type.returnType as InterfaceType).typeArguments[0]
                 as TypeParameterType)
-            .element,
+            .element2,
         same(type.typeFormals[0]));
   }
 

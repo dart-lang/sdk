@@ -217,6 +217,21 @@ namespace dart {
   V(TypedDataView_Float64x2ArrayView_new, 4)                                   \
   V(TypedDataView_offsetInBytes, 1)                                            \
   V(TypedDataView_typedData, 1)                                                \
+  V(TypedDataView_UnmodifiableByteDataView_new, 4)                             \
+  V(TypedDataView_UnmodifiableInt8ArrayView_new, 4)                            \
+  V(TypedDataView_UnmodifiableUint8ArrayView_new, 4)                           \
+  V(TypedDataView_UnmodifiableUint8ClampedArrayView_new, 4)                    \
+  V(TypedDataView_UnmodifiableInt16ArrayView_new, 4)                           \
+  V(TypedDataView_UnmodifiableUint16ArrayView_new, 4)                          \
+  V(TypedDataView_UnmodifiableInt32ArrayView_new, 4)                           \
+  V(TypedDataView_UnmodifiableUint32ArrayView_new, 4)                          \
+  V(TypedDataView_UnmodifiableInt64ArrayView_new, 4)                           \
+  V(TypedDataView_UnmodifiableUint64ArrayView_new, 4)                          \
+  V(TypedDataView_UnmodifiableFloat32ArrayView_new, 4)                         \
+  V(TypedDataView_UnmodifiableFloat64ArrayView_new, 4)                         \
+  V(TypedDataView_UnmodifiableFloat32x4ArrayView_new, 4)                       \
+  V(TypedDataView_UnmodifiableInt32x4ArrayView_new, 4)                         \
+  V(TypedDataView_UnmodifiableFloat64x2ArrayView_new, 4)                       \
   V(Float32x4_fromDoubles, 4)                                                  \
   V(Float32x4_splat, 1)                                                        \
   V(Float32x4_fromInt32x4Bits, 2)                                              \

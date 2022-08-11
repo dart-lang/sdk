@@ -36,7 +36,7 @@ class DemotionNonNullificationVisitor extends ReplacementVisitor {
       var typeImpl = type as TypeParameterTypeImpl;
       if (typeImpl.promotedBound != null) {
         return TypeParameterTypeImpl(
-          element: type.element,
+          element: type.element2,
           nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
           alias: type.alias,
         );

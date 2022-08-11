@@ -536,8 +536,8 @@ class _TypeParameterCollector extends TypeVisitor<void> {
 
   @override
   void visitTypeParameterType(TypeParameterType type) {
-    if (!functionTypeParameters.contains(type.element)) {
-      var bound = type.element.bound;
+    if (!functionTypeParameters.contains(type.element2)) {
+      var bound = type.element2.bound;
       var promotedBound = (type as TypeParameterTypeImpl).promotedBound;
 
       if (bound == null && promotedBound == null) {
@@ -548,7 +548,7 @@ class _TypeParameterCollector extends TypeVisitor<void> {
 
       if (bound != null) {
         var boundStr = bound.getDisplayString(withNullability: true);
-        str += '${type.element.name} extends $boundStr';
+        str += '${type.element2.name} extends $boundStr';
       }
 
       if (promotedBound != null) {
@@ -558,7 +558,7 @@ class _TypeParameterCollector extends TypeVisitor<void> {
         if (str.isNotEmpty) {
           str += ', ';
         }
-        str += '${type.element.name} & $promotedBoundStr';
+        str += '${type.element2.name} & $promotedBoundStr';
       }
 
       typeParameters.add(str);

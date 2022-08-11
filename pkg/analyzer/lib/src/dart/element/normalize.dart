@@ -235,7 +235,7 @@ class NormalizeHelper {
   /// NORM(X & T)
   /// NORM(X extends T)
   DartType _typeParameterType(TypeParameterTypeImpl T) {
-    var element = T.element;
+    var element = T.element2;
 
     // NORM(X & T)
     var promotedBound = T.promotedBound;
@@ -286,7 +286,7 @@ class NormalizeHelper {
     // * if S is X then X
     if (S is TypeParameterType &&
         S.nullabilitySuffix == NullabilitySuffix.none &&
-        S.element == X.declaration) {
+        S.element2 == X.declaration) {
       return X.declaration.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
       );

@@ -1116,11 +1116,8 @@ DEFINE_NATIVE_ENTRY(Isolate_registerKernelBlob, 0, 1) {
                                arguments->NativeArgAt(0));
   auto register_kernel_blob_callback = Isolate::RegisterKernelBlobCallback();
   if (register_kernel_blob_callback == nullptr) {
-    const auto& error =
-        String::Handle(zone, String::New("Registration of kernel blobs is not "
-                                         "supported by this Dart embedder.\n"));
-    Exceptions::ThrowArgumentError(error);
-    UNREACHABLE();
+    Exceptions::ThrowUnsupportedError(
+        "Registration of kernel blobs is not supported by this Dart embedder.");
   }
   bool is_kernel = false;
   {
@@ -1143,10 +1140,7 @@ DEFINE_NATIVE_ENTRY(Isolate_registerKernelBlob, 0, 1) {
         kernel_blob.LengthInBytes());
   }
   if (uri == nullptr) {
-    const Instance& exception = Instance::Handle(
-        thread->isolate_group()->object_store()->out_of_memory());
-    Exceptions::Throw(thread, exception);
-    UNREACHABLE();
+    Exceptions::ThrowOOM();
   }
   return String::New(uri);
 }
@@ -1157,11 +1151,8 @@ DEFINE_NATIVE_ENTRY(Isolate_unregisterKernelBlob, 0, 1) {
   auto unregister_kernel_blob_callback =
       Isolate::UnregisterKernelBlobCallback();
   if (unregister_kernel_blob_callback == nullptr) {
-    const auto& error =
-        String::Handle(zone, String::New("Registration of kernel blobs is not "
-                                         "supported by this Dart embedder.\n"));
-    Exceptions::ThrowArgumentError(error);
-    UNREACHABLE();
+    Exceptions::ThrowUnsupportedError(
+        "Registration of kernel blobs is not supported by this Dart embedder.");
   }
   unregister_kernel_blob_callback(kernel_blob_uri.ToCString());
   return Object::null();

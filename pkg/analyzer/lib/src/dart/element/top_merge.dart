@@ -160,7 +160,7 @@ class TopMergeHelper {
     }
 
     if (T is TypeParameterType && S is TypeParameterType) {
-      if (T.element == S.element) {
+      if (T.element2 == S.element2) {
         return T;
       } else {
         throw _TopMergeStateError(T, S, 'Not the same type parameters');

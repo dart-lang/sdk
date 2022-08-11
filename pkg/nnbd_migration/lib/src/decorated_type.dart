@@ -458,7 +458,7 @@ class DecoratedType implements DecoratedTypeInfo {
       return DecoratedType(undecoratedResult, node,
           typeArguments: newTypeArguments);
     } else if (type is TypeParameterType) {
-      var inner = substitution[type.element];
+      var inner = substitution[type.element2];
       if (inner == null) {
         return this;
       } else {

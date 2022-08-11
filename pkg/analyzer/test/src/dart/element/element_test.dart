@@ -1330,7 +1330,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   void test_getElement() {
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
     TypeParameterTypeImpl type = typeParameterTypeStar(element);
-    expect(type.element, element);
+    expect(type.element2, element);
   }
 
   @deprecated

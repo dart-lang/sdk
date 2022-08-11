@@ -55,7 +55,7 @@ class VarianceBuilder {
 
   Variance _compute(TypeParameterElement variable, DartType? type) {
     if (type is TypeParameterType) {
-      if (type.element == variable) {
+      if (type.element2 == variable) {
         return Variance.covariant;
       } else {
         return Variance.unrelated;

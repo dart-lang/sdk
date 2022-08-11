@@ -48,7 +48,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   InterfaceType get doubleType => typeProvider.doubleType;
 
   Element get dynamicElement =>
-      (typeProvider.dynamicType as DynamicTypeImpl).element;
+      (typeProvider.dynamicType as DynamicTypeImpl).element2;
 
   FeatureSet get featureSet => result.libraryElement.featureSet;
 

@@ -3210,7 +3210,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 isExpressionInvocation: isExpressionInvocation);
           } else {
             bool isSpecialCasedBinaryOperator =
-                target.isSpecialCasedBinaryOperatorForReceiverType(this);
+                target.isSpecialCasedBinaryOperator(this);
             return _inferInstanceMethodInvocation(
                 visitor,
                 fileOffset,
@@ -3390,7 +3390,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         : const ObjectAccessTarget.missing();
     DartType receiverType = thisType!;
     bool isSpecialCasedBinaryOperator =
-        target.isSpecialCasedBinaryOperatorForReceiverType(this);
+        target.isSpecialCasedBinaryOperator(this);
     DartType calleeType = target.getGetterType(this);
     FunctionType functionType = target.getFunctionType(this);
     if (procedure != null) {

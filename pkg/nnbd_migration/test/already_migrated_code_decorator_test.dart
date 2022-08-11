@@ -597,7 +597,7 @@ class _ContextWithElement with EdgeTester {
     String displayName,
   ) {
     var type = decoratedType.type as TypeParameterTypeImpl;
-    expect(type.element, same(expectedElement));
+    expect(type.element2, same(expectedElement));
     checkNullability(decoratedType.node, displayName);
   }
 

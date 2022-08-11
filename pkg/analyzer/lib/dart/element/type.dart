@@ -44,8 +44,12 @@ abstract class DartType {
   /// the type has not, or cannot, be associated with an element. The former
   /// case will occur if the element model is not yet complete; the latter case
   /// will occur if this object represents an undefined type.
-  @Deprecated('Check for specific DartType subtype and use element2 instead')
+  @Deprecated('Use element2 instead')
   Element? get element;
+
+  /// Return the element representing the declaration of this type, or `null`
+  /// if the type is not associated with an element.
+  Element? get element2;
 
   /// Return `true` if this type represents the bottom type.
   bool get isBottom;
@@ -282,7 +286,7 @@ abstract class InterfaceType implements ParameterizedType {
   @override
   ClassElement get element;
 
-  /// Return the element representing the declaration of this type.
+  @override
   InterfaceElement get element2;
 
   /// Return a list containing all of the interfaces that are implemented by
@@ -396,10 +400,7 @@ abstract class InterfaceType implements ParameterizedType {
 }
 
 /// The type `Never` represents the uninhabited bottom type.
-abstract class NeverType implements DartType {
-  @override
-  Element get element;
-}
+abstract class NeverType implements DartType {}
 
 /// A type that can track substituted type parameters, either for itself after
 /// instantiation, or from a surrounding context.
@@ -438,8 +439,12 @@ abstract class TypeParameterType implements DartType {
   /// Always consult the bound if that could be relevant.
   ElementLocation get definition;
 
+  @Deprecated('Use element2 instead')
   @override
   TypeParameterElement get element;
+
+  @override
+  TypeParameterElement get element2;
 }
 
 /// The special type `void` is used to indicate that the value of an

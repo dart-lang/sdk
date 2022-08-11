@@ -1877,8 +1877,7 @@ class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
 /// The synthetic element representing the declaration of the type `dynamic`.
 class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
   /// Return the unique instance of this class.
-  static DynamicElementImpl get instance =>
-      DynamicTypeImpl.instance.element as DynamicElementImpl;
+  static DynamicElementImpl get instance => DynamicTypeImpl.instance.element2;
 
   /// Initialize a newly created instance of this class. Instances of this class
   /// should <b>not</b> be created except as part of creating the type
@@ -6381,7 +6380,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
       }
       final typeArgument = typeArguments[i];
       if (typeArgument is TypeParameterType &&
-          typeParameters[i] != typeArgument.element) {
+          typeParameters[i] != typeArgument.element2) {
         return false;
       }
     }
@@ -6501,7 +6500,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
       );
     } else if (type is TypeParameterType) {
       return TypeParameterTypeImpl(
-        element: type.element,
+        element: type.element2,
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
           element: this,

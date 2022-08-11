@@ -1732,6 +1732,9 @@ class Class : public Object {
   // Allocate the raw TypedDataView/ByteDataView classes.
   static ClassPtr NewTypedDataViewClass(intptr_t class_id,
                                         IsolateGroup* isolate_group);
+  static ClassPtr NewUnmodifiableTypedDataViewClass(
+      intptr_t class_id,
+      IsolateGroup* isolate_group);
 
   // Allocate the raw ExternalTypedData classes.
   static ClassPtr NewExternalTypedDataClass(intptr_t class_id,
@@ -3620,6 +3623,15 @@ class Function : public Object {
       // This is a native factory constructor.
       const Class& klass = Class::Handle(Owner());
       return IsTypedDataViewClassId(klass.id());
+    }
+    return false;
+  }
+
+  bool IsUnmodifiableTypedDataViewFactory() const {
+    if (is_native() && kind() == UntaggedFunction::kConstructor) {
+      // This is a native factory constructor.
+      const Class& klass = Class::Handle(Owner());
+      return IsUnmodifiableTypedDataViewClassId(klass.id());
     }
     return false;
   }
@@ -10723,20 +10735,25 @@ class TypedDataBase : public PointerBase {
   }
 
   static TypedDataElementType ElementType(classid_t cid) {
-    if (cid == kByteDataViewCid) {
+    if (cid == kByteDataViewCid || cid == kUnmodifiableByteDataViewCid) {
       return kUint8ArrayElement;
     } else if (IsTypedDataClassId(cid)) {
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderInternal) / 3;
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderInternal) / 4;
       return static_cast<TypedDataElementType>(index);
     } else if (IsTypedDataViewClassId(cid)) {
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderView) / 3;
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderView) / 4;
+      return static_cast<TypedDataElementType>(index);
+    } else if (IsExternalTypedDataClassId(cid)) {
+      const intptr_t index =
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderExternal) / 4;
       return static_cast<TypedDataElementType>(index);
     } else {
-      ASSERT(IsExternalTypedDataClassId(cid));
+      ASSERT(IsUnmodifiableTypedDataViewClassId(cid));
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderExternal) / 3;
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderUnmodifiable) /
+          4;
       return static_cast<TypedDataElementType>(index);
     }
   }
@@ -10793,7 +10810,7 @@ class TypedDataBase : public PointerBase {
     return size;
   }
   static const intptr_t kNumElementSizes =
-      (kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid) / 3 + 1;
+      (kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid) / 4 + 1;
   static const intptr_t element_size_table[kNumElementSizes];
 
   HEAP_OBJECT_IMPLEMENTATION(TypedDataBase, PointerBase);

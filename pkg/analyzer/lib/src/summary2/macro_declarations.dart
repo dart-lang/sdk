@@ -105,7 +105,7 @@ class DeclarationBuilderFromElement {
       return macro.NamedTypeAnnotationImpl(
         id: macro.RemoteInstance.uniqueId,
         isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
-        identifier: identifier(type.element),
+        identifier: identifier(type.element2),
         typeArguments: const [],
       );
     } else {

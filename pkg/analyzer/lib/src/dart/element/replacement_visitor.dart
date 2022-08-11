@@ -132,7 +132,7 @@ class ReplacementVisitor
 
     var promotedBound = (type as TypeParameterTypeImpl).promotedBound;
     return TypeParameterTypeImpl(
-      element: type.element,
+      element: type.element2,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
       promotedBound: newPromotedBound ?? promotedBound,
       alias: type.alias,
@@ -148,7 +148,7 @@ class ReplacementVisitor
     }
 
     return TypeParameterTypeImpl(
-      element: type.element,
+      element: type.element2,
       nullabilitySuffix: newNullability,
       alias: type.alias,
     );

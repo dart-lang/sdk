@@ -409,6 +409,13 @@ void ConstantPropagator::VisitGenericCheckBound(GenericCheckBoundInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitCheckWritable(CheckWritableInstr* instr) {
+  // Don't propagate constants through check, since it would eliminate
+  // the data dependence between the writable check and its use.
+  // Graph finalization will expose the constant eventually.
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitCheckNull(CheckNullInstr* instr) {
   // Don't propagate constants through check, since it would eliminate
   // the data dependence between the null check and its use.

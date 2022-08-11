@@ -5649,6 +5649,32 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+LocationSummary* CheckWritableInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps,
+      UseSharedSlowPathStub(opt) ? LocationSummary::kCallOnSharedSlowPath
+                                 : LocationSummary::kCallOnSlowPath);
+  locs->set_in(0, Location::RequiresRegister());
+  return locs;
+}
+
+void CheckWritableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  WriteErrorSlowPath* slow_path = new WriteErrorSlowPath(this);
+  compiler->AddSlowPathCode(slow_path);
+  __ ldr(TMP,
+         compiler::FieldAddress(locs()->in(0).reg(),
+                                compiler::target::Object::tags_offset(),
+                                compiler::kUnsignedByte),
+         compiler::kUnsignedByte);
+  // In the first byte.
+  ASSERT(compiler::target::UntaggedObject::kImmutableBit < 8);
+  __ tbnz(slow_path->entry_label(), TMP,
+          compiler::target::UntaggedObject::kImmutableBit);
+}
+
 class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
  public:
   Int64DivideSlowPath(BinaryInt64OpInstr* instruction,
