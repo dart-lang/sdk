@@ -268,7 +268,8 @@ bool Slot::IsImmutableLengthSlot() const {
 // Note: should only be called with cids of array-like classes.
 const Slot& Slot::GetLengthFieldForArrayCid(intptr_t array_cid) {
   if (IsExternalTypedDataClassId(array_cid) || IsTypedDataClassId(array_cid) ||
-      IsTypedDataViewClassId(array_cid)) {
+      IsTypedDataViewClassId(array_cid) ||
+      IsUnmodifiableTypedDataViewClassId(array_cid)) {
     return GetNativeSlot(Kind::kTypedDataBase_length);
   }
   switch (array_cid) {

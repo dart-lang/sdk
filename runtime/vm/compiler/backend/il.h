@@ -500,6 +500,7 @@ struct InstrAttrs {
   M(UnaryInt64Op, kNoGC)                                                       \
   M(CheckArrayBound, kNoGC)                                                    \
   M(GenericCheckBound, kNoGC)                                                  \
+  M(CheckWritable, kNoGC)                                                      \
   M(Constraint, kNoGC)                                                         \
   M(StringToCharCode, kNoGC)                                                   \
   M(OneByteStringFromCharCode, kNoGC)                                          \
@@ -6824,6 +6825,7 @@ class LoadFieldInstr : public TemplateLoadField<1> {
 
   static bool IsFixedLengthArrayCid(intptr_t cid);
   static bool IsTypedDataViewFactory(const Function& function);
+  static bool IsUnmodifiableTypedDataViewFactory(const Function& function);
 
   virtual bool AllowsCSE() const { return slot_.is_immutable(); }
 
@@ -9102,6 +9104,31 @@ class GenericCheckBoundInstr : public CheckBoundBase {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GenericCheckBoundInstr);
+};
+
+class CheckWritableInstr : public TemplateDefinition<1, Throws, Pure> {
+ public:
+  CheckWritableInstr(Value* array,
+                     intptr_t deopt_id,
+                     const InstructionSource& source)
+      : TemplateDefinition(source, deopt_id) {
+    SetInputAt(0, array);
+  }
+
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
+
+  DECLARE_INSTRUCTION(CheckWritable)
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual Value* RedefinedValue() const;
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CheckWritableInstr);
 };
 
 // Instruction evaluates the given comparison and deoptimizes if it evaluates

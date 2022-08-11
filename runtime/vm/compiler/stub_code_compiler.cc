@@ -1186,6 +1186,16 @@ void StubCodeCompiler::GenerateRangeErrorSharedWithFPURegsStub(
   GenerateRangeError(assembler, /*with_fpu_regs=*/true);
 }
 
+void StubCodeCompiler::GenerateWriteErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  GenerateWriteError(assembler, /*with_fpu_regs=*/false);
+}
+
+void StubCodeCompiler::GenerateWriteErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  GenerateWriteError(assembler, /*with_fpu_regs=*/true);
+}
+
 void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(
     Assembler* assembler) {
   __ Breakpoint();  // Marker stub.

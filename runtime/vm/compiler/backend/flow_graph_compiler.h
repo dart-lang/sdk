@@ -386,6 +386,16 @@ class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
                                   bool save_fpu_registers);
 };
 
+class WriteErrorSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  explicit WriteErrorSlowPath(CheckWritableInstr* instruction)
+      : ThrowErrorSlowPathCode(instruction, kWriteErrorRuntimeEntry) {}
+  virtual const char* name() { return "check writable"; }
+
+  virtual void EmitSharedStubCall(FlowGraphCompiler* compiler,
+                                  bool save_fpu_registers);
+};
+
 class LateInitializationErrorSlowPath : public ThrowErrorSlowPathCode {
  public:
   explicit LateInitializationErrorSlowPath(Instruction* instruction)

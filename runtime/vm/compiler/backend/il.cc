@@ -538,6 +538,10 @@ Value* CheckBoundBase::RedefinedValue() const {
   return index();
 }
 
+Value* CheckWritableInstr::RedefinedValue() const {
+  return value();
+}
+
 Value* CheckNullInstr::RedefinedValue() const {
   return value();
 }
@@ -2617,6 +2621,31 @@ bool LoadFieldInstr::IsTypedDataViewFactory(const Function& function) {
   }
 }
 
+bool LoadFieldInstr::IsUnmodifiableTypedDataViewFactory(
+    const Function& function) {
+  auto kind = function.recognized_kind();
+  switch (kind) {
+    case MethodRecognizer::kTypedData_UnmodifiableByteDataView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt8ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint8ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint8ClampedArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt16ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint16ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat64x2ArrayView_factory:
+      return true;
+    default:
+      return false;
+  }
+}
+
 Definition* ConstantInstr::Canonicalize(FlowGraph* flow_graph) {
   return HasUses() ? this : NULL;
 }
@@ -2767,7 +2796,8 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     ASSERT(!calls_initializer());
     Definition* array = instance()->definition()->OriginalDefinition();
     if (StaticCallInstr* call = array->AsStaticCall()) {
-      if (IsTypedDataViewFactory(call->function())) {
+      if (IsTypedDataViewFactory(call->function()) ||
+          IsUnmodifiableTypedDataViewFactory(call->function())) {
         return call->ArgumentAt(1);
       }
     }
@@ -2792,7 +2822,8 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     if (StaticCallInstr* call = array->AsStaticCall()) {
       if (call->is_known_list_constructor()) {
         return call->ArgumentAt(0);
-      } else if (IsTypedDataViewFactory(call->function())) {
+      } else if (IsTypedDataViewFactory(call->function()) ||
+                 IsUnmodifiableTypedDataViewFactory(call->function())) {
         return flow_graph->constant_null();
       }
       switch (call->function().recognized_kind()) {
@@ -5762,20 +5793,6 @@ void DoubleToIntegerSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Jump(exit_label());
 }
 
-void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
-                                            bool save_fpu_registers) {
-#if defined(TARGET_ARCH_IA32)
-  UNREACHABLE();
-#else
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& stub = Code::ZoneHandle(
-      compiler->zone(),
-      save_fpu_registers
-          ? object_store->range_error_stub_with_fpu_regs_stub()
-          : object_store->range_error_stub_without_fpu_regs_stub());
-  compiler->EmitCallToStub(stub);
-#endif
-}
 
 void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   const intptr_t box_cid = BoxCid();
@@ -6154,6 +6171,7 @@ Definition* CheckBoundBase::Canonicalize(FlowGraph* flow_graph) {
 
 intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
   if (IsTypedDataClassId(class_id) || IsTypedDataViewClassId(class_id) ||
+      IsUnmodifiableTypedDataViewClassId(class_id) ||
       IsExternalTypedDataClassId(class_id)) {
     return compiler::target::TypedDataBase::length_offset();
   }
@@ -6171,6 +6189,15 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
       UNREACHABLE();
       return -1;
   }
+}
+
+Definition* CheckWritableInstr::Canonicalize(FlowGraph* flow_graph) {
+  intptr_t cid = value()->Type()->ToCid();
+  if ((cid != kIllegalCid) && (cid != kDynamicCid) &&
+      !IsUnmodifiableTypedDataViewClassId(cid)) {
+    return value()->definition();
+  }
+  return this;
 }
 
 static AlignmentType StrengthenAlignment(intptr_t cid,
