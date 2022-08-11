@@ -4,7 +4,7 @@
 
 import 'dart:io' show Directory, Platform;
 
-import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
     show ActualData, Id, IdKind;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'

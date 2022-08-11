@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
