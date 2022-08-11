@@ -70,9 +70,8 @@ class RetryTimeoutClient {
         _inner.connectionTimeout = _connectionTimeout(i);
         var request = await method(url).timeout(
           _responseTimeout(i),
-          onTimeout: (() =>
-              throw TimeoutException('$url, retry:$i', _responseTimeout(i))
-                  as FutureOr<HttpClientRequest> Function()),
+          onTimeout: () =>
+              throw TimeoutException('$url, retry:$i', _responseTimeout(i)),
         );
         response = await request.close();
       } catch (error, stackTrace) {
