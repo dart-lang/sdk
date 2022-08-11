@@ -356,9 +356,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
                                 Array::kMaxElements);
   }
   if (len > Array::kMaxElements) {
-    const Instance& exception = Instance::Handle(
-        zone, thread->isolate_group()->object_store()->out_of_memory());
-    Exceptions::Throw(thread, exception);
+    Exceptions::ThrowOOM();
   }
 
   const Array& array = Array::Handle(
@@ -432,9 +430,7 @@ DEFINE_RUNTIME_ENTRY(AllocateTypedData, 2) {
   if (len < 0) {
     Exceptions::ThrowRangeError("length", Integer::Cast(length), 0, max);
   } else if (len > max) {
-    const Instance& exception = Instance::Handle(
-        zone, thread->isolate_group()->object_store()->out_of_memory());
-    Exceptions::Throw(thread, exception);
+    Exceptions::ThrowOOM();
   }
   const auto& typed_data =
       TypedData::Handle(zone, TypedData::New(cid, static_cast<intptr_t>(len)));
