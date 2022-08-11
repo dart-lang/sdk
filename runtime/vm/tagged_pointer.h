@@ -112,9 +112,6 @@ class ObjectPtr {
   bool IsTypedDataView##clazz() const {                                        \
     return ((GetClassId() == kTypedData##clazz##ViewCid));                     \
   }                                                                            \
-  bool IsUnmodifiableTypedDataView##clazz() const {                            \
-    return ((GetClassId() == kUnmodifiableTypedData##clazz##ViewCid));         \
-  }                                                                            \
   bool IsExternalTypedData##clazz() const {                                    \
     return ((GetClassId() == kExternalTypedData##clazz##Cid));                 \
   }

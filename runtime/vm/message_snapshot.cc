@@ -3463,9 +3463,7 @@ MessageSerializationCluster* BaseSerializer::NewClusterForClass(
       (cid == kByteBufferCid)) {
     return new (Z) InstanceMessageSerializationCluster(is_canonical, cid);
   }
-  if (IsTypedDataViewClassId(cid) || cid == kByteDataViewCid ||
-      IsUnmodifiableTypedDataViewClassId(cid) ||
-      cid == kUnmodifiableByteDataViewCid) {
+  if (IsTypedDataViewClassId(cid) || cid == kByteDataViewCid) {
     return new (Z) TypedDataViewMessageSerializationCluster(Z, cid);
   }
   if (IsExternalTypedDataClassId(cid)) {
@@ -3554,9 +3552,7 @@ MessageDeserializationCluster* BaseDeserializer::ReadCluster() {
       (cid == kByteBufferCid)) {
     return new (Z) InstanceMessageDeserializationCluster(is_canonical);
   }
-  if (IsTypedDataViewClassId(cid) || cid == kByteDataViewCid ||
-      IsUnmodifiableTypedDataViewClassId(cid) ||
-      cid == kUnmodifiableByteDataViewCid) {
+  if (IsTypedDataViewClassId(cid) || cid == kByteDataViewCid) {
     ASSERT(!is_canonical);
     return new (Z) TypedDataViewMessageDeserializationCluster(cid);
   }

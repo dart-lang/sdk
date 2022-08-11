@@ -11,9 +11,9 @@ typedef ProducerGenerator = RefactoringProducer Function(RefactoringContext);
 
 class RefactoringProcessor {
   /// A list of the generators used to produce refactorings.
-  static const List<ProducerGenerator> generators = [
-    // MoveTopLevelToFile.new,
-  ];
+  static const Map<String, ProducerGenerator> generators = {
+    // 'move_to_file': MoveTopLevelToFile.new,
+  };
 
   /// The context in which the refactorings could be applied.
   final RefactoringContext context;
@@ -24,8 +24,8 @@ class RefactoringProcessor {
   /// are available in the current context.
   Future<List<CodeAction>> compute() async {
     var refactorings = <CodeAction>[];
-    for (var i = 0; i < generators.length; i++) {
-      var generator = generators[i];
+    for (var entry in RefactoringProcessor.generators.entries) {
+      var generator = entry.value;
       var producer = generator(context);
       if (producer.isAvailable()) {
         refactorings.add(
@@ -33,13 +33,19 @@ class RefactoringProcessor {
               title: producer.title,
               kind: producer.kind,
               command: Command(
-                command: producer.commandName,
+                command: entry.key,
                 title: producer.title,
+                arguments: [
+                  {
+                    'filePath': context.resolvedResult.path,
+                    'selectionOffset': context.selectionOffset,
+                    'selectionLength': context.selectionLength,
+                    'arguments':
+                        producer.parameters.map((param) => param.defaultValue),
+                  }
+                ],
               ),
               data: {
-                'filePath': context.resolvedResult.path,
-                'selectionOffset': context.selectionOffset,
-                'selectionLength': context.selectionLength,
                 'parameters': producer.parameters,
               }),
         );

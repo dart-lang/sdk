@@ -372,12 +372,6 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateWriteError(Assembler* assembler,
-                                          bool with_fpu_regs) {
-  // Only used in AOT.
-  __ Breakpoint();
-}
-
 void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
     Assembler* assembler) {
   // Only used in AOT.

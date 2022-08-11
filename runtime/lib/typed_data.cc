@@ -94,7 +94,6 @@ static bool IsClamped(intptr_t cid) {
     case kTypedDataUint8ClampedArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
     case kTypedDataUint8ClampedArrayViewCid:
-    case kUnmodifiableTypedDataUint8ClampedArrayViewCid:
       return true;
     default:
       return false;
@@ -106,11 +105,9 @@ static bool IsUint8(intptr_t cid) {
     case kTypedDataUint8ClampedArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
     case kTypedDataUint8ClampedArrayViewCid:
-    case kUnmodifiableTypedDataUint8ClampedArrayViewCid:
     case kTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ArrayCid:
     case kTypedDataUint8ArrayViewCid:
-    case kUnmodifiableTypedDataUint8ArrayViewCid:
       return true;
     default:
       return false;
@@ -189,15 +186,10 @@ static InstancePtr NewTypedDataView(intptr_t cid,
   }
 
 #define TYPED_DATA_NEW_NATIVE(name)                                            \
-  TYPED_DATA_VIEW_NEW(TypedDataView_##name##View_new,                          \
-                      kTypedData##name##ViewCid)                               \
-  TYPED_DATA_VIEW_NEW(TypedDataView_Unmodifiable##name##View_new,              \
-                      kUnmodifiableTypedData##name##ViewCid)
+  TYPED_DATA_VIEW_NEW(TypedDataView_##name##View_new, kTypedData##name##ViewCid)
 
 CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
 TYPED_DATA_VIEW_NEW(TypedDataView_ByteDataView_new, kByteDataViewCid)
-TYPED_DATA_VIEW_NEW(TypedDataView_UnmodifiableByteDataView_new,
-                    kUnmodifiableByteDataViewCid)
 #undef TYPED_DATA_NEW_NATIVE
 #undef TYPED_DATA_VIEW_NEW
 

@@ -17,6 +17,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/pub.dart';
@@ -169,7 +170,7 @@ environment:
 
   void test_sourceFactory_blazeWorkspace() {
     var projectPath = convertPath('/workspace/my/module');
-    newFile('/workspace/WORKSPACE', '');
+    newFile('/workspace/${file_paths.blazeWorkspaceMarker}', '');
     newFolder('/workspace/bazel-bin');
     newFolder('/workspace/bazel-genfiles');
 

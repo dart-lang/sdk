@@ -30,7 +30,7 @@ import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:collection/collection.dart';
-import 'package:path/src/context.dart';
+import 'package:path/path.dart';
 
 /// Context information necessary to analyze one or more libraries within an
 /// [AnalysisDriver].

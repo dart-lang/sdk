@@ -10,6 +10,7 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/workspace/blaze_watcher.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
@@ -178,7 +179,6 @@ class BlazePackageUriResolver extends UriResolver {
 /// Information about a Bazel workspace.
 class BlazeWorkspace extends Workspace
     implements WorkspaceWithDefaultAnalysisOptions {
-  static const String _WORKSPACE = 'WORKSPACE';
   static const String _READONLY = 'READONLY';
 
   /// The name of the file that identifies a set of Bazel Targets.
@@ -454,12 +454,12 @@ class BlazeWorkspace extends Workspace
   /// At each folder _f_ with parent _p_, starting with [filePath]:
   ///
   /// * If _f_ has a sibling folder named "READONLY", and that folder has a
-  ///   child folder with the same name as _f_, then a BazelWorkspace rooted at
+  ///   child folder with the same name as _f_, then a [BlazeWorkspace] rooted at
   ///   _f_ is returned.
   /// * If _f_ has a child folder named "blaze-out" or "bazel-out", then a
-  ///   BazelWorkspace rooted at _f_ is returned.
-  /// * If _f_ has a child file named "WORKSPACE", then a BazelWorkspace rooted
-  ///   at _f_ is returned.
+  ///   [BlazeWorkspace] rooted at _f_ is returned.
+  /// * If _f_ has a child file named [file_paths.blazeWorkspaceMarker], then
+  ///   a [BlazeWorkspace] rooted at _f_ is returned.
   static BlazeWorkspace? find(
     ResourceProvider provider,
     String filePath, {
@@ -505,7 +505,7 @@ class BlazeWorkspace extends Workspace
       }
 
       // Found the WORKSPACE file, must be a non-git workspace.
-      if (folder.getChildAssumingFile(_WORKSPACE).exists) {
+      if (folder.getChildAssumingFile(file_paths.blazeWorkspaceMarker).exists) {
         String root = folder.path;
         var binPaths = _findBinFolderPaths(folder);
         String symlinkPrefix =

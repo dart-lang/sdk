@@ -206,9 +206,9 @@ abstract class AbstractDartSdk implements DartSdk {
 
 /// An SDK backed by URI mappings derived from an `_embedder.yaml` file.
 class EmbedderSdk extends AbstractDartSdk {
-  static const String _DART_COLON_PREFIX = 'dart:';
+  static const String _dartColonPrefix = 'dart:';
 
-  static const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
+  static const String _embeddedLibMapKey = 'embedded_libs';
 
   late final Version _languageVersion;
 
@@ -298,7 +298,7 @@ class EmbedderSdk extends AbstractDartSdk {
 
   /// Install the mapping from [name] to [libDir]/[file].
   void _processEmbeddedLibs(String name, String file, Folder libDir) {
-    if (!name.startsWith(_DART_COLON_PREFIX)) {
+    if (!name.startsWith(_dartColonPrefix)) {
       // SDK libraries must begin with 'dart:'.
       return;
     }
@@ -320,7 +320,7 @@ class EmbedderSdk extends AbstractDartSdk {
   ///
   /// If a key doesn't begin with `dart:` it is ignored.
   void _processEmbedderYaml(Folder libDir, YamlMap map) {
-    YamlNode embeddedLibs = map[_EMBEDDED_LIB_MAP_KEY];
+    YamlNode embeddedLibs = map[_embeddedLibMapKey];
     if (embeddedLibs is YamlMap) {
       embeddedLibs.forEach((k, v) => _processEmbeddedLibs(k, v, libDir));
     }
@@ -344,40 +344,40 @@ class EmbedderSdk extends AbstractDartSdk {
 class FolderBasedDartSdk extends AbstractDartSdk {
   /// The name of the directory within the SDK directory that contains
   /// executables.
-  static const String _BIN_DIRECTORY_NAME = "bin";
+  static const String _binDirectoryName = "bin";
 
   /// The name of the directory within the SDK directory that contains
   /// documentation for the libraries.
-  static const String _DOCS_DIRECTORY_NAME = "docs";
+  static const String _docsDirectoryName = "docs";
 
   /// The name of the directory within the SDK directory that contains the
   /// sdk_library_metadata directory.
-  static const String _INTERNAL_DIR = "_internal";
+  static const String _internalDir = "_internal";
 
   /// The name of the sdk_library_metadata directory that contains the package
   /// holding the libraries.dart file.
-  static const String _SDK_LIBRARY_METADATA_DIR = "sdk_library_metadata";
+  static const String _sdkLibraryMetadataDir = "sdk_library_metadata";
 
   /// The name of the directory within the sdk_library_metadata that contains
   /// libraries.dart.
-  static const String _SDK_LIBRARY_METADATA_LIB_DIR = "lib";
+  static const String _sdkLibraryMetadataLibDir = "lib";
 
   /// The name of the directory within the SDK directory that contains the
   /// libraries.
-  static const String _LIB_DIRECTORY_NAME = "lib";
+  static const String _libDirectoryName = "lib";
 
   /// The name of the libraries file.
-  static const String _LIBRARIES_FILE = "libraries.dart";
+  static const String _librariesFile = "libraries.dart";
 
   /// The name of the pub executable on windows.
-  static const String _PUB_EXECUTABLE_NAME_WIN = "pub.bat";
+  static const String _pubExecutableNameWin = "pub.bat";
 
   /// The name of the pub executable on non-windows operating systems.
-  static const String _PUB_EXECUTABLE_NAME = "pub";
+  static const String _pubExecutableName = "pub";
 
   /// The name of the file within the SDK directory that contains the version
   /// number of the SDK.
-  static const String _VERSION_FILE_NAME = "version";
+  static const String _versionFileName = "version";
 
   /// The directory containing the SDK.
   final Folder _sdkDirectory;
@@ -417,13 +417,13 @@ class FolderBasedDartSdk extends AbstractDartSdk {
 
   /// Return the directory containing documentation for the SDK.
   Folder get docDirectory =>
-      _sdkDirectory.getChildAssumingFolder(_DOCS_DIRECTORY_NAME);
+      _sdkDirectory.getChildAssumingFolder(_docsDirectoryName);
 
   @override
   Version get languageVersion {
     if (_languageVersion == null) {
       var sdkVersionStr = _sdkDirectory
-          .getChildAssumingFile(_VERSION_FILE_NAME)
+          .getChildAssumingFile(_versionFileName)
           .readAsStringSync();
       _languageVersion = languageVersionFromSdkVersion(sdkVersionStr);
     }
@@ -434,17 +434,17 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   /// Return the directory within the SDK directory that contains the libraries.
   Folder get libraryDirectory {
     return _libraryDirectory ??=
-        _sdkDirectory.getChildAssumingFolder(_LIB_DIRECTORY_NAME);
+        _sdkDirectory.getChildAssumingFolder(_libDirectoryName);
   }
 
   /// Return the file containing the Pub executable, or `null` if it does not
   /// exist.
   File get pubExecutable {
     return _pubExecutable ??= _sdkDirectory
-        .getChildAssumingFolder(_BIN_DIRECTORY_NAME)
+        .getChildAssumingFolder(_binDirectoryName)
         .getChildAssumingFile(OSUtilities.isWindows()
-            ? _PUB_EXECUTABLE_NAME_WIN
-            : _PUB_EXECUTABLE_NAME);
+            ? _pubExecutableNameWin
+            : _pubExecutableName);
   }
 
   /// Return the revision number of this SDK, or `"0"` if the revision number
@@ -452,8 +452,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   @override
   String get sdkVersion {
     if (_sdkVersion == null) {
-      File revisionFile =
-          _sdkDirectory.getChildAssumingFile(_VERSION_FILE_NAME);
+      File revisionFile = _sdkDirectory.getChildAssumingFile(_versionFileName);
       try {
         String revision = revisionFile.readAsStringSync();
         _sdkVersion = revision.trim();
@@ -464,16 +463,16 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     return _sdkVersion!;
   }
 
-  /// Determine the search order for trying to locate the [_LIBRARIES_FILE].
+  /// Determine the search order for trying to locate the [_librariesFile].
   Iterable<File> get _libraryMapLocations sync* {
     yield libraryDirectory
-        .getChildAssumingFolder(_INTERNAL_DIR)
-        .getChildAssumingFolder(_SDK_LIBRARY_METADATA_DIR)
-        .getChildAssumingFolder(_SDK_LIBRARY_METADATA_LIB_DIR)
-        .getChildAssumingFile(_LIBRARIES_FILE);
+        .getChildAssumingFolder(_internalDir)
+        .getChildAssumingFolder(_sdkLibraryMetadataDir)
+        .getChildAssumingFolder(_sdkLibraryMetadataLibDir)
+        .getChildAssumingFile(_librariesFile);
     yield libraryDirectory
-        .getChildAssumingFolder(_INTERNAL_DIR)
-        .getChildAssumingFile(_LIBRARIES_FILE);
+        .getChildAssumingFolder(_internalDir)
+        .getChildAssumingFile(_librariesFile);
   }
 
   /// Return info for debugging https://github.com/dart-lang/sdk/issues/35226.

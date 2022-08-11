@@ -3170,8 +3170,8 @@ class C {
   var x = f();
 }
 ''');
-    var xType =
-        variables.decoratedElementType(findNode.simple('x').staticElement!);
+    var xType = variables.decoratedElementType(
+        findNode.variableDeclaration('x').declaredElement2!);
     assertEdge(decoratedTypeAnnotation('int').node, xType.node, hard: false);
   }
 
@@ -4675,8 +4675,8 @@ main() {
   var x = f();
 }
 ''');
-    var xType =
-        variables.decoratedElementType(findNode.simple('x').staticElement!);
+    var xType = variables.decoratedElementType(
+        findNode.variableDeclaration('x').declaredElement2!);
     assertEdge(decoratedTypeAnnotation('int').node, xType.node, hard: false);
   }
 
@@ -8026,8 +8026,8 @@ double get myPi => pi;
 int f() => 1;
 var x = f();
 ''');
-    var xType =
-        variables.decoratedElementType(findNode.simple('x').staticElement!);
+    var xType = variables.decoratedElementType(
+        findNode.variableDeclaration('x').declaredElement2!);
     assertEdge(decoratedTypeAnnotation('int').node, xType.node, hard: false);
   }
 

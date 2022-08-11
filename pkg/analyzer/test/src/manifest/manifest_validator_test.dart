@@ -55,7 +55,7 @@ class ManifestParserTest with ResourceProviderMixin {
 
     result = parser.parseXmlTag();
     expect(result.parseResult, ParseResult.relevantElement);
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
   }
 
   void test_emptyFileDoesNotCrash() {
@@ -151,7 +151,7 @@ class ManifestParserTest with ResourceProviderMixin {
   void test_manifestTag_attributeWithEmptyValue_emptyElement_isParsed() {
     var parser = ManifestParser('<manifest xmlns:android=""/>', _manifestUri);
     var result = parser.parseXmlTag();
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
   }
 
   void test_manifestTag_emptyElement_isParsed() {
@@ -160,21 +160,21 @@ class ManifestParserTest with ResourceProviderMixin {
 ''', _manifestUri);
     var result = parser.parseXmlTag();
     expect(result.parseResult, ParseResult.relevantElement);
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
   }
 
   void test_manifestTag_emptyElement_noAttributes_isParsed() {
     var parser = ManifestParser('<manifest/>', _manifestUri);
     var result = parser.parseXmlTag();
     expect(result.parseResult, ParseResult.relevantElement);
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
   }
 
   void test_manifestTag_emptyElement_noAttributes_whitespace_isParsed() {
     var parser = ManifestParser('<manifest />', _manifestUri);
     var result = parser.parseXmlTag();
     expect(result.parseResult, ParseResult.relevantElement);
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
   }
 
   void test_manifestTag_emptyElement_whitespace_isParsed() {
@@ -183,7 +183,7 @@ class ManifestParserTest with ResourceProviderMixin {
 ''', _manifestUri);
     var result = parser.parseXmlTag();
     expect(result.parseResult, ParseResult.relevantElement);
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
   }
 
   void test_manifestTag_isParsed() {
@@ -193,7 +193,7 @@ class ManifestParserTest with ResourceProviderMixin {
 ''', _manifestUri);
     var result = parser.parseXmlTag();
     expect(result.parseResult, ParseResult.relevantElement);
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
   }
 
   void test_manifestTag_uppercase_isParsed() {
@@ -203,7 +203,7 @@ class ManifestParserTest with ResourceProviderMixin {
 ''', _manifestUri);
     var result = parser.parseXmlTag();
     expect(result.parseResult, ParseResult.relevantElement);
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
   }
 
   void test_manifestTag_withDoctype_isParsed() {
@@ -218,7 +218,7 @@ class ManifestParserTest with ResourceProviderMixin {
 
     result = parser.parseXmlTag();
     expect(result.parseResult, ParseResult.relevantElement);
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
   }
 
   void test_manifestTag_withFeatures_isParsed() {
@@ -230,21 +230,21 @@ class ManifestParserTest with ResourceProviderMixin {
 </manifest>
 ''', _manifestUri);
     var result = parser.parseXmlTag();
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
     var children = result.element!.children;
     expect(children, hasLength(2));
 
-    expect(children[0].name, equals(USES_FEATURE_TAG));
+    expect(children[0].name, equals(usesFeatureTag));
     var touchscreenAttributes = children[0].attributes;
     expect(touchscreenAttributes, hasLength(2));
-    expect(touchscreenAttributes[ANDROID_NAME]!.value,
-        equals(HARDWARE_FEATURE_TOUCHSCREEN));
-    expect(touchscreenAttributes[ANDROID_REQUIRED]!.value, equals('false'));
+    expect(touchscreenAttributes[androidName]!.value,
+        equals(hardwareFeatureTouchscreen));
+    expect(touchscreenAttributes[androidRequired]!.value, equals('false'));
 
-    expect(children[1].name, equals(USES_FEATURE_TAG));
+    expect(children[1].name, equals(usesFeatureTag));
     var homeScreenAttributes = children[1].attributes;
     expect(homeScreenAttributes, hasLength(1));
-    expect(homeScreenAttributes[ANDROID_NAME]!.value,
+    expect(homeScreenAttributes[androidName]!.value,
         equals('android.software.home_screen'));
   }
 
@@ -256,7 +256,7 @@ Text
 ''', _manifestUri);
     var result = parser.parseXmlTag();
     expect(result.parseResult, ParseResult.relevantElement);
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
   }
 
   void test_manifestTag_withSurroundingText_isParsed() {
@@ -268,7 +268,7 @@ Text
 ''', _manifestUri);
     var result = parser.parseXmlTag();
     expect(result.parseResult, ParseResult.relevantElement);
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
   }
 
   void test_manifestTag_withXmlTag_isParsed() {
@@ -283,7 +283,7 @@ Text
 
     result = parser.parseXmlTag();
     expect(result.parseResult, ParseResult.relevantElement);
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
   }
 
   void test_outsideTagClosedBeforeInside() {
@@ -297,7 +297,7 @@ Text
     var parser =
         ManifestParser('<manifest aaa="bbb"></manifest>', _manifestUri);
     var result = parser.parseXmlTag();
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
     expect(result.element!.attributes, hasLength(1));
     var attribute = result.element!.attributes['aaa']!;
     expect(attribute.name, equals('aaa'));
@@ -311,7 +311,7 @@ Text
     var parser =
         ManifestParser('<manifest aaa="b\'b\'b"></manifest>', _manifestUri);
     var result = parser.parseXmlTag();
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
     expect(result.element!.attributes, hasLength(1));
     var attribute = result.element!.attributes['aaa']!;
     expect(attribute.name, equals('aaa'));
@@ -324,7 +324,7 @@ Text
   void test_relevantTag_attributeIsParsed_emptyValue() {
     var parser = ManifestParser('<manifest aaa=""></manifest>', _manifestUri);
     var result = parser.parseXmlTag();
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
     expect(result.element!.attributes, hasLength(1));
     var attribute = result.element!.attributes['aaa']!;
     expect(attribute.name, equals('aaa'));
@@ -338,7 +338,7 @@ Text
     var parser =
         ManifestParser("<manifest aaa='bbb'></manifest>", _manifestUri);
     var result = parser.parseXmlTag();
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
     expect(result.element!.attributes, hasLength(1));
     var attribute = result.element!.attributes['aaa']!;
     expect(attribute.name, equals('aaa'));
@@ -352,7 +352,7 @@ Text
     var parser =
         ManifestParser('<manifest AAA="bbb"></manifest>', _manifestUri);
     var result = parser.parseXmlTag();
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
     expect(result.element!.attributes, hasLength(1));
     var attribute = result.element!.attributes['aaa']!;
     expect(attribute.name, equals('aaa'));
@@ -363,7 +363,7 @@ Text
     var parser =
         ManifestParser('<manifest xmlns:android=""></manifest>', _manifestUri);
     var result = parser.parseXmlTag();
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
     expect(result.element!.attributes, hasLength(1));
     var attribute = result.element!.attributes['xmlns:android']!;
     expect(attribute.value, equals(''));
@@ -372,7 +372,7 @@ Text
   void test_relevantTag_emptyElement_nameIsParsed() {
     var parser = ManifestParser('<manifest/>', _manifestUri);
     var result = parser.parseXmlTag();
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
     var sourceSpan = result.element!.sourceSpan!;
     expect(sourceSpan.start.offset, equals(0));
     expect(sourceSpan.end.offset, equals(11));
@@ -381,7 +381,7 @@ Text
   void test_relevantTag_emptyElement_whitespace_nameIsParsed() {
     var parser = ManifestParser('<manifest />', _manifestUri);
     var result = parser.parseXmlTag();
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
     var sourceSpan = result.element!.sourceSpan!;
     expect(sourceSpan.start.offset, equals(0));
     expect(sourceSpan.end.offset, equals(12));
@@ -390,7 +390,7 @@ Text
   void test_relevantTag_withAttributes_emptyElement_nameIsParsed() {
     var parser = ManifestParser('<manifest aaa="bbb" />', _manifestUri);
     var result = parser.parseXmlTag();
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
     var sourceSpan = result.element!.sourceSpan!;
     expect(sourceSpan.start.offset, equals(0));
     expect(sourceSpan.end.offset, equals(22));
@@ -400,7 +400,7 @@ Text
     var parser =
         ManifestParser('<manifest aaa="bbb"></manifest>', _manifestUri);
     var result = parser.parseXmlTag();
-    expect(result.element!.name, MANIFEST_TAG);
+    expect(result.element!.name, manifestTag);
     var sourceSpan = result.element!.sourceSpan!;
     expect(sourceSpan.start.offset, equals(0));
     expect(sourceSpan.end.offset, equals(31));

@@ -495,7 +495,7 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     //
     // Build a Bazel workspace containing four packages, including the plugin.
     //
-    newFile('/workspaceRoot/WORKSPACE', '');
+    newFile('/workspaceRoot/${file_paths.blazeWorkspaceMarker}', '');
     newFolder('/workspaceRoot/bazel-bin');
     newFolder('/workspaceRoot/bazel-genfiles');
 

@@ -106,10 +106,35 @@ class Utils {
 
   static uintptr_t RoundUpToPowerOfTwo(uintptr_t x);
 
-  static int CountOneBits64(uint64_t x);
-  static int CountOneBits32(uint32_t x);
+  static constexpr int CountOneBits64(uint64_t x) {
+    // Apparently there are x64 chips without popcount.
+#if __GNUC__ && !defined(HOST_ARCH_IA32) && !defined(HOST_ARCH_X64)
+    return __builtin_popcountll(x);
+#else
+    x = x - ((x >> 1) & 0x5555555555555555);
+    x = (x & 0x3333333333333333) + ((x >> 2) & 0x3333333333333333);
+    x = (((x + (x >> 4)) & 0x0f0f0f0f0f0f0f0f) * 0x0101010101010101) >> 56;
+    return x;
+#endif
+  }
 
-  static int CountOneBitsWord(uword x) {
+  static constexpr int CountOneBits32(uint32_t x) {
+    // Apparently there are x64 chips without popcount.
+#if __GNUC__ && !defined(HOST_ARCH_IA32) && !defined(HOST_ARCH_X64)
+    return __builtin_popcount(x);
+#else
+    // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
+    // figure 5-2, page 66, where the function is called pop.
+    x = x - ((x >> 1) & 0x55555555);
+    x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
+    x = (x + (x >> 4)) & 0x0F0F0F0F;
+    x = x + (x >> 8);
+    x = x + (x >> 16);
+    return static_cast<int>(x & 0x0000003F);
+#endif
+  }
+
+  static constexpr int CountOneBitsWord(uword x) {
 #ifdef ARCH_IS_64_BIT
     return CountOneBits64(x);
 #else

@@ -44,13 +44,21 @@ function stringToDartString(string) {
 
 // Converts a Dart List to a JS array. Any Dart objects will be converted, but
 // this will be cheap for JSValues.
-function arrayFromDartList(list, reader) {
+function arrayFromDartList(constructor, list) {
     var length = dartInstance.exports.$listLength(list);
-    var array = new Array(length);
+    var array = new constructor(length);
     for (var i = 0; i < length; i++) {
         array[i] = dartInstance.exports.$listRead(list, i);
     }
     return array;
+}
+
+function dataViewFromDartByteData(byteData, byteLength) {
+    var dataView = new DataView(new ArrayBuffer(byteLength));
+    for (var i = 0; i < byteLength; i++) {
+        dataView.setUint8(i, dartInstance.exports.$byteDataGetUint8(byteData, i));
+    }
+    return dataView;
 }
 
 // A special symbol attached to functions that wrap Dart functions.
@@ -79,7 +87,39 @@ var dart2wasm = {
         let userStackString = stackString.split('\n').slice(3).join('\n');
         return stringToDartString(userStackString);
     },
-    arrayFromDartList: arrayFromDartList,
+    int8ArrayFromDartInt8List: function(list) {
+        return arrayFromDartList(Int8Array, list);
+    },
+    uint8ArrayFromDartUint8List: function(list) {
+        return arrayFromDartList(Uint8Array, list);
+    },
+    uint8ClampedArrayFromDartUint8ClampedList: function(list) {
+        return arrayFromDartList(Uint8ClampedArray, list);
+    },
+    int16ArrayFromDartInt16List: function(list) {
+        return arrayFromDartList(Int16Array, list);
+    },
+    uint16ArrayFromDartUint16List: function(list) {
+        return arrayFromDartList(Uint16Array, list);
+    },
+    int32ArrayFromDartInt32List: function(list) {
+        return arrayFromDartList(Int32Array, list);
+    },
+    uint32ArrayFromDartUint32List: function(list) {
+        return arrayFromDartList(Uint32Array, list);
+    },
+    float32ArrayFromDartFloat32List: function(list) {
+        return arrayFromDartList(Float32Array, list);
+    },
+    float64ArrayFromDartFloat64List: function(list) {
+        return arrayFromDartList(Float64Array, list);
+    },
+    dataViewFromDartByteData: function(byteData, byteLength) {
+        return dataViewFromDartByteData(byteData, byteLength);
+    },
+    arrayFromDartList: function(list) {
+        return arrayFromDartList(Array, list);
+    },
     stringFromDartString: stringFromDartString,
     stringToDartString: stringToDartString,
     wrapDartFunction: function(dartFunction, exportFunctionName) {
@@ -120,6 +160,39 @@ var dart2wasm = {
     },
     isJSFunction: function(o) {
         return typeof o === "function";
+    },
+    isJSInt8Array: function(o) {
+        return o instanceof Int8Array;
+    },
+    isJSUint8Array: function(o) {
+        return o instanceof Uint8Array;
+    },
+    isJSUint8ClampedArray: function(o) {
+        return o instanceof Uint8ClampedArray;
+    },
+    isJSInt16Array: function(o) {
+        return o instanceof Int16Array;
+    },
+    isJSUint16Array: function(o) {
+        return o instanceof Uint16Array;
+    },
+    isJSInt32Array: function(o) {
+        return o instanceof Int32Array;
+    },
+    isJSUint32Array: function(o) {
+        return o instanceof Uint32Array;
+    },
+    isJSFloat32Array: function(o) {
+        return o instanceof Float32Array;
+    },
+    isJSFloat64Array: function(o) {
+        return o instanceof Float64Array;
+    },
+    isJSArrayBuffer: function(o) {
+        return o instanceof ArrayBuffer;
+    },
+    isJSDataView: function(o) {
+        return o instanceof DataView;
     },
     isJSArray: function(o) {
         return o instanceof Array;

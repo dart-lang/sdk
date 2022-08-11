@@ -36,19 +36,11 @@ checkUnmodifiable(List<int> list) {
   Expect.throwsUnsupportedError(() => list.setAll(0, [one]));
 }
 
-checkIndirectUnmodifiable(TypedData data) {
-  var newView1 = data.buffer.asUint8List();
-  Expect.throwsUnsupportedError(() => newView1[0] = 1);
-  var newView2 = Uint8List.view(data.buffer);
-  Expect.throwsUnsupportedError(() => newView2[0] = 1);
-}
-
 int8ListTest() {
   Int8List i8l = new Int8List.fromList(intList);
   UnmodifiableInt8ListView list = new UnmodifiableInt8ListView(i8l);
   checkReadable(list);
   checkUnmodifiable(list);
-  checkIndirectUnmodifiable(list);
 }
 
 uint8ListTest() {
@@ -56,7 +48,6 @@ uint8ListTest() {
   UnmodifiableUint8ListView list = new UnmodifiableUint8ListView(u8l);
   checkReadable(list);
   checkUnmodifiable(list);
-  checkIndirectUnmodifiable(list);
 }
 
 int16ListTest() {
@@ -64,7 +55,6 @@ int16ListTest() {
   UnmodifiableInt16ListView list = new UnmodifiableInt16ListView(i16l);
   checkReadable(list);
   checkUnmodifiable(list);
-  checkIndirectUnmodifiable(list);
 }
 
 uint16ListTest() {
@@ -72,7 +62,6 @@ uint16ListTest() {
   UnmodifiableUint16ListView list = new UnmodifiableUint16ListView(u16l);
   checkReadable(list);
   checkUnmodifiable(list);
-  checkIndirectUnmodifiable(list);
 }
 
 int32ListTest() {
@@ -80,7 +69,6 @@ int32ListTest() {
   UnmodifiableInt32ListView list = new UnmodifiableInt32ListView(i32l);
   checkReadable(list);
   checkUnmodifiable(list);
-  checkIndirectUnmodifiable(list);
 }
 
 uint32ListTest() {
@@ -88,7 +76,6 @@ uint32ListTest() {
   UnmodifiableUint32ListView list = new UnmodifiableUint32ListView(u32l);
   checkReadable(list);
   checkUnmodifiable(list);
-  checkIndirectUnmodifiable(list);
 }
 
 int64ListTest() {
@@ -96,7 +83,6 @@ int64ListTest() {
   UnmodifiableInt64ListView list = new UnmodifiableInt64ListView(i64l);
   checkReadable(list);
   checkUnmodifiable(list);
-  checkIndirectUnmodifiable(list);
 }
 
 uint64ListTest() {
@@ -104,7 +90,6 @@ uint64ListTest() {
   UnmodifiableUint64ListView list = new UnmodifiableUint64ListView(u64l);
   checkReadable(list);
   checkUnmodifiable(list);
-  checkIndirectUnmodifiable(list);
 }
 
 List<double> doubleList = <double>[1.0, 2.0, 3.0, 4.0, 5.0];
@@ -141,7 +126,6 @@ float32ListTest() {
   UnmodifiableFloat32ListView list = new UnmodifiableFloat32ListView(f32l);
   checkDoubleReadable(list);
   checkDoubleUnmodifiable(list);
-  checkIndirectUnmodifiable(list);
 }
 
 float64ListTest() {
@@ -149,7 +133,6 @@ float64ListTest() {
   UnmodifiableFloat64ListView list = new UnmodifiableFloat64ListView(f64l);
   checkDoubleReadable(list);
   checkDoubleUnmodifiable(list);
-  checkIndirectUnmodifiable(list);
 }
 
 byteDataTest() {
@@ -167,8 +150,6 @@ byteDataTest() {
   Expect.throwsUnsupportedError(() => ubdv.setUint64(0, 0));
   Expect.throwsUnsupportedError(() => ubdv.setFloat32(0, 0.0));
   Expect.throwsUnsupportedError(() => ubdv.setFloat64(0, 0.0));
-
-  checkIndirectUnmodifiable(ubdv);
 }
 
 main() {

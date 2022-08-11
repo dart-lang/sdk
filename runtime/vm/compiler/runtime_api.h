@@ -413,7 +413,6 @@ class UntaggedObject : public AllStatic {
   static const word kCanonicalBit;
   static const word kOldAndNotRememberedBit;
   static const word kOldAndNotMarkedBit;
-  static const word kImmutableBit;
   static const word kSizeTagPos;
   static const word kSizeTagSize;
   static const word kClassIdTagPos;
@@ -1209,8 +1208,6 @@ class Thread : public AllStatic {
   static word null_cast_error_shared_with_fpu_regs_stub_offset();
   static word range_error_shared_without_fpu_regs_stub_offset();
   static word range_error_shared_with_fpu_regs_stub_offset();
-  static word write_error_shared_without_fpu_regs_stub_offset();
-  static word write_error_shared_with_fpu_regs_stub_offset();
   static word resume_stub_offset();
   static word return_async_not_future_stub_offset();
   static word return_async_star_stub_offset();

@@ -6,6 +6,10 @@
 
 part of 'experiments.dart';
 
+// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
+// code, as they match names declared in the source configuration files.
+// ignore_for_file: constant_identifier_names
+
 /// The current version of the Dart language (or, for non-stable releases, the
 /// version of the language currently in the process of being developed).
 const _currentVersion = '2.19.0';

@@ -9,10 +9,10 @@ import '../mini_ast.dart';
 import '../mini_types.dart';
 
 main() {
-  late Harness h;
+  late FlowAnalysisTestHarness h;
 
   setUp(() {
-    h = Harness();
+    h = FlowAnalysisTestHarness();
   });
 
   group('API', () {
@@ -5926,31 +5926,34 @@ class _MockNonPromotionReason extends NonPromotionReason {
 }
 
 extension on FlowModel<Type> {
-  FlowModel<Type> _conservativeJoin(Harness h, Iterable<Var> writtenVariables,
-          Iterable<Var> capturedVariables) =>
+  FlowModel<Type> _conservativeJoin(FlowAnalysisTestHarness h,
+          Iterable<Var> writtenVariables, Iterable<Var> capturedVariables) =>
       conservativeJoin([
         for (Var v in writtenVariables) h.promotionKeyStore.keyForVariable(v)
       ], [
         for (Var v in capturedVariables) h.promotionKeyStore.keyForVariable(v)
       ]);
 
-  FlowModel<Type> _declare(Harness h, Var variable, bool initialized) =>
+  FlowModel<Type> _declare(
+          FlowAnalysisTestHarness h, Var variable, bool initialized) =>
       this.declare(h.promotionKeyStore.keyForVariable(variable), initialized);
 
-  VariableModel<Type> _infoFor(Harness h, Var variable) =>
+  VariableModel<Type> _infoFor(FlowAnalysisTestHarness h, Var variable) =>
       infoFor(h.promotionKeyStore.keyForVariable(variable));
 
-  ExpressionInfo<Type> _tryMarkNonNullable(Harness h, Var variable) =>
+  ExpressionInfo<Type> _tryMarkNonNullable(
+          FlowAnalysisTestHarness h, Var variable) =>
       tryMarkNonNullable(h, _varRefWithType(h, variable));
 
   ExpressionInfo<Type> _tryPromoteForTypeCheck(
-          Harness h, Var variable, String type) =>
+          FlowAnalysisTestHarness h, Var variable, String type) =>
       tryPromoteForTypeCheck(h, _varRefWithType(h, variable), Type(type));
 
-  int _varRef(Harness h, Var variable) =>
+  int _varRef(FlowAnalysisTestHarness h, Var variable) =>
       h.promotionKeyStore.keyForVariable(variable);
 
-  ReferenceWithType<Type> _varRefWithType(Harness h, Var variable) =>
+  ReferenceWithType<Type> _varRefWithType(
+          FlowAnalysisTestHarness h, Var variable) =>
       new ReferenceWithType<Type>(
           _varRef(h, variable),
           variableInfo[h.promotionKeyStore.keyForVariable(variable)]
@@ -5959,7 +5962,7 @@ extension on FlowModel<Type> {
               variable.type);
 
   FlowModel<Type> _write(
-          Harness h,
+          FlowAnalysisTestHarness h,
           NonPromotionReason? nonPromotionReason,
           Var variable,
           Type writtenType,

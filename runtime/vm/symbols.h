@@ -278,7 +278,6 @@ class ObjectPointerVisitor;
   V(_ByteBuffer, "_ByteBuffer")                                                \
   V(_ByteBufferDot_New, "_ByteBuffer._New")                                    \
   V(_ByteDataView, "_ByteDataView")                                            \
-  V(_UnmodifiableByteDataView, "_UnmodifiableByteDataView")                    \
   V(_CapabilityImpl, "_CapabilityImpl")                                        \
   V(_ClassMirror, "_ClassMirror")                                              \
   V(_Closure, "_Closure")                                                      \
@@ -306,20 +305,6 @@ class ObjectPointerVisitor;
   V(_ExternalUint8ClampedArray, "_ExternalUint8ClampedArray")                  \
   V(_FinalizerImpl, "_FinalizerImpl")                                          \
   V(_NativeFinalizer, "_NativeFinalizer")                                      \
-  V(_UnmodifiableInt8ArrayView, "_UnmodifiableInt8ArrayView")                  \
-  V(_UnmodifiableInt16ArrayView, "_UnmodifiableInt16ArrayView")                \
-  V(_UnmodifiableInt32ArrayView, "_UnmodifiableInt32ArrayView")                \
-  V(_UnmodifiableInt64ArrayView, "_UnmodifiableInt64ArrayView")                \
-  V(_UnmodifiableUint8ClampedArrayView, "_UnmodifiableUint8ClampedArrayView")  \
-  V(_UnmodifiableUint8ArrayView, "_UnmodifiableUint8ArrayView")                \
-  V(_UnmodifiableUint16ArrayView, "_UnmodifiableUint16ArrayView")              \
-  V(_UnmodifiableUint32ArrayView, "_UnmodifiableUint32ArrayView")              \
-  V(_UnmodifiableUint64ArrayView, "_UnmodifiableUint64ArrayView")              \
-  V(_UnmodifiableFloat32ArrayView, "_UnmodifiableFloat32ArrayView")            \
-  V(_UnmodifiableFloat64ArrayView, "_UnmodifiableFloat64ArrayView")            \
-  V(_UnmodifiableInt32x4ArrayView, "_UnmodifiableInt32x4ArrayView")            \
-  V(_UnmodifiableFloat32x4ArrayView, "_UnmodifiableFloat32x4ArrayView")        \
-  V(_UnmodifiableFloat64x2ArrayView, "_UnmodifiableFloat64x2ArrayView")        \
   V(_Float32ArrayFactory, "Float32List.")                                      \
   V(_Float32ArrayView, "_Float32ArrayView")                                    \
   V(_Float32List, "_Float32List")                                              \

@@ -36,11 +36,11 @@ void f() {
   try {} on String catch (ex, st) {}
 }
 ''');
-    var exceptionType =
-        variables.decoratedElementType(findNode.simple('ex').staticElement!);
+    var exceptionType = variables.decoratedElementType(
+        findNode.catchClauseParameter('ex').declaredElement!);
     expect(exceptionType.node, TypeMatcher<NullabilityNodeMutable>());
-    var stackTraceType =
-        variables.decoratedElementType(findNode.simple('st').staticElement!);
+    var stackTraceType = variables.decoratedElementType(
+        findNode.catchClauseParameter('st').declaredElement!);
     assertEdge(stackTraceType.node, never, hard: true, checkable: false);
   }
 
@@ -50,11 +50,11 @@ void f() {
   try {} catch (ex, st) {}
 }
 ''');
-    var exceptionType =
-        variables.decoratedElementType(findNode.simple('ex').staticElement!);
+    var exceptionType = variables.decoratedElementType(
+        findNode.catchClauseParameter('ex').declaredElement!);
     expect(exceptionType.node!.isImmutable, false);
-    var stackTraceType =
-        variables.decoratedElementType(findNode.simple('st').staticElement!);
+    var stackTraceType = variables.decoratedElementType(
+        findNode.catchClauseParameter('st').declaredElement!);
     assertEdge(stackTraceType.node, never, hard: true, checkable: false);
   }
 
@@ -74,8 +74,8 @@ void f() {
   try {} on String catch (ex) {}
 }
 ''');
-    var exceptionType =
-        variables.decoratedElementType(findNode.simple('ex').staticElement!);
+    var exceptionType = variables.decoratedElementType(
+        findNode.catchClauseParameter('ex').declaredElement!);
     expect(exceptionType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
@@ -85,8 +85,8 @@ void f() {
   try {} catch (ex) {}
 }
 ''');
-    var exceptionType =
-        variables.decoratedElementType(findNode.simple('ex').staticElement!);
+    var exceptionType = variables.decoratedElementType(
+        findNode.catchClauseParameter('ex').declaredElement!);
     expect(exceptionType.node!.isImmutable, false);
   }
 
@@ -483,7 +483,8 @@ f(void Function() g) {
 ''');
     expect(
         variables
-            .decoratedElementType(findNode.simple('e)').staticElement!)
+            .decoratedElementType(
+                findNode.catchClauseParameter('e)').declaredElement!)
             .node!
             .displayName,
         'f.e (test.dart:4:5)');
@@ -683,8 +684,8 @@ class C {
   var x;
 }
 ''');
-    var decoratedType =
-        variables.decoratedElementType(findNode.simple('x').staticElement!);
+    var decoratedType = variables.decoratedElementType(
+        findNode.variableDeclaration('x').declaredElement2!);
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -694,8 +695,8 @@ class C {
   var x = 1;
 }
 ''');
-    var decoratedType =
-        variables.decoratedElementType(findNode.simple('x').staticElement!);
+    var decoratedType = variables.decoratedElementType(
+        findNode.variableDeclaration('x').declaredElement2!);
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
@@ -706,8 +707,8 @@ class C {
   var x = f();
 }
 ''');
-    var decoratedType =
-        variables.decoratedElementType(findNode.simple('x').staticElement!);
+    var decoratedType = variables.decoratedElementType(
+        findNode.variableDeclaration('x').declaredElement2!);
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -1546,8 +1547,8 @@ main() {
   var x;
 }
 ''');
-    var decoratedType =
-        variables.decoratedElementType(findNode.simple('x').staticElement!);
+    var decoratedType = variables.decoratedElementType(
+        findNode.variableDeclaration('x').declaredElement2!);
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -1557,8 +1558,8 @@ main() {
   var x = 1;
 }
 ''');
-    var decoratedType =
-        variables.decoratedElementType(findNode.simple('x').staticElement!);
+    var decoratedType = variables.decoratedElementType(
+        findNode.variableDeclaration('x').declaredElement2!);
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
@@ -1569,8 +1570,8 @@ main() {
   var x = f();
 }
 ''');
-    var decoratedType =
-        variables.decoratedElementType(findNode.simple('x').staticElement!);
+    var decoratedType = variables.decoratedElementType(
+        findNode.variableDeclaration('x').declaredElement2!);
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -1580,8 +1581,8 @@ main() {
   var x = () => 1;
 }
 ''');
-    var decoratedType =
-        variables.decoratedElementType(findNode.simple('x').staticElement!);
+    var decoratedType = variables.decoratedElementType(
+        findNode.variableDeclaration('x').declaredElement2!);
     expect(decoratedType.returnType!.node!.displayName,
         'return type of main.x (test.dart:2:7)');
   }
@@ -1592,8 +1593,8 @@ main() {
   var x = {1: 2};
 }
 ''');
-    var decoratedType =
-        variables.decoratedElementType(findNode.simple('x').staticElement!);
+    var decoratedType = variables.decoratedElementType(
+        findNode.variableDeclaration('x').declaredElement2!);
     expect(decoratedType.typeArguments[0]!.node!.displayName,
         'type argument 0 of main.x (test.dart:2:7)');
     expect(decoratedType.typeArguments[1]!.node!.displayName,
@@ -1803,8 +1804,8 @@ void foo({List<int> values})  {
     await analyze('''
 void f(x) {}
 ''');
-    var decoratedType =
-        variables.decoratedElementType(findNode.simple('x').staticElement!);
+    var decoratedType = variables.decoratedElementType(
+        findNode.simpleFormalParameter('x').declaredElement!);
     expect(decoratedFunctionType('f').positionalParameters![0],
         same(decoratedType));
     expect(decoratedType.type!.isDynamic, isTrue);
@@ -1913,8 +1914,8 @@ int f() => 0;
     await analyze('''
 var x;
 ''');
-    var decoratedType =
-        variables.decoratedElementType(findNode.simple('x').staticElement!);
+    var decoratedType = variables.decoratedElementType(
+        findNode.variableDeclaration('x').declaredElement2!);
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -1922,8 +1923,8 @@ var x;
     await analyze('''
 var x = 1;
 ''');
-    var decoratedType =
-        variables.decoratedElementType(findNode.simple('x').staticElement!);
+    var decoratedType = variables.decoratedElementType(
+        findNode.variableDeclaration('x').declaredElement2!);
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
@@ -1932,8 +1933,8 @@ var x = 1;
 dynamic f() {}
 var x = f();
 ''');
-    var decoratedType =
-        variables.decoratedElementType(findNode.simple('x').staticElement!);
+    var decoratedType = variables.decoratedElementType(
+        findNode.variableDeclaration('x').declaredElement2!);
     expect(decoratedType.node!.isImmutable, false);
   }
 

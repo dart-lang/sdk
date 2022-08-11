@@ -11,6 +11,7 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/utils.h"
 
 #include "vm/constants_base.h"
 
@@ -625,7 +626,8 @@ const int kAbiPreservedFpuRegCount = 4;
 const RegList kReservedCpuRegisters = (1 << SPREG) | (1 << FPREG) | (1 << TMP) |
                                       (1 << PP) | (1 << THR) | (1 << LR) |
                                       (1 << PC) | (1 << NOTFP);
-constexpr intptr_t kNumberOfReservedCpuRegisters = 8;
+constexpr intptr_t kNumberOfReservedCpuRegisters =
+    Utils::CountOneBits32(kReservedCpuRegisters);
 // CPU registers available to Dart allocator.
 constexpr RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;

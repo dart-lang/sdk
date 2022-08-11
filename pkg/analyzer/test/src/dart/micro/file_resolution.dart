@@ -16,6 +16,7 @@ import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:crypto/crypto.dart';
@@ -141,7 +142,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       root: sdkRoot,
     );
 
-    newFile('/workspace/WORKSPACE', '');
+    newFile('/workspace/${file_paths.blazeWorkspaceMarker}', '');
     newFile('/workspace/dart/test/BUILD', r'''
 dart_package(
   null_safety = True,

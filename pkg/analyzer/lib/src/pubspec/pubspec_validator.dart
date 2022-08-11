@@ -10,7 +10,7 @@ import 'package:analyzer/src/pubspec/validators/dependency_validator.dart';
 import 'package:analyzer/src/pubspec/validators/field_validator.dart';
 import 'package:analyzer/src/pubspec/validators/flutter_validator.dart';
 import 'package:analyzer/src/pubspec/validators/name_validator.dart';
-import 'package:source_span/src/span.dart';
+import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
 class BasePubspecValidator {

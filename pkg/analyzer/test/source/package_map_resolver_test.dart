@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class _PackageMapUriResolverTest {
-  static const Map<String, List<Folder>> EMPTY_MAP = <String, List<Folder>>{};
+  static const Map<String, List<Folder>> emptyMap = {};
   MemoryResourceProvider provider = MemoryResourceProvider();
 
   void test_isPackageUri() {
@@ -76,7 +76,7 @@ class _PackageMapUriResolverTest {
   }
 
   void test_resolve_nonPackage() {
-    UriResolver resolver = PackageMapUriResolver(provider, EMPTY_MAP);
+    UriResolver resolver = PackageMapUriResolver(provider, emptyMap);
     Uri uri = Uri.parse('dart:core');
     var result = resolver.resolveAbsolute(uri);
     expect(result, isNull);
@@ -143,28 +143,28 @@ class _PackageMapUriResolverTest {
   }
 
   void test_resolve_package_invalid_leadingSlash() {
-    UriResolver resolver = PackageMapUriResolver(provider, EMPTY_MAP);
+    UriResolver resolver = PackageMapUriResolver(provider, emptyMap);
     Uri uri = Uri.parse('package:/foo');
     var result = resolver.resolveAbsolute(uri);
     expect(result, isNull);
   }
 
   void test_resolve_package_invalid_noSlash() {
-    UriResolver resolver = PackageMapUriResolver(provider, EMPTY_MAP);
+    UriResolver resolver = PackageMapUriResolver(provider, emptyMap);
     Uri uri = Uri.parse('package:foo');
     var result = resolver.resolveAbsolute(uri);
     expect(result, isNull);
   }
 
   void test_resolve_package_invalid_onlySlash() {
-    UriResolver resolver = PackageMapUriResolver(provider, EMPTY_MAP);
+    UriResolver resolver = PackageMapUriResolver(provider, emptyMap);
     Uri uri = Uri.parse('package:/');
     var result = resolver.resolveAbsolute(uri);
     expect(result, isNull);
   }
 
   void test_resolve_package_notInMap() {
-    UriResolver resolver = PackageMapUriResolver(provider, EMPTY_MAP);
+    UriResolver resolver = PackageMapUriResolver(provider, emptyMap);
     Uri uri = Uri.parse('package:analyzer/analyzer.dart');
     var result = resolver.resolveAbsolute(uri);
     expect(result, isNull);

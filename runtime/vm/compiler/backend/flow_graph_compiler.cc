@@ -3405,36 +3405,6 @@ void RangeErrorSlowPath::PushArgumentsForRuntimeCall(
                       locs->in(CheckBoundBase::kLengthPos).reg());
 }
 
-void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
-                                            bool save_fpu_registers) {
-#if defined(TARGET_ARCH_IA32)
-  UNREACHABLE();
-#else
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& stub = Code::ZoneHandle(
-      compiler->zone(),
-      save_fpu_registers
-          ? object_store->range_error_stub_with_fpu_regs_stub()
-          : object_store->range_error_stub_without_fpu_regs_stub());
-  compiler->EmitCallToStub(stub);
-#endif
-}
-
-void WriteErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
-                                            bool save_fpu_registers) {
-#if defined(TARGET_ARCH_IA32)
-  UNREACHABLE();
-#else
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& stub = Code::ZoneHandle(
-      compiler->zone(),
-      save_fpu_registers
-          ? object_store->write_error_stub_with_fpu_regs_stub()
-          : object_store->write_error_stub_without_fpu_regs_stub());
-  compiler->EmitCallToStub(stub);
-#endif
-}
-
 void LateInitializationErrorSlowPath::PushArgumentsForRuntimeCall(
     FlowGraphCompiler* compiler) {
   __ PushObject(Field::ZoneHandle(OriginalField()));

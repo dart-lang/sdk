@@ -18,7 +18,7 @@ main() {
   });
 }
 
-const int LONG_MAX_VALUE = 0x7fffffffffffffff;
+const int longMaxValue = 0x7fffffffffffffff;
 
 final Matcher throwsEvaluationException =
     throwsA(TypeMatcher<EvaluationException>());
@@ -1618,7 +1618,7 @@ class DartObjectImplTest {
       DartObjectImpl(
         _typeSystem,
         _typeProvider.intType,
-        IntState(LONG_MAX_VALUE),
+        IntState(longMaxValue),
       ),
     );
   }
@@ -1658,7 +1658,7 @@ class DartObjectImplTest {
       DartObjectImpl(
         _typeSystem,
         _typeProvider.intType,
-        IntState(LONG_MAX_VALUE),
+        IntState(longMaxValue),
       ),
     );
   }

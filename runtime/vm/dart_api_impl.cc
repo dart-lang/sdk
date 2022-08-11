@@ -2468,7 +2468,7 @@ DART_EXPORT bool Dart_IsTypedData(Dart_Handle handle) {
   TransitionNativeToVM transition(thread);
   intptr_t cid = Api::ClassId(handle);
   return IsTypedDataClassId(cid) || IsExternalTypedDataClassId(cid) ||
-         IsTypedDataViewClassId(cid) || IsUnmodifiableTypedDataViewClassId(cid);
+         IsTypedDataViewClassId(cid);
 }
 
 DART_EXPORT bool Dart_IsByteBuffer(Dart_Handle handle) {
@@ -3655,90 +3655,75 @@ static Dart_TypedData_Type GetType(intptr_t class_id) {
   Dart_TypedData_Type type;
   switch (class_id) {
     case kByteDataViewCid:
-    case kUnmodifiableByteDataViewCid:
       type = Dart_TypedData_kByteData;
       break;
     case kTypedDataInt8ArrayCid:
     case kTypedDataInt8ArrayViewCid:
-    case kUnmodifiableTypedDataInt8ArrayViewCid:
     case kExternalTypedDataInt8ArrayCid:
       type = Dart_TypedData_kInt8;
       break;
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ArrayViewCid:
-    case kUnmodifiableTypedDataUint8ArrayViewCid:
     case kExternalTypedDataUint8ArrayCid:
       type = Dart_TypedData_kUint8;
       break;
     case kTypedDataUint8ClampedArrayCid:
     case kTypedDataUint8ClampedArrayViewCid:
-    case kUnmodifiableTypedDataUint8ClampedArrayViewCid:
     case kExternalTypedDataUint8ClampedArrayCid:
       type = Dart_TypedData_kUint8Clamped;
       break;
     case kTypedDataInt16ArrayCid:
     case kTypedDataInt16ArrayViewCid:
-    case kUnmodifiableTypedDataInt16ArrayViewCid:
     case kExternalTypedDataInt16ArrayCid:
       type = Dart_TypedData_kInt16;
       break;
     case kTypedDataUint16ArrayCid:
     case kTypedDataUint16ArrayViewCid:
-    case kUnmodifiableTypedDataUint16ArrayViewCid:
     case kExternalTypedDataUint16ArrayCid:
       type = Dart_TypedData_kUint16;
       break;
     case kTypedDataInt32ArrayCid:
     case kTypedDataInt32ArrayViewCid:
-    case kUnmodifiableTypedDataInt32ArrayViewCid:
     case kExternalTypedDataInt32ArrayCid:
       type = Dart_TypedData_kInt32;
       break;
     case kTypedDataUint32ArrayCid:
     case kTypedDataUint32ArrayViewCid:
-    case kUnmodifiableTypedDataUint32ArrayViewCid:
     case kExternalTypedDataUint32ArrayCid:
       type = Dart_TypedData_kUint32;
       break;
     case kTypedDataInt64ArrayCid:
     case kTypedDataInt64ArrayViewCid:
-    case kUnmodifiableTypedDataInt64ArrayViewCid:
     case kExternalTypedDataInt64ArrayCid:
       type = Dart_TypedData_kInt64;
       break;
     case kTypedDataUint64ArrayCid:
     case kTypedDataUint64ArrayViewCid:
-    case kUnmodifiableTypedDataUint64ArrayViewCid:
     case kExternalTypedDataUint64ArrayCid:
       type = Dart_TypedData_kUint64;
       break;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat32ArrayViewCid:
-    case kUnmodifiableTypedDataFloat32ArrayViewCid:
     case kExternalTypedDataFloat32ArrayCid:
       type = Dart_TypedData_kFloat32;
       break;
     case kTypedDataFloat64ArrayCid:
     case kTypedDataFloat64ArrayViewCid:
-    case kUnmodifiableTypedDataFloat64ArrayViewCid:
     case kExternalTypedDataFloat64ArrayCid:
       type = Dart_TypedData_kFloat64;
       break;
     case kTypedDataInt32x4ArrayCid:
     case kTypedDataInt32x4ArrayViewCid:
-    case kUnmodifiableTypedDataInt32x4ArrayViewCid:
     case kExternalTypedDataInt32x4ArrayCid:
       type = Dart_TypedData_kInt32x4;
       break;
     case kTypedDataFloat32x4ArrayCid:
     case kTypedDataFloat32x4ArrayViewCid:
-    case kUnmodifiableTypedDataFloat32x4ArrayViewCid:
     case kExternalTypedDataFloat32x4ArrayCid:
       type = Dart_TypedData_kFloat32x4;
       break;
     case kTypedDataFloat64x2ArrayCid:
     case kTypedDataFloat64x2ArrayViewCid:
-    case kUnmodifiableTypedDataFloat64x2ArrayViewCid:
     case kExternalTypedDataFloat64x2ArrayCid:
       type = Dart_TypedData_kFloat64x2;
       break;
@@ -3754,8 +3739,7 @@ DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfTypedData(Dart_Handle object) {
   API_TIMELINE_DURATION(thread);
   TransitionNativeToVM transition(thread);
   intptr_t class_id = Api::ClassId(object);
-  if (IsTypedDataClassId(class_id) || IsTypedDataViewClassId(class_id) ||
-      IsUnmodifiableTypedDataViewClassId(class_id)) {
+  if (IsTypedDataClassId(class_id) || IsTypedDataViewClassId(class_id)) {
     return GetType(class_id);
   }
   return Dart_TypedData_kInvalid;
@@ -3770,8 +3754,7 @@ Dart_GetTypeOfExternalTypedData(Dart_Handle object) {
   if (IsExternalTypedDataClassId(class_id)) {
     return GetType(class_id);
   }
-  if (IsTypedDataViewClassId(class_id) ||
-      IsUnmodifiableTypedDataViewClassId(class_id)) {
+  if (IsTypedDataViewClassId(class_id)) {
     // Check if data object of the view is external.
     Zone* zone = thread->zone();
     const auto& view_obj = Api::UnwrapTypedDataViewHandle(zone, object);
@@ -4103,8 +4086,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
   Isolate* I = T->isolate();
   intptr_t class_id = Api::ClassId(object);
   if (!IsExternalTypedDataClassId(class_id) &&
-      !IsTypedDataViewClassId(class_id) && !IsTypedDataClassId(class_id) &&
-      !IsUnmodifiableTypedDataViewClassId(class_id)) {
+      !IsTypedDataViewClassId(class_id) && !IsTypedDataClassId(class_id)) {
     RETURN_TYPE_ERROR(Z, object, 'TypedData');
   }
   if (type == NULL) {
@@ -4139,8 +4121,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     size_in_bytes = length * TypedData::ElementSizeInBytes(class_id);
     data_tmp = obj.DataAddr(0);
   } else {
-    ASSERT(IsTypedDataViewClassId(class_id) ||
-           IsUnmodifiableTypedDataViewClassId(class_id));
+    ASSERT(IsTypedDataViewClassId(class_id));
     const auto& view_obj = Api::UnwrapTypedDataViewHandle(Z, object);
     ASSERT(!view_obj.IsNull());
     Smi& val = Smi::Handle();
@@ -4201,8 +4182,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
   Isolate* I = T->isolate();
   intptr_t class_id = Api::ClassId(object);
   if (!IsExternalTypedDataClassId(class_id) &&
-      !IsTypedDataViewClassId(class_id) && !IsTypedDataClassId(class_id) &&
-      !IsUnmodifiableTypedDataViewClassId(class_id)) {
+      !IsTypedDataViewClassId(class_id) && !IsTypedDataClassId(class_id)) {
     RETURN_TYPE_ERROR(Z, object, 'TypedData');
   }
   if (FLAG_verify_acquired_data) {

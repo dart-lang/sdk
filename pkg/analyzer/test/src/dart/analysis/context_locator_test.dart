@@ -7,6 +7,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/pub.dart';
@@ -293,7 +294,7 @@ analyzer:
   void
       test_locateRoots_multiple_dirAndNestedDir_outerIsBlaze_innerConfigurationFiles() {
     var outerRootFolder = newFolder('/outer');
-    newFile('$outerRootFolder/WORKSPACE', '');
+    newFile('$outerRootFolder/${file_paths.blazeWorkspaceMarker}', '');
     newBlazeBuildFile('$outerRootFolder', '');
     var innerRootFolder = newFolder('/outer/examples/inner');
     var innerOptionsFile = newAnalysisOptionsYamlFile('$innerRootFolder', '');
@@ -481,8 +482,8 @@ analyzer:
     var pkgPath1 = '$workspacePath1/pkg1';
     var pkgPath2 = '$workspacePath2/pkg2';
 
-    newFile('$workspacePath1/WORKSPACE', '');
-    newFile('$workspacePath2/WORKSPACE', '');
+    newFile('$workspacePath1/${file_paths.blazeWorkspaceMarker}', '');
+    newFile('$workspacePath2/${file_paths.blazeWorkspaceMarker}', '');
     newBlazeBuildFile(pkgPath1, '');
     newBlazeBuildFile(pkgPath2, '');
 
@@ -674,8 +675,8 @@ analyzer:
     var pkgPath1 = '$workspacePath1/pkg1';
     var pkgPath2 = '$workspacePath2/pkg2';
 
-    newFile('$workspacePath1/WORKSPACE', '');
-    newFile('$workspacePath2/WORKSPACE', '');
+    newFile('$workspacePath1/${file_paths.blazeWorkspaceMarker}', '');
+    newFile('$workspacePath2/${file_paths.blazeWorkspaceMarker}', '');
     newBlazeBuildFile(pkgPath1, '');
     newBlazeBuildFile(pkgPath2, '');
 
@@ -709,7 +710,7 @@ analyzer:
     var fooPath = '$workspacePath/foo';
     var barPath = '$workspacePath/bar';
 
-    newFile('$workspacePath/WORKSPACE', '');
+    newFile('$workspacePath/${file_paths.blazeWorkspaceMarker}', '');
     newBlazeBuildFile(fooPath, '');
     newBlazeBuildFile(barPath, '');
 
@@ -1133,7 +1134,7 @@ analyzer:
   void test_locateRoots_options_default_blaze() {
     var workspacePath = '/home/workspace';
     var workspaceFolder = getFolder(workspacePath);
-    newFile('$workspacePath/WORKSPACE', '');
+    newFile('$workspacePath/${file_paths.blazeWorkspaceMarker}', '');
     var bazelOptionsFile = newFile(
       '$workspacePath/dart/analysis_options/lib/default.yaml',
       '',

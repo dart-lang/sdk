@@ -198,7 +198,6 @@ class StubCodeCompiler : public AllStatic {
                                               bool with_fpu_regs);
 
   static void GenerateRangeError(Assembler* assembler, bool with_fpu_regs);
-  static void GenerateWriteError(Assembler* assembler, bool with_fpu_regs);
 
   static void GenerateSuspendStub(
       Assembler* assembler,

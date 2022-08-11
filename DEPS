@@ -106,9 +106,9 @@ vars = {
   #   and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
-  "dart_style_rev": "d7b73536a8079331c888b7da539b80e6825270ea", # manually rev'd
+  "dart_style_rev": "49bc3ff32b5578b6e19f8fd376d668130941ee29", # manually rev'd
 
-  "dartdoc_rev": "f419695f57c580f30ea142a0f6e13a9e0001b342",
+  "dartdoc_rev": "8ee30225e2d89d6044dc48965c9ce1ec1c406cb9",
   "devtools_rev": "d131d19091f6b89ac89486bd92440a25a523e8b0",
   "ffi_rev": "18b2b549d55009ff594600b04705ff6161681e07",
   "file_rev": "0132eeedea2933513bf230513a766a8baeab0c4f",
@@ -122,7 +122,7 @@ vars = {
   "intl_rev": "7e3a1bbdeff241323f56295d8991c004bef815e6",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "805e6536dd961d66f6b8cd46d8f3e61774f957c9",
-  "linter_rev": "075a3b6abf54b38c295690ec8e043607654f2da3", # 1.27.0
+  "linter_rev": "a97919a064cc4b3b6923a18cdb47a3779a31bc7b", # dev
   "lints_rev": "8294e5648ab49474541527e2911e72e4c5aefe55",
   "logging_rev": "d10e24844c2e01d3f6d2b5a1a2bb8717359c6a87",
   "markdown_rev": "e3f4bd28c9e61b522f75f291d4d6cfcfeccd83ee", # b/236358256
