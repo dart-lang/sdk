@@ -5,7 +5,7 @@
 /// Defines the element model. The element model describes the semantic (as
 /// opposed to syntactic) structure of Dart code. The syntactic structure of the
 /// code is modeled by the [AST
-/// structure](../analyzer.dart.ast.ast/analyzer.dart.ast.ast-library.html).
+/// structure](../dart_ast_ast/dart_ast_ast-library.html).
 ///
 /// The element model consists of two closely related kinds of objects: elements
 /// (instances of a subclass of [Element]) and types. This library defines the
