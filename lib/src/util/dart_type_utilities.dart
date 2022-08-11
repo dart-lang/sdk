@@ -198,8 +198,8 @@ bool typesAreUnrelated(
     }
   } else if (promotedLeftType is TypeParameterType &&
       promotedRightType is TypeParameterType) {
-    return typesAreUnrelated(typeSystem, promotedLeftType.element.bound,
-        promotedRightType.element.bound);
+    return typesAreUnrelated(typeSystem, promotedLeftType.element2.bound,
+        promotedRightType.element2.bound);
   } else if (promotedLeftType is FunctionType) {
     if (_isFunctionTypeUnrelatedToType(promotedLeftType, promotedRightType)) {
       return true;
