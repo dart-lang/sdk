@@ -85,7 +85,7 @@ edits to insert `import` directives in the correct locations.
 A `DartEditBuilder` allows you to compose source code by writing the individual
 pieces, much like a `StringSink`. It also provides additional methods to compose
 more complex code. For example, if you need to write a type annotation, the
-method `writeType` will handle writing all of the type arguments and will add
+method `writeType` will handle writing all the type arguments and will add
 import directives as needed. There are also methods to write class declarations
 and to write various members within a class.
 
@@ -104,7 +104,15 @@ fileEditBuilder.addReplacement(range, (DartEditBuilder editBuilder) {
 });
 ```
 
-## Linked Edits
+## Utility methods
+
+As was mentioned briefly above, many of these classes provide utility methods.
+For the best UX, it's important to use these utility method when possible. They
+often do more than just write some simple text; they can take care of other
+details, such as adding required imports, and adherence to style preferences
+that the user has expressed (typically by enabling lints).
+
+## Linked edits
 
 Many clients support a style of editing in which multiple regions of text can be
 edited simultaneously. Server refers to these as "linked" edit groups. Many
@@ -166,7 +174,7 @@ code take one or more optional arguments that allow you to create linked edit
 groups for appropriate pieces of text and even to specify the suggestions for
 those groups.
 
-## Post-edit Selection
+## Post-edit selection
 
 A `SourceChange` also allows you to specify where the cursor should be placed
 after the edits are applied. There are two ways to specify this.
@@ -174,12 +182,12 @@ after the edits are applied. There are two ways to specify this.
 The first is by invoking the method `setSelection` on a `ChangeBuilder`.
 The method takes a `Position`, which encapsulates an offset in a particular
 file. This can be difficult to get right because the offset is required to be
-the offset *after* all of the edits for that file have been applied.
+the offset *after* all the edits for the file have been applied.
 
 The second, and easier, way is by invoking the method `selectHere` on a
 `DartEditBuilder`. This method does not require any arguments; it computes the
 offset for the position based on the edits that have previously been created.
-It does require that all of the edits that apply to text before the desired
+It does require that all the edits that apply to text before the desired
 cursor location have been created before the method is invoked.
 
 For example, if you're implementing a quick assist to insert a to-do comment at
@@ -197,9 +205,9 @@ fileEditBuilder.addReplacement(range, (DartEditBuilder editBuilder) {
 This will cause the cursor to be placed between the two spaces inside the
 comment.
 
-## Non-Dart Files
+## Non-dart files
 
-All of the classes above are subclasses of more general classes (just drop the
+The classes above are subclasses of more general classes (just drop the
 prefix "Dart" from the subclass names). If you are editing files that do not
 contain Dart code, the more general classes might be a better choice. These
 classes are defined in

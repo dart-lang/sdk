@@ -5,7 +5,8 @@ writing a quick fix.
 
 ## Overview
 
-A quick fix is an automated code edit that's associated with a diagnostic. The
+A quick fix is an automated [code edit](code_edits.md) that's associated with a
+diagnostic. They are required to be [local in scope](code_edits.md#scope). The
 intent is to automate the work required to fix the issue being reported by the
 diagnostic.
 

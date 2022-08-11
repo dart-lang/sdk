@@ -5,13 +5,11 @@ writing a quick assist.
 
 ## Overview
 
-A quick assist is an automated code edit that is both local in scope and doesn't
-require any user input. By 'local in scope' we mean that the assist only needs
-information from the local library (the library in which it is invoked) and will
-only make changes to the local library. If a code edit requires user input,
-might depend on knowledge from outside the local library, or could make changes
-outside the local library, then it should probably be implemented using a
-refactoring.
+A quick assist is an automated [code edit](code_edits.md) that is both
+[local in scope](code_edits.md#scope) and doesn't require any user input. If a
+code edit requires user input, might depend on knowledge from outside the local
+library, or could make changes outside the local library, then it should be
+implemented using a refactoring.
 
 Unlike quick fixes, quick assists are displayed even when there are no
 diagnostics being reported against the code. They are not intended to fix
@@ -77,7 +75,7 @@ static const CONVERT_TO_HEX = AssistKind(
 );
 ```
 
-### Implementing the assist, part 1
+## Implementing the assist, part 1
 
 To implement the assist you'll create a subclass of `CorrectionProducer`. Most
 of the existing correction producers are in the directory
@@ -135,7 +133,7 @@ If you don't implement this getter, then the inherited getter will return an
 empty list. The number of elements in the list must match the largest index used
 in the message. If it doesn't, an exception will be thrown at runtime.
 
-### Testing the assist
+## Testing the assist
 
 Before we look at implementing the `compute` method, we should probably write
 some tests. Even if you don't normally use a test-driven approach to coding, we
@@ -189,7 +187,7 @@ the assist over the code, use our correction producer to build an edit, apply
 the edit to the file, and textually compare the results with the second piece of
 code.
 
-### Registering the assist
+## Registering the assist
 
 Before we can run the test, we need to register the correction producer so that
 it can be run.
@@ -207,7 +205,7 @@ We'll talk about the other list in "Multi-assist producers".
 
 At this point you should be able to run the test and see it failing.
 
-### Implementing the assist, part 2
+## Implementing the assist, part 2
 
 We're now at a point where we can finish the implementation of the assist by
 implementing the `compute` method.
@@ -318,7 +316,7 @@ to get the end-of-line marker that should be used in the file, and there's
 another getter (`utils`) that will return an object with several utility methods
 that help with things like getting the right indentation for nested code.
 
-### Multi-assist producers
+## Multi-assist producers
 
 We skipped over the list named `multiGenerators` earlier, promising that we'd
 return to it later. You'll probably never have a need for it, but in case you do
