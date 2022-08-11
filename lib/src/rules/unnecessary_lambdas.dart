@@ -179,7 +179,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       InvocationExpression node, FunctionExpression nodeToLint) {
     var nodeToLintParams = nodeToLint.parameters?.parameters;
     if (nodeToLintParams == null ||
-        !DartTypeUtilities.matchesArgumentsWithParameters(
+        !argumentsMatchParameters(
             node.argumentList.arguments, nodeToLintParams)) {
       return;
     }

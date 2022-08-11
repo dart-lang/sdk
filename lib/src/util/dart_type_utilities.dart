@@ -13,6 +13,56 @@ import '../extensions.dart';
 
 typedef AstNodePredicate = bool Function(AstNode node);
 
+bool argumentsMatchParameters(
+    NodeList<Expression> arguments, NodeList<FormalParameter> parameters) {
+  var namedParameters = <String, Element?>{};
+  var namedArguments = <String, Element>{};
+  var positionalParameters = <Element?>[];
+  var positionalArguments = <Element>[];
+  for (var parameter in parameters) {
+    var identifier = parameter.name;
+    if (identifier != null) {
+      if (parameter.isNamed) {
+        namedParameters[identifier.lexeme] = parameter.declaredElement;
+      } else {
+        positionalParameters.add(parameter.declaredElement);
+      }
+    }
+  }
+  for (var argument in arguments) {
+    if (argument is NamedExpression) {
+      var element = argument.expression.canonicalElement;
+      if (element == null) {
+        return false;
+      }
+      namedArguments[argument.name.label.name] = element;
+    } else {
+      var element = argument.canonicalElement;
+      if (element == null) {
+        return false;
+      }
+      positionalArguments.add(element);
+    }
+  }
+  if (positionalParameters.length != positionalArguments.length ||
+      namedParameters.keys.length != namedArguments.keys.length) {
+    return false;
+  }
+  for (var i = 0; i < positionalArguments.length; i++) {
+    if (positionalArguments[i] != positionalParameters[i]) {
+      return false;
+    }
+  }
+
+  for (var key in namedParameters.keys) {
+    if (namedParameters[key] != namedArguments[key]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 /// Returns whether the canonical elements of [element1] and [element2] are
 /// equal.
 bool canonicalElementsAreEqual(Element? element1, Element? element2) =>
@@ -76,6 +126,106 @@ bool canonicalElementsFromIdentifiersAreEqual(
   return false;
 }
 
+/// Returns whether [leftType] and [rightType] are _definitely_ unrelated.
+///
+/// For the purposes of this function, here are some "relation" rules:
+/// * `dynamic` and `Null` are considered related to any other type.
+/// * Two types which are equal modulo nullability are considered related,
+///   e.g. `int` and `int`, `String` and `String?`, `List<String>` and
+///   `List<String>`, `List<T>` and `List<T>`, and type variables `A` and `A`.
+/// * Two types such that one is a subtype of the other, modulo nullability,
+///   such as `List<dynamic>` and `Iterable<dynamic>`, and type variables `A`
+///   and `B` where `A extends B`, are considered related.
+/// * Two interface types:
+///   * are related if they represent the same class, modulo type arguments,
+///     modulo nullability, and each of their pair-wise type arguments are
+///     related, e.g. `List<dynamic>` and `List<int>`, and `Future<T>` and
+///     `Future<S>` where `S extends T`.
+///   * are unrelated if [leftType]'s supertype is [Object].
+///   * are related if their supertypes are equal, e.g. `List<dynamic>` and
+///     `Set<dynamic>`.
+/// * Two type variables are related if their bounds are related.
+/// * Otherwise, the types are related.
+// TODO(srawlins): typedefs and functions in general.
+bool typesAreUnrelated(
+    TypeSystem typeSystem, DartType? leftType, DartType? rightType) {
+  // If we don't have enough information, or can't really compare the types,
+  // return false as they _might_ be related.
+  if (leftType == null ||
+      leftType.isBottom ||
+      leftType.isDynamic ||
+      rightType == null ||
+      rightType.isBottom ||
+      rightType.isDynamic) {
+    return false;
+  }
+  var promotedLeftType = typeSystem.promoteToNonNull(leftType);
+  var promotedRightType = typeSystem.promoteToNonNull(rightType);
+  if (promotedLeftType == promotedRightType ||
+      typeSystem.isSubtypeOf(promotedLeftType, promotedRightType) ||
+      typeSystem.isSubtypeOf(promotedRightType, promotedLeftType)) {
+    return false;
+  }
+  if (promotedLeftType is InterfaceType && promotedRightType is InterfaceType) {
+    // In this case, [leftElement] and [rightElement] each represent
+    // the same class, like `int`, or `Iterable<String>`.
+    var leftElement = promotedLeftType.element2;
+    var rightElement = promotedRightType.element2;
+    if (leftElement == rightElement) {
+      // In this case, [leftElement] and [rightElement] represent the same
+      // class, modulo generics, e.g. `List<int>` and `List<dynamic>`. Now we
+      // need to check type arguments.
+      var leftTypeArguments = promotedLeftType.typeArguments;
+      var rightTypeArguments = promotedRightType.typeArguments;
+      if (leftTypeArguments.length != rightTypeArguments.length) {
+        // I cannot think of how we would enter this block, but it guards
+        // against RangeError below.
+        return false;
+      }
+      for (var i = 0; i < leftTypeArguments.length; i++) {
+        // If any of the pair-wise type arguments are unrelated, then
+        // [leftType] and [rightType] are unrelated.
+        if (typesAreUnrelated(
+            typeSystem, leftTypeArguments[i], rightTypeArguments[i])) {
+          return true;
+        }
+      }
+      // Otherwise, they might be related.
+      return false;
+    } else {
+      return (leftElement.supertype?.isDartCoreObject ?? false) ||
+          leftElement.supertype != rightElement.supertype;
+    }
+  } else if (promotedLeftType is TypeParameterType &&
+      promotedRightType is TypeParameterType) {
+    return typesAreUnrelated(typeSystem, promotedLeftType.element.bound,
+        promotedRightType.element.bound);
+  } else if (promotedLeftType is FunctionType) {
+    if (_isFunctionTypeUnrelatedToType(promotedLeftType, promotedRightType)) {
+      return true;
+    }
+  } else if (promotedRightType is FunctionType) {
+    if (_isFunctionTypeUnrelatedToType(promotedRightType, promotedLeftType)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool _isFunctionTypeUnrelatedToType(FunctionType type1, DartType type2) {
+  if (type2 is FunctionType) {
+    return false;
+  }
+  if (type2 is InterfaceType) {
+    var element2 = type2.element2;
+    if (element2 is ClassElement &&
+        element2.lookUpConcreteMethod('call', element2.library) != null) {
+      return false;
+    }
+  }
+  return true;
+}
+
 class DartTypeUtilities {
   @Deprecated('Replace with `type.extendsClass`')
   static bool extendsClass(
@@ -127,21 +277,9 @@ class DartTypeUtilities {
       type.element2.name == className &&
       type.element2.library.name == library;
 
-  static bool isConstructorElement(ConstructorElement? element,
-          {required String uriStr,
-          required String className,
-          required String constructorName}) =>
-      element != null &&
-      element.library.name == uriStr &&
-      element.enclosingElement3.name == className &&
-      element.name == constructorName;
-
   static bool isInterface(
           InterfaceType type, String interface, String library) =>
       type.element2.name == interface && type.element2.library.name == library;
-
-  static bool isNonNullable(LinterContext context, DartType? type) =>
-      type != null && context.typeSystem.isNonNullable(type);
 
   @Deprecated('Replace with `expression.isNullLiteral`')
   static bool isNullLiteral(Expression? expression) => expression.isNullLiteral;
@@ -229,162 +367,15 @@ class DartTypeUtilities {
     return null;
   }
 
-  static bool matchesArgumentsWithParameters(
-      NodeList<Expression> arguments, NodeList<FormalParameter> parameters) {
-    var namedParameters = <String, Element?>{};
-    var namedArguments = <String, Element>{};
-    var positionalParameters = <Element?>[];
-    var positionalArguments = <Element>[];
-    for (var parameter in parameters) {
-      var identifier = parameter.name;
-      if (identifier != null) {
-        if (parameter.isNamed) {
-          namedParameters[identifier.lexeme] = parameter.declaredElement;
-        } else {
-          positionalParameters.add(parameter.declaredElement);
-        }
-      }
-    }
-    for (var argument in arguments) {
-      if (argument is NamedExpression) {
-        var element = argument.expression.canonicalElement;
-        if (element == null) {
-          return false;
-        }
-        namedArguments[argument.name.label.name] = element;
-      } else {
-        var element = argument.canonicalElement;
-        if (element == null) {
-          return false;
-        }
-        positionalArguments.add(element);
-      }
-    }
-    if (positionalParameters.length != positionalArguments.length ||
-        namedParameters.keys.length != namedArguments.keys.length) {
-      return false;
-    }
-    for (var i = 0; i < positionalArguments.length; i++) {
-      if (positionalArguments[i] != positionalParameters[i]) {
-        return false;
-      }
-    }
-
-    for (var key in namedParameters.keys) {
-      if (namedParameters[key] != namedArguments[key]) {
-        return false;
-      }
-    }
-
-    return true;
-  }
+  @Deprecated('Use `argumentsMatchParameters`')
+  static bool matchesArgumentsWithParameters(NodeList<Expression> arguments,
+          NodeList<FormalParameter> parameters) =>
+      argumentsMatchParameters(arguments, parameters);
 
   @Deprecated('Replace with `node.traverseNodesInDFS`')
   static Iterable<AstNode> traverseNodesInDFS(AstNode node,
           {AstNodePredicate? excludeCriteria}) =>
       node.traverseNodesInDFS(excludeCriteria: excludeCriteria);
-
-  /// Returns whether [leftType] and [rightType] are _definitely_ unrelated.
-  ///
-  /// For the purposes of this function, here are some "relation" rules:
-  /// * `dynamic` and `Null` are considered related to any other type.
-  /// * Two types which are equal modulo nullability are considered related,
-  ///   e.g. `int` and `int`, `String` and `String?`, `List<String>` and
-  ///   `List<String>`, `List<T>` and `List<T>`, and type variables `A` and `A`.
-  /// * Two types such that one is a subtype of the other, modulo nullability,
-  ///   such as `List<dynamic>` and `Iterable<dynamic>`, and type variables `A`
-  ///   and `B` where `A extends B`, are considered related.
-  /// * Two interface types:
-  ///   * are related if they represent the same class, modulo type arguments,
-  ///     modulo nullability, and each of their pair-wise type arguments are
-  ///     related, e.g. `List<dynamic>` and `List<int>`, and `Future<T>` and
-  ///     `Future<S>` where `S extends T`.
-  ///   * are unrelated if [leftType]'s supertype is [Object].
-  ///   * are related if their supertypes are equal, e.g. `List<dynamic>` and
-  ///     `Set<dynamic>`.
-  /// * Two type variables are related if their bounds are related.
-  /// * Otherwise, the types are related.
-  // TODO(srawlins): typedefs and functions in general.
-  static bool unrelatedTypes(
-      TypeSystem typeSystem, DartType? leftType, DartType? rightType) {
-    // If we don't have enough information, or can't really compare the types,
-    // return false as they _might_ be related.
-    if (leftType == null ||
-        leftType.isBottom ||
-        leftType.isDynamic ||
-        rightType == null ||
-        rightType.isBottom ||
-        rightType.isDynamic) {
-      return false;
-    }
-    var promotedLeftType = typeSystem.promoteToNonNull(leftType);
-    var promotedRightType = typeSystem.promoteToNonNull(rightType);
-    if (promotedLeftType == promotedRightType ||
-        typeSystem.isSubtypeOf(promotedLeftType, promotedRightType) ||
-        typeSystem.isSubtypeOf(promotedRightType, promotedLeftType)) {
-      return false;
-    }
-    if (promotedLeftType is InterfaceType &&
-        promotedRightType is InterfaceType) {
-      // In this case, [leftElement] and [rightElement] each represent
-      // the same class, like `int`, or `Iterable<String>`.
-      var leftElement = promotedLeftType.element2;
-      var rightElement = promotedRightType.element2;
-      if (leftElement == rightElement) {
-        // In this case, [leftElement] and [rightElement] represent the same
-        // class, modulo generics, e.g. `List<int>` and `List<dynamic>`. Now we
-        // need to check type arguments.
-        var leftTypeArguments = promotedLeftType.typeArguments;
-        var rightTypeArguments = promotedRightType.typeArguments;
-        if (leftTypeArguments.length != rightTypeArguments.length) {
-          // I cannot think of how we would enter this block, but it guards
-          // against RangeError below.
-          return false;
-        }
-        for (var i = 0; i < leftTypeArguments.length; i++) {
-          // If any of the pair-wise type arguments are unrelated, then
-          // [leftType] and [rightType] are unrelated.
-          if (unrelatedTypes(
-              typeSystem, leftTypeArguments[i], rightTypeArguments[i])) {
-            return true;
-          }
-        }
-        // Otherwise, they might be related.
-        return false;
-      } else {
-        return (leftElement.supertype?.isDartCoreObject ?? false) ||
-            leftElement.supertype != rightElement.supertype;
-      }
-    } else if (promotedLeftType is TypeParameterType &&
-        promotedRightType is TypeParameterType) {
-      return unrelatedTypes(typeSystem, promotedLeftType.element.bound,
-          promotedRightType.element.bound);
-    } else if (promotedLeftType is FunctionType) {
-      if (_isFunctionTypeUnrelatedToType(promotedLeftType, promotedRightType)) {
-        return true;
-      }
-    } else if (promotedRightType is FunctionType) {
-      if (_isFunctionTypeUnrelatedToType(promotedRightType, promotedLeftType)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  static bool _isFunctionTypeUnrelatedToType(
-      FunctionType type1, DartType type2) {
-    if (type2 is FunctionType) {
-      return false;
-    }
-    if (type2 is InterfaceType) {
-      var element2 = type2.element2;
-      if (element2 is ClassElement &&
-          element2.lookUpConcreteMethod('call', element2.library) != null) {
-        return false;
-      }
-    }
-    return true;
-  }
 }
 
 class InterfaceTypeDefinition {

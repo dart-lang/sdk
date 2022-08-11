@@ -11,7 +11,6 @@ import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../util/dart_type_utilities.dart';
 
 const _desc = r'Use late for private members with a non-nullable type.';
 
@@ -91,11 +90,12 @@ class _Visitor extends RecursiveAstVisitor<void> {
     var element = node.writeElement?.canonicalElement;
     if (element != null) {
       var assignee = node.leftHandSide;
+      var rhsType = node.rightHandSide.staticType;
       if (assignee is SimpleIdentifier && assignee.inDeclarationContext()) {
         // This is OK.
       } else if (node.operator.type == TokenType.EQ &&
-          DartTypeUtilities.isNonNullable(
-              context, node.rightHandSide.staticType)) {
+          rhsType != null &&
+          context.typeSystem.isNonNullable(rhsType)) {
         // This is OK; non-null access.
       } else {
         nullableAccess[currentUnit]?.add(element);

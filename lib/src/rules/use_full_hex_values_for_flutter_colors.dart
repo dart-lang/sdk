@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc =
     r'Prefer an 8-digit hexadecimal integer(0xFFFFFFFF) to instantiate Color.';
@@ -54,8 +54,9 @@ class _Visitor extends SimpleAstVisitor {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var element = node.constructorName.staticElement;
-    if (DartTypeUtilities.isConstructorElement(element,
-        uriStr: 'dart.ui', className: 'Color', constructorName: '')) {
+    if (element != null &&
+        element.isSameAs(
+            uri: 'dart.ui', className: 'Color', constructorName: '')) {
       var arguments = node.argumentList.arguments;
       if (arguments.isNotEmpty) {
         var argument = arguments.first;

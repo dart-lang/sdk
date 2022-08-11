@@ -142,7 +142,7 @@ bool _hasNonComparableOperands(TypeSystem typeSystem, BinaryExpression node) {
   }
   return !left.isNullLiteral &&
       !right.isNullLiteral &&
-      DartTypeUtilities.unrelatedTypes(typeSystem, leftType, rightType) &&
+      typesAreUnrelated(typeSystem, leftType, rightType) &&
       !(_isFixNumIntX(leftType) && _isCoreInt(rightType));
 }
 

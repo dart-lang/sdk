@@ -128,6 +128,19 @@ extension ClassElementExtension on ClassElement {
   bool get isEnumLikeClass => asEnumLikeClass != null;
 }
 
+extension ConstructorElementExtension on ConstructorElement {
+  /// Returns whether `this` is the same element as the [className] constructor
+  /// named [constructorName] declared in [uri].
+  bool isSameAs({
+    required String uri,
+    required String className,
+    required String constructorName,
+  }) =>
+      library.name == uri &&
+      enclosingElement3.name == className &&
+      name == constructorName;
+}
+
 extension InterfaceElementExtension on InterfaceElement {
   /// Returns whether this element is exactly [otherName] declared in
   /// [otherLibrary].

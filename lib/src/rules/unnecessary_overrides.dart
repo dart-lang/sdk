@@ -236,7 +236,7 @@ class _UnnecessaryMethodOverrideVisitor
     var declarationParameters = declaration.parameters;
     if (declarationParameters != null &&
         node.methodName.staticElement == _inheritedMethod &&
-        DartTypeUtilities.matchesArgumentsWithParameters(
+        argumentsMatchParameters(
             node.argumentList.arguments, declarationParameters.parameters)) {
       node.target?.accept(this);
     }
