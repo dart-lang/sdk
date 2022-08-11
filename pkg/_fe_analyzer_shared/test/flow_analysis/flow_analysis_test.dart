@@ -5845,6 +5845,170 @@ main() {
         y.expr.property('_field2').checkType('Object?').stmt,
       ]);
     });
+
+    test('cancelled by write to local var', () {
+      h.thisType = 'C';
+      h.addMember('C', '_field', 'Object?', promotable: true);
+      var x = Var('x', 'C');
+      h.run([
+        declare(x, initialized: true),
+        if_(x.expr.property('_field').isNot('String'), [
+          return_(),
+        ]),
+        checkPromoted(x.expr.property('_field'), 'String'),
+        x.expr.property('_field').checkType('String').stmt,
+        x.write(expr('C')).stmt,
+        checkNotPromoted(x.expr.property('_field')),
+        x.expr.property('_field').checkType('Object?').stmt,
+      ]);
+    });
+
+    test('cancelled by write to local var, nested', () {
+      h.thisType = 'C';
+      h.addMember('C', '_field1', 'D', promotable: true);
+      h.addMember('D', '_field2', 'Object?', promotable: true);
+      var x = Var('x', 'C');
+      h.run([
+        declare(x, initialized: true),
+        if_(x.expr.property('_field1').property('_field2').isNot('String'), [
+          return_(),
+        ]),
+        checkPromoted(x.expr.property('_field1').property('_field2'), 'String'),
+        x.expr.property('_field1').property('_field2').checkType('String').stmt,
+        x.write(expr('C')).stmt,
+        checkNotPromoted(x.expr.property('_field1').property('_field2')),
+        x.expr
+            .property('_field1')
+            .property('_field2')
+            .checkType('Object?')
+            .stmt,
+      ]);
+    });
+
+    test('cancelled by write to local var later in loop', () {
+      h.thisType = 'C';
+      h.addMember('C', '_field', 'Object?', promotable: true);
+      var x = Var('x', 'C');
+      h.run([
+        declare(x, initialized: true),
+        if_(x.expr.property('_field').isNot('String'), [
+          return_(),
+        ]),
+        checkPromoted(x.expr.property('_field'), 'String'),
+        x.expr.property('_field').checkType('String').stmt,
+        while_(expr('bool'), [
+          checkNotPromoted(x.expr.property('_field')),
+          x.expr.property('_field').checkType('Object?').stmt,
+          x.write(expr('C')).stmt,
+        ]),
+      ]);
+    });
+
+    test('cancelled by write to local var later in loop, nested', () {
+      h.thisType = 'C';
+      h.addMember('C', '_field1', 'D', promotable: true);
+      h.addMember('D', '_field2', 'Object?', promotable: true);
+      var x = Var('x', 'C');
+      h.run([
+        declare(x, initialized: true),
+        if_(x.expr.property('_field1').property('_field2').isNot('String'), [
+          return_(),
+        ]),
+        checkPromoted(x.expr.property('_field1').property('_field2'), 'String'),
+        x.expr.property('_field1').property('_field2').checkType('String').stmt,
+        while_(expr('bool'), [
+          checkNotPromoted(x.expr.property('_field1').property('_field2')),
+          x.expr
+              .property('_field1')
+              .property('_field2')
+              .checkType('Object?')
+              .stmt,
+          x.write(expr('C')).stmt,
+        ]),
+      ]);
+    });
+
+    test('cancelled by capture of local var', () {
+      h.thisType = 'C';
+      h.addMember('C', '_field', 'Object?', promotable: true);
+      var x = Var('x', 'C');
+      h.run([
+        declare(x, initialized: true),
+        if_(x.expr.property('_field').isNot('String'), [
+          return_(),
+        ]),
+        checkPromoted(x.expr.property('_field'), 'String'),
+        x.expr.property('_field').checkType('String').stmt,
+        localFunction([
+          x.write(expr('C')).stmt,
+        ]),
+        checkNotPromoted(x.expr.property('_field')),
+        x.expr.property('_field').checkType('Object?').stmt,
+      ]);
+    });
+
+    test('cancelled by capture of local var, nested', () {
+      h.thisType = 'C';
+      h.addMember('C', '_field1', 'D', promotable: true);
+      h.addMember('D', '_field2', 'Object?', promotable: true);
+      var x = Var('x', 'C');
+      h.run([
+        declare(x, initialized: true),
+        if_(x.expr.property('_field1').property('_field2').isNot('String'), [
+          return_(),
+        ]),
+        checkPromoted(x.expr.property('_field1').property('_field2'), 'String'),
+        x.expr.property('_field1').property('_field2').checkType('String').stmt,
+        localFunction([
+          x.write(expr('C')).stmt,
+        ]),
+        checkNotPromoted(x.expr.property('_field1').property('_field2')),
+        x.expr
+            .property('_field1')
+            .property('_field2')
+            .checkType('Object?')
+            .stmt,
+      ]);
+    });
+
+    test('prevented by previous capture of local var', () {
+      h.thisType = 'C';
+      h.addMember('C', '_field', 'Object?', promotable: true);
+      var x = Var('x', 'C');
+      h.run([
+        declare(x, initialized: true),
+        localFunction([
+          x.write(expr('C')).stmt,
+        ]),
+        if_(x.expr.property('_field').isNot('String'), [
+          return_(),
+        ]),
+        checkNotPromoted(x.expr.property('_field')),
+        x.expr.property('_field').checkType('Object?').stmt,
+      ]);
+    });
+
+    test('prevented by previous capture of local var, nested', () {
+      h.thisType = 'C';
+      h.addMember('C', '_field1', 'D', promotable: true);
+      h.addMember('D', '_field2', 'Object?', promotable: true);
+      var x = Var('x', 'C');
+      h.run([
+        declare(x, initialized: true),
+        localFunction([
+          x.write(expr('C')).stmt,
+        ]),
+        if_(x.expr.property('_field1').property('_field2').isNot('String'), [
+          return_(),
+        ]),
+        checkNotPromoted(x.expr.property('_field1').property('_field2')),
+        x.expr
+            .property('_field1')
+            .property('_field2')
+            .checkType('Object?')
+            .stmt,
+      ]);
+    });
   });
 }
 
@@ -5930,7 +6094,7 @@ class _MockNonPromotionReason extends NonPromotionReason {
 extension on FlowModel<Type> {
   FlowModel<Type> _conservativeJoin(FlowAnalysisTestHarness h,
           Iterable<Var> writtenVariables, Iterable<Var> capturedVariables) =>
-      conservativeJoin([
+      conservativeJoin(h, [
         for (Var v in writtenVariables) h.promotionKeyStore.keyForVariable(v)
       ], [
         for (Var v in capturedVariables) h.promotionKeyStore.keyForVariable(v)
@@ -5971,6 +6135,7 @@ extension on FlowModel<Type> {
           SsaNode<Type> newSsaNode,
           Operations<Var, Type> operations) =>
       write(
+          h,
           nonPromotionReason,
           variable,
           h.promotionKeyStore.keyForVariable(variable),

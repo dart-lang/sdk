@@ -1533,9 +1533,9 @@ class FlowModel<Type extends Object> {
   /// and only remove promotions if it can be shown that they aren't restored
   /// later in the loop body.  If we switch to a fixed point analysis, we should
   /// be able to remove this method.
-  FlowModel<Type> conservativeJoin(
+  FlowModel<Type> conservativeJoin(FlowModelHelper<Type> helper,
       Iterable<int> writtenVariables, Iterable<int> capturedVariables) {
-    Map<int, VariableModel<Type>>? newVariableInfo;
+    FlowModel<Type>? newModel;
 
     for (int variableKey in writtenVariables) {
       VariableModel<Type>? info = variableInfo[variableKey];
@@ -1543,25 +1543,25 @@ class FlowModel<Type extends Object> {
       VariableModel<Type> newInfo =
           info.discardPromotionsAndMarkNotUnassigned();
       if (!identical(info, newInfo)) {
-        (newVariableInfo ??= new Map<int, VariableModel<Type>>.of(
-            variableInfo))[variableKey] = newInfo;
+        (newModel ??= _clone()).variableInfo[variableKey] = newInfo;
       }
+      newModel =
+          _discardDependentPropertyPromotions(helper, newModel, variableKey);
     }
 
     for (int variableKey in capturedVariables) {
       VariableModel<Type>? info = variableInfo[variableKey];
       if (info == null) continue;
       if (!info.writeCaptured) {
-        (newVariableInfo ??= new Map<int, VariableModel<Type>>.of(
-            variableInfo))[variableKey] = info.writeCapture();
+        (newModel ??= _clone()).variableInfo[variableKey] = info.writeCapture();
+        // Note: there's no need to discard dependent property promotions,
+        // because when deciding whether a property is promoted,
+        // [_FlowAnalysisImpl._handleProperty] checks whether the variable is
+        // captured.
       }
     }
 
-    FlowModel<Type> result = newVariableInfo == null
-        ? this
-        : new FlowModel<Type>.withInfo(reachable, newVariableInfo);
-
-    return result;
+    return newModel ?? this;
   }
 
   /// Register a declaration of the variable whose key is [variableKey].
@@ -1850,6 +1850,7 @@ class FlowModel<Type extends Object> {
   /// must pass in a non-null value for [nonPromotionReason] describing the
   /// reason for any potential demotion.
   FlowModel<Type> write<Variable extends Object>(
+      FlowModelHelper<Type> helper,
       NonPromotionReason? nonPromotionReason,
       Variable variable,
       int variableKey,
@@ -1857,15 +1858,45 @@ class FlowModel<Type extends Object> {
       SsaNode<Type> newSsaNode,
       Operations<Variable, Type> operations,
       {bool promoteToTypeOfInterest = true}) {
+    FlowModel<Type>? newModel;
     VariableModel<Type>? infoForVar = variableInfo[variableKey];
-    if (infoForVar == null) return this;
+    if (infoForVar != null) {
+      VariableModel<Type> newInfoForVar = infoForVar.write(nonPromotionReason,
+          variable, variableKey, writtenType, operations, newSsaNode,
+          promoteToTypeOfInterest: promoteToTypeOfInterest);
+      if (!identical(newInfoForVar, infoForVar)) {
+        newModel = _updateVariableInfo(variableKey, newInfoForVar);
+      }
+    }
+    newModel =
+        _discardDependentPropertyPromotions(helper, newModel, variableKey);
 
-    VariableModel<Type> newInfoForVar = infoForVar.write(nonPromotionReason,
-        variable, variableKey, writtenType, operations, newSsaNode,
-        promoteToTypeOfInterest: promoteToTypeOfInterest);
-    if (identical(newInfoForVar, infoForVar)) return this;
+    return newModel ?? this;
+  }
 
-    return _updateVariableInfo(variableKey, newInfoForVar);
+  /// Makes a copy of `this` that can be safely edited.  Optional argument
+  /// [reachable] may be used to specify a different reachability.
+  FlowModel<Type> _clone({Reachability? reachable}) {
+    return new FlowModel<Type>.withInfo(reachable ?? this.reachable,
+        new Map<int, VariableModel<Type>>.of(variableInfo));
+  }
+
+  /// Discards promotions on any property (or property of a property) of
+  /// the variable indicated by [variableKey].
+  FlowModel<Type>? _discardDependentPropertyPromotions(
+      FlowModelHelper<Type> helper,
+      FlowModel<Type>? newModel,
+      int variableKey) {
+    for (int key = variableKey;
+        (key = helper.promotionKeyStore.getNextKeyWithSameRoot(key)) !=
+            variableKey;) {
+      VariableModel<Type>? info = variableInfo[key];
+      if (info != null && info.promotedTypes != null) {
+        (newModel ??= _clone()).variableInfo[key] =
+            info.discardPromotionsAndMarkNotUnassigned();
+      }
+    }
+    return newModel;
   }
 
   /// Common algorithm for [tryMarkNonNullable], [tryPromoteForTypeCast],
@@ -1928,11 +1959,7 @@ class FlowModel<Type extends Object> {
   FlowModel<Type> _updateVariableInfo(
       int promotionKey, VariableModel<Type> model,
       {Reachability? reachable}) {
-    reachable ??= this.reachable;
-    Map<int, VariableModel<Type>> newVariableInfo =
-        new Map<int, VariableModel<Type>>.of(variableInfo);
-    newVariableInfo[promotionKey] = model;
-    return new FlowModel<Type>.withInfo(reachable, newVariableInfo);
+    return _clone(reachable: reachable)..variableInfo[promotionKey] = model;
   }
 
   /// Forms a new state to reflect a control flow path that might have come from
@@ -3190,7 +3217,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _BranchTargetContext<Type> context =
         new _BranchTargetContext<Type>(_current.reachable);
     _stack.add(context);
-    _current = _current.conservativeJoin(info.written, info.captured).split();
+    _current =
+        _current.conservativeJoin(this, info.written, info.captured).split();
     _statementToContext[doStatement] = context;
   }
 
@@ -3286,7 +3314,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void for_conditionBegin(Node node) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
-    _current = _current.conservativeJoin(info.written, info.captured).split();
+    _current =
+        _current.conservativeJoin(this, info.written, info.captured).split();
   }
 
   @override
@@ -3309,7 +3338,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void forEach_bodyBegin(Node node) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
-    _current = _current.conservativeJoin(info.written, info.captured).split();
+    _current =
+        _current.conservativeJoin(this, info.written, info.captured).split();
     _SimpleStatementContext<Type> context =
         new _SimpleStatementContext<Type>(_current.reachable.parent!, _current);
     _stack.add(context);
@@ -3335,9 +3365,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void functionExpression_begin(Node node) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
-    _current = _current.conservativeJoin(const [], info.written);
+    _current = _current.conservativeJoin(this, const [], info.written);
     _stack.add(new _FunctionExpressionContext(_current));
-    _current = _current.conservativeJoin(_assignedVariables.anywhere.written,
+    _current = _current.conservativeJoin(
+        this,
+        _assignedVariables.anywhere.written,
         _assignedVariables.anywhere.captured);
   }
 
@@ -3464,8 +3496,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     }
     SsaNode<Type> newSsaNode = new SsaNode<Type>(
         expressionInfo is _TrivialExpressionInfo ? null : expressionInfo);
-    _current = _current.write(
-        null, variable, variableKey, initializerType, newSsaNode, operations,
+    _current = _current.write(this, null, variable, variableKey,
+        initializerType, newSsaNode, operations,
         promoteToTypeOfInterest: !isImplicitlyTyped && !isFinal);
     if (isImplicitlyTyped && operations.isTypeParameterType(initializerType)) {
       _current = _current
@@ -3655,7 +3687,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         _stack.last as _SimpleStatementContext<Type>;
     if (hasLabel) {
       _current =
-          context._previous.conservativeJoin(info.written, info.captured);
+          context._previous.conservativeJoin(this, info.written, info.captured);
     } else {
       _current = context._previous;
     }
@@ -3716,7 +3748,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(body);
     FlowModel<Type> beforeCatch =
-        beforeBody.conservativeJoin(info.written, info.captured);
+        beforeBody.conservativeJoin(this, info.written, info.captured);
 
     context._beforeCatch = beforeCatch;
     context._afterBodyAndCatches = afterBody;
@@ -3771,7 +3803,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _TryFinallyContext<Type> context = _stack.last as _TryFinallyContext<Type>;
     context._afterBodyAndCatches = _current;
     _current = _join(_current,
-        context._previous.conservativeJoin(info.written, info.captured));
+        context._previous.conservativeJoin(this, info.written, info.captured));
     context._beforeFinally = _current;
   }
 
@@ -3806,7 +3838,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void whileStatement_conditionBegin(Node node) {
     _current = _current.split();
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
-    _current = _current.conservativeJoin(info.written, info.captured);
+    _current = _current.conservativeJoin(this, info.written, info.captured);
   }
 
   @override
@@ -3856,6 +3888,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     SsaNode<Type> newSsaNode = new SsaNode<Type>(
         expressionInfo is _TrivialExpressionInfo ? null : expressionInfo);
     _current = _current.write(
+        this,
         new DemoteViaExplicitWrite<Variable>(variable, node),
         variable,
         variableKey,
@@ -3980,6 +4013,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       _storeExpressionReference(wholeExpression, propertyReference);
     }
     if (!propertyReference.isPromotable(this)) {
+      return null;
+    }
+    if (_current
+        .infoFor(promotionKeyStore.getRootVariableKey(targetKey))
+        .writeCaptured) {
+      // The variable that was used to reach this property has been write
+      // captured, so the property can't be promoted.
       return null;
     }
     Type? promotedType =
