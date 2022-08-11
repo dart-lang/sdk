@@ -4281,8 +4281,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       instrumentation!.record(uriForInstrumentation, fileOffset, 'target',
           new InstrumentationValueForMember(equalsTarget.member!));
     }
-    DartType rightType =
-        equalsTarget.getPositionalParameterTypeForTarget(this, 0);
+    DartType rightType = equalsTarget.getBinaryOperandType(this);
     rightResult = ensureAssignableResult(
         rightType.withDeclaredNullability(libraryBuilder.nullable), rightResult,
         errorTemplate: templateArgumentTypeNotAssignable,
@@ -4357,11 +4356,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             isThisReceiver: false);
 
     DartType binaryType = binaryTarget.getReturnType(this);
-    DartType rightType =
-        binaryTarget.getPositionalParameterTypeForTarget(this, 0);
+    DartType rightType = binaryTarget.getBinaryOperandType(this);
 
     bool isSpecialCasedBinaryOperator =
-        binaryTarget.isSpecialCasedBinaryOperatorForReceiverType(this);
+        binaryTarget.isSpecialCasedBinaryOperator(this);
 
     bool typeNeeded = !isTopLevel || isSpecialCasedBinaryOperator;
 
