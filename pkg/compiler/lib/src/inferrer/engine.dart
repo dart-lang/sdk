@@ -560,10 +560,10 @@ class InferrerEngine implements interfaces.InferrerEngine {
   /// implement `call`.
   FunctionEntity _lookupCallMethod(ClassEntity cls) {
     FunctionEntity function =
-        _elementEnvironment.lookupClassMember(cls, Identifiers.call);
+        _elementEnvironment.lookupClassMember(cls, Names.call);
     if (function == null || function.isAbstract) {
       function =
-          _elementEnvironment.lookupClassMember(cls, Identifiers.noSuchMethod_);
+          _elementEnvironment.lookupClassMember(cls, Names.noSuchMethod_);
     }
     return function;
   }

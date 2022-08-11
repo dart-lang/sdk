@@ -648,7 +648,8 @@ class Namer extends ModularNamer {
     // Public names are easy.
     if (!originalName.isPrivate) return text;
 
-    LibraryEntity library = originalName.library;
+    LibraryEntity library =
+        _elementEnvironment.lookupLibrary(originalName.uri, required: true);
 
     // The first library asking for a short private name wins.
     LibraryEntity owner =
@@ -888,13 +889,13 @@ class Namer extends ModularNamer {
     // No superclass uses the disambiguated name as a property name, so we can
     // use it for this field. This generates nicer field names since otherwise
     // the field name would have to be mangled.
-    return _disambiguateMember(Name(element.name, element.library));
+    return _disambiguateMember(
+        Name(element.name, element.library.canonicalUri));
   }
 
   bool _isShadowingSuperField(FieldEntity element) {
     assert(element.isField);
-    String fieldName = element.name;
-    bool isPrivate = Name.isPrivateName(fieldName);
+    Name fieldName = element.memberName;
     LibraryEntity memberLibrary = element.library;
     ClassEntity lookupClass =
         _elementEnvironment.getSuperClass(element.enclosingClass);
@@ -903,7 +904,7 @@ class Namer extends ModularNamer {
           _elementEnvironment.lookupLocalClassMember(lookupClass, fieldName);
       if (foundMember != null) {
         if (foundMember.isField) {
-          if (!isPrivate || memberLibrary == foundMember.library) {
+          if (!fieldName.isPrivate || memberLibrary == foundMember.library) {
             // Private fields can only be shadowed by a field declared in the
             // same library.
             return true;
@@ -1030,8 +1031,10 @@ class Namer extends ModularNamer {
   jsAst.Name _disambiguateMember(Name originalName,
       [List<String> suffixes = const []]) {
     // Build a string encoding the library name, if the name is private.
-    String libraryKey =
-        originalName.isPrivate ? _generateLibraryKey(originalName.library) : '';
+    String libraryKey = originalName.isPrivate
+        ? _generateLibraryKey(
+            _elementEnvironment.lookupLibrary(originalName.uri, required: true))
+        : '';
 
     // In the unique key, separate the name parts by '@'.
     // This avoids clashes since the original names cannot contain that symbol.

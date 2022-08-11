@@ -258,11 +258,11 @@ class KernelToElementMap
     return cls;
   }
 
-  MemberEntity lookupClassMember(IndexedClass cls, String name,
+  MemberEntity lookupClassMember(IndexedClass cls, Name name,
       {bool setter = false}) {
     assert(checkFamily(cls));
     KClassEnv classEnv = classes.getEnv(cls);
-    return classEnv.lookupMember(this, name, setter: setter);
+    return classEnv.lookupMember(this, name);
   }
 
   ConstructorEntity lookupConstructor(IndexedClass cls, String name) {
@@ -303,7 +303,7 @@ class KernelToElementMap
     assert(checkFamily(cls));
     if (data is KClassDataImpl && !data.isCallTypeComputed) {
       MemberEntity callMember =
-          _elementEnvironment.lookupClassMember(cls, Identifiers.call);
+          _elementEnvironment.lookupClassMember(cls, Names.call);
       if (callMember is FunctionEntity &&
           callMember.isFunction &&
           !callMember.isAbstract) {
@@ -898,10 +898,10 @@ class KernelToElementMap
                 : ir.EvaluationMode.strong);
   }
 
-  /// Returns the [Name] corresponding to [name].
   @override
-  Name getName(ir.Name name) {
-    return Name(name.text, name.isPrivate ? getLibrary(name.library) : null);
+  Name getName(ir.Name name, {bool setter = false}) {
+    return Name(name.text, name.isPrivate ? name.library.importUri : null,
+        isSetter: setter);
   }
 
   /// Returns the [CallStructure] corresponding to the [arguments].
@@ -964,13 +964,13 @@ class KernelToElementMap
 
   Selector getGetterSelector(ir.Name irName) {
     Name name =
-        Name(irName.text, irName.isPrivate ? getLibrary(irName.library) : null);
+        Name(irName.text, irName.isPrivate ? irName.library.importUri : null);
     return Selector.getter(name);
   }
 
   Selector getSetterSelector(ir.Name irName) {
     Name name =
-        Name(irName.text, irName.isPrivate ? getLibrary(irName.library) : null);
+        Name(irName.text, irName.isPrivate ? irName.library.importUri : null);
     return Selector.setter(name);
   }
 
@@ -1221,8 +1221,8 @@ class KernelToElementMap
   FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
     while (cls != null) {
       cls = elementEnvironment.getSuperClass(cls);
-      MemberEntity member = elementEnvironment.lookupLocalClassMember(
-          cls, Identifiers.noSuchMethod_);
+      MemberEntity member =
+          elementEnvironment.lookupLocalClassMember(cls, Names.noSuchMethod_);
       if (member != null && !member.isAbstract) {
         if (member.isFunction) {
           FunctionEntity function = member;
@@ -1236,7 +1236,7 @@ class KernelToElementMap
       }
     }
     FunctionEntity function = elementEnvironment.lookupLocalClassMember(
-        commonElements.objectClass, Identifiers.noSuchMethod_);
+        commonElements.objectClass, Names.noSuchMethod_);
     assert(function != null,
         failedAt(cls, "No super noSuchMethod found for class $cls."));
     return function;
@@ -1899,10 +1899,9 @@ class KernelElementEnvironment extends ElementEnvironment
   }
 
   @override
-  MemberEntity lookupLocalClassMember(ClassEntity cls, String name,
-      {bool setter = false, bool required = false}) {
-    MemberEntity member =
-        elementMap.lookupClassMember(cls, name, setter: setter);
+  MemberEntity lookupLocalClassMember(ClassEntity cls, Name name,
+      {bool required = false}) {
+    MemberEntity member = elementMap.lookupClassMember(cls, name);
     if (member == null && required) {
       throw failedAt(CURRENT_ELEMENT_SPANNABLE,
           "The member '$name' was not found in ${cls.name}.");

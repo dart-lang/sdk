@@ -14,7 +14,6 @@ import '../constants/values.dart';
 import '../deferred_load/output_unit.dart' show OutputUnit, OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
-import '../elements/names.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_strategy.dart';
 import '../ir/closure.dart';
@@ -302,17 +301,7 @@ class JsClosedWorldBuilder {
     Set<FunctionEntity> methodsNeedingSignature =
         map.toBackendFunctionSet(rtiNeed.methodsNeedingSignature);
     Set<Selector> selectorsNeedingTypeArguments =
-        rtiNeed.selectorsNeedingTypeArguments.map((Selector selector) {
-      if (selector.memberName.isPrivate) {
-        return Selector(
-            selector.kind,
-            PrivateName(selector.memberName.text,
-                map.toBackendLibrary(selector.memberName.library),
-                isSetter: selector.memberName.isSetter),
-            selector.callStructure);
-      }
-      return selector;
-    }).toSet();
+        rtiNeed.selectorsNeedingTypeArguments;
     return RuntimeTypesNeedImpl(
         _elementEnvironment,
         classesNeedingTypeArguments,

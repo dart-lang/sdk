@@ -7,6 +7,7 @@
 library type_test_helper;
 
 import 'dart:async';
+import 'package:compiler/src/elements/names.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/commandline_options.dart';
@@ -136,7 +137,8 @@ class TypeEnvironment {
 
   MemberEntity _getMember(String name, [ClassEntity cls]) {
     if (cls != null) {
-      return elementEnvironment.lookupLocalClassMember(cls, name);
+      return elementEnvironment.lookupLocalClassMember(
+          cls, Name(name, cls.library.canonicalUri));
     } else {
       LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
       return elementEnvironment.lookupLibraryMember(mainLibrary, name);

@@ -831,8 +831,8 @@ class KernelImpactConverter implements ImpactRegistry {
       }
       ClassEntity? cls = type.element;
       while (cls != null) {
-        MemberEntity member =
-            elementMap.elementEnvironment.lookupClassMember(cls, '==')!;
+        MemberEntity member = elementMap.elementEnvironment
+            .lookupClassMember(cls, Names.EQUALS_NAME)!;
         if (member.isAbstract) {
           cls = elementMap.elementEnvironment.getSuperClass(cls);
         } else {

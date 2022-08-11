@@ -545,11 +545,9 @@ class JsClosedWorld implements JClosedWorld {
   @override
   bool hasElementIn(ClassEntity cls, Name name, Entity element) {
     while (cls != null) {
-      MemberEntity member = elementEnvironment
-          .lookupLocalClassMember(cls, name.text, setter: name.isSetter);
-      if (member != null &&
-          !member.isAbstract &&
-          (!name.isPrivate || member.library == name.library)) {
+      MemberEntity member =
+          elementEnvironment.lookupLocalClassMember(cls, name);
+      if (member != null && !member.isAbstract) {
         return member == element;
       }
       cls = elementEnvironment.getSuperClass(cls);
@@ -563,8 +561,8 @@ class JsClosedWorld implements JClosedWorld {
       {ClassEntity stopAtSuperclass}) {
     assert(classHierarchy.isInstantiated(cls),
         failedAt(cls, '$cls has not been instantiated.'));
-    MemberEntity element = elementEnvironment
-        .lookupClassMember(cls, selector.name, setter: selector.isSetter);
+    MemberEntity element =
+        elementEnvironment.lookupClassMember(cls, selector.memberName);
     if (element == null) return false;
 
     if (element.isAbstract) {

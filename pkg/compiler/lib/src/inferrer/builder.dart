@@ -1472,7 +1472,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       // We have something like `Uint32List(len)`.
       int length = _findLength(arguments);
       MemberEntity member = _elementMap.elementEnvironment
-          .lookupClassMember(constructor.enclosingClass, '[]');
+          .lookupClassMember(constructor.enclosingClass, Names.INDEX_NAME);
       TypeInformation elementType = _inferrer.returnTypeOfMember(member);
       return _inferrer.concreteTypes.putIfAbsent(
           node,

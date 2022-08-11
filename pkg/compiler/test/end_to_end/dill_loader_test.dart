@@ -4,6 +4,8 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/elements/names.dart';
+
 import '../helpers/memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/elements.dart';
@@ -60,7 +62,7 @@ main() {
     Expect.isNotNull(library);
     ClassEntity clss = environment.lookupClass(library, 'ListLiteralTest');
     Expect.isNotNull(clss);
-    var member = environment.lookupClassMember(clss, 'testMain');
+    var member = environment.lookupClassMember(clss, PublicName('testMain'));
     Expect.isNotNull(member);
   });
 }

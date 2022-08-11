@@ -6,6 +6,7 @@
 
 import 'package:compiler/src/common/elements.dart' show JElementEnvironment;
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/world.dart' show JClosedWorld;
 
@@ -45,8 +46,8 @@ MemberEntity findClassMember(
   JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   ClassEntity cls = findClass(closedWorld, className);
   assert(cls != null, "Class '$className' not found.");
-  MemberEntity member =
-      elementEnvironment.lookupClassMember(cls, memberName, setter: isSetter);
+  MemberEntity member = elementEnvironment.lookupClassMember(
+      cls, Name(memberName, cls.library.canonicalUri, isSetter: isSetter));
   if (member == null && !isSetter) {
     member = elementEnvironment.lookupConstructor(cls, memberName);
   }

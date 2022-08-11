@@ -12,6 +12,7 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/js_backend/runtime_types_resolution.dart';
 import 'package:compiler/src/js_model/js_world.dart';
@@ -288,8 +289,9 @@ abstract class IrMixin implements ComputeValueMixin {
             frontendClass, backendMember.name);
       } else {
         return elementEnvironment.lookupClassMember(
-            frontendClass, backendMember.name,
-            setter: backendMember.isSetter);
+            frontendClass,
+            Name(backendMember.name, frontendClass.library.canonicalUri,
+                isSetter: backendMember.isSetter));
       }
     }
     return elementEnvironment.lookupLibraryMember(

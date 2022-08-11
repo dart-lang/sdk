@@ -12,6 +12,7 @@ import '../common/tasks.dart' show Measurer, CompilerTask;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
@@ -1181,8 +1182,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   FieldEntity _indexFieldOfEnumClass(ClassEntity enumClass) {
-    MemberEntity member =
-        _closedWorld.elementEnvironment.lookupClassMember(enumClass, 'index');
+    MemberEntity member = _closedWorld.elementEnvironment
+        .lookupClassMember(enumClass, const PublicName('index'));
     if (member is FieldEntity) return member;
     throw StateError('$enumClass should have index field, found $member');
   }

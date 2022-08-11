@@ -6,6 +6,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/elements.dart';
+import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/no_such_method_registry.dart';
@@ -261,7 +262,8 @@ checkTest(Compiler compiler, NoSuchMethodTest test) {
       compiler.frontendStrategy.noSuchMethodRegistry;
   var resolver = registry.internalResolverForTesting;
   FunctionEntity ObjectNSM = frontendEnvironment.lookupClassMember(
-      compiler.frontendStrategy.commonElements.objectClass, 'noSuchMethod');
+      compiler.frontendStrategy.commonElements.objectClass,
+      Names.noSuchMethod_);
   JClosedWorld backendClosedWorld = compiler.backendClosedWorldForTesting;
   ElementEnvironment backendEnvironment = backendClosedWorld.elementEnvironment;
   NoSuchMethodData data = backendClosedWorld.noSuchMethodData;
@@ -272,7 +274,7 @@ checkTest(Compiler compiler, NoSuchMethodTest test) {
         frontendEnvironment.mainLibrary, info.className);
     Expect.isNotNull(cls, "Class ${info.className} not found.");
     FunctionEntity noSuchMethod =
-        frontendEnvironment.lookupClassMember(cls, 'noSuchMethod');
+        frontendEnvironment.lookupClassMember(cls, Names.noSuchMethod_);
     Expect.isNotNull(noSuchMethod, "noSuchMethod not found in $cls.");
 
     if (info.superClassName == null) {
@@ -282,8 +284,8 @@ checkTest(Compiler compiler, NoSuchMethodTest test) {
           frontendEnvironment.mainLibrary, info.superClassName);
       Expect.isNotNull(
           superclass, "Superclass ${info.superClassName} not found.");
-      FunctionEntity superNoSuchMethod =
-          frontendEnvironment.lookupClassMember(superclass, 'noSuchMethod');
+      FunctionEntity superNoSuchMethod = frontendEnvironment.lookupClassMember(
+          superclass, Names.noSuchMethod_);
       Expect.isNotNull(
           superNoSuchMethod, "noSuchMethod not found in $superclass.");
       Expect.equals(
@@ -309,8 +311,8 @@ checkTest(Compiler compiler, NoSuchMethodTest test) {
     ClassEntity frontendClass = frontendEnvironment.lookupClass(
         frontendEnvironment.mainLibrary, info.className);
     Expect.isNotNull(frontendClass, "Class ${info.className} not found.");
-    FunctionEntity frontendNoSuchMethod =
-        frontendEnvironment.lookupClassMember(frontendClass, 'noSuchMethod');
+    FunctionEntity frontendNoSuchMethod = frontendEnvironment.lookupClassMember(
+        frontendClass, Names.noSuchMethod_);
     Expect.isNotNull(
         frontendNoSuchMethod, "noSuchMethod not found in $frontendClass.");
 
@@ -331,7 +333,7 @@ checkTest(Compiler compiler, NoSuchMethodTest test) {
         backendEnvironment.mainLibrary, info.className);
     Expect.isNotNull(backendClass, "Class ${info.className} not found.");
     FunctionEntity backendNoSuchMethod =
-        backendEnvironment.lookupClassMember(backendClass, 'noSuchMethod');
+        backendEnvironment.lookupClassMember(backendClass, Names.noSuchMethod_);
     Expect.isNotNull(
         backendNoSuchMethod, "noSuchMethod not found in $backendClass.");
 
