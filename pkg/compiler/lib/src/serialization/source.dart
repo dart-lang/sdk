@@ -378,6 +378,24 @@ class DataSourceReader {
     return list;
   }
 
+  /// Reads a map from [Name] values to [V] values from this data source,
+  /// calling [f] to read each value from the data source. If [emptyAsNull] is
+  /// `true`, `null` is returned instead of an empty map.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeNameMap].
+  Map<Name, V>? readNameMap<V>(V f(), {bool emptyAsNull = false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    Map<Name, V> map = {};
+    for (int i = 0; i < count; i++) {
+      Name key = readMemberName();
+      V value = f();
+      map[key] = value;
+    }
+    return map;
+  }
+
   /// Reads a map from string values to [V] values from this data source,
   /// calling [f] to read each value from the data source. If [emptyAsNull] is
   /// `true`, `null` is returned instead of an empty map.
@@ -535,6 +553,14 @@ class DataSourceReader {
     String text = readString();
     ir.Library? library = readValueOrNull(readLibraryNode);
     return ir.Name(text, library);
+  }
+
+  /// Reads a [Name] from this data source.
+  Name readMemberName() {
+    String text = readString();
+    Uri? uri = readValueOrNull(readUri);
+    bool setter = readBool();
+    return Name(text, uri, isSetter: setter);
   }
 
   /// Reads a kernel library dependency node from this data source.

@@ -14,6 +14,7 @@ import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:expect/expect.dart';
@@ -325,7 +326,8 @@ Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
       MemberEntity member;
       if (id.className != null) {
         ClassEntity cls = getGlobalClass(id.className);
-        member = elementEnvironment.lookupClassMember(cls, id.memberName);
+        member = elementEnvironment.lookupClassMember(
+            cls, Name(id.memberName, cls.library.canonicalUri));
         member ??= elementEnvironment.lookupConstructor(cls, id.memberName);
         Expect.isNotNull(
             member, "Global member '$member' not found in class $cls.");
@@ -552,8 +554,8 @@ Spannable computeSpannable(
         print("No class '${id.className}' in $mainUri.");
         return NO_LOCATION_SPANNABLE;
       }
-      MemberEntity member = elementEnvironment
-          .lookupClassMember(cls, memberName, setter: isSetter);
+      MemberEntity member = elementEnvironment.lookupClassMember(
+          cls, Name(memberName, cls.library.canonicalUri, isSetter: isSetter));
       if (member == null) {
         ConstructorEntity constructor =
             elementEnvironment.lookupConstructor(cls, memberName);

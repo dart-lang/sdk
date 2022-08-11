@@ -63,8 +63,6 @@ class Selector {
 
   String get name => memberName.text;
 
-  LibraryEntity? get library => memberName.library;
-
   static bool isOperatorName(String name) {
     return instanceMethodOperatorNames.contains(name);
   }
@@ -198,22 +196,17 @@ class Selector {
   factory Selector.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     SelectorKind kind = source.readEnum(SelectorKind.values);
-    bool isSetter = source.readBool();
-    LibraryEntity? library = source.readLibraryOrNull();
-    String text = source.readString();
+    Name memberName = source.readMemberName();
     CallStructure callStructure = CallStructure.readFromDataSource(source);
     source.end(tag);
-    return Selector(
-        kind, Name(text, library, isSetter: isSetter), callStructure);
+    return Selector(kind, memberName, callStructure);
   }
 
   /// Serializes this [Selector] to [sink].
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeEnum(kind);
-    sink.writeBool(memberName.isSetter);
-    sink.writeLibraryOrNull(memberName.library);
-    sink.writeString(memberName.text);
+    sink.writeMemberName(memberName);
     callStructure.writeToDataSink(sink);
     sink.end(tag);
   }
@@ -244,9 +237,7 @@ class Selector {
 
   bool appliesUnnamed(MemberEntity element) {
     assert(name == element.name);
-    if (memberName.isPrivate && memberName.library != element.library) {
-      // TODO(johnniwinther): Maybe this should be
-      // `memberName != element.memberName`.
+    if (!memberName.matches(element.memberName)) {
       return false;
     }
     if (element.isSetter) return isSetter;

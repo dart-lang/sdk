@@ -8,6 +8,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
@@ -37,7 +38,8 @@ main() {
         elementEnvironment.lookupClass(elementEnvironment.mainLibrary, 'Class');
     ClassEntity mixin =
         elementEnvironment.lookupClass(elementEnvironment.mainLibrary, 'Mixin');
-    FunctionEntity method = elementEnvironment.lookupClassMember(cls, 'method');
+    FunctionEntity method =
+        elementEnvironment.lookupClassMember(cls, PublicName('method'));
     Expect.isNotNull(method);
     Expect.equals(mixin, method.enclosingClass);
     Expect.isFalse(method.isAbstract);

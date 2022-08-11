@@ -7,7 +7,7 @@
 library js_backend.backend.resolution_listener;
 
 import '../common/elements.dart' show KCommonElements, KElementEnvironment;
-import '../common/names.dart' show Identifiers;
+import '../common/names.dart' show Identifiers, Names;
 import '../constants/values.dart';
 import '../deferred_load/deferred_load.dart';
 import '../elements/entities.dart';
@@ -160,8 +160,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     enqueuer.applyImpact(_customElementsAnalysis.flush());
 
     for (ClassEntity cls in recentClasses) {
-      MemberEntity element = _elementEnvironment.lookupLocalClassMember(
-          cls, Identifiers.noSuchMethod_);
+      MemberEntity element =
+          _elementEnvironment.lookupLocalClassMember(cls, Names.noSuchMethod_);
       if (element != null &&
           element.isInstanceMember &&
           element.isFunction &&

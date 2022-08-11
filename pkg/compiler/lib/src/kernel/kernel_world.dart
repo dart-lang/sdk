@@ -136,7 +136,7 @@ class KClosedWorld implements BuiltWorld, interfaces.KClosedWorld {
             .checkHasMember(elementMap.getMemberNode(member))) {
           throw SpannableAssertionFailure(
               member,
-              "Member $member is in the environment of its enclosing class"
+              "Member $member is not in the environment of its enclosing class"
               " ${member.enclosingClass}.");
         }
       }

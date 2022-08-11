@@ -28,6 +28,7 @@ import 'deferred_load/output_unit.dart' show OutputUnit, deferredPartFileName;
 import 'dump_info_javascript_monitor.dart';
 import 'elements/entities.dart';
 import 'elements/entity_utils.dart' as entity_utils;
+import 'elements/names.dart';
 import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/types.dart'
     show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
@@ -281,8 +282,8 @@ class ElementInfoCollector {
         size: dumpInfoTask.sizeOf(element));
     state.entityToInfo[element] = closureInfo;
 
-    FunctionEntity callMethod = closedWorld.elementEnvironment
-        .lookupClassMember(element, Identifiers.call);
+    FunctionEntity callMethod =
+        closedWorld.elementEnvironment.lookupClassMember(element, Names.call);
 
     FunctionInfo functionInfo = visitFunction(callMethod);
     if (functionInfo == null) return null;
@@ -570,10 +571,12 @@ class KernelInfoCollector {
     clazz.members.forEach((ir.Member member) {
       final isSetter = member is ir.Procedure && member.isSetter;
       // clazz.members includes constructors
-      MemberEntity memberEntity = environment.lookupLocalClassMember(
-              classEntity, member.name.text,
-              setter: isSetter) ??
-          environment.lookupConstructor(classEntity, member.name.text);
+      final name = Name(member.name.text,
+          member.name.isPrivate ? member.name.library.importUri : null,
+          isSetter: isSetter);
+      MemberEntity memberEntity =
+          environment.lookupLocalClassMember(classEntity, name) ??
+              environment.lookupConstructor(classEntity, member.name.text);
       if (memberEntity == null) return;
 
       if (member.function != null) {
@@ -701,7 +704,7 @@ class KernelInfoCollector {
       final closureInfo = ClosureInfo.fromKernel(name: value.disambiguatedName);
 
       FunctionEntity callMethod = closedWorld.elementEnvironment
-          .lookupClassMember(closureClassEntity, Identifiers.call);
+          .lookupClassMember(closureClassEntity, Names.call);
       final functionInfo = visitFunction(key.function,
           functionEntity: callMethod, localFunctionInfo: value);
 
@@ -993,8 +996,8 @@ class DumpInfoAnnotator {
     kClosureInfo.outputUnit = _unitInfoForClass(element);
     kClosureInfo.size = dumpInfoTask.sizeOf(element);
 
-    FunctionEntity callMethod = closedWorld.elementEnvironment
-        .lookupClassMember(element, Identifiers.call);
+    FunctionEntity callMethod =
+        closedWorld.elementEnvironment.lookupClassMember(element, Names.call);
 
     final functionInfo =
         visitFunction(callMethod, disambiguatedElementName, isClosure: true);

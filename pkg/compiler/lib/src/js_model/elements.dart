@@ -281,8 +281,8 @@ class JGenerativeConstructor extends JConstructor {
     bool isExternal = source.readBool();
     bool isConst = source.readBool();
     source.end(tag);
-    return JGenerativeConstructor(
-        enclosingClass, Name(name, enclosingClass.library), parameterStructure,
+    return JGenerativeConstructor(enclosingClass,
+        Name(name, enclosingClass.library.canonicalUri), parameterStructure,
         isExternal: isExternal, isConst: isConst);
   }
 
@@ -331,8 +331,8 @@ class JFactoryConstructor extends JConstructor {
     bool isConst = source.readBool();
     bool isFromEnvironmentConstructor = source.readBool();
     source.end(tag);
-    return JFactoryConstructor(
-        enclosingClass, Name(name, enclosingClass.library), parameterStructure,
+    return JFactoryConstructor(enclosingClass,
+        Name(name, enclosingClass.library.canonicalUri), parameterStructure,
         isExternal: isExternal,
         isConst: isConst,
         isFromEnvironmentConstructor: isFromEnvironmentConstructor);
@@ -423,7 +423,7 @@ class JMethod extends JFunction {
         library = enclosingClass.library;
         break;
     }
-    String name = source.readString();
+    Name memberName = source.readMemberName();
     ParameterStructure parameterStructure =
         ParameterStructure.readFromDataSource(source);
     AsyncMarker asyncMarker = source.readEnum(AsyncMarker.values);
@@ -431,8 +431,8 @@ class JMethod extends JFunction {
     bool isExternal = source.readBool();
     bool isAbstract = source.readBool();
     source.end(tag);
-    return JMethod(library, enclosingClass, Name(name, library),
-        parameterStructure, asyncMarker,
+    return JMethod(
+        library, enclosingClass, memberName, parameterStructure, asyncMarker,
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 
@@ -447,7 +447,7 @@ class JMethod extends JFunction {
       sink.writeEnum(MemberContextKind.library);
       sink.writeLibrary(library);
     }
-    sink.writeString(name);
+    sink.writeMemberName(memberName);
     parameterStructure.writeToDataSink(sink);
     sink.writeEnum(asyncMarker);
     sink.writeBool(isStatic);
@@ -531,13 +531,13 @@ class JGetter extends JFunction {
         library = enclosingClass.library;
         break;
     }
-    String name = source.readString();
+    Name memberName = source.readMemberName();
     AsyncMarker asyncMarker = source.readEnum(AsyncMarker.values);
     bool isStatic = source.readBool();
     bool isExternal = source.readBool();
     bool isAbstract = source.readBool();
     source.end(tag);
-    return JGetter(library, enclosingClass, Name(name, library), asyncMarker,
+    return JGetter(library, enclosingClass, memberName, asyncMarker,
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 
@@ -552,7 +552,7 @@ class JGetter extends JFunction {
       sink.writeEnum(MemberContextKind.library);
       sink.writeLibrary(library);
     }
-    sink.writeString(name);
+    sink.writeMemberName(memberName);
     sink.writeEnum(asyncMarker);
     sink.writeBool(isStatic);
     sink.writeBool(isExternal);
@@ -597,12 +597,12 @@ class JSetter extends JFunction {
         library = enclosingClass.library;
         break;
     }
-    String name = source.readString();
+    Name memberName = source.readMemberName();
     bool isStatic = source.readBool();
     bool isExternal = source.readBool();
     bool isAbstract = source.readBool();
     source.end(tag);
-    return JSetter(library, enclosingClass, Name(name, library, isSetter: true),
+    return JSetter(library, enclosingClass, memberName,
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 
@@ -617,7 +617,7 @@ class JSetter extends JFunction {
       sink.writeEnum(MemberContextKind.library);
       sink.writeLibrary(library);
     }
-    sink.writeString(name);
+    sink.writeMemberName(memberName);
     sink.writeBool(isStatic);
     sink.writeBool(isExternal);
     sink.writeBool(isAbstract);
@@ -664,12 +664,12 @@ class JField extends JMember implements FieldEntity, IndexedField {
         library = enclosingClass.library;
         break;
     }
-    String name = source.readString();
+    Name memberName = source.readMemberName();
     bool isStatic = source.readBool();
     bool isAssignable = source.readBool();
     bool isConst = source.readBool();
     source.end(tag);
-    return JField(library, enclosingClass, Name(name, library),
+    return JField(library, enclosingClass, memberName,
         isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
   }
 
@@ -684,7 +684,7 @@ class JField extends JMember implements FieldEntity, IndexedField {
       sink.writeEnum(MemberContextKind.library);
       sink.writeLibrary(library);
     }
-    sink.writeString(name);
+    sink.writeMemberName(memberName);
     sink.writeBool(isStatic);
     sink.writeBool(isAssignable);
     sink.writeBool(isConst);

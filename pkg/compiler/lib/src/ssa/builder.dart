@@ -4285,7 +4285,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     Map<String, ir.Expression> namedArguments = {};
     int kind = _readIntLiteral(invocation.arguments.positional[4]);
 
-    Name memberName = Name(name, _currentFrame.member.library);
+    Name memberName = Name(name, _currentFrame.member.library.canonicalUri);
     Selector selector;
     switch (kind) {
       case invocationMirrorGetterKind:

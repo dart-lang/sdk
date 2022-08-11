@@ -7,6 +7,7 @@
 library source_map_name_test;
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/elements/names.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart' show JElementEnvironment;
@@ -101,7 +102,8 @@ main() {
         ClassEntity cls = env.lookupClass(mainApp, clsName);
         Expect.isNotNull(cls, "Class '$clsName' not found.");
         var subname = name.substring(dotPosition + 1);
-        element = env.lookupLocalClassMember(cls, subname) ??
+        element = env.lookupLocalClassMember(
+                cls, Name(subname, cls.library.canonicalUri)) ??
             env.lookupConstructor(cls, subname);
       } else {
         element = env.lookupLibraryMember(mainApp, name);

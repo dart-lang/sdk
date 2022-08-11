@@ -120,7 +120,7 @@ class KernelFrontendStrategy
         (_, MemberEntity member) {
       if (!member.isInstanceMember) return;
       MemberEntity interceptorMember = elementEnvironment
-          .lookupLocalClassMember(interceptorClass, member.name);
+          .lookupLocalClassMember(interceptorClass, member.memberName);
       // Interceptors must override all Object methods due to calling convention
       // differences.
       assert(
