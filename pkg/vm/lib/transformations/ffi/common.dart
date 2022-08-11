@@ -163,6 +163,8 @@ class FfiTransformer extends Transformer {
   final Procedure listElementAt;
   final Procedure numAddition;
   final Procedure numMultiplication;
+  final Procedure objectEquals;
+  final Procedure stateErrorThrowNewFunction;
 
   final Library ffiLibrary;
   final Class allocatorClass;
@@ -304,6 +306,10 @@ class FfiTransformer extends Transformer {
         numAddition = coreTypes.index.getProcedure('dart:core', 'num', '+'),
         numMultiplication =
             coreTypes.index.getProcedure('dart:core', 'num', '*'),
+        objectEquals =
+            coreTypes.index.getProcedure('dart:core', 'Object', '=='),
+        stateErrorThrowNewFunction = coreTypes.index
+            .getProcedure('dart:core', 'StateError', '_throwNew'),
         ffiLibrary = index.getLibrary('dart:ffi'),
         allocatorClass = index.getClass('dart:ffi', 'Allocator'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),

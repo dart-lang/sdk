@@ -31,7 +31,13 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
     return block {
       final nat::NativeFieldWrapperClass1 #t1 = this;
       final core::int #t2 = v;
-      final void #t3 = self::NativeClassy::_goodHasReceiverPointer$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>(nat::_getNativeField(#t1)), #t2){(ffi::Pointer<ffi::Void>, core::int) → void};
+      final void #t3 = self::NativeClassy::_goodHasReceiverPointer$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
+        core::int #pointerAddress = nat::_getNativeField(#t1);
+        if(#pointerAddress.{core::Object::==}(#C6){(core::Object) → core::bool})
+          core::StateError::_throwNew(#C7);
+        else
+          ;
+      } =>#pointerAddress), #t2){(ffi::Pointer<ffi::Void>, core::int) → void};
       _in::reachabilityFence(#t1);
     } =>#t3;
   method goodHasReceiverHandle(core::int v) → void
@@ -49,20 +55,38 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
     return block {
       final nat::NativeFieldWrapperClass1 #t7 = this;
       final self::NativeClassy #t8 = v;
-      final void #t9 = self::NativeClassy::_goodHasReceiverPtrAndHandle$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>(nat::_getNativeField(#t7)), #t8){(ffi::Pointer<ffi::Void>, self::NativeClassy) → void};
+      final void #t9 = self::NativeClassy::_goodHasReceiverPtrAndHandle$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
+        core::int #pointerAddress = nat::_getNativeField(#t7);
+        if(#pointerAddress.{core::Object::==}(#C6){(core::Object) → core::bool})
+          core::StateError::_throwNew(#C7);
+        else
+          ;
+      } =>#pointerAddress), #t8){(ffi::Pointer<ffi::Void>, self::NativeClassy) → void};
       _in::reachabilityFence(#t7);
     } =>#t9;
   method meh(core::bool blah) → core::String?
     return block {
       final nat::NativeFieldWrapperClass1 #t10 = this;
       final core::bool #t11 = blah;
-      final core::String? #t12 = _in::unsafeCast<core::String?>(self::NativeClassy::_meh$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>(nat::_getNativeField(#t10)), #t11){(ffi::Pointer<ffi::Void>, core::bool) → core::Object?});
+      final core::String? #t12 = _in::unsafeCast<core::String?>(self::NativeClassy::_meh$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
+        core::int #pointerAddress = nat::_getNativeField(#t10);
+        if(#pointerAddress.{core::Object::==}(#C6){(core::Object) → core::bool})
+          core::StateError::_throwNew(#C7);
+        else
+          ;
+      } =>#pointerAddress), #t11){(ffi::Pointer<ffi::Void>, core::bool) → core::Object?});
       _in::reachabilityFence(#t10);
     } =>#t12;
   method blah() → core::bool
     return block {
       final nat::NativeFieldWrapperClass1 #t13 = this;
-      final core::bool #t14 = self::NativeClassy::_blah$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>(nat::_getNativeField(#t13))){(ffi::Pointer<ffi::Void>) → core::bool};
+      final core::bool #t14 = self::NativeClassy::_blah$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
+        core::int #pointerAddress = nat::_getNativeField(#t13);
+        if(#pointerAddress.{core::Object::==}(#C6){(core::Object) → core::bool})
+          core::StateError::_throwNew(#C7);
+        else
+          ;
+      } =>#pointerAddress)){(ffi::Pointer<ffi::Void>) → core::bool};
       _in::reachabilityFence(#t13);
     } =>#t14;
 }
@@ -90,4 +114,6 @@ constants  {
   #C3 = 1
   #C4 = "doesntmatter"
   #C5 = 2
+  #C6 = 0
+  #C7 = "Native field is nullptr."
 }
