@@ -490,6 +490,12 @@ dart.try_builder(
 )
 
 # ddc
+cron.nightly_builder(
+    "ddc-canary-linux-release-chrome",
+    category = "ddc|c",
+    channels = ["try"],
+    properties = chrome,
+)
 dart.ci_sandbox_builder(
     "ddc-linux-release-chrome",
     category = "ddc|l",
