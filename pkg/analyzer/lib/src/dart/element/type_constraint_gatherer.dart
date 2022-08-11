@@ -109,8 +109,8 @@ class TypeConstraintGatherer {
     var P_nullability = P.nullabilitySuffix;
     if (P is TypeParameterType &&
         P_nullability == NullabilitySuffix.none &&
-        _typeParameters.contains(P.element)) {
-      _addUpper(P.element, Q);
+        _typeParameters.contains(P.element2)) {
+      _addUpper(P.element2, Q);
       return true;
     }
 
@@ -119,8 +119,8 @@ class TypeConstraintGatherer {
     var Q_nullability = Q.nullabilitySuffix;
     if (Q is TypeParameterType &&
         Q_nullability == NullabilitySuffix.none &&
-        _typeParameters.contains(Q.element)) {
-      _addLower(Q.element, P);
+        _typeParameters.contains(Q.element2)) {
+      _addLower(Q.element2, P);
       return true;
     }
 
@@ -308,7 +308,7 @@ class TypeConstraintGatherer {
     // Note: we have already eliminated the case that `X` is a variable in `L`.
     if (P_nullability == NullabilitySuffix.none && P is TypeParameterTypeImpl) {
       var rewind = _constraints.length;
-      var B = P.promotedBound ?? P.element.bound;
+      var B = P.promotedBound ?? P.element2.bound;
       if (B != null && trySubtypeMatch(B, Q, leftSchema)) {
         return true;
       }

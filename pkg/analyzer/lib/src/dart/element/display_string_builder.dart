@@ -205,7 +205,7 @@ class ElementDisplayStringBuilder {
   }
 
   void writeTypeParameterType(TypeParameterTypeImpl type) {
-    _write(type.element.displayName);
+    _write(type.element2.displayName);
     _writeNullability(type.nullabilitySuffix);
 
     var promotedBound = type.promotedBound;
@@ -411,7 +411,7 @@ class ElementDisplayStringBuilder {
 
     void collectTypeParameters(DartType? type) {
       if (type is TypeParameterType) {
-        referencedTypeParameters.add(type.element);
+        referencedTypeParameters.add(type.element2);
       } else if (type is FunctionType) {
         for (var typeParameter in type.typeFormals) {
           collectTypeParameters(typeParameter.bound);

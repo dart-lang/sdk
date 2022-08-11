@@ -118,7 +118,7 @@ class RuntimeTypeEqualityVisitor
   bool visitTypeParameterType(TypeParameterType T1, DartType T2) {
     return T2 is TypeParameterType &&
         _compatibleNullability(T1, T2) &&
-        T1.element == T2.element;
+        T1.element2 == T2.element2;
   }
 
   @override

@@ -661,7 +661,7 @@ class LeastUpperBoundHelper {
       // otherwise UP(B1a, T2)
       //   where B1a is the greatest closure of B1 with respect to X1
       var bound = _typeParameterBound(T1);
-      var closure = _typeSystem.greatestClosure(bound, [T1.element]);
+      var closure = _typeSystem.greatestClosure(bound, [T1.element2]);
       return getLeastUpperBound(closure, T2);
     }
 
@@ -680,7 +680,7 @@ class LeastUpperBoundHelper {
       // otherwise UP(T1, B2a)
       //   where B2a is the greatest closure of B2 with respect to X2
       var bound = _typeParameterBound(T2);
-      var closure = _typeSystem.greatestClosure(bound, [T2.element]);
+      var closure = _typeSystem.greatestClosure(bound, [T2.element2]);
       return getLeastUpperBound(T1, closure);
     }
 
@@ -898,7 +898,7 @@ class LeastUpperBoundHelper {
 
   /// Return the promoted or declared bound of the type parameter.
   DartType _typeParameterBound(TypeParameterTypeImpl type) {
-    var bound = type.promotedBound ?? type.element.bound;
+    var bound = type.promotedBound ?? type.element2.bound;
     if (bound != null) {
       return bound;
     }

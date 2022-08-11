@@ -83,7 +83,7 @@ class SubtypeHelper {
           T0 is TypeParameterTypeImpl) {
         var S = T0.promotedBound;
         if (S == null) {
-          var B = T0.element.bound ?? _objectQuestion;
+          var B = T0.element2.bound ?? _objectQuestion;
           return isSubtypeOf(B, _objectNone);
         } else {
           return isSubtypeOf(S, _objectNone);
@@ -185,7 +185,7 @@ class SubtypeHelper {
     if (T0 is TypeParameterTypeImpl &&
         T1 is TypeParameterTypeImpl &&
         T1.promotedBound == null &&
-        T0.element == T1.element) {
+        T0.element2 == T1.element2) {
       return true;
     }
 
@@ -195,7 +195,7 @@ class SubtypeHelper {
       var T1_promotedBound = T1.promotedBound;
       if (T1_promotedBound != null) {
         var X1 = TypeParameterTypeImpl(
-          element: T1.element,
+          element: T1.element2,
           nullabilitySuffix: T1.nullabilitySuffix,
         );
         return isSubtypeOf(T0, X1) && isSubtypeOf(T0, T1_promotedBound);
@@ -227,7 +227,7 @@ class SubtypeHelper {
         if (S0 != null && isSubtypeOf(S0, T1)) {
           return true;
         }
-        var B0 = T0.element.bound;
+        var B0 = T0.element2.bound;
         if (B0 != null && isSubtypeOf(B0, T1)) {
           return true;
         }
@@ -255,7 +255,7 @@ class SubtypeHelper {
         if (S0 != null && isSubtypeOf(S0, T1)) {
           return true;
         }
-        var B0 = T0.element.bound;
+        var B0 = T0.element2.bound;
         if (B0 != null && isSubtypeOf(B0, T1)) {
           return true;
         }
@@ -281,7 +281,7 @@ class SubtypeHelper {
         return true;
       }
 
-      var B0 = T0.element.bound;
+      var B0 = T0.element2.bound;
       if (B0 != null && isSubtypeOf(B0, T1)) {
         return true;
       }

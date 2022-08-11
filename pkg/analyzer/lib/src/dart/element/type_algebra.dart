@@ -547,7 +547,7 @@ abstract class _TypeSubstitutor
 
   @override
   DartType visitTypeParameterType(TypeParameterType type) {
-    var argument = getSubstitute(type.element);
+    var argument = getSubstitute(type.element2);
     if (argument == null) {
       return type;
     }

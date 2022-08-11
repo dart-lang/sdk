@@ -915,7 +915,7 @@ class CorrectionUtils {
     }
 
     if (type is TypeParameterType) {
-      var element = type.element;
+      var element = type.element2;
       if (_isTypeParameterVisible(element)) {
         return element.name;
       } else {

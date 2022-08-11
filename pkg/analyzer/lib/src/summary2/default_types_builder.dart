@@ -387,7 +387,7 @@ class _TypeParametersGraph implements Graph<int> {
         _collectReferencesFrom(index, argument);
       }
     } else if (type is TypeParameterType) {
-      var typeIndex = _parameterToIndex[type.element];
+      var typeIndex = _parameterToIndex[type.element2];
       if (typeIndex != null) {
         _edges[typeIndex].add(index);
       }
@@ -440,9 +440,9 @@ class _UpperLowerReplacementVisitor extends ReplacementVisitor {
   @override
   DartType? visitTypeParameterType(TypeParameterType type) {
     if (_variance == Variance.contravariant) {
-      return _lower[type.element];
+      return _lower[type.element2];
     } else {
-      return _upper[type.element];
+      return _upper[type.element2];
     }
   }
 }

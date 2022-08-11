@@ -269,7 +269,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       }
       _errorReporter.reportErrorForNode(
           HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, node, [element.name]);
-    } else if (checkNnbd && element == _typeProvider.neverType.element) {
+    } else if (checkNnbd && element == _typeProvider.neverType.element2) {
       _errorReporter.reportErrorForNode(HintCode.SDK_VERSION_NEVER, node);
     }
   }

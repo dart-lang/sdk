@@ -1983,7 +1983,7 @@ main() {
     var fType = findElement.localVar('f').type as FunctionType;
     var fTypeTypeParameter = fType.typeFormals[0];
     var fTypeParameter = fType.normalParameterTypes[0] as TypeParameterType;
-    expect(fTypeParameter.element, same(fTypeTypeParameter));
+    expect(fTypeParameter.element2, same(fTypeTypeParameter));
     var tRef = findNode.simple('T>');
     var functionTypeNode = tRef.parent!.parent!.parent as GenericFunctionType;
     var functionType = functionTypeNode.type as FunctionType;
@@ -4132,8 +4132,8 @@ void main() {
     var tElement = fElement.typeParameters[0];
     var uElement = fElement.typeParameters[1];
     var vElement = fElement.typeParameters[2];
-    expect((tElement.bound as TypeParameterType).element, same(uElement));
-    expect((vElement.bound as TypeParameterType).element, same(uElement));
+    expect((tElement.bound as TypeParameterType).element2, same(uElement));
+    expect((vElement.bound as TypeParameterType).element2, same(uElement));
   }
 
   test_local_function_generic_with_named_parameter() async {
@@ -4152,7 +4152,7 @@ void main() {
     assertType(fElement.type, 'void Function<T>({T x})');
     var tElement = fElement.typeParameters[0];
     expect(fElement.type.typeFormals[0], same(tElement));
-    expect((fElement.type.parameters[0].type as TypeParameterType).element,
+    expect((fElement.type.parameters[0].type as TypeParameterType).element2,
         same(tElement));
   }
 
@@ -4172,7 +4172,7 @@ void main() {
     assertType(fElement.type, 'void Function<T>([T])');
     var tElement = fElement.typeParameters[0];
     expect(fElement.type.typeFormals[0], same(tElement));
-    expect((fElement.type.parameters[0].type as TypeParameterType).element,
+    expect((fElement.type.parameters[0].type as TypeParameterType).element2,
         same(tElement));
   }
 
@@ -4505,7 +4505,7 @@ void main() {
     var gTypeType = gType.type as FunctionType;
     var gTypeParameterType =
         gTypeType.namedParameterTypes['t'] as TypeParameterType;
-    expect(gTypeParameterType.element, same(tElement));
+    expect(gTypeParameterType.element2, same(tElement));
     var gParameterType =
         ((gType.parameters.parameters[0] as DefaultFormalParameter).parameter
                 as SimpleFormalParameter)
@@ -4537,7 +4537,7 @@ void main() {
     var gTypeType = gType.type as FunctionType;
     var gTypeParameterType =
         gTypeType.normalParameterTypes[0] as TypeParameterType;
-    expect(gTypeParameterType.element, same(tElement));
+    expect(gTypeParameterType.element2, same(tElement));
     var gParameterType =
         (gType.parameters.parameters[0] as SimpleFormalParameter).type
             as NamedType;
@@ -4568,7 +4568,7 @@ void main() {
     var gTypeType = gType.type as FunctionType;
     var gTypeParameterType =
         gTypeType.optionalParameterTypes[0] as TypeParameterType;
-    expect(gTypeParameterType.element, same(tElement));
+    expect(gTypeParameterType.element2, same(tElement));
     var gParameterType =
         ((gType.parameters.parameters[0] as DefaultFormalParameter).parameter
                 as SimpleFormalParameter)
@@ -4599,7 +4599,7 @@ void main() {
     var gType = gDeclaration.variables.type as GenericFunctionType;
     var gTypeType = gType.type as FunctionType;
     var gTypeReturnType = gTypeType.returnType as TypeParameterType;
-    expect(gTypeReturnType.element, same(tElement));
+    expect(gTypeReturnType.element2, same(tElement));
     var gReturnType = gType.returnType as NamedType;
     var tReference = gReturnType.name;
     assertElement(tReference, tElement);
@@ -4627,7 +4627,7 @@ void main() {
     var yType = yDeclaration.variables.type as NamedType;
     var yTypeType = yType.type as InterfaceType;
     var yTypeTypeArgument = yTypeType.typeArguments[0] as TypeParameterType;
-    expect(yTypeTypeArgument.element, same(tElement));
+    expect(yTypeTypeArgument.element2, same(tElement));
     var yElementType = yType.typeArguments!.arguments[0] as NamedType;
     var tReference = yElementType.name;
     assertElement(tReference, tElement);
@@ -4677,7 +4677,7 @@ void main() {
 
     var gTypeParameterType =
         gTypeType.namedParameterTypes['u'] as TypeParameterType;
-    expect(gTypeParameterType.element, same(tElement));
+    expect(gTypeParameterType.element2, same(tElement));
 
     var gArgumentType = gType.typeArguments!.arguments[0] as NamedType;
     var tReference = gArgumentType.name;
@@ -4704,7 +4704,7 @@ void main() {
 
     var gTypeParameterType =
         gTypeType.normalParameterTypes[0] as TypeParameterType;
-    expect(gTypeParameterType.element, same(tElement));
+    expect(gTypeParameterType.element2, same(tElement));
 
     var gArgumentType = gType.typeArguments!.arguments[0] as NamedType;
     var tReference = gArgumentType.name;
@@ -4731,7 +4731,7 @@ void main() {
 
     var gTypeParameterType =
         gTypeType.optionalParameterTypes[0] as TypeParameterType;
-    expect(gTypeParameterType.element, same(tElement));
+    expect(gTypeParameterType.element2, same(tElement));
 
     var gArgumentType = gType.typeArguments!.arguments[0] as NamedType;
     var tReference = gArgumentType.name;
@@ -4757,7 +4757,7 @@ void main() {
     var gTypeType = gType.type as FunctionType;
 
     var gTypeReturnType = gTypeType.returnType as TypeParameterType;
-    expect(gTypeReturnType.element, same(tElement));
+    expect(gTypeReturnType.element2, same(tElement));
 
     var gArgumentType = gType.typeArguments!.arguments[0] as NamedType;
     var tReference = gArgumentType.name;
@@ -5569,7 +5569,7 @@ class C<T> {
     assertInvokeType(fooInvocation, 'T Function(C<T>)');
     assertType(fooInvocation.staticType, 'T');
     final type = fooInvocation.typeOrThrow as TypeParameterType;
-    expect(type.element, same(tElement));
+    expect(type.element2, same(tElement));
   }
 
   test_methodInvocation_topLevelFunction() async {
@@ -8685,7 +8685,7 @@ main() {
       if (type is InterfaceType) {
         expect(namedType.name.staticElement, same(type.element2));
       } else if (type is TypeParameterType) {
-        expect(namedType.name.staticElement, same(type.element));
+        expect(namedType.name.staticElement, same(type.element2));
       } else {
         throw UnimplementedError();
       }

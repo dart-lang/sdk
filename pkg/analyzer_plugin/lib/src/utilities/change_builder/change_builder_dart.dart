@@ -1111,7 +1111,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
     if (type is TypeParameterType) {
       _initializeEnclosingElements();
-      var element = type.element;
+      var element = type.element2;
       var enclosing = element.enclosingElement3;
       while (enclosing is GenericFunctionTypeElement ||
           enclosing is ParameterElement) {
@@ -1269,7 +1269,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     if (type is TypeParameterType) {
-      write(type.element.name);
+      write(type.element2.name);
       _writeTypeNullability(type);
       return true;
     }

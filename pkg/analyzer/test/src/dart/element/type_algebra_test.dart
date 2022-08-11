@@ -264,8 +264,8 @@ class SubstituteTest extends _Base {
     var T2 = result.typeFormals[0];
     var U2 = result.typeFormals[1];
     var T2boundArgs = (T2.bound as InterfaceType).typeArguments;
-    expect((T2boundArgs[0] as TypeParameterType).element, same(T2));
-    expect((T2boundArgs[1] as TypeParameterType).element, same(U2));
+    expect((T2boundArgs[0] as TypeParameterType).element2, same(T2));
+    expect((T2boundArgs[1] as TypeParameterType).element2, same(U2));
   }
 
   test_interface_arguments() async {

@@ -676,7 +676,7 @@ class ResolutionSink extends _SummaryDataWriter {
       _writeTypeAliasElementArguments(type);
     } else if (type is TypeParameterType) {
       writeByte(Tag.TypeParameterType);
-      writeElement(type.element);
+      writeElement(type.element2);
       _writeNullabilitySuffix(type.nullabilitySuffix);
       _writeTypeAliasElementArguments(type);
     } else if (type is VoidType) {

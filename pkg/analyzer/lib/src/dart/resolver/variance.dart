@@ -27,7 +27,7 @@ class Variance {
   /// Computes the variance of the [typeParameter] in the [type].
   factory Variance(TypeParameterElement typeParameter, DartType type) {
     if (type is TypeParameterType) {
-      if (type.element == typeParameter) {
+      if (type.element2 == typeParameter) {
         return covariant;
       } else {
         return unrelated;

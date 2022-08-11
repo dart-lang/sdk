@@ -234,7 +234,7 @@ class FunctionReferenceResolver {
       // If the type of the function is a type parameter, the tearoff is
       // disallowed, reported in [_resolveDisallowedExpression]. Use the type
       // parameter's bound here in an attempt to assign the intended types.
-      rawType = rawType.element.bound;
+      rawType = rawType.element2.bound;
     }
 
     if (rawType is FunctionType) {

@@ -93,7 +93,7 @@ class AssignmentCheckerForTesting extends Object with _AssignmentChecker {
 
   @override
   DecoratedType _getTypeParameterTypeBound(DecoratedType type) {
-    return bounds[(type.type as TypeParameterType).element] ??
+    return bounds[(type.type as TypeParameterType).element2] ??
         (throw StateError('Unknown bound for $type'));
   }
 }
@@ -2199,7 +2199,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var rightType = right.type;
     if (leftType is TypeParameterType && leftType != type) {
       // We are "unwrapping" a type parameter type to its bound.
-      final typeParam = leftType.element;
+      final typeParam = leftType.element2;
       return _decorateUpperOrLowerBound(
           astNode,
           type,
@@ -2211,7 +2211,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     if (rightType is TypeParameterType && rightType != type) {
       // We are "unwrapping" a type parameter type to its bound.
-      final typeParam = rightType.element;
+      final typeParam = rightType.element2;
       return _decorateUpperOrLowerBound(
           astNode,
           type,
@@ -2340,8 +2340,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         return DecoratedType(type, node);
       }
 
-      assert(leftType.sharedElement == type.element &&
-          rightType.sharedElement == type.element);
+      assert(leftType.element2 == type.element2 &&
+          rightType.element2 == type.element2);
       return DecoratedType(type, node);
     }
     _unimplemented(astNode, '_decorateUpperOrLowerBound');
@@ -2428,7 +2428,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // TODO(paulberry): once we've wired up flow analysis, return promoted
     // bounds if applicable.
     return _variables
-        .decoratedTypeParameterBound((type.type as TypeParameterType).element);
+        .decoratedTypeParameterBound((type.type as TypeParameterType).element2);
   }
 
   /// Creates the necessary constraint(s) for an assignment of the given
@@ -3989,19 +3989,8 @@ extension on DartType? {
     final self = this;
     if (self is TypeParameterType &&
         self.nullabilitySuffix == NullabilitySuffix.star) {
-      return self.element.bound.explicitBound;
+      return self.element2.bound.explicitBound;
     }
     return self;
-  }
-
-  Element? get sharedElement {
-    final self = this;
-    if (self is InterfaceType) {
-      return self.element2;
-    } else if (self is TypeParameterType) {
-      return self.element;
-    } else {
-      return null;
-    }
   }
 }

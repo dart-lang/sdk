@@ -372,7 +372,7 @@ class TypeSystemImpl implements TypeSystem {
       }
       visitedTypes.add(type);
       if (type is TypeParameterType) {
-        var element = type.element;
+        var element = type.element2;
         if ((candidates == null || candidates.contains(element)) &&
             !boundTypeParameters.contains(element)) {
           parameters ??= <TypeParameterElement>[];
@@ -740,7 +740,7 @@ class TypeSystemImpl implements TypeSystem {
         return result;
       }
 
-      T = type.element.bound;
+      T = type.element2.bound;
       if (T != null) {
         var result = isBottom(T);
         assert(type.isBottom == result);
@@ -762,7 +762,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     if (type is TypeParameterTypeImpl) {
-      var bound = type.element.bound;
+      var bound = type.element2.bound;
       if (bound != null && isDynamicBounded(bound)) {
         return true;
       }
@@ -798,7 +798,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     if (type is TypeParameterTypeImpl) {
-      var bound = type.element.bound;
+      var bound = type.element2.bound;
       if (bound != null && isFunctionBounded(bound)) {
         return true;
       }
@@ -884,8 +884,8 @@ class TypeSystemImpl implements TypeSystem {
       // is anything except none by this point.
       assert(T_nullability == NullabilitySuffix.none);
       assert(S_nullability == NullabilitySuffix.none);
-      var T_element = T.element;
-      var S_element = S.element;
+      var T_element = T.element2;
+      var S_element = S.element2;
 
       // MOREBOTTOM(X&T, Y&S) = MOREBOTTOM(T, S)
       var T_promotedBound = T.promotedBound;
@@ -1026,7 +1026,7 @@ class TypeSystemImpl implements TypeSystem {
     } else if (type is InterfaceType && type.isDartAsyncFutureOr) {
       return isNonNullable(type.typeArguments[0]);
     } else if (type is TypeParameterType) {
-      var bound = type.element.bound;
+      var bound = type.element2.bound;
       return bound != null && isNonNullable(bound);
     }
     return true;
@@ -1313,7 +1313,7 @@ class TypeSystemImpl implements TypeSystem {
     if (type.isDartCoreNull) return NeverTypeImpl.instance;
 
     if (type is TypeParameterTypeImpl) {
-      var element = type.element;
+      var element = type.element2;
 
       // NonNull(X & T) = X & NonNull(T)
       if (type.promotedBound != null) {
@@ -1497,7 +1497,7 @@ class TypeSystemImpl implements TypeSystem {
         return resolveToBound(promotedBound);
       }
 
-      final bound = type.element.bound;
+      final bound = type.element2.bound;
       if (bound == null) {
         return isNonNullableByDefault ? objectQuestion : objectStar;
       }
@@ -1592,7 +1592,7 @@ class TypeSystemImpl implements TypeSystem {
     // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
     if (from is TypeParameterType) {
       if (isSubtypeOf(to, from.bound)) {
-        var declaration = from.element.declaration;
+        var declaration = from.element2.declaration;
         return TypeParameterTypeImpl(
           element: declaration,
           nullabilitySuffix: _promotedTypeParameterTypeNullability(

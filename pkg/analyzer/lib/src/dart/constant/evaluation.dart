@@ -730,7 +730,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       if (typeArgumentTypes != null) {
         var instantiatedTypeArgumentTypes = typeArgumentTypes.map((type) {
           if (type is TypeParameterType) {
-            return _lexicalTypeEnvironment?[type.element] ?? type;
+            return _lexicalTypeEnvironment?[type.element2] ?? type;
           } else {
             return type;
           }

@@ -1825,7 +1825,7 @@ class ResolutionReader {
         );
       } else if (type is TypeParameterType) {
         return TypeParameterTypeImpl(
-          element: type.element,
+          element: type.element2,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
             element: aliasElement,
