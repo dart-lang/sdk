@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:test/test.dart';
 
 import '../mini_ast.dart';
 import '../mini_types.dart';
+import 'flow_analysis_mini_ast.dart';
 
 main() {
   late FlowAnalysisTestHarness h;

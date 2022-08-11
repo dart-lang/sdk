@@ -4,322 +4,9 @@
 
 import 'package:meta/meta.dart';
 
-/// [AssignedVariables] is a helper class capable of computing the set of
-/// variables that are potentially written to, and potentially captured by
-/// closures, at various locations inside the code being analyzed.  This class
-/// should be used prior to running flow analysis, to compute the sets of
-/// variables to pass in to flow analysis.
-///
-/// This class is intended to be used in two phases.  In the first phase, the
-/// client should traverse the source code recursively, making calls to
-/// [beginNode] and [endNode] to indicate the constructs in which writes should
-/// be tracked, and calls to [write] to indicate when a write is encountered.
-/// The order of visiting is not important provided that nesting is respected.
-/// This phase is called the "pre-traversal" because it should happen prior to
-/// flow analysis.
-///
-/// Then, in the second phase, the client may make queries using
-/// [capturedAnywhere], [writtenInNode], and [capturedInNode].
-///
-/// We use the term "node" to refer generally to a loop statement, switch
-/// statement, try statement, loop collection element, local function, or
-/// closure.
-class AssignedVariables<Node extends Object, Variable extends Object> {
-  /// Mapping from a node to the info for that node.
-  final Map<Node, AssignedVariablesNodeInfo> _info =
-      new Map<Node, AssignedVariablesNodeInfo>.identity();
-
-  /// Info for the variables written or captured anywhere in the code being
-  /// analyzed.
-  final AssignedVariablesNodeInfo _anywhere = new AssignedVariablesNodeInfo();
-
-  /// Stack of info for nodes that have been entered but not yet left.
-  final List<AssignedVariablesNodeInfo> _stack = [
-    new AssignedVariablesNodeInfo()
-  ];
-
-  /// When assertions are enabled, the set of info objects that have been
-  /// retrieved by [deferNode] but not yet sent to [storeNode].
-  final Set<AssignedVariablesNodeInfo> _deferredInfos =
-      new Set<AssignedVariablesNodeInfo>.identity();
-
-  /// Keeps track of whether [finish] has been called.
-  bool _isFinished = false;
-
-  final PromotionKeyStore<Variable> _promotionKeyStore =
-      new PromotionKeyStore<Variable>();
-
-  /// This method should be called during pre-traversal, to mark the start of a
-  /// loop statement, switch statement, try statement, loop collection element,
-  /// local function, closure, or late variable initializer which might need to
-  /// be queried later.
-  ///
-  /// The span between the call to [beginNode] and [endNode] should cover any
-  /// statements and expressions that might be crossed by a backwards jump.  So
-  /// for instance, in a "for" loop, the condition, updaters, and body should be
-  /// covered, but the initializers should not.  Similarly, in a switch
-  /// statement, the body of the switch statement should be covered, but the
-  /// switch expression should not.
-  void beginNode() {
-    assert(!_isFinished);
-    _stack.add(new AssignedVariablesNodeInfo());
-  }
-
-  /// This method should be called during pre-traversal, to indicate that the
-  /// declaration of a variable has been found.
-  ///
-  /// It is not required for the declaration to be seen prior to its use (this
-  /// is to allow for error recovery in the analyzer).
-  void declare(Variable variable) {
-    assert(!_isFinished);
-    int variableKey = _promotionKeyStore.keyForVariable(variable);
-    _stack.last._declared.add(variableKey);
-    _anywhere._declared.add(variableKey);
-  }
-
-  /// This method may be called during pre-traversal, to mark the end of a
-  /// loop statement, switch statement, try statement, loop collection element,
-  /// local function, closure, or late variable initializer which might need to
-  /// be queried later.
-  ///
-  /// [isClosureOrLateVariableInitializer] should be true if the node is a local
-  /// function or closure, or a late variable initializer.
-  ///
-  /// In contrast to [endNode], this method doesn't store the data gathered for
-  /// the node for later use; instead it returns it to the caller.  At a later
-  /// time, the caller should pass the returned data to [storeNodeInfo].
-  ///
-  /// See [beginNode] for more details.
-  AssignedVariablesNodeInfo deferNode(
-      {bool isClosureOrLateVariableInitializer: false}) {
-    assert(!_isFinished);
-    AssignedVariablesNodeInfo info = _stack.removeLast();
-    info._read.removeAll(info._declared);
-    info._written.removeAll(info._declared);
-    info._readCaptured.removeAll(info._declared);
-    info._captured.removeAll(info._declared);
-    AssignedVariablesNodeInfo last = _stack.last;
-    last._read.addAll(info._read);
-    last._written.addAll(info._written);
-    last._readCaptured.addAll(info._readCaptured);
-    last._captured.addAll(info._captured);
-    if (isClosureOrLateVariableInitializer) {
-      last._readCaptured.addAll(info._read);
-      _anywhere._readCaptured.addAll(info._read);
-      last._captured.addAll(info._written);
-      _anywhere._captured.addAll(info._written);
-    }
-    // If we have already deferred this info, something has gone horribly wrong.
-    assert(_deferredInfos.add(info));
-    return info;
-  }
-
-  /// This method may be called during pre-traversal, to discard the effects of
-  /// the most recent unmatched call to [beginNode].
-  ///
-  /// This is necessary because try/catch/finally needs to be desugared into
-  /// a try/catch nested inside a try/finally, however the pre-traversal phase
-  /// of the front end happens during parsing, so when a `try` is encountered,
-  /// it is not known whether it will need to be desugared into two nested
-  /// `try`s.  To cope with this, the front end may call [beginNode] twice upon
-  /// seeing the two `try`s, and later if it turns out that no desugaring was
-  /// needed, use [discardNode] to discard the effects of one of the [beginNode]
-  /// calls.
-  void discardNode() {
-    assert(!_isFinished);
-    AssignedVariablesNodeInfo discarded = _stack.removeLast();
-    AssignedVariablesNodeInfo last = _stack.last;
-    last._declared.addAll(discarded._declared);
-    last._read.addAll(discarded._read);
-    last._written.addAll(discarded._written);
-    last._readCaptured.addAll(discarded._readCaptured);
-    last._captured.addAll(discarded._captured);
-  }
-
-  /// This method should be called during pre-traversal, to mark the end of a
-  /// loop statement, switch statement, try statement, loop collection element,
-  /// local function, closure, or late variable initializer which might need to
-  /// be queried later.
-  ///
-  /// [isClosureOrLateVariableInitializer] should be true if the node is a local
-  /// function or closure, or a late variable initializer.
-  ///
-  /// This is equivalent to a call to [deferNode] followed immediately by a call
-  /// to [storeInfo].
-  ///
-  /// See [beginNode] for more details.
-  void endNode(Node node, {bool isClosureOrLateVariableInitializer: false}) {
-    assert(!_isFinished);
-    storeInfo(
-        node,
-        deferNode(
-            isClosureOrLateVariableInitializer:
-                isClosureOrLateVariableInitializer));
-  }
-
-  /// Call this after visiting the code to be analyzed, to check invariants.
-  void finish() {
-    assert(() {
-      assert(!_isFinished);
-      assert(
-          _deferredInfos.isEmpty, "Deferred infos not stored: $_deferredInfos");
-      assert(_stack.length == 1, "Unexpected stack: $_stack");
-      AssignedVariablesNodeInfo last = _stack.last;
-      Set<int> undeclaredReads = last._read.difference(last._declared);
-      assert(undeclaredReads.isEmpty,
-          'Variables read from but not declared: $undeclaredReads');
-      Set<int> undeclaredWrites = last._written.difference(last._declared);
-      assert(undeclaredWrites.isEmpty,
-          'Variables written to but not declared: $undeclaredWrites');
-      Set<int> undeclaredCaptures = last._captured.difference(last._declared);
-      assert(undeclaredCaptures.isEmpty,
-          'Variables captured but not declared: $undeclaredCaptures');
-      return true;
-    }());
-    _isFinished = true;
-  }
-
-  /// Call this method between calls to [beginNode] and [endNode]/[deferNode],
-  /// if it is necessary to temporarily process some code outside the current
-  /// node.  Returns a data structure that should be passed to [pushNode].
-  ///
-  /// This is used by the front end when building for-elements in lists, maps,
-  /// and sets; their initializers are partially built after building their
-  /// loop conditions but before completely building their bodies.
-  AssignedVariablesNodeInfo popNode() {
-    assert(!_isFinished);
-    return _stack.removeLast();
-  }
-
-  /// Call this method to un-do the effect of [popNode].
-  void pushNode(AssignedVariablesNodeInfo node) {
-    assert(!_isFinished);
-    _stack.add(node);
-  }
-
-  void read(Variable variable) {
-    assert(!_isFinished);
-    int variableKey = _promotionKeyStore.keyForVariable(variable);
-    _stack.last._read.add(variableKey);
-    _anywhere._read.add(variableKey);
-  }
-
-  /// Call this method to register that the node [from] for which information
-  /// has been stored is replaced by the node [to].
-  // TODO(johnniwinther): Remove this when unified collections are encoded as
-  // general elements in the front-end.
-  void reassignInfo(Node from, Node to) {
-    assert(!_info.containsKey(to), "Node $to already has info: ${_info[to]}");
-    AssignedVariablesNodeInfo? info = _info.remove(from);
-    assert(
-        info != null,
-        'No information for $from (${from.hashCode}) in '
-        '{${_info.keys.map((k) => '$k (${k.hashCode})').join(',')}}');
-
-    _info[to] = info!;
-  }
-
-  /// This method may be called at any time between a call to [deferNode] and
-  /// the call to [finish], to store assigned variable info for the node.
-  void storeInfo(Node node, AssignedVariablesNodeInfo info) {
-    assert(!_isFinished);
-    // Caller should not try to store the same piece of info more than once.
-    assert(_deferredInfos.remove(info));
-    _info[node] = info;
-  }
-
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write('AssignedVariables(');
-    _printOn(sb);
-    sb.write(')');
-    return sb.toString();
-  }
-
-  /// This method should be called during pre-traversal, to mark a write to a
-  /// variable.
-  void write(Variable variable) {
-    assert(!_isFinished);
-    int variableKey = _promotionKeyStore.keyForVariable(variable);
-    _stack.last._written.add(variableKey);
-    _anywhere._written.add(variableKey);
-  }
-
-  /// Queries the information stored for the given [node].
-  AssignedVariablesNodeInfo _getInfoForNode(Node node) {
-    return _info[node] ??
-        (throw new StateError('No information for $node (${node.hashCode}) in '
-            '{${_info.keys.map((k) => '$k (${k.hashCode})').join(',')}}'));
-  }
-
-  void _printOn(StringBuffer sb) {
-    sb.write('_info=$_info,');
-    sb.write('_stack=$_stack,');
-    sb.write('_anywhere=$_anywhere');
-  }
-}
-
-/// Extension of [AssignedVariables] intended for use in tests.  This class
-/// exposes the results of the analysis so that they can be tested directly.
-/// Not intended to be used by clients of flow analysis.
-class AssignedVariablesForTesting<Node extends Object, Variable extends Object>
-    extends AssignedVariables<Node, Variable> {
-  Set<int> get capturedAnywhere => _anywhere._captured;
-
-  Set<int> get declaredAtTopLevel => _stack.first._declared;
-
-  Set<int> get readAnywhere => _anywhere._read;
-
-  Set<int> get readCapturedAnywhere => _anywhere._readCaptured;
-
-  Set<int> get writtenAnywhere => _anywhere._written;
-
-  Set<int> capturedInNode(Node node) => _getInfoForNode(node)._captured;
-
-  Set<int> declaredInNode(Node node) => _getInfoForNode(node)._declared;
-
-  bool isTracked(Node node) => _info.containsKey(node);
-
-  int keyForVariable(Variable variable) =>
-      _promotionKeyStore.keyForVariable(variable);
-
-  Set<int> readCapturedInNode(Node node) => _getInfoForNode(node)._readCaptured;
-
-  Set<int> readInNode(Node node) => _getInfoForNode(node)._read;
-
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write('AssignedVariablesForTesting(');
-    _printOn(sb);
-    sb.write(')');
-    return sb.toString();
-  }
-
-  Variable variableForKey(int key) => _promotionKeyStore.variableForKey(key)!;
-
-  Set<int> writtenInNode(Node node) => _getInfoForNode(node)._written;
-}
-
-/// Information tracked by [AssignedVariables] for a single node.
-class AssignedVariablesNodeInfo {
-  final Set<int> _read = {};
-
-  /// The set of local variables that are potentially written in the node.
-  final Set<int> _written = {};
-
-  final Set<int> _readCaptured = {};
-
-  /// The set of local variables for which a potential write is captured by a
-  /// local function or closure inside the node.
-  final Set<int> _captured = {};
-
-  /// The set of local variables that are declared in the node.
-  final Set<int> _declared = {};
-
-  String toString() =>
-      'AssignedVariablesNodeInfo(_written=$_written, _captured=$_captured, '
-      '_declared=$_declared)';
-}
+import '../type_inference/assigned_variables.dart';
+import '../type_inference/promotion_key_store.dart';
+import '../type_inference/type_operations.dart';
 
 /// Non-promotion reason describing the situation where a variable was not
 /// promoted due to an explicit write to the variable appearing somewhere in the
@@ -2478,48 +2165,6 @@ abstract class NonPromotionReasonVisitor<R, Node extends Object,
 abstract class Operations<Variable extends Object, Type extends Object>
     implements TypeOperations<Type>, VariableOperations<Variable, Type> {}
 
-/// This data structure assigns a unique integer identifier to everything that
-/// might undergo promotion in the user's code (local variables and properties).
-/// An integer identifier is also assigned to `this` (even though `this` is not
-/// promotable), because promotable properties can be reached using `this` as a
-/// starting point.
-@visibleForTesting
-class PromotionKeyStore<Variable extends Object> {
-  @visibleForTesting
-
-  /// Special promotion key to represent `this`.
-  late final int thisPromotionKey = _makeNewKey(null);
-
-  final Map<Variable, int> _variableKeys = new Map<Variable, int>.identity();
-
-  final List<Variable?> _keyToVariable = [];
-
-  /// List of maps indicating the set of properties of each promotable entity
-  /// being tracked by flow analysis.  The list is indexed by the promotion key
-  /// of the target, and the map is indexed by the property name.
-  ///
-  /// Null list elements are considered equivalent to an empty map (this allows
-  /// us so save memory due to the fact that most entries will not be accessed).
-  final List<Map<String, int>?> _properties = [];
-
-  int getProperty(int targetKey, String propertyName) =>
-      (_properties[targetKey] ??= {})[propertyName] ??= _makeNewKey(null);
-
-  @visibleForTesting
-  int keyForVariable(Variable variable) =>
-      _variableKeys[variable] ??= _makeNewKey(variable);
-
-  @visibleForTesting
-  Variable? variableForKey(int variableKey) => _keyToVariable[variableKey];
-
-  int _makeNewKey(Variable? variable) {
-    int key = _keyToVariable.length;
-    _keyToVariable.add(variable);
-    _properties.add(null);
-    return key;
-  }
-}
-
 /// Non-promotion reason describing the situation where an expression was not
 /// promoted due to the fact that it's a property get.
 class PropertyNotPromoted<Type extends Object> extends NonPromotionReason {
@@ -2756,80 +2401,6 @@ class ThisNotPromoted extends NonPromotionReason {
               Type extends Object>(
           NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
       visitor.visitThisNotPromoted(this);
-}
-
-/// Enum representing the different classifications of types that can be
-/// returned by [TypeOperations.classifyType].
-enum TypeClassification {
-  /// The type is `Null` or an equivalent type (e.g. `Never?`)
-  nullOrEquivalent,
-
-  /// The type is a potentially nullable type, but not equivalent to `Null`
-  /// (e.g. `int?`, or a type variable whose bound is potentially nullable)
-  potentiallyNullable,
-
-  /// The type is a non-nullable type.
-  nonNullable,
-}
-
-/// Operations on types, abstracted from concrete type interfaces.
-///
-/// This mixin provides default implementations for some members that won't need
-/// to be overridden very frequently.
-mixin TypeOperations<Type extends Object> {
-  /// Classifies the given type into one of the three categories defined by
-  /// the [TypeClassification] enum.
-  TypeClassification classifyType(Type type);
-
-  /// Returns the "remainder" of [from] when [what] has been removed from
-  /// consideration by an instance check.
-  Type factor(Type from, Type what);
-
-  /// Whether the possible promotion from [from] to [to] should be forced, given
-  /// the current [promotedTypes], and [newPromotedTypes] resulting from
-  /// possible demotion.
-  ///
-  /// It is not expected that any implementation would override this except for
-  /// the migration engine.
-  bool forcePromotion(Type to, Type from, List<Type>? promotedTypes,
-          List<Type>? newPromotedTypes) =>
-      false;
-
-  /// Determines whether the given [type] is equivalent to the `Never` type.
-  ///
-  /// A type is equivalent to `Never` if it:
-  /// (a) is the `Never` type itself.
-  /// (b) is a type variable that extends `Never`, OR
-  /// (c) is a type variable that has been promoted to `Never`
-  bool isNever(Type type);
-
-  /// Returns `true` if [type1] and [type2] are the same type.
-  bool isSameType(Type type1, Type type2);
-
-  /// Return `true` if the [leftType] is a subtype of the [rightType].
-  bool isSubtypeOf(Type leftType, Type rightType);
-
-  /// Returns `true` if [type] is a reference to a type parameter.
-  bool isTypeParameterType(Type type);
-
-  /// Returns the non-null promoted version of [type].
-  ///
-  /// Note that some types don't have a non-nullable version (e.g.
-  /// `FutureOr<int?>`), so [type] may be returned even if it is nullable.
-  Type /*!*/ promoteToNonNull(Type type);
-
-  /// Performs refinements on the [promotedTypes] chain which resulted in
-  /// intersecting [chain1] and [chain2].
-  ///
-  /// It is not expected that any implementation would override this except for
-  /// the migration engine.
-  List<Type>? refinePromotedTypes(
-          List<Type>? chain1, List<Type>? chain2, List<Type>? promotedTypes) =>
-      promotedTypes;
-
-  /// Tries to promote to the first type from the second type, and returns the
-  /// promoted type if it succeeds, otherwise null.
-  Type? tryPromoteToType(Type to, Type from);
 }
 
 /// An instance of the [VariableModel] class represents the information gathered
@@ -3513,13 +3084,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   _FlowAnalysisImpl(this.operations, this._assignedVariables,
       {required this.respectImplicitlyTypedVarInitializers,
       this.promotableFields = const {}})
-      : promotionKeyStore = _assignedVariables._promotionKeyStore {
-    if (!_assignedVariables._isFinished) {
+      : promotionKeyStore = _assignedVariables.promotionKeyStore {
+    if (!_assignedVariables.isFinished) {
       _assignedVariables.finish();
     }
-    AssignedVariablesNodeInfo anywhere = _assignedVariables._anywhere;
-    Set<int> implicitlyDeclaredVars = {...anywhere._read, ...anywhere._written};
-    implicitlyDeclaredVars.removeAll(anywhere._declared);
+    AssignedVariablesNodeInfo anywhere = _assignedVariables.anywhere;
+    Set<int> implicitlyDeclaredVars = {...anywhere.read, ...anywhere.written};
+    implicitlyDeclaredVars.removeAll(anywhere.declared);
     for (int variableKey in implicitlyDeclaredVars) {
       _current = _current.declare(variableKey, true);
     }
@@ -3615,11 +3186,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void doStatement_bodyBegin(Statement doStatement) {
     AssignedVariablesNodeInfo info =
-        _assignedVariables._getInfoForNode(doStatement);
+        _assignedVariables.getInfoForNode(doStatement);
     _BranchTargetContext<Type> context =
         new _BranchTargetContext<Type>(_current.reachable);
     _stack.add(context);
-    _current = _current.conservativeJoin(info._written, info._captured).split();
+    _current = _current.conservativeJoin(info.written, info.captured).split();
     _statementToContext[doStatement] = context;
   }
 
@@ -3714,8 +3285,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void for_conditionBegin(Node node) {
-    AssignedVariablesNodeInfo info = _assignedVariables._getInfoForNode(node);
-    _current = _current.conservativeJoin(info._written, info._captured).split();
+    AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
+    _current = _current.conservativeJoin(info.written, info.captured).split();
   }
 
   @override
@@ -3737,8 +3308,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void forEach_bodyBegin(Node node) {
-    AssignedVariablesNodeInfo info = _assignedVariables._getInfoForNode(node);
-    _current = _current.conservativeJoin(info._written, info._captured).split();
+    AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
+    _current = _current.conservativeJoin(info.written, info.captured).split();
     _SimpleStatementContext<Type> context =
         new _SimpleStatementContext<Type>(_current.reachable.parent!, _current);
     _stack.add(context);
@@ -3763,11 +3334,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void functionExpression_begin(Node node) {
-    AssignedVariablesNodeInfo info = _assignedVariables._getInfoForNode(node);
-    _current = _current.conservativeJoin(const [], info._written);
+    AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
+    _current = _current.conservativeJoin(const [], info.written);
     _stack.add(new _FunctionExpressionContext(_current));
-    _current = _current.conservativeJoin(_assignedVariables._anywhere._written,
-        _assignedVariables._anywhere._captured);
+    _current = _current.conservativeJoin(_assignedVariables.anywhere.written,
+        _assignedVariables.anywhere.captured);
   }
 
   @override
@@ -4079,12 +3650,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void switchStatement_beginCase(bool hasLabel, Node node) {
-    AssignedVariablesNodeInfo info = _assignedVariables._getInfoForNode(node);
+    AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
     _SimpleStatementContext<Type> context =
         _stack.last as _SimpleStatementContext<Type>;
     if (hasLabel) {
       _current =
-          context._previous.conservativeJoin(info._written, info._captured);
+          context._previous.conservativeJoin(info.written, info.captured);
     } else {
       _current = context._previous;
     }
@@ -4143,9 +3714,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _TryContext<Type> context = _stack.last as _TryContext<Type>;
     FlowModel<Type> beforeBody = context._previous;
 
-    AssignedVariablesNodeInfo info = _assignedVariables._getInfoForNode(body);
+    AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(body);
     FlowModel<Type> beforeCatch =
-        beforeBody.conservativeJoin(info._written, info._captured);
+        beforeBody.conservativeJoin(info.written, info.captured);
 
     context._beforeCatch = beforeCatch;
     context._afterBodyAndCatches = afterBody;
@@ -4196,11 +3767,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void tryFinallyStatement_finallyBegin(Node body) {
-    AssignedVariablesNodeInfo info = _assignedVariables._getInfoForNode(body);
+    AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(body);
     _TryFinallyContext<Type> context = _stack.last as _TryFinallyContext<Type>;
     context._afterBodyAndCatches = _current;
     _current = _join(_current,
-        context._previous.conservativeJoin(info._written, info._captured));
+        context._previous.conservativeJoin(info.written, info.captured));
     context._beforeFinally = _current;
   }
 
@@ -4234,8 +3805,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void whileStatement_conditionBegin(Node node) {
     _current = _current.split();
-    AssignedVariablesNodeInfo info = _assignedVariables._getInfoForNode(node);
-    _current = _current.conservativeJoin(info._written, info._captured);
+    AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
+    _current = _current.conservativeJoin(info.written, info.captured);
   }
 
   @override
@@ -4563,7 +4134,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   final PromotionKeyStore<Variable> _promotionKeyStore;
 
   _LegacyTypePromotion(this._operations, this._assignedVariables)
-      : _promotionKeyStore = _assignedVariables._promotionKeyStore;
+      : _promotionKeyStore = _assignedVariables.promotionKeyStore;
 
   @override
   bool get isReachable => true;
@@ -4785,11 +4356,11 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
     // promoted to T1 and then had a successful `is T2` check.
     Map<int, Type> newShownTypes = {};
     for (MapEntry<int, Type> entry in lhsShownTypes.entries) {
-      if (assignedVariablesInfoForRhs._written.contains(entry.key)) continue;
+      if (assignedVariablesInfoForRhs.written.contains(entry.key)) continue;
       newShownTypes[entry.key] = entry.value;
     }
     for (MapEntry<int, Type> entry in rhsShownTypes.entries) {
-      if (assignedVariablesInfoForRhs._written.contains(entry.key)) continue;
+      if (assignedVariablesInfoForRhs.written.contains(entry.key)) continue;
       Type? previouslyShownType = newShownTypes[entry.key];
       if (previouslyShownType == null) {
         newShownTypes[entry.key] = entry.value;
@@ -4813,7 +4384,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
     _writeStackForAnd.last.addAll(variablesWrittenOnLhs);
     if (!isAnd) return;
     AssignedVariablesNodeInfo info =
-        _assignedVariables._getInfoForNode(wholeExpression);
+        _assignedVariables.getInfoForNode(wholeExpression);
     Map<int, Type> lhsShownTypes =
         _getExpressionInfo(leftOperand)?._shownTypes ?? {};
     _contextStack.add(
@@ -4826,16 +4397,16 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
       // - v is potentially mutated in e1,
       if (variablesWrittenOnLhs.contains(entry.key)) continue;
       // - v is potentially mutated in e2,
-      if (info._written.contains(entry.key)) continue;
+      if (info.written.contains(entry.key)) continue;
       // - v is potentially mutated within a function other than the one where
       //   v is declared, or
-      if (_assignedVariables._anywhere._captured.contains(entry.key)) {
+      if (_assignedVariables.anywhere.captured.contains(entry.key)) {
         continue;
       }
       // - v is accessed by a function defined in e2 and v is potentially
       //   mutated anywhere in the scope of v.
-      if (info._readCaptured.contains(entry.key) &&
-          _assignedVariables._anywhere._written.contains(entry.key)) {
+      if (info.readCaptured.contains(entry.key) &&
+          _assignedVariables.anywhere.written.contains(entry.key)) {
         continue;
       }
       (newKnownTypes ??= new Map<int, Type>.of(_knownTypes))[entry.key] =
@@ -4966,7 +4537,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   void _conditionalOrIf_thenBegin(Expression condition, Node node) {
     _contextStack.add(new _LegacyContext<Type>(_knownTypes));
-    AssignedVariablesNodeInfo info = _assignedVariables._getInfoForNode(node);
+    AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
     Map<int, Type>? newKnownTypes;
     _LegacyExpressionInfo<Type>? expressionInfo = _getExpressionInfo(condition);
     if (expressionInfo != null) {
@@ -4976,16 +4547,16 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
         // then the type of v is known to be T in n2, unless any of the
         // following are true:
         // - v is potentially mutated in n2,
-        if (info._written.contains(entry.key)) continue;
+        if (info.written.contains(entry.key)) continue;
         // - v is potentially mutated within a function other than the one where
         //   v is declared, or
-        if (_assignedVariables._anywhere._captured.contains(entry.key)) {
+        if (_assignedVariables.anywhere.captured.contains(entry.key)) {
           continue;
         }
         // - v is accessed by a function defined in n2 and v is potentially
         //   mutated anywhere in the scope of v.
-        if (info._readCaptured.contains(entry.key) &&
-            _assignedVariables._anywhere._written.contains(entry.key)) {
+        if (info.readCaptured.contains(entry.key) &&
+            _assignedVariables.anywhere.written.contains(entry.key)) {
           continue;
         }
         (newKnownTypes ??= new Map<int, Type>.of(_knownTypes))[entry.key] =
