@@ -1,3 +1,6 @@
+## 4.7.0-dev
+* Add `addImplicitCallReference` to `NodeLintRegistry`.
+
 ## 4.6.0
 * Added `DartType.element2`, so that `InterfaceType.element2` overrides it.
 
