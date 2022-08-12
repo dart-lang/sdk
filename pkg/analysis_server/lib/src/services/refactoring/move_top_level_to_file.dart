@@ -8,6 +8,9 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 
 /// An object that can compute a refactoring in a Dart file.
 class MoveTopLevelToFile extends RefactoringProducer {
+  /// Return the name used for this command when communicating with the client.
+  static const String commandName = 'move_top_level_to_file';
+
   @override
   late String title;
 
@@ -17,9 +20,6 @@ class MoveTopLevelToFile extends RefactoringProducer {
   /// Initialize a newly created refactoring producer to use the given
   /// [context].
   MoveTopLevelToFile(super.context);
-
-  @override
-  String get commandName => 'move_top_level_to_file';
 
   @override
   List<CommandParameter> get parameters => [

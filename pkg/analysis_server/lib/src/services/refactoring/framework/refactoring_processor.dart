@@ -12,7 +12,7 @@ typedef ProducerGenerator = RefactoringProducer Function(RefactoringContext);
 class RefactoringProcessor {
   /// A list of the generators used to produce refactorings.
   static const Map<String, ProducerGenerator> generators = {
-    // 'move_to_file': MoveTopLevelToFile.new,
+    // MoveTopLevelToFile.commandName: MoveTopLevelToFile.new,
   };
 
   /// The context in which the refactorings could be applied.
