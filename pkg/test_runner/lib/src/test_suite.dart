@@ -173,8 +173,11 @@ abstract class TestSuite {
 
     // Tests of web-specific static errors are run on web compilers.
     if (testFile.isWebStaticErrorTest &&
-        (configuration.compiler == Compiler.dart2js ||
-            configuration.compiler == Compiler.dartdevc)) {
+        const {
+          Compiler.dart2js,
+          Compiler.dartdevc,
+          Compiler.dartdevk,
+        }.contains(configuration.compiler)) {
       return true;
     }
 
