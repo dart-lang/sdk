@@ -1940,6 +1940,8 @@ LintCode.unnecessary_this:
   status: hasFix
 LintCode.unnecessary_to_list_in_spreads:
   status: needsEvaluation
+LintCode.unreachable_from_main:
+  status: needsEvaluation
 LintCode.unrelated_type_equality_checks:
   status: needsEvaluation
 LintCode.unsafe_html_attribute:
