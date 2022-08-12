@@ -17,9 +17,6 @@ abstract class RefactoringProducer {
   /// the given [_context].
   RefactoringProducer(this._context);
 
-  /// Return the command name used to apply this refactoring.
-  String get commandName;
-
   /// Return the kind of refactoring this producer produces. Subclasses should
   /// override this method if they produce a subtype of the type
   /// [CodeActionKind.Refactor], such as [CodeActionKind.RefactorExtract],

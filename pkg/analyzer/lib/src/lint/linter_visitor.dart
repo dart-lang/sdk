@@ -403,6 +403,12 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitImplicitCallReference(ImplicitCallReference node) {
+    _runSubscriptions(node, registry._forImplicitCallReference);
+    super.visitImplicitCallReference(node);
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     _runSubscriptions(node, registry._forImportDirective);
     super.visitImportDirective(node);
@@ -861,6 +867,8 @@ class NodeLintRegistry {
   final List<_Subscription<IfElement>> _forIfElement = [];
   final List<_Subscription<IfStatement>> _forIfStatement = [];
   final List<_Subscription<ImplementsClause>> _forImplementsClause = [];
+  final List<_Subscription<ImplicitCallReference>> _forImplicitCallReference =
+      [];
   final List<_Subscription<ImportDirective>> _forImportDirective = [];
   final List<_Subscription<IndexExpression>> _forIndexExpression = [];
   final List<_Subscription<InstanceCreationExpression>>
@@ -1213,6 +1221,11 @@ class NodeLintRegistry {
 
   void addImplementsClause(LintRule linter, AstVisitor visitor) {
     _forImplementsClause.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addImplicitCallReference(LintRule linter, AstVisitor visitor) {
+    _forImplicitCallReference
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addImportDirective(LintRule linter, AstVisitor visitor) {

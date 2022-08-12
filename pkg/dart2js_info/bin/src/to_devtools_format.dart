@@ -60,6 +60,18 @@ class DevtoolsFormatCommand extends Command<void> with PrintUsageException {
     output['n'] = '';
     output['type'] = "web";
 
+    /// Adds "isDeferred" flag to each child of a treeMap using a helper stack.
+    void addDeferredFlag(Map<String, dynamic> treeMap, bool flag) {
+      List<dynamic> stack = [];
+      treeMap['isDeferred'] = flag;
+      stack.add(treeMap);
+      while (stack.isNotEmpty) {
+        var item = stack.removeLast();
+        item['isDeferred'] = flag;
+        stack.addAll(item['children'] ?? []);
+      }
+    }
+
     if (outputUnits.length == 1) {
       vm.ProgramInfo programInfoTree =
           builder.build(allInfo, outputUnits.keys.first);
@@ -77,34 +89,18 @@ class DevtoolsFormatCommand extends Command<void> with PrintUsageException {
         treeMap['n'] = treemapRoots[outputUnitName];
         if (treeMap['n'] == 'main') {
           mainOutput.addAll(treeMap);
-          treeMap['isDeferred'] = false;
-          // recursively visit children
-          List<dynamic> mainStack = [];
-          mainStack.add(treeMap);
-          while (mainStack.isNotEmpty) {
-            var item = mainStack.removeLast();
-            item['isDeferred'] = false;
-            mainStack.addAll(item['children'] ?? []);
-          }
+          // Recursively tag each child in treeMap with "isDeferred" flag
+          addDeferredFlag(treeMap, false);
         } else {
           Map<String, dynamic> deferredOutput = {};
           deferredOutput.addAll(treeMap);
-          treeMap['isDeferred'] = true;
-          List<dynamic> deferredStack = [];
-          deferredStack.add(treeMap);
-          while (deferredStack.isNotEmpty) {
-            var item = deferredStack.removeLast();
-            item['isDeferred'] = true;
-            deferredStack.addAll(item['children'] ?? []);
-          }
+          addDeferredFlag(treeMap, true);
           deferredOutputs.add(deferredOutput);
         }
         treeMap['value'] = treemapSizes[outputUnitName];
       }
       output['children'].add(mainOutput);
-      for (var deferredUnit in deferredOutputs) {
-        output['children'].add(deferredUnit);
-      }
+      output['children'].addAll(deferredOutputs);
     }
     if (outputPath == null) {
       print(jsonEncode(output));
@@ -119,7 +115,7 @@ class DevtoolsFormatCommand extends Command<void> with PrintUsageException {
 /// The [vm.ProgramInfoNode] tree has a similar structure to the [AllInfo] tree
 /// except that the root has packages, libraries, constants, and typedefs as
 /// immediate children.
-class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
+class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode?> {
   final AllInfo info;
 
   final program = vm.ProgramInfo();
@@ -141,9 +137,12 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
   String compositeName(String name, String outputUnitName) =>
       "$name/$outputUnitName";
 
+  /// Mapping between the name of an OutputUnitInfo and the OutputUnitInfo object.
+  Map<String, OutputUnitInfo> outputUnitInfos = {};
+
   /// Mapping between the composite name of a package and the corresponding
-  /// [vm.ProgramInfoNode] objects of [vm.NodeType.packageNode].
-  final Map<String, dynamic> packageInfoNodes = {};
+  /// [PackageInfo] objects.
+  final Map<String, PackageInfo> packageInfos = {};
 
   /// Mapping between an <unnamed> [LibraryInfo] object and the name of the
   /// corresponding [vm.ProgramInfoNode] object.
@@ -159,23 +158,40 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
       libraryName = longName(libraryInfo, useLibraryUri: true, forId: true);
     }
     String packageName = libraryGroupName(libraryInfo) ?? libraryName;
-    vm.ProgramInfoNode? packageInfoNode = packageInfoNodes[packageName];
+    String compositePackageName = compositeName(packageName, outputUnitName);
+    vm.ProgramInfoNode? packageInfoNode = infoNodesByName[compositePackageName];
     if (packageInfoNode == null) {
-      String compositePackageName = compositeName(packageName, outputUnitName);
       vm.ProgramInfoNode newPackage = outputUnit.makeNode(
-          name: compositePackageName,
+          name: packageName,
           parent: outputUnit.root,
           type: vm.NodeType.packageNode);
-      newPackage.size = libraryInfo.size;
-      packageInfoNodes[compositePackageName] = newPackage;
+      newPackage.size = 0;
       outputUnit.root.children[compositePackageName] = newPackage;
       var packageNode = infoNodesByName[compositePackageName];
       assert(packageNode == null,
           "encountered package with duplicated name: $compositePackageName");
       infoNodesByName[compositePackageName] = newPackage;
-    } else {
-      packageInfoNode.size = (packageInfoNode.size ?? 0) + libraryInfo.size;
+
+      /// Add the corresponding [PackageInfo] node in the [AllInfo] tree.
+      OutputUnitInfo packageUnit = outputUnitInfos[outputUnitName]!;
+      PackageInfo newPackageInfo =
+          PackageInfo(packageName, packageUnit, newPackage.size!);
+      newPackageInfo.libraries.add(libraryInfo);
+      info.packages.add(newPackageInfo);
     }
+  }
+
+  /// Aggregates the size of a library [vm.ProgramInfoNode] from the sizes of
+  /// its top level children in the same output unit.
+  int collectSizesForOutputUnit(
+      Iterable<BasicInfo> infos, String outputUnitName) {
+    int sizes = 0;
+    for (var info in infos) {
+      if (info.outputUnit!.filename == outputUnitName) {
+        sizes += info.size;
+      }
+    }
+    return sizes;
   }
 
   void makeLibrary(LibraryInfo libraryInfo, String outputUnitName) {
@@ -190,11 +206,18 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
     vm.ProgramInfoNode parentNode = infoNodesByName[compositePackageName]!;
     String compositeLibraryName = compositeName(libraryName, outputUnitName);
     vm.ProgramInfoNode newLibrary = outputUnit.makeNode(
-        name: compositeLibraryName,
-        parent: parentNode,
-        type: vm.NodeType.libraryNode);
-    newLibrary.size = libraryInfo.size;
+        name: libraryName, parent: parentNode, type: vm.NodeType.libraryNode);
+    newLibrary.size = 0;
+    newLibrary.size = (newLibrary.size ?? 0) +
+        collectSizesForOutputUnit(
+            libraryInfo.topLevelFunctions, outputUnitName) +
+        collectSizesForOutputUnit(
+            libraryInfo.topLevelVariables, outputUnitName) +
+        collectSizesForOutputUnit(libraryInfo.classes, outputUnitName) +
+        collectSizesForOutputUnit(libraryInfo.classTypes, outputUnitName) +
+        collectSizesForOutputUnit(libraryInfo.typedefs, outputUnitName);
     parentNode.children[newLibrary.name] = newLibrary;
+    parentNode.size = (parentNode.size ?? 0) + newLibrary.size!;
     vm.ProgramInfoNode? libraryNode = infoNodesByName[compositeLibraryName];
     assert(libraryNode == null,
         "encountered library with duplicated name: $compositeLibraryName");
@@ -268,7 +291,7 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
   ///
   /// Note: we might want to create a separate [vm.NodeType.fieldNode] to
   /// differentiate fields from other miscellaneous nodes for constructing
-  /// the call graph.
+  /// the call graph in the future.
   void makeField(FieldInfo fieldInfo) {
     Info? parent = fieldInfo.parent;
     String outputUnitName = fieldInfo.outputUnit!.filename;
@@ -387,6 +410,7 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
   @override
   vm.ProgramInfoNode visitOutput(OutputUnitInfo info) {
     vm.ProgramInfo? outputUnit = outputUnits[info.filename];
+    outputUnitInfos[info.filename] = info;
     assert(outputUnit == null, "encountered outputUnit with duplicated name");
     var newUnit = vm.ProgramInfo();
     outputUnits[info.filename] = newUnit;
@@ -398,9 +422,6 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
   vm.ProgramInfoNode visitAll(AllInfo info, String outputUnitName) {
     for (var package in info.packages) {
       visitPackage(package, outputUnitName);
-    }
-    for (var library in info.libraries) {
-      visitLibrary(library, outputUnitName);
     }
     info.constants.forEach(makeConstant);
     info.constants.forEach(visitConstant);
@@ -422,7 +443,7 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
   }
 
   @override
-  vm.ProgramInfoNode visitLibrary(LibraryInfo info, String outputUnitName) {
+  vm.ProgramInfoNode? visitLibrary(LibraryInfo info, String outputUnitName) {
     info.topLevelFunctions.forEach(makeFunction);
     info.topLevelFunctions.forEach(visitFunction);
     info.topLevelVariables.forEach(makeField);
@@ -433,9 +454,11 @@ class ProgramInfoBuilder extends VMProgramInfoVisitor<vm.ProgramInfoNode> {
     info.classTypes.forEach(visitClassType);
     info.typedefs.forEach(makeTypedef);
     info.typedefs.forEach(visitTypedef);
-    return infoNodesByName[compositeName(info.name, outputUnitName)] ??
-        infoNodesByName[
-            compositeName(unnamedLibraries[info]!, outputUnitName)]!;
+    vm.ProgramInfoNode currentLibrary =
+        infoNodesByName[compositeName(info.name, outputUnitName)] ??
+            infoNodesByName[
+                compositeName(unnamedLibraries[info]!, outputUnitName)]!;
+    return currentLibrary;
   }
 
   @override
