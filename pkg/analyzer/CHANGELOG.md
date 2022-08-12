@@ -1,4 +1,4 @@
-## 4.6.0-dev
+## 4.6.0
 * Added `DartType.element2`, so that `InterfaceType.element2` overrides it.
 
 ## 4.5.0
