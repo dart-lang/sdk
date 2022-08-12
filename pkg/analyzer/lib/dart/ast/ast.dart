@@ -4102,9 +4102,6 @@ abstract class RecordTypeAnnotationField implements AstNode {
   /// The annotations associated with the field.
   NodeList<Annotation> get metadata;
 
-  /// The optional name of the field.
-  Token? get name;
-
   /// The type of the field.
   TypeAnnotation get type;
 }
@@ -4116,7 +4113,6 @@ abstract class RecordTypeAnnotationField implements AstNode {
 abstract class RecordTypeAnnotationNamedField
     implements RecordTypeAnnotationField {
   /// The name of the field.
-  @override
   Token get name;
 }
 

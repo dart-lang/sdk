@@ -22,6 +22,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
+import 'package:meta/meta.dart';
 
 /// The type associated with elements in the element model.
 ///
@@ -423,6 +424,45 @@ abstract class ParameterizedType implements DartType {
   /// instantiation, otherwise the result is `null`.
   List<DartType> get typeArguments;
 }
+
+/// The type of a record literal or a record type annotation.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordType implements DartType {
+  /// The named fields (might be empty).
+  List<RecordTypeNamedField> get namedFields;
+
+  /// The positional fields (might be empty).
+  List<RecordTypePositionalField> get positionalFields;
+}
+
+/// A field in a [RecordType].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordTypeField {
+  /// Returns metadata associated with the field.
+  List<ElementAnnotation> get metadata;
+
+  /// The type of the field.
+  DartType get type;
+}
+
+/// A named field in a [RecordType].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordTypeNamedField implements RecordTypeField {
+  /// The name of the field.
+  String get name;
+}
+
+/// A positional field in a [RecordType].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordTypePositionalField implements RecordTypeField {}
 
 /// The type introduced by a type parameter.
 ///
