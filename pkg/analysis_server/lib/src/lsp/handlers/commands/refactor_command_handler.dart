@@ -26,22 +26,22 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
   @override
   Future<ErrorOr<void>> handle(Map<String, Object?> parameters,
       ProgressReporter progress, CancellationToken cancellationToken) async {
-    if (parameters['filePath'] is! String ||
-        parameters['selectionOffset'] is! int ||
-        parameters['selectionLength'] is! int ||
-        parameters['arguments'] is! List<String>) {
+    var filePath = parameters['filePath'];
+    var offset = parameters['selectionOffset'];
+    var length = parameters['selectionLength'];
+    var arguments = _validateArguments(parameters['arguments']);
+    if (filePath is! String ||
+        offset is! int ||
+        length is! int ||
+        arguments == null) {
       return ErrorOr.error(ResponseError(
           code: ServerErrorCodes.InvalidCommandArguments,
           message: 'Refactoring operations require 4 parameters: '
               'filePath: String, '
               'offset: int, '
               'length: int, '
-              'arguments: Map<String, String>'));
+              'arguments: List<String>'));
     }
-    var filePath = parameters['filePath'] as String;
-    var offset = parameters['selectionOffset'] as int;
-    var length = parameters['selectionLength'] as int;
-    var arguments = parameters['arguments'] as List<String>;
 
     final clientCapabilities = server.clientCapabilities;
     if (clientCapabilities == null) {
@@ -82,5 +82,22 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
       final workspaceEdit = toWorkspaceEdit(clientCapabilities, fileEdits);
       return sendWorkspaceEditToClient(workspaceEdit);
     });
+  }
+
+  /// If the [arguments] is a list whose elements are all strings, then return
+  /// them. Otherwise, return `null` to indicate that they aren't what we were
+  /// expecting.
+  List<String>? _validateArguments(Object? arguments) {
+    if (arguments is! List<Object?>) {
+      return null;
+    }
+    var result = <String>[];
+    for (var element in arguments) {
+      if (element is! String) {
+        return null;
+      }
+      result.add(element);
+    }
+    return result;
   }
 }
