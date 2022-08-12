@@ -1142,6 +1142,7 @@ restriction
 resumed
 ret
 reusage
+reversible
 rewinds
 rewrites
 rewrote
