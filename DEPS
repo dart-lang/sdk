@@ -136,7 +136,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "fa84ddd0e39f45bf3f09dcc5d6b9fbdda7820fef",
   "protobuf_rev": "2d6c6037cee6c5f683e8f38e598443f9bec74b94",
-  "pub_rev": "9bf4289d6fd5d6872a8929d6312bbd7098f3ea9c", # manually rev'd
+  "pub_rev": "27adcf41ab43023c45dafb4ef9b1e3ec0885f102", # manually rev'd
   "pub_semver_rev": "5c0b4bfd5ca57fe16f1319c581dc8c882e9b8cb2",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
