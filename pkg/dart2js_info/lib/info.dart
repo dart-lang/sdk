@@ -193,13 +193,10 @@ class ProgramInfo {
 /// Note that PackageInfo is only used for converting dart2js info to
 /// vm_snapshot_analysis ProgramInfo and is not expected for --dump-info output.
 class PackageInfo extends BasicInfo {
-  /// Canonical uri that identifies the package
-  late final Uri uri;
-
   /// All libraries defined within the package
   List<LibraryInfo> libraries = <LibraryInfo>[];
 
-  PackageInfo(String name, this.uri, OutputUnitInfo outputUnit, int size)
+  PackageInfo(String name, OutputUnitInfo outputUnit, int size)
       : super(InfoKind.package, name, outputUnit, size, null);
 
   @override
