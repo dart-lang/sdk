@@ -5,10 +5,10 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../util/dart_type_utilities.dart';
 
 const _desc = r'Avoid positional boolean parameters.';
 
@@ -103,10 +103,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  bool _isFormalParameterToLint(FormalParameter node) =>
-      !node.isNamed &&
-      DartTypeUtilities.isClass(
-          node.declaredElement?.type, 'bool', 'dart.core');
+  bool _isFormalParameterToLint(FormalParameter node) {
+    var type = node.declaredElement?.type;
+    return !node.isNamed && type is InterfaceType && type.isDartCoreBool;
+  }
 
   bool _isOverridingMember(Element member) {
     var classElement = member.thisOrAncestorOfType<ClassElement>();

@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'Use key in widget constructors.';
@@ -107,8 +107,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _defineKeyParameter(ConstructorElement element) =>
       element.parameters.any((e) => e.name == 'key' && _isKeyType(e.type));
 
-  bool _isKeyType(DartType type) =>
-      DartTypeUtilities.implementsInterface(type, 'Key', '');
+  bool _isKeyType(DartType type) => type.implementsInterface('Key', '');
 
   bool _hasKeySuperParameterInitializerArg(ConstructorDeclaration node) {
     for (var parameter in node.parameters.parameters) {

@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/type.dart';
 import '../analyzer.dart';
 import '../ast.dart';
 import '../extensions.dart';
-import '../util/dart_type_utilities.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'DO reference all public properties in debug methods.';
@@ -122,7 +121,7 @@ class _Visitor extends SimpleAstVisitor {
   void visitClassDeclaration(ClassDeclaration node) {
     // We only care about Diagnosticables.
     var type = node.declaredElement2?.thisType;
-    if (!DartTypeUtilities.implementsInterface(type, 'Diagnosticable', '')) {
+    if (!type.implementsInterface('Diagnosticable', '')) {
       return;
     }
 

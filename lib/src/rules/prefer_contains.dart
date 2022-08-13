@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc = r'Use contains for `List` and `String` instances.';
@@ -171,7 +172,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var parentType = invocation.target?.staticType;
     if (parentType == null) return false;
-    if (!DartTypeUtilities.implementsAnyInterface(parentType, [
+    if (!parentType.implementsAnyInterface([
       InterfaceTypeDefinition('Iterable', 'dart.core'),
       InterfaceTypeDefinition('String', 'dart.core'),
     ])) {

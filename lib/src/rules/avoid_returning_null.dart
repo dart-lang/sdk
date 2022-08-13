@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../util/dart_type_utilities.dart';
 
 const _desc =
     r'Avoid returning null from members whose return type is bool, double, int,'
@@ -45,10 +44,11 @@ double getDouble() => -1.0;
 bool _isFunctionExpression(AstNode node) => node is FunctionExpression;
 
 bool _isPrimitiveType(DartType type) =>
-    DartTypeUtilities.isClass(type, 'bool', 'dart.core') ||
-    DartTypeUtilities.isClass(type, 'num', 'dart.core') ||
-    DartTypeUtilities.isClass(type, 'int', 'dart.core') ||
-    DartTypeUtilities.isClass(type, 'double', 'dart.core');
+    type is InterfaceType &&
+    (type.isDartCoreBool ||
+        type.isDartCoreDouble ||
+        type.isDartCoreInt ||
+        type.isDartCoreNum);
 
 bool _isReturnNull(AstNode node) =>
     node is ReturnStatement && node.expression.isNullLiteral;

@@ -9,7 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Use `isEmpty` for Iterables and Maps.';
 const _details = r'''
@@ -216,8 +216,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Should be subtype of Iterable, Map or String.
     if (type == null ||
-        !DartTypeUtilities.implementsInterface(type, 'Iterable', 'dart.core') &&
-            !DartTypeUtilities.implementsInterface(type, 'Map', 'dart.core') &&
+        !type.implementsInterface('Iterable', 'dart.core') &&
+            !type.implementsInterface('Map', 'dart.core') &&
             !type.isDartCoreString) {
       return false;
     }

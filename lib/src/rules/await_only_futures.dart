@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../util/dart_type_utilities.dart';
 
 const _desc = r'Await only futures.';
 
@@ -73,8 +72,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         type.isDartAsyncFuture ||
         type.isDynamic ||
         type.extendsClass('Future', 'dart.async') ||
-        DartTypeUtilities.implementsInterface(type, 'Future', 'dart.async') ||
-        DartTypeUtilities.isClass(type, 'FutureOr', 'dart.async'))) {
+        type.implementsInterface('Future', 'dart.async') ||
+        type.isDartAsyncFutureOr)) {
       rule.reportLintForToken(node.awaitKeyword, arguments: [type]);
     }
   }

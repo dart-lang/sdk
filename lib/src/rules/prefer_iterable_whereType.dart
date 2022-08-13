@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Prefer to use whereType on iterable.';
 
@@ -53,8 +53,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.methodName.name != 'where') return;
     var target = node.realTarget;
     if (target == null ||
-        !DartTypeUtilities.implementsInterface(
-            target.staticType, 'Iterable', 'dart.core')) {
+        !target.staticType.implementsInterface('Iterable', 'dart.core')) {
       return;
     }
 

@@ -224,6 +224,40 @@ extension DartTypeExtension on DartType? {
     return false;
   }
 
+  bool implementsAnyInterface(Iterable<InterfaceTypeDefinition> definitions) {
+    bool isAnyInterface(InterfaceType i) =>
+        definitions.any((d) => i.isSameAs(d.name, d.library));
+
+    var self = this;
+    if (self is InterfaceType) {
+      return isAnyInterface(self) ||
+          !self.element2.isSynthetic &&
+              self.element2.allSupertypes.any(isAnyInterface);
+    } else {
+      return false;
+    }
+  }
+
+  bool implementsInterface(String interface, String library) {
+    var self = this;
+    if (self is! InterfaceType) {
+      return false;
+    }
+    bool predicate(InterfaceType i) => i.isSameAs(interface, library);
+    var element = self.element2;
+    return predicate(self) ||
+        !element.isSynthetic && element.allSupertypes.any(predicate);
+  }
+
+  /// Returns whether `this` is the same element as [interface], delcared in
+  /// [library].
+  bool isSameAs(String? interface, String? library) {
+    var self = this;
+    return self is InterfaceType &&
+        self.element2.name == interface &&
+        self.element2.library.name == library;
+  }
+
   static bool _extendsClass(
           InterfaceType? type,
           Set<InterfaceElement> seenElements,
@@ -231,7 +265,7 @@ extension DartTypeExtension on DartType? {
           String? library) =>
       type != null &&
       seenElements.add(type.element2) &&
-      (DartTypeUtilities.isClass(type, className, library) ||
+      (type.isSameAs(className, library) ||
           _extendsClass(type.superclass, seenElements, className, library));
 }
 

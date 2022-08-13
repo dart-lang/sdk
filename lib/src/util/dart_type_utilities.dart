@@ -236,47 +236,10 @@ class DartTypeUtilities {
   static Element? getCanonicalElementFromIdentifier(AstNode? rawNode) =>
       rawNode.canonicalElement;
 
-  static bool implementsAnyInterface(
-      DartType type, Iterable<InterfaceTypeDefinition> definitions) {
-    bool isAnyInterface(InterfaceType i) =>
-        definitions.any((d) => isInterface(i, d.name, d.library));
-
-    if (type is InterfaceType) {
-      var element = type.element2;
-      return isAnyInterface(type) ||
-          !element.isSynthetic && element.allSupertypes.any(isAnyInterface);
-    } else {
-      return false;
-    }
-  }
-
+  @Deprecated('Replace with `type.implementsInterface`')
   static bool implementsInterface(
-      DartType? type, String interface, String library) {
-    if (type is! InterfaceType) {
-      return false;
-    }
-    var interfaceType = type;
-    bool predicate(InterfaceType i) => isInterface(i, interface, library);
-    var element = interfaceType.element2;
-    return predicate(interfaceType) ||
-        !element.isSynthetic && element.allSupertypes.any(predicate);
-  }
-
-  /// todo (pq): unify and  `isInterface` into a shared method: `isInterfaceType`
-  static bool isClass(DartType? type, String? className, String? library) =>
-      type is InterfaceType &&
-      type.element2.name == className &&
-      type.element2.library.name == library;
-
-  /// todo (pq): unify and  `isInterface` into a shared method: `isInterfaceType`
-  static bool isMixin(DartType? type, String? className, String? library) =>
-      type is InterfaceType &&
-      type.element2.name == className &&
-      type.element2.library.name == library;
-
-  static bool isInterface(
-          InterfaceType type, String interface, String library) =>
-      type.element2.name == interface && type.element2.library.name == library;
+          DartType? type, String interface, String library) =>
+      type.implementsInterface(interface, library);
 
   @Deprecated('Replace with `expression.isNullLiteral`')
   static bool isNullLiteral(Expression? expression) => expression.isNullLiteral;

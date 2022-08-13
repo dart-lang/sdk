@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Avoid using `forEach` with a function literal.';
 
@@ -56,7 +56,7 @@ bool _hasMethodChaining(MethodInvocation node) {
 bool _isNonNullableIterable(DartType? type) =>
     type != null &&
     type.nullabilitySuffix != NullabilitySuffix.question &&
-    DartTypeUtilities.implementsInterface(type, 'Iterable', 'dart.core');
+    type.implementsInterface('Iterable', 'dart.core');
 
 class AvoidFunctionLiteralInForeachMethod extends LintRule {
   AvoidFunctionLiteralInForeachMethod()

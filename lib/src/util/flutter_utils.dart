@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 
+import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
 var _collectionInterfaces = <InterfaceTypeDefinition>[
@@ -44,7 +45,7 @@ bool isWidgetProperty(DartType? type) {
     return true;
   }
   if (type is InterfaceType &&
-      DartTypeUtilities.implementsAnyInterface(type, _collectionInterfaces)) {
+      type.implementsAnyInterface(_collectionInterfaces)) {
     return type.element2.typeParameters.length == 1 &&
         isWidgetProperty(type.typeArguments.first);
   }

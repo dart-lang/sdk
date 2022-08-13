@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Unnecessary toList() in spreads.';
 
@@ -55,10 +55,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitSpreadElement(SpreadElement node) {
     var expression = node.expression;
-    if (expression is MethodInvocation &&
-        expression.methodName.name == 'toList' &&
-        DartTypeUtilities.implementsInterface(
-            expression.target?.staticType, 'Iterable', 'dart.core')) {
+    if (expression is! MethodInvocation) {
+      return;
+    }
+    var target = expression.target;
+    if (expression.methodName.name == 'toList' &&
+        target != null &&
+        target.staticType.implementsInterface('Iterable', 'dart.core')) {
       rule.reportLint(expression.methodName);
     }
   }

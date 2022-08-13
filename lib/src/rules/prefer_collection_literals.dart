@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Use collection literals when possible.';
 
@@ -127,22 +127,26 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  bool _isSet(Expression expression) => _isTypeSet(expression.staticType);
+  bool _isSet(Expression expression) =>
+      expression.staticType?.isDartCoreSet ?? false;
+
   bool _isHashSet(Expression expression) =>
       _isTypeHashSet(expression.staticType);
+
   bool _isList(Expression expression) =>
-      DartTypeUtilities.isClass(expression.staticType, 'List', 'dart.core');
-  bool _isMap(Expression expression) => _isTypeMap(expression.staticType);
+      expression.staticType?.isDartCoreList ?? false;
+
+  bool _isMap(Expression expression) =>
+      expression.staticType?.isDartCoreMap ?? false;
+
   bool _isHashMap(Expression expression) =>
       _isTypeHashMap(expression.staticType);
-  bool _isTypeSet(DartType? type) =>
-      DartTypeUtilities.isClass(type, 'Set', 'dart.core');
+
   bool _isTypeHashSet(DartType? type) =>
-      DartTypeUtilities.isClass(type, 'LinkedHashSet', 'dart.collection');
-  bool _isTypeMap(DartType? type) =>
-      DartTypeUtilities.isClass(type, 'Map', 'dart.core');
+      type.isSameAs('LinkedHashSet', 'dart.collection');
+
   bool _isTypeHashMap(DartType? type) =>
-      DartTypeUtilities.isClass(type, 'LinkedHashMap', 'dart.collection');
+      type.isSameAs('LinkedHashMap', 'dart.collection');
 
   bool _shouldSkipLinkedHashLint(
       InstanceCreationExpression node, bool Function(DartType node) typeCheck) {

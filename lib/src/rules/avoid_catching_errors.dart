@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r"Don't explicitly catch Error or types that implement it.";
 
@@ -61,8 +61,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitCatchClause(CatchClause node) {
     var exceptionType = node.exceptionType?.type;
-    if (DartTypeUtilities.implementsInterface(
-        exceptionType, 'Error', 'dart.core')) {
+    if (exceptionType.implementsInterface('Error', 'dart.core')) {
       rule.reportLint(node);
     }
   }

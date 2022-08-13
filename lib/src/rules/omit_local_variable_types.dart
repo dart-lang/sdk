@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../util/dart_type_utilities.dart';
 
 const _desc = r'Omit type annotations for local variables.';
 
@@ -104,9 +103,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       var iterableType = loopParts.iterable.staticType;
       if (iterableType is InterfaceType) {
         // TODO(srawlins): Is `DartType.asInstanceOf` the more correct API here?
-        var iterableInterfaces = iterableType.implementedInterfaces.where(
-            (type) =>
-                DartTypeUtilities.isInterface(type, 'Iterable', 'dart.core'));
+        var iterableInterfaces = iterableType.implementedInterfaces
+            .where((type) => type.isDartCoreIterable);
         if (iterableInterfaces.length == 1 &&
             iterableInterfaces.first.typeArguments.first == staticType) {
           rule.reportLint(loopVariableType);
