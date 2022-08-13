@@ -81,7 +81,7 @@ class ContextBuilderImpl implements ContextBuilder {
     }
 
     byteStore ??= MemoryByteStore();
-    performanceLog ??= PerformanceLog(StringBuffer());
+    performanceLog ??= PerformanceLog(null);
 
     if (scheduler == null) {
       scheduler = AnalysisDriverScheduler(performanceLog);
