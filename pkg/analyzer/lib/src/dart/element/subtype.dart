@@ -297,6 +297,16 @@ class SubtypeHelper {
       }
     }
 
+    if (T0 is RecordTypeImpl) {
+      // Record Type/Record: `T0` is a record type, and `T1` is `Record`.
+      if (T1.isDartCoreRecord) {
+        return true;
+      }
+      if (T1 is RecordTypeImpl) {
+        // TODO(scheglov) record types
+      }
+    }
+
     return false;
   }
 

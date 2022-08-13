@@ -4121,6 +4121,130 @@ class SubtypeTest extends _SubtypingTestBase {
     );
   }
 
+  test_record_dynamic() {
+    isSubtype(
+      recordTypeNone(
+        element: recordElement(
+          namedFields: [
+            recordNamedField(name: 'foo', type: intNone),
+          ],
+        ),
+      ),
+      dynamicNone,
+      strT0: '({int foo})',
+      strT1: 'dynamic',
+    );
+  }
+
+  test_record_functionType() {
+    isNotSubtype(
+      recordTypeNone(
+        element: recordElement(
+          namedFields: [
+            recordNamedField(name: 'foo', type: intNone),
+          ],
+        ),
+      ),
+      functionTypeNone(returnType: voidNone),
+      strT0: '({int foo})',
+      strT1: 'void Function()',
+    );
+  }
+
+  test_record_int() {
+    final R = recordTypeNone(
+      element: recordElement(
+        namedFields: [
+          recordNamedField(name: 'foo', type: intNone),
+        ],
+      ),
+    );
+
+    isNotSubtype(
+      R,
+      intNone,
+      strT0: '({int foo})',
+      strT1: 'int',
+    );
+
+    isNotSubtype(
+      intNone,
+      R,
+      strT0: 'int',
+      strT1: '({int foo})',
+    );
+  }
+
+  test_record_Never() {
+    isSubtype(
+      neverNone,
+      recordTypeNone(
+        element: recordElement(
+          namedFields: [
+            recordNamedField(name: 'foo', type: intNone),
+          ],
+        ),
+      ),
+      strT0: 'Never',
+      strT1: '({int foo})',
+    );
+  }
+
+  test_record_Object() {
+    isSubtype(
+      recordTypeNone(
+        element: recordElement(
+          namedFields: [
+            recordNamedField(name: 'foo', type: intNone),
+          ],
+        ),
+      ),
+      objectNone,
+      strT0: '({int foo})',
+      strT1: 'Object',
+    );
+  }
+
+  test_record_Record() {
+    isSubtype(
+      recordTypeNone(
+        element: recordElement(
+          namedFields: [
+            recordNamedField(name: 'foo', type: intNone),
+          ],
+        ),
+      ),
+      recordNone,
+      strT0: '({int foo})',
+      strT1: 'Record',
+    );
+  }
+
+  /// The class `Record` is a subtype of `Object` and `dynamic`, and a
+  /// supertype of `Never`.
+  test_recordClass() {
+    isSubtype(
+      recordNone,
+      objectNone,
+      strT0: 'Record',
+      strT1: 'Object',
+    );
+
+    isSubtype(
+      recordNone,
+      dynamicNone,
+      strT0: 'Record',
+      strT1: 'dynamic',
+    );
+
+    isSubtype(
+      neverNone,
+      recordNone,
+      strT0: 'Never',
+      strT1: 'Record',
+    );
+  }
+
   test_special_01() {
     isNotSubtype(
       dynamicNone,
@@ -6048,6 +6172,17 @@ class _TypeParameterCollector extends TypeVisitor<void> {
 
   @override
   void visitNeverType(NeverType type) {}
+
+  @override
+  void visitRecordType(RecordType type) {
+    final fields = [
+      ...type.positionalFields,
+      ...type.namedFields,
+    ];
+    for (final field in fields) {
+      field.type.accept(this);
+    }
+  }
 
   @override
   void visitTypeParameterType(TypeParameterType type) {

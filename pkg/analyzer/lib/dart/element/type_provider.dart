@@ -99,6 +99,9 @@ abstract class TypeProvider {
   /// Return the type representing the built-in type `Object`.
   InterfaceType get objectType;
 
+  /// Return the element representing the built-in class `Record`.
+  ClassElement get recordElement;
+
   /// Return the element representing the built-in class `Set`.
   ClassElement get setElement;
 

@@ -53,6 +53,7 @@ class _MockSdkElementsBuilder {
   ClassElementImpl? _objectElement;
   ClassElementImpl? _overrideElement;
   ClassElementImpl? _proxyElement;
+  ClassElementImpl? _recordElement;
   ClassElementImpl? _setElement;
   ClassElementImpl? _stackTraceElement;
   ClassElementImpl? _streamElement;
@@ -641,6 +642,23 @@ class _MockSdkElementsBuilder {
     return proxyElement;
   }
 
+  ClassElementImpl get recordElement {
+    var recordElement = _recordElement;
+    if (recordElement != null) return recordElement;
+
+    _recordElement = recordElement = _class(
+      name: 'Record',
+      isAbstract: true,
+    );
+    recordElement.supertype = objectType;
+
+    return recordElement;
+  }
+
+  InterfaceType get recordType {
+    return _interfaceType(recordElement);
+  }
+
   ClassElementImpl get setElement {
     var setElement = _setElement;
     if (setElement != null) return setElement;
@@ -913,6 +931,7 @@ class _MockSdkElementsBuilder {
       objectElement,
       overrideElement,
       proxyElement,
+      recordElement,
       setElement,
       stackTraceElement,
       stringElement,

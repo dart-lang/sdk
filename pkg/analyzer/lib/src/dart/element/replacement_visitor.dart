@@ -422,6 +422,12 @@ class ReplacementVisitor
     return null;
   }
 
+  @override
+  DartType? visitRecordType(RecordType type) {
+    // TODO: implement visitRecordType
+    throw UnimplementedError();
+  }
+
   DartType? visitTypeArgument(
     TypeParameterElement parameter,
     DartType argument,

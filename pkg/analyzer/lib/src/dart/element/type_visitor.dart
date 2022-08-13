@@ -53,6 +53,12 @@ class RecursiveTypeVisitor extends UnifyingTypeVisitor<bool> {
       visitChildren(type.typeArguments);
 
   @override
+  bool visitRecordType(RecordType type) {
+    // TODO: implement visitRecordType
+    throw UnimplementedError();
+  }
+
+  @override
   bool visitTypeParameterType(TypeParameterType type) {
     // TODO(scheglov) Should we visit the bound here?
     return true;

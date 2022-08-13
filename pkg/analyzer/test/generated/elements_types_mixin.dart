@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -130,6 +131,11 @@ mixin ElementsTypesMixin {
   InterfaceType get objectStar {
     var element = typeProvider.objectType.element2;
     return interfaceTypeStar(element);
+  }
+
+  InterfaceType get recordNone {
+    var element = typeProvider.recordElement;
+    return interfaceTypeNone(element);
   }
 
   InterfaceType get stringNone {
@@ -551,6 +557,45 @@ mixin ElementsTypesMixin {
       element: element,
       nullabilitySuffix: NullabilitySuffix.star,
       promotedBound: promotedBound,
+    );
+  }
+
+  RecordElementImpl recordElement({
+    List<RecordPositionalFieldElementImpl> positionalFields = const [],
+    List<RecordNamedFieldElementImpl> namedFields = const [],
+  }) {
+    return RecordElementImpl(
+      positionalFields: positionalFields,
+      namedFields: namedFields,
+    );
+  }
+
+  RecordNamedFieldElementImpl recordNamedField({
+    required String name,
+    required DartType type,
+  }) {
+    return RecordNamedFieldElementImpl(
+      name: name,
+      nameOffset: -1,
+      type: type,
+    );
+  }
+
+  RecordPositionalFieldElementImpl recordPositionalField({
+    required DartType type,
+  }) {
+    return RecordPositionalFieldElementImpl(
+      type: type,
+    );
+  }
+
+  RecordTypeImpl recordTypeNone({
+    required RecordElementImpl element,
+  }) {
+    return RecordTypeImpl(
+      element2: element,
+      nullabilitySuffix: NullabilitySuffix.none,
+      substitution: Substitution.empty,
     );
   }
 

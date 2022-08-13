@@ -172,6 +172,38 @@ class ElementDisplayStringBuilder {
     _write(element.displayName);
   }
 
+  void writeRecordType(RecordTypeImpl type) {
+    final positionalFields = type.positionalFields;
+    final namedFields = type.namedFields;
+    final fieldCount = positionalFields.length + namedFields.length;
+    _write('(');
+
+    for (var i = 0; i < positionalFields.length; i++) {
+      final field = positionalFields[i];
+      _writeType(field.type);
+      if (i < fieldCount - 1) {
+        _write(', ');
+      }
+    }
+
+    if (namedFields.isNotEmpty) {
+      _write('{');
+      for (var i = 0; i < namedFields.length; i++) {
+        final field = namedFields[i];
+        _writeType(field.type);
+        _write(' ');
+        _write(field.name);
+        if (i < fieldCount - 1) {
+          _write(', ');
+        }
+      }
+      _write('}');
+    }
+
+    _write(')');
+    _writeNullability(type.nullabilitySuffix);
+  }
+
   void writeTypeAliasElement(TypeAliasElementImpl element) {
     _write('typedef ');
     _write(element.displayName);
