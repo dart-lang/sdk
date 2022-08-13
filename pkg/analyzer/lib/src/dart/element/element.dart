@@ -6194,10 +6194,14 @@ class RecordElementImpl extends _ExistingElementImpl implements RecordElement {
   @override
   final List<RecordNamedFieldElementImpl> namedFields;
 
+  /// Maybe copy of [namedFields] lexically sorted by names.
+  final List<RecordNamedFieldElementImpl> namedFieldsSorted;
+
   RecordElementImpl({
     required this.positionalFields,
     required this.namedFields,
-  }) : super(null, -1) {
+  })  : namedFieldsSorted = _sortNamedFields(namedFields),
+        super(null, -1) {
     for (final field in positionalFields) {
       field.enclosingElement = this;
     }
@@ -6213,6 +6217,28 @@ class RecordElementImpl extends _ExistingElementImpl implements RecordElement {
   T? accept<T>(ElementVisitor<T> visitor) {
     // TODO: implement accept
     throw UnimplementedError();
+  }
+
+  /// Returns [fields], if already sorted, or the sorted copy.
+  static List<RecordNamedFieldElementImpl> _sortNamedFields(
+    List<RecordNamedFieldElementImpl> fields,
+  ) {
+    var isSorted = true;
+    String? lastName;
+    for (final field in fields) {
+      final name = field.name;
+      if (lastName != null && lastName.compareTo(name) > 0) {
+        isSorted = false;
+        break;
+      }
+      lastName = name;
+    }
+
+    if (isSorted) {
+      return fields;
+    }
+
+    return fields.sortedBy((field) => field.name);
   }
 }
 

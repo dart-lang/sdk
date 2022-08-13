@@ -303,7 +303,7 @@ class SubtypeHelper {
         return true;
       }
       if (T1 is RecordTypeImpl) {
-        // TODO(scheglov) record types
+        return _isRecordSubtypeOf(T0, T1);
       }
     }
 
@@ -481,6 +481,42 @@ class SubtypeHelper {
     }
 
     return false;
+  }
+
+  /// Check that [subType] is a subtype of [superType].
+  bool _isRecordSubtypeOf(RecordType subType, RecordType superType) {
+    final subPositional = subType.positionalFields;
+    final superPositional = superType.positionalFields;
+    if (subPositional.length != superPositional.length) {
+      return false;
+    }
+
+    final subNamed = subType.namedFields;
+    final superNamed = superType.namedFields;
+    if (subNamed.length != superNamed.length) {
+      return false;
+    }
+
+    for (var i = 0; i < subPositional.length; i++) {
+      final subField = subPositional[i];
+      final superField = superPositional[i];
+      if (!isSubtypeOf(subField.type, superField.type)) {
+        return false;
+      }
+    }
+
+    for (var i = 0; i < subNamed.length; i++) {
+      final subField = subNamed[i];
+      final superField = superNamed[i];
+      if (subField.name != superField.name) {
+        return false;
+      }
+      if (!isSubtypeOf(subField.type, superField.type)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   static FunctionTypeImpl _functionTypeWithNamedRequired(FunctionType type) {

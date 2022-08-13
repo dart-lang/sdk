@@ -1015,7 +1015,7 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
 
   @override
   List<RecordTypeNamedField> get namedFields {
-    return element.namedFields.map((field) {
+    return element.namedFieldsSorted.map((field) {
       final type = substitution.substituteType(field.type);
       return RecordTypeNamedFieldImpl(
         element: field,
