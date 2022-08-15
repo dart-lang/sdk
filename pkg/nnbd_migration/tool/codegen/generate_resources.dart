@@ -110,11 +110,12 @@ Future<void> compileWebFrontEnd(
 }
 
 void createResourcesGDart() {
-  var content =
-      generateResourceFile(sortDir(resourceDir.listSync()).where((entity) {
-    var name = path.basename(entity.path);
-    return entity is File && resourceTypes.contains(path.extension(name));
-  }).cast<File>());
+  var content = generateResourceFile(
+      sortDir(resourceDir.listSync()).where((entity) {
+        var name = path.basename(entity.path);
+        return entity is File && resourceTypes.contains(path.extension(name));
+      }).cast<File>(),
+      sourcesMd5: _computeSourcesMd5());
 
   // write the content
   resourcesFile.writeAsStringSync(content);
@@ -149,7 +150,7 @@ To re-generate lib/src/front_end/resources/resources.g.dart, run:
   exit(1);
 }
 
-String generateResourceFile(Iterable<File> resources) {
+String generateResourceFile(Iterable<File> resources, {String? sourcesMd5}) {
   var filePath = path.relative(Platform.script.toFilePath());
   var buf = StringBuffer('''
 // Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
@@ -196,17 +197,10 @@ String _decode(String data) {
 
     buf.writeln();
     buf.writeln('String? _$name;');
-    if (name == path.basename(javascriptOutput.path).replaceAll('.', '_')) {
+    if (sourcesMd5 != null &&
+        name == path.basename(javascriptOutput.path).replaceAll('.', '_')) {
       // Write out the crc for the dart code.
-      var sourceCode = StringBuffer();
-      // collect the dart source code
-      for (var entity in sortDir(dartSources.parent.listSync())) {
-        if (entity.path.endsWith('.dart')) {
-          sourceCode.write((entity as File).readAsStringSync());
-        }
-      }
-      buf.writeln(
-          "// migration_dart md5 is '${md5String(sourceCode.toString())}'");
+      buf.writeln("// migration_dart md5 is '$sourcesMd5'");
     } else {
       // highlight_css md5 is 'fb012626bafd286510d32da815dae448'
       buf.writeln("// $name md5 is '${md5String(source)}'");
@@ -272,18 +266,24 @@ void verifyResourcesGDartGenerated({
   }
 
   // verify the compiled dart code
-  var sourceCode = StringBuffer();
-  for (var entity in sortDir(dartSources.parent.listSync())) {
-    if (entity.path.endsWith('.dart')) {
-      sourceCode.write((entity as File).readAsStringSync());
-    }
-  }
-  var hash = md5String(sourceCode.toString());
+  String hash = _computeSourcesMd5();
   if (hash != resourceHashes['migration_dart']) {
     failVerification('Compiled javascript not up to date in resources.g.dart');
   }
 
   print('Generated resources up to date.');
+}
+
+String _computeSourcesMd5() {
+  var sourceCode = StringBuffer();
+  // collect the dart source code
+  for (var entity in sortDir(dartSources.parent.listSync())) {
+    if (entity.path.endsWith('.dart')) {
+      sourceCode.write((entity as File).readAsStringSync());
+    }
+  }
+  var sourcesMd5 = md5String(sourceCode.toString());
+  return sourcesMd5;
 }
 
 typedef VerificationFunction = void Function(String);
