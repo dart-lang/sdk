@@ -546,9 +546,20 @@ abstract class _TypeSubstitutor
   DartType visitNeverType(NeverType type) => type;
 
   @override
-  DartType visitRecordType(RecordType type) {
-    // TODO: implement visitRecordType
-    throw UnimplementedError();
+  DartType visitRecordType(covariant RecordTypeImpl type) {
+    final before = useCounter;
+    final fieldTypes = _mapList(type.fieldTypes);
+    final alias = _mapAlias(type.alias);
+    if (useCounter == before) {
+      return type;
+    }
+
+    return RecordTypeImpl(
+      element2: type.element2,
+      fieldTypes: fieldTypes,
+      nullabilitySuffix: type.nullabilitySuffix,
+      alias: alias,
+    );
   }
 
   @override

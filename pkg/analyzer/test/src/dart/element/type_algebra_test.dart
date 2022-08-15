@@ -377,6 +377,100 @@ class SubstituteTest extends _Base {
     _assertIdenticalType(type, {T: intNone});
   }
 
+  test_record_doesNotUseTypeParameter() async {
+    final T = typeParameter('T');
+
+    final type = recordTypeNone(
+      element: recordElement(
+        positionalFields: [
+          recordPositionalField(type: intNone),
+        ],
+      ),
+    );
+
+    assertType(type, '(int)');
+    _assertIdenticalType(type, {T: intNone});
+  }
+
+  test_record_fromAlias() async {
+    // typedef Alias<T> = (int, String);
+    final T = typeParameter('T');
+    final Alias = typeAlias(
+      name: 'Alias',
+      typeParameters: [T],
+      aliasedType: recordTypeNone(
+        element: recordElement(
+          positionalFields: [
+            recordPositionalField(type: intNone),
+            recordPositionalField(type: stringNone),
+          ],
+        ),
+      ),
+    );
+
+    final U = typeParameter('U');
+    final type = typeAliasTypeNone(Alias, typeArguments: [
+      typeParameterTypeNone(U),
+    ]);
+    assertType(type, '(int, String) via Alias<U>');
+    _assertSubstitution(type, {U: intNone}, '(int, String) via Alias<int>');
+  }
+
+  test_record_fromAlias2() async {
+    // typedef Alias<T> = (T, List<T>);
+    final T = typeParameter('T');
+    final T_none = typeParameterTypeNone(T);
+    final Alias = typeAlias(
+      name: 'Alias',
+      typeParameters: [T],
+      aliasedType: recordTypeNone(
+        element: recordElement(
+          positionalFields: [
+            recordPositionalField(type: T_none),
+            recordPositionalField(type: listNone(T_none)),
+          ],
+        ),
+      ),
+    );
+
+    final type = typeAliasTypeNone(Alias, typeArguments: [intNone]);
+    assertType(type, '(int, List<int>) via Alias<int>');
+  }
+
+  test_record_named() async {
+    final T = typeParameter('T');
+    final T_none = typeParameterTypeNone(T);
+
+    final type = recordTypeNone(
+      element: recordElement(
+        namedFields: [
+          recordNamedField(name: 'f1', type: T_none),
+          recordNamedField(name: 'f2', type: listNone(T_none)),
+        ],
+      ),
+    );
+
+    assertType(type, '({T f1, List<T> f2})');
+    _assertSubstitution(type, {T: intNone}, '({int f1, List<int> f2})');
+  }
+
+  test_record_positional() async {
+    final T = typeParameter('T');
+    final T_none = typeParameterTypeNone(T);
+
+    final type = recordTypeNone(
+      element: recordElement(
+        positionalFields: [
+          recordPositionalField(type: T_none),
+          recordPositionalField(type: listNone(T_none)),
+        ],
+      ),
+    );
+
+    assertType(type, '(T, List<T>)');
+    _assertSubstitution(type, {T: intNone}, '(int, List<int>)');
+  }
+
   test_typeParameter_nullability() async {
     var tElement = typeParameter('T');
 

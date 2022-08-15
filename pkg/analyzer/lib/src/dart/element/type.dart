@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:collection/collection.dart';
 
 /// The [Type] representing the type `dynamic`.
 class DynamicTypeImpl extends TypeImpl implements DynamicType {
@@ -995,16 +996,18 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   @override
   final RecordElementImpl element2;
 
-  final Substitution substitution;
+  /// The types of all fields, first positional, then named.
+  final List<DartType> fieldTypes;
 
   @override
   final NullabilitySuffix nullabilitySuffix;
 
   RecordTypeImpl({
     required this.element2,
-    required this.substitution,
+    required this.fieldTypes,
     required this.nullabilitySuffix,
-  }) : super(element2);
+    InstantiatedTypeAliasElement? alias,
+  }) : super(element2, alias: alias);
 
   @override
   RecordElementImpl get element => element2;
@@ -1015,23 +1018,22 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
 
   @override
   List<RecordTypeNamedField> get namedFields {
-    return element.namedFieldsSorted.map((field) {
-      final type = substitution.substituteType(field.type);
+    final baseIndex = element.positionalFields.length;
+    return element.namedFieldsSorted.mapIndexed((index, field) {
       return RecordTypeNamedFieldImpl(
         element: field,
         name: field.name,
-        type: type,
+        type: fieldTypes[baseIndex + index],
       );
     }).toList();
   }
 
   @override
   List<RecordTypePositionalField> get positionalFields {
-    return element.positionalFields.map((field) {
-      final type = substitution.substituteType(field.type);
+    return element.positionalFields.mapIndexed((index, field) {
       return RecordTypePositionalFieldImpl(
         element: field,
-        type: type,
+        type: fieldTypes[index],
       );
     }).toList();
   }

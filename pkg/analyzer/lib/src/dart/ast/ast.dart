@@ -9644,6 +9644,60 @@ class PropertyAccessImpl extends CommentReferableExpressionImpl
       identical(descendant, _target);
 }
 
+class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
+  @override
+  Token leftParenthesis;
+
+  /// The syntactic elements used to compute the fields of the record.
+  final NodeListImpl<Expression> _fields = NodeListImpl._();
+
+  @override
+  Token rightParenthesis;
+
+  /// Initialize a newly created record literal.
+  RecordLiteralImpl(
+      {required this.leftParenthesis,
+      required List<Expression> fields,
+      required this.rightParenthesis}) {
+    _fields._initialize(this, fields);
+  }
+
+  @override
+  Token get beginToken => leftParenthesis;
+
+  @override
+  Token get endToken => rightParenthesis;
+
+  @override
+  NodeList<Expression> get fields => _fields;
+
+  @override
+  // TODO(paulberry): add commas.
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNodeList('fields', fields)
+    ..addToken('rightParenthesis', rightParenthesis);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+    // visitor.visitRecordLiteral(this);
+  }
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+    // TODO: implement resolveExpression
+    throw UnimplementedError();
+    // resolver.visitRecordLiteral(this, contextType: contextType);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _fields.accept(visitor);
+  }
+}
+
 /// The invocation of a constructor in the same class from within a
 /// constructor's initialization list.
 ///

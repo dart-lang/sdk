@@ -4063,6 +4063,25 @@ abstract class PropertyAccess
   Expression? get target;
 }
 
+/// A record literal.
+///
+///    recordLiteral ::= '(' recordField (',' recordField)* ','? ')'
+///
+///    recordField  ::= (identifier ':')? [Expression]
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordLiteral implements Literal {
+  /// Return the syntactic elements used to compute the fields of the record.
+  NodeList<Expression> get fields;
+
+  /// Return the left parenthesis.
+  Token get leftParenthesis;
+
+  /// Return the right parenthesis.
+  Token get rightParenthesis;
+}
+
 /// A record type.
 ///
 /// recordType ::=
