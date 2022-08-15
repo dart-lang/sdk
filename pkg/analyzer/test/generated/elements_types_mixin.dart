@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -592,10 +591,8 @@ mixin ElementsTypesMixin {
   RecordTypeImpl recordTypeNone({
     required RecordElementImpl element,
   }) {
-    return RecordTypeImpl(
-      element2: element,
+    return element.instantiate(
       nullabilitySuffix: NullabilitySuffix.none,
-      substitution: Substitution.empty,
     );
   }
 

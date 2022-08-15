@@ -178,22 +178,21 @@ class ElementDisplayStringBuilder {
     final fieldCount = positionalFields.length + namedFields.length;
     _write('(');
 
-    for (var i = 0; i < positionalFields.length; i++) {
-      final field = positionalFields[i];
+    var index = 0;
+    for (final field in positionalFields) {
       _writeType(field.type);
-      if (i < fieldCount - 1) {
+      if (index++ < fieldCount - 1) {
         _write(', ');
       }
     }
 
     if (namedFields.isNotEmpty) {
       _write('{');
-      for (var i = 0; i < namedFields.length; i++) {
-        final field = namedFields[i];
+      for (final field in namedFields) {
         _writeType(field.type);
         _write(' ');
         _write(field.name);
-        if (i < fieldCount - 1) {
+        if (index++ < fieldCount - 1) {
           _write(', ');
         }
       }

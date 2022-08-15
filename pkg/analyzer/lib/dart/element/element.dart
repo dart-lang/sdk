@@ -2261,6 +2261,11 @@ abstract class RecordElement implements _ExistingElement {
 
   /// The positional fields (might be empty).
   List<RecordPositionalFieldElement> get positionalFields;
+
+  /// Returns [RecordType] with [nullabilitySuffix] and declared field types.
+  RecordType instantiate({
+    required NullabilitySuffix nullabilitySuffix,
+  });
 }
 
 /// A field in a [RecordElement].

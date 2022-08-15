@@ -6219,6 +6219,20 @@ class RecordElementImpl extends _ExistingElementImpl implements RecordElement {
     throw UnimplementedError();
   }
 
+  @override
+  RecordTypeImpl instantiate({
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return RecordTypeImpl(
+      element2: this,
+      fieldTypes: [
+        ...positionalFields.map((field) => field.type),
+        ...namedFieldsSorted.map((field) => field.type),
+      ],
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
   /// Returns [fields], if already sorted, or the sorted copy.
   static List<RecordNamedFieldElementImpl> _sortNamedFields(
     List<RecordNamedFieldElementImpl> fields,
@@ -6591,6 +6605,16 @@ class TypeAliasElementImpl extends _ExistingElementImpl
       return InterfaceTypeImpl(
         element2: type.element2,
         typeArguments: type.typeArguments,
+        nullabilitySuffix: resultNullability,
+        alias: InstantiatedTypeAliasElementImpl(
+          element: this,
+          typeArguments: typeArguments,
+        ),
+      );
+    } else if (type is RecordTypeImpl) {
+      return RecordTypeImpl(
+        element2: type.element2,
+        fieldTypes: type.fieldTypes,
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
           element: this,
