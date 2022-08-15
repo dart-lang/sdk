@@ -23,7 +23,7 @@ class AnalysisSessionImpl_BlazeWorkspaceTest
     extends BlazeWorkspaceResolutionTest {
   void test_getErrors_notFileOfUri() async {
     var relPath = 'dart/my/lib/a.dart';
-    newFile('$workspaceRootPath/bazel-bin/$relPath', '');
+    newFile('$workspaceRootPath/blaze-bin/$relPath', '');
 
     final file = getFile('$workspaceRootPath/$relPath');
     var session = contextFor(file).currentSession;
@@ -46,7 +46,7 @@ class AnalysisSessionImpl_BlazeWorkspaceTest
 
   void test_getParsedLibrary_notFileOfUri() async {
     var relPath = 'dart/my/lib/a.dart';
-    newFile('$workspaceRootPath/bazel-bin/$relPath', '');
+    newFile('$workspaceRootPath/blaze-bin/$relPath', '');
 
     final file = getFile('$workspaceRootPath/$relPath');
     var session = contextFor(file).currentSession;
@@ -56,7 +56,7 @@ class AnalysisSessionImpl_BlazeWorkspaceTest
 
   void test_getResolvedLibrary_notFileOfUri() async {
     var relPath = 'dart/my/lib/a.dart';
-    newFile('$workspaceRootPath/bazel-bin/$relPath', '');
+    newFile('$workspaceRootPath/blaze-bin/$relPath', '');
 
     final file = getFile('$workspaceRootPath/$relPath');
     var session = contextFor(file).currentSession;
@@ -66,7 +66,7 @@ class AnalysisSessionImpl_BlazeWorkspaceTest
 
   void test_getResolvedUnit_notFileOfUri() async {
     var relPath = 'dart/my/lib/a.dart';
-    newFile('$workspaceRootPath/bazel-bin/$relPath', '');
+    newFile('$workspaceRootPath/blaze-bin/$relPath', '');
 
     final file = getFile('$workspaceRootPath/$relPath');
     var session = contextFor(file).currentSession;
@@ -100,7 +100,7 @@ class AnalysisSessionImpl_BlazeWorkspaceTest
 
   void test_getUnitElement_notPathOfUri() async {
     var relPath = 'dart/my/lib/a.dart';
-    newFile('$workspaceRootPath/bazel-bin/$relPath', '');
+    newFile('$workspaceRootPath/blaze-bin/$relPath', '');
 
     final file = getFile('$workspaceRootPath/$relPath');
     var session = contextFor(file).currentSession;

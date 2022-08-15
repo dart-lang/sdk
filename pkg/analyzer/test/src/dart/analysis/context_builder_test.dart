@@ -171,8 +171,8 @@ environment:
   void test_sourceFactory_blazeWorkspace() {
     var projectPath = convertPath('/workspace/my/module');
     newFile('/workspace/${file_paths.blazeWorkspaceMarker}', '');
-    newFolder('/workspace/bazel-bin');
-    newFolder('/workspace/bazel-genfiles');
+    newFolder('/workspace/blaze-bin');
+    newFolder('/workspace/blaze-genfiles');
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
     expect(analysisContext.contextRoot.workspace, isA<BlazeWorkspace>());

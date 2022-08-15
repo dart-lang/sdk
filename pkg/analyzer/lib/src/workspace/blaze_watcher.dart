@@ -486,11 +486,8 @@ class _BlazeInvocationWatcher implements PollTrigger {
 
   Future<String?> _getCommandLogPath() async {
     String? resolvedLink;
-    var bazelOut = _inWorkspace('bazel-out');
     var blazeOut = _inWorkspace('blaze-out');
-    if (await io.Link(bazelOut).exists()) {
-      resolvedLink = await io.Link(bazelOut).target();
-    } else if (await io.Link(blazeOut).exists()) {
+    if (await io.Link(blazeOut).exists()) {
       resolvedLink = await io.Link(blazeOut).target();
     }
     if (resolvedLink == null) return null;

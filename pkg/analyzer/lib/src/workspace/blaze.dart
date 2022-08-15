@@ -14,11 +14,10 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/workspace/blaze_watcher.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
-/// Instances of the class `BazelFileUriResolver` resolve `file` URI's by first
+/// Instances of the class `BlazeFileUriResolver` resolve `file` URI's by first
 /// resolving file uri's in the expected way, and then by looking in the
 /// corresponding generated directories.
 class BlazeFileUriResolver extends ResourceUriResolver {
@@ -176,19 +175,15 @@ class BlazePackageUriResolver extends UriResolver {
   }
 }
 
-/// Information about a Bazel workspace.
+/// Information about a Blaze workspace.
 class BlazeWorkspace extends Workspace
     implements WorkspaceWithDefaultAnalysisOptions {
   static const String _READONLY = 'READONLY';
 
-  /// The name of the file that identifies a set of Bazel Targets.
+  /// The name of the file that identifies a set of Blaze Targets.
   ///
   /// For Dart package purposes, a BUILD file identifies a package.
   static const String _buildFileName = 'BUILD';
-
-  /// Default prefix for "-genfiles" and "-bin" that will be assumed if no build
-  /// output symlinks are found.
-  static const defaultSymlinkPrefix = 'bazel';
 
   final ResourceProvider provider;
 
@@ -199,20 +194,17 @@ class BlazeWorkspace extends Workspace
   @override
   final String root;
 
-  /// Either `blaze` or `bazel`.
-  final String symlinkPrefix;
-
   /// The absolute path to the optional read only workspace root, in the
   /// `READONLY` folder if a git-based workspace, or `null`.
   final String? readonly;
 
-  /// The absolute paths to all `bazel-bin` folders.
+  /// The absolute paths to all `blaze-bin` folders.
   ///
   /// In practice, there is usually one "bin" path, and sometimes there are two,
   /// on distributed build systems. It is very rare to have more than two.
   final List<String> binPaths;
 
-  /// The absolute path to the `bazel-genfiles` folder.
+  /// The absolute path to the `blaze-genfiles` folder.
   final String genfiles;
 
   /// Sometimes `BUILD` files are not preserved, and `xyz.packages` files
@@ -232,7 +224,6 @@ class BlazeWorkspace extends Workspace
   BlazeWorkspace._(
     this.provider,
     this.root,
-    this.symlinkPrefix,
     this.readonly,
     this.binPaths,
     this.genfiles, {
@@ -269,7 +260,7 @@ class BlazeWorkspace extends Workspace
   }
 
   /// Return the file with the given [absolutePath], looking first into
-  /// directories for generated files: `bazel-bin` and `bazel-genfiles`, and
+  /// directories for generated files: `blaze-bin` and `blaze-genfiles`, and
   /// then into the workspace root. The file in the workspace root is returned
   /// even if it does not exist. Return `null` if the given [absolutePath] is
   /// not in the workspace [root].
@@ -284,10 +275,8 @@ class BlazeWorkspace extends Workspace
       // symlinks and not the [binPaths] or [genfiles] to make sure we use the
       // files corresponding to the most recent build configuration and get
       // consistent view of all the generated files.
-      var generatedCandidates = [
-        '$symlinkPrefix-genfiles',
-        '$symlinkPrefix-bin'
-      ].map((prefix) => context.join(root, context.join(prefix, relative)));
+      var generatedCandidates = ['blaze-genfiles', 'blaze-bin']
+          .map((prefix) => context.join(root, context.join(prefix, relative)));
       for (var path in generatedCandidates) {
         File file = provider.getFile(path);
         if (file.exists) {
@@ -334,7 +323,7 @@ class BlazeWorkspace extends Workspace
       return null;
     }
 
-    // Handle files which are given with their location in "bazel-bin", etc.
+    // Handle files which are given with their location in "blaze-bin", etc.
     // This does not typically happen during usual analysis, but it still could,
     // and it can come up in tests.
     for (var binPath in [genfiles, ...binPaths]) {
@@ -388,7 +377,7 @@ class BlazeWorkspace extends Workspace
   /// package's root. A ".packages" file found in [folder]'s sister path
   /// under a "bin" path among [binPaths] denotes a Dart package.
   ///
-  /// For example, if the [root] of this BazelWorkspace is
+  /// For example, if the [root] of this BlazeWorkspace is
   /// "/build/work/abc123/workspace" with two "bin" folders,
   /// "/build/work/abc123/workspace/blaze-out/host/bin/" and
   /// "/build/work/abc123/workspace/blaze-out/k8-opt/bin/", and [folder]
@@ -446,18 +435,18 @@ class BlazeWorkspace extends Workspace
     return null;
   }
 
-  /// Find the Bazel workspace that contains the given [filePath].
+  /// Find the Blaze workspace that contains the given [filePath].
   ///
   /// This method walks up the file system from [filePath], looking for various
-  /// "marker" files which indicate a Bazel workspace.
+  /// "marker" files which indicate a Blaze workspace.
   ///
   /// At each folder _f_ with parent _p_, starting with [filePath]:
   ///
   /// * If _f_ has a sibling folder named "READONLY", and that folder has a
   ///   child folder with the same name as _f_, then a [BlazeWorkspace] rooted at
   ///   _f_ is returned.
-  /// * If _f_ has a child folder named "blaze-out" or "bazel-out", then a
-  ///   [BlazeWorkspace] rooted at _f_ is returned.
+  /// * If _f_ has a child folder named "blaze-out", then a [BlazeWorkspace]
+  ///   rooted at _f_ is returned.
   /// * If _f_ has a child file named [file_paths.blazeWorkspaceMarker], then
   ///   a [BlazeWorkspace] rooted at _f_ is returned.
   static BlazeWorkspace? find(
@@ -478,29 +467,21 @@ class BlazeWorkspace extends Workspace
             context.join(readonlyFolder.path, folder.shortName);
         if (provider.getFolder(readonlyRoot).exists) {
           var binPaths = _findBinFolderPaths(folder);
-          String symlinkPrefix =
-              _findSymlinkPrefix(provider, root, binPaths: binPaths);
-          binPaths = binPaths..add(context.join(root, '$symlinkPrefix-bin'));
-          return BlazeWorkspace._(provider, root, symlinkPrefix, readonlyRoot,
-              binPaths, context.join(root, '$symlinkPrefix-genfiles'),
+          binPaths = binPaths..add(context.join(root, 'blaze-bin'));
+          return BlazeWorkspace._(provider, root, readonlyRoot, binPaths,
+              context.join(root, 'blaze-genfiles'),
               lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
         }
       }
 
-      if (_firstExistingFolder(parent, ['blaze-out', 'bazel-out']) != null) {
-        // Found the "out" folder; must be a bazel workspace.
+      final blazeOutFolder = parent.getChildAssumingFolder('blaze-out');
+      if (blazeOutFolder.exists) {
+        // Found the "out" folder; must be a Blaze workspace.
         String root = parent.path;
         var binPaths = _findBinFolderPaths(parent);
-        String symlinkPrefix =
-            _findSymlinkPrefix(provider, root, binPaths: binPaths);
-        binPaths = binPaths..add(context.join(root, '$symlinkPrefix-bin'));
-        return BlazeWorkspace._(
-            provider,
-            root,
-            symlinkPrefix,
-            null /* readonly */,
-            binPaths,
-            context.join(root, '$symlinkPrefix-genfiles'),
+        binPaths = binPaths..add(context.join(root, 'blaze-bin'));
+        return BlazeWorkspace._(provider, root, null /* readonly */, binPaths,
+            context.join(root, 'blaze-genfiles'),
             lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
       }
 
@@ -508,16 +489,9 @@ class BlazeWorkspace extends Workspace
       if (folder.getChildAssumingFile(file_paths.blazeWorkspaceMarker).exists) {
         String root = folder.path;
         var binPaths = _findBinFolderPaths(folder);
-        String symlinkPrefix =
-            _findSymlinkPrefix(provider, root, binPaths: binPaths);
-        binPaths = binPaths..add(context.join(root, '$symlinkPrefix-bin'));
-        return BlazeWorkspace._(
-            provider,
-            root,
-            symlinkPrefix,
-            null /* readonly */,
-            binPaths,
-            context.join(root, '$symlinkPrefix-genfiles'),
+        binPaths = binPaths..add(context.join(root, 'blaze-bin'));
+        return BlazeWorkspace._(provider, root, null /* readonly */, binPaths,
+            context.join(root, 'blaze-genfiles'),
             lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
       }
     }
@@ -528,17 +502,16 @@ class BlazeWorkspace extends Workspace
   /// Find the "bin" folder path, by searching for it.
   ///
   /// Depending on the environment we're working in (source code tree, build
-  /// environment subtree of sources, local workspace, blaze, bazel), the "bin"
-  /// folder may be available at a symlink found at `$root/blaze-bin/` or
-  /// `$root/bazel-bin/`. If that symlink is not available, then we must search
-  /// the immediate folders found in `$root/blaze-out/` and `$root/bazel-out/`
-  /// for folders named "bin".
+  /// environment subtree of sources, local workspace, blaze), the "bin"
+  /// folder may be available at a symlink found at `$root/blaze-bin/`. If that
+  /// symlink is not available, then we must search the immediate folders found
+  /// in `$root/blaze-out/` for folders named "bin".
   ///
   /// If no "bin" folder is found in any of those locations, empty list is
   /// returned.
   static List<String> _findBinFolderPaths(Folder root) {
-    var out = _firstExistingFolder(root, ['blaze-out', 'bazel-out']);
-    if (out == null) {
+    final out = root.getChildAssumingFolder('blaze-out');
+    if (!out.exists) {
       return [];
     }
 
@@ -553,36 +526,6 @@ class BlazeWorkspace extends Workspace
     }
     return binPaths;
   }
-
-  /// Return the symlink prefix, _X_, for folders `X-bin` or `X-genfiles`.
-  ///
-  /// If the workspace's "bin" folders were already found, the symlink prefix is
-  /// determined from one of the [binPaths]. Otherwise it is determined by
-  /// probing the internal `blaze-genfiles` and `bazel-genfiles`. Make a default
-  /// assumption according to [defaultSymlinkPrefix] if neither of the folders
-  /// exists.
-  static String _findSymlinkPrefix(ResourceProvider provider, String root,
-      {List<String>? binPaths}) {
-    path.Context context = provider.pathContext;
-    if (binPaths != null && binPaths.isNotEmpty) {
-      return context.basename(binPaths.first).startsWith('bazel')
-          ? 'bazel'
-          : 'blaze';
-    }
-    if (provider.getFolder(context.join(root, 'blaze-genfiles')).exists) {
-      return 'blaze';
-    }
-    if (provider.getFolder(context.join(root, 'bazel-genfiles')).exists) {
-      return 'bazel';
-    }
-    // Couldn't find it.  Make a default assumption.
-    return defaultSymlinkPrefix;
-  }
-
-  /// Return the first folder within [root], chosen from [names], which exists.
-  static Folder? _firstExistingFolder(Folder root, List<String> names) => names
-      .map((name) => root.getChildAssumingFolder(name))
-      .firstWhereOrNull((folder) => folder.exists);
 
   /// Return the default language version of the workspace.
   ///
@@ -614,11 +557,11 @@ class BlazeWorkspace extends Workspace
   }
 }
 
-/// Information about a package defined in a BazelWorkspace.
+/// Information about a package defined in a [BlazeWorkspace].
 ///
 /// Separate from [Packages] or package maps, this class is designed to simply
 /// understand whether arbitrary file paths represent libraries declared within
-/// a given package in a BazelWorkspace.
+/// a given package in a [BlazeWorkspace].
 class BlazeWorkspacePackage extends WorkspacePackage {
   /// A prefix for any URI of a path in this package.
   final String _uriPrefix;

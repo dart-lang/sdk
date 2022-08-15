@@ -62,15 +62,13 @@ class BlazeChangesTest extends AbstractAnalysisServerIntegrationTest {
     sourceDirectory = Directory(inWorkspace('third_party/dart/project'));
     sourceDirectory.createSync(recursive: true);
 
-    blazeRoot = inTmpDir('bazel_or_blaze_root');
+    blazeRoot = inTmpDir('blaze_root');
     Directory(blazeRoot).createSync(recursive: true);
 
-    blazeOutPath =
-        '$blazeRoot/execroot/bazel_or_blaze_workspace/bazel_or_blaze-out';
-    blazeBinPath =
-        '$blazeRoot/execroot/bazel_or_blaze_workspace/bazel_or_blaze-out/bin';
+    blazeOutPath = '$blazeRoot/execroot/blaze_workspace/blaze-out';
+    blazeBinPath = '$blazeRoot/execroot/blaze_workspace/blaze-out/bin';
     blazeGenfilesPath =
-        '$blazeRoot/execroot/bazel_or_blaze_workspace/bazel_or_blaze-out/genfiles';
+        '$blazeRoot/execroot/blaze_workspace/blaze-out/genfiles';
 
     Directory(inTmpDir(blazeOutPath)).createSync(recursive: true);
     Directory(inTmpDir(blazeBinPath)).createSync(recursive: true);

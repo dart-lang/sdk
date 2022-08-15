@@ -1135,7 +1135,7 @@ analyzer:
     var workspacePath = '/home/workspace';
     var workspaceFolder = getFolder(workspacePath);
     newFile('$workspacePath/${file_paths.blazeWorkspaceMarker}', '');
-    var bazelOptionsFile = newFile(
+    var blazeOptionsFile = newFile(
       '$workspacePath/dart/analysis_options/lib/default.yaml',
       '',
     );
@@ -1150,7 +1150,7 @@ analyzer:
     var root = findRoot(roots, workspaceFolder);
     expect(root.includedPaths, unorderedEquals([rootFolder.path]));
     expect(root.excludedPaths, isEmpty);
-    expect(root.optionsFile, bazelOptionsFile);
+    expect(root.optionsFile, blazeOptionsFile);
     expect(root.packagesFile, isNull);
   }
 

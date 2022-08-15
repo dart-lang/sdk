@@ -493,11 +493,11 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
 
   void test_pathsFor_withPubspec_inBlazeWorkspace() {
     //
-    // Build a Bazel workspace containing four packages, including the plugin.
+    // Build a Blaze workspace containing four packages, including the plugin.
     //
     newFile('/workspaceRoot/${file_paths.blazeWorkspaceMarker}', '');
-    newFolder('/workspaceRoot/bazel-bin');
-    newFolder('/workspaceRoot/bazel-genfiles');
+    newFolder('/workspaceRoot/blaze-bin');
+    newFolder('/workspaceRoot/blaze-genfiles');
 
     String newPackage(String packageName, [List<String>? dependencies]) {
       var packageRoot =

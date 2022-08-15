@@ -164,7 +164,7 @@ class DeclarationsContext {
   ///
   /// We include libraries from this list only when actual context dependencies
   /// are not known. Dependencies are always know for Pub packages, but are
-  /// currently never known for Bazel packages.
+  /// currently never known for Blaze packages.
   final List<String> _knownPathList = [];
 
   DeclarationsContext(this._tracker, this._analysisContext);
@@ -190,7 +190,7 @@ class DeclarationsContext {
   /// of packages listed as `dependencies`, and files in the `test` directory
   /// can in addition access libraries of packages listed as `dev_dependencies`.
   ///
-  /// With `Bazel` sets of accessible libraries are specified explicitly by
+  /// With `Blaze` sets of accessible libraries are specified explicitly by
   /// the client using [setDependencies].
   Libraries getLibraries(String path) {
     var sdkLibraries = <Library>[];
@@ -237,7 +237,7 @@ class DeclarationsContext {
         contextPathList = _contextPathList;
       }
     } else {
-      // In bazel workspaces, consider declarations from the entire context
+      // In Blaze workspaces, consider declarations from the entire context
       contextPathList = _contextPathList;
     }
 
@@ -261,7 +261,7 @@ class DeclarationsContext {
   ///
   /// For `Pub` packages this method is invoked automatically, because their
   /// dependencies, described in `pubspec.yaml` files, and can be automatically
-  /// included.  This method is useful for `Bazel` contexts, where dependencies
+  /// included.  This method is useful for `Blaze` contexts, where dependencies
   /// are specified externally, in form of `BUILD` files.
   ///
   /// New dependencies will replace any previously set dependencies for this
@@ -651,7 +651,7 @@ class DeclarationsTracker {
 
   /// Pull known files into [DeclarationsContext]s.
   ///
-  /// This is a temporary support for Bazel repositories, because IDEA
+  /// This is a temporary support for Blaze repositories, because IDEA
   /// does not yet give us dependencies for them.
   @visibleForTesting
   void pullKnownFiles() {
@@ -1235,7 +1235,7 @@ class _File {
       pathKey = '${pathKeyBuilder.toHex()}.declarations_content';
     }
 
-    // With Bazel multiple workspaces might be copies of the same workspace,
+    // With Blaze multiple workspaces might be copies of the same workspace,
     // and have files with the same content, but with different paths.
     // So, we use the content hash to reuse their declarations without parsing.
     String? content;
@@ -2113,7 +2113,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   }
 }
 
-/// Information about a package: `Pub` or `Bazel`.
+/// Information about a package: `Pub` or `Blaze`.
 class _Package {
   final Folder root;
   final Folder lib;

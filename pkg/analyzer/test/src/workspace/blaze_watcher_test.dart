@@ -29,8 +29,8 @@ class BlazeWatcherTest with ResourceProviderMixin {
       '/workspace/${file_paths.blazeWorkspaceMarker}',
     ]);
     var candidates = [
-      convertPath('/workspace/bazel-bin/my/module/test1.dart'),
-      convertPath('/workspace/bazel-genfiles/my/module/test1.dart'),
+      convertPath('/workspace/blaze-bin/my/module/test1.dart'),
+      convertPath('/workspace/blaze-genfiles/my/module/test1.dart'),
     ];
     var watcher = BlazeFilePoller(resourceProvider, candidates);
 
@@ -74,12 +74,12 @@ class BlazeWatcherTest with ResourceProviderMixin {
       '/workspace/${file_paths.blazeWorkspaceMarker}',
     ]);
     var candidates1 = [
-      convertPath('/workspace/bazel-bin/my/module/test1.dart'),
-      convertPath('/workspace/bazel-genfiles/my/module/test1.dart'),
+      convertPath('/workspace/blaze-bin/my/module/test1.dart'),
+      convertPath('/workspace/blaze-genfiles/my/module/test1.dart'),
     ];
     var candidates2 = [
-      convertPath('/workspace/bazel-bin/my/module/test2.dart'),
-      convertPath('/workspace/bazel-genfiles/my/module/test2.dart'),
+      convertPath('/workspace/blaze-bin/my/module/test2.dart'),
+      convertPath('/workspace/blaze-genfiles/my/module/test2.dart'),
     ];
     var trigger = _MockPollTrigger();
     var recPort = ReceivePort();
@@ -151,12 +151,12 @@ class BlazeWatcherTest with ResourceProviderMixin {
       '/workspace2/${file_paths.blazeWorkspaceMarker}',
     ]);
     var candidates1 = [
-      convertPath('/workspace1/bazel-bin/my/module/test1.dart'),
-      convertPath('/workspace1/bazel-genfiles/my/module/test1.dart'),
+      convertPath('/workspace1/blaze-bin/my/module/test1.dart'),
+      convertPath('/workspace1/blaze-genfiles/my/module/test1.dart'),
     ];
     var candidates2 = [
-      convertPath('/workspace2/bazel-bin/my/module/test2.dart'),
-      convertPath('/workspace2/bazel-genfiles/my/module/test2.dart'),
+      convertPath('/workspace2/blaze-bin/my/module/test2.dart'),
+      convertPath('/workspace2/blaze-genfiles/my/module/test2.dart'),
     ];
     _MockPollTrigger? trigger1;
     _MockPollTrigger? trigger2;
@@ -246,7 +246,7 @@ class BlazeWatcherTest with ResourceProviderMixin {
     void deleteFolder(path) => _deleteResources(['$path/']);
 
     var candidates = [
-      convertPath('/workspace/bazel-out'),
+      convertPath('/workspace/blaze-out'),
       convertPath('/workspace/blaze-out'),
     ];
     var watcher = BlazeFilePoller(resourceProvider, candidates);

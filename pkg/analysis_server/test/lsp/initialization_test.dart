@@ -46,7 +46,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_blazeWorkspace() async {
     var workspacePath = '/home/user/ws';
-    // Make it a Bazel workspace.
+    // Make it a Blaze workspace.
     newFile('$workspacePath/${file_paths.blazeWorkspaceMarker}', '');
 
     var packagePath = '$workspacePath/team/project1';
@@ -816,7 +816,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final file1 = convertPath('/home/nonProject/file1.dart');
     newFile(file1, '');
 
-    // Make /home a bazel workspace.
+    // Make /home a Blaze workspace.
     newFile('/home/${file_paths.blazeWorkspaceMarker}', '');
 
     await initialize(allowEmptyRootUri: true);

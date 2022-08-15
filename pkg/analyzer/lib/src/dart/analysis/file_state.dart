@@ -1352,7 +1352,7 @@ class FileSystemState {
   /// Return `true` if there is a URI that can be resolved to the [path].
   ///
   /// When a file exists, but for the URI that corresponds to the file is
-  /// resolved to another file, e.g. a generated one in Bazel, Gn, etc, we
+  /// resolved to another file, e.g. a generated one in Blaze, Gn, etc, we
   /// cannot analyze the original file.
   bool hasUri(String path) {
     bool? flag = _hasUriForPath[path];

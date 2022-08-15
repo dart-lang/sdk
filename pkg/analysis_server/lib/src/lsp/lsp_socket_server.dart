@@ -89,7 +89,7 @@ class LspSocketServer implements AbstractSocketServer {
       instrumentationService,
       diagnosticServer: diagnosticServer,
       detachableFileSystemManager: detachableFileSystemManager,
-      enableBazelWatcher: true,
+      enableBlazeWatcher: true,
     );
     detachableFileSystemManager?.setAnalysisServer(server);
   }

@@ -157,7 +157,7 @@ abstract class AnalysisServer {
     ProcessRunner? processRunner,
     this.notificationManager, {
     this.requestStatistics,
-    bool enableBazelWatcher = false,
+    bool enableBlazeWatcher = false,
   })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
         pubApi = PubApi(instrumentationService, httpClient,
             Platform.environment['PUB_HOSTED_URL']) {
@@ -228,7 +228,7 @@ abstract class AnalysisServer {
       analysisPerformanceLogger,
       analysisDriverScheduler,
       instrumentationService,
-      enableBazelWatcher: enableBazelWatcher,
+      enableBlazeWatcher: enableBlazeWatcher,
     );
     searchEngine = SearchEngineImpl(driverMap.values);
   }

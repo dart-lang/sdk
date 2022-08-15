@@ -381,7 +381,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     DiagnosticServer? diagnosticServer,
     this.detachableFileSystemManager,
     // Disable to avoid using this in unit tests.
-    bool enableBazelWatcher = false,
+    bool enableBlazeWatcher = false,
   }) : super(
           options,
           sdkManager,
@@ -394,7 +394,7 @@ class LegacyAnalysisServer extends AnalysisServer {
           processRunner,
           NotificationManager(channel, baseResourceProvider.pathContext),
           requestStatistics: requestStatistics,
-          enableBazelWatcher: enableBazelWatcher,
+          enableBlazeWatcher: enableBlazeWatcher,
         ) {
     var contextManagerCallbacks =
         ServerContextManagerCallbacks(this, resourceProvider);
