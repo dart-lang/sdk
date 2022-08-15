@@ -2786,6 +2786,24 @@ var v = !(a == b);
             AstTestFactory.identifier3("a"), "b", TokenType.QUESTION_PERIOD));
   }
 
+  void test_visitRecordLiteral_named() {
+    _assertSource(
+        "(a: 1, b: 2)",
+        AstTestFactory.recordLiteral([
+          AstTestFactory.namedExpression2('a', AstTestFactory.integer(1)),
+          AstTestFactory.namedExpression2('b', AstTestFactory.integer(2)),
+        ]));
+  }
+
+  void test_visitRecordLiteral_positional() {
+    _assertSource(
+        "(1, 2)",
+        AstTestFactory.recordLiteral([
+          AstTestFactory.integer(1),
+          AstTestFactory.integer(2),
+        ]));
+  }
+
   void test_visitRedirectingConstructorInvocation_named() {
     _assertSource(
         "this.c()", AstTestFactory.redirectingConstructorInvocation2("c"));

@@ -895,6 +895,13 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitRecordLiteral(RecordLiteral node) {
+    _visitToken(node.leftParenthesis);
+    _visitNodeList(node.fields, separator: ', ');
+    _visitToken(node.rightParenthesis);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     sink.write('this');

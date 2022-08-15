@@ -518,6 +518,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitPropertyAccess(PropertyAccess node) => visitExpression(node);
 
   @override
+  R? visitRecordLiteral(RecordLiteral node) => visitLiteral(node);
+
+  @override
   R? visitRedirectingConstructorInvocation(
           RedirectingConstructorInvocation node) =>
       visitConstructorInitializer(node);
@@ -1263,6 +1266,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitRecordLiteral(RecordLiteral node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     node.visitChildren(this);
@@ -1784,6 +1793,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitPropertyAccess(PropertyAccess node) => null;
 
   @override
+  R? visitRecordLiteral(RecordLiteral node) => null;
+
+  @override
   R? visitRedirectingConstructorInvocation(
           RedirectingConstructorInvocation node) =>
       null;
@@ -2210,6 +2222,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPropertyAccess(PropertyAccess node) => _throw(node);
+
+  @override
+  R? visitRecordLiteral(RecordLiteral node) => _throw(node);
 
   @override
   R? visitRedirectingConstructorInvocation(
@@ -3139,6 +3154,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitRecordLiteral(RecordLiteral node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitRecordLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     stopwatch.start();
@@ -3749,6 +3772,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPropertyAccess(PropertyAccess node) => visitNode(node);
+
+  @override
+  R? visitRecordLiteral(RecordLiteral node) => visitNode(node);
 
   @override
   R? visitRedirectingConstructorInvocation(

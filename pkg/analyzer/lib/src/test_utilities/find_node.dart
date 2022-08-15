@@ -428,6 +428,10 @@ class FindNode {
     return _node(search, (n) => n is PropertyAccess);
   }
 
+  RecordLiteral recordLiteral(String search) {
+    return _node(search, (n) => n is RecordLiteral);
+  }
+
   RedirectingConstructorInvocation redirectingConstructorInvocation(
       String search) {
     return _node(search, (n) => n is RedirectingConstructorInvocation);

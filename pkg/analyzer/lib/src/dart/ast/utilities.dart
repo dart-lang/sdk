@@ -1030,6 +1030,14 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitRecordLiteral(RecordLiteral node) {
+    var other = _other as RecordLiteral;
+    return isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
+        _isEqualNodeLists(node.fields, other.fields) &&
+        isEqualTokens(node.rightParenthesis, other.rightParenthesis);
+  }
+
+  @override
   bool visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     RedirectingConstructorInvocation other =
@@ -2747,6 +2755,14 @@ class NodeReplacer implements AstVisitor<bool> {
       return true;
     } else if (identical(node.propertyName, _oldNode)) {
       node.propertyName = _newNode as SimpleIdentifier;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitRecordLiteral(covariant RecordLiteralImpl node) {
+    if (_replaceInList(node.fields)) {
       return true;
     }
     return visitNode(node);

@@ -551,6 +551,8 @@ abstract class AstVisitor<R> {
 
   R? visitPropertyAccess(PropertyAccess node);
 
+  R? visitRecordLiteral(RecordLiteral node);
+
   R? visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node);
 

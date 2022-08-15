@@ -980,6 +980,14 @@ class AstTestFactory {
       astFactory.propertyAccess(target, TokenFactory.tokenFromType(operator),
           identifier3(propertyName));
 
+  static RecordLiteral recordLiteral(List<Expression> fields) {
+    return RecordLiteralImpl(
+      leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+      fields: fields,
+      rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+    );
+  }
+
   static RedirectingConstructorInvocationImpl redirectingConstructorInvocation(
           [List<Expression> arguments = const []]) =>
       redirectingConstructorInvocation2(null, arguments);

@@ -624,6 +624,12 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitRecordLiteral(RecordLiteral node) {
+    _runSubscriptions(node, registry._forRecordLiterals);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     _runSubscriptions(node, registry._forRedirectingConstructorInvocation);
@@ -970,6 +976,7 @@ class NodeLintRegistry {
   final List<_Subscription<PrefixedIdentifier>> _forPrefixedIdentifier = [];
   final List<_Subscription<PrefixExpression>> _forPrefixExpression = [];
   final List<_Subscription<PropertyAccess>> _forPropertyAccess = [];
+  final List<_Subscription<RecordLiteral>> _forRecordLiterals = [];
   final List<_Subscription<RedirectingConstructorInvocation>>
       _forRedirectingConstructorInvocation = [];
   final List<_Subscription<RethrowExpression>> _forRethrowExpression = [];
@@ -1457,6 +1464,10 @@ class NodeLintRegistry {
 
   void addPropertyAccess(LintRule linter, AstVisitor visitor) {
     _forPropertyAccess.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addRecordLiteral(LintRule linter, AstVisitor visitor) {
+    _forRecordLiterals.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addRedirectingConstructorInvocation(

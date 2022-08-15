@@ -9679,17 +9679,11 @@ class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
     ..addToken('rightParenthesis', rightParenthesis);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-    // visitor.visitRecordLiteral(this);
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordLiteral(this);
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
-    // TODO: implement resolveExpression
-    throw UnimplementedError();
-    // resolver.visitRecordLiteral(this, contextType: contextType);
+    resolver.visitRecordLiteral(this, contextType: contextType);
   }
 
   @override
