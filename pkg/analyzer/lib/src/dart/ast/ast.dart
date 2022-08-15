@@ -9692,6 +9692,180 @@ class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   }
 }
 
+abstract class RecordTypeAnnotationFieldImpl extends AstNodeImpl
+    implements RecordTypeAnnotationField {
+  @override
+  final NodeListImpl<Annotation> metadata = NodeListImpl._();
+
+  @override
+  final TypeAnnotationImpl type;
+
+  @override
+  final Token? comma;
+
+  RecordTypeAnnotationFieldImpl({
+    required List<Annotation>? metadata,
+    required this.type,
+    required this.comma,
+  }) {
+    this.metadata._initialize(this, metadata);
+    _becomeParentOf(type);
+  }
+
+  @override
+  Token get beginToken => metadata.beginToken ?? type.beginToken;
+
+  @override
+  Token get endToken => comma ?? type.endToken;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNodeList('metadata', metadata)
+    ..addNode('type', type)
+    ..addToken('name', name)
+    ..addToken('comma', comma);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    metadata.accept(visitor);
+    type.accept(visitor);
+  }
+}
+
+class RecordTypeAnnotationImpl extends TypeAnnotationImpl
+    implements RecordTypeAnnotation {
+  @override
+  final NodeListImpl<RecordTypeAnnotationPositionalField> positionalFields =
+      NodeListImpl._();
+
+  @override
+  final RecordTypeAnnotationNamedFieldsImpl? namedFields;
+
+  @override
+  final Token? question;
+
+  @override
+  DartType? type;
+
+  RecordTypeAnnotationImpl({
+    required List<RecordTypeAnnotationPositionalField> positionalFields,
+    required this.namedFields,
+    required this.question,
+  }) {
+    this.positionalFields._initialize(this, positionalFields);
+  }
+
+  @override
+  Token get beginToken {
+    return positionalFields.beginToken ?? namedFields!.beginToken;
+  }
+
+  @override
+  Token get endToken {
+    return namedFields?.endToken ?? positionalFields.endToken!;
+  }
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNodeList('positionalFields', positionalFields)
+    ..addNode('namedFields', namedFields)
+    ..addToken('question', question);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    positionalFields.accept(visitor);
+    namedFields?.accept(visitor);
+  }
+}
+
+class RecordTypeAnnotationNamedFieldImpl extends RecordTypeAnnotationFieldImpl
+    implements RecordTypeAnnotationNamedField {
+  @override
+  final Token name;
+
+  RecordTypeAnnotationNamedFieldImpl({
+    required super.metadata,
+    required super.type,
+    required this.name,
+    required super.comma,
+  });
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+}
+
+class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
+    implements RecordTypeAnnotationNamedFields {
+  @override
+  final Token leftBracket;
+
+  @override
+  final NodeListImpl<RecordTypeAnnotationNamedField> fields = NodeListImpl._();
+
+  @override
+  final Token rightBracket;
+
+  RecordTypeAnnotationNamedFieldsImpl({
+    required this.leftBracket,
+    required List<RecordTypeAnnotationNamedField> fields,
+    required this.rightBracket,
+  }) {
+    this.fields._initialize(this, fields);
+  }
+
+  @override
+  Token get beginToken => leftBracket;
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('fields', fields)
+    ..addToken('rightBracket', rightBracket);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    fields.accept(visitor);
+  }
+}
+
+class RecordTypeAnnotationPositionalFieldImpl
+    extends RecordTypeAnnotationFieldImpl
+    implements RecordTypeAnnotationPositionalField {
+  @override
+  final Token? name;
+
+  RecordTypeAnnotationPositionalFieldImpl({
+    required super.metadata,
+    required super.type,
+    required this.name,
+    required super.comma,
+  });
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+}
+
 /// The invocation of a constructor in the same class from within a
 /// constructor's initialization list.
 ///

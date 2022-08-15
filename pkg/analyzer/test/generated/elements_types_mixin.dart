@@ -584,6 +584,8 @@ mixin ElementsTypesMixin {
     required DartType type,
   }) {
     return RecordPositionalFieldElementImpl(
+      name: null,
+      nameOffset: -1,
       type: type,
     );
   }
