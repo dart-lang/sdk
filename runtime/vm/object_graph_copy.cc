@@ -259,7 +259,7 @@ ObjectPtr AllocateObject(intptr_t cid, intptr_t size) {
 #else
   const bool compressed = false;
 #endif
-  return Object::Allocate(cid, size, Heap::kNew, compressed);
+  return Object::Allocate(cid, size, Heap::kOld, compressed);
 }
 
 DART_FORCE_INLINE
