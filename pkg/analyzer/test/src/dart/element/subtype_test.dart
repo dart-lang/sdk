@@ -4121,6 +4121,130 @@ class SubtypeTest extends _SubtypingTestBase {
     );
   }
 
+  test_record_functionType() {
+    isNotSubtype2('({int foo})', 'void Function()');
+  }
+
+  test_record_interfaceType() {
+    isNotSubtype2('({int foo})', 'int');
+    isNotSubtype2('int', '({int foo})');
+  }
+
+  test_record_Never() {
+    isNotSubtype2('({int foo})', 'Never');
+    isSubtype2('Never', '({int foo})');
+  }
+
+  test_record_record2_differentShape() {
+    void check(String T1, String T2) {
+      isNotSubtype2(T1, T2);
+      isNotSubtype2(T2, T1);
+    }
+
+    check('(int)', '(int, String)');
+
+    check('({int foo, String bar})', '({int foo})');
+    check('({int foo})', '({int bar})');
+  }
+
+  test_record_record2_sameShape_mixed() {
+    void check(String subType, String superType) {
+      isSubtype2(subType, superType);
+      isNotSubtype2(superType, subType);
+    }
+
+    check('(int, {String bar})', '(int, {Object bar})');
+  }
+
+  test_record_record2_sameShape_named() {
+    void check(String subType, String superType) {
+      isSubtype2(subType, superType);
+      isNotSubtype2(superType, subType);
+    }
+
+    check('({int foo})', '({num foo})');
+
+    isSubtype2('({int foo, String bar})', '({int foo, String bar})');
+    check('({int foo, String bar})', '({int foo, Object bar})');
+    check('({int foo, String bar})', '({num foo, String bar})');
+    check('({int foo, String bar})', '({num foo, Object bar})');
+  }
+
+  test_record_record2_sameShape_named_order() {
+    void check(RecordType subType, RecordType superType) {
+      isSubtype(subType, superType);
+      isSubtype(superType, subType);
+    }
+
+    check(
+      recordTypeNone(
+        element: recordElement(
+          namedFields: [
+            recordNamedField(name: 'foo01', type: intNone),
+            recordNamedField(name: 'foo02', type: intNone),
+            recordNamedField(name: 'foo03', type: intNone),
+            recordNamedField(name: 'foo04', type: intNone),
+          ],
+        ),
+      ),
+      recordTypeNone(
+        element: recordElement(
+          namedFields: [
+            recordNamedField(name: 'foo04', type: intNone),
+            recordNamedField(name: 'foo03', type: intNone),
+            recordNamedField(name: 'foo02', type: intNone),
+            recordNamedField(name: 'foo01', type: intNone),
+          ],
+        ),
+      ),
+    );
+  }
+
+  test_record_record2_sameShape_positional() {
+    void check(String subType, String superType) {
+      isSubtype2(subType, superType);
+      isNotSubtype2(superType, subType);
+    }
+
+    check('(int)', '(num)');
+
+    isSubtype2('(int, String)', '(int, String)');
+    check('(int, String)', '(num, String)');
+    check('(int, String)', '(num, Object)');
+    check('(int, String)', '(int, Object)');
+  }
+
+  test_record_top() {
+    isSubtype2('({int foo})', 'dynamic');
+    isSubtype2('({int foo})', 'Object');
+    isSubtype2('({int foo})', 'Record');
+  }
+
+  /// The class `Record` is a subtype of `Object` and `dynamic`, and a
+  /// supertype of `Never`.
+  test_recordClass() {
+    isSubtype(
+      recordNone,
+      objectNone,
+      strT0: 'Record',
+      strT1: 'Object',
+    );
+
+    isSubtype(
+      recordNone,
+      dynamicNone,
+      strT0: 'Record',
+      strT1: 'dynamic',
+    );
+
+    isSubtype(
+      neverNone,
+      recordNone,
+      strT0: 'Never',
+      strT1: 'Record',
+    );
+  }
+
   test_special_01() {
     isNotSubtype(
       dynamicNone,
@@ -5405,6 +5529,13 @@ class SubtypeTest extends _SubtypingTestBase {
     );
 
     _defineType(
+      'void Function()',
+      functionTypeNone(
+        returnType: voidNone,
+      ),
+    );
+
+    _defineType(
       'int* Function()',
       functionTypeNone(
         returnType: intStar,
@@ -5582,6 +5713,174 @@ class SubtypeTest extends _SubtypingTestBase {
       functionTypeNone(
         parameters: [positionalParameter(type: numQuestion)],
         returnType: numQuestion,
+      ),
+    );
+
+    _defineType('Record', recordNone);
+    _defineType(
+      '(int, String)',
+      recordTypeNone(
+        element: recordElement(
+          positionalFields: [
+            recordPositionalField(type: intNone),
+            recordPositionalField(type: stringNone),
+          ],
+        ),
+      ),
+    );
+    _defineType(
+      '(num, String)',
+      recordTypeNone(
+        element: recordElement(
+          positionalFields: [
+            recordPositionalField(type: numNone),
+            recordPositionalField(type: stringNone),
+          ],
+        ),
+      ),
+    );
+    _defineType(
+      '(int, Object)',
+      recordTypeNone(
+        element: recordElement(
+          positionalFields: [
+            recordPositionalField(type: intNone),
+            recordPositionalField(type: objectNone),
+          ],
+        ),
+      ),
+    );
+    _defineType(
+      '(num, Object)',
+      recordTypeNone(
+        element: recordElement(
+          positionalFields: [
+            recordPositionalField(type: numNone),
+            recordPositionalField(type: objectNone),
+          ],
+        ),
+      ),
+    );
+    _defineType(
+      '(int)',
+      recordTypeNone(
+        element: recordElement(
+          positionalFields: [
+            recordPositionalField(type: intNone),
+          ],
+        ),
+      ),
+    );
+    _defineType(
+      '(num)',
+      recordTypeNone(
+        element: recordElement(
+          positionalFields: [
+            recordPositionalField(type: numNone),
+          ],
+        ),
+      ),
+    );
+
+    _defineType(
+      '({int foo})',
+      recordTypeNone(
+        element: recordElement(
+          namedFields: [
+            recordNamedField(name: 'foo', type: intNone),
+          ],
+        ),
+      ),
+    );
+    _defineType(
+      '({num foo})',
+      recordTypeNone(
+        element: recordElement(
+          namedFields: [
+            recordNamedField(name: 'foo', type: numNone),
+          ],
+        ),
+      ),
+    );
+    _defineType(
+      '({int bar})',
+      recordTypeNone(
+        element: recordElement(
+          namedFields: [
+            recordNamedField(name: 'bar', type: intNone),
+          ],
+        ),
+      ),
+    );
+    _defineType(
+      '({int foo, String bar})',
+      recordTypeNone(
+        element: recordElement(
+          namedFields: [
+            recordNamedField(name: 'foo', type: intNone),
+            recordNamedField(name: 'bar', type: stringNone),
+          ],
+        ),
+      ),
+    );
+    _defineType(
+      '({int foo, Object bar})',
+      recordTypeNone(
+        element: recordElement(
+          namedFields: [
+            recordNamedField(name: 'foo', type: intNone),
+            recordNamedField(name: 'bar', type: objectNone),
+          ],
+        ),
+      ),
+    );
+    _defineType(
+      '({num foo, String bar})',
+      recordTypeNone(
+        element: recordElement(
+          namedFields: [
+            recordNamedField(name: 'foo', type: numNone),
+            recordNamedField(name: 'bar', type: stringNone),
+          ],
+        ),
+      ),
+    );
+    _defineType(
+      '({num foo, Object bar})',
+      recordTypeNone(
+        element: recordElement(
+          namedFields: [
+            recordNamedField(name: 'foo', type: numNone),
+            recordNamedField(name: 'bar', type: objectNone),
+          ],
+        ),
+      ),
+    );
+
+    _defineType(
+      '(int, {String bar})',
+      recordTypeNone(
+        element: recordElement(
+          positionalFields: [
+            recordPositionalField(type: intNone),
+          ],
+          namedFields: [
+            recordNamedField(name: 'bar', type: stringNone),
+          ],
+        ),
+      ),
+    );
+    _defineType(
+      '(int, {Object bar})',
+      recordTypeNone(
+        element: recordElement(
+          positionalFields: [
+            recordPositionalField(type: intNone),
+          ],
+          namedFields: [
+            recordNamedField(name: 'bar', type: objectNone),
+          ],
+        ),
       ),
     );
   }
@@ -6048,6 +6347,17 @@ class _TypeParameterCollector extends TypeVisitor<void> {
 
   @override
   void visitNeverType(NeverType type) {}
+
+  @override
+  void visitRecordType(RecordType type) {
+    final fields = [
+      ...type.positionalFields,
+      ...type.namedFields,
+    ];
+    for (final field in fields) {
+      field.type.accept(this);
+    }
+  }
 
   @override
   void visitTypeParameterType(TypeParameterType type) {

@@ -904,21 +904,23 @@ class ElementKind implements Comparable<ElementKind> {
 
   static const ElementKind PREFIX = ElementKind('PREFIX', 23, "import prefix");
 
-  static const ElementKind SETTER = ElementKind('SETTER', 24, "setter");
+  static const ElementKind RECORD = ElementKind('RECORD', 24, "record");
+
+  static const ElementKind SETTER = ElementKind('SETTER', 25, "setter");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      ElementKind('TOP_LEVEL_VARIABLE', 25, "top level variable");
+      ElementKind('TOP_LEVEL_VARIABLE', 26, "top level variable");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      ElementKind('FUNCTION_TYPE_ALIAS', 26, "function type alias");
+      ElementKind('FUNCTION_TYPE_ALIAS', 27, "function type alias");
 
   static const ElementKind TYPE_PARAMETER =
-      ElementKind('TYPE_PARAMETER', 27, "type parameter");
+      ElementKind('TYPE_PARAMETER', 28, "type parameter");
 
   static const ElementKind TYPE_ALIAS =
-      ElementKind('TYPE_ALIAS', 28, "type alias");
+      ElementKind('TYPE_ALIAS', 29, "type alias");
 
-  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 29, "<universe>");
+  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 30, "<universe>");
 
   static const List<ElementKind> values = [
     CLASS,
@@ -942,6 +944,7 @@ class ElementKind implements Comparable<ElementKind> {
     PARAMETER,
     PART,
     PREFIX,
+    RECORD,
     SETTER,
     TOP_LEVEL_VARIABLE,
     FUNCTION_TYPE_ALIAS,
@@ -2244,6 +2247,49 @@ abstract class PropertyInducingElement implements VariableElement {
   /// associated with it will be synthetic.
   PropertyAccessorElement? get setter;
 }
+
+/// A record shape, declared or synthesized. There might be multiple
+/// declarations of the same record shape in the code under analysis, even in
+/// the same file. A record shape can be synthesized from two or more other
+/// record shapes, e.g. with `a ?? b`.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordElement implements _ExistingElement {
+  /// The named fields (might be empty).
+  List<RecordNamedFieldElement> get namedFields;
+
+  /// The positional fields (might be empty).
+  List<RecordPositionalFieldElement> get positionalFields;
+}
+
+/// A field in a [RecordElement].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordFieldElement implements _ExistingElement {
+  @override
+  RecordElement get enclosingElement3;
+
+  /// The type of the field.
+  DartType get type;
+}
+
+/// A named field in a [RecordElement].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordNamedFieldElement implements RecordFieldElement {
+  /// The name of the field.
+  @override
+  String get name;
+}
+
+/// A positional field in a [RecordElement].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordPositionalFieldElement implements RecordFieldElement {}
 
 /// A combinator that cause some of the names in a namespace to be visible (and
 /// the rest hidden) when being imported.

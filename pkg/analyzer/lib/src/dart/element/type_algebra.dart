@@ -546,6 +546,12 @@ abstract class _TypeSubstitutor
   DartType visitNeverType(NeverType type) => type;
 
   @override
+  DartType visitRecordType(RecordType type) {
+    // TODO: implement visitRecordType
+    throw UnimplementedError();
+  }
+
+  @override
   DartType visitTypeParameterType(TypeParameterType type) {
     var argument = getSubstitute(type.element2);
     if (argument == null) {

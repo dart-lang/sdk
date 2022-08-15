@@ -596,6 +596,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  bool get isDartCoreRecord {
+    return element2.name == "Record" && element2.library.isDartCore;
+  }
+
+  @override
   bool get isDartCoreSet {
     return element2.name == "Set" && element2.library.isDartCore;
   }
@@ -977,6 +982,110 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   }
 }
 
+abstract class RecordTypeFieldImpl implements RecordTypeField {
+  @override
+  final DartType type;
+
+  RecordTypeFieldImpl({
+    required this.type,
+  });
+}
+
+class RecordTypeImpl extends TypeImpl implements RecordType {
+  @override
+  final RecordElementImpl element2;
+
+  final Substitution substitution;
+
+  @override
+  final NullabilitySuffix nullabilitySuffix;
+
+  RecordTypeImpl({
+    required this.element2,
+    required this.substitution,
+    required this.nullabilitySuffix,
+  }) : super(element2);
+
+  @override
+  RecordElementImpl get element => element2;
+
+  @Deprecated('Check element, or use getDisplayString()')
+  @override
+  String? get name => null;
+
+  @override
+  List<RecordTypeNamedField> get namedFields {
+    return element.namedFieldsSorted.map((field) {
+      final type = substitution.substituteType(field.type);
+      return RecordTypeNamedFieldImpl(
+        element: field,
+        name: field.name,
+        type: type,
+      );
+    }).toList();
+  }
+
+  @override
+  List<RecordTypePositionalField> get positionalFields {
+    return element.positionalFields.map((field) {
+      final type = substitution.substituteType(field.type);
+      return RecordTypePositionalFieldImpl(
+        element: field,
+        type: type,
+      );
+    }).toList();
+  }
+
+  @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitRecordType(this);
+  }
+
+  @override
+  R acceptWithArgument<R, A>(
+      TypeVisitorWithArgument<R, A> visitor, A argument) {
+    // TODO: implement acceptWithArgument
+    throw UnimplementedError();
+  }
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeRecordType(this);
+  }
+
+  @override
+  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
+    // TODO: implement withNullability
+    throw UnimplementedError();
+  }
+}
+
+class RecordTypeNamedFieldImpl extends RecordTypeFieldImpl
+    implements RecordTypeNamedField {
+  @override
+  final RecordNamedFieldElementImpl element;
+
+  @override
+  final String name;
+
+  RecordTypeNamedFieldImpl({
+    required this.element,
+    required this.name,
+    required super.type,
+  });
+}
+
+class RecordTypePositionalFieldImpl extends RecordTypeFieldImpl
+    implements RecordTypePositionalField {
+  @override
+  final RecordPositionalFieldElementImpl element;
+
+  RecordTypePositionalFieldImpl({
+    required this.element,
+    required super.type,
+  });
+}
+
 /// The abstract class `TypeImpl` implements the behavior common to objects
 /// representing the declared type of elements in the element model.
 abstract class TypeImpl implements DartType {
@@ -1047,6 +1156,9 @@ abstract class TypeImpl implements DartType {
 
   @override
   bool get isDartCoreObject => false;
+
+  @override
+  bool get isDartCoreRecord => false;
 
   @override
   bool get isDartCoreSet => false;

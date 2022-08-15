@@ -118,6 +118,7 @@ class TypeProviderImpl extends TypeProviderBase {
   ClassElement? _nullElement;
   ClassElement? _numElement;
   ClassElement? _objectElement;
+  ClassElement? _recordElement;
   ClassElement? _setElement;
   ClassElement? _streamElement;
   ClassElement? _stringElement;
@@ -388,6 +389,11 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType get objectType {
     return _objectType ??= _getType(_coreLibrary, "Object");
+  }
+
+  @override
+  ClassElement get recordElement {
+    return _recordElement ??= _getClassElement(_coreLibrary, 'Record');
   }
 
   @override

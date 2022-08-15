@@ -111,6 +111,10 @@ abstract class DartType {
   /// dart:core library.
   bool get isDartCoreObject;
 
+  /// Return `true` if this type represents the type 'Record' defined in the
+  /// dart:core library.
+  bool get isDartCoreRecord;
+
   /// Returns `true` if this type represents the type 'Set' defined in the
   /// dart:core library.
   bool get isDartCoreSet;
@@ -430,6 +434,13 @@ abstract class ParameterizedType implements DartType {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class RecordType implements DartType {
+  @Deprecated('Use element2 instead')
+  @override
+  RecordElement get element;
+
+  @override
+  RecordElement get element2;
+
   /// The named fields (might be empty).
   List<RecordTypeNamedField> get namedFields;
 
@@ -442,8 +453,8 @@ abstract class RecordType implements DartType {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class RecordTypeField {
-  /// Returns metadata associated with the field.
-  List<ElementAnnotation> get metadata;
+  /// The declaration of the field.
+  RecordFieldElement get element;
 
   /// The type of the field.
   DartType get type;
@@ -454,6 +465,9 @@ abstract class RecordTypeField {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class RecordTypeNamedField implements RecordTypeField {
+  @override
+  RecordNamedFieldElement get element;
+
   /// The name of the field.
   String get name;
 }
@@ -462,7 +476,10 @@ abstract class RecordTypeNamedField implements RecordTypeField {
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class RecordTypePositionalField implements RecordTypeField {}
+abstract class RecordTypePositionalField implements RecordTypeField {
+  @override
+  RecordPositionalFieldElement get element;
+}
 
 /// The type introduced by a type parameter.
 ///

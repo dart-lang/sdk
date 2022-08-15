@@ -3491,6 +3491,17 @@ class _TypeParameterCollector
   void visitNeverType(NeverType type) {}
 
   @override
+  void visitRecordType(RecordType type) {
+    final fields = [
+      ...type.positionalFields,
+      ...type.namedFields,
+    ];
+    for (final field in fields) {
+      field.type.accept(this);
+    }
+  }
+
+  @override
   void visitTypeParameterType(TypeParameterType type) {
     if (!functionTypeParameters.contains(type.element2)) {
       var bound = type.element2.bound;

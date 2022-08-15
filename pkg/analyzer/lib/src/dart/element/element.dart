@@ -6187,6 +6187,105 @@ abstract class PropertyInducingElementTypeInference {
   void perform();
 }
 
+class RecordElementImpl extends _ExistingElementImpl implements RecordElement {
+  @override
+  final List<RecordPositionalFieldElementImpl> positionalFields;
+
+  @override
+  final List<RecordNamedFieldElementImpl> namedFields;
+
+  /// Maybe copy of [namedFields] lexically sorted by names.
+  final List<RecordNamedFieldElementImpl> namedFieldsSorted;
+
+  RecordElementImpl({
+    required this.positionalFields,
+    required this.namedFields,
+  })  : namedFieldsSorted = _sortNamedFields(namedFields),
+        super(null, -1) {
+    for (final field in positionalFields) {
+      field.enclosingElement = this;
+    }
+    for (final field in namedFields) {
+      field.enclosingElement = this;
+    }
+  }
+
+  @override
+  ElementKind get kind => ElementKind.RECORD;
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  /// Returns [fields], if already sorted, or the sorted copy.
+  static List<RecordNamedFieldElementImpl> _sortNamedFields(
+    List<RecordNamedFieldElementImpl> fields,
+  ) {
+    var isSorted = true;
+    String? lastName;
+    for (final field in fields) {
+      final name = field.name;
+      if (lastName != null && lastName.compareTo(name) > 0) {
+        isSorted = false;
+        break;
+      }
+      lastName = name;
+    }
+
+    if (isSorted) {
+      return fields;
+    }
+
+    return fields.sortedBy((field) => field.name);
+  }
+}
+
+class RecordFieldElementImpl extends _ExistingElementImpl
+    implements RecordFieldElement {
+  @override
+  DartType type;
+
+  RecordFieldElementImpl({
+    required String? name,
+    required int nameOffset,
+    required this.type,
+  }) : super(name, nameOffset);
+
+  @override
+  RecordElementImpl get enclosingElement3 =>
+      super.enclosingElement3 as RecordElementImpl;
+
+  @override
+  ElementKind get kind => ElementKind.RECORD;
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+}
+
+class RecordNamedFieldElementImpl extends RecordFieldElementImpl
+    implements RecordNamedFieldElement {
+  RecordNamedFieldElementImpl({
+    required String super.name,
+    required super.nameOffset,
+    required super.type,
+  });
+
+  @override
+  String get name => super.name!;
+}
+
+class RecordPositionalFieldElementImpl extends RecordFieldElementImpl
+    implements RecordPositionalFieldElement {
+  RecordPositionalFieldElementImpl({
+    required super.type,
+  }) : super(name: null, nameOffset: -1);
+}
+
 /// A concrete implementation of a [ShowElementCombinator].
 class ShowElementCombinatorImpl implements ShowElementCombinator {
   @override
