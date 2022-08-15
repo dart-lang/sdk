@@ -123,6 +123,7 @@ class FlowGraphInliner : ValueObject {
 
   static bool FunctionHasPreferInlinePragma(const Function& function);
   static bool FunctionHasNeverInlinePragma(const Function& function);
+  static bool FunctionHasAlwaysConsiderInliningPragma(const Function& function);
 
   FlowGraph* flow_graph() const { return flow_graph_; }
   intptr_t NextInlineId(const Function& function,

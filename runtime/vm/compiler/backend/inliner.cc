@@ -524,37 +524,50 @@ class CallSites : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(CallSites);
 };
 
-// Determines if inlining this graph yields a small leaf node.
-static bool IsSmallLeaf(FlowGraph* graph) {
+// Determines if inlining this graph yields a small leaf node, or a sequence of
+// static calls that is no larger than the call site it will replace.
+static bool IsSmallLeafOrReduction(int inlining_depth,
+                                   intptr_t call_site_instructions,
+                                   FlowGraph* graph) {
   intptr_t instruction_count = 0;
+  intptr_t call_count = 0;
   for (BlockIterator block_it = graph->postorder_iterator(); !block_it.Done();
        block_it.Advance()) {
     BlockEntryInstr* entry = block_it.Current();
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
+      if (current->IsReturn()) continue;
       ++instruction_count;
       if (current->IsInstanceCall() || current->IsPolymorphicInstanceCall() ||
           current->IsClosureCall()) {
         return false;
-      } else if (current->IsStaticCall()) {
+      }
+      if (current->IsStaticCall()) {
         const Function& function = current->AsStaticCall()->function();
         const intptr_t inl_size = function.optimized_instruction_count();
         const bool always_inline =
             FlowGraphInliner::FunctionHasPreferInlinePragma(function);
-        // Accept a static call is always inlined in some way and add the
-        // cached size to the total instruction count. A reasonable guess
-        // is made if the count has not been collected yet (listed methods
-        // are never very large).
-        if (!always_inline && !function.IsRecognized()) {
-          return false;
+        // Accept a static call that is always inlined in some way and add the
+        // cached size to the total instruction count. A reasonable guess is
+        // made if the count has not been collected yet (listed methods are
+        // never very large).
+        if (always_inline || function.IsRecognized()) {
+          if (!always_inline) {
+            static constexpr intptr_t kAvgListedMethodSize = 20;
+            instruction_count +=
+                (inl_size == 0 ? kAvgListedMethodSize : inl_size);
+          }
+        } else {
+          ++call_count;
+          instruction_count += current->AsStaticCall()->ArgumentCount();
+          instruction_count += 1;  // pop the call frame.
         }
-        if (!always_inline) {
-          static constexpr intptr_t kAvgListedMethodSize = 20;
-          instruction_count +=
-              (inl_size == 0 ? kAvgListedMethodSize : inl_size);
-        }
+        continue;
       }
     }
+  }
+  if (call_count > 0) {
+    return instruction_count <= call_site_instructions;
   }
   return instruction_count <= FLAG_inlining_small_leaf_size_threshold;
 }
@@ -1036,6 +1049,8 @@ class CallSiteInliner : public ValueObject {
 
     if (FlowGraphInliner::FunctionHasNeverInlinePragma(function)) {
       TRACE_INLINING(THR_Print("     Bailout: vm:never-inline pragma\n"));
+      PRINT_INLINING_TREE("vm:never-inline", &call_data->caller, &function,
+                          call_data->call);
       return false;
     }
 
@@ -1156,6 +1171,8 @@ class CallSiteInliner : public ValueObject {
             TRACE_INLINING(
                 THR_Print("     Bailout: not inlinable due to "
                           "!function.CanBeInlined()\n"));
+            PRINT_INLINING_TREE("Not inlinable", &call_data->caller, &function,
+                                call_data->call);
             return false;
           }
         }
@@ -1352,9 +1369,19 @@ class CallSiteInliner : public ValueObject {
               ShouldWeInline(function, instruction_count, call_site_count);
           if (!decision.value) {
             // If size is larger than all thresholds, don't consider it again.
+
+            // TODO(dartbug.com/49665): Make compiler smart enough so it itself
+            // can identify highly-specialized functions that should always
+            // be considered for inlining, without relying on a pragma.
             if ((instruction_count > FLAG_inlining_size_threshold) &&
                 (call_site_count > FLAG_inlining_callee_call_sites_threshold)) {
-              function.set_is_inlinable(false);
+              // Will keep trying to inline the function if it can be
+              // specialized based on argument types.
+              if (!FlowGraphInliner::FunctionHasAlwaysConsiderInliningPragma(
+                      function)) {
+                function.set_is_inlinable(false);
+                TRACE_INLINING(THR_Print("     Mark not inlinable\n"));
+              }
             }
             TRACE_INLINING(
                 THR_Print("     Bailout: heuristics (%s) with "
@@ -1376,7 +1403,13 @@ class CallSiteInliner : public ValueObject {
           // TODO(ajcbik): with the now better bookkeeping, explore removing
           // this
           if (stricter_heuristic) {
-            if (!IsSmallLeaf(callee_graph)) {
+            intptr_t call_site_instructions = 0;
+            if (auto static_call = call->AsStaticCall()) {
+              // Push all the arguments, do the call, drop arguments.
+              call_site_instructions = static_call->ArgumentCount() + 1 + 1;
+            }
+            if (!IsSmallLeafOrReduction(inlining_depth_, call_site_instructions,
+                                        callee_graph)) {
               TRACE_INLINING(
                   THR_Print("     Bailout: heuristics (no small leaf)\n"));
               PRINT_INLINING_TREE("Heuristic fail (no small leaf)",
@@ -2437,6 +2470,19 @@ bool FlowGraphInliner::FunctionHasNeverInlinePragma(const Function& function) {
   Object& options = Object::Handle();
   return Library::FindPragma(thread, /*only_core=*/false, function,
                              Symbols::vm_never_inline(),
+                             /*multiple=*/false, &options);
+}
+
+bool FlowGraphInliner::FunctionHasAlwaysConsiderInliningPragma(
+    const Function& function) {
+  if (!function.has_pragma()) {
+    return false;
+  }
+  Thread* thread = dart::Thread::Current();
+  COMPILER_TIMINGS_TIMER_SCOPE(thread, CheckForPragma);
+  Object& options = Object::Handle();
+  return Library::FindPragma(thread, /*only_core=*/false, function,
+                             Symbols::vm_always_consider_inlining(),
                              /*multiple=*/false, &options);
 }
 

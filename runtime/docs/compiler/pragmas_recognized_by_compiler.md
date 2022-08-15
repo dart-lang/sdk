@@ -25,6 +25,14 @@ factors can prevent inlining and thus this pragma may not always be respected.
 Here, the VM will not inline the annotated function. In this case, the pragma
 is always respected.
 
+####
+
+```dart
+@pragma("vm:always-consider-inlining")
+```
+
+VM will keep trying to inline the function in new contexts, not giving up after encountered contexts where inlining wasn't effective. With this some compile time is traded for expectation that the function has signficant type specialization, resulting in highly efficient inlined results in contexts where arguments types are known to the compiler. Example of this is `_List.of` constructor in dart core library.
+
 ## Annotations for return types and field types
 
 The VM is not able to see across method calls (apart from inlining) and

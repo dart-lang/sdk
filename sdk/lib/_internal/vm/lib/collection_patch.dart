@@ -25,6 +25,7 @@ class _TypeTest<T> {
 @patch
 class HashMap<K, V> {
   @patch
+  @pragma("vm:prefer-inline")
   factory HashMap(
       {bool equals(K key1, K key2)?,
       int hashCode(K key)?,

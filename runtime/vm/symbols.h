@@ -496,20 +496,21 @@ class ObjectPointerVisitor;
   V(state, "state")                                                            \
   V(string_param, ":string_param")                                             \
   V(string_param_length, ":string_param_length")                               \
-  V(vm_prefer_inline, "vm:prefer-inline")                                      \
+  V(vm_always_consider_inlining, "vm:always-consider-inlining")                \
   V(vm_entry_point, "vm:entry-point")                                          \
   V(vm_exact_result_type, "vm:exact-result-type")                              \
+  V(vm_external_name, "vm:external-name")                                      \
+  V(vm_ffi_abi_specific_mapping, "vm:ffi:abi-specific-mapping")                \
+  V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
+  V(vm_invisible, "vm:invisible")                                              \
   V(vm_never_inline, "vm:never-inline")                                        \
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
   V(vm_notify_debugger_on_exception, "vm:notify-debugger-on-exception")        \
+  V(vm_prefer_inline, "vm:prefer-inline")                                      \
   V(vm_recognized, "vm:recognized")                                            \
+  V(vm_testing_print_flow_graph, "vm:testing:print-flow-graph")                \
   V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \
-  V(vm_ffi_abi_specific_mapping, "vm:ffi:abi-specific-mapping")                \
-  V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
-  V(vm_unsafe_no_interrupts, "vm:unsafe:no-interrupts")                        \
-  V(vm_external_name, "vm:external-name")                                      \
-  V(vm_invisible, "vm:invisible")                                              \
-  V(vm_testing_print_flow_graph, "vm:testing:print-flow-graph")
+  V(vm_unsafe_no_interrupts, "vm:unsafe:no-interrupts")
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates
