@@ -115,6 +115,7 @@ class _List<E> extends _Array<E> {
   }
 
   // Specialization of List.of constructor for growable == false.
+  @pragma("vm:always-consider-inlining")
   factory _List.of(Iterable<E> elements) {
     if (elements is _GrowableList) {
       return _List._ofGrowableList(unsafeCast(elements));

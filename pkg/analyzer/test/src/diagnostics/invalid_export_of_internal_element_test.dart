@@ -21,10 +21,10 @@ main() {
 class InvalidExportOfInternalElement_BlazePackageTest
     extends BlazeWorkspaceResolutionTest
     with InvalidExportOfInternalElementTest {
-  String get testPackageBlazeBinPath => '$workspaceRootPath/bazel-bin/dart/my';
+  String get testPackageBlazeBinPath => '$workspaceRootPath/blaze-bin/dart/my';
 
   String get testPackageGenfilesPath =>
-      '$workspaceRootPath/bazel-genfiles/dart/my';
+      '$workspaceRootPath/blaze-genfiles/dart/my';
 
   @override
   String get testPackageLibPath => myPackageLibPath;
@@ -37,7 +37,7 @@ class InvalidExportOfInternalElement_BlazePackageTest
       getFolder(metaPath),
     );
     newFile('$testPackageBlazeBinPath/my.packages', '');
-    newFolder('$workspaceRootPath/bazel-out');
+    newFolder('$workspaceRootPath/blaze-out');
   }
 
   void test_exporterIsInBlazeBinLib() async {

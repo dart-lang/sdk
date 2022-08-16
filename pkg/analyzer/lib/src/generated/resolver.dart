@@ -2176,6 +2176,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitRecordLiteral(RecordLiteral node, {DartType? contextType}) {
+    // TODO(brianwilkerson) Implement resolution for record literals.
+    super.visitRecordLiteral(node);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     //

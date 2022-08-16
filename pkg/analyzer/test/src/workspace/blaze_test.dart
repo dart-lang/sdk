@@ -31,11 +31,11 @@ class BlazeFileUriResolverTest with ResourceProviderMixin {
   void test_resolveAbsolute_blazeBin_exists() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-bin/my/test/a.dart',
+      '/workspace/blaze-bin/my/test/a.dart',
     ]);
     _assertResolve(
-      toUriStr('/workspace/bazel-bin/my/test/a.dart'),
-      getFile('/workspace/bazel-bin/my/test/a.dart'),
+      toUriStr('/workspace/blaze-bin/my/test/a.dart'),
+      getFile('/workspace/blaze-bin/my/test/a.dart'),
       restoredUriStr: toUriStr('/workspace/my/test/a.dart'),
     );
   }
@@ -86,22 +86,22 @@ class BlazeFileUriResolverTest with ResourceProviderMixin {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/my/test/a.dart',
-      '/workspace/bazel-bin/my/test/a.dart',
+      '/workspace/blaze-bin/my/test/a.dart',
     ]);
     _assertResolve(
       toUriStr('/workspace/my/test/a.dart'),
-      getFile('/workspace/bazel-bin/my/test/a.dart'),
+      getFile('/workspace/blaze-bin/my/test/a.dart'),
     );
   }
 
   void test_resolveAbsolute_writableUri_blazeBin_noWritable() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-bin/my/test/a.dart',
+      '/workspace/blaze-bin/my/test/a.dart',
     ]);
     _assertResolve(
       toUriStr('/workspace/my/test/a.dart'),
-      getFile('/workspace/bazel-bin/my/test/a.dart'),
+      getFile('/workspace/blaze-bin/my/test/a.dart'),
     );
   }
 
@@ -109,22 +109,22 @@ class BlazeFileUriResolverTest with ResourceProviderMixin {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/my/test/a.dart',
-      '/workspace/bazel-genfiles/my/test/a.dart',
+      '/workspace/blaze-genfiles/my/test/a.dart',
     ]);
     _assertResolve(
       toUriStr('/workspace/my/test/a.dart'),
-      getFile('/workspace/bazel-genfiles/my/test/a.dart'),
+      getFile('/workspace/blaze-genfiles/my/test/a.dart'),
     );
   }
 
   void test_resolveAbsolute_writableUri_blazeGenfiles_noWritable() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/my/test/a.dart',
+      '/workspace/blaze-genfiles/my/test/a.dart',
     ]);
     _assertResolve(
       toUriStr('/workspace/my/test/a.dart'),
-      getFile('/workspace/bazel-genfiles/my/test/a.dart'),
+      getFile('/workspace/blaze-genfiles/my/test/a.dart'),
     );
   }
 
@@ -192,23 +192,23 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_resolveAbsolute_bin() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
       '/workspace/my/foo/lib/foo1.dart',
-      '/workspace/bazel-bin/my/foo/lib/foo1.dart'
+      '/workspace/blaze-bin/my/foo/lib/foo1.dart'
     ]);
     _assertResolve(
-        'package:my.foo/foo1.dart', '/workspace/bazel-bin/my/foo/lib/foo1.dart',
+        'package:my.foo/foo1.dart', '/workspace/blaze-bin/my/foo/lib/foo1.dart',
         exists: true);
   }
 
   void test_resolveAbsolute_bin_notInWorkspace() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
-      '/workspace/bazel-bin/my/foo/lib/foo1.dart'
+      '/workspace/blaze-genfiles/',
+      '/workspace/blaze-bin/my/foo/lib/foo1.dart'
     ]);
     _assertResolve(
-        'package:my.foo/foo1.dart', '/workspace/bazel-bin/my/foo/lib/foo1.dart',
+        'package:my.foo/foo1.dart', '/workspace/blaze-bin/my/foo/lib/foo1.dart',
         exists: true);
   }
 
@@ -217,7 +217,7 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/my/foo/test',
     ]);
-    _assertResolve(toUriStr('/workspace/bazel-bin/my/test/a .dart'),
+    _assertResolve(toUriStr('/workspace/blaze-bin/my/test/a .dart'),
         '/workspace/my/test/a .dart',
         exists: false, restore: false);
   }
@@ -225,21 +225,21 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_resolveAbsolute_file_bin_to_genfiles() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/my/foo/test/foo1.dart',
-      '/workspace/bazel-bin/'
+      '/workspace/blaze-genfiles/my/foo/test/foo1.dart',
+      '/workspace/blaze-bin/'
     ]);
-    _assertResolve(toUriStr('/workspace/bazel-bin/my/foo/test/foo1.dart'),
-        '/workspace/bazel-genfiles/my/foo/test/foo1.dart',
+    _assertResolve(toUriStr('/workspace/blaze-bin/my/foo/test/foo1.dart'),
+        '/workspace/blaze-genfiles/my/foo/test/foo1.dart',
         restore: false);
   }
 
   void test_resolveAbsolute_file_genfiles_to_workspace() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
       '/workspace/my/foo/test/foo1.dart'
     ]);
-    _assertResolve(toUriStr('/workspace/bazel-genfiles/my/foo/test/foo1.dart'),
+    _assertResolve(toUriStr('/workspace/blaze-genfiles/my/foo/test/foo1.dart'),
         '/workspace/my/foo/test/foo1.dart',
         restore: false);
   }
@@ -247,7 +247,7 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_resolveAbsolute_file_not_in_workspace() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
       '/other/my/foo/test/foo1.dart'
     ]);
     _assertNoResolve(toUriStr('/other/my/foo/test/foo1.dart'));
@@ -267,40 +267,40 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_resolveAbsolute_file_workspace_to_genfiles() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/my/foo/test/foo1.dart'
+      '/workspace/blaze-genfiles/my/foo/test/foo1.dart'
     ]);
     _assertResolve(toUriStr('/workspace/my/foo/test/foo1.dart'),
-        '/workspace/bazel-genfiles/my/foo/test/foo1.dart',
+        '/workspace/blaze-genfiles/my/foo/test/foo1.dart',
         restore: false);
   }
 
   void test_resolveAbsolute_genfiles() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
       '/workspace/my/foo/lib/foo1.dart',
-      '/workspace/bazel-genfiles/my/foo/lib/foo1.dart'
+      '/workspace/blaze-genfiles/my/foo/lib/foo1.dart'
     ]);
     _assertResolve('package:my.foo/foo1.dart',
-        '/workspace/bazel-genfiles/my/foo/lib/foo1.dart',
+        '/workspace/blaze-genfiles/my/foo/lib/foo1.dart',
         exists: true);
   }
 
   void test_resolveAbsolute_genfiles_notInWorkspace() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
-      '/workspace/bazel-genfiles/my/foo/lib/foo1.dart'
+      '/workspace/blaze-genfiles/',
+      '/workspace/blaze-genfiles/my/foo/lib/foo1.dart'
     ]);
     _assertResolve('package:my.foo/foo1.dart',
-        '/workspace/bazel-genfiles/my/foo/lib/foo1.dart',
+        '/workspace/blaze-genfiles/my/foo/lib/foo1.dart',
         exists: true);
   }
 
   void test_resolveAbsolute_null_doubleDot() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
     ]);
     var uri = Uri.parse('package:foo..bar/baz.dart');
     var source = resolver.resolveAbsolute(uri);
@@ -310,7 +310,7 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_resolveAbsolute_null_doubleSlash() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
     ]);
     var uri = Uri.parse('package:foo//bar/baz.dart');
     var source = resolver.resolveAbsolute(uri);
@@ -329,7 +329,7 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_resolveAbsolute_null_noSlash() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
     ]);
     var source = resolver.resolveAbsolute(Uri.parse('package:foo'));
     expect(source, isNull);
@@ -338,7 +338,7 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_resolveAbsolute_null_notPackage() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
     ]);
     var source = resolver.resolveAbsolute(Uri.parse('dart:async'));
     expect(source, isNull);
@@ -347,7 +347,7 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_resolveAbsolute_null_startsWithSlash() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
       '/workspace/my/foo/lib/bar.dart',
     ]);
     var source = resolver.resolveAbsolute(Uri.parse('package:/foo/bar.dart'));
@@ -358,24 +358,24 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
     _addResources([
       '/Users/user/test/READONLY/prime/',
       '/Users/user/test/READONLY/prime/my/foo/lib/foo1.dart',
-      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/blaze-genfiles/',
       '/Users/user/test/prime/my/module/',
-      '/Users/user/test/prime/bazel-bin/my/foo/lib/foo1.dart',
+      '/Users/user/test/prime/blaze-bin/my/foo/lib/foo1.dart',
     ], workspacePath: '/Users/user/test/prime/my/module');
     _assertResolve('package:my.foo/foo1.dart',
-        '/Users/user/test/prime/bazel-bin/my/foo/lib/foo1.dart',
+        '/Users/user/test/prime/blaze-bin/my/foo/lib/foo1.dart',
         exists: true);
   }
 
   void test_resolveAbsolute_readonly_bin_notInWorkspace() {
     _addResources([
       '/Users/user/test/READONLY/prime/',
-      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/blaze-genfiles/',
       '/Users/user/test/prime/my/module/',
-      '/Users/user/test/prime/bazel-bin/my/foo/lib/foo1.dart',
+      '/Users/user/test/prime/blaze-bin/my/foo/lib/foo1.dart',
     ], workspacePath: '/Users/user/test/prime/my/module');
     _assertResolve('package:my.foo/foo1.dart',
-        '/Users/user/test/prime/bazel-bin/my/foo/lib/foo1.dart',
+        '/Users/user/test/prime/blaze-bin/my/foo/lib/foo1.dart',
         exists: true);
   }
 
@@ -383,24 +383,24 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
     _addResources([
       '/Users/user/test/READONLY/prime/',
       '/Users/user/test/READONLY/prime/my/foo/lib/foo1.dart',
-      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/blaze-genfiles/',
       '/Users/user/test/prime/my/module/',
-      '/Users/user/test/prime/bazel-genfiles/my/foo/lib/foo1.dart',
+      '/Users/user/test/prime/blaze-genfiles/my/foo/lib/foo1.dart',
     ], workspacePath: '/Users/user/test/prime/my/module');
     _assertResolve('package:my.foo/foo1.dart',
-        '/Users/user/test/prime/bazel-genfiles/my/foo/lib/foo1.dart',
+        '/Users/user/test/prime/blaze-genfiles/my/foo/lib/foo1.dart',
         exists: true);
   }
 
   void test_resolveAbsolute_readonly_genfiles_notInWorkspace() {
     _addResources([
       '/Users/user/test/READONLY/prime/',
-      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/blaze-genfiles/',
       '/Users/user/test/prime/my/module/',
-      '/Users/user/test/prime/bazel-genfiles/my/foo/lib/foo1.dart',
+      '/Users/user/test/prime/blaze-genfiles/my/foo/lib/foo1.dart',
     ], workspacePath: '/Users/user/test/prime/my/module');
     _assertResolve('package:my.foo/foo1.dart',
-        '/Users/user/test/prime/bazel-genfiles/my/foo/lib/foo1.dart',
+        '/Users/user/test/prime/blaze-genfiles/my/foo/lib/foo1.dart',
         exists: true);
   }
 
@@ -408,12 +408,12 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
     _addResources([
       '/Users/user/test/READONLY/prime/',
       '/Users/user/test/READONLY/prime/third_party/dart/foo/lib/foo1.dart',
-      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/blaze-genfiles/',
       '/Users/user/test/prime/my/module/',
-      '/Users/user/test/prime/bazel-bin/third_party/dart/foo/lib/foo1.dart',
+      '/Users/user/test/prime/blaze-bin/third_party/dart/foo/lib/foo1.dart',
     ], workspacePath: '/Users/user/test/prime/my/module');
     _assertResolve('package:foo/foo1.dart',
-        '/Users/user/test/prime/bazel-bin/third_party/dart/foo/lib/foo1.dart',
+        '/Users/user/test/prime/blaze-bin/third_party/dart/foo/lib/foo1.dart',
         exists: true);
   }
 
@@ -421,12 +421,12 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
     _addResources([
       '/Users/user/test/READONLY/prime/',
       '/Users/user/test/READONLY/prime/third_party/dart/foo/lib/foo1.dart',
-      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/blaze-genfiles/',
       '/Users/user/test/prime/my/module/',
-      '/Users/user/test/prime/bazel-genfiles/third_party/dart/foo/lib/foo1.dart',
+      '/Users/user/test/prime/blaze-genfiles/third_party/dart/foo/lib/foo1.dart',
     ], workspacePath: '/Users/user/test/prime/my/module');
     _assertResolve('package:foo/foo1.dart',
-        '/Users/user/test/prime/bazel-genfiles/third_party/dart/foo/lib/foo1.dart',
+        '/Users/user/test/prime/blaze-genfiles/third_party/dart/foo/lib/foo1.dart',
         exists: true);
   }
 
@@ -434,7 +434,7 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
     _addResources([
       '/Users/user/test/READONLY/prime/',
       '/Users/user/test/READONLY/prime/third_party/dart/foo/lib/foo1.dart',
-      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/blaze-genfiles/',
       '/Users/user/test/prime/my/module/',
     ], workspacePath: '/Users/user/test/prime/my/module');
     _assertResolve('package:foo/foo2.dart',
@@ -446,7 +446,7 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
     _addResources([
       '/Users/user/test/READONLY/prime/',
       '/Users/user/test/READONLY/prime/third_party/dart/foo/lib/foo1.dart',
-      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/blaze-genfiles/',
       '/Users/user/test/prime/my/module/',
     ], workspacePath: '/Users/user/test/prime/my/module');
     _assertResolve('package:foo/foo1.dart',
@@ -457,7 +457,7 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_resolveAbsolute_readonly_workspace_doesNotExist() {
     _addResources([
       '/Users/user/test/READONLY/prime/',
-      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/blaze-genfiles/',
       '/Users/user/test/prime/my/module/',
     ], workspacePath: '/Users/user/test/prime/my/module');
     _assertResolve('package:my.foo/foo1.dart',
@@ -469,7 +469,7 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
     _addResources([
       '/Users/user/test/READONLY/prime/',
       '/Users/user/test/READONLY/prime/my/foo/lib/foo1.dart',
-      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/blaze-genfiles/',
       '/Users/user/test/prime/my/module/',
     ], workspacePath: '/Users/user/test/prime/my/module');
     _assertResolve('package:my.foo/foo1.dart',
@@ -480,30 +480,30 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_resolveAbsolute_thirdParty_bin() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
       '/workspace/third_party/dart/foo/lib/foo1.dart',
-      '/workspace/bazel-bin/third_party/dart/foo/lib/foo1.dart',
+      '/workspace/blaze-bin/third_party/dart/foo/lib/foo1.dart',
     ]);
     _assertResolve('package:foo/foo1.dart',
-        '/workspace/bazel-bin/third_party/dart/foo/lib/foo1.dart',
+        '/workspace/blaze-bin/third_party/dart/foo/lib/foo1.dart',
         exists: true);
   }
 
   void test_resolveAbsolute_thirdParty_bin_notInWorkspace() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
-      '/workspace/bazel-bin/third_party/dart/foo/lib/foo1.dart',
+      '/workspace/blaze-genfiles/',
+      '/workspace/blaze-bin/third_party/dart/foo/lib/foo1.dart',
     ]);
     _assertResolve('package:foo/foo1.dart',
-        '/workspace/bazel-bin/third_party/dart/foo/lib/foo1.dart',
+        '/workspace/blaze-bin/third_party/dart/foo/lib/foo1.dart',
         exists: true);
   }
 
   void test_resolveAbsolute_thirdParty_doesNotExist() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
       '/workspace/third_party/dart/foo/lib/foo1.dart',
     ]);
     _assertResolve('package:foo/foo2.dart',
@@ -514,7 +514,7 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_resolveAbsolute_thirdParty_exists() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
       '/workspace/third_party/dart/foo/lib/foo1.dart',
     ]);
     _assertResolve('package:foo/foo1.dart',
@@ -525,30 +525,30 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_resolveAbsolute_thirdParty_genfiles() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
       '/workspace/third_party/dart/foo/lib/foo1.dart',
-      '/workspace/bazel-genfiles/third_party/dart/foo/lib/foo1.dart',
+      '/workspace/blaze-genfiles/third_party/dart/foo/lib/foo1.dart',
     ]);
     _assertResolve('package:foo/foo1.dart',
-        '/workspace/bazel-genfiles/third_party/dart/foo/lib/foo1.dart',
+        '/workspace/blaze-genfiles/third_party/dart/foo/lib/foo1.dart',
         exists: true);
   }
 
   void test_resolveAbsolute_thirdParty_genfiles_notInWorkspace() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
-      '/workspace/bazel-genfiles/third_party/dart/foo/lib/foo1.dart',
+      '/workspace/blaze-genfiles/',
+      '/workspace/blaze-genfiles/third_party/dart/foo/lib/foo1.dart',
     ]);
     _assertResolve('package:foo/foo1.dart',
-        '/workspace/bazel-genfiles/third_party/dart/foo/lib/foo1.dart',
+        '/workspace/blaze-genfiles/third_party/dart/foo/lib/foo1.dart',
         exists: true);
   }
 
   void test_resolveAbsolute_workspace_doesNotExist() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
     ]);
     _assertResolve('package:my.foo/doesNotExist.dart',
         '/workspace/my/foo/lib/doesNotExist.dart',
@@ -558,7 +558,7 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_resolveAbsolute_workspace_exists() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
       '/workspace/my/foo/lib/foo1.dart',
     ]);
     _assertResolve(
@@ -569,7 +569,7 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_resolveAbsolute_workspace_exists_hasSpace() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
       '/workspace/my/foo/lib/foo .dart',
     ]);
     _assertResolve(
@@ -580,7 +580,7 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_restoreAbsolute_noPackageName_workspace() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
       '/workspace/lib/foo1.dart',
       '/workspace/foo/lib/foo2.dart',
     ]);
@@ -591,31 +591,31 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_restoreAbsolute_noPathInLib_bin() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
-      '/workspace/bazel-bin/my/foo/lib/foo1.dart',
+      '/workspace/blaze-genfiles/',
+      '/workspace/blaze-bin/my/foo/lib/foo1.dart',
     ]);
-    _assertRestore('/workspace/bazel-bin', null);
-    _assertRestore('/workspace/bazel-bin/my', null);
-    _assertRestore('/workspace/bazel-bin/my/foo', null);
-    _assertRestore('/workspace/bazel-bin/my/foo/lib', null);
+    _assertRestore('/workspace/blaze-bin', null);
+    _assertRestore('/workspace/blaze-bin/my', null);
+    _assertRestore('/workspace/blaze-bin/my/foo', null);
+    _assertRestore('/workspace/blaze-bin/my/foo/lib', null);
   }
 
   void test_restoreAbsolute_noPathInLib_genfiles() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
-      '/workspace/bazel-genfiles/my/foo/lib/foo1.dart',
+      '/workspace/blaze-genfiles/',
+      '/workspace/blaze-genfiles/my/foo/lib/foo1.dart',
     ]);
-    _assertRestore('/workspace/bazel-genfiles', null);
-    _assertRestore('/workspace/bazel-genfiles/my', null);
-    _assertRestore('/workspace/bazel-genfiles/my/foo', null);
-    _assertRestore('/workspace/bazel-genfiles/my/foo/lib', null);
+    _assertRestore('/workspace/blaze-genfiles', null);
+    _assertRestore('/workspace/blaze-genfiles/my', null);
+    _assertRestore('/workspace/blaze-genfiles/my/foo', null);
+    _assertRestore('/workspace/blaze-genfiles/my/foo/lib', null);
   }
 
   void test_restoreAbsolute_noPathInLib_workspace() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
       '/workspace/my/foo/lib/foo1.dart',
     ]);
     _assertRestore('/workspace', null);
@@ -627,7 +627,7 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_restoreAbsolute_thirdPartyNotDart_workspace() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
       '/workspace/third_party/something/lib/foo.dart',
     ]);
     _assertRestore('/workspace/third_party/something/lib/foo.dart',
@@ -796,7 +796,7 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
   void test_findPackageFor_missingMarkerFiles() {
     _addResources([
       '/ws/${file_paths.blazeWorkspaceMarker}',
-      '/ws/bazel-genfiles',
+      '/ws/blaze-genfiles',
     ]);
     workspace = BlazeWorkspace.find(
       resourceProvider,
@@ -912,7 +912,7 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
   void _setUpPackage() {
     _addResources([
       '/ws/${file_paths.blazeWorkspaceMarker}',
-      '/ws/bazel-genfiles/',
+      '/ws/blaze-genfiles/',
       '/ws/some/code/BUILD',
       '/ws/some/code/lib/code.dart',
     ]);
@@ -939,7 +939,7 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
   void test_blazeNotifications() async {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-bin/my/module/test1.dart',
+      '/workspace/blaze-bin/my/module/test1.dart',
     ]);
     var workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'))!;
@@ -953,8 +953,8 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
     expect(
         info.candidatePaths,
         containsAll([
-          convertPath('/workspace/bazel-bin/my/module/test1.dart'),
-          convertPath('/workspace/bazel-genfiles/my/module/test1.dart'),
+          convertPath('/workspace/blaze-bin/my/module/test1.dart'),
+          convertPath('/workspace/blaze-genfiles/my/module/test1.dart'),
         ]));
 
     var file2 =
@@ -965,8 +965,8 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
     expect(
         info.candidatePaths,
         containsAll([
-          convertPath('/workspace/bazel-bin/my/module/test2.dart'),
-          convertPath('/workspace/bazel-genfiles/my/module/test2.dart'),
+          convertPath('/workspace/blaze-bin/my/module/test2.dart'),
+          convertPath('/workspace/blaze-genfiles/my/module/test2.dart'),
         ]));
   }
 
@@ -1034,32 +1034,32 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
     _addResources([
       '/Users/user/test/READONLY/prime/',
       '/Users/user/test/prime/',
-      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/blaze-genfiles/',
     ]);
     var workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/Users/user/test/prime/my/module'))!;
     expect(workspace.root, convertPath('/Users/user/test/prime'));
     expect(workspace.readonly, convertPath('/Users/user/test/READONLY/prime'));
     expect(workspace.binPaths.single,
-        convertPath('/Users/user/test/prime/bazel-bin'));
+        convertPath('/Users/user/test/prime/blaze-bin'));
     expect(workspace.genfiles,
-        convertPath('/Users/user/test/prime/bazel-genfiles'));
+        convertPath('/Users/user/test/prime/blaze-genfiles'));
   }
 
   void test_find_hasReadonlyFolder_bad_actuallyHasWorkspaceFile() {
     _addResources([
       '/Users/user/test/READONLY/',
       '/Users/user/test/prime/${file_paths.blazeWorkspaceMarker}',
-      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/blaze-genfiles/',
     ]);
     var workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/Users/user/test/prime/my/module'))!;
     expect(workspace.root, convertPath('/Users/user/test/prime'));
     expect(workspace.readonly, isNull);
     expect(workspace.binPaths.single,
-        convertPath('/Users/user/test/prime/bazel-bin'));
+        convertPath('/Users/user/test/prime/blaze-bin'));
     expect(workspace.genfiles,
-        convertPath('/Users/user/test/prime/bazel-genfiles'));
+        convertPath('/Users/user/test/prime/blaze-genfiles'));
   }
 
   void test_find_hasReadonlyFolder_blaze() {
@@ -1081,40 +1081,40 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
   void test_find_hasWorkspaceFile() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
     ]);
     var workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
-    expect(workspace.binPaths.single, convertPath('/workspace/bazel-bin'));
-    expect(workspace.genfiles, convertPath('/workspace/bazel-genfiles'));
+    expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
+    expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
   }
 
   void test_find_hasWorkspaceFile_forModuleInWorkspace() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
     ]);
     var workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
-    expect(workspace.binPaths.single, convertPath('/workspace/bazel-bin'));
-    expect(workspace.genfiles, convertPath('/workspace/bazel-genfiles'));
+    expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
+    expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
   }
 
   void test_find_hasWorkspaceFile_forWorkspace() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/bazel-genfiles/',
+      '/workspace/blaze-genfiles/',
     ]);
     var workspace =
         BlazeWorkspace.find(resourceProvider, convertPath('/workspace'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
-    expect(workspace.binPaths.single, convertPath('/workspace/bazel-bin'));
-    expect(workspace.genfiles, convertPath('/workspace/bazel-genfiles'));
+    expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
+    expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
   }
 
   void test_find_hasWorkspaceFile_forWorkspace_blaze() {
@@ -1142,14 +1142,13 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
   }
 
   void test_find_null_symlinkPrefix() {
-    String prefix = BlazeWorkspace.defaultSymlinkPrefix;
     newFile('/workspace/${file_paths.blazeWorkspaceMarker}', '');
     var workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
-    expect(workspace.binPaths.single, convertPath('/workspace/$prefix-bin'));
-    expect(workspace.genfiles, convertPath('/workspace/$prefix-genfiles'));
+    expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
+    expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
   }
 
   void test_findFile_hasReadonlyFolder() {
@@ -1159,8 +1158,8 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/Users/user/test/prime/my/module/test1.dart',
       '/Users/user/test/prime/my/module/test2.dart',
       '/Users/user/test/prime/my/module/test3.dart',
-      '/Users/user/test/prime/bazel-bin/my/module/test2.dart',
-      '/Users/user/test/prime/bazel-genfiles/my/module/test3.dart',
+      '/Users/user/test/prime/blaze-bin/my/module/test2.dart',
+      '/Users/user/test/prime/blaze-genfiles/my/module/test3.dart',
       '/Users/user/test/READONLY/prime/other/module/test4.dart',
     ]);
     workspace = BlazeWorkspace.find(
@@ -1168,9 +1167,9 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
     _expectFindFile('/Users/user/test/prime/my/module/test1.dart',
         equals: '/Users/user/test/prime/my/module/test1.dart');
     _expectFindFile('/Users/user/test/prime/my/module/test2.dart',
-        equals: '/Users/user/test/prime/bazel-bin/my/module/test2.dart');
+        equals: '/Users/user/test/prime/blaze-bin/my/module/test2.dart');
     _expectFindFile('/Users/user/test/prime/my/module/test3.dart',
-        equals: '/Users/user/test/prime/bazel-genfiles/my/module/test3.dart');
+        equals: '/Users/user/test/prime/blaze-genfiles/my/module/test3.dart');
     _expectFindFile('/Users/user/test/prime/other/module/test4.dart',
         equals: '/Users/user/test/READONLY/prime/other/module/test4.dart');
   }
@@ -1179,7 +1178,7 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
     _addResources([
       '/Users/user/test/READONLY/prime/',
       '/Users/user/test/prime/',
-      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/blaze-genfiles/',
       '/Users/user/test/prime/my/module/test.dart',
       '/Users/user/test/READONLY/prime/my/module/test.dart',
     ]);
@@ -1195,17 +1194,17 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/workspace/my/module/test1.dart',
       '/workspace/my/module/test2.dart',
       '/workspace/my/module/test3.dart',
-      '/workspace/bazel-bin/my/module/test2.dart',
-      '/workspace/bazel-genfiles/my/module/test3.dart',
+      '/workspace/blaze-bin/my/module/test2.dart',
+      '/workspace/blaze-genfiles/my/module/test3.dart',
     ]);
     workspace = BlazeWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'))!;
     _expectFindFile('/workspace/my/module/test1.dart',
         equals: '/workspace/my/module/test1.dart');
     _expectFindFile('/workspace/my/module/test2.dart',
-        equals: '/workspace/bazel-bin/my/module/test2.dart');
+        equals: '/workspace/blaze-bin/my/module/test2.dart');
     _expectFindFile('/workspace/my/module/test3.dart',
-        equals: '/workspace/bazel-genfiles/my/module/test3.dart');
+        equals: '/workspace/blaze-genfiles/my/module/test3.dart');
   }
 
   /// Create new files and directories from [paths].

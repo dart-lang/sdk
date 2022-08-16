@@ -78,7 +78,7 @@ import 'package:test/222/new_name.dart';
 
   @failingTest
   Future<void> test_file_imported_with_package_uri_lib_change() async {
-    // The current testing stack does not support creating such bazel roots
+    // The current testing stack does not support creating such Blaze roots
     var file = newFile('/home/test0/test1/test2/lib/111/name.dart', '');
     addTestSource(r'''
 import 'package:test0.test1.test2/111/name.dart';
@@ -101,7 +101,7 @@ import 'package:test0.test1.test3/111/name.dart';
 
   @failingTest
   Future<void> test_file_imported_with_package_uri_lib_change_down() async {
-    // The current testing stack does not support creating such bazel roots
+    // The current testing stack does not support creating such Blaze roots
     var file = newFile('/home/test0/test1/test2/lib/111/name.dart', '');
     addTestSource(r'''
 import 'package:test0.test1.test2/111/name.dart';
@@ -124,7 +124,7 @@ import 'package:test0.test1.test2.test3/111/name.dart';
 
   @failingTest
   Future<void> test_file_imported_with_package_uri_lib_change_up() async {
-    // The current testing stack does not support creating such bazel roots
+    // The current testing stack does not support creating such Blaze roots
     var file = newFile('/home/test0/test1/test2/lib/111/name.dart', '');
     addTestSource(r'''
 import 'package:test0.test1.test2/111/name.dart';

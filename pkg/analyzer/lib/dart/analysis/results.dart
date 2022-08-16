@@ -153,7 +153,7 @@ class NotLibraryButPartResult
 /// The type of [InvalidResult] returned when the given file path does not
 /// represent the corresponding URI.
 ///
-/// This usually happens in Bazel workspaces, when a URI is resolved to
+/// This usually happens in Blaze workspaces, when a URI is resolved to
 /// a generated file, but there is also a writable file to which this URI
 /// would be resolved, if there were no generated file.
 ///

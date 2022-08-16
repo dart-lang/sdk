@@ -20,7 +20,7 @@ void main() {
 class AnalysisHoverBlazeTest extends BlazeWorkspaceAnalysisServerTest {
   Future<void> test_blaze_notOwnedUri() async {
     newFile(
-      '$workspaceRootPath/bazel-genfiles/dart/my/lib/test.dart',
+      '$workspaceRootPath/blaze-genfiles/dart/my/lib/test.dart',
       '// generated',
     );
 

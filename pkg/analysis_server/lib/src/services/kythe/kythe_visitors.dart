@@ -85,9 +85,9 @@ String _getPath(ResourceProvider provider, Element? e,
   }
 
   var path = source.fullName;
-  var bazelWorkspace = BlazeWorkspace.find(provider, path);
-  if (bazelWorkspace != null) {
-    return provider.pathContext.relative(path, from: bazelWorkspace.root);
+  var blazeWorkspace = BlazeWorkspace.find(provider, path);
+  if (blazeWorkspace != null) {
+    return provider.pathContext.relative(path, from: blazeWorkspace.root);
   }
   var gnWorkspace = GnWorkspace.find(provider, path);
   if (gnWorkspace != null) {

@@ -1525,6 +1525,22 @@ void f() {
     );
   }
 
+  @failingTest
+  void test_recordLiteral() {
+    // Failing because record literals can't be parsed yet.
+    var findNode = _parseStringToFindNode(r'''
+void f() {
+  (1, 2);
+}
+''');
+    var node = findNode.recordLiteral('(1');
+    _assertReplaceInList(
+      destination: node,
+      child: node.fields[0],
+      replacement: node.fields[1],
+    );
+  }
+
   void test_redirectingConstructorInvocation() {
     var findNode = _parseStringToFindNode(r'''
 class A {

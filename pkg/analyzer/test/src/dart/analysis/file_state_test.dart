@@ -41,7 +41,7 @@ class FileSystemState_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
   void test_getFileForUri_hasGenerated_askGeneratedFirst() async {
     var relPath = 'dart/my/test/a.dart';
     var writablePath = convertPath('$workspaceRootPath/$relPath');
-    var generatedPath = convertPath('$workspaceRootPath/bazel-bin/$relPath');
+    var generatedPath = convertPath('$workspaceRootPath/blaze-bin/$relPath');
 
     // This generated file should be used instead of the writable.
     newFile(generatedPath, '');
@@ -69,7 +69,7 @@ class FileSystemState_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
   void test_getFileForUri_hasGenerated_askWritableFirst() async {
     var relPath = 'dart/my/test/a.dart';
     var writablePath = convertPath('$workspaceRootPath/$relPath');
-    var generatedPath = convertPath('$workspaceRootPath/bazel-bin/$relPath');
+    var generatedPath = convertPath('$workspaceRootPath/blaze-bin/$relPath');
 
     // This generated file should be used instead of the writable.
     newFile(generatedPath, '');

@@ -140,7 +140,7 @@ class LspAnalysisServer extends AnalysisServer {
     DiagnosticServer? diagnosticServer,
     this.detachableFileSystemManager,
     // Disable to avoid using this in unit tests.
-    bool enableBazelWatcher = false,
+    bool enableBlazeWatcher = false,
   }) : super(
           options,
           sdkManager,
@@ -152,7 +152,7 @@ class LspAnalysisServer extends AnalysisServer {
           httpClient,
           processRunner,
           LspNotificationManager(channel, baseResourceProvider.pathContext),
-          enableBazelWatcher: enableBazelWatcher,
+          enableBlazeWatcher: enableBlazeWatcher,
         ) {
     notificationManager.server = this;
     messageHandler = UninitializedStateMessageHandler(this);

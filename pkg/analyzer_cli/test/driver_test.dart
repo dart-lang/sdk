@@ -135,7 +135,7 @@ class ExitCodesTest extends BaseTest {
     await withTempDirAsync((String tempDirPath) async {
       var dartSdkPath = path.absolute(getSdkPath());
       await recursiveCopy(
-          Directory(path.join(testDirectory, 'data', 'bazel')), tempDirPath);
+          Directory(path.join(testDirectory, 'data', 'blaze')), tempDirPath);
       var origWorkingDir = Directory.current;
       try {
         Directory.current = path.join(tempDirPath, 'proj');

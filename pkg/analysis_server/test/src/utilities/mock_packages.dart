@@ -38,7 +38,7 @@ void _cacheFiles(Map<String, String> cachedFiles) {
 }
 
 /// Helper for copying files from "tests/mock_packages" to memory file system
-/// for Bazel.
+/// for Blaze.
 class BlazeMockPackages {
   static final BlazeMockPackages instance = BlazeMockPackages._();
 

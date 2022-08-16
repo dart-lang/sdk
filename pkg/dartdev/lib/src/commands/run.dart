@@ -92,6 +92,14 @@ class RunCommand extends DartdevCommand {
               'Print a warning when an isolate pauses with no attached debugger'
               ' when running with --enable-vm-service.',
         )
+        ..addOption(
+          'timeline-streams',
+          help: 'Enables recording for specific timeline streams.\n'
+              'Valid streams include: all, API, Compiler, CompilerVerbose, Dart, '
+              'Debugger, Embedder, GC, Isolate, VM.\n'
+              'Defaults to "Compiler, Dart, GC" when --observe is provided.',
+          valueHelp: 'str1, str2, ...',
+        )
         ..addSeparator(
           'Other debugging options:',
         )

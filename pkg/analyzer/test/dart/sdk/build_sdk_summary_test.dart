@@ -66,7 +66,7 @@ embedded_libs:
     sdkSummaryFile.writeAsBytesSync(sdkSummaryBytes);
 
     // Pub workspace does not support SDK summaries.
-    // So, we use Bazel workspace.
+    // So, we use Blaze workspace.
     const workspacePath = '/workspace';
     newFile('$workspacePath/${file_paths.blazeWorkspaceMarker}', '');
     final myPackageRoot = getFolder('$workspacePath/dart/my');
@@ -113,7 +113,7 @@ embedded_libs:
     sdkSummaryFile.writeAsBytesSync(sdkSummaryBytes);
 
     // Pub workspace does not support SDK summaries.
-    // So, we use Bazel workspace.
+    // So, we use Blaze workspace.
     const workspacePath = '/workspace';
     newFile('$workspacePath/${file_paths.blazeWorkspaceMarker}', '');
     final myPackageRoot = getFolder('$workspacePath/dart/my');
