@@ -2196,15 +2196,6 @@ class CommentImpl extends AstNodeImpl implements Comment {
     );
   }
 
-  /// Create a documentation comment consisting of the given [tokens].
-  static CommentImpl createDocumentationComment(List<Token> tokens) {
-    return CommentImpl(
-      tokens: tokens,
-      type: CommentType.DOCUMENTATION,
-      references: const <CommentReference>[],
-    );
-  }
-
   /// Create a documentation comment consisting of the given [tokens] and having
   /// the given [references] embedded within it.
   static CommentImpl createDocumentationCommentWithReferences(

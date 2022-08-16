@@ -389,6 +389,7 @@ class FfiTestSuite extends TestSuite {
 
   static const targetAbis = [
     "arm64_android",
+    "arm64_fuchsia",
     "arm64_ios",
     "arm64_linux",
     "arm64_macos",
@@ -398,6 +399,7 @@ class FfiTestSuite extends TestSuite {
     "ia32_android",
     "ia32_linux",
     "ia32_win",
+    "x64_fuchsia",
     "x64_ios",
     "x64_linux",
     "x64_macos",

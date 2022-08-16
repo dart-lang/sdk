@@ -1,0 +1,13 @@
+M(xmm0 double, xmm1 double) Union(size: 16)
+M(xmm2 double, xmm3 double) Union(size: 16)
+M(xmm4 double, xmm5 double) Union(size: 16)
+M(xmm6 double, xmm7 double) Union(size: 16)
+S+0 Union(size: 16)
+S+16 Union(size: 16)
+S+32 Union(size: 16)
+S+48 Union(size: 16)
+S+64 Union(size: 16)
+rdi int32[int8]
+S+80 Union(size: 16)
+=>
+M(xmm0 double, xmm1 double) Union(size: 16)

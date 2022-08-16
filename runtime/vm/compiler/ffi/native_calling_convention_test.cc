@@ -697,6 +697,38 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct12bytesFloatx6) {
   RunSignatureTest(Z, "struct12bytesFloatx6", arguments, int64_type);
 }
 
+// typedef void (*YogaDartMeasureFunc)(intptr_t node_id,
+//                                     double available_width,
+//                                     int32_t width_mode,
+//                                     double available_height,
+//                                     int32_t height_mode,
+//                                     double *measured_width,
+//                                     double *measured_height);
+// https://bugs.fuchsia.dev/p/fuchsia/issues/detail?id=105336
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_regress_fuchsia105336) {
+#if defined(TARGET_ARCH_IS_32_BIT)
+  const auto& intptr_type = *new (Z) NativePrimitiveType(kInt32);
+#elif defined(TARGET_ARCH_IS_64_BIT)
+  const auto& intptr_type = *new (Z) NativePrimitiveType(kInt64);
+#endif
+  const auto& double_type = *new (Z) NativePrimitiveType(kDouble);
+  const auto& int32_type = *new (Z) NativePrimitiveType(kInt32);
+  const auto& void_type = *new (Z) NativePrimitiveType(kVoid);
+
+  auto& arguments = *new (Z) NativeTypes(Z, 6);
+  arguments.Add(&intptr_type);
+  arguments.Add(&double_type);
+  arguments.Add(&int32_type);
+  arguments.Add(&double_type);
+  arguments.Add(&int32_type);
+  arguments.Add(&intptr_type);  // pointer
+  arguments.Add(&intptr_type);  // pointer
+
+  RunSignatureTest(Z, "regress_fuchsia105336", arguments, void_type);
+}
+
 }  // namespace ffi
 }  // namespace compiler
 }  // namespace dart
