@@ -36,7 +36,7 @@ function stringToDartString(string) {
     } else {
         var dartString = dartInstance.exports.$stringAllocate2(length);
         for (var i = 0; i < length; i++) {
-            dartInstance.exports.$stringWrite2(dartString, i, string.codePointAt(i));
+            dartInstance.exports.$stringWrite2(dartString, i, string.charCodeAt(i));
         }
         return dartString;
     }
@@ -251,6 +251,12 @@ var dart2wasm = {
     },
     jsonEncode: function(s) {
         return stringToDartString(JSON.stringify(stringFromDartString(s)));
+    },
+    toUpperCase: function(string) {
+        return stringToDartString(stringFromDartString(string).toUpperCase());
+    },
+    toLowerCase: function(string) {
+        return stringToDartString(stringFromDartString(string).toLowerCase());
     },
 };
 
