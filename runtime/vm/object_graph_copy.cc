@@ -259,7 +259,7 @@ ObjectPtr AllocateObject(intptr_t cid, intptr_t size) {
 #else
   const bool compressed = false;
 #endif
-  return Object::Allocate(cid, size, Heap::kOld, compressed);
+  return Object::Allocate(cid, size, Heap::kNew, compressed);
 }
 
 DART_FORCE_INLINE
@@ -1806,10 +1806,11 @@ class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase> {
   Array& expandos_to_rehash_;
 };
 
-class ObjectGraphCopier {
+class ObjectGraphCopier : public StackResource {
  public:
   explicit ObjectGraphCopier(Thread* thread)
-      : thread_(thread),
+      : StackResource(thread),
+        thread_(thread),
         zone_(thread->zone()),
         fast_object_copy_(thread_),
         slow_object_copy_(thread_) {
