@@ -49,6 +49,7 @@ import '../native/enqueue.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../ssa/builder.dart';
+import '../ssa/metrics.dart';
 import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
 import '../ssa/types.dart';
@@ -88,6 +89,8 @@ class JsBackendStrategy {
 
   SourceInformationStrategy sourceInformationStrategy;
 
+  final SsaMetrics _ssaMetrics = SsaMetrics();
+
   /// The generated code as a js AST for compiled methods.
   final Map<MemberEntity, js.Expression> generatedCode = {};
 
@@ -102,6 +105,7 @@ class JsBackendStrategy {
     _functionCompiler = SsaFunctionCompiler(
         _compiler.options,
         _compiler.reporter,
+        _ssaMetrics,
         this,
         _compiler.measurer,
         sourceInformationStrategy);
@@ -380,6 +384,7 @@ class JsBackendStrategy {
         _compiler.options,
         _compiler.reporter,
         _compiler.dumpInfoTask,
+        _ssaMetrics,
         // ignore:deprecated_member_use_from_same_package
         elementMap,
         sourceInformationStrategy);
@@ -475,14 +480,21 @@ class KernelSsaBuilder implements SsaBuilder {
   final CompilerOptions _options;
   final DiagnosticReporter _reporter;
   final DumpInfoTask _dumpInfoTask;
+  final SsaMetrics _metrics;
   final JsToElementMap _elementMap;
   final SourceInformationStrategy _sourceInformationStrategy;
 
   FunctionInlineCache _inlineCache;
   InlineDataCache _inlineDataCache;
 
-  KernelSsaBuilder(this._task, this._options, this._reporter,
-      this._dumpInfoTask, this._elementMap, this._sourceInformationStrategy);
+  KernelSsaBuilder(
+      this._task,
+      this._options,
+      this._reporter,
+      this._dumpInfoTask,
+      this._metrics,
+      this._elementMap,
+      this._sourceInformationStrategy);
 
   @override
   HGraph build(
@@ -504,6 +516,7 @@ class KernelSsaBuilder implements SsaBuilder {
           member,
           _elementMap.getMemberThisType(member),
           _dumpInfoTask,
+          _metrics,
           _elementMap,
           results,
           closedWorld,
