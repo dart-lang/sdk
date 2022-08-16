@@ -943,25 +943,6 @@ class Instructions with SerializerMixin {
     _writeLabel(label);
   }
 
-  /// Emit a `struct.new_with_rtt` instruction.
-  void struct_new_with_rtt(StructType structType) {
-    assert(_verifyTypes(
-        [...structType.fields.map((f) => f.type.unpacked), Rtt(structType)],
-        [RefType.def(structType, nullable: false)],
-        trace: ['struct.new_with_rtt', structType]));
-    writeBytes(const [0xFB, 0x01]);
-    writeUnsigned(structType.index);
-  }
-
-  /// Emit a `struct.new_default_with_rtt` instruction.
-  void struct_new_default_with_rtt(StructType structType) {
-    assert(_verifyTypes(
-        [Rtt(structType)], [RefType.def(structType, nullable: false)],
-        trace: ['struct.new_default_with_rtt', structType]));
-    writeBytes(const [0xFB, 0x02]);
-    writeUnsigned(structType.index);
-  }
-
   /// Emit a `struct.get` instruction.
   void struct_get(StructType structType, int fieldIndex) {
     assert(structType.fields[fieldIndex].type is ValueType);
@@ -1027,25 +1008,6 @@ class Instructions with SerializerMixin {
     writeUnsigned(structType.index);
   }
 
-  /// Emit an `array.new_with_rtt` instruction.
-  void array_new_with_rtt(ArrayType arrayType) {
-    assert(_verifyTypes(
-        [arrayType.elementType.type.unpacked, NumType.i32, Rtt(arrayType)],
-        [RefType.def(arrayType, nullable: false)],
-        trace: ['array.new_with_rtt', arrayType]));
-    writeBytes(const [0xFB, 0x11]);
-    writeUnsigned(arrayType.index);
-  }
-
-  /// Emit an `array.new_default_with_rtt` instruction.
-  void array_new_default_with_rtt(ArrayType arrayType) {
-    assert(_verifyTypes([NumType.i32, Rtt(arrayType)],
-        [RefType.def(arrayType, nullable: false)],
-        trace: ['array.new_default_with_rtt', arrayType]));
-    writeBytes(const [0xFB, 0x12]);
-    writeUnsigned(arrayType.index);
-  }
-
   /// Emit an `array.get` instruction.
   void array_get(ArrayType arrayType) {
     assert(arrayType.elementType.type is ValueType);
@@ -1099,23 +1061,12 @@ class Instructions with SerializerMixin {
     writeUnsigned(arrayType.index);
   }
 
-  /// Emit an `array.init` instruction.
-  void array_init(ArrayType arrayType, int length) {
-    ValueType elementType = arrayType.elementType.type.unpacked;
-    assert(_verifyTypes([...List.filled(length, elementType), Rtt(arrayType)],
-        [RefType.def(arrayType, nullable: false)],
-        trace: ['array.init', arrayType, length]));
-    writeBytes(const [0xFB, 0x19]);
-    writeUnsigned(arrayType.index);
-    writeUnsigned(length);
-  }
-
-  /// Emit an `array.init_static` instruction.
-  void array_init_static(ArrayType arrayType, int length) {
+  /// Emit an `array.new_fixed` instruction.
+  void array_new_fixed(ArrayType arrayType, int length) {
     ValueType elementType = arrayType.elementType.type.unpacked;
     assert(_verifyTypes([...List.filled(length, elementType)],
         [RefType.def(arrayType, nullable: false)],
-        trace: ['array.init_static', arrayType, length]));
+        trace: ['array.new_fixed', arrayType, length]));
     writeBytes(const [0xFB, 0x1a]);
     writeUnsigned(arrayType.index);
     writeUnsigned(length);
@@ -1139,25 +1090,13 @@ class Instructions with SerializerMixin {
     writeUnsigned(arrayType.index);
   }
 
-  /// Emit an `array.init_from_data_static` instruction.
-  void array_init_from_data_static(ArrayType arrayType, DataSegment data) {
+  /// Emit an `array.new_data` instruction.
+  void array_new_data(ArrayType arrayType, DataSegment data) {
     assert(arrayType.elementType.type.isPrimitive);
     assert(_verifyTypes(
         [NumType.i32, NumType.i32], [RefType.def(arrayType, nullable: false)],
-        trace: ['array.init_from_data_static', arrayType, data.index]));
+        trace: ['array.new_data', arrayType, data.index]));
     writeBytes(const [0xFB, 0x1d]);
-    writeUnsigned(arrayType.index);
-    writeUnsigned(data.index);
-    if (isGlobalInitializer) module.dataReferencedFromGlobalInitializer = true;
-  }
-
-  /// Emit an `array.init_from_data` instruction.
-  void array_init_from_data(ArrayType arrayType, DataSegment data) {
-    assert(arrayType.elementType.type.isPrimitive);
-    assert(_verifyTypes([NumType.i32, NumType.i32, Rtt(arrayType)],
-        [RefType.def(arrayType, nullable: false)],
-        trace: ['array.init_from_data', arrayType, data.index]));
-    writeBytes(const [0xFB, 0x1e]);
     writeUnsigned(arrayType.index);
     writeUnsigned(data.index);
     if (isGlobalInitializer) module.dataReferencedFromGlobalInitializer = true;
@@ -1184,94 +1123,7 @@ class Instructions with SerializerMixin {
     writeBytes(const [0xFB, 0x22]);
   }
 
-  /// Emit an `rtt.canon` instruction.
-  void rtt_canon(DefType defType) {
-    assert(_verifyTypes(const [], [Rtt(defType, defType.depth)],
-        trace: ['rtt.canon', defType]));
-    writeBytes(const [0xFB, 0x30]);
-    writeSigned(defType.index);
-  }
-
-  bool _verifyRttSub(DefType subType) {
-    if (!reachable) {
-      return _debugTrace(['rtt.sub', subType], reachableAfter: false);
-    }
-    final ValueType input = _topOfStack;
-    if (input is! Rtt) _reportError("Expected rtt, but stack contained $input");
-    final int? depth = input.depth;
-    if (depth == null) _reportError("Expected rtt with known depth");
-    final DefType superType = input.defType;
-    if (!subType.isSubtypeOf(superType)) {
-      _reportError("Expected supertype of $subType, but got $superType");
-    }
-    return _verifyTypes([input], [Rtt(subType, depth + 1)],
-        trace: ['rtt.sub', subType]);
-  }
-
-  /// Emit an `rtt.sub` instruction.
-  void rtt_sub(DefType defType) {
-    assert(_verifyRttSub(defType));
-    writeBytes(const [0xFB, 0x31]);
-    writeSigned(defType.index);
-  }
-
   bool _verifyCast(List<ValueType> Function(List<ValueType>) outputsFun,
-      {List<Object>? trace}) {
-    if (!reachable) {
-      return _debugTrace(trace, reachableAfter: false);
-    }
-    final stack = _stack(2);
-    final ValueType value = stack[0];
-    final ValueType rtt = stack[1];
-    if (rtt is! Rtt ||
-        !value.isSubtypeOf(const RefType.data(nullable: true)) &&
-            !value.isSubtypeOf(const RefType.func(nullable: true))) {
-      _reportError("Expected [data or func, rtt], but stack contained $stack");
-    }
-    return _verifyTypesFun(stack, outputsFun, trace: trace);
-  }
-
-  /// Emit a `ref.test` instruction.
-  void ref_test() {
-    assert(_verifyCast((_) => const [NumType.i32], trace: const ['ref.test']));
-    writeBytes(const [0xFB, 0x40]);
-  }
-
-  /// Emit a `ref.cast` instruction.
-  void ref_cast() {
-    assert(_verifyCast(
-        (inputs) => [
-              RefType.def((inputs[1] as Rtt).defType,
-                  nullable: inputs[0].nullable)
-            ],
-        trace: const ['ref.cast']));
-    writeBytes(const [0xFB, 0x41]);
-  }
-
-  /// Emit a `br_on_cast` instruction.
-  void br_on_cast(Label label) {
-    late final DefType targetType;
-    assert(_verifyCast((inputs) {
-      targetType = (inputs[1] as Rtt).defType;
-      return [inputs[0]];
-    }, trace: ['br_on_cast', label]));
-    assert(_verifyBranchTypes(
-        label, 1, [RefType.def(targetType, nullable: false)]));
-    writeBytes(const [0xFB, 0x42]);
-    _writeLabel(label);
-  }
-
-  /// Emit a `br_on_cast_fail` instruction.
-  void br_on_cast_fail(Label label) {
-    assert(_verifyBranchTypes(label, 1, [_topOfStack]));
-    assert(_verifyCast(
-        (inputs) => [RefType.def((inputs[1] as Rtt).defType, nullable: false)],
-        trace: ['br_on_cast_fail', label]));
-    writeBytes(const [0xFB, 0x43]);
-    _writeLabel(label);
-  }
-
-  bool _verifyCastStatic(List<ValueType> Function(List<ValueType>) outputsFun,
       {List<Object>? trace}) {
     if (!reachable) {
       return _debugTrace(trace, reachableAfter: false);
@@ -1284,28 +1136,28 @@ class Instructions with SerializerMixin {
     return _verifyTypesFun([value], outputsFun, trace: trace);
   }
 
-  /// Emit a `ref.test_static` instruction.
-  void ref_test_static(DefType targetType) {
-    assert(_verifyCastStatic((_) => const [NumType.i32],
-        trace: ['ref.test_static', targetType]));
+  /// Emit a `ref.test` instruction.
+  void ref_test(DefType targetType) {
+    assert(_verifyCast((_) => const [NumType.i32],
+        trace: ['ref.test', targetType]));
     writeBytes(const [0xFB, 0x44]);
     writeSigned(targetType.index);
   }
 
-  /// Emit a `ref.cast_static` instruction.
-  void ref_cast_static(DefType targetType) {
-    assert(_verifyCastStatic(
+  /// Emit a `ref.cast` instruction.
+  void ref_cast(DefType targetType) {
+    assert(_verifyCast(
         (inputs) => [RefType.def(targetType, nullable: inputs[0].nullable)],
-        trace: ['ref.cast_static', targetType]));
+        trace: ['ref.cast', targetType]));
     writeBytes(const [0xFB, 0x45]);
     writeSigned(targetType.index);
   }
 
-  /// Emit a `br_on_cast_static` instruction.
-  void br_on_cast_static(Label label, DefType targetType) {
-    assert(_verifyCastStatic((inputs) {
+  /// Emit a `br_on_cast` instruction.
+  void br_on_cast(Label label, DefType targetType) {
+    assert(_verifyCast((inputs) {
       return [inputs[0]];
-    }, trace: ['br_on_cast_static', label, targetType]));
+    }, trace: ['br_on_cast', label, targetType]));
     assert(_verifyBranchTypes(
         label, 1, [RefType.def(targetType, nullable: false)]));
     writeBytes(const [0xFB, 0x46]);
@@ -1313,12 +1165,11 @@ class Instructions with SerializerMixin {
     writeSigned(targetType.index);
   }
 
-  /// Emit a `br_on_cast_static_fail` instruction.
-  void br_on_cast_static_fail(Label label, DefType targetType) {
+  /// Emit a `br_on_cast_fail` instruction.
+  void br_on_cast_fail(Label label, DefType targetType) {
     assert(_verifyBranchTypes(label, 1, [_topOfStack]));
-    assert(_verifyCastStatic(
-        (inputs) => [RefType.def(targetType, nullable: false)],
-        trace: ['br_on_cast_static_fail', label, targetType]));
+    assert(_verifyCast((inputs) => [RefType.def(targetType, nullable: false)],
+        trace: ['br_on_cast_fail', label, targetType]));
     writeBytes(const [0xFB, 0x47]);
     _writeLabel(label);
     writeSigned(targetType.index);

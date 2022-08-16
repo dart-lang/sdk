@@ -172,7 +172,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b.i32_const(initialIdentityHash);
     b.local_get(paramLocals[0]);
     b.global_get(global);
-    translator.struct_new(b, parameterCount);
+    b.struct_new(translator.closureStructType(parameterCount));
     b.end();
   }
 
@@ -261,7 +261,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
               translator.isFfiCompound(cls))) {
         preciseThisLocal = addLocal(thisType);
         b.local_get(paramLocals[0]);
-        translator.ref_cast(b, info);
+        b.ref_cast(info.struct);
         b.local_set(preciseThisLocal!);
       } else {
         preciseThisLocal = paramLocals[0];
@@ -325,7 +325,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     Context? context = closures.contexts[lambda.functionNode]?.parent;
     if (context != null) {
       b.local_get(paramLocals[0]);
-      translator.ref_cast(b, context.struct);
+      b.ref_cast(context.struct);
       while (true) {
         w.Local contextLocal =
             addLocal(w.RefType.def(context!.struct, nullable: false));
@@ -382,7 +382,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       w.Local contextLocal =
           addLocal(w.RefType.def(context.struct, nullable: false));
       context.currentLocal = contextLocal;
-      translator.struct_new_default(b, context.struct);
+      b.struct_new_default(context.struct);
       b.local_set(contextLocal);
       if (context.containsThis) {
         b.local_get(contextLocal);
@@ -1114,7 +1114,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     ClassInfo info = translator.classInfo[node.target.enclosingClass]!;
     translator.functions.allocateClass(info.classId);
     w.Local temp = addLocal(info.nonNullableType);
-    translator.struct_new_default(b, info);
+    b.struct_new_default(info.struct);
     b.local_tee(temp);
     b.local_get(temp);
     b.i32_const(info.classId);
@@ -1756,7 +1756,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b.i32_const(initialIdentityHash);
     _pushContext(functionNode);
     b.global_get(global);
-    translator.struct_new(b, parameterCount);
+    b.struct_new(translator.closureStructType(parameterCount));
 
     return struct;
   }
@@ -2001,7 +2001,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (options.lazyConstants) {
       // Avoid array.init instruction in lazy constants mode
       b.i32_const(length);
-      translator.array_new_default(b, arrayType);
+      b.array_new_default(arrayType);
       if (length > 0) {
         w.Local arrayLocal = addLocal(refType.withNullability(false));
         b.local_set(arrayLocal);
@@ -2017,9 +2017,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       for (int i = 0; i < length; i++) {
         generateItem(elementType, i);
       }
-      translator.array_init(b, arrayType, length);
+      b.array_new_fixed(arrayType, length);
     }
-    translator.struct_new(b, info);
+    b.struct_new(info.struct);
 
     return info.nonNullableType;
   }

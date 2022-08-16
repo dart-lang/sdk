@@ -17,11 +17,9 @@ where *options* include:
 | `--`[`no-`]`inlining`                   | no      | Inline small functions.
 | `--`[`no-`]`lazy-constants`             | no      | Instantiate constants lazily.
 | `--`[`no-`]`name-section`               | yes     | Emit Name Section with function names.
-| `--`[`no-`]`nominal-types`              | yes     | Emit nominal types.
 | `--`[`no-`]`polymorphic-specialization` | no      | Do virtual calls by switching on the class ID instead of using `call_indirect`.
 | `--`[`no-`]`print-kernel`               | no      | Print IR for each function before compiling it.
 | `--`[`no-`]`print-wasm`                 | no      | Print Wasm instructions of each compiled function.
-| `--`[`no-`]`runtime-types`              | no      | Use RTTs for allocations and casts.
 | `--shared-memory-max-pages` *pagecount* |         | Max size of the imported memory buffer. If `--shared-import-memory` is specified, this must also be specified.
 | `--`[`no-`]`string-data-segments`       | no      | Use experimental array init from data segment for string constants.
 | `--watch` *offset*                      |         | Print stack trace leading to the byte at offset *offset* in the `.wasm` output file. Can be specified multiple times.

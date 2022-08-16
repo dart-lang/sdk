@@ -421,7 +421,7 @@ class Types {
     } else {
       throw '`$type` should have already been handled.';
     }
-    translator.struct_new(b, info);
+    b.struct_new(info.struct);
     return info.nonNullableType;
   }
 
@@ -484,7 +484,7 @@ class Types {
     List<Class> concrete = _getConcreteSubtypes(type.classNode).toList();
     if (type.classNode == coreTypes.functionClass) {
       ClassInfo functionInfo = translator.classInfo[translator.functionClass]!;
-      translator.ref_test(b, functionInfo);
+      b.ref_test(functionInfo.struct);
     } else if (concrete.isEmpty) {
       b.drop();
       b.i32_const(0);

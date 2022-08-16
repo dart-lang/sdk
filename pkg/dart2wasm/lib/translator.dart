@@ -35,16 +35,12 @@ class TranslatorOptions {
   int inliningLimit = 3;
   bool lazyConstants = false;
   bool nameSection = true;
-  bool nominalTypes = true;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
-  bool runtimeTypes = false;
   int? sharedMemoryMaxPages;
   bool stringDataSegments = false;
   List<int>? watchPoints = null;
-
-  bool get useRttGlobals => runtimeTypes && !nominalTypes;
 }
 
 typedef CodeGenCallback = void Function(w.Instructions);
@@ -160,8 +156,6 @@ class Translator {
   // Caches for when identical source constructs need a common representation.
   final Map<w.StorageType, w.ArrayType> arrayTypeCache = {};
   final Map<int, w.StructType> functionTypeCache = {};
-  final Map<w.StructType, int> functionTypeParameterCount = {};
-  final Map<int, w.DefinedGlobal> functionTypeRtt = {};
   final Map<w.BaseFunction, w.DefinedGlobal> functionRefCache = {};
   final Map<Procedure, w.DefinedFunction> tearOffFunctionCache = {};
 
@@ -338,7 +332,8 @@ class Translator {
     mainFunction = _findMainMethod(libraries.first);
     functions.addExport(mainFunction.reference, "main");
 
-    initFunction = m.addFunction(functionType(const [], const []), "#init");
+    initFunction =
+        m.addFunction(m.addFunctionType(const [], const []), "#init");
     m.startFunction = initFunction;
 
     globals = Globals(this);
@@ -459,7 +454,7 @@ class Translator {
   /// [stackTraceInfo.nonNullableType] to hold a stack trace. This single
   /// exception tag is used to throw and catch all Dart exceptions.
   w.Tag createExceptionTag() {
-    w.FunctionType tagType = functionType(
+    w.FunctionType tagType = m.addFunctionType(
         [topInfo.nonNullableType, stackTraceInfo.nonNullableType], const []);
     w.Tag tag = m.addTag(tagType);
     return tag;
@@ -535,7 +530,7 @@ class Translator {
           if (functionType.returnType != const VoidType())
             translateType(functionType.returnType)
         ];
-        w.FunctionType wasmType = this.functionType(inputs, outputs);
+        w.FunctionType wasmType = m.addFunctionType(inputs, outputs);
         return w.RefType.def(wasmType, nullable: type.isPotentiallyNullable);
       }
       return typeForInfo(
@@ -577,39 +572,30 @@ class Translator {
   }
 
   w.ArrayType wasmArrayType(w.StorageType type, String name) {
-    return arrayTypeCache.putIfAbsent(
-        type, () => arrayType("Array<$name>", elementType: w.FieldType(type)));
+    return arrayTypeCache.putIfAbsent(type,
+        () => m.addArrayType("Array<$name>", elementType: w.FieldType(type)));
   }
 
   w.StructType closureStructType(int parameterCount) {
     return functionTypeCache.putIfAbsent(parameterCount, () {
       ClassInfo info = classInfo[functionClass]!;
-      w.StructType struct = structType("Function$parameterCount",
+      w.StructType struct = m.addStructType("Function$parameterCount",
           fields: info.struct.fields, superType: info.struct);
       assert(struct.fields.length == FieldIndex.closureFunction);
       struct.fields.add(w.FieldType(
           w.RefType.def(closureFunctionType(parameterCount), nullable: false),
           mutable: false));
-      if (options.useRttGlobals) {
-        functionTypeRtt[parameterCount] =
-            classInfoCollector.makeRtt(struct, info);
-      }
-      functionTypeParameterCount[struct] = parameterCount;
       return struct;
     });
   }
 
   w.FunctionType closureFunctionType(int parameterCount) {
-    return functionType([
+    return m.addFunctionType([
       w.RefType.data(),
       ...List<w.ValueType>.filled(parameterCount, topInfo.nullableType)
     ], [
       topInfo.nullableType
     ]);
-  }
-
-  int parameterCountForFunctionStruct(w.HeapType heapType) {
-    return functionTypeParameterCount[heapType]!;
   }
 
   w.DefinedGlobal makeFunctionRef(w.BaseFunction f) {
@@ -698,7 +684,7 @@ class Translator {
         b.local_set(temp);
         b.i32_const(info.classId);
         b.local_get(temp);
-        struct_new(b, info);
+        b.struct_new(info.struct);
       } else if (from is w.RefType && to is! w.RefType) {
         // Unboxing
         ClassInfo info = classInfo[boxedClasses[to]!]!;
@@ -707,7 +693,7 @@ class Translator {
           if (!from.heapType.isSubtypeOf(w.HeapType.data)) {
             b.ref_as_data();
           }
-          ref_cast(b, info);
+          b.ref_cast(info.struct);
         }
         b.struct_get(info.struct, FieldIndex.boxValue);
       } else if (from.withNullability(false).isSubtypeOf(to)) {
@@ -721,19 +707,15 @@ class Translator {
         var heapType = (to as w.RefType).heapType;
         if (heapType is w.FunctionType) {
           b.ref_as_func();
-          ref_cast(b, heapType);
+          b.ref_cast(heapType);
           return;
         }
-        ClassInfo? info = classForHeapType[heapType];
         if (!(from as w.RefType).heapType.isSubtypeOf(w.HeapType.data)) {
           b.ref_as_data();
         }
-        ref_cast(
-            b,
-            info ??
-                (heapType.isSubtypeOf(classInfo[functionClass]!.struct)
-                    ? parameterCountForFunctionStruct(heapType)
-                    : heapType));
+        if (heapType is w.DefType) {
+          b.ref_cast(heapType);
+        }
       }
     }
   }
@@ -823,159 +805,6 @@ class Translator {
     }
     return null;
   }
-
-  // Wrappers for type creation to abstract over equi-recursive versus nominal
-  // typing. The given supertype is ignored when nominal types are disabled,
-  // and a suitable default is inserted when nominal types are enabled.
-
-  w.FunctionType functionType(
-      Iterable<w.ValueType> inputs, Iterable<w.ValueType> outputs,
-      {w.HeapType? superType}) {
-    return m.addFunctionType(inputs, outputs,
-        superType: options.nominalTypes ? superType ?? w.HeapType.func : null);
-  }
-
-  w.StructType structType(String name,
-      {Iterable<w.FieldType>? fields, w.HeapType? superType}) {
-    return m.addStructType(name,
-        fields: fields,
-        superType: options.nominalTypes ? superType ?? w.HeapType.data : null);
-  }
-
-  w.ArrayType arrayType(String name,
-      {w.FieldType? elementType, w.HeapType? superType}) {
-    return m.addArrayType(name,
-        elementType: elementType,
-        superType: options.nominalTypes ? superType ?? w.HeapType.data : null);
-  }
-
-  // Wrappers for object allocation and cast instructions to abstract over
-  // RTT-based and static versions of the instructions.
-  // The [type] parameter taken by the methods is either a [ClassInfo] (to use
-  // the RTT for the class), an [int] (to use the RTT for the closure struct
-  // corresponding to functions with that number of parameters) or a
-  // [w.DefType] (to use the canonical RTT for the type).
-
-  void struct_new(w.Instructions b, Object type) {
-    if (options.runtimeTypes) {
-      final struct = _emitRtt(b, type) as w.StructType;
-      b.struct_new_with_rtt(struct);
-    } else {
-      b.struct_new(_targetType(type) as w.StructType);
-    }
-  }
-
-  void struct_new_default(w.Instructions b, Object type) {
-    if (options.runtimeTypes) {
-      final struct = _emitRtt(b, type) as w.StructType;
-      b.struct_new_default_with_rtt(struct);
-    } else {
-      b.struct_new_default(_targetType(type) as w.StructType);
-    }
-  }
-
-  void array_new(w.Instructions b, w.ArrayType type) {
-    if (options.runtimeTypes) {
-      b.rtt_canon(type);
-      b.array_new_with_rtt(type);
-    } else {
-      b.array_new(type);
-    }
-  }
-
-  void array_new_default(w.Instructions b, w.ArrayType type) {
-    if (options.runtimeTypes) {
-      b.rtt_canon(type);
-      b.array_new_default_with_rtt(type);
-    } else {
-      b.array_new_default(type);
-    }
-  }
-
-  void array_init(w.Instructions b, w.ArrayType type, int length) {
-    if (options.runtimeTypes) {
-      b.rtt_canon(type);
-      b.array_init(type, length);
-    } else {
-      b.array_init_static(type, length);
-    }
-  }
-
-  void array_init_from_data(
-      w.Instructions b, w.ArrayType type, w.DataSegment data) {
-    if (options.runtimeTypes) {
-      b.rtt_canon(type);
-      b.array_init_from_data(type, data);
-    } else {
-      b.array_init_from_data_static(type, data);
-    }
-  }
-
-  void ref_test(w.Instructions b, Object type) {
-    if (options.runtimeTypes) {
-      _emitRtt(b, type);
-      b.ref_test();
-    } else {
-      b.ref_test_static(_targetType(type));
-    }
-  }
-
-  void ref_cast(w.Instructions b, Object type) {
-    if (options.runtimeTypes) {
-      _emitRtt(b, type);
-      b.ref_cast();
-    } else {
-      b.ref_cast_static(_targetType(type));
-    }
-  }
-
-  void br_on_cast(w.Instructions b, w.Label label, Object type) {
-    if (options.runtimeTypes) {
-      _emitRtt(b, type);
-      b.br_on_cast(label);
-    } else {
-      b.br_on_cast_static(label, _targetType(type));
-    }
-  }
-
-  void br_on_cast_fail(w.Instructions b, w.Label label, Object type) {
-    if (options.runtimeTypes) {
-      _emitRtt(b, type);
-      b.br_on_cast_fail(label);
-    } else {
-      b.br_on_cast_static_fail(label, _targetType(type));
-    }
-  }
-
-  w.DefType _emitRtt(w.Instructions b, Object type) {
-    if (type is ClassInfo) {
-      if (options.nominalTypes) {
-        b.rtt_canon(type.struct);
-      } else {
-        b.global_get(type.rtt);
-      }
-      return type.struct;
-    } else if (type is int) {
-      int parameterCount = type;
-      w.StructType struct = closureStructType(parameterCount);
-      if (options.nominalTypes) {
-        b.rtt_canon(struct);
-      } else {
-        w.DefinedGlobal rtt = functionTypeRtt[parameterCount]!;
-        b.global_get(rtt);
-      }
-      return struct;
-    } else {
-      b.rtt_canon(type as w.DefType);
-      return type;
-    }
-  }
-
-  w.DefType _targetType(Object type) => type is ClassInfo
-      ? type.struct
-      : type is int
-          ? closureStructType(type)
-          : type as w.DefType;
 }
 
 class NodeCounter extends Visitor<void> with VisitorVoidMixin {
