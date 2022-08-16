@@ -1,0 +1,8 @@
+M(xmm0 double, xmm1 double) Struct(size: 12)
+M(xmm2 double, xmm3 double) Struct(size: 12)
+M(xmm4 double, xmm5 double) Struct(size: 12)
+M(xmm6 double, xmm7 double) Struct(size: 12)
+S+0 Struct(size: 12)
+S+16 Struct(size: 12)
+=>
+rax int64

@@ -1,0 +1,3 @@
+Struct(size: 16, field alignment: 4, stack alignment: 8, members: {
+  0: Array(element type: Struct(size: 8, field alignment: 4, stack alignment: 8, members: {0: Array(element type: float, length: 2)}), length: 2)
+})

@@ -61,6 +61,10 @@ config("define_target_os_android") {
   defines = [ "DART_TARGET_OS_ANDROID" ]
 }
 
+config("define_target_os_fuchsia") {
+  defines = [ "DART_TARGET_OS_FUCHSIA" ]
+}
+
 config("define_target_os_ios") {
   defines = [ "DART_TARGET_OS_MACOS_IOS" ]
 }
@@ -105,6 +109,13 @@ build_run_ffi_unit_tests("run_ffi_unit_tests_arm64_android") {
   ]
 }
 
+build_run_ffi_unit_tests("run_ffi_unit_tests_arm64_fuchsia") {
+  extra_configs = [
+    ":define_target_arch_arm64",
+    ":define_target_os_fuchsia",
+  ]
+}
+
 build_run_ffi_unit_tests("run_ffi_unit_tests_arm64_ios") {
   extra_configs = [
     ":define_target_arch_arm64",
@@ -144,6 +155,13 @@ build_run_ffi_unit_tests("run_ffi_unit_tests_ia32_win") {
   extra_configs = [
     ":define_target_arch_ia32",
     ":define_target_os_windows",
+  ]
+}
+
+build_run_ffi_unit_tests("run_ffi_unit_tests_x64_fuchsia") {
+  extra_configs = [
+    ":define_target_arch_x64",
+    ":define_target_os_fuchsia",
   ]
 }
 
@@ -192,6 +210,7 @@ build_run_ffi_unit_tests("run_ffi_unit_tests_riscv64_linux") {
 group("run_ffi_unit_tests") {
   deps = [
     ":run_ffi_unit_tests_arm64_android",
+    ":run_ffi_unit_tests_arm64_fuchsia",
     ":run_ffi_unit_tests_arm64_ios",  # No other test coverage.
     ":run_ffi_unit_tests_arm64_linux",
     ":run_ffi_unit_tests_arm64_macos",
@@ -203,6 +222,7 @@ group("run_ffi_unit_tests") {
     ":run_ffi_unit_tests_ia32_win",
     ":run_ffi_unit_tests_riscv32_linux",
     ":run_ffi_unit_tests_riscv64_linux",
+    ":run_ffi_unit_tests_x64_fuchsia",
     ":run_ffi_unit_tests_x64_ios",  # Simulator, no other test coverage.
     ":run_ffi_unit_tests_x64_linux",
     ":run_ffi_unit_tests_x64_macos",
