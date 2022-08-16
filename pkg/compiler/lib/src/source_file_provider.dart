@@ -34,8 +34,6 @@ abstract class SourceFileProvider implements api.CompilerInput {
 
     if (resourceUri.isScheme('file')) {
       return _readFromFile(resourceUri, inputKind);
-    } else if (resourceUri.isScheme('http') || resourceUri.isScheme('https')) {
-      return _readFromHttp(resourceUri, inputKind);
     } else {
       throw ArgumentError("Unknown scheme in uri '$resourceUri'");
     }
@@ -123,45 +121,6 @@ abstract class SourceFileProvider implements api.CompilerInput {
       return Future.error(e);
     }
     return Future.value(input);
-  }
-
-  Future<api.Input<List<int>>> _readFromHttp(
-      Uri resourceUri, api.InputKind inputKind) {
-    assert(resourceUri.isScheme('http'));
-    HttpClient client = HttpClient();
-    return client
-        .getUrl(resourceUri)
-        .then((HttpClientRequest request) => request.close())
-        .then((HttpClientResponse response) {
-      if (response.statusCode != HttpStatus.ok) {
-        String msg = 'Failure getting $resourceUri: '
-            '${response.statusCode} ${response.reasonPhrase}';
-        throw msg;
-      }
-      return response.toList();
-    }).then((List<List<int>> splitContent) {
-      int totalLength = splitContent.fold(0, (int old, List list) {
-        return old + list.length;
-      });
-      Uint8List result = Uint8List(totalLength);
-      int offset = 0;
-      for (List<int> contentPart in splitContent) {
-        result.setRange(offset, offset + contentPart.length, contentPart);
-        offset += contentPart.length;
-      }
-      dartCharactersRead += totalLength;
-      api.Input<List<int>> input;
-      switch (inputKind) {
-        case api.InputKind.UTF8:
-          input = utf8SourceFiles[resourceUri] = CachingUtf8BytesSourceFile(
-              resourceUri, resourceUri.toString(), result);
-          break;
-        case api.InputKind.binary:
-          input = binarySourceFiles[resourceUri] = Binary(resourceUri, result);
-          break;
-      }
-      return input;
-    });
   }
 
   relativizeUri(Uri uri) => fe.relativizeUri(cwd, uri, isWindows);
