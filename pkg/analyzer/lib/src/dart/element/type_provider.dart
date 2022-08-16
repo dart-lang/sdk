@@ -142,7 +142,6 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType? _numType;
   InterfaceType? _numTypeQuestion;
   InterfaceType? _objectType;
-  InterfaceType? _recordType;
   InterfaceType? _stackTraceType;
   InterfaceType? _streamDynamicType;
   InterfaceType? _stringType;
@@ -395,13 +394,6 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   ClassElement get recordElement {
     return _recordElement ??= _getClassElement(_coreLibrary, 'Record');
-  }
-
-  InterfaceType get recordType {
-    return _recordType ??= recordElement.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
   }
 
   @override
