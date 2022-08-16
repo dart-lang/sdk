@@ -131,7 +131,7 @@ class Intrinsifier {
       w.Label fail = b.block(const [], const [w.RefType.any(nullable: false)]);
       codeGen.wrap(receiver, w.RefType.any(nullable: false));
       b.br_on_non_data(fail);
-      translator.ref_test(b, translator.topInfo);
+      b.ref_test(translator.topInfo.struct);
       b.br(succeed);
       b.end(); // fail
       b.drop();
@@ -353,7 +353,7 @@ class Intrinsifier {
       w.Label fail = b.block(const [], const [w.RefType.any(nullable: false)]);
       codeGen.wrap(receiver, w.RefType.any(nullable: false));
       b.br_on_non_data(fail);
-      translator.br_on_cast(b, succeed, translator.topInfo);
+      b.br_on_cast(succeed, translator.topInfo.struct);
       b.end(); // fail
       codeGen.throwWasmRefError("a Dart object");
       b.end(); // succeed
@@ -704,7 +704,7 @@ class Intrinsifier {
           b.i32_const(0);
           getID(object);
           codeGen.wrap(typeArguments, translator.types.typeListExpectedType);
-          translator.struct_new(b, info);
+          b.struct_new(info.struct);
           return info.nonNullableType;
       }
     }
@@ -731,8 +731,8 @@ class Intrinsifier {
           b.i32_const(initialIdentityHash);
           codeGen.wrap(length, w.NumType.i64);
           b.i32_wrap_i64();
-          translator.array_new_default(b, arrayType);
-          translator.struct_new(b, info);
+          b.array_new_default(arrayType);
+          b.struct_new(info.struct);
           return info.nonNullableType;
         case "writeIntoOneByteString":
           ClassInfo info = translator.classInfo[translator.oneByteStringClass]!;
@@ -762,8 +762,8 @@ class Intrinsifier {
           b.i32_const(initialIdentityHash);
           codeGen.wrap(length, w.NumType.i64);
           b.i32_wrap_i64();
-          translator.array_new_default(b, arrayType);
-          translator.struct_new(b, info);
+          b.array_new_default(arrayType);
+          b.struct_new(info.struct);
           return info.nonNullableType;
         case "writeIntoTwoByteString":
           ClassInfo info = translator.classInfo[translator.twoByteStringClass]!;
@@ -952,7 +952,7 @@ class Intrinsifier {
             translator.arrayTypeForDartType(node.arguments.types.single);
         codeGen.wrap(length, w.NumType.i64);
         b.i32_wrap_i64();
-        translator.array_new_default(b, arrayType);
+        b.array_new_default(arrayType);
         return w.RefType.def(arrayType, nullable: false);
       }
 
@@ -968,8 +968,7 @@ class Intrinsifier {
         codeGen.wrap(ref, w.RefType.any(nullable: false));
         b.br_on_non_func(fail);
         if (cls == translator.wasmFunctionClass) {
-          assert(resultType.heapType is w.FunctionType);
-          translator.br_on_cast_fail(b, fail, resultType.heapType);
+          b.br_on_cast_fail(fail, resultType.heapType as w.FunctionType);
         }
         b.br(succeed);
         b.end(); // fail
@@ -1137,11 +1136,11 @@ class Intrinsifier {
       b.i32_eq();
       b.if_();
       b.local_get(first);
-      translator.ref_cast(b, boolInfo);
+      b.ref_cast(boolInfo.struct);
       b.struct_get(boolInfo.struct, FieldIndex.boxValue);
       w.Label bothBool = b.block(const [], [boolInfo.nullableType]);
       b.local_get(second);
-      translator.br_on_cast(b, bothBool, boolInfo);
+      b.br_on_cast(bothBool, boolInfo.struct);
       b.i32_const(0);
       b.return_();
       b.end();
@@ -1156,11 +1155,11 @@ class Intrinsifier {
       b.i32_eq();
       b.if_();
       b.local_get(first);
-      translator.ref_cast(b, intInfo);
+      b.ref_cast(intInfo.struct);
       b.struct_get(intInfo.struct, FieldIndex.boxValue);
       w.Label bothInt = b.block(const [], [intInfo.nullableType]);
       b.local_get(second);
-      translator.br_on_cast(b, bothInt, intInfo);
+      b.br_on_cast(bothInt, intInfo.struct);
       b.i32_const(0);
       b.return_();
       b.end();
@@ -1175,12 +1174,12 @@ class Intrinsifier {
       b.i32_eq();
       b.if_();
       b.local_get(first);
-      translator.ref_cast(b, doubleInfo);
+      b.ref_cast(doubleInfo.struct);
       b.struct_get(doubleInfo.struct, FieldIndex.boxValue);
       b.i64_reinterpret_f64();
       w.Label bothDouble = b.block(const [], [doubleInfo.nullableType]);
       b.local_get(second);
-      translator.br_on_cast(b, bothDouble, doubleInfo);
+      b.br_on_cast(bothDouble, doubleInfo.struct);
       b.i32_const(0);
       b.return_();
       b.end();
@@ -1209,7 +1208,7 @@ class Intrinsifier {
         TypeParameter typeParameter = cls.typeParameters[i];
         int typeParameterIndex = translator.typeParameterIndex[typeParameter]!;
         b.local_get(object);
-        translator.ref_cast(b, classInfo);
+        b.ref_cast(classInfo.struct);
         b.struct_get(classInfo.struct, typeParameterIndex);
       });
       return true;
@@ -1243,8 +1242,8 @@ class Intrinsifier {
             b.i64_shl();
           }
           b.i32_wrap_i64();
-          translator.array_new_default(b, arrayType);
-          translator.struct_new(b, info);
+          b.array_new_default(arrayType);
+          b.struct_new(info.struct);
           return true;
         }
 
@@ -1265,7 +1264,7 @@ class Intrinsifier {
           b.local_get(buffer);
           b.local_get(offsetInBytes);
           b.i32_wrap_i64();
-          translator.struct_new(b, info);
+          b.struct_new(info.struct);
           return true;
         }
       }
@@ -1280,7 +1279,7 @@ class Intrinsifier {
         Class cls = member.enclosingClass!;
         ClassInfo info = translator.classInfo[cls]!;
         b.local_get(paramLocals[0]);
-        translator.ref_cast(b, info);
+        b.ref_cast(info.struct);
         // TODO(joshualitt): Because we currently merge getters to support
         // dynamic calls, the return types of `.length` and `.offsetInBytes` can
         // change. Should we decide to stop merging getters, we should remove
@@ -1360,7 +1359,7 @@ class Intrinsifier {
           ClassInfo intInfo = translator.classInfo[translator.boxedIntClass]!;
           w.Label intArg = b.block(const [], [intInfo.nonNullableType]);
           b.local_get(function.locals[1]);
-          translator.br_on_cast(b, intArg, intInfo);
+          b.br_on_cast(intArg, intInfo.struct);
           // double argument
           b.drop();
           b.local_get(function.locals[0]);

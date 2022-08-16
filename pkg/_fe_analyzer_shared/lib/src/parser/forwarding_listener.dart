@@ -1570,6 +1570,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleNamedRecordField(Token colon) {
+    listener?.handleNamedRecordField(colon);
+  }
+
+  @override
   void handleNamedMixinApplicationWithClause(Token withKeyword) {
     listener?.handleNamedMixinApplicationWithClause(withKeyword);
   }
@@ -1685,8 +1690,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleParenthesizedExpression(Token token) {
-    listener?.handleParenthesizedExpression(token);
+  void beginParenthesizedExpressionOrRecordLiteral(Token token) {
+    listener?.beginParenthesizedExpressionOrRecordLiteral(token);
+  }
+
+  @override
+  void endRecordLiteral(Token token, int count) {
+    listener?.endRecordLiteral(token, count);
+  }
+
+  @override
+  void endParenthesizedExpression(Token token) {
+    listener?.endParenthesizedExpression(token);
   }
 
   @override

@@ -255,6 +255,12 @@ abstract class IdentifierContext {
   static const NamedArgumentReferenceIdentifierContext namedArgumentReference =
       const NamedArgumentReferenceIdentifierContext();
 
+  /// Identifier is a reference to a named record field
+  /// (e.g. `foo` in `(42, foo: 42);`.
+  static const NamedRecordFieldReferenceIdentifierContext
+      namedRecordFieldReference =
+      const NamedRecordFieldReferenceIdentifierContext();
+
   /// Identifier is a name being declared by a local variable declaration.
   static const LocalVariableDeclarationIdentifierContext
       localVariableDeclaration =

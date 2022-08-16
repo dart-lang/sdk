@@ -18,17 +18,19 @@ class Globals {
   final Map<w.HeapType, w.DefinedGlobal> dummyValues = {};
   late final w.DefinedGlobal dummyGlobal;
 
+  w.Module get m => translator.m;
+
   Globals(this.translator) {
     _initDummyValues();
   }
 
   void _initDummyValues() {
     // Create dummy struct for anyref/eqref/dataref/context dummy values
-    w.StructType structType = translator.structType("#Dummy");
+    w.StructType structType = m.addStructType("#Dummy");
     w.RefType type = w.RefType.def(structType, nullable: false);
-    dummyGlobal = translator.m.addGlobal(w.GlobalType(type, mutable: false));
+    dummyGlobal = m.addGlobal(w.GlobalType(type, mutable: false));
     w.Instructions ib = dummyGlobal.initializer;
-    translator.struct_new(ib, structType);
+    ib.struct_new(structType);
     ib.end();
     dummyValues[w.HeapType.any] = dummyGlobal;
     dummyValues[w.HeapType.eq] = dummyGlobal;
@@ -45,25 +47,25 @@ class Globals {
           for (w.FieldType field in heapType.fields) {
             prepareDummyValue(field.type.unpacked);
           }
-          global = translator.m.addGlobal(w.GlobalType(type, mutable: false));
+          global = m.addGlobal(w.GlobalType(type, mutable: false));
           w.Instructions ib = global.initializer;
           for (w.FieldType field in heapType.fields) {
             instantiateDummyValue(ib, field.type.unpacked);
           }
-          translator.struct_new(ib, heapType);
+          ib.struct_new(heapType);
           ib.end();
         } else if (heapType is w.ArrayType) {
-          global = translator.m.addGlobal(w.GlobalType(type, mutable: false));
+          global = m.addGlobal(w.GlobalType(type, mutable: false));
           w.Instructions ib = global.initializer;
-          translator.array_init(ib, heapType, 0);
+          ib.array_new_fixed(heapType, 0);
           ib.end();
         } else if (heapType is w.FunctionType) {
           w.DefinedFunction function =
-              translator.m.addFunction(heapType, "#dummy function $heapType");
+              m.addFunction(heapType, "#dummy function $heapType");
           w.Instructions b = function.body;
           b.unreachable();
           b.end();
-          global = translator.m.addGlobal(w.GlobalType(type, mutable: false));
+          global = m.addGlobal(w.GlobalType(type, mutable: false));
           w.Instructions ib = global.initializer;
           ib.ref_func(function);
           ib.end();
@@ -128,8 +130,8 @@ class Globals {
       if (init != null) {
         // Initialized to a constant
         translator.constants.ensureConstant(init);
-        w.DefinedGlobal global = translator.m
-            .addGlobal(w.GlobalType(type, mutable: !variable.isFinal));
+        w.DefinedGlobal global =
+            m.addGlobal(w.GlobalType(type, mutable: !variable.isFinal));
         translator.constants
             .instantiateConstant(null, global.initializer, init, type);
         global.initializer.end();
@@ -140,14 +142,13 @@ class Globals {
           type = type.withNullability(true);
         } else {
           // Explicit initialization flag
-          w.DefinedGlobal flag =
-              translator.m.addGlobal(w.GlobalType(w.NumType.i32));
+          w.DefinedGlobal flag = m.addGlobal(w.GlobalType(w.NumType.i32));
           flag.initializer.i32_const(0);
           flag.initializer.end();
           globalInitializedFlag[variable] = flag;
         }
 
-        w.DefinedGlobal global = translator.m.addGlobal(w.GlobalType(type));
+        w.DefinedGlobal global = m.addGlobal(w.GlobalType(type));
         instantiateDummyValue(global.initializer, type);
         global.initializer.end();
 

@@ -154,8 +154,13 @@ Difference findFirstDifference(String actual, String expected) {
       i < expectedLines.length ? expectedLines[i] : '<END>');
 }
 
-void compareResultWithExpectationsFile(Uri source, String actual) {
-  final expectFile = new File(source.toFilePath() + '.expect');
+void compareResultWithExpectationsFile(
+  Uri source,
+  String actual, {
+  String expectFilePostfix = '',
+}) {
+  final expectFile =
+      new File('${source.toFilePath()}$expectFilePostfix.expect');
   final expected = expectFile.existsSync() ? expectFile.readAsStringSync() : '';
 
   if (actual != expected) {

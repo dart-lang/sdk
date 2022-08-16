@@ -6296,8 +6296,10 @@ class RecordNamedFieldElementImpl extends RecordFieldElementImpl
 class RecordPositionalFieldElementImpl extends RecordFieldElementImpl
     implements RecordPositionalFieldElement {
   RecordPositionalFieldElementImpl({
+    required super.name,
+    required super.nameOffset,
     required super.type,
-  }) : super(name: null, nameOffset: -1);
+  });
 }
 
 /// A concrete implementation of a [ShowElementCombinator].

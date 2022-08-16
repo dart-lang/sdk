@@ -1020,6 +1020,42 @@ class NamedArgumentReferenceIdentifierContext extends IdentifierContext {
   }
 }
 
+/// See [IdentifierContext.namedRecordFieldReference].
+/// Initially this is just a copy of NamedArgumentReferenceIdentifierContext.
+class NamedRecordFieldReferenceIdentifierContext extends IdentifierContext {
+  const NamedRecordFieldReferenceIdentifierContext()
+      : super('namedRecordFieldReference', allowedInConstantExpression: true);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next!;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
+      return identifier;
+    }
+
+    // Recovery
+    if (isOneOfOrEof(identifier, const [':'])) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: codes.templateExpectedIdentifier.withArguments(identifier));
+    } else {
+      if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
+        // When in doubt, consume the token to ensure we make progress
+        // but insert a synthetic identifier to satisfy listeners.
+        identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
+      }
+    }
+    return identifier;
+  }
+}
+
 /// See [IdentifierContext.topLevelFunctionDeclaration]
 /// and [IdentifierContext.topLevelVariableDeclaration].
 class TopLevelDeclarationIdentifierContext extends IdentifierContext {

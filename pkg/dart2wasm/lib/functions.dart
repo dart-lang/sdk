@@ -220,6 +220,6 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
         ? const []
         : [adjustExternalType(translator.translateType(returnType))];
 
-    return translator.functionType(inputs, outputs);
+    return m.addFunctionType(inputs, outputs);
   }
 }

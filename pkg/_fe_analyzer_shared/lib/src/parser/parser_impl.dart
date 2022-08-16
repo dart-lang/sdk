@@ -5852,7 +5852,7 @@ class Parser {
         // Fall through to the recovery code.
       }
     } else if (kind == OPEN_PAREN_TOKEN) {
-      return parseParenthesizedExpressionOrFunctionLiteral(token);
+      return parseParenthesizedExpressionFunctionLiteralOrRecordLiteral(token);
     } else if (kind == OPEN_SQUARE_BRACKET_TOKEN ||
         optional('[]', token.next!)) {
       listener.handleNoTypeArguments(token.next!);
@@ -5871,12 +5871,14 @@ class Parser {
     return parseSend(token, context);
   }
 
-  Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
+  Token parseParenthesizedExpressionFunctionLiteralOrRecordLiteral(
+      Token token) {
     Token next = token.next!;
     assert(optional('(', next));
-    Token nextToken = next.endGroup!.next!;
-    int kind = nextToken.kind;
+
     if (mayParseFunctionExpressions) {
+      Token nextToken = next.endGroup!.next!;
+      int kind = nextToken.kind;
       if ((identical(kind, FUNCTION_TOKEN) ||
           identical(kind, OPEN_CURLY_BRACKET_TOKEN))) {
         listener.handleNoTypeVariables(next);
@@ -5901,7 +5903,7 @@ class Parser {
     }
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
-    token = parseParenthesizedExpression(token);
+    token = parseParenthesizedExpressionOrRecordLiteral(token);
     mayParseFunctionExpressions = old;
     return token;
   }
@@ -5919,15 +5921,59 @@ class Parser {
     return token;
   }
 
-  Token parseParenthesizedExpression(Token token) {
+  Token parseParenthesizedExpressionOrRecordLiteral(Token token) {
     Token begin = token.next!;
-    token = parseExpressionInParenthesis(token);
-    listener.handleParenthesizedExpression(begin);
-    return token;
-  }
+    assert(optional('(', begin));
+    listener.beginParenthesizedExpressionOrRecordLiteral(begin);
 
-  Token parseExpressionInParenthesis(Token token) {
-    return parseExpressionInParenthesisRest(token.next!);
+    // For parsing of parenthesized expression we need parity with
+    // parseExpressionInParenthesisRest used in ensureParenthesizedCondition.
+
+    token = begin;
+    int count = 0;
+    bool wasRecord = false;
+    while (true) {
+      Token next = token.next!;
+      if (count > 0 && optional(')', next)) {
+        // TODO(jensj): Possibly bail out even if count is 0 and give some
+        // specific error.
+        break;
+      }
+      Token? colon = null;
+      if (optional(':', next.next!) || /* recovery */ optional(':', next)) {
+        // Record with named expression.
+        wasRecord = true;
+        token = ensureIdentifier(
+          token,
+          IdentifierContext.namedRecordFieldReference,
+        ).next!;
+        colon = token;
+      }
+      token = parseExpression(token);
+      next = token.next!;
+      if (colon != null) listener.handleNamedRecordField(colon);
+      ++count;
+      if (!optional(',', next)) {
+        // TODO(jensj): Possible more specific recovery.
+        break;
+      } else {
+        // It is a comma, i.e. it's a record.
+        wasRecord = true;
+      }
+      token = next;
+    }
+    token = ensureCloseParen(token, begin);
+    assert(optional(')', token));
+
+    assert(wasRecord || count <= 1);
+
+    if (wasRecord) {
+      listener.endRecordLiteral(begin, count);
+    } else {
+      listener.endParenthesizedExpression(begin);
+    }
+
+    return token;
   }
 
   Token parseExpressionInParenthesisRest(Token token) {

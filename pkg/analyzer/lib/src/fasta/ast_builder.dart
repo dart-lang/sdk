@@ -2346,6 +2346,16 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void endParenthesizedExpression(Token leftParenthesis) {
+    assert(optional('(', leftParenthesis));
+    debugEvent("ParenthesizedExpression");
+
+    var expression = pop() as Expression;
+    push(ast.parenthesizedExpression(
+        leftParenthesis, expression, leftParenthesis.endGroup!));
+  }
+
+  @override
   void endPart(Token partKeyword, Token semicolon) {
     assert(optional('part', partKeyword));
     assert(optional(';', semicolon));
@@ -2393,6 +2403,29 @@ class AstBuilder extends StackListener {
         semicolon: semicolon,
       ),
     );
+  }
+
+  @override
+  void endRecordLiteral(Token token, int count) {
+    debugEvent("RecordLiteral");
+    // TODO: Actual implementation of record literals.
+
+    _reportFeatureNotEnabled(
+      feature: ExperimentalFeatures.records,
+      startToken: token,
+    );
+
+    // Pretend that the record literal is a list literal as the record literal
+    // isn't implemented yet.
+
+    var elements = popTypedList<Expression>(count) ?? const [];
+
+    List<Expression> expressions = <Expression>[];
+    for (var elem in elements) {
+      expressions.add(elem);
+    }
+
+    push(ast.listLiteral(null, null, token, expressions, token));
   }
 
   @override
@@ -3932,6 +3965,10 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  // TODO: Handle directly.
+  void handleNamedRecordField(Token colon) => handleNamedArgument(colon);
+
+  @override
   void handleNativeClause(Token nativeToken, bool hasName) {
     debugEvent("NativeClause");
 
@@ -4041,17 +4078,7 @@ class AstBuilder extends StackListener {
   @override
   void handleParenthesizedCondition(Token leftParenthesis) {
     // TODO(danrubel): Implement rather than forwarding.
-    handleParenthesizedExpression(leftParenthesis);
-  }
-
-  @override
-  void handleParenthesizedExpression(Token leftParenthesis) {
-    assert(optional('(', leftParenthesis));
-    debugEvent("ParenthesizedExpression");
-
-    var expression = pop() as Expression;
-    push(ast.parenthesizedExpression(
-        leftParenthesis, expression, leftParenthesis.endGroup!));
+    endParenthesizedExpression(leftParenthesis);
   }
 
   @override

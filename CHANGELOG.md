@@ -79,6 +79,11 @@ Updated the Linter to `1.27.0`, which includes changes that
 - Remove remaining support for `.packages` files. The flag
   `--legacy-packages-file` is no longer supported.
 
+#### dart2js
+
+- **Breaking change** [49473](https://github.com/dart-lang/sdk/issues/49473):
+  dart2js no longer supports HTTP URIs as inputs.
+
 ### Core libraries
 
 #### `dart:io`

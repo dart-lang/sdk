@@ -2010,6 +2010,13 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  void handleNamedRecordField(Token colon) {
+    debugEvent("NamedRecordField");
+    pop(); // Named record field offset.
+    pop(); // Named record field name.
+  }
+
+  @override
   void endNamedMixinApplication(Token beginToken, Token classKeyword,
       Token equals, Token? implementsKeyword, Token endToken) {
     debugEvent("endNamedMixinApplication");

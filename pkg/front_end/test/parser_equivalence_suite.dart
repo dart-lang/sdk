@@ -118,7 +118,7 @@ class ListenerCompareStep
         bIndex++;
       }
       if (anyIgnored) continue;
-      if (aLine != bLine) {
+      if (aLine.trim() != bLine.trim()) {
         return "Disagreement: '${aLine}' vs '${bLine}'";
       }
       aIndex++;

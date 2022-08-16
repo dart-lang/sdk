@@ -1558,10 +1558,13 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
-    doPrint('parseParenthesizedExpressionOrFunctionLiteral(' '$token)');
+  Token parseParenthesizedExpressionFunctionLiteralOrRecordLiteral(
+      Token token) {
+    doPrint('parseParenthesizedExpressionFunctionLiteralOrRecordLiteral('
+        '$token)');
     indent++;
-    var result = super.parseParenthesizedExpressionOrFunctionLiteral(token);
+    var result =
+        super.parseParenthesizedExpressionFunctionLiteralOrRecordLiteral(token);
     indent--;
     return result;
   }
@@ -1576,19 +1579,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseParenthesizedExpression(Token token) {
-    doPrint('parseParenthesizedExpression(' '$token)');
+  Token parseParenthesizedExpressionOrRecordLiteral(Token token) {
+    doPrint('parseParenthesizedExpressionOrRecordLiteral(' '$token)');
     indent++;
-    var result = super.parseParenthesizedExpression(token);
-    indent--;
-    return result;
-  }
-
-  @override
-  Token parseExpressionInParenthesis(Token token) {
-    doPrint('parseExpressionInParenthesis(' '$token)');
-    indent++;
-    var result = super.parseExpressionInParenthesis(token);
+    var result = super.parseParenthesizedExpressionOrRecordLiteral(token);
     indent--;
     return result;
   }

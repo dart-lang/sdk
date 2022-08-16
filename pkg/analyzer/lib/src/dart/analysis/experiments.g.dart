@@ -33,6 +33,7 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.non_nullable: ExperimentalFeatures.non_nullable,
   EnableString.nonfunction_type_aliases:
       ExperimentalFeatures.nonfunction_type_aliases,
+  EnableString.records: ExperimentalFeatures.records,
   EnableString.set_literals: ExperimentalFeatures.set_literals,
   EnableString.spread_collections: ExperimentalFeatures.spread_collections,
   EnableString.super_parameters: ExperimentalFeatures.super_parameters,
@@ -86,6 +87,9 @@ class EnableString {
 
   /// String to enable the experiment "nonfunction-type-aliases"
   static const String nonfunction_type_aliases = 'nonfunction-type-aliases';
+
+  /// String to enable the experiment "records"
+  static const String records = 'records';
 
   /// String to enable the experiment "set-literals"
   static const String set_literals = 'set-literals';
@@ -254,8 +258,18 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('2.13.0'),
   );
 
-  static final set_literals = ExperimentalFeature(
+  static final records = ExperimentalFeature(
     index: 14,
+    enableString: EnableString.records,
+    isEnabledByDefault: IsEnabledByDefault.records,
+    isExpired: IsExpired.records,
+    documentation: 'Records',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
+  static final set_literals = ExperimentalFeature(
+    index: 15,
     enableString: EnableString.set_literals,
     isEnabledByDefault: IsEnabledByDefault.set_literals,
     isExpired: IsExpired.set_literals,
@@ -265,7 +279,7 @@ class ExperimentalFeatures {
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 15,
+    index: 16,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -275,7 +289,7 @@ class ExperimentalFeatures {
   );
 
   static final super_parameters = ExperimentalFeature(
-    index: 16,
+    index: 17,
     enableString: EnableString.super_parameters,
     isEnabledByDefault: IsEnabledByDefault.super_parameters,
     isExpired: IsExpired.super_parameters,
@@ -285,7 +299,7 @@ class ExperimentalFeatures {
   );
 
   static final test_experiment = ExperimentalFeature(
-    index: 17,
+    index: 18,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -296,7 +310,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 18,
+    index: 19,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -306,7 +320,7 @@ class ExperimentalFeatures {
   );
 
   static final value_class = ExperimentalFeature(
-    index: 19,
+    index: 20,
     enableString: EnableString.value_class,
     isEnabledByDefault: IsEnabledByDefault.value_class,
     isExpired: IsExpired.value_class,
@@ -316,7 +330,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 20,
+    index: 21,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -370,6 +384,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "nonfunction-type-aliases"
   static const bool nonfunction_type_aliases = true;
+
+  /// Default state of the experiment "records"
+  static const bool records = false;
 
   /// Default state of the experiment "set-literals"
   static const bool set_literals = true;
@@ -438,6 +455,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "nonfunction-type-aliases"
   static const bool nonfunction_type_aliases = true;
+
+  /// Expiration status of the experiment "records"
+  static const bool records = false;
 
   /// Expiration status of the experiment "set-literals"
   static const bool set_literals = true;
@@ -511,6 +531,9 @@ mixin _CurrentState {
   /// Current state for the flag "nonfunction-type-aliases"
   bool get nonfunction_type_aliases =>
       isEnabled(ExperimentalFeatures.nonfunction_type_aliases);
+
+  /// Current state for the flag "records"
+  bool get records => isEnabled(ExperimentalFeatures.records);
 
   /// Current state for the flag "set-literals"
   bool get set_literals => isEnabled(ExperimentalFeatures.set_literals);

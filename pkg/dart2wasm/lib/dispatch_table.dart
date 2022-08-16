@@ -35,6 +35,8 @@ class SelectorInfo {
   Reference? singularTarget;
   int? offset;
 
+  w.Module get m => translator.m;
+
   String get name => paramInfo.member.name.text;
 
   bool get alive => callCount > 0 && targetCount > 1 || forced;
@@ -135,7 +137,7 @@ class SelectorInfo {
         outputSets.length,
         (i) => translator.typeForInfo(
             upperBound(outputSets[i]), outputNullable[i]) as w.ValueType);
-    return translator.functionType(
+    return m.addFunctionType(
         [inputs[0], ...typeParameters, ...inputs.sublist(1)], outputs);
   }
 }
@@ -150,6 +152,8 @@ class DispatchTable {
   final Map<String, int> dynamicGets = {};
   late final List<Reference?> table;
   late final w.DefinedTable wasmTable;
+
+  w.Module get m => translator.m;
 
   DispatchTable(this.translator)
       : selectorMetadata =
@@ -294,7 +298,7 @@ class DispatchTable {
       }
     }
 
-    wasmTable = translator.m.addTable(w.RefType.func(), table.length);
+    wasmTable = m.addTable(w.RefType.func(), table.length);
   }
 
   void output() {

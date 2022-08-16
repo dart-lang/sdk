@@ -1,0 +1,9 @@
+void foo() {
+var record = (1, 2, a: 3, b: 4);
+}
+
+
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] record[StringToken] =[SimpleToken] ([BeginToken]1[StringToken],[SimpleToken] 2[StringToken],[SimpleToken] a[StringToken]:[SimpleToken] 3[StringToken],[SimpleToken] b[StringToken]:[SimpleToken] 4[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

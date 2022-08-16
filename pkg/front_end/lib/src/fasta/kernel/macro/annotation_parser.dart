@@ -319,6 +319,10 @@ class _MacroListener implements Listener {
   }
 
   @override
+  // TODO: Handle directly.
+  void handleNamedRecordField(Token colon) => handleNamedArgument(colon);
+
+  @override
   void handleLiteralNull(Token token) {
     push(new _PrimitiveValueNode(null));
   }
@@ -1917,7 +1921,17 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleParenthesizedExpression(Token token) {
+  void beginParenthesizedExpressionOrRecordLiteral(Token token) {
+    _unhandled();
+  }
+
+  @override
+  void endRecordLiteral(Token token, int count) {
+    _unhandled();
+  }
+
+  @override
+  void endParenthesizedExpression(Token token) {
     _unhandled();
   }
 

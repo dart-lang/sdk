@@ -411,41 +411,17 @@ mixin FinalizableTransformer on Transformer {
     return newStatement;
   }
 
-  /// Cache for [isFinalizable].
+  /// Cache for [_isFinalizable].
   ///
   /// Speeds up the type checks by about a factor of 2 on Flutter Gallery.
   Map<DartType, bool> _isFinalizableCache = {};
 
   /// Whether [type] is something that subtypes `FutureOr<Finalizable?>?`.
-  bool _isFinalizable(DartType type) {
-    final cached = _isFinalizableCache[type];
-    if (cached != null) {
-      return cached;
-    }
-
-    final finalizableType = FutureOrType(
-        InterfaceType(finalizableClass, Nullability.nullable),
-        Nullability.nullable);
-    if (!env.isSubtypeOf(
-      type,
-      finalizableType,
-      SubtypeCheckMode.withNullabilities,
-    )) {
-      _isFinalizableCache[type] = false;
-      return false;
-    }
-
-    // Exclude never types.
-    final futureOfNeverType =
-        FutureOrType(NeverType.nullable(), Nullability.nullable);
-    final result = !env.isSubtypeOf(
-      type,
-      futureOfNeverType,
-      SubtypeCheckMode.ignoringNullabilities,
-    );
-    _isFinalizableCache[type] = result;
-    return result;
-  }
+  bool _isFinalizable(DartType type) => type.isFinalizable(
+        finalizableClass: finalizableClass,
+        typeEnvironment: env,
+        cache: _isFinalizableCache,
+      );
 
   bool _thisIsFinalizableFromMember(Member member) {
     final enclosingClass_ = member.enclosingClass;
@@ -894,5 +870,43 @@ extension on Statement {
       return statements.last.endsWithAbnormalControlFlow;
     }
     return false;
+  }
+}
+
+extension FinalizableDartType on DartType {
+  /// Whether `this` is something that subtypes `FutureOr<Finalizable?>?`.
+  bool isFinalizable({
+    required Class finalizableClass,
+    required TypeEnvironment typeEnvironment,
+    Map<DartType, bool>? cache,
+  }) {
+    final type = this;
+    final cached = cache?[type];
+    if (cached != null) {
+      return cached;
+    }
+
+    final finalizableType = FutureOrType(
+        InterfaceType(finalizableClass, Nullability.nullable),
+        Nullability.nullable);
+    if (!typeEnvironment.isSubtypeOf(
+      type,
+      finalizableType,
+      SubtypeCheckMode.withNullabilities,
+    )) {
+      cache?[type] = false;
+      return false;
+    }
+
+    // Exclude never types.
+    final futureOfNeverType =
+        FutureOrType(NeverType.nullable(), Nullability.nullable);
+    final result = !typeEnvironment.isSubtypeOf(
+      type,
+      futureOfNeverType,
+      SubtypeCheckMode.ignoringNullabilities,
+    );
+    cache?[type] = result;
+    return result;
   }
 }

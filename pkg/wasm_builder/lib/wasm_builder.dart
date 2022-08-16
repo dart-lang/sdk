@@ -33,7 +33,6 @@ export 'src/types.dart'
         NumType,
         PackedType,
         RefType,
-        Rtt,
         StorageType,
         StructType,
         ValueType;
