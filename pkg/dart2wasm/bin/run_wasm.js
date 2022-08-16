@@ -258,6 +258,18 @@ var dart2wasm = {
     toLowerCase: function(string) {
         return stringToDartString(stringFromDartString(string).toLowerCase());
     },
+    isWindows: function() {
+        return typeof process != undefined &&
+            Object.prototype.toString.call(process) == "[object process]" &&
+            process.platform == "win32";
+    },
+    getCurrentUri: function() {
+        // On browsers return `globalThis.location.href`
+        if (globalThis.location != null) {
+          return stringToDartString(globalThis.location.href);
+        }
+        return null;
+    },
 };
 
 function instantiate(filename, imports) {

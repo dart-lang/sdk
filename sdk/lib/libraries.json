@@ -218,7 +218,8 @@
           "_internal/wasm/lib/stopwatch_patch.dart",
           "_internal/wasm/lib/string_buffer_patch.dart",
           "_internal/wasm/lib/string_patch.dart",
-          "_internal/wasm/lib/type.dart"
+          "_internal/wasm/lib/type.dart",
+          "_internal/wasm/lib/uri_patch.dart"
         ]
       },
       "developer": {
