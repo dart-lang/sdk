@@ -2846,15 +2846,6 @@ class ElementLocationImpl implements ElementLocation {
   /// The path to the element whose location is represented by this object.
   late final List<String> _components;
 
-  /// The object managing [indexKeyId] and [indexLocationId].
-  Object? indexOwner;
-
-  /// A cached id of this location in index.
-  int? indexKeyId;
-
-  /// A cached id of this location in index.
-  int? indexLocationId;
-
   /// Initialize a newly created location to represent the given [element].
   ElementLocationImpl.con1(Element element) {
     List<String> components = <String>[];
