@@ -617,6 +617,15 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   @override
   final String name;
 
+  /// The documentation for the lint that should appear on the Diagnostic
+  /// messages page. This field should never be accessed in any code in `lib` or
+  /// `bin`.
+  final String? documentation;
+
+  /// A flag indicating whether this lint has documentation on the Diagnostic
+  /// messages page.
+  final bool hasDocumentation;
+
   /// Until pubspec analysis is pushed into the analyzer proper, we need to
   /// do some extra book-keeping to keep track of details that will help us
   /// constitute AnalysisErrorInfos.
@@ -628,6 +637,8 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     required this.description,
     required this.details,
     this.maturity = Maturity.stable,
+    this.documentation,
+    this.hasDocumentation = false,
   });
 
   /// A list of incompatible rule ids.
