@@ -499,6 +499,7 @@ filenames
 fileuri
 finally's
 finv
+fire
 firsts
 fishy
 fishythefish
@@ -927,6 +928,7 @@ params
 paren
 parens
 parenteses
+parity
 particularly
 partof
 patchup

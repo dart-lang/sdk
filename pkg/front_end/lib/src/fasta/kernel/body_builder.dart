@@ -69,7 +69,13 @@ import '../builder/void_type_declaration_builder.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../fasta_codes.dart' as fasta;
-import '../fasta_codes.dart' show LocatedMessage, Message, Template, noLength;
+import '../fasta_codes.dart'
+    show
+        LocatedMessage,
+        Message,
+        Template,
+        noLength,
+        templateExperimentDisabled;
 import '../identifiers.dart'
     show Identifier, InitializedIdentifier, QualifiedName, flattenName;
 import '../messages.dart' as messages show getLocationFromUri;
@@ -2258,7 +2264,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleParenthesizedExpression(Token token) {
+  void endParenthesizedExpression(Token token) {
     assert(checkState(token, [
       unionOfKinds([
         ValueKinds.Expression,
@@ -3948,6 +3954,26 @@ class BodyBuilder extends StackListenerImpl
         expressions,
         isConst: constKeyword != null ||
             constantContext == ConstantContext.inferred);
+    push(node);
+  }
+
+  @override
+  void endRecordLiteral(Token token, int count) {
+    debugEvent("RecordLiteral");
+
+    addProblem(
+        templateExperimentDisabled.withArguments(ExperimentalFlag.records.name),
+        token.offset,
+        noLength);
+
+    // TODO: Actual implementation of record literals.
+    // For now we pretend it's an empty list.
+    for (int i = count - 1; i >= 0; i--) {
+      pop();
+    }
+    ListLiteral node = forest.createListLiteral(
+        TreeNode.noOffset, implicitTypeArgument, [],
+        isConst: constantContext == ConstantContext.inferred);
     push(node);
   }
 
@@ -5948,6 +5974,10 @@ class BodyBuilder extends StackListenerImpl
       push(identifier);
     }
   }
+
+  @override
+  // TODO: Handle directly.
+  void handleNamedRecordField(Token colon) => handleNamedArgument(colon);
 
   @override
   void endFunctionName(Token beginToken, Token token) {

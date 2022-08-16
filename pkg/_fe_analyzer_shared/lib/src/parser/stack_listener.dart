@@ -431,7 +431,12 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleParenthesizedExpression(Token token) {
+  void endRecordLiteral(Token token, int count) {
+    debugEvent("RecordLiteral");
+  }
+
+  @override
+  void endParenthesizedExpression(Token token) {
     debugEvent("ParenthesizedExpression");
   }
 

@@ -194,6 +194,12 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void handleNamedRecordField(Token colon) {
+    debugEvent("NamedRecordField");
+    pop(); // Named record field name.
+  }
+
+  @override
   void handleClassWithClause(Token withKeyword) {
     debugEvent("ClassWithClause");
   }

@@ -2452,6 +2452,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleNamedRecordField(Token colon) {
+    seen(colon);
+    doPrint('handleNamedRecordField(' '$colon)');
+  }
+
+  @override
   void beginNewExpression(Token token) {
     seen(token);
     doPrint('beginNewExpression(' '$token)');
@@ -2529,9 +2535,24 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleParenthesizedExpression(Token token) {
+  void beginParenthesizedExpressionOrRecordLiteral(Token token) {
     seen(token);
-    doPrint('handleParenthesizedExpression(' '$token)');
+    doPrint('beginParenthesizedExpressionOrRecordLiteral(' '$token)');
+    indent++;
+  }
+
+  @override
+  void endRecordLiteral(Token token, int count) {
+    indent--;
+    seen(token);
+    doPrint('endRecordLiteral(' '$token, ' '$count)');
+  }
+
+  @override
+  void endParenthesizedExpression(Token token) {
+    indent--;
+    seen(token);
+    doPrint('endParenthesizedExpression(' '$token)');
   }
 
   @override

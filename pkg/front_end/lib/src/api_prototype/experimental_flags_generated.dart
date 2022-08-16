@@ -171,6 +171,14 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 13),
       experimentReleasedVersion: const Version(2, 13));
 
+  static const ExperimentalFlag records = const ExperimentalFlag(
+      name: 'records',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: const Version(2, 19),
+      experimentEnabledVersion: const Version(2, 19),
+      experimentReleasedVersion: const Version(2, 19));
+
   static const ExperimentalFlag setLiterals = const ExperimentalFlag(
       name: 'set-literals',
       isEnabledByDefault: true,
@@ -334,6 +342,10 @@ class GlobalFeatures {
   GlobalFeature get nonfunctionTypeAliases => _nonfunctionTypeAliases ??=
       _computeGlobalFeature(ExperimentalFlag.nonfunctionTypeAliases);
 
+  GlobalFeature? _records;
+  GlobalFeature get records =>
+      _records ??= _computeGlobalFeature(ExperimentalFlag.records);
+
   GlobalFeature? _setLiterals;
   GlobalFeature get setLiterals =>
       _setLiterals ??= _computeGlobalFeature(ExperimentalFlag.setLiterals);
@@ -456,6 +468,11 @@ class LibraryFeatures {
           canonicalUri,
           libraryVersion);
 
+  LibraryFeature? _records;
+  LibraryFeature get records =>
+      _records ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.records, canonicalUri, libraryVersion);
+
   LibraryFeature? _setLiterals;
   LibraryFeature get setLiterals =>
       _setLiterals ??= globalFeatures._computeLibraryFeature(
@@ -524,6 +541,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.nonNullable;
     case "nonfunction-type-aliases":
       return ExperimentalFlag.nonfunctionTypeAliases;
+    case "records":
+      return ExperimentalFlag.records;
     case "set-literals":
       return ExperimentalFlag.setLiterals;
     case "spread-collections":
@@ -571,6 +590,7 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.nonNullable: ExperimentalFlag.nonNullable.isEnabledByDefault,
   ExperimentalFlag.nonfunctionTypeAliases:
       ExperimentalFlag.nonfunctionTypeAliases.isEnabledByDefault,
+  ExperimentalFlag.records: ExperimentalFlag.records.isEnabledByDefault,
   ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals.isEnabledByDefault,
   ExperimentalFlag.spreadCollections:
       ExperimentalFlag.spreadCollections.isEnabledByDefault,

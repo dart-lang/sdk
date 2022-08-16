@@ -123,7 +123,7 @@ class [[A]] {}
   Future<void> test_parameter() async {
     final contents = '''
 void f(String a) {
-  void f([['te^st']]);
+  f([['te^st']]);
 }
 ''';
 
@@ -135,7 +135,7 @@ void f(String a) {
   Future<void> test_parameterName() async {
     final contents = '''
 void f({String a}) {
-  void f([[a^]]: 'test');
+  f([[a^]]: 'test');
 }
 ''';
 

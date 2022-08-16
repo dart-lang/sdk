@@ -1553,6 +1553,10 @@ class ParserASTListener extends AbstractParserAstListener {
             (end == "InvalidYieldStatement")) {
           // beginYieldStatement is ended by either endYieldStatement or
           // endInvalidYieldStatement.
+        } else if (begin == "ParenthesizedExpressionOrRecordLiteral" &&
+            (end == "ParenthesizedExpression" || end == "RecordLiteral")) {
+          // beginParenthesizedExpressionOrRecordLiteral is ended by either
+          // endParenthesizedExpression or endRecordLiteral.
         } else {
           throw "Unknown combination: begin$begin and end$end";
         }
