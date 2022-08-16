@@ -58,7 +58,7 @@ class TypeGraphInferrer implements TypesInferrer {
   final Compiler _compiler;
   final GlobalLocalsMap _globalLocalsMap;
   final InferredDataBuilder _inferredDataBuilder;
-  Metrics /*?*/ _metrics;
+  Metrics _metrics = Metrics.none();
 
   TypeGraphInferrer(this._compiler, this.closedWorld, this._globalLocalsMap,
       this._inferredDataBuilder);
