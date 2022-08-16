@@ -26,10 +26,9 @@ abstract class RtiNode {
   Entity get entity;
 
   Set<RtiNode>? _dependencies;
+  Set<RtiNode> get dependencies => _dependencies ?? const {};
+
   bool _hasTest = false;
-
-  Iterable<RtiNode> get dependencies => _dependencies ?? const [];
-
   bool get hasTest => _hasTest;
 
   /// Register that if [entity] needs type arguments then so does `node.entity`.
