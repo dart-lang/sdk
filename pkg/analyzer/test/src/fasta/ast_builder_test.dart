@@ -521,6 +521,32 @@ LibraryAugmentationDirective
 ''');
   }
 
+  void test_recordLiteral() {
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  var r = (0, a: 1);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.recordLiteral('(0');
+    assertParsedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    IntegerLiteral
+      literal: 0
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: a
+        colon: :
+      expression: IntegerLiteral
+        literal: 1
+  rightParenthesis: )
+''');
+  }
+
   void test_superFormalParameter() {
     var parseResult = parseStringWithErrors(r'''
 class A {

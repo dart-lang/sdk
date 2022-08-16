@@ -155,6 +155,9 @@ class AstBuilder extends StackListener {
   /// `true` if macros are enabled
   final bool enableMacros;
 
+  /// `true` if records are enabled
+  final bool enableRecords;
+
   final FeatureSet _featureSet;
 
   final LineInfo _lineInfo;
@@ -180,6 +183,7 @@ class AstBuilder extends StackListener {
         enableSuperParameters = _featureSet.isEnabled(Feature.super_parameters),
         enableEnhancedEnums = _featureSet.isEnabled(Feature.enhanced_enums),
         enableMacros = _featureSet.isEnabled(Feature.macros),
+        enableRecords = _featureSet.isEnabled(Feature.records),
         uri = uri ?? fileUri;
 
   NodeList<ClassMember> get currentDeclarationMembers {
@@ -2408,24 +2412,25 @@ class AstBuilder extends StackListener {
   @override
   void endRecordLiteral(Token token, int count) {
     debugEvent("RecordLiteral");
-    // TODO: Actual implementation of record literals.
 
-    _reportFeatureNotEnabled(
-      feature: ExperimentalFeatures.records,
-      startToken: token,
-    );
-
-    // Pretend that the record literal is a list literal as the record literal
-    // isn't implemented yet.
+    if (!enableRecords) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.records,
+        startToken: token,
+      );
+    }
 
     var elements = popTypedList<Expression>(count) ?? const [];
-
     List<Expression> expressions = <Expression>[];
     for (var elem in elements) {
       expressions.add(elem);
     }
 
-    push(ast.listLiteral(null, null, token, expressions, token));
+    push(RecordLiteralImpl(
+      leftParenthesis: token,
+      fields: expressions,
+      rightParenthesis: token.endGroup!,
+    ));
   }
 
   @override
@@ -3965,7 +3970,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  // TODO: Handle directly.
   void handleNamedRecordField(Token colon) => handleNamedArgument(colon);
 
   @override
