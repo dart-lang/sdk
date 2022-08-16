@@ -60,6 +60,7 @@ import 'case_expression_type_implements_equals_test.dart'
     as case_expression_type_implements_equals;
 import 'case_expression_type_is_not_switch_expression_subtype_test.dart'
     as case_expression_type_is_not_switch_expression_subtype;
+import 'cast_from_null_always_fails_test.dart' as cast_from_null_always_fails;
 import 'cast_to_non_type_test.dart' as cast_to_non_type;
 import 'class_instantiation_access_to_member_test.dart'
     as class_instantiation_access_to_member;
@@ -843,6 +844,7 @@ main() {
     case_block_not_terminated.main();
     case_expression_type_implements_equals.main();
     case_expression_type_is_not_switch_expression_subtype.main();
+    cast_from_null_always_fails.main();
     cast_to_non_type.main();
     class_instantiation_access_to_member.main();
     concrete_class_has_enum_superinterface.main();

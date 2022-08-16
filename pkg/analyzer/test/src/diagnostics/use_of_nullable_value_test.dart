@@ -19,12 +19,14 @@ main() {
 @reflectiveTest
 class InvalidUseOfNullValueTest extends PubPackageResolutionTest {
   test_as() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   x as int;
 }
-''');
+''', [
+      error(HintCode.CAST_FROM_NULL_ALWAYS_FAILS, 18, 8),
+    ]);
   }
 
   test_await() async {

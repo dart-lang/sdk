@@ -19686,6 +19686,11 @@ HintCode:
     comment: |-
       A condition in operands of a logical operator could evaluate to `null`
       because it uses the null-aware '?.' operator.
+  CAST_FROM_NULL_ALWAYS_FAILS:
+    problemMessage: "This cast will always throw an exception because the expression will always evaluate to 'null'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: false
   NULL_CHECK_ALWAYS_FAILS:
     problemMessage: "This null-check will always throw an exception because the expression will always evaluate to 'null'."
     comment: |-
