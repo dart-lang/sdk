@@ -4638,7 +4638,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'URI_DOES_NOT_EXIST',
     "Target of URI doesn't exist: '{0}'.",
     correctionMessage:
-        "Try creating the file referenced by the URI, or Try using a URI for a "
+        "Try creating the file referenced by the URI, or try using a URI for a "
         "file that does exist.",
     hasPublishedDocs: true,
   );
