@@ -45,6 +45,9 @@ part of dart.core;
 /// stopwatch.reset();
 /// print(stopwatch.elapsedMilliseconds); // 0
 /// ```
+///
+/// A stopwatch consumes no resources when running. There is no requirement
+/// to call [stop] on an instance if it is to be discarded.
 class Stopwatch {
   /// Cached frequency of the system in Hz (ticks per second).
   ///
