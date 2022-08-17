@@ -69,12 +69,6 @@
   "org-dartlang-sdk:///lib/io/link.dart": {
     "Dynamic invocation of '[]'.": 3
   },
-  "org-dartlang-sdk:///lib/io/platform_impl.dart": {
-    "Dynamic invocation of 'indexOf'.": 1,
-    "Dynamic invocation of '>'.": 1,
-    "Dynamic invocation of 'substring'.": 2,
-    "Dynamic invocation of '+'.": 1
-  },
   "org-dartlang-sdk:///lib/io/secure_server_socket.dart": {
     "Dynamic update to 'dart.io::_owner'.": 1
   },
