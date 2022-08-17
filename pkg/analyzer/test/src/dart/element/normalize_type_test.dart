@@ -338,6 +338,59 @@ class NormalizeTypeTest extends AbstractTypeSystemTest {
     check(futureOrQuestion(objectStar), objectStar);
   }
 
+  test_recordType() {
+    _check(
+      recordTypeNone(
+        element: recordElement(
+          positionalFields: [
+            recordPositionalField(type: intNone),
+          ],
+        ),
+      ),
+      recordTypeNone(
+        element: recordElement(
+          positionalFields: [
+            recordPositionalField(type: intNone),
+          ],
+        ),
+      ),
+    );
+
+    _check(
+      recordTypeNone(
+        element: recordElement(
+          positionalFields: [
+            recordPositionalField(type: futureOrNone(objectNone)),
+          ],
+        ),
+      ),
+      recordTypeNone(
+        element: recordElement(
+          positionalFields: [
+            recordPositionalField(type: objectNone),
+          ],
+        ),
+      ),
+    );
+
+    _check(
+      recordTypeNone(
+        element: recordElement(
+          namedFields: [
+            recordNamedField(name: 'foo', type: futureOrNone(objectNone)),
+          ],
+        ),
+      ),
+      recordTypeNone(
+        element: recordElement(
+          namedFields: [
+            recordNamedField(name: 'foo', type: objectNone),
+          ],
+        ),
+      ),
+    );
+  }
+
   /// NORM(T*)
   /// * let S be NORM(T)
   test_star() {

@@ -3501,7 +3501,10 @@ class _BoundsTestBase extends AbstractTypeSystemTest with StringTypes {
 
     var result = typeSystem.getLeastUpperBound(T1, T2);
     var resultStr = _typeString(result);
-    expect(resultStr, expectedStr);
+    expect(result, expected, reason: '''
+expected: $expectedStr
+actual: $resultStr
+''');
 
     // Check that the result is an upper bound.
     expect(typeSystem.isSubtypeOf(T1, result), true);
@@ -3510,7 +3513,10 @@ class _BoundsTestBase extends AbstractTypeSystemTest with StringTypes {
     // Check for symmetry.
     result = typeSystem.getLeastUpperBound(T2, T1);
     resultStr = _typeString(result);
-    expect(resultStr, expectedStr);
+    expect(result, expected, reason: '''
+expected: $expectedStr
+actual: $resultStr
+''');
   }
 
   void _checkLeastUpperBound2(String T1, String T2, String expected) {
