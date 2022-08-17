@@ -710,6 +710,21 @@ class LeastUpperBoundHelper {
       return getLeastUpperBound(T1, _typeSystem.objectNone);
     }
 
+    // Record types.
+    if (T1 is RecordTypeImpl && T2 is RecordTypeImpl) {
+      return _recordType(T1, T2);
+    }
+
+    // UP(RecordType, T2) = UP(Object, T2)
+    if (T1 is RecordTypeImpl) {
+      return getLeastUpperBound(_typeSystem.objectNone, T2);
+    }
+
+    // UP(T1, RecordType) = UP(T1, Object)
+    if (T2 is RecordTypeImpl) {
+      return getLeastUpperBound(T1, _typeSystem.objectNone);
+    }
+
     var futureOrResult = _futureOr(T1, T2);
     if (futureOrResult != null) {
       return futureOrResult;
@@ -894,6 +909,45 @@ class LeastUpperBoundHelper {
 
   DartType _parameterType(ParameterElement a, ParameterElement b) {
     return _typeSystem.getGreatestLowerBound(a.type, b.type);
+  }
+
+  DartType _recordType(RecordTypeImpl T1, RecordTypeImpl T2) {
+    final positional1 = T1.positionalFields;
+    final positional2 = T2.positionalFields;
+    if (positional1.length != positional2.length) {
+      return _typeSystem.typeProvider.recordType;
+    }
+
+    final named1 = T1.namedFields;
+    final named2 = T2.namedFields;
+    if (named1.length != named2.length) {
+      return _typeSystem.typeProvider.recordType;
+    }
+
+    final fieldTypes = <DartType>[];
+
+    for (var i = 0; i < positional1.length; i++) {
+      final field1 = positional1[i];
+      final field2 = positional2[i];
+      final type = getLeastUpperBound(field1.type, field2.type);
+      fieldTypes.add(type);
+    }
+
+    for (var i = 0; i < named1.length; i++) {
+      final field1 = named1[i];
+      final field2 = named2[i];
+      if (field1.name != field2.name) {
+        return _typeSystem.typeProvider.recordType;
+      }
+      final type = getLeastUpperBound(field1.type, field2.type);
+      fieldTypes.add(type);
+    }
+
+    return RecordTypeImpl(
+      element2: T1.element2,
+      fieldTypes: fieldTypes,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   /// Return the promoted or declared bound of the type parameter.
