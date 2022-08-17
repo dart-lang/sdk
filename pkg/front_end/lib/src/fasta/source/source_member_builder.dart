@@ -108,8 +108,6 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   SourceLibraryBuilder get libraryBuilder =>
       super.libraryBuilder as SourceLibraryBuilder;
 
-  bool get isRedirectingGenerativeConstructor => false;
-
   @override
   bool get isAugmentation => modifiers & augmentMask != 0;
 

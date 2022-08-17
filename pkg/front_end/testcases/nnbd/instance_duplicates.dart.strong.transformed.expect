@@ -488,16 +488,6 @@ library /*isNonNullableByDefault*/;
 //   c.fieldAndFinalFieldAndSetter4 = c.fieldAndFinalFieldAndSetter4;
 //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:66:14: Error: Final field 'fieldAndFinalFieldAndSetter2' is not initialized.
-// Try to initialize the field in the declaration or in every constructor.
-//   final int? fieldAndFinalFieldAndSetter2 = 0;
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:75:14: Error: Final field 'fieldAndFinalFieldAndSetter4' is not initialized.
-// Try to initialize the field in the declaration or in every constructor.
-//   final int? fieldAndFinalFieldAndSetter4 = 0;
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 

@@ -6,3 +6,9 @@ class Class {
   external Class.generative({bool defaultValue: true});
   external const Class.constGenerative({bool defaultValue: true});
 }
+
+class Class2 {
+  int field;
+
+  external Class2(int field);
+}

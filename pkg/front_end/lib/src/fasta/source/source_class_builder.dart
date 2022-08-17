@@ -29,6 +29,7 @@ import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
@@ -164,54 +165,51 @@ class SourceClassBuilder extends ClassBuilderImpl
         checkForInstanceVsStaticConflict: false,
         checkForMethodVsSetterConflict: false);
 
-    void buildBuilders(String name, Builder? declaration) {
-      while (declaration != null) {
-        if (declaration.parent != this) {
-          if (declaration.parent?.origin != this) {
-            if (fileUri != declaration.parent?.fileUri) {
-              unexpected("$fileUri", "${declaration.parent?.fileUri}",
-                  charOffset, fileUri);
+    void buildBuilders(Builder declaration) {
+      if (declaration.parent != this) {
+        if (declaration.parent?.origin != this) {
+          if (fileUri != declaration.parent?.fileUri) {
+            unexpected("$fileUri", "${declaration.parent?.fileUri}", charOffset,
+                fileUri);
+          } else {
+            unexpected(
+                fullNameForErrors,
+                declaration.parent?.fullNameForErrors ?? '',
+                charOffset,
+                fileUri);
+          }
+        }
+      } else if (declaration is SourceMemberBuilder) {
+        SourceMemberBuilder memberBuilder = declaration;
+        memberBuilder
+            .buildOutlineNodes((Member member, BuiltMemberKind memberKind) {
+          member.parent = cls;
+          if (!memberBuilder.isPatch &&
+              !memberBuilder.isDuplicate &&
+              !memberBuilder.isConflictingSetter &&
+              !memberBuilder.isConflictingAugmentationMember) {
+            if (member is Procedure) {
+              cls.addProcedure(member);
+            } else if (member is Field) {
+              cls.addField(member);
+            } else if (member is Constructor) {
+              cls.addConstructor(member);
+            } else if (member is RedirectingFactory) {
+              cls.addRedirectingFactory(member);
             } else {
-              unexpected(
-                  fullNameForErrors,
-                  declaration.parent?.fullNameForErrors ?? '',
-                  charOffset,
-                  fileUri);
+              unhandled("${member.runtimeType}", "getMember", member.fileOffset,
+                  member.fileUri);
             }
           }
-        } else if (declaration is SourceMemberBuilder) {
-          SourceMemberBuilder memberBuilder = declaration;
-          memberBuilder
-              .buildOutlineNodes((Member member, BuiltMemberKind memberKind) {
-            member.parent = cls;
-            if (!memberBuilder.isPatch &&
-                !memberBuilder.isDuplicate &&
-                !memberBuilder.isConflictingSetter &&
-                !memberBuilder.isConflictingAugmentationMember) {
-              if (member is Procedure) {
-                cls.addProcedure(member);
-              } else if (member is Field) {
-                cls.addField(member);
-              } else if (member is Constructor) {
-                cls.addConstructor(member);
-              } else if (member is RedirectingFactory) {
-                cls.addRedirectingFactory(member);
-              } else {
-                unhandled("${member.runtimeType}", "getMember",
-                    member.fileOffset, member.fileUri);
-              }
-            }
-          });
-        } else {
-          unhandled("${declaration.runtimeType}", "buildBuilders",
-              declaration.charOffset, declaration.fileUri);
-        }
-        declaration = declaration.next;
+        });
+      } else {
+        unhandled("${declaration.runtimeType}", "buildBuilders",
+            declaration.charOffset, declaration.fileUri);
       }
     }
 
-    scope.forEach(buildBuilders);
-    constructorScope.forEach(buildBuilders);
+    scope.unfilteredIterator.forEach(buildBuilders);
+    constructorScope.unfilteredIterator.forEach(buildBuilders);
     if (supertypeBuilder != null) {
       supertypeBuilder = _checkSupertype(supertypeBuilder!);
     }
@@ -343,7 +341,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    void build(String ignore, Builder declaration) {
+    void build(Builder declaration) {
       SourceMemberBuilder member = declaration as SourceMemberBuilder;
       member.buildOutlineExpressions(
           classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
@@ -358,57 +356,28 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    constructorScope.forEach(build);
-    scope.forEach(build);
+    constructorScope
+        .filteredIterator(
+            parent: this, includeDuplicates: false, includeAugmentations: true)
+        .forEach(build);
+    scope
+        .filteredIterator(
+            parent: this, includeDuplicates: false, includeAugmentations: true)
+        .forEach(build);
   }
 
   @override
   void forEach(void f(String name, Builder builder)) {
-    if (isPatch) {
-      actualOrigin!.forEach(f);
-    } else {
-      scope.forEach(f);
-      List<SourceClassBuilder>? patchClasses = _patches;
-      if (patchClasses != null) {
-        for (SourceClassBuilder patchClass in patchClasses) {
-          patchClass.scope.forEach((String name, Builder builder) {
-            if (!builder.isPatch) {
-              f(name, builder);
-            }
-          });
-        }
-      }
-    }
+    new ClassMemberNameIterator(this, includeDuplicates: false).forEach(f);
   }
 
   @override
   void forEachConstructor(void Function(String, MemberBuilder) f) {
-    if (isPatch) {
-      actualOrigin!.forEachConstructor(f);
-    } else {
-      constructorScope.forEach(f);
-      List<SourceClassBuilder>? patchClasses = _patches;
-      if (patchClasses != null) {
-        for (SourceClassBuilder patchClass in patchClasses) {
-          patchClass.constructorScope
-              .forEach((String name, MemberBuilder builder) {
-            if (!builder.isPatch) {
-              f(name, builder);
-            }
-          });
-        }
-      }
-    }
+    new ClassConstructorNameIterator(this, includeDuplicates: false).forEach(f);
   }
 
   void forEachDeclaredField(
       void Function(String name, SourceFieldBuilder fieldBuilder) callback) {
-    void callbackFilteringFieldBuilders(String name, Builder builder) {
-      if (builder is SourceFieldBuilder) {
-        callback(name, builder);
-      }
-    }
-
     // Currently, fields can't be patched, but can be injected.  When the fields
     // will be made available for patching, the following code should iterate
     // first over the fields from the patch and then -- over the fields in the
@@ -427,37 +396,18 @@ class SourceClassBuilder extends ClassBuilderImpl
                     .toSet())
                 .isEmpty),
         "Detected an attempt to patch a field.");
-    List<SourceClassBuilder>? patchClasses = _patches;
-    if (patchClasses != null) {
-      for (SourceClassBuilder patchClass in patchClasses) {
-        patchClass.scope.forEach(callbackFilteringFieldBuilders);
-      }
-    }
-    scope.forEach(callbackFilteringFieldBuilders);
+    new ClassMemberNameIterator<SourceFieldBuilder>(this,
+            includeDuplicates: false)
+        .forEach(callback);
   }
 
   void forEachDeclaredConstructor(
       void Function(
               String name, DeclaredSourceConstructorBuilder constructorBuilder)
           callback) {
-    Set<String> visitedConstructorNames = {};
-    void callbackFilteringFieldBuilders(String name, Builder builder) {
-      if (builder is DeclaredSourceConstructorBuilder &&
-          visitedConstructorNames.add(builder.name)) {
-        callback(name, builder);
-      }
-    }
-
-    // Constructors can be patched, so iterate first over constructors in the
-    // patch, and then over constructors in the original declaration skipping
-    // those with the names that are in the patch.
-    List<SourceClassBuilder>? patchClasses = _patches;
-    if (patchClasses != null) {
-      for (SourceClassBuilder patchClass in patchClasses) {
-        patchClass.constructorScope.forEach(callbackFilteringFieldBuilders);
-      }
-    }
-    constructorScope.forEach(callbackFilteringFieldBuilders);
+    new ClassConstructorNameIterator<DeclaredSourceConstructorBuilder>(this,
+            includeDuplicates: false)
+        .forEach(callback);
   }
 
   /// Looks up the constructor by [name] on the class built by this class
@@ -1399,24 +1349,25 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     int count = 0;
 
-    void buildMembers(String name, Builder builder) {
+    void buildMembers(Builder builder) {
       if (builder.parent != this) {
         return;
       }
-      Builder? current = builder;
-      while (current != null) {
-        if (current is SourceMemberBuilder) {
-          count +=
-              current.buildBodyNodes((Member member, BuiltMemberKind kind) {
-            _buildMember(current as SourceMemberBuilder, member, kind);
-          });
-        }
-        current = current.next;
+      if (builder is SourceMemberBuilder) {
+        count += builder.buildBodyNodes((Member member, BuiltMemberKind kind) {
+          _buildMember(builder, member, kind);
+        });
       }
     }
 
-    scope.forEach(buildMembers);
-    constructorScope.forEach(buildMembers);
+    scope
+        .filteredIterator(
+            parent: this, includeDuplicates: true, includeAugmentations: true)
+        .forEach(buildMembers);
+    constructorScope
+        .filteredIterator(
+            parent: this, includeDuplicates: true, includeAugmentations: true)
+        .forEach(buildMembers);
     return count;
   }
 
@@ -2855,4 +2806,104 @@ class _RedirectingConstructorsFieldBuilder extends DillFieldBuilder
   @override
   void checkTypes(
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {}
+}
+
+class ClassMemberNameIterator<T extends Builder> implements NameIterator<T> {
+  NameIterator<T>? _iterator;
+  Iterator<SourceClassBuilder>? augmentationBuilders;
+  final bool includeDuplicates;
+
+  factory ClassMemberNameIterator(SourceClassBuilder classBuilder,
+      {required bool includeDuplicates}) {
+    return new ClassMemberNameIterator._(classBuilder.origin,
+        includeDuplicates: includeDuplicates);
+  }
+
+  ClassMemberNameIterator._(SourceClassBuilder classBuilder,
+      {required this.includeDuplicates})
+      : _iterator = classBuilder.scope.filteredNameIterator<T>(
+            parent: classBuilder,
+            includeDuplicates: includeDuplicates,
+            includeAugmentations: false),
+        augmentationBuilders = classBuilder._patches?.iterator;
+
+  @override
+  bool moveNext() {
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
+      SourceClassBuilder augmentationClassBuilder =
+          augmentationBuilders!.current;
+      _iterator = augmentationClassBuilder.scope.filteredNameIterator<T>(
+          parent: augmentationClassBuilder,
+          includeDuplicates: includeDuplicates,
+          includeAugmentations: false);
+    }
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  T get current => _iterator?.current ?? (throw new StateError('No element'));
+
+  @override
+  String get name => _iterator?.name ?? (throw new StateError('No element'));
+}
+
+class ClassConstructorNameIterator<T extends MemberBuilder>
+    implements NameIterator<T> {
+  NameIterator<T>? _iterator;
+  Iterator<SourceClassBuilder>? augmentationBuilders;
+  final bool includeDuplicates;
+
+  factory ClassConstructorNameIterator(SourceClassBuilder classBuilder,
+      {required bool includeDuplicates}) {
+    return new ClassConstructorNameIterator._(classBuilder.origin,
+        includeDuplicates: includeDuplicates);
+  }
+
+  ClassConstructorNameIterator._(SourceClassBuilder classBuilder,
+      {required this.includeDuplicates})
+      : _iterator = classBuilder.constructorScope.filteredNameIterator<T>(
+            parent: classBuilder,
+            includeDuplicates: includeDuplicates,
+            includeAugmentations: false),
+        augmentationBuilders = classBuilder._patches?.iterator;
+
+  @override
+  bool moveNext() {
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
+      SourceClassBuilder augmentationClassBuilder =
+          augmentationBuilders!.current;
+      _iterator = augmentationClassBuilder.constructorScope
+          .filteredNameIterator<T>(
+              parent: augmentationClassBuilder,
+              includeDuplicates: includeDuplicates,
+              includeAugmentations: false);
+    }
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  T get current => _iterator?.current ?? (throw new StateError('No element'));
+
+  @override
+  String get name => _iterator?.name ?? (throw new StateError('No element'));
 }

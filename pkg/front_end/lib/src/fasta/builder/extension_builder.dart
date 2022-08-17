@@ -160,7 +160,10 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
 
   @override
   void forEach(void f(String name, Builder builder)) {
-    scope.forEach(f);
+    scope
+        .filteredNameIterator(
+            includeDuplicates: false, includeAugmentations: false)
+        .forEach(f);
   }
 
   @override

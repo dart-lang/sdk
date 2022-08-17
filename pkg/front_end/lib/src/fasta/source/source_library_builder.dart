@@ -1064,7 +1064,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         checkForInstanceVsStaticConflict: false,
         checkForMethodVsSetterConflict: true);
 
-    Iterator<Builder> iterator = this.iterator;
+    Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
       _buildOutlineNodes(iterator.current, coreLibrary);
     }
@@ -1242,7 +1242,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
 
       part.validatePart(this, usedParts);
-      NameIterator partDeclarations = part.nameIterator;
+      NameIterator partDeclarations = part.localMembersNameIterator;
       while (partDeclarations.moveNext()) {
         String name = partDeclarations.name;
         Builder declaration = partDeclarations.current;
@@ -1340,7 +1340,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    NameIterator iterator = nameIterator;
+    NameIterator iterator = localMembersNameIterator;
     while (iterator.moveNext()) {
       addToExportScope(iterator.name, iterator.current);
     }
@@ -1375,12 +1375,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       import.finalizeImports(this);
     }
     if (!explicitCoreImport) {
-      loader.coreLibrary.exportScope.forEach((String name, Builder member) {
+      loader.coreLibrary.exportScope
+          .filteredNameIterator(
+              includeDuplicates: false, includeAugmentations: false)
+          .forEach((String name, Builder member) {
         addToScope(name, member, -1, true);
       });
     }
 
-    exportScope.forEach((String name, Builder member) {
+    exportScope
+        .filteredNameIterator(
+            includeDuplicates: false, includeAugmentations: false)
+        .forEach((String name, Builder member) {
       if (member.parent != this) {
         if (member is DynamicTypeDeclarationBuilder) {
           assert(name == 'dynamic',
@@ -1483,7 +1489,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    Iterator<Builder> iterator = this.iterator;
+    Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
       if (declaration is SourceClassBuilder) {
@@ -1512,7 +1518,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    Iterator<Builder> iterator = this.iterator;
+    Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
       Builder member = iterator.current;
       if (member is SourceClassBuilder && !member.isPatch) {
@@ -1533,7 +1539,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    Iterator<Builder> iterator = this.iterator;
+    Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
       Builder builder = iterator.current;
       if (builder is SourceClassBuilder) {
@@ -3031,7 +3037,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     MetadataBuilder.buildAnnotations(
         library, metadata, this, null, null, fileUri, scope);
 
-    Iterator<Builder> iterator = this.iterator;
+    Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
       if (declaration is SourceClassBuilder) {
@@ -3908,7 +3914,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    NameIterator originDeclarations = origin.nameIterator;
+    NameIterator originDeclarations = origin.localMembersNameIterator;
     while (originDeclarations.moveNext()) {
       String name = originDeclarations.name;
       Builder member = originDeclarations.current;
@@ -3930,7 +3936,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
     }
-    NameIterator patchDeclarations = nameIterator;
+    NameIterator patchDeclarations = localMembersNameIterator;
     while (patchDeclarations.moveNext()) {
       String name = patchDeclarations.name;
       Builder member = patchDeclarations.current;
@@ -3961,7 +3967,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    Iterator<Builder> iterator = this.iterator;
+    Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
       Builder builder = iterator.current;
       if (builder is SourceMemberBuilder) {
@@ -4461,7 +4467,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    Iterator<Builder> iterator = this.iterator;
+    Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
       if (declaration is SourceFieldBuilder) {
@@ -4892,7 +4898,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    Iterator<Builder> iterator = this.iterator;
+    Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
       Builder? declaration = iterator.current;
       while (declaration != null) {

@@ -1051,26 +1051,6 @@ library /*isNonNullableByDefault*/;
 //   0.duplicateExtensionStaticFieldAndInstanceSetter2 =
 //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:39:14: Error: Final field 'duplicateInstanceFieldAndSetter2' is not initialized.
-// Try to initialize the field in the declaration or in every constructor.
-//   final int? duplicateInstanceFieldAndSetter2 = null;
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:61:21: Error: Final field 'duplicateStaticFieldAndSetter2' is not initialized.
-// Try to initialize the field in the declaration or in every constructor.
-//   static final int? duplicateStaticFieldAndSetter2 = null;
-//                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:90:14: Error: Final field 'duplicateInstanceFieldAndStaticSetter2' is not initialized.
-// Try to initialize the field in the declaration or in every constructor.
-//   final int? duplicateInstanceFieldAndStaticSetter2 = null;
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/field_vs_setter.dart:98:21: Error: Final field 'duplicateStaticFieldAndInstanceSetter2' is not initialized.
-// Try to initialize the field in the declaration or in every constructor.
-//   static final int? duplicateStaticFieldAndInstanceSetter2 = null;
-//                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 

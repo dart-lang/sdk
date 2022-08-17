@@ -231,11 +231,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  void forEach(void f(String name, Builder builder)) {
-    scope.forEach(f);
-  }
-
-  @override
   Builder? lookupLocalMember(String name,
       {bool setter: false, bool required: false}) {
     Builder? builder = scope.lookupLocalMember(name, setter: setter);

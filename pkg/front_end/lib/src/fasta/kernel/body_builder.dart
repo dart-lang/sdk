@@ -381,10 +381,11 @@ class BodyBuilder extends StackListenerImpl
                 coreTypes.objectClass != declarationBuilder.cls,
         benchmarker = libraryBuilder.loader.target.benchmarker,
         this.scope = enclosingScope {
-    formalParameterScope?.forEach((String name, Builder builder) {
-      if (builder is VariableBuilder) {
-        typeInferrer.assignedVariables.declare(builder.variable!);
-      }
+    formalParameterScope
+        ?.filteredIterator<VariableBuilder>(
+            includeDuplicates: false, includeAugmentations: false)
+        .forEach((VariableBuilder builder) {
+      typeInferrer.assignedVariables.declare(builder.variable!);
     });
   }
 

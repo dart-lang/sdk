@@ -69,9 +69,17 @@ abstract class LibraryBuilder implements ModifierBuilder {
   /// used in conditional imports and `bool.fromEnvironment` constants.
   bool get isUnsupported;
 
-  Iterator<Builder> get iterator;
+  /// Returns an iterator of all members (typedefs, classes and members)
+  /// declared in this library, including duplicate declarations.
+  // TODO(johnniwinther): Should the only exist on [SourceLibraryBuilder]?
+  Iterator<Builder> get localMembersIterator;
 
-  NameIterator get nameIterator;
+  /// Returns an iterator of all members (typedefs, classes and members)
+  /// declared in this library, including duplicate declarations.
+  ///
+  /// Compared to [localMembersIterator] this also gives access to the name
+  /// that the builders are mapped to.
+  NameIterator<Builder> get localMembersNameIterator;
 
   void addExporter(LibraryBuilder exporter,
       List<CombinatorBuilder>? combinators, int charOffset);
@@ -194,13 +202,15 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   Uri get importUri;
 
   @override
-  Iterator<Builder> get iterator {
-    return new LibraryLocalDeclarationIterator(this);
+  Iterator<Builder> get localMembersIterator {
+    return scope.filteredIterator(
+        parent: this, includeDuplicates: true, includeAugmentations: true);
   }
 
   @override
-  NameIterator get nameIterator {
-    return new LibraryLocalDeclarationNameIterator(this);
+  NameIterator<Builder> get localMembersNameIterator {
+    return scope.filteredNameIterator(
+        parent: this, includeDuplicates: true, includeAugmentations: true);
   }
 
   @override
@@ -371,46 +381,5 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   @override
   StringBuffer printOn(StringBuffer buffer) {
     return buffer..write(name ?? (isPart ? fileUri : importUri));
-  }
-}
-
-class LibraryLocalDeclarationIterator implements Iterator<Builder> {
-  final LibraryBuilder library;
-  final Iterator<Builder> iterator;
-
-  LibraryLocalDeclarationIterator(this.library)
-      : iterator = library.scope.iterator;
-
-  @override
-  Builder get current => iterator.current;
-
-  @override
-  bool moveNext() {
-    while (iterator.moveNext()) {
-      if (current.parent == library) return true;
-    }
-    return false;
-  }
-}
-
-class LibraryLocalDeclarationNameIterator implements NameIterator {
-  final LibraryBuilder library;
-  final NameIterator iterator;
-
-  LibraryLocalDeclarationNameIterator(this.library)
-      : iterator = library.scope.nameIterator;
-
-  @override
-  Builder get current => iterator.current;
-
-  @override
-  String get name => iterator.name;
-
-  @override
-  bool moveNext() {
-    while (iterator.moveNext()) {
-      if (current.parent == library) return true;
-    }
-    return false;
   }
 }

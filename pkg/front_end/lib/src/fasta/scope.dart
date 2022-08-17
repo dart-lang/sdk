@@ -131,12 +131,64 @@ class Scope extends MutableScope {
             debugName: debugName,
             isModifiable: isModifiable);
 
-  Iterator<Builder> get iterator {
-    return new ScopeLocalDeclarationIterator(this);
+  /// Returns an iterator of all members and setters mapped in this scope,
+  /// including duplicate members mapped to the same name.
+  ///
+  /// The iterator does _not_ include the members and setters mapped in the
+  /// [parent] scope.
+  Iterator<Builder> get unfilteredIterator {
+    return new ScopeIterator(this);
   }
 
-  NameIterator get nameIterator {
-    return new ScopeLocalDeclarationNameIterator(this);
+  /// Returns an iterator of all members and setters mapped in this scope,
+  /// including duplicate members mapped to the same name.
+  ///
+  /// The iterator does _not_ include the members and setters mapped in the
+  /// [parent] scope.
+  ///
+  /// Compared to [unfilteredIterator] this iterator also gives access to the
+  /// name that the builders are mapped to.
+  NameIterator get unfilteredNameIterator {
+    return new ScopeNameIterator(this);
+  }
+
+  /// Returns a filtered iterator of members and setters mapped in this scope.
+  ///
+  /// Only members of type [T] are included. If [parent] is provided, on members
+  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
+  /// duplicates of the same name are included, otherwise, only the first
+  /// declared member is included. If [includeAugmentations] is `true`, both
+  /// original and augmenting/patching members are included, otherwise, only
+  /// original members are included.
+  Iterator<T> filteredIterator<T extends Builder>(
+      {Builder? parent,
+      required bool includeDuplicates,
+      required bool includeAugmentations}) {
+    return new FilteredIterator<T>(unfilteredIterator,
+        parent: parent,
+        includeDuplicates: includeDuplicates,
+        includeAugmentations: includeAugmentations);
+  }
+
+  /// Returns a filtered iterator of members and setters mapped in this scope.
+  ///
+  /// Only members of type [T] are included. If [parent] is provided, on members
+  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
+  /// duplicates of the same name are included, otherwise, only the first
+  /// declared member is included. If [includeAugmentations] is `true`, both
+  /// original and augmenting/patching members are included, otherwise, only
+  /// original members are included.
+  ///
+  /// Compared to [filteredIterator] this iterator also gives access to the
+  /// name that the builders are mapped to.
+  NameIterator<T> filteredNameIterator<T extends Builder>(
+      {Builder? parent,
+      required bool includeDuplicates,
+      required bool includeAugmentations}) {
+    return new FilteredNameIterator<T>(unfilteredNameIterator,
+        parent: parent,
+        includeDuplicates: includeDuplicates,
+        includeAugmentations: includeAugmentations);
   }
 
   void debug() {
@@ -623,6 +675,58 @@ class ConstructorScope {
     local[name] = builder;
   }
 
+  /// Returns an iterator of all constructors mapped in this scope,
+  /// including duplicate constructors mapped to the same name.
+  Iterator<MemberBuilder> get unfilteredIterator =>
+      new ConstructorScopeIterator(this);
+
+  /// Returns an iterator of all constructors mapped in this scope,
+  /// including duplicate constructors mapped to the same name.
+  ///
+  /// Compared to [unfilteredIterator] this iterator also gives access to the
+  /// name that the builders are mapped to.
+  NameIterator<MemberBuilder> get unfilteredNameIterator =>
+      new ConstructorScopeNameIterator(this);
+
+  /// Returns a filtered iterator of constructors mapped in this scope.
+  ///
+  /// Only members of type [T] are included. If [parent] is provided, on members
+  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
+  /// duplicates of the same name are included, otherwise, only the first
+  /// declared member is included. If [includeAugmentations] is `true`, both
+  /// original and augmenting/patching members are included, otherwise, only
+  /// original members are included.
+  Iterator<T> filteredIterator<T extends MemberBuilder>(
+      {Builder? parent,
+      required bool includeDuplicates,
+      required bool includeAugmentations}) {
+    return new FilteredIterator<T>(unfilteredIterator,
+        parent: parent,
+        includeDuplicates: includeDuplicates,
+        includeAugmentations: includeAugmentations);
+  }
+
+  /// Returns a filtered iterator of constructors mapped in this scope.
+  ///
+  /// Only members of type [T] are included. If [parent] is provided, on members
+  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
+  /// duplicates of the same name are included, otherwise, only the first
+  /// declared member is included. If [includeAugmentations] is `true`, both
+  /// original and augmenting/patching members are included, otherwise, only
+  /// original members are included.
+  ///
+  /// Compared to [filteredIterator] this iterator also gives access to the
+  /// name that the builders are mapped to.
+  NameIterator<T> filteredNameIterator<T extends MemberBuilder>(
+      {Builder? parent,
+      required bool includeDuplicates,
+      required bool includeAugmentations}) {
+    return new FilteredNameIterator<T>(unfilteredNameIterator,
+        parent: parent,
+        includeDuplicates: includeDuplicates,
+        includeAugmentations: includeAugmentations);
+  }
+
   @override
   String toString() => "ConstructorScope($className, ${local.keys})";
 }
@@ -867,13 +971,15 @@ class AmbiguousMemberBuilder extends AmbiguousBuilder
       : super(name, builder, charOffset, fileUri);
 }
 
-class ScopeLocalDeclarationIterator implements Iterator<Builder> {
+/// Iterator over builders mapped in a [Scope], including duplicates for each
+/// directly mapped builder.
+class ScopeIterator implements Iterator<Builder> {
   Iterator<Builder>? local;
   final Iterator<Builder> setters;
 
   Builder? _current;
 
-  ScopeLocalDeclarationIterator(Scope scope)
+  ScopeIterator(Scope scope)
       : local = scope._local.values.iterator,
         setters = scope._setters.values.iterator;
 
@@ -906,14 +1012,18 @@ class ScopeLocalDeclarationIterator implements Iterator<Builder> {
   }
 }
 
-class ScopeLocalDeclarationNameIterator extends ScopeLocalDeclarationIterator
-    implements NameIterator {
+/// Iterator over builders mapped in a [Scope], including duplicates for each
+/// directly mapped builder.
+///
+/// Compared to [ScopeIterator] this iterator also gives
+/// access to the name that the builders are mapped to.
+class ScopeNameIterator extends ScopeIterator implements NameIterator<Builder> {
   Iterator<String>? localNames;
   final Iterator<String> setterNames;
 
   String? _name;
 
-  ScopeLocalDeclarationNameIterator(Scope scope)
+  ScopeNameIterator(Scope scope)
       : localNames = scope._local.keys.iterator,
         setterNames = scope._setters.keys.iterator,
         super(scope);
@@ -941,6 +1051,7 @@ class ScopeLocalDeclarationNameIterator extends ScopeLocalDeclarationIterator
       return true;
     } else {
       _current = null;
+      _name = null;
       return false;
     }
   }
@@ -948,5 +1059,164 @@ class ScopeLocalDeclarationNameIterator extends ScopeLocalDeclarationIterator
   @override
   String get name {
     return _name ?? (throw new StateError('No element'));
+  }
+}
+
+/// Iterator over builders mapped in a [ConstructorScope], including duplicates
+/// for each directly mapped builder.
+class ConstructorScopeIterator implements Iterator<MemberBuilder> {
+  Iterator<MemberBuilder> local;
+
+  MemberBuilder? _current;
+
+  ConstructorScopeIterator(ConstructorScope scope)
+      : local = scope.local.values.iterator;
+
+  @override
+  bool moveNext() {
+    MemberBuilder? next = _current?.next as MemberBuilder?;
+    if (next != null) {
+      _current = next;
+      return true;
+    }
+    if (local.moveNext()) {
+      _current = local.current;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  MemberBuilder get current {
+    return _current ?? (throw new StateError('No element'));
+  }
+}
+
+/// Iterator over builders mapped in a [ConstructorScope], including duplicates
+/// for each directly mapped builder.
+///
+/// Compared to [ConstructorScopeIterator] this iterator also gives
+/// access to the name that the builders are mapped to.
+class ConstructorScopeNameIterator extends ConstructorScopeIterator
+    implements NameIterator<MemberBuilder> {
+  final Iterator<String> localNames;
+
+  String? _name;
+
+  ConstructorScopeNameIterator(ConstructorScope scope)
+      : localNames = scope.local.keys.iterator,
+        super(scope);
+
+  @override
+  bool moveNext() {
+    MemberBuilder? next = _current?.next as MemberBuilder?;
+    if (next != null) {
+      _current = next;
+      return true;
+    }
+    if (local.moveNext()) {
+      localNames.moveNext();
+      _current = local.current;
+      _name = localNames.current;
+      return true;
+    }
+    _current = null;
+    _name = null;
+    return false;
+  }
+
+  @override
+  String get name {
+    return _name ?? (throw new StateError('No element'));
+  }
+}
+
+/// Filtered builder [Iterator].
+class FilteredIterator<T extends Builder> implements Iterator<T> {
+  final Iterator<Builder> _iterator;
+  final Builder? parent;
+  final bool includeDuplicates;
+  final bool includeAugmentations;
+
+  FilteredIterator(this._iterator,
+      {required this.parent,
+      required this.includeDuplicates,
+      required this.includeAugmentations});
+
+  bool _include(Builder element) {
+    if (parent != null && element.parent != parent) return false;
+    if (!includeDuplicates && element.isDuplicate) return false;
+    if (!includeAugmentations && element.isPatch) return false;
+    return element is T;
+  }
+
+  @override
+  T get current => _iterator.current as T;
+
+  @override
+  bool moveNext() {
+    while (_iterator.moveNext()) {
+      Builder candidate = _iterator.current;
+      if (_include(candidate)) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+/// Filtered [NameIterator].
+///
+/// Compared to [FilteredIterator] this iterator also gives
+/// access to the name that the builders are mapped to.
+class FilteredNameIterator<T extends Builder> implements NameIterator<T> {
+  final NameIterator<Builder> _iterator;
+  final Builder? parent;
+  final bool includeDuplicates;
+  final bool includeAugmentations;
+
+  FilteredNameIterator(this._iterator,
+      {required this.parent,
+      required this.includeDuplicates,
+      required this.includeAugmentations});
+
+  bool _include(Builder element) {
+    if (parent != null && element.parent != parent) return false;
+    if (!includeDuplicates && element.isDuplicate) return false;
+    if (!includeAugmentations && element.isPatch) return false;
+    return element is T;
+  }
+
+  @override
+  T get current => _iterator.current as T;
+
+  @override
+  String get name => _iterator.name;
+
+  @override
+  bool moveNext() {
+    while (_iterator.moveNext()) {
+      Builder candidate = _iterator.current;
+      if (_include(candidate)) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+extension IteratorExtension<T extends Builder> on Iterator<T> {
+  void forEach(void Function(T) f) {
+    while (moveNext()) {
+      f(current);
+    }
+  }
+}
+
+extension NameIteratorExtension<T extends Builder> on NameIterator<T> {
+  void forEach(void Function(String, T) f) {
+    while (moveNext()) {
+      f(name, current);
+    }
   }
 }

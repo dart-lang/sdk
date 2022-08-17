@@ -15,3 +15,10 @@ class Class {
   @patch
   const Class.constGenerative({this.defaultValue: true});
 }
+
+@patch
+class Class2 {
+  final int injectedField;
+
+  Class2(this.field) : injectedField = field;
+}

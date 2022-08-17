@@ -6,6 +6,7 @@ library fasta.name_iterator;
 
 import 'builder.dart';
 
-abstract class NameIterator implements Iterator<Builder> {
+/// An iterator on [Builder]s that provide the name that they are mapped to.
+abstract class NameIterator<T extends Builder> implements Iterator<T> {
   String get name;
 }
