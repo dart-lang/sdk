@@ -2504,7 +2504,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           assert(compoundOperatorType.positionalParameters!.isNotEmpty);
           _checkAssignment(edgeOrigin, FixReasonTarget.root,
               source: sourceType,
-              destination: compoundOperatorType.positionalParameters![0]!,
+              destination: compoundOperatorType.positionalParameters![0],
               hard: _shouldUseHardEdge(expression!),
               sourceIsFunctionLiteral: expression is FunctionExpression);
           sourceType = _fixNumericTypes(compoundOperatorType.returnType!,
@@ -2757,7 +2757,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } else {
         assert(method.isSetter);
         DecoratedType currentParameterType =
-            _currentFunctionType!.positionalParameters!.single!;
+            _currentFunctionType!.positionalParameters!.single;
         DecoratedType overriddenParameterType = overriddenFieldType;
         _checkAssignment(
             ParameterInheritanceOrigin(source, node), FixReasonTarget.root,
@@ -2984,7 +2984,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _checkAssignment(
         GetterSetterCorrespondenceOrigin(source, node), FixReasonTarget.root,
         source: getType!.substitute(getterSubstitution),
-        destination: setType!.substitute(setterSubstitution),
+        destination: setType.substitute(setterSubstitution),
         hard: true);
   }
 
@@ -3099,7 +3099,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // Any parameters not supplied must be optional.
     for (var entry in calleeType.namedParameters!.entries) {
       if (suppliedNamedParameters.contains(entry.key)) continue;
-      entry.value!.node!.recordNamedParameterNotSupplied(
+      entry.value.node!.recordNamedParameterNotSupplied(
           _guards, _graph, NamedParameterNotSuppliedOrigin(source, node));
     }
     return calleeType.returnType;
@@ -3294,13 +3294,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             i < y!.positionalParameters!.length;
         i++) {
       _linkDecoratedTypes(
-          x.positionalParameters![i]!, y.positionalParameters![i], origin,
+          x.positionalParameters![i], y.positionalParameters![i], origin,
           isUnion: isUnion);
     }
     for (var entry in x.namedParameters!.entries) {
       var superParameterType = y!.namedParameters![entry.key];
       if (superParameterType != null) {
-        _linkDecoratedTypes(entry.value!, y.namedParameters![entry.key], origin,
+        _linkDecoratedTypes(entry.value, y.namedParameters![entry.key], origin,
             isUnion: isUnion);
       }
     }
@@ -3808,15 +3808,15 @@ mixin _AssignmentChecker {
           i++) {
         // Note: source and destination are swapped due to contravariance.
         _checkAssignment(origin, edgeTarget.positionalParameter(i),
-            source: destination.positionalParameters![i]!,
-            destination: source.positionalParameters![i]!,
+            source: destination.positionalParameters![i],
+            destination: source.positionalParameters![i],
             hard: false,
             checkable: false);
       }
       for (var entry in destination.namedParameters!.entries) {
         // Note: source and destination are swapped due to contravariance.
         _checkAssignment(origin, edgeTarget.namedParameter(entry.key),
-            source: entry.value!,
+            source: entry.value,
             destination: source.namedParameters![entry.key]!,
             hard: false,
             checkable: false);

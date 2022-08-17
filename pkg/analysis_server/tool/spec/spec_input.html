@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.33.1</version>
+  <version>1.33.2</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -2434,6 +2434,14 @@
         </p>
         <p>
           If this field is omitted the flag defaults to <tt>false</tt>.
+        </p>
+      </field>
+      <field name="codes" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          A list of diagnostic codes to be fixed.
         </p>
       </field>
     </params>

@@ -1472,7 +1472,8 @@ Fragment StreamingFlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   return flow_graph_builder_->LoadLocal(variable);
 }
 
-Fragment StreamingFlowGraphBuilder::IndirectGoto(intptr_t target_count) {
+IndirectGotoInstr* StreamingFlowGraphBuilder::IndirectGoto(
+    intptr_t target_count) {
   return flow_graph_builder_->IndirectGoto(target_count);
 }
 
@@ -3347,8 +3348,8 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
     instructions += BuildArguments(
         &argument_names, &argument_count,
         /* positional_argument_count = */ nullptr);  // read arguments.
-    ++argument_count;                             // include receiver
-    SkipInterfaceMemberNameReference();           // interfaceTargetReference
+    ++argument_count;                                // include receiver
+    SkipInterfaceMemberNameReference();              // interfaceTargetReference
     return instructions +
            StaticCall(position, Function::ZoneHandle(Z, function.ptr()),
                       argument_count, argument_names, ICData::kSuper,
@@ -4276,7 +4277,7 @@ Fragment StreamingFlowGraphBuilder::BuildBlock(TokenPosition* position) {
   const TokenPosition pos = ReadPosition();  // read file offset.
   if (position != nullptr) *position = pos;
 
-  ReadPosition();                           // read file end offset.
+  ReadPosition();  // read file end offset.
 
   intptr_t list_length = ReadListLength();  // read number of statements.
   for (intptr_t i = 0; i < list_length; ++i) {
@@ -4414,7 +4415,7 @@ Fragment StreamingFlowGraphBuilder::BuildBreakStatement(
   const TokenPosition pos = ReadPosition();  // read position.
   if (position != nullptr) *position = pos;
 
-  intptr_t target_index = ReadUInt();       // read target index.
+  intptr_t target_index = ReadUInt();  // read target index.
 
   TryFinallyBlock* outer_finally = nullptr;
   intptr_t target_context_depth = -1;
@@ -4441,7 +4442,7 @@ Fragment StreamingFlowGraphBuilder::BuildWhileStatement(
   const TokenPosition pos = ReadPosition();  // read position.
   if (position != nullptr) *position = pos;
 
-  TestFragment condition = TranslateConditionForControl();  // read condition.
+  TestFragment condition = TranslateConditionForControl();   // read condition.
   const Fragment body = BuildStatementWithBranchCoverage();  // read body
 
   Fragment body_entry(condition.CreateTrueSuccessor(flow_graph_builder_));
@@ -4582,7 +4583,7 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(
   const TokenPosition pos = ReadPosition();  // read position.
   if (position != nullptr) *position = pos;
 
-  TokenPosition body_position = ReadPosition();   // read body position.
+  TokenPosition body_position = ReadPosition();  // read body position.
   intptr_t variable_kernel_position = ReaderOffset() + data_program_offset_;
   SkipVariableDeclaration();  // read variable.
 
@@ -4640,150 +4641,186 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement(
     TokenPosition* position) {
   const TokenPosition pos = ReadPosition();  // read position.
   if (position != nullptr) *position = pos;
-  ReadBool();  // read exhaustive flag.
+  const bool is_exhaustive = ReadBool();  // read exhaustive flag.
 
   // We need the number of cases. So start by getting that, then go back.
-  intptr_t offset = ReaderOffset();
-  SkipExpression();                   // temporarily skip condition
-  int case_count = ReadListLength();  // read number of cases.
+  const intptr_t offset = ReaderOffset();
+  SkipExpression();                        // temporarily skip condition
+  intptr_t case_count = ReadListLength();  // read number of cases.
   SetOffset(offset);
 
   SwitchBlock block(flow_graph_builder_, case_count);
 
-  // Instead of using a variable we should reuse the expression on the stack,
-  // since it won't be assigned again, we don't need phi nodes.
-  Fragment head_instructions = BuildExpression();  // read condition.
-  head_instructions +=
+  Fragment instructions = BuildExpression();  // read condition.
+  instructions +=
       StoreLocal(TokenPosition::kNoSource, scopes()->switch_variable);
-  head_instructions += Drop();
+  instructions += Drop();
 
   case_count = ReadListLength();  // read number of cases.
 
-  // Phase 1: Generate bodies and try to find out whether a body will be target
+  SwitchHelper helper(Z, pos, is_exhaustive, &block, case_count);
+
+  // Build the case bodies and collect the expressions into the helper
+  // for the next step.
+  for (intptr_t i = 0; i < case_count; ++i) {
+    helper.AddCaseBody(BuildSwitchCase(&helper, i));
+  }
+
+  // Build the code to dispatch to the case bodies.
+  switch (helper.SelectDispatchStrategy()) {
+    case kSwitchDispatchAuto:
+      UNREACHABLE();
+    case kSwitchDispatchLinearScan:
+      instructions += BuildLinearScanSwitch(&helper);
+      break;
+    case kSwitchDispatchBinarySearch:
+      instructions += BuildBinarySearchSwitch(&helper);
+      break;
+    case kSwitchDispatchJumpTable:
+      instructions += BuildJumpTableSwitch(&helper);
+      break;
+  }
+
+  return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildSwitchCase(SwitchHelper* helper,
+                                                    intptr_t case_index) {
+  // Generate case body and try to find out whether the body will be target
   // of a jump due to:
   //   * `continue case_label`
   //   * `case e1: case e2: body`
-  Fragment* body_fragments = Z->Alloc<Fragment>(case_count);
-  intptr_t* case_expression_offsets = Z->Alloc<intptr_t>(case_count);
-  int default_case = -1;
+  //
+  // Also collect switch expressions into helper.
 
-  for (intptr_t i = 0; i < case_count; ++i) {
-    case_expression_offsets[i] = ReaderOffset();
-    int expression_count = ReadListLength();  // read number of expressions.
-    for (intptr_t j = 0; j < expression_count; ++j) {
-      ReadPosition();    // read jth position.
-      SkipExpression();  // read jth expression.
-    }
-    bool is_default = ReadBool();  // read is_default.
-    if (is_default) default_case = i;
-    Fragment& body_fragment = body_fragments[i] =
-        BuildStatementWithBranchCoverage();  // read body.
-
-    if (body_fragment.entry == nullptr) {
-      // Make a NOP in order to ensure linking works properly.
-      body_fragment = NullConstant();
-      body_fragment += Drop();
-    }
-
-    // The Dart language specification mandates fall-throughs in [SwitchCase]es
-    // to be runtime errors.
-    if (!is_default && body_fragment.is_open() && (i < (case_count - 1))) {
-      const Class& klass = Class::ZoneHandle(
-          Z, Library::LookupCoreClass(Symbols::FallThroughError()));
-      ASSERT(!klass.IsNull());
-      const auto& error = klass.EnsureIsFinalized(thread());
-      ASSERT(error == Error::null());
-
-      GrowableHandlePtrArray<const String> pieces(Z, 3);
-      pieces.Add(Symbols::FallThroughError());
-      pieces.Add(Symbols::Dot());
-      pieces.Add(H.DartSymbolObfuscate("_create"));
-
-      const Function& constructor = Function::ZoneHandle(
-          Z, klass.LookupConstructorAllowPrivate(String::ZoneHandle(
-                 Z, Symbols::FromConcatAll(H.thread(), pieces))));
-      ASSERT(!constructor.IsNull());
-      const String& url = H.DartSymbolPlain(
-          parsed_function()->function().ToLibNamePrefixedQualifiedCString());
-
-      // Create instance of _FallThroughError
-      body_fragment += AllocateObject(TokenPosition::kNoSource, klass, 0);
-      LocalVariable* instance = MakeTemporary();
-
-      // Call _FallThroughError._create constructor.
-      body_fragment += LoadLocal(instance);  // this
-      body_fragment += Constant(url);        // url
-      body_fragment += NullConstant();       // line
-
-      body_fragment +=
-          StaticCall(TokenPosition::kNoSource, constructor, 3, ICData::kStatic);
-      body_fragment += Drop();
-
-      // Throw the exception
-      body_fragment += ThrowException(TokenPosition::kNoSource);
-      body_fragment += Drop();
-    }
-
-    // If there is an implicit fall-through we have one [SwitchCase] and
-    // multiple expressions, e.g.
-    //
-    //    switch(expr) {
-    //      case a:
-    //      case b:
-    //        <stmt-body>
-    //    }
-    //
-    // This means that the <stmt-body> will have more than 1 incoming edge (one
-    // from `a == expr` and one from `a != expr && b == expr`). The
-    // `block.Destination()` records the additional jump.
-    if (expression_count > 1) {
-      block.DestinationDirect(i);
-    }
+  const int expression_count = ReadListLength();  // read number of expressions.
+  for (intptr_t j = 0; j < expression_count; ++j) {
+    const TokenPosition pos = ReadPosition();  // read jth position.
+    // read jth expression.
+    const Instance& value =
+        Instance::ZoneHandle(Z, constant_reader_.ReadConstantExpression());
+    helper->AddExpression(case_index, pos, value);
   }
 
-  intptr_t end_offset = ReaderOffset();
+  const bool is_default = ReadBool();  // read is_default.
+  if (is_default) helper->set_default_case(case_index);
+  Fragment body_fragment = BuildStatementWithBranchCoverage();  // read body.
 
-  // Phase 2: Generate everything except the real bodies:
-  //   * jump directly to a body (if there is no jumper)
-  //   * jump to a wrapper block which jumps to the body (if there is a jumper)
-  Fragment current_instructions = head_instructions;
+  if (body_fragment.entry == nullptr) {
+    // Make a NOP in order to ensure linking works properly.
+    body_fragment = NullConstant();
+    body_fragment += Drop();
+  }
+
+  // The Dart language specification mandates fall-throughs in [SwitchCase]es
+  // to be runtime errors.
+  if (!is_default && body_fragment.is_open() &&
+      (case_index < (helper->case_count() - 1))) {
+    const Class& klass = Class::ZoneHandle(
+        Z, Library::LookupCoreClass(Symbols::FallThroughError()));
+    ASSERT(!klass.IsNull());
+    const auto& error = klass.EnsureIsFinalized(thread());
+    ASSERT(error == Error::null());
+
+    GrowableHandlePtrArray<const String> pieces(Z, 3);
+    pieces.Add(Symbols::FallThroughError());
+    pieces.Add(Symbols::Dot());
+    pieces.Add(H.DartSymbolObfuscate("_create"));
+
+    const Function& constructor = Function::ZoneHandle(
+        Z, klass.LookupConstructorAllowPrivate(String::ZoneHandle(
+               Z, Symbols::FromConcatAll(H.thread(), pieces))));
+    ASSERT(!constructor.IsNull());
+    const String& url = H.DartSymbolPlain(
+        parsed_function()->function().ToLibNamePrefixedQualifiedCString());
+
+    // Create instance of _FallThroughError
+    body_fragment += AllocateObject(TokenPosition::kNoSource, klass, 0);
+    LocalVariable* instance = MakeTemporary();
+
+    // Call _FallThroughError._create constructor.
+    body_fragment += LoadLocal(instance);  // this
+    body_fragment += Constant(url);        // url
+    body_fragment += NullConstant();       // line
+
+    body_fragment +=
+        StaticCall(TokenPosition::kNoSource, constructor, 3, ICData::kStatic);
+    body_fragment += Drop();
+
+    // Throw the exception
+    body_fragment += ThrowException(TokenPosition::kNoSource);
+    body_fragment += Drop();
+  }
+
+  // If there is an implicit fall-through we have one [SwitchCase] and
+  // multiple expressions, e.g.
+  //
+  //    switch(expr) {
+  //      case a:
+  //      case b:
+  //        <stmt-body>
+  //    }
+  //
+  // This means that the <stmt-body> will have more than 1 incoming edge (one
+  // from `a == expr` and one from `a != expr && b == expr`). The
+  // `block.Destination()` records the additional jump.
+  if (expression_count > 1) {
+    helper->switch_block()->DestinationDirect(case_index);
+  }
+
+  return body_fragment;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildLinearScanSwitch(
+    SwitchHelper* helper) {
+  // Build a switch using a sequence of equality tests.
+  //
+  // From a test:
+  // * jump directly to a body, if there is no jumper.
+  // * jump to a wrapper block which jumps to the body, if there is a jumper.
+
+  SwitchBlock* block = helper->switch_block();
+  const intptr_t case_count = helper->case_count();
+  const intptr_t default_case = helper->default_case();
+  const GrowableArray<Fragment>& case_bodies = helper->case_bodies();
+  Fragment current_instructions;
+  intptr_t expression_index = 0;
+
   for (intptr_t i = 0; i < case_count; ++i) {
-    SetOffset(case_expression_offsets[i]);
-    int expression_count = ReadListLength();  // read length of expressions.
-
     if (i == default_case) {
       ASSERT(i == (case_count - 1));
 
-      if (block.HadJumper(i)) {
+      if (block->HadJumper(i)) {
         // There are several branches to the body, so we will make a goto to
         // the join block (and prepend a join instruction to the real body).
-        JoinEntryInstr* join = block.DestinationDirect(i);
+        JoinEntryInstr* join = block->DestinationDirect(i);
         current_instructions += Goto(join);
 
         current_instructions = Fragment(current_instructions.entry, join);
-        current_instructions += body_fragments[i];
+        current_instructions += case_bodies[i];
       } else {
-        current_instructions += body_fragments[i];
+        current_instructions += case_bodies[i];
       }
     } else {
       JoinEntryInstr* body_join = nullptr;
-      if (block.HadJumper(i)) {
-        body_join = block.DestinationDirect(i);
-        body_fragments[i] = Fragment(body_join) + body_fragments[i];
+      if (block->HadJumper(i)) {
+        body_join = block->DestinationDirect(i);
+        case_bodies[i] = Fragment(body_join) + case_bodies[i];
       }
 
+      const intptr_t expression_count = helper->case_expression_counts().At(i);
       for (intptr_t j = 0; j < expression_count; ++j) {
         TargetEntryInstr* then;
         TargetEntryInstr* otherwise;
 
-        const TokenPosition pos = ReadPosition();  // read jth position.
-        current_instructions += Constant(
-            Instance::ZoneHandle(Z, constant_reader_.ReadConstantExpression()));
+        const SwitchExpression& expression =
+            helper->expressions().At(expression_index++);
+        current_instructions += Constant(expression.value());
         current_instructions += LoadLocal(scopes()->switch_variable);
-        current_instructions +=
-            InstanceCall(pos, Symbols::EqualOperator(), Token::kEQ,
-                         /*argument_count=*/2,
-                         /*checked_argument_count=*/2);
+        current_instructions += InstanceCall(
+            expression.position(), Symbols::EqualOperator(), Token::kEQ,
+            /*argument_count=*/2,
+            /*checked_argument_count=*/2);
         current_instructions += BranchIfTrue(&then, &otherwise, false);
 
         Fragment then_fragment(then);
@@ -4794,23 +4831,23 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement(
           // join instruction).
           then_fragment += Goto(body_join);
         } else {
-          // There is only a signle branch to the body, so we will just append
+          // There is only a single branch to the body, so we will just append
           // the body fragment.
-          then_fragment += body_fragments[i];
+          then_fragment += case_bodies[i];
         }
 
-        current_instructions = Fragment(otherwise);
+        current_instructions = Fragment(current_instructions.entry, otherwise);
       }
     }
   }
 
-  if (case_count > 0 && default_case < 0) {
+  if (case_count > 0 && !helper->has_default()) {
     // There is no default, which means we have an open [current_instructions]
     // (which is a [TargetEntryInstruction] for the last "otherwise" branch).
     //
     // Furthermore the last [SwitchCase] can be open as well.  If so, we need
     // to join these two.
-    Fragment& last_body = body_fragments[case_count - 1];
+    Fragment& last_body = case_bodies[case_count - 1];
     if (last_body.is_open()) {
       ASSERT(current_instructions.is_open());
       ASSERT(current_instructions.current->IsTargetEntry());
@@ -4820,7 +4857,7 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement(
       current_instructions += Goto(join);
       last_body += Goto(join);
 
-      current_instructions = Fragment(join);
+      current_instructions = Fragment(current_instructions.entry, join);
     }
   } else {
     // All non-default cases will be closed (i.e. break/continue/throw/return)
@@ -4828,8 +4865,354 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement(
     // default case.
   }
 
-  SetOffset(end_offset);
-  return Fragment(head_instructions.entry, current_instructions.current);
+  return current_instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildOptimizedSwitchPrelude(
+    SwitchHelper* helper,
+    JoinEntryInstr* join) {
+  const TokenPosition pos = helper->position();
+
+  // We need to check that the switch variable is of the correct type.
+  // If it is not, we go to [join] which is either the default case or
+  // the exit of the switch statement.
+
+  TargetEntryInstr* then_entry;
+  TargetEntryInstr* otherwise_entry;
+
+  const AbstractType& expression_type =
+      AbstractType::ZoneHandle(Z, helper->expression_class().RareType());
+  ASSERT(dart::SimpleInstanceOfType(expression_type));
+
+  Fragment instructions;
+  instructions += LoadLocal(scopes()->switch_variable);
+  instructions += Constant(expression_type);
+  instructions += InstanceCall(
+      pos, Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()),
+      Token::kIS, /*argument_count=*/2,
+      /*checked_argument_count=*/2);
+  instructions += BranchIfTrue(&then_entry, &otherwise_entry, /*negate=*/false);
+
+  Fragment otherwise_instructions(otherwise_entry);
+  otherwise_instructions += Goto(join);
+
+  instructions = Fragment(instructions.entry, then_entry);
+
+  if (helper->is_enum_switch()) {
+    // For an enum switch, we need to load the enum index from the switch
+    // variable.
+
+    instructions += LoadLocal(scopes()->switch_variable);
+    const Field& enum_index_field =
+        Field::ZoneHandle(Z, IG->object_store()->enum_index_field());
+    instructions += B->LoadField(enum_index_field, /*calls_initializer=*/false);
+    instructions += StoreLocal(pos, scopes()->switch_variable);
+    instructions += Drop();
+  }
+
+  return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildBinarySearchSwitch(
+    SwitchHelper* helper) {
+  // * We build a binary tree of conditional branches where each branch bisects
+  //   the remaining cases.
+  //   * At holes in the switch expression range we need to add additional
+  //     bound checks.
+  // * At each leaf we add the body of the case or a goto, if the case has
+  //   jumpers.
+  //   * Leafs at the bounds of the switch expression range might need to
+  //     do a bound check.
+
+  SwitchBlock* block = helper->switch_block();
+  const intptr_t case_count = helper->case_count();
+  const intptr_t default_case = helper->default_case();
+  const GrowableArray<Fragment>& case_bodies = helper->case_bodies();
+  const intptr_t expression_count = helper->expressions().length();
+  const GrowableArray<SwitchExpression*>& sorted_expressions =
+      helper->sorted_expressions();
+  TargetEntryInstr* then_entry;
+  TargetEntryInstr* otherwise_entry;
+
+  // Entry to the default case or the exit of the switch, if there is no
+  // default case.
+  JoinEntryInstr* join;
+  if (helper->has_default()) {
+    join = block->DestinationDirect(default_case);
+  } else {
+    join = BuildJoinEntry();
+  }
+
+  Fragment join_instructions(join);
+  if (helper->has_default()) {
+    join_instructions += case_bodies.At(default_case);
+  }
+
+  Fragment current_instructions = BuildOptimizedSwitchPrelude(helper, join);
+
+  GrowableArray<SwitchRange> stack;
+  stack.Add(SwitchRange::Branch(0, expression_count - 1, current_instructions));
+
+  while (!stack.is_empty()) {
+    const SwitchRange range = stack.RemoveLast();
+    Fragment branch_instructions = range.branch_instructions();
+
+    if (range.is_leaf()) {
+      const intptr_t expression_index = range.min();
+      const SwitchExpression& expression =
+          *sorted_expressions.At(expression_index);
+
+      if (!range.is_bounds_checked() &&
+          ((helper->RequiresLowerBoundCheck() && expression_index == 0) ||
+           (helper->RequiresUpperBoundCheck() &&
+            expression_index == expression_count - 1))) {
+        // This leaf needs a bound check.
+
+        branch_instructions += LoadLocal(scopes()->switch_variable);
+        branch_instructions += Constant(expression.integer());
+        branch_instructions +=
+            StrictCompare(expression.position(), Token::kEQ_STRICT,
+                          /*number_check=*/true);
+        branch_instructions +=
+            BranchIfTrue(&then_entry, &otherwise_entry, /*negate=*/false);
+
+        Fragment otherwise_instructions(otherwise_entry);
+        otherwise_instructions += Goto(join);
+
+        stack.Add(SwitchRange::Leaf(expression_index, Fragment(then_entry),
+                                    /*is_bounds_checked=*/true));
+      } else {
+        // We are at a leaf where we can add the body of the case or a goto to
+        // [join].
+
+        const intptr_t case_index = expression.case_index();
+
+        if (case_index == default_case) {
+          branch_instructions += Goto(join);
+        } else {
+          if (block->HadJumper(case_index)) {
+            JoinEntryInstr* join = block->DestinationDirect(case_index);
+            branch_instructions += Goto(join);
+
+            if (join->next() == nullptr) {
+              // The first time we reach an expression that jumps to a case
+              // body we emit the body.
+              branch_instructions = Fragment(join);
+              branch_instructions += case_bodies.At(case_index);
+            }
+          } else {
+            branch_instructions += case_bodies.At(case_index);
+          }
+
+          if (!helper->has_default() && case_index == case_count - 1) {
+            if (branch_instructions.is_open()) {
+              branch_instructions += Goto(join);
+            }
+          }
+        }
+
+        ASSERT(branch_instructions.is_closed());
+      }
+    } else {
+      // Add a conditional to bisect the range.
+
+      const intptr_t middle = range.min() + (range.max() - range.min()) / 2;
+      const intptr_t next = middle + 1;
+      const SwitchExpression& middle_expression =
+          *sorted_expressions.At(middle);
+      const SwitchExpression& next_expression = *sorted_expressions.At(next);
+
+      branch_instructions += LoadLocal(scopes()->switch_variable);
+      branch_instructions += Constant(middle_expression.integer());
+      branch_instructions +=
+          InstanceCall(middle_expression.position(),
+                       Symbols::LessEqualOperator(), Token::kLTE,
+                       /*argument_count=*/2,
+                       /*checked_argument_count=*/2);
+      branch_instructions +=
+          BranchIfTrue(&then_entry, &otherwise_entry, /*negate=*/false);
+
+      Fragment lower_branch_instructions(then_entry);
+      Fragment upper_branch_instructions(otherwise_entry);
+
+      if (next_expression.integer().AsInt64Value() >
+          middle_expression.integer().AsInt64Value() + 1) {
+        // The upper branch is not contiguous with the lower branch.
+        // Before continuing in the upper branch we add a bound check.
+
+        upper_branch_instructions += LoadLocal(scopes()->switch_variable);
+        upper_branch_instructions += Constant(next_expression.integer());
+        upper_branch_instructions +=
+            InstanceCall(next_expression.position(),
+                         Symbols::GreaterEqualOperator(), Token::kGTE,
+                         /*argument_count=*/2,
+                         /*checked_argument_count=*/2);
+        upper_branch_instructions +=
+            BranchIfTrue(&then_entry, &otherwise_entry, /*negate=*/false);
+
+        Fragment otherwise_instructions(otherwise_entry);
+        otherwise_instructions += Goto(join);
+
+        upper_branch_instructions = Fragment(then_entry);
+      }
+
+      stack.Add(
+          SwitchRange::Branch(next, range.max(), upper_branch_instructions));
+      stack.Add(
+          SwitchRange::Branch(range.min(), middle, lower_branch_instructions));
+    }
+  }
+
+  return Fragment(current_instructions.entry, join_instructions.current);
+}
+
+Fragment StreamingFlowGraphBuilder::BuildJumpTableSwitch(SwitchHelper* helper) {
+  // * If input value is not integer or enum value, goto default case or
+  //   switch exit.
+  // * If value is enum value, load its index.
+  // * If input integer is outside of jump table range, goto default case
+  //   or switch exit.
+  // * Jump to case with jump table.
+  //     * For each expression, add entry to jump to case.
+  //     * For each hole in the integer range, add entry to jump to default
+  //       cause or switch exit.
+
+  SwitchBlock* block = helper->switch_block();
+  const TokenPosition pos = helper->position();
+  const intptr_t case_count = helper->case_count();
+  const intptr_t default_case = helper->default_case();
+  const GrowableArray<Fragment>& case_bodies = helper->case_bodies();
+  const Integer& expression_min = helper->expression_min();
+  const Integer& expression_max = helper->expression_max();
+  TargetEntryInstr* then_entry;
+  TargetEntryInstr* otherwise_entry;
+
+  // Entry to the default case or the exit of the switch, if there is no
+  // default case.
+  JoinEntryInstr* join;
+  if (helper->has_default()) {
+    join = block->DestinationDirect(default_case);
+  } else {
+    join = BuildJoinEntry();
+  }
+
+  Fragment join_instructions(join);
+
+  Fragment current_instructions = BuildOptimizedSwitchPrelude(helper, join);
+
+  if (helper->RequiresLowerBoundCheck()) {
+    current_instructions += LoadLocal(scopes()->switch_variable);
+    current_instructions += Constant(expression_min);
+    current_instructions += InstanceCall(pos, Symbols::GreaterEqualOperator(),
+                                         Token::kGTE, /*argument_count=*/2,
+                                         /*checked_argument_count=*/2);
+    current_instructions += BranchIfTrue(&then_entry, &otherwise_entry,
+                                         /*negate=*/false);
+    Fragment otherwise_instructions(otherwise_entry);
+    otherwise_instructions += Goto(join);
+
+    current_instructions = Fragment(current_instructions.entry, then_entry);
+  }
+
+  if (helper->RequiresUpperBoundCheck()) {
+    current_instructions += LoadLocal(scopes()->switch_variable);
+    current_instructions += Constant(expression_max);
+    current_instructions += InstanceCall(pos, Symbols::LessEqualOperator(),
+                                         Token::kLTE, /*argument_count=*/2,
+                                         /*checked_argument_count=*/2);
+    current_instructions += BranchIfTrue(&then_entry, &otherwise_entry,
+                                         /*negate=*/false);
+    Fragment otherwise_instructions(otherwise_entry);
+    otherwise_instructions += Goto(join);
+
+    current_instructions = Fragment(current_instructions.entry, then_entry);
+  }
+
+  current_instructions += LoadLocal(scopes()->switch_variable);
+
+  if (!expression_min.IsZero()) {
+    // Adjust for the range of the jump table, which starts at 0.
+    current_instructions += Constant(expression_min);
+    current_instructions +=
+        InstanceCall(pos, Symbols::Minus(), Token::kSUB, /*argument_count=*/2,
+                     /*checked_argument_count=*/2);
+  }
+
+  const intptr_t table_size = helper->ExpressionRange();
+  IndirectGotoInstr* indirect_goto = IndirectGoto(table_size);
+  current_instructions <<= indirect_goto;
+  current_instructions = current_instructions.closed();
+
+  GrowableArray<TargetEntryInstr*> table_entries(table_size);
+  table_entries.FillWith(nullptr, 0, table_size);
+
+  // Generate the jump table entries for the switch cases.
+  intptr_t expression_index = 0;
+  for (intptr_t i = 0; i < case_count; ++i) {
+    const int expression_count = helper->case_expression_counts().At(i);
+
+    // Generate jump table entries for each case expression.
+    if (i != default_case) {
+      for (intptr_t j = 0; j < expression_count; ++j) {
+        const SwitchExpression& expression =
+            helper->expressions().At(expression_index++);
+        const intptr_t table_offset =
+            expression.integer().AsInt64Value() - expression_min.AsInt64Value();
+
+        IndirectEntryInstr* indirect_entry =
+            B->BuildIndirectEntry(table_offset, CurrentTryIndex());
+        Fragment indirect_entry_instructions(indirect_entry);
+        indirect_entry_instructions += Goto(block->DestinationDirect(i));
+
+        TargetEntryInstr* entry = B->BuildTargetEntry();
+        Fragment entry_instructions(entry);
+        entry_instructions += Goto(indirect_entry);
+
+        table_entries[table_offset] = entry;
+      }
+    }
+
+    // Connect the case body to its join entry.
+    if (i == default_case) {
+      join_instructions += case_bodies.At(i);
+    } else {
+      Fragment case_instructions(block->DestinationDirect(i));
+      case_instructions += case_bodies.At(i);
+
+      if (i == case_count - 1) {
+        // If the last case is not the default case and it is still open
+        // close it by going to the exit of the switch.
+        if (case_instructions.is_open()) {
+          case_instructions += Goto(join);
+        }
+      }
+
+      ASSERT(case_instructions.is_closed());
+    }
+  }
+
+  // Generate the jump table entries for holes in the integer range.
+  for (intptr_t i = 0; i < table_size; i++) {
+    if (table_entries.At(i) == nullptr) {
+      IndirectEntryInstr* indirect_entry =
+          B->BuildIndirectEntry(i, CurrentTryIndex());
+      Fragment indirect_entry_instructions(indirect_entry);
+      indirect_entry_instructions += Goto(join);
+
+      TargetEntryInstr* entry = flow_graph_builder_->BuildTargetEntry();
+      Fragment entry_instructions(entry);
+      entry_instructions += Goto(indirect_entry);
+
+      table_entries[i] = entry;
+    }
+  }
+
+  // Add the jump table entries to the jump table.
+  for (intptr_t i = 0; i < table_size; i++) {
+    indirect_goto->AddSuccessor(table_entries.At(i));
+  }
+
+  return Fragment(current_instructions.entry, join_instructions.current);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildContinueSwitchStatement(
@@ -4837,7 +5220,7 @@ Fragment StreamingFlowGraphBuilder::BuildContinueSwitchStatement(
   const TokenPosition pos = ReadPosition();  // read position.
   if (position != nullptr) *position = pos;
 
-  intptr_t target_index = ReadUInt();       // read target index.
+  intptr_t target_index = ReadUInt();  // read target index.
 
   TryFinallyBlock* outer_finally = nullptr;
   intptr_t target_context_depth = -1;

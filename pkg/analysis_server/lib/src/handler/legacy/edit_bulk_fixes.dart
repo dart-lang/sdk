@@ -38,7 +38,7 @@ class EditBulkFixes extends LegacyHandler {
       var workspace = DartChangeWorkspace(
           collection.contexts.map((c) => c.currentSession).toList());
       var processor = BulkFixProcessor(server.instrumentationService, workspace,
-          useConfigFiles: params.inTestMode ?? false);
+          useConfigFiles: params.inTestMode ?? false, codes: params.codes);
 
       var changeBuilder = await processor.fixErrors(collection.contexts);
 

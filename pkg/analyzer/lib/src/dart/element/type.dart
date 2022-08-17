@@ -1012,6 +1012,14 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   @override
   RecordElementImpl get element => element2;
 
+  @override
+  int get hashCode {
+    return Object.hash(
+      element2.positionalFields,
+      element2.namedFieldsSorted.length,
+    );
+  }
+
   @Deprecated('Check element, or use getDisplayString()')
   @override
   String? get name => null;
@@ -1036,6 +1044,42 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
         type: fieldTypes[index],
       );
     }).toList();
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) {
+      return true;
+    }
+
+    if (other is! RecordTypeImpl) {
+      return false;
+    }
+
+    if (other.nullabilitySuffix != nullabilitySuffix) {
+      return false;
+    }
+
+    final thisPositional = positionalFields;
+    final otherPositional = other.positionalFields;
+    if (thisPositional.length != otherPositional.length) {
+      return false;
+    }
+
+    final thisNamed = namedFields;
+    final otherNamed = other.namedFields;
+    if (thisNamed.length != otherNamed.length) {
+      return false;
+    }
+    for (var i = 0; i < thisNamed.length; i++) {
+      final thisField = thisNamed[i];
+      final otherField = otherNamed[i];
+      if (thisField.name != otherField.name) {
+        return false;
+      }
+    }
+
+    return TypeImpl.equalArrays(other.fieldTypes, fieldTypes);
   }
 
   @override

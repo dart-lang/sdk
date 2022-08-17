@@ -5982,6 +5982,7 @@ class DiagnosticGetServerPortResult implements ResponseResult {
 /// {
 ///   "included": List<FilePath>
 ///   "inTestMode": optional bool
+///   "codes": optional List<String>
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -6004,7 +6005,10 @@ class EditBulkFixesParams implements RequestParams {
   /// If this field is omitted the flag defaults to false.
   bool? inTestMode;
 
-  EditBulkFixesParams(this.included, {this.inTestMode});
+  /// A list of diagnostic codes to be fixed.
+  List<String>? codes;
+
+  EditBulkFixesParams(this.included, {this.inTestMode, this.codes});
 
   factory EditBulkFixesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -6022,7 +6026,13 @@ class EditBulkFixesParams implements RequestParams {
         inTestMode =
             jsonDecoder.decodeBool('$jsonPath.inTestMode', json['inTestMode']);
       }
-      return EditBulkFixesParams(included, inTestMode: inTestMode);
+      List<String>? codes;
+      if (json.containsKey('codes')) {
+        codes = jsonDecoder.decodeList(
+            '$jsonPath.codes', json['codes'], jsonDecoder.decodeString);
+      }
+      return EditBulkFixesParams(included,
+          inTestMode: inTestMode, codes: codes);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'edit.bulkFixes params', json);
     }
@@ -6041,6 +6051,10 @@ class EditBulkFixesParams implements RequestParams {
     if (inTestMode != null) {
       result['inTestMode'] = inTestMode;
     }
+    var codes = this.codes;
+    if (codes != null) {
+      result['codes'] = codes;
+    }
     return result;
   }
 
@@ -6057,7 +6071,8 @@ class EditBulkFixesParams implements RequestParams {
     if (other is EditBulkFixesParams) {
       return listEqual(
               included, other.included, (String a, String b) => a == b) &&
-          inTestMode == other.inTestMode;
+          inTestMode == other.inTestMode &&
+          listEqual(codes, other.codes, (String a, String b) => a == b);
     }
     return false;
   }
@@ -6066,6 +6081,7 @@ class EditBulkFixesParams implements RequestParams {
   int get hashCode => Object.hash(
         Object.hashAll(included),
         inTestMode,
+        Object.hashAll(codes ?? []),
       );
 }
 

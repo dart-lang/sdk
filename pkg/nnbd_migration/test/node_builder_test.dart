@@ -138,8 +138,8 @@ class D = C with M;
     _assertType(aType.returnType!.type!, 'D');
     expect(aType.returnType!.node, same(never));
     expect(aType.positionalParameters, hasLength(1));
-    _assertType(aType.positionalParameters![0]!.type!, 'int');
-    expect(aType.positionalParameters![0]!.node,
+    _assertType(aType.positionalParameters![0].type!, 'int');
+    expect(aType.positionalParameters![0].node,
         TypeMatcher<NullabilityNodeMutable>());
     expect(aType.namedParameters, isEmpty);
     var b = findElement.constructor('b', of: 'D');
@@ -150,8 +150,8 @@ class D = C with M;
     _assertType(bType.returnType!.type!, 'D');
     expect(bType.returnType!.node, same(never));
     expect(bType.positionalParameters, hasLength(1));
-    _assertType(bType.positionalParameters![0]!.type!, 'int');
-    expect(bType.positionalParameters![0]!.node,
+    _assertType(bType.positionalParameters![0].type!, 'int');
+    expect(bType.positionalParameters![0].node,
         TypeMatcher<NullabilityNodeMutable>());
     expect(bType.namedParameters, isEmpty);
     var c = findElement.constructor('c', of: 'D');
@@ -175,12 +175,12 @@ class D = C with M;
     _assertType(dType.returnType!.type!, 'D');
     expect(dType.returnType!.node, same(never));
     expect(dType.positionalParameters, hasLength(1));
-    _assertType(dType.positionalParameters![0]!.type!, 'List<int>');
-    expect(dType.positionalParameters![0]!.node,
+    _assertType(dType.positionalParameters![0].type!, 'List<int>');
+    expect(dType.positionalParameters![0].node,
         TypeMatcher<NullabilityNodeMutable>());
-    expect(dType.positionalParameters![0]!.typeArguments, hasLength(1));
-    _assertType(dType.positionalParameters![0]!.typeArguments[0]!.type!, 'int');
-    expect(dType.positionalParameters![0]!.typeArguments[0]!.node,
+    expect(dType.positionalParameters![0].typeArguments, hasLength(1));
+    _assertType(dType.positionalParameters![0].typeArguments[0]!.type!, 'int');
+    expect(dType.positionalParameters![0].typeArguments[0]!.node,
         TypeMatcher<NullabilityNodeMutable>());
     expect(dType.namedParameters, isEmpty);
   }
@@ -207,8 +207,8 @@ class D<U> = C<U> with M;
     expect(typeArguments[0]!.node, same(never));
     var dParams = dConstructorType.positionalParameters!;
     expect(dParams, hasLength(1));
-    _assertType(dParams[0]!.type!, 'U');
-    expect(dParams[0]!.node, TypeMatcher<NullabilityNodeMutable>());
+    _assertType(dParams[0].type!, 'U');
+    expect(dParams[0].node, TypeMatcher<NullabilityNodeMutable>());
   }
 
   Future<void> test_class_with_default_constructor() async {
@@ -796,8 +796,8 @@ class C {
     var ctorParamType = variables.decoratedElementType(ctorParam);
     expect(ctorType.positionalParameters![0], same(ctorParamType));
     expect(ctorParamType.node, TypeMatcher<NullabilityNodeMutable>());
-    _assertType(ctorParamType.positionalParameters![0]!.type!, 'dynamic');
-    expect(ctorParamType.positionalParameters![0]!.node!.isImmutable, false);
+    _assertType(ctorParamType.positionalParameters![0].type!, 'dynamic');
+    expect(ctorParamType.positionalParameters![0].node!.isImmutable, false);
   }
 
   Future<void> test_fieldFormalParameter_function_return_typed() async {
@@ -897,7 +897,7 @@ class C {
 }
 ''');
     var decoratedConstructorParamType =
-        decoratedConstructorDeclaration('named').positionalParameters![0]!;
+        decoratedConstructorDeclaration('named').positionalParameters![0];
     expect(decoratedTypeAnnotation('int this'),
         same(decoratedConstructorParamType));
     _assertType(decoratedConstructorParamType.type!, 'int');
@@ -915,7 +915,7 @@ class C {
 }
 ''');
     var decoratedConstructorParamType =
-        decoratedConstructorDeclaration('named').positionalParameters![0]!;
+        decoratedConstructorDeclaration('named').positionalParameters![0];
     _assertType(decoratedConstructorParamType.type!, 'int');
     expect(decoratedConstructorParamType.node,
         TypeMatcher<NullabilityNodeMutable>());
@@ -1071,10 +1071,10 @@ typedef T F<T, U>(U u);
     expect(
         decoratedType.returnType!.node, TypeMatcher<NullabilityNodeMutable>());
     expect(
-        (decoratedType.positionalParameters![0]!.type as TypeParameterType)
+        (decoratedType.positionalParameters![0].type as TypeParameterType)
             .element2,
         same(u));
-    expect(decoratedType.positionalParameters![0]!.node,
+    expect(decoratedType.positionalParameters![0].node,
         TypeMatcher<NullabilityNodeMutable>());
   }
 
@@ -1177,8 +1177,8 @@ void f(void g(i)) {}
     var gType = variables.decoratedElementType(g);
     expect(fType.positionalParameters![0], same(gType));
     expect(gType.node, TypeMatcher<NullabilityNodeMutable>());
-    _assertType(gType.positionalParameters![0]!.type!, 'dynamic');
-    expect(gType.positionalParameters![0]!.node!.isImmutable, false);
+    _assertType(gType.positionalParameters![0].type!, 'dynamic');
+    expect(gType.positionalParameters![0].node!.isImmutable, false);
   }
 
   Future<void> test_functionTypedFormalParameter_return_typed() async {
@@ -1223,7 +1223,7 @@ void f(T Function<T, U>(U) x) {}
     expect((decoratedType.returnType!.type as TypeParameterType).element2,
         same(t));
     expect(
-        (decoratedType.positionalParameters![0]!.type as TypeParameterType)
+        (decoratedType.positionalParameters![0].type as TypeParameterType)
             .element2,
         same(u));
   }
@@ -1305,10 +1305,10 @@ typedef F = T Function<T, U>(U u);
     expect(
         decoratedType.returnType!.node, TypeMatcher<NullabilityNodeMutable>());
     expect(
-        (decoratedType.positionalParameters![0]!.type as TypeParameterType)
+        (decoratedType.positionalParameters![0].type as TypeParameterType)
             .element2,
         same(u));
-    expect(decoratedType.positionalParameters![0]!.node,
+    expect(decoratedType.positionalParameters![0].node,
         TypeMatcher<NullabilityNodeMutable>());
   }
 
@@ -1332,10 +1332,10 @@ typedef F<T, U> = T Function(U u);
     expect(
         decoratedType.returnType!.node, TypeMatcher<NullabilityNodeMutable>());
     expect(
-        (decoratedType.positionalParameters![0]!.type as TypeParameterType)
+        (decoratedType.positionalParameters![0].type as TypeParameterType)
             .element2,
         same(u));
-    expect(decoratedType.positionalParameters![0]!.node,
+    expect(decoratedType.positionalParameters![0].node,
         TypeMatcher<NullabilityNodeMutable>());
   }
 
@@ -1645,7 +1645,7 @@ class C {
   void f(x) {}
 }
 ''');
-    var decoratedType = decoratedMethodType('f').positionalParameters![0]!;
+    var decoratedType = decoratedMethodType('f').positionalParameters![0];
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -1668,7 +1668,7 @@ class C extends B {
   void f/*C*/(x) {}
 }
 ''');
-    var decoratedType = decoratedMethodType('f/*C*/').positionalParameters![0]!;
+    var decoratedType = decoratedMethodType('f/*C*/').positionalParameters![0];
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
@@ -1681,7 +1681,7 @@ class C extends B {
   void f/*C*/(x) {}
 }
 ''');
-    var decoratedType = decoratedMethodType('f/*C*/').positionalParameters![0]!;
+    var decoratedType = decoratedMethodType('f/*C*/').positionalParameters![0];
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -1709,8 +1709,8 @@ class C extends B {
 }
 ''');
     var decoratedBaseType =
-        decoratedMethodType('f/*B*/').positionalParameters![0]!;
-    var decoratedType = decoratedMethodType('f/*C*/').positionalParameters![0]!;
+        decoratedMethodType('f/*B*/').positionalParameters![0];
+    var decoratedType = decoratedMethodType('f/*C*/').positionalParameters![0];
     var decoratedTypeFormalBound = decoratedTypeParameterBounds
         .get((decoratedType.type as FunctionType).typeFormals[0])!;
     _assertType(decoratedTypeFormalBound.type!, 'Object');
@@ -1731,8 +1731,8 @@ class C extends B {
 }
 ''');
     var decoratedBaseType =
-        decoratedMethodType('f/*B*/').positionalParameters![0]!;
-    var decoratedType = decoratedMethodType('f/*C*/').positionalParameters![0]!;
+        decoratedMethodType('f/*B*/').positionalParameters![0];
+    var decoratedType = decoratedMethodType('f/*C*/').positionalParameters![0];
     var decoratedTypeFormalBound = decoratedTypeParameterBounds
         .get((decoratedType.type as FunctionType).typeFormals[0])!;
     _assertType(decoratedTypeFormalBound.type!, 'num');
@@ -2140,12 +2140,12 @@ F f;
         'return type of F (test.dart:1:9)');
     expect(decoratedType.returnType!.node!.displayName,
         'return type of f (test.dart:2:1)');
-    _assertType(decoratedType.positionalParameters![0]!.type!, 'String');
-    expect(decoratedType.positionalParameters![0]!.node,
+    _assertType(decoratedType.positionalParameters![0].type!, 'String');
+    expect(decoratedType.positionalParameters![0].node,
         TypeMatcher<NullabilityNodeMutable>());
-    expect(decoratedType.positionalParameters![0]!.node,
-        isNot(same(typedefDecoratedType.positionalParameters![0]!.node)));
-    expect(decoratedType.positionalParameters![0]!.node!.displayName,
+    expect(decoratedType.positionalParameters![0].node,
+        isNot(same(typedefDecoratedType.positionalParameters![0].node)));
+    expect(decoratedType.positionalParameters![0].node!.displayName,
         'parameter 0 of f (test.dart:2:1)');
   }
 
@@ -2173,9 +2173,9 @@ F f;
     // This is necessary because there is no guarantee of whether the typedef or
     // its usage will be visited first.
     var decoratedType = decoratedTypeAnnotation('F f');
-    expect(decoratedType.positionalParameters![0]!.node!.displayName,
+    expect(decoratedType.positionalParameters![0].node!.displayName,
         'parameter 0 of f (test.dart:2:1)');
-    expect(decoratedType.positionalParameters![1]!.node!.displayName,
+    expect(decoratedType.positionalParameters![1].node!.displayName,
         'parameter 1 of f (test.dart:2:1)');
   }
 

@@ -169,7 +169,7 @@ class AssignmentCheckerTest extends Object
     assign(t1, t2, hard: true);
     // Note: t1 and t2 are swapped due to contravariance.
     assertEdge(
-        t2.positionalParameters![0]!.node, t1.positionalParameters![0]!.node,
+        t2.positionalParameters![0].node, t1.positionalParameters![0].node,
         hard: false, checkable: false);
   }
 
@@ -186,7 +186,7 @@ class AssignmentCheckerTest extends Object
     assign(t1, t2, hard: true);
     // Note: t1 and t2 are swapped due to contravariance.
     assertEdge(
-        t2.positionalParameters![0]!.node, t1.positionalParameters![0]!.node,
+        t2.positionalParameters![0].node, t1.positionalParameters![0].node,
         hard: false, checkable: false);
   }
 
@@ -196,7 +196,7 @@ class AssignmentCheckerTest extends Object
     assign(t1, t2);
     // Note: t1 and t2 are swapped due to contravariance.
     assertEdge(
-        t2.positionalParameters![0]!.node, t1.positionalParameters![0]!.node,
+        t2.positionalParameters![0].node, t1.positionalParameters![0].node,
         hard: false, checkable: false);
   }
 
@@ -2034,7 +2034,7 @@ D f(MyList<int>/*2*/ x) => D(x);
 ''');
     var syntheticConstructor = findElement.unnamedConstructor('D');
     var constructorType = variables.decoratedElementType(syntheticConstructor);
-    var constructorParameterType = constructorType.positionalParameters![0]!;
+    var constructorParameterType = constructorType.positionalParameters![0];
     assertEdge(decoratedTypeAnnotation('MyList<int>/*2*/').node,
         constructorParameterType.node,
         hard: true);
@@ -2058,7 +2058,7 @@ class D<U> = C<U> with M;
 ''');
     var syntheticConstructor = findElement.unnamedConstructor('D');
     var constructorType = variables.decoratedElementType(syntheticConstructor);
-    var constructorParameterType = constructorType.positionalParameters![0]!;
+    var constructorParameterType = constructorType.positionalParameters![0];
     assertUnion(
         constructorParameterType.node, decoratedTypeAnnotation('T t').node);
   }
@@ -2095,7 +2095,7 @@ D f(int/*2*/ i) => D(i);
 ''');
     var syntheticConstructor = findElement.unnamedConstructor('D');
     var constructorType = variables.decoratedElementType(syntheticConstructor);
-    var constructorParameterType = constructorType.positionalParameters![0]!;
+    var constructorParameterType = constructorType.positionalParameters![0];
     assertEdge(
         decoratedTypeAnnotation('int/*2*/').node, constructorParameterType.node,
         hard: true);
@@ -2115,7 +2115,7 @@ D f(int/*2*/ i) => D(i);
 ''');
     var syntheticConstructor = findElement.unnamedConstructor('D');
     var constructorType = variables.decoratedElementType(syntheticConstructor);
-    var constructorParameterType = constructorType.positionalParameters![0]!;
+    var constructorParameterType = constructorType.positionalParameters![0];
     assertEdge(
         decoratedTypeAnnotation('int/*2*/').node, constructorParameterType.node,
         hard: true);
@@ -2185,9 +2185,9 @@ void f(bool b, void Function(int) x, void Function(int) y) {
     var resultType = decoratedExpressionType('(b ?')!;
     assertLUB(resultType.node!, xType.node, yType.node);
     assertGLB(
-        resultType.positionalParameters![0]!.node,
-        xType.positionalParameters![0]!.node,
-        yType.positionalParameters![0]!.node);
+        resultType.positionalParameters![0].node,
+        xType.positionalParameters![0].node,
+        yType.positionalParameters![0].node);
   }
 
   Future<void>
@@ -2204,13 +2204,13 @@ void f(bool b, void Function(int, int) x, void Function(int, int) y) {
     var resultType = decoratedExpressionType('(b ?')!;
     assertLUB(resultType.node!, xType.node, yType.node);
     assertGLB(
-        resultType.positionalParameters![0]!.node,
-        xType.positionalParameters![0]!.node,
-        yType.positionalParameters![0]!.node);
+        resultType.positionalParameters![0].node,
+        xType.positionalParameters![0].node,
+        yType.positionalParameters![0].node);
     assertGLB(
-        resultType.positionalParameters![1]!.node,
-        xType.positionalParameters![1]!.node,
-        yType.positionalParameters![1]!.node);
+        resultType.positionalParameters![1].node,
+        xType.positionalParameters![1].node,
+        yType.positionalParameters![1].node);
   }
 
   Future<void>
@@ -2227,9 +2227,9 @@ void f(bool b, void Function([int]) x, void Function([int]) y) {
     var resultType = decoratedExpressionType('(b ?')!;
     assertLUB(resultType.node!, xType.node, yType.node);
     assertGLB(
-        resultType.positionalParameters![0]!.node,
-        xType.positionalParameters![0]!.node,
-        yType.positionalParameters![0]!.node);
+        resultType.positionalParameters![0].node,
+        xType.positionalParameters![0].node,
+        yType.positionalParameters![0].node);
   }
 
   Future<void> test_conditionalExpression_functionTyped_returnType() async {
@@ -2458,9 +2458,9 @@ void f(bool b, void Function(Null p) x, void Function(List<int> p) y) {
     var resultType = decoratedExpressionType('(b ?')!;
     assertLUB(resultType.node!, xType.node, yType.node);
     assertGLB(
-        resultType.positionalParameters![0]!.node,
-        xType.positionalParameters![0]!.node,
-        yType.positionalParameters![0]!.node);
+        resultType.positionalParameters![0].node,
+        xType.positionalParameters![0].node,
+        yType.positionalParameters![0].node);
   }
 
   Future<void> test_conditionalExpression_parameterType() async {
@@ -2677,7 +2677,7 @@ class D extends C {
 
     var namedConstructor = findElement.constructor('named', of: 'C');
     var constructorType = variables.decoratedElementType(namedConstructor);
-    var constructorParameterType = constructorType.positionalParameters![0]!;
+    var constructorParameterType = constructorType.positionalParameters![0];
     assertEdge(
         decoratedTypeAnnotation('int j').node, constructorParameterType.node,
         hard: true);
@@ -3184,13 +3184,13 @@ class C {
 ''');
     var ctorParamType = variables
         .decoratedElementType(findElement.unnamedConstructor('C'))
-        .positionalParameters![0]!;
+        .positionalParameters![0];
     var fieldType = variables.decoratedElementType(findElement.field('f'));
     assertEdge(ctorParamType.node, fieldType.node, hard: true);
     assertEdge(ctorParamType.returnType!.node, fieldType.returnType!.node,
         hard: false, checkable: false);
-    assertEdge(fieldType.positionalParameters![0]!.node,
-        ctorParamType.positionalParameters![0]!.node,
+    assertEdge(fieldType.positionalParameters![0].node,
+        ctorParamType.positionalParameters![0].node,
         hard: false, checkable: false);
     assertEdge(fieldType.namedParameters!['j']!.node,
         ctorParamType.namedParameters!['j']!.node,
@@ -3217,7 +3217,7 @@ class C {
 }
 ''');
     var decoratedConstructorParamType =
-        decoratedConstructorDeclaration('named').positionalParameters![0]!;
+        decoratedConstructorDeclaration('named').positionalParameters![0];
     assertEdge(decoratedConstructorParamType.node,
         decoratedTypeAnnotation('int i').node,
         hard: true);
@@ -4700,8 +4700,8 @@ class C extends B {
   void f/*C*/(x) {}
 }
 ''');
-    var bReturnType = decoratedMethodType('f/*B*/').positionalParameters![0]!;
-    var cReturnType = decoratedMethodType('f/*C*/').positionalParameters![0]!;
+    var bReturnType = decoratedMethodType('f/*B*/').positionalParameters![0];
+    var cReturnType = decoratedMethodType('f/*C*/').positionalParameters![0];
     assertEdge(bReturnType.node, cReturnType.node, hard: true);
   }
 
@@ -5093,7 +5093,7 @@ void f(List<int> x, int i) {
         findNode.methodInvocation('x.add').methodName.staticElement!;
     var nullable_t = variables
         .decoratedElementType(addMethod.declaration!)
-        .positionalParameters![0]!
+        .positionalParameters![0]
         .node;
     assertEdge(nullable_t, never, hard: true, checkable: false);
     var check_i = checkExpression('i/*check*/')!;
@@ -6616,8 +6616,8 @@ int Function(int) g(C c) => c.f;
         variables.decoratedElementType(findElement.function('g')).returnType!;
     assertEdge(fType.returnType!.node, gReturnType.returnType!.node,
         hard: false, checkable: false);
-    assertEdge(gReturnType.positionalParameters![0]!.node,
-        fType.positionalParameters![0]!.node,
+    assertEdge(gReturnType.positionalParameters![0].node,
+        fType.positionalParameters![0].node,
         hard: false, checkable: false);
   }
 
@@ -7709,8 +7709,8 @@ int Function(int) g() => f;
         variables.decoratedElementType(findElement.function('g')).returnType!;
     assertEdge(fType.returnType!.node, gReturnType.returnType!.node,
         hard: false, checkable: false);
-    assertEdge(gReturnType.positionalParameters![0]!.node,
-        fType.positionalParameters![0]!.node,
+    assertEdge(gReturnType.positionalParameters![0].node,
+        fType.positionalParameters![0].node,
         hard: false, checkable: false);
   }
 
@@ -7726,8 +7726,8 @@ abstract class C {
         variables.decoratedElementType(findElement.method('g')).returnType!;
     assertEdge(fType.returnType!.node, gReturnType.returnType!.node,
         hard: false, checkable: false);
-    assertEdge(gReturnType.positionalParameters![0]!.node,
-        fType.positionalParameters![0]!.node,
+    assertEdge(gReturnType.positionalParameters![0].node,
+        fType.positionalParameters![0].node,
         hard: false, checkable: false);
   }
 
