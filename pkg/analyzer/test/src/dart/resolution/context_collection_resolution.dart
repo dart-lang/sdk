@@ -324,6 +324,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
         EnableString.enhanced_enums,
         EnableString.macros,
         EnableString.named_arguments_anywhere,
+        EnableString.records,
         EnableString.super_parameters,
       ];
 

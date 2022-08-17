@@ -62,6 +62,7 @@ import 'prefix_element_test.dart' as prefix_element;
 import 'prefix_expression_test.dart' as prefix_expression;
 import 'prefixed_identifier_test.dart' as prefixed_identifier;
 import 'property_access_test.dart' as property_access;
+import 'record_literal_test.dart' as record_literal;
 import 'simple_identifier_test.dart' as simple_identifier;
 import 'super_formal_parameter_test.dart' as super_formal_parameter;
 import 'top_level_variable_test.dart' as top_level_variable;
@@ -129,6 +130,7 @@ main() {
     prefix_expression.main();
     prefixed_identifier.main();
     property_access.main();
+    record_literal.main();
     simple_identifier.main();
     super_formal_parameter.main();
     top_level_variable.main();
