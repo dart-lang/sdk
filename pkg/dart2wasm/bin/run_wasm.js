@@ -270,6 +270,34 @@ var dart2wasm = {
         }
         return null;
     },
+    stringify: function(o) {
+        return stringToDartString(String(o));
+    },
+    doubleToString: function(v) {
+        return stringToDartString(v.toString());
+    },
+    toFixed: function(double, digits) {
+        return stringToDartString(double.toFixed(digits));
+    },
+    toExponential: function(double, fractionDigits)  {
+        return stringToDartString(double.toExponential(fractionDigits));
+    },
+    toPrecision: function(double, precision) {
+        return stringToDartString(double.toPrecision(precision));
+    },
+    parseDouble: function(source) {
+        // Notice that JS parseFloat accepts garbage at the end of the string.
+        // Accept only:
+        // - [+/-]NaN
+        // - [+/-]Infinity
+        // - a Dart double literal
+        // We do allow leading or trailing whitespace.
+        var jsSource = stringFromDartString(source);
+        if (!/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(jsSource)) {
+          return NaN;
+        }
+        return parseFloat(jsSource);
+    },
 };
 
 function instantiate(filename, imports) {

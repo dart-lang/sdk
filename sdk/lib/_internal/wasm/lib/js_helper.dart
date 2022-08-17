@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Helpers for working with JS.
-library dart.js_helper;
+library dart._js_helper;
 
 import 'dart:_internal';
 import 'dart:typed_data';
@@ -21,6 +21,11 @@ class JSValue {
   String toString() => jsStringToDartString(_ref);
   List<Object?> toObjectList() => toDartList(_ref);
   Object toObject() => jsObjectToDartObject(_ref);
+}
+
+extension DoubleToJS on double {
+  WasmAnyRef toAnyRef() => toJSNumber(this);
+  JSValue toJS() => JSValue(toAnyRef());
 }
 
 extension StringToJS on String {
@@ -108,6 +113,9 @@ external bool isJSWrappedDartFunction(WasmAnyRef? o);
 @pragma("wasm:import", "dart2wasm.isJSObject")
 external bool isJSObject(WasmAnyRef? o);
 
+// The JS runtime will run helpful conversion routines between refs and bool /
+// double. In the longer term hopefully we can find a way to avoid the round
+// trip.
 @pragma("wasm:import", "dart2wasm.roundtrip")
 external double toDartNumber(WasmAnyRef ref);
 
@@ -192,6 +200,9 @@ external WasmAnyRef? setPropertyRaw(
 @pragma("wasm:import", "dart2wasm.callMethodVarArgs")
 external WasmAnyRef? callMethodVarArgsRaw(
     WasmAnyRef o, WasmAnyRef method, WasmAnyRef? args);
+
+@pragma("wasm:import", "dart2wasm.stringify")
+external String stringifyRaw(WasmAnyRef? object);
 
 // Currently, `allowInterop` returns a Function type. This is unfortunate for
 // Dart2wasm because it means arbitrary Dart functions can flow to JS util
