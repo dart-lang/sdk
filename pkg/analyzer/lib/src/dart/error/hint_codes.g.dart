@@ -54,6 +54,13 @@ class HintCode extends AnalyzerErrorCode {
     correctionMessage: "Replace the '.' with a '?.' in the invocation.",
   );
 
+  ///  No parameters.
+  static const HintCode CAST_FROM_NULL_ALWAYS_FAILS = HintCode(
+    'CAST_FROM_NULL_ALWAYS_FAILS',
+    "This cast will always throw an exception because the expression will "
+        "always evaluate to 'null'.",
+  );
+
   ///  Dead code is code that is never reached, this can happen for instance if a
   ///  statement follows a return statement.
   ///

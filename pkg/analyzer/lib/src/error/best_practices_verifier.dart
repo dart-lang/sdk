@@ -352,6 +352,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (isUnnecessaryCast(node, _typeSystem)) {
       _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node);
     }
+    var type = node.type.type;
+    if (_isNonNullableByDefault &&
+        type != null &&
+        _typeSystem.isNonNullable(type) &&
+        node.expression.typeOrThrow.isDartCoreNull) {
+      _errorReporter.reportErrorForNode(
+          HintCode.CAST_FROM_NULL_ALWAYS_FAILS, node);
+    }
     super.visitAsExpression(node);
   }
 

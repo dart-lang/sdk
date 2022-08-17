@@ -4,6 +4,49 @@
 
 // part of "core_patch.dart";
 
+@pragma("wasm:import", "dart2wasm.doubleToString")
+external String _doubleToString(double v);
+
+@pragma("wasm:import", "dart2wasm.toFixed")
+external String _toFixed(double d, double digits);
+
+@pragma("wasm:import", "dart2wasm.toExponential")
+external String _toExponential1(double d);
+
+@pragma("wasm:import", "dart2wasm.toExponential")
+external String _toExponential2(double d, double fractionDigits);
+
+@pragma("wasm:import", "dart2wasm.toPrecision")
+external String _toPrecision(double d, double precision);
+
+@pragma("wasm:import", "dart2wasm.parseDouble")
+external double _parseDouble(String doubleString);
+
+@patch
+class double {
+  @patch
+  static double parse(String source,
+      [@deprecated double onError(String source)?]) {
+    double? result = tryParse(source);
+    if (result == null) {
+      throw FormatException('Invalid double $source');
+    }
+    return result;
+  }
+
+  @patch
+  static double? tryParse(String source) {
+    double result = _parseDouble(source);
+    if (result.isNaN) {
+      String trimmed = source.trim();
+      if (!(trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN')) {
+        return null;
+      }
+    }
+    return result;
+  }
+}
+
 @pragma("wasm:entry-point")
 class _BoxedDouble implements double {
   // A boxed double contains an unboxed double.
@@ -142,8 +185,6 @@ class _BoxedDouble implements double {
   static final List _cache = new List.filled(CACHE_LENGTH, null);
   static int _cacheEvictIndex = 0;
 
-  external String _toString();
-
   String toString() {
     // TODO(koda): Consider starting at most recently inserted.
     for (int i = 0; i < CACHE_LENGTH; i += 2) {
@@ -156,7 +197,7 @@ class _BoxedDouble implements double {
     if (identical(0.0, this)) {
       return "0.0";
     }
-    String result = _toString();
+    String result = _doubleToString(value);
     // Replace the least recently inserted entry.
     _cache[_cacheEvictIndex] = this;
     _cache[_cacheEvictIndex + 1] = result;
@@ -188,7 +229,8 @@ class _BoxedDouble implements double {
     return _toStringAsFixed(fractionDigits);
   }
 
-  external String _toStringAsFixed(int fractionDigits);
+  String _toStringAsFixed(int fractionDigits) =>
+      _toFixed(value, fractionDigits.toDouble());
 
   String toStringAsExponential([int? fractionDigits]) {
     // See ECMAScript-262, 15.7.4.6 for details.
@@ -208,14 +250,16 @@ class _BoxedDouble implements double {
     if (this == double.infinity) return "Infinity";
     if (this == -double.infinity) return "-Infinity";
 
-    // The dart function prints the shortest representation when fractionDigits
-    // equals null. The native function wants -1 instead.
-    fractionDigits = (fractionDigits == null) ? -1 : fractionDigits;
-
     return _toStringAsExponential(fractionDigits);
   }
 
-  external String _toStringAsExponential(int fractionDigits);
+  String _toStringAsExponential(int? fractionDigits) {
+    if (fractionDigits == null) {
+      return _toExponential1(value);
+    } else {
+      return _toExponential2(value, fractionDigits.toDouble());
+    }
+  }
 
   String toStringAsPrecision(int precision) {
     // See ECMAScript-262, 15.7.4.7 for details.
@@ -236,7 +280,8 @@ class _BoxedDouble implements double {
     return _toStringAsPrecision(precision);
   }
 
-  external String _toStringAsPrecision(int fractionDigits);
+  String _toStringAsPrecision(int fractionDigits) =>
+      _toPrecision(value, fractionDigits.toDouble());
 
   // Order is: NaN > Infinity > ... > 0.0 > -0.0 > ... > -Infinity.
   int compareTo(num other) {
