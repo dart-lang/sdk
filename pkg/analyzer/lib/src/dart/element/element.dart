@@ -6206,8 +6206,7 @@ class RecordElementImpl extends _ExistingElementImpl implements RecordElement {
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
+    return visitor.visitRecordElement(this);
   }
 
   @override
@@ -6222,6 +6221,13 @@ class RecordElementImpl extends _ExistingElementImpl implements RecordElement {
       ],
       nullabilitySuffix: nullabilitySuffix,
     );
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(positionalFields, visitor);
+    safelyVisitChildren(namedFields, visitor);
   }
 
   /// Returns [fields], if already sorted, or the sorted copy.
@@ -6247,7 +6253,7 @@ class RecordElementImpl extends _ExistingElementImpl implements RecordElement {
   }
 }
 
-class RecordFieldElementImpl extends _ExistingElementImpl
+abstract class RecordFieldElementImpl extends _ExistingElementImpl
     implements RecordFieldElement {
   @override
   DartType type;
@@ -6264,12 +6270,6 @@ class RecordFieldElementImpl extends _ExistingElementImpl
 
   @override
   ElementKind get kind => ElementKind.RECORD;
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
 }
 
 class RecordNamedFieldElementImpl extends RecordFieldElementImpl
@@ -6282,6 +6282,11 @@ class RecordNamedFieldElementImpl extends RecordFieldElementImpl
 
   @override
   String get name => super.name!;
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) {
+    return visitor.visitRecordNamedFieldElement(this);
+  }
 }
 
 class RecordPositionalFieldElementImpl extends RecordFieldElementImpl
@@ -6291,6 +6296,11 @@ class RecordPositionalFieldElementImpl extends RecordFieldElementImpl
     required super.nameOffset,
     required super.type,
   });
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) {
+    return visitor.visitRecordPositionalFieldElement(this);
+  }
 }
 
 /// A concrete implementation of a [ShowElementCombinator].

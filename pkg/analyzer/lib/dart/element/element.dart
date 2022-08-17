@@ -1061,6 +1061,12 @@ abstract class ElementVisitor<R> {
 
   R? visitPropertyAccessorElement(PropertyAccessorElement element);
 
+  R? visitRecordElement(RecordElement element);
+
+  R? visitRecordNamedFieldElement(RecordNamedFieldElement element);
+
+  R? visitRecordPositionalFieldElement(RecordPositionalFieldElement element);
+
   R? visitSuperFormalParameterElement(SuperFormalParameterElement element);
 
   R? visitTopLevelVariableElement(TopLevelVariableElement element);
