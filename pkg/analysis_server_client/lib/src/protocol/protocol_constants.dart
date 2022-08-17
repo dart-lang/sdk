@@ -8,7 +8,7 @@
 
 // ignore_for_file: constant_identifier_names
 
-const String PROTOCOL_VERSION = '1.33.1';
+const String PROTOCOL_VERSION = '1.33.2';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -192,6 +192,7 @@ const String DIAGNOSTIC_REQUEST_GET_SERVER_PORT = 'diagnostic.getServerPort';
 const String DIAGNOSTIC_RESPONSE_GET_DIAGNOSTICS_CONTEXTS = 'contexts';
 const String DIAGNOSTIC_RESPONSE_GET_SERVER_PORT_PORT = 'port';
 const String EDIT_REQUEST_BULK_FIXES = 'edit.bulkFixes';
+const String EDIT_REQUEST_BULK_FIXES_CODES = 'codes';
 const String EDIT_REQUEST_BULK_FIXES_INCLUDED = 'included';
 const String EDIT_REQUEST_BULK_FIXES_IN_TEST_MODE = 'inTestMode';
 const String EDIT_REQUEST_FORMAT = 'edit.format';

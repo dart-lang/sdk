@@ -1735,6 +1735,10 @@ abstract class IntegrationTestMixin {
   ///
   ///   If this field is omitted the flag defaults to false.
   ///
+  /// codes: List<String> (optional)
+  ///
+  ///   A list of diagnostic codes to be fixed.
+  ///
   /// Returns
   ///
   /// edits: List<SourceFileEdit>
@@ -1746,8 +1750,10 @@ abstract class IntegrationTestMixin {
   ///   Details that summarize the fixes associated with the recommended
   ///   changes.
   Future<EditBulkFixesResult> sendEditBulkFixes(List<String> included,
-      {bool? inTestMode}) async {
-    var params = EditBulkFixesParams(included, inTestMode: inTestMode).toJson();
+      {bool? inTestMode, List<String>? codes}) async {
+    var params =
+        EditBulkFixesParams(included, inTestMode: inTestMode, codes: codes)
+            .toJson();
     var result = await server.send('edit.bulkFixes', params);
     var decoder = ResponseDecoder(null);
     return EditBulkFixesResult.fromJson(decoder, 'result', result);

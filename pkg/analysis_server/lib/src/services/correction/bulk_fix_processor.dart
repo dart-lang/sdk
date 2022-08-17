@@ -139,6 +139,9 @@ class BulkFixProcessor {
   /// the transforms.
   final bool useConfigFiles;
 
+  /// An optional list of diagnostic codes to fix.
+  final List<String>? codes;
+
   /// The change builder used to build the changes required to fix the
   /// diagnostics.
   ChangeBuilder builder;
@@ -149,8 +152,9 @@ class BulkFixProcessor {
   /// Initialize a newly created processor to create fixes for diagnostics in
   /// libraries in the [workspace].
   BulkFixProcessor(this.instrumentationService, this.workspace,
-      {this.useConfigFiles = false})
-      : builder = ChangeBuilder(workspace: workspace);
+      {this.useConfigFiles = false, List<String>? codes})
+      : builder = ChangeBuilder(workspace: workspace),
+        codes = codes?.map((e) => e.toLowerCase()).toList();
 
   List<BulkFix> get fixDetails {
     var details = <BulkFix>[];
@@ -221,8 +225,14 @@ class BulkFixProcessor {
     Iterable<AnalysisError> filteredErrors(ResolvedUnitResult result) sync* {
       var errors = result.errors.toList();
       errors.sort((a, b) => a.offset.compareTo(b.offset));
-      // Only fix errors not filtered out in analysis options.
+      final codes = this.codes;
+      // Only fix errors specified in the `codes` list (if defined) and not
+      // filtered out in analysis options.
       for (var error in errors) {
+        if (codes != null &&
+            !codes.contains(error.errorCode.name.toLowerCase())) {
+          continue;
+        }
         var processor = ErrorProcessor.getProcessor(analysisOptions, error);
         if (processor == null || processor.severity != null) {
           yield error;
