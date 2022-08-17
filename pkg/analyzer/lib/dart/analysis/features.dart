@@ -40,6 +40,9 @@ abstract class Feature {
   /// Feature information for macros.
   static final macros = ExperimentalFeatures.macros;
 
+  /// Feature information for records.
+  static final records = ExperimentalFeatures.records;
+
   /// Feature information for spread collections.
   static final spread_collections = ExperimentalFeatures.spread_collections;
 

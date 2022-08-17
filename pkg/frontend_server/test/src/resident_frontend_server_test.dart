@@ -562,6 +562,39 @@ void main() async {
       expect(shutdownResult['errorMessage'], contains('SocketException'));
     });
 
+    test('concurrent startup requests', () async {
+      final serverSubscription = await residentListenAndCompile(
+        InternetAddress.loopbackIPv4,
+        0,
+        serverInfo,
+      );
+      final startWhileAlreadyRunning = await residentListenAndCompile(
+        InternetAddress.loopbackIPv4,
+        0,
+        serverInfo,
+      );
+
+      expect(serverSubscription, isNot(null));
+      expect(startWhileAlreadyRunning, null);
+      expect(serverInfo.existsSync(), true);
+      expect(
+          Link('${serverInfo.path}$RESIDENT_SERVER_LINK_POSTFIX').existsSync(),
+          true);
+
+      final info = serverInfo.readAsStringSync();
+      final address = InternetAddress(
+          info.substring(info.indexOf(':') + 1, info.indexOf(' ')));
+      final port = int.parse(info.substring(info.lastIndexOf(':') + 1));
+
+      final shutdownResult = await sendAndReceiveResponse(
+          address, port, ResidentFrontendServer.shutdownCommand);
+      expect(shutdownResult, equals(<String, dynamic>{"shutdown": true}));
+      expect(serverInfo.existsSync(), false);
+      expect(
+          Link('${serverInfo.path}$RESIDENT_SERVER_LINK_POSTFIX').existsSync(),
+          false);
+    });
+
     test('resident server starter', () async {
       final returnValue =
           starter(['--resident-info-file-name=${serverInfo.path}']);

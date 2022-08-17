@@ -61,6 +61,7 @@ import 'branch_builder.dart';
 import 'jump_handler.dart';
 import 'locals_handler.dart';
 import 'loop_handler.dart';
+import 'metrics.dart';
 import 'nodes.dart';
 import 'string_builder.dart';
 import 'switch_continue_analysis.dart';
@@ -138,6 +139,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// SSA graph), when dump-info is enabled.
   final InfoReporter _infoReporter;
 
+  final SsaMetrics _metrics;
+
   HInstruction _rethrowableException;
 
   final SourceInformationStrategy _sourceInformationStrategy;
@@ -167,6 +170,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       this._initialTargetElement,
       InterfaceType instanceType,
       this._infoReporter,
+      this._metrics,
       this._elementMap,
       this.globalInferenceResults,
       this.closedWorld,
@@ -182,12 +186,12 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         _memberContextNode =
             _elementMap.getMemberContextNode(_initialTargetElement) {
     _enterFrame(targetElement, null);
-    this._loopHandler = KernelLoopHandler(this);
+    _loopHandler = KernelLoopHandler(this);
     _typeBuilder = KernelTypeBuilder(this, _elementMap);
     graph.element = targetElement;
     graph.sourceInformation =
         _sourceInformationBuilder.buildVariableDeclaration();
-    this.localsHandler = LocalsHandler(this, targetElement, targetElement,
+    localsHandler = LocalsHandler(this, targetElement, targetElement,
         instanceType, _nativeData, _interceptorData);
   }
 
@@ -5823,9 +5827,29 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       ..cleanUp();
   }
 
+  bool _tryInlineMethod(
+      FunctionEntity function,
+      Selector selector,
+      AbstractValue mask,
+      List<HInstruction> providedArguments,
+      List<DartType> typeArguments,
+      ir.Node currentNode,
+      SourceInformation sourceInformation,
+      {InterfaceType instanceType}) {
+    final inlined = _doTryInlineMethod(function, selector, mask,
+        providedArguments, typeArguments, currentNode, sourceInformation,
+        instanceType: instanceType);
+    if (inlined) {
+      _metrics.countInlinesDone.add();
+    } else {
+      _metrics.countInlinesSkipped.add();
+    }
+    return inlined;
+  }
+
   /// Try to inline [element] within the correct context of the builder. The
   /// insertion point is the state of the builder.
-  bool _tryInlineMethod(
+  bool _doTryInlineMethod(
       FunctionEntity function,
       Selector selector,
       AbstractValue mask,
@@ -5846,7 +5870,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     // Check if inlining is disabled for the current element (includes globally)
-    // before making decsions on the basis of the callee so that cached callee
+    // before making decisions on the basis of the callee so that cached callee
     // decisions are not a function of the call site's method.
     if (closedWorld.annotationsData.hasDisableInlining(_currentFrame.member)) {
       return false;

@@ -45,6 +45,8 @@ import "dart:collection"
         UnmodifiableMapBase,
         UnmodifiableMapView;
 
+import 'dart:convert' show Encoding, utf8;
+
 import 'dart:math' show Random;
 
 import "dart:typed_data"

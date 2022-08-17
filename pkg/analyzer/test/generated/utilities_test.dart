@@ -1525,9 +1525,7 @@ void f() {
     );
   }
 
-  @failingTest
   void test_recordLiteral() {
-    // Failing because record literals can't be parsed yet.
     var findNode = _parseStringToFindNode(r'''
 void f() {
   (1, 2);

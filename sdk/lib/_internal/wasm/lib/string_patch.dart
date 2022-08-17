@@ -13,6 +13,12 @@ const int _maxLatin1 = 0xff;
 const int _maxUtf16 = 0xffff;
 const int _maxUnicode = 0x10ffff;
 
+@pragma("wasm:import", "dart2wasm.toUpperCase")
+external String _toUpperCase(String string);
+
+@pragma("wasm:import", "dart2wasm.toLowerCase")
+external String _toLowerCase(String string);
+
 @patch
 class String {
   @patch
@@ -31,15 +37,12 @@ class String {
         return _TwoByteString._allocate(1).._setAt(0, charCode);
       }
       if (charCode <= 0x10ffff) {
-        var low = 0xDC00 | (charCode & 0x3ff);
+        int low = 0xDC00 | (charCode & 0x3ff);
         int bits = charCode - 0x10000;
-        var high = 0xD800 | (bits >> 10);
-        return _StringBase._createFromCodePoints(
-            new _List(2)
-              ..[0] = high
-              ..[1] = low,
-            0,
-            2);
+        int high = 0xD800 | (bits >> 10);
+        return _TwoByteString._allocate(2)
+          .._setAt(0, high)
+          .._setAt(1, low);
       }
     }
     throw new RangeError.range(charCode, 0, 0x10ffff);
@@ -240,8 +243,34 @@ abstract class _StringBase implements String {
     return s;
   }
 
-  external static String _createFromCodePoints(
-      List<int> codePoints, int start, int end);
+  static String _createFromOneByteCodes(
+      List<int> charCodes, int start, int end) {
+    _OneByteString result = _OneByteString._allocate(end - start);
+    for (int i = start; i < end; i++) {
+      result._setAt(i - start, charCodes[i]);
+    }
+    return result;
+  }
+
+  static String _createFromCodePoints(List<int> charCodes, int start, int end) {
+    for (int i = start; i < end; i++) {
+      int c = charCodes[i];
+      if (c < 0) throw ArgumentError.value(i);
+      if (c > 0xff) {
+        return _createFromAdjustedCodePoints(charCodes, start, end);
+      }
+    }
+    return _createFromOneByteCodes(charCodes, start, end);
+  }
+
+  static String _createFromAdjustedCodePoints(
+      List<int> codePoints, int start, int end) {
+    StringBuffer a = StringBuffer();
+    for (int i = start; i < end; i++) {
+      a.writeCharCode(codePoints[i]);
+    }
+    return a.toString();
+  }
 
   String operator [](int index) => String.fromCharCode(codeUnitAt(index));
 
@@ -685,8 +714,82 @@ abstract class _StringBase implements String {
    * whether the result must be a one-byte string.
    */
 
-  external static String _joinReplaceAllResult(
-      String base, List matches, int length, bool replacementStringsAreOneByte);
+  String _joinReplaceAllResult(String base, List matches, int length,
+      bool replacementStringsAreOneByte) {
+    if (length < 0) throw ArgumentError.value(length);
+    bool isOneByte = replacementStringsAreOneByte &&
+        _slicesAreOneByte(base, matches, length);
+    if (isOneByte) {
+      return _joinReplaceAllOneByteResult(base, matches, length);
+    }
+    _TwoByteString result = _TwoByteString._allocate(length);
+    int writeIndex = 0;
+    for (int i = 0; i < matches.length; i++) {
+      var entry = matches[i];
+      if (entry is _Smi) {
+        int sliceStart = entry;
+        int sliceEnd;
+        if (sliceStart < 0) {
+          int bits = -sliceStart;
+          int sliceLength = bits & _lengthMask;
+          sliceStart = bits >> _lengthBits;
+          sliceEnd = sliceStart + sliceLength;
+        } else {
+          i++;
+          // This function should only be called with valid matches lists.
+          // If the list is short, or sliceEnd is not an integer, one of
+          // the next few lines will throw anyway.
+          assert(i < matches.length);
+          sliceEnd = matches[i];
+        }
+        for (int j = sliceStart; j < sliceEnd; j++) {
+          result._setAt(writeIndex++, base.codeUnitAt(j));
+        }
+      } else {
+        // Replacement is a one-byte string.
+        String replacement = entry;
+        for (int j = 0; j < replacement.length; j++) {
+          result._setAt(writeIndex++, replacement.codeUnitAt(j));
+        }
+      }
+    }
+    assert(writeIndex == length);
+    return result;
+  }
+
+  bool _slicesAreOneByte(String base, List matches, int length) {
+    for (int i = 0; i < matches.length; i++) {
+      Object? o = matches[i];
+      if (o is int) {
+        int sliceStart = o;
+        int sliceEnd;
+        if (sliceStart < 0) {
+          int bits = -sliceStart;
+          int sliceLength = bits & _lengthMask;
+          sliceStart = bits >> _lengthBits;
+          sliceEnd = sliceStart + sliceLength;
+        } else {
+          i++;
+          if (i >= length) {
+            // Invalid, handled later.
+            return false;
+          }
+          Object? p = matches[i];
+          if (p is! int) {
+            // Invalid, handled later.
+            return false;
+          }
+          sliceEnd = p;
+        }
+        for (int j = sliceStart; j < sliceEnd; j++) {
+          if (base.codeUnitAt(j) > 0xff) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
 
   String replaceAllMapped(Pattern pattern, String replace(Match match)) {
     List matches = [];
@@ -875,9 +978,9 @@ abstract class _StringBase implements String {
 
   Runes get runes => new Runes(this);
 
-  external String toUpperCase();
+  String toUpperCase() => _toUpperCase(this);
 
-  external String toLowerCase();
+  String toLowerCase() => _toLowerCase(this);
 
   // Concatenate ['start', 'end'[ elements of 'strings'.
   static String _concatRange(List<String> strings, int start, int end) {

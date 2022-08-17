@@ -36,7 +36,7 @@ function stringToDartString(string) {
     } else {
         var dartString = dartInstance.exports.$stringAllocate2(length);
         for (var i = 0; i < length; i++) {
-            dartInstance.exports.$stringWrite2(dartString, i, string.codePointAt(i));
+            dartInstance.exports.$stringWrite2(dartString, i, string.charCodeAt(i));
         }
         return dartString;
     }
@@ -251,6 +251,24 @@ var dart2wasm = {
     },
     jsonEncode: function(s) {
         return stringToDartString(JSON.stringify(stringFromDartString(s)));
+    },
+    toUpperCase: function(string) {
+        return stringToDartString(stringFromDartString(string).toUpperCase());
+    },
+    toLowerCase: function(string) {
+        return stringToDartString(stringFromDartString(string).toLowerCase());
+    },
+    isWindows: function() {
+        return typeof process != undefined &&
+            Object.prototype.toString.call(process) == "[object process]" &&
+            process.platform == "win32";
+    },
+    getCurrentUri: function() {
+        // On browsers return `globalThis.location.href`
+        if (globalThis.location != null) {
+          return stringToDartString(globalThis.location.href);
+        }
+        return null;
     },
 };
 

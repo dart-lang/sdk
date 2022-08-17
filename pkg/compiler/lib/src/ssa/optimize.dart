@@ -41,6 +41,7 @@ import 'interceptor_finalizer.dart';
 import 'late_field_optimizer.dart';
 import 'logging.dart';
 import 'nodes.dart';
+import 'metrics.dart';
 import 'types.dart';
 import 'types_propagation.dart';
 import 'validate.dart' show NoUnusedPhiValidator;
@@ -71,7 +72,8 @@ class SsaOptimizerTask extends CompilerTask {
       CodegenInputs codegen,
       JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults,
-      CodegenRegistry registry) {
+      CodegenRegistry registry,
+      SsaMetrics metrics) {
     void runPhase(OptimizationPhase phase) {
       measureSubtask(phase.name, () => phase.visitGraph(graph));
       codegen.tracer.traceGraph(phase.name, graph);
@@ -98,7 +100,7 @@ class SsaOptimizerTask extends CompilerTask {
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
         SsaInstructionSimplifier(globalInferenceResults, _options, closedWorld,
-            typeRecipeDomain, registry, log),
+            typeRecipeDomain, registry, log, metrics),
         SsaTypeConversionInserter(closedWorld),
         SsaRedundantPhiEliminator(),
         SsaDeadPhiEliminator(),
@@ -107,9 +109,9 @@ class SsaOptimizerTask extends CompilerTask {
         // After type propagation, more instructions can be
         // simplified.
         SsaInstructionSimplifier(globalInferenceResults, _options, closedWorld,
-            typeRecipeDomain, registry, log),
+            typeRecipeDomain, registry, log, metrics),
         SsaInstructionSimplifier(globalInferenceResults, _options, closedWorld,
-            typeRecipeDomain, registry, log),
+            typeRecipeDomain, registry, log, metrics),
         SsaTypePropagator(globalInferenceResults, closedWorld.commonElements,
             closedWorld, log),
         // Run a dead code eliminator before LICM because dead
@@ -135,7 +137,7 @@ class SsaOptimizerTask extends CompilerTask {
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
         SsaInstructionSimplifier(globalInferenceResults, _options, closedWorld,
-            typeRecipeDomain, registry, log),
+            typeRecipeDomain, registry, log, metrics),
       ];
       phases.forEach(runPhase);
 
@@ -157,7 +159,7 @@ class SsaOptimizerTask extends CompilerTask {
           SsaCodeMotion(closedWorld.abstractValueDomain),
           SsaValueRangeAnalyzer(closedWorld, this),
           SsaInstructionSimplifier(globalInferenceResults, _options,
-              closedWorld, typeRecipeDomain, registry, log),
+              closedWorld, typeRecipeDomain, registry, log, metrics),
           SsaSimplifyInterceptors(closedWorld, member.enclosingClass),
           SsaDeadCodeEliminator(closedWorld, this),
         ];
@@ -168,7 +170,7 @@ class SsaOptimizerTask extends CompilerTask {
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
           SsaInstructionSimplifier(globalInferenceResults, _options,
-              closedWorld, typeRecipeDomain, registry, log),
+              closedWorld, typeRecipeDomain, registry, log, metrics),
         ];
       }
       phases.forEach(runPhase);
@@ -234,10 +236,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
   final TypeRecipeDomain _typeRecipeDomain;
   final CodegenRegistry _registry;
   final OptimizationTestLog _log;
+  final SsaMetrics _metrics;
   HGraph _graph;
 
-  SsaInstructionSimplifier(this._globalInferenceResults, this._options,
-      this._closedWorld, this._typeRecipeDomain, this._registry, this._log);
+  SsaInstructionSimplifier(
+      this._globalInferenceResults,
+      this._options,
+      this._closedWorld,
+      this._typeRecipeDomain,
+      this._registry,
+      this._log,
+      this._metrics);
 
   JCommonElements get commonElements => _closedWorld.commonElements;
 
@@ -1434,10 +1443,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (constant is ConstructedConstantValue) {
         ConstantValue value = constant.fields[node.element];
         if (value != null) {
+          _metrics.countInlineConstantsDone.add();
           return _graph.addConstant(value, _closedWorld);
         }
       }
     }
+    _metrics.countInlineConstantsSkipped.add();
 
     return node;
   }

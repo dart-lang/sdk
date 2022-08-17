@@ -5,7 +5,16 @@
 // @dart = 2.9
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show File, InternetAddress, ServerSocket, Socket;
+import 'dart:io'
+    show
+        exit,
+        File,
+        InternetAddress,
+        Link,
+        Platform,
+        ProcessSignal,
+        ServerSocket,
+        Socket;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:args/args.dart';
@@ -24,6 +33,12 @@ import '../frontend_server.dart';
 /// but may result in more files being marked as modified than strictly
 /// required.
 const _STAT_GRANULARITY = const Duration(seconds: 1);
+
+const RESIDENT_SERVER_LINK_POSTFIX = '_link';
+
+/// Ensures the symbolic link is removed if ctrl-C is sent to the server.
+/// Mostly used when debugging.
+StreamSubscription<ProcessSignal> _cleanupHandler;
 
 extension on DateTime {
   /// Truncates by [amount].
@@ -280,7 +295,8 @@ class ResidentFrontendServer {
         if (request[_executableString] == null ||
             request[_outputString] == null) {
           return _encodeErrorMessage(
-              'compilation requests must include an $_executableString and an $_outputString path.');
+              'compilation requests must include an $_executableString '
+              'and an $_outputString path.');
         }
         final executablePath = request[_executableString];
         final cachedDillPath = request[_outputString];
@@ -411,12 +427,28 @@ Future<Map<String, dynamic>> sendAndReceiveResponse(
 }
 
 /// Closes the ServerSocket and removes the [serverInfoFile] that is used
-/// to access this instance of the Resident Frontend Server
+/// to access this instance of the Resident Frontend Server as well as the
+/// lock to prevent the concurrent start race.
 Future<void> residentServerCleanup(
     ServerSocket server, File serverInfoFile) async {
-  if (serverInfoFile.existsSync()) {
-    serverInfoFile.deleteSync();
+  final serverFilesystemLock =
+      Link('${serverInfoFile.path}$RESIDENT_SERVER_LINK_POSTFIX');
+  try {
+    if (_cleanupHandler != null) {
+      _cleanupHandler.cancel();
+    }
+    if (serverInfoFile.existsSync()) {
+      serverInfoFile.deleteSync();
+    }
+  } catch (_) {
+  } finally {
+    try {
+      if (serverFilesystemLock.existsSync()) {
+        serverFilesystemLock.deleteSync();
+      }
+    } catch (_) {}
   }
+
   await server.close();
 }
 
@@ -437,19 +469,51 @@ Future<StreamSubscription<Socket>> residentListenAndCompile(
     InternetAddress address, int port, File serverInfoFile,
     {Duration inactivityTimeout = const Duration(minutes: 30)}) async {
   ServerSocket server;
+  // Create a link to the serverInfoFile to ensure that concurrent requests
+  // to start the server result in only 1 server being started. This
+  // also ensures that the serverInfoFile is only
+  // visible once the server is started and ready to receive connections.
+  // TODO https://github.com/dart-lang/sdk/issues/49647 use exclusive mode
+  // on File objects
+  final serverInfoLink =
+      Link('${serverInfoFile.path}$RESIDENT_SERVER_LINK_POSTFIX');
   try {
+    try {
+      serverInfoLink.createSync(serverInfoFile.path);
+    } catch (e) {
+      // TODO: https://github.com/dart-lang/sdk/issues/49647 Using a File
+      // in exclusive mode removes the need for this check.
+      if (Platform.isWindows && e.toString().contains('errno = 1314')) {
+        throw StateError('Dart must be running in Administrator mode '
+            'or Developer mode must be enabled when '
+            'using the Resident Frontend Compiler.');
+      }
+      throw StateError('A server is already running.');
+    }
     server = await ServerSocket.bind(address, port);
     serverInfoFile
       ..writeAsStringSync(
           'address:${server.address.address} port:${server.port}');
+  } on StateError catch (e) {
+    print('Error: $e\n');
+    return null;
   } catch (e) {
+    // lock was acquired but bind or writing failed
+    try {
+      serverInfoLink.deleteSync();
+    } catch (_) {}
     print('Error: $e\n');
     return null;
   }
+
+  _cleanupHandler = ProcessSignal.sigint.watch().listen((signal) async {
+    await residentServerCleanup(server, serverInfoFile);
+    exit(1);
+  });
   var shutdownTimer =
       startShutdownTimer(inactivityTimeout, server, serverInfoFile);
-  print(
-      'The Resident Frontend Compiler is listening at ${server.address.address}:${server.port}');
+  print('The Resident Frontend Compiler is listening at '
+      '${server.address.address}:${server.port}');
 
   return server.listen((client) {
     client.listen((Uint8List data) async {
