@@ -817,7 +817,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       replacementMap[entry.key] = childReplacementMap;
       replacementSettersMap[entry.key] = childReplacementSettersMap;
       for (LibraryBuilder builder in builders) {
-        NameIterator iterator = builder.nameIterator;
+        NameIterator iterator = builder.localMembersNameIterator;
         while (iterator.moveNext()) {
           Builder childBuilder = iterator.current;
           String name = iterator.name;
@@ -927,7 +927,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           builder.importScope
               .patchUpScope(replacementMap, replacementSettersMap);
 
-          Iterator<Builder> iterator = builder.iterator;
+          // TODO(johnniwinther): Should this include non-local (i.e. injected)
+          // members?
+          Iterator<Builder> iterator = builder.localMembersIterator;
           while (iterator.moveNext()) {
             Builder childBuilder = iterator.current;
             if (childBuilder is SourceClassBuilder) {
@@ -1200,7 +1202,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (enableMacros) {
       /// TODO(johnniwinther): Add a [hasMacro] property to [LibraryBuilder].
       for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
-        Iterator<Builder> iterator = builder.iterator;
+        // TODO(johnniwinther): Should this include non-local (i.e. injected)
+        // members?
+        Iterator<Builder> iterator = builder.localMembersIterator;
         while (iterator.moveNext()) {
           Builder childBuilder = iterator.current;
           if (childBuilder is ClassBuilder && childBuilder.isMacro) {

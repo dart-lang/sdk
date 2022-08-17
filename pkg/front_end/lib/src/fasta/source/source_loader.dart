@@ -1351,7 +1351,10 @@ severity: $severity
         both.add(exported as SourceLibraryBuilder);
       }
       for (Export export in exported.exporters) {
-        exported.exportScope.forEach(export.addToExportScope);
+        exported.exportScope
+            .filteredNameIterator(
+                includeDuplicates: false, includeAugmentations: false)
+            .forEach(export.addToExportScope);
       }
     }
     bool wasChanged = false;
@@ -1359,7 +1362,10 @@ severity: $severity
       wasChanged = false;
       for (SourceLibraryBuilder exported in both) {
         for (Export export in exported.exporters) {
-          exported.exportScope.forEach((String name, Builder member) {
+          exported.exportScope
+              .filteredNameIterator(
+                  includeDuplicates: false, includeAugmentations: false)
+              .forEach((String name, Builder member) {
             if (export.addToExportScope(name, member)) {
               wasChanged = true;
             }
@@ -1389,17 +1395,17 @@ severity: $severity
     _builders.forEach((Uri uri, dynamic l) {
       SourceLibraryBuilder library = l;
       Set<Builder> members = new Set<Builder>();
-      Iterator<Builder> iterator = library.iterator;
+      Iterator<Builder> iterator = library.localMembersIterator;
       while (iterator.moveNext()) {
         members.add(iterator.current);
       }
       List<String> exports = <String>[];
-      library.exportScope.forEach((String name, Builder? member) {
-        while (member != null) {
-          if (!members.contains(member)) {
-            exports.add(name);
-          }
-          member = member.next;
+      library.exportScope
+          .filteredNameIterator(
+              includeDuplicates: true, includeAugmentations: false)
+          .forEach((String name, Builder member) {
+        if (!members.contains(member)) {
+          exports.add(name);
         }
       });
       if (exports.isNotEmpty) {
@@ -1445,7 +1451,7 @@ severity: $severity
     Map<Uri, List<ClassBuilder>> macroLibraries = {};
 
     for (LibraryBuilder libraryBuilder in libraryBuilders) {
-      Iterator<Builder> iterator = libraryBuilder.iterator;
+      Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
       while (iterator.moveNext()) {
         Builder builder = iterator.current;
         if (builder is ClassBuilder && builder.isMacro) {
@@ -1598,7 +1604,7 @@ severity: $severity
       // TODO(johnniwinther): Handle patch libraries.
       LibraryMacroApplicationData libraryMacroApplicationData =
           new LibraryMacroApplicationData();
-      Iterator<Builder> iterator = libraryBuilder.iterator;
+      Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
       while (iterator.moveNext()) {
         Builder builder = iterator.current;
         if (builder is SourceClassBuilder) {

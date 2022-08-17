@@ -111,7 +111,7 @@ declarations:
 void Class1Introspection() {
   print("constructors='','redirect','fact'");
   print("fields='instanceField1','instanceField2','instanceField3'");
-  print("methods='instanceMethod1','instanceGetter1','[]','Class1_GeneratedMethod_','Class1_redirectGeneratedMethod_f','Class1_factGeneratedMethod_f','instanceSetter1','Class1_GeneratedMethod_','Class1_redirectGeneratedMethod_f','Class1_factGeneratedMethod_f'");
+  print("methods='instanceMethod1','instanceGetter1','[]','instanceSetter1','Class1_GeneratedMethod_','Class1_redirectGeneratedMethod_f','Class1_factGeneratedMethod_f'");
 }
 
 

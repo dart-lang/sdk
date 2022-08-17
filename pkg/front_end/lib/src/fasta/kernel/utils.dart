@@ -218,12 +218,6 @@ int compareProcedures(Procedure a, Procedure b) {
   return a.fileOffset.compareTo(b.fileOffset);
 }
 
-bool isRedirectingGenerativeConstructorImplementation(Constructor constructor) {
-  List<Initializer> initializers = constructor.initializers;
-  return initializers.length == 1 &&
-      initializers.single is RedirectingInitializer;
-}
-
 List<Combinator>? toKernelCombinators(
     List<CombinatorBuilder>? fastaCombinators) {
   if (fastaCombinators == null) {

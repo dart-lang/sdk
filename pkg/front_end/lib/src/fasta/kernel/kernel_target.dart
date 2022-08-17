@@ -1411,33 +1411,13 @@ class KernelTarget extends TargetImplementation {
 
     builder.forEachDeclaredConstructor(
         (String name, DeclaredSourceConstructorBuilder constructorBuilder) {
-      if (constructorBuilder.isExternal) return;
-      // In case of duplicating constructors the earliest ones (those that
-      // declared towards the beginning of the file) come last in the list.
-      // To report errors on the first definition of a constructor, we need to
-      // iterate until that last element.
-      DeclaredSourceConstructorBuilder earliest = constructorBuilder;
-      Builder earliestBuilder = constructorBuilder;
-      while (earliestBuilder.next != null) {
-        earliestBuilder = earliestBuilder.next!;
-        if (earliestBuilder is DeclaredSourceConstructorBuilder) {
-          earliest = earliestBuilder;
-        }
-      }
-
-      bool isRedirecting = false;
-      for (Initializer initializer in earliest.constructor.initializers) {
-        if (initializer is RedirectingInitializer) {
-          isRedirecting = true;
-        }
-      }
-      if (!isRedirecting) {
-        Set<SourceFieldBuilder> fields =
-            earliest.takeInitializedFields() ?? const {};
-        constructorInitializedFields[earliest] = fields;
-        (initializedFields ??= new Set<SourceFieldBuilder>.identity())
-            .addAll(fields);
-      }
+      if (constructorBuilder.isEffectivelyExternal) return;
+      if (constructorBuilder.isEffectivelyRedirecting) return;
+      Set<SourceFieldBuilder> fields =
+          constructorBuilder.takeInitializedFields() ?? const {};
+      constructorInitializedFields[constructorBuilder] = fields;
+      (initializedFields ??= new Set<SourceFieldBuilder>.identity())
+          .addAll(fields);
     });
 
     // Run through all fields that aren't initialized by any constructor, and
