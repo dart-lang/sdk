@@ -1,7 +1,13 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 // Test switch statement.
+
+// VMOptions=
+// VMOptions=--force-switch-dispatch-type=0
+// VMOptions=--force-switch-dispatch-type=1
+// VMOptions=--force-switch-dispatch-type=2
 
 // @dart = 2.9
 
