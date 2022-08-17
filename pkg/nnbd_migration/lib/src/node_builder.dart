@@ -45,12 +45,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// If the parameters of a function or method are being visited, the
   /// [DecoratedType]s of the function's named parameters that have been seen so
   /// far.  Otherwise `null`.
-  Map<String, DecoratedType?>? _namedParameters;
+  Map<String, DecoratedType>? _namedParameters;
 
   /// If the parameters of a function or method are being visited, the
   /// [DecoratedType]s of the function's positional parameters that have been
   /// seen so far.  Otherwise `null`.
-  List<DecoratedType?>? _positionalParameters;
+  List<DecoratedType>? _positionalParameters;
 
   /// If the child types of a node are being visited, the
   /// [NullabilityNodeTarget] that should be used in [visitTypeAnnotation].
@@ -456,7 +456,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
             soft: true);
         if (_getAngularAnnotation(node.metadata) == _AngularAnnotation.child) {
           _graph.makeNullable(
-              type!.node!, AngularAnnotationOrigin(source, node));
+              type.node!, AngularAnnotationOrigin(source, node));
         }
       }
     }
@@ -530,8 +530,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     var typeArguments = const <DecoratedType>[];
     DecoratedType? decoratedReturnType;
-    List<DecoratedType?> positionalParameters = const <DecoratedType>[];
-    Map<String, DecoratedType?> namedParameters =
+    List<DecoratedType> positionalParameters = const <DecoratedType>[];
+    Map<String, DecoratedType> namedParameters =
         const <String, DecoratedType>{};
     if (type is InterfaceType && type.element2.typeParameters.isNotEmpty) {
       if (node is NamedType) {
@@ -567,8 +567,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
           decoratedReturnType = returnType.accept(this);
         });
       }
-      positionalParameters = <DecoratedType?>[];
-      namedParameters = <String, DecoratedType?>{};
+      positionalParameters = <DecoratedType>[];
+      namedParameters = <String, DecoratedType>{};
       var previousPositionalParameters = _positionalParameters;
       var previousNamedParameters = _namedParameters;
       try {
@@ -823,8 +823,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _unimplemented(
             typeParameters, 'Function-typed parameter with type parameters');
       }
-      var positionalParameters = <DecoratedType?>[];
-      var namedParameters = <String, DecoratedType?>{};
+      var positionalParameters = <DecoratedType>[];
+      var namedParameters = <String, DecoratedType>{};
       var previousPositionalParameters = _positionalParameters;
       var previousNamedParameters = _namedParameters;
       try {
@@ -853,9 +853,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
     }
     if (declaredElement.isNamed) {
-      _namedParameters![declaredElement.name] = decoratedType;
+      _namedParameters![declaredElement.name] = decoratedType!;
     } else {
-      _positionalParameters!.add(decoratedType);
+      _positionalParameters!.add(decoratedType!);
     }
     return decoratedType;
   }

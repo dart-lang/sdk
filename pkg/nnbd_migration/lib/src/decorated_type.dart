@@ -29,11 +29,11 @@ class DecoratedType implements DecoratedTypeInfo {
   /// If `this` is a function type, the [DecoratedType] of each of its
   /// positional parameters (including both required and optional positional
   /// parameters).
-  final List<DecoratedType?>? positionalParameters;
+  final List<DecoratedType>? positionalParameters;
 
   /// If `this` is a function type, the [DecoratedType] of each of its named
   /// parameters.
-  final Map<String, DecoratedType?>? namedParameters;
+  final Map<String, DecoratedType>? namedParameters;
 
   /// If `this` is a parameterized type, the [DecoratedType] of each of its
   /// type parameters.
@@ -67,7 +67,7 @@ class DecoratedType implements DecoratedTypeInfo {
             assert(namedParameters![parameter.name]!.type == parameter.type);
             namedParameterCount++;
           } else {
-            assert(positionalParameters![positionalParameterCount]!.type ==
+            assert(positionalParameters![positionalParameterCount].type ==
                 parameter.type);
             positionalParameterCount++;
           }
@@ -296,11 +296,10 @@ class DecoratedType implements DecoratedTypeInfo {
     roles[rolePrefix] = node;
     returnType?.recordRoles(roles, rolePrefix: '$rolePrefix/@r');
     for (int i = 0; i < positionalParameters!.length; i++) {
-      positionalParameters![i]!
-          .recordRoles(roles, rolePrefix: '$rolePrefix/$i');
+      positionalParameters![i].recordRoles(roles, rolePrefix: '$rolePrefix/$i');
     }
     for (var entry in namedParameters!.entries) {
-      entry.value!.recordRoles(roles, rolePrefix: '$rolePrefix/${entry.key}');
+      entry.value.recordRoles(roles, rolePrefix: '$rolePrefix/${entry.key}');
     }
     for (int i = 0; i < typeArguments.length; i++) {
       typeArguments[i]!.recordRoles(roles, rolePrefix: '$rolePrefix/$i');
@@ -484,7 +483,7 @@ class DecoratedType implements DecoratedTypeInfo {
       var undecoratedParameterType = i < numRequiredParameters
           ? undecoratedResult.normalParameterTypes[i]
           : undecoratedResult.optionalParameterTypes[i - numRequiredParameters];
-      newPositionalParameters.add(positionalParameters![i]!
+      newPositionalParameters.add(positionalParameters![i]
           ._substitute(substitution, undecoratedParameterType));
     }
     var newNamedParameters = <String, DecoratedType>{};
@@ -493,7 +492,7 @@ class DecoratedType implements DecoratedTypeInfo {
       var undecoratedParameterType =
           undecoratedResult.namedParameterTypes[name];
       newNamedParameters[name] =
-          (entry.value!._substitute(substitution, undecoratedParameterType));
+          (entry.value._substitute(substitution, undecoratedParameterType));
     }
     return DecoratedType(undecoratedResult, node,
         returnType:
