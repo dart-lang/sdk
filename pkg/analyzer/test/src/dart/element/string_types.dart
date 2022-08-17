@@ -403,259 +403,68 @@ mixin StringTypes on AbstractTypeSystemTest {
   void _defineRecordTypes() {
     _defineType('Record', recordNone);
 
-    _defineType(
-      '(double)',
-      recordTypeNone(
+    void mixed(
+      String str,
+      List<DartType> positionalTypes,
+      Map<String, DartType> namedTypes,
+    ) {
+      final type = recordTypeNone(
         element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: doubleNone),
-          ],
+          positionalFields: positionalTypes.map(
+            (fieldType) {
+              return recordPositionalField(type: fieldType);
+            },
+          ).toList(),
+          namedFields: namedTypes.entries.map((entry) {
+            return recordNamedField(name: entry.key, type: entry.value);
+          }).toList(),
         ),
-      ),
-    );
-    _defineType(
-      '(int)',
-      recordTypeNone(
-        element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: intNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '(num)',
-      recordTypeNone(
-        element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: numNone),
-          ],
-        ),
-      ),
-    );
+      );
+      expect(type.toString(), str);
+      _defineType(str, type);
+    }
 
-    _defineType(
-      '(double, int)',
-      recordTypeNone(
-        element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: doubleNone),
-            recordPositionalField(type: intNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '(int, double)',
-      recordTypeNone(
-        element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: intNone),
-            recordPositionalField(type: doubleNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '(int, Object)',
-      recordTypeNone(
-        element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: intNone),
-            recordPositionalField(type: objectNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '(int, String)',
-      recordTypeNone(
-        element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: intNone),
-            recordPositionalField(type: stringNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '(num, num)',
-      recordTypeNone(
-        element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: numNone),
-            recordPositionalField(type: numNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '(num, Object)',
-      recordTypeNone(
-        element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: numNone),
-            recordPositionalField(type: objectNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '(num, String)',
-      recordTypeNone(
-        element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: numNone),
-            recordPositionalField(type: stringNone),
-          ],
-        ),
-      ),
-    );
+    void allPositional(String str, List<DartType> types) {
+      mixed(str, types, const {});
+    }
 
-    _defineType(
-      '({double f1})',
-      recordTypeNone(
-        element: recordElement(
-          namedFields: [
-            recordNamedField(name: 'f1', type: doubleNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '({int f1})',
-      recordTypeNone(
-        element: recordElement(
-          namedFields: [
-            recordNamedField(name: 'f1', type: intNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '({num f1})',
-      recordTypeNone(
-        element: recordElement(
-          namedFields: [
-            recordNamedField(name: 'f1', type: numNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '({int f2})',
-      recordTypeNone(
-        element: recordElement(
-          namedFields: [
-            recordNamedField(name: 'f2', type: intNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '({double f1, int f2})',
-      recordTypeNone(
-        element: recordElement(
-          namedFields: [
-            recordNamedField(name: 'f1', type: doubleNone),
-            recordNamedField(name: 'f2', type: intNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '({int f1, double f2})',
-      recordTypeNone(
-        element: recordElement(
-          namedFields: [
-            recordNamedField(name: 'f1', type: intNone),
-            recordNamedField(name: 'f2', type: doubleNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '({int f1, String f2})',
-      recordTypeNone(
-        element: recordElement(
-          namedFields: [
-            recordNamedField(name: 'f1', type: intNone),
-            recordNamedField(name: 'f2', type: stringNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '({int f1, Object f2})',
-      recordTypeNone(
-        element: recordElement(
-          namedFields: [
-            recordNamedField(name: 'f1', type: intNone),
-            recordNamedField(name: 'f2', type: objectNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '({num f1, num f2})',
-      recordTypeNone(
-        element: recordElement(
-          namedFields: [
-            recordNamedField(name: 'f1', type: numNone),
-            recordNamedField(name: 'f2', type: numNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '({num f1, String f2})',
-      recordTypeNone(
-        element: recordElement(
-          namedFields: [
-            recordNamedField(name: 'f1', type: numNone),
-            recordNamedField(name: 'f2', type: stringNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '({num f1, Object f2})',
-      recordTypeNone(
-        element: recordElement(
-          namedFields: [
-            recordNamedField(name: 'f1', type: numNone),
-            recordNamedField(name: 'f2', type: objectNone),
-          ],
-        ),
-      ),
-    );
+    allPositional('(double)', [doubleNone]);
+    allPositional('(int)', [intNone]);
+    allPositional('(int?)', [intQuestion]);
+    allPositional('(int*)', [intStar]);
+    allPositional('(num)', [numNone]);
 
-    _defineType(
-      '(int, {String f2})',
-      recordTypeNone(
-        element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: intNone),
-          ],
-          namedFields: [
-            recordNamedField(name: 'f2', type: stringNone),
-          ],
-        ),
-      ),
-    );
-    _defineType(
-      '(int, {Object f2})',
-      recordTypeNone(
-        element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: intNone),
-          ],
-          namedFields: [
-            recordNamedField(name: 'f2', type: objectNone),
-          ],
-        ),
-      ),
-    );
+    allPositional('(double, int)', [doubleNone, intNone]);
+    allPositional('(int, double)', [intNone, doubleNone]);
+    allPositional('(int, int)', [intNone, intNone]);
+    allPositional('(int, Object)', [intNone, objectNone]);
+    allPositional('(int, String)', [intNone, stringNone]);
+    allPositional('(num, num)', [numNone, numNone]);
+    allPositional('(num, Object)', [numNone, objectNone]);
+    allPositional('(num, String)', [numNone, stringNone]);
+
+    void allNamed(String str, Map<String, DartType> types) {
+      mixed(str, const [], types);
+    }
+
+    allNamed('({double f1})', {'f1': doubleNone});
+    allNamed('({int f1})', {'f1': intNone});
+    allNamed('({int? f1})', {'f1': intQuestion});
+    allNamed('({int* f1})', {'f1': intStar});
+    allNamed('({num f1})', {'f1': numNone});
+    allNamed('({int f2})', {'f2': intNone});
+
+    allNamed('({double f1, int f2})', {'f1': doubleNone, 'f2': intNone});
+    allNamed('({int f1, double f2})', {'f1': intNone, 'f2': doubleNone});
+    allNamed('({int f1, int f2})', {'f1': intNone, 'f2': intNone});
+    allNamed('({int f1, Object f2})', {'f1': intNone, 'f2': objectNone});
+    allNamed('({int f1, String f2})', {'f1': intNone, 'f2': stringNone});
+    allNamed('({num f1, num f2})', {'f1': numNone, 'f2': numNone});
+    allNamed('({num f1, Object f2})', {'f1': numNone, 'f2': objectNone});
+    allNamed('({num f1, String f2})', {'f1': numNone, 'f2': stringNone});
+
+    mixed('(int, {Object f2})', [intNone], {'f2': objectNone});
+    mixed('(int, {String f2})', [intNone], {'f2': stringNone});
   }
 
   void _defineType(String str, DartType type) {
