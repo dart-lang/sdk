@@ -3676,8 +3676,10 @@ void AllocationSinking::Optimize() {
 // Remove materializations from the graph. Register allocator will treat them
 // as part of the environment not as a real instruction.
 void AllocationSinking::DetachMaterializations() {
-  for (intptr_t i = 0; i < materializations_.length(); i++) {
-    materializations_[i]->previous()->LinkTo(materializations_[i]->next());
+  for (MaterializeObjectInstr* mat : materializations_) {
+    mat->previous()->LinkTo(mat->next());
+    mat->set_next(nullptr);
+    mat->set_previous(nullptr);
   }
 }
 

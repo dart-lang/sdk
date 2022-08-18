@@ -403,6 +403,13 @@ void FlowGraphChecker::VisitUseDef(Instruction* instruction,
     ASSERT1(def->previous() != nullptr, def);
     // Skip checks below for common constants as checking them could be slow.
     if (IsCommonConstant(def)) return;
+  } else if (def->IsMaterializeObject()) {
+    // Materializations can be both linked into graph and detached.
+    if (def->next() != nullptr) {
+      ASSERT1(def->previous() != nullptr, def);
+    } else {
+      ASSERT1(def->previous() == nullptr, def);
+    }
   } else {
     // Others are fully linked into graph.
     ASSERT1(def->next() != nullptr, def);
@@ -453,6 +460,14 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
     ASSERT1(instruction->IsGraphEntry() || instruction->next() != nullptr,
             instruction);
     ASSERT2(DefDominatesUse(def, instruction), def, instruction);
+  } else if (instruction->IsMaterializeObject()) {
+    // Materializations can be both linked into graph and detached.
+    if (instruction->next() != nullptr) {
+      ASSERT1(instruction->previous() != nullptr, instruction);
+      ASSERT2(DefDominatesUse(def, instruction), def, instruction);
+    } else {
+      ASSERT1(instruction->previous() == nullptr, instruction);
+    }
   } else {
     // Others are fully linked into graph.
     ASSERT1(IsControlFlow(instruction) || instruction->next() != nullptr,

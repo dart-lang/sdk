@@ -626,7 +626,7 @@ void TypeTestingStubGenerator::
     // c) Then we'll check each value of the type argument.
     compiler::Label pop_saved_registers_on_failure;
     const RegisterSet saved_registers(
-        TTSInternalRegs::kSavedTypeArgumentRegisters);
+        TTSInternalRegs::kSavedTypeArgumentRegisters, /*fpu_registers=*/0);
     __ PushRegisters(saved_registers);
 
     AbstractType& type_arg = AbstractType::Handle();

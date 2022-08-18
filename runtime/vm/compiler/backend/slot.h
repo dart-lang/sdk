@@ -357,9 +357,12 @@ class Slot : public ZoneAllocated {
   bool IsPotentialUnboxed() const;
   Representation UnboxedRepresentation() const;
 
+  void Write(FlowGraphSerializer* s) const;
+  static const Slot& Read(FlowGraphDeserializer* d);
+
  private:
   Slot(Kind kind,
-       int8_t bits,
+       int8_t flags,
        ClassIdTagType cid,
        intptr_t offset_in_bytes,
        const void* data,
@@ -367,7 +370,7 @@ class Slot : public ZoneAllocated {
        Representation representation,
        const FieldGuardState& field_guard_state = FieldGuardState())
       : kind_(kind),
-        flags_(bits),
+        flags_(flags),
         cid_(cid),
         offset_in_bytes_(offset_in_bytes),
         representation_(representation),
@@ -396,6 +399,17 @@ class Slot : public ZoneAllocated {
   const T* DataAs() const {
     return static_cast<const T*>(data_);
   }
+
+  static const Slot& GetCanonicalSlot(
+      Thread* thread,
+      Kind kind,
+      int8_t flags,
+      ClassIdTagType cid,
+      intptr_t offset_in_bytes,
+      const void* data,
+      const AbstractType* static_type,
+      Representation representation,
+      const FieldGuardState& field_guard_state = FieldGuardState());
 
   // There is a fixed statically known number of native slots so we cache
   // them statically.

@@ -208,6 +208,9 @@ class FlowGraph : public ZoneAllocated {
   const GrowableArray<BlockEntryInstr*>& reverse_postorder() const {
     return reverse_postorder_;
   }
+  const GrowableArray<BlockEntryInstr*>& optimized_block_order() const {
+    return optimized_block_order_;
+  }
   static bool ShouldReorderBlocks(const Function& function, bool is_optimized);
   GrowableArray<BlockEntryInstr*>* CodegenBlockOrder(bool is_optimized);
 
@@ -532,6 +535,14 @@ class FlowGraph : public ZoneAllocated {
 
   const Array& coverage_array() const { return *coverage_array_; }
   void set_coverage_array(const Array& array) { coverage_array_ = &array; }
+
+  // Renumbers SSA values and basic blocks to make numbering dense.
+  // Preserves order among block ids.
+  //
+  // Also collects definitions which are detached from the flow graph
+  // but still referenced (currently only MaterializeObject instructions
+  // can be detached).
+  void CompactSSA(ZoneGrowableArray<Definition*>* detached_defs = nullptr);
 
  private:
   friend class FlowGraphCompiler;  // TODO(ajcbik): restructure

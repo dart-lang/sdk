@@ -3222,6 +3222,28 @@ void Class::AddFunction(const Function& function) const {
   }
 }
 
+intptr_t Class::FindFunctionIndex(const Function& needle) const {
+  Thread* thread = Thread::Current();
+  if (EnsureIsFinalized(thread) != Error::null()) {
+    return -1;
+  }
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  Array& funcs = thread->ArrayHandle();
+  Function& function = thread->FunctionHandle();
+  funcs = current_functions();
+  ASSERT(!funcs.IsNull());
+  const intptr_t len = funcs.Length();
+  for (intptr_t i = 0; i < len; i++) {
+    function ^= funcs.At(i);
+    if (needle.ptr() == function.ptr()) {
+      return i;
+    }
+  }
+  // No function found.
+  return -1;
+}
+
 FunctionPtr Class::FunctionFromIndex(intptr_t idx) const {
   const Array& funcs = Array::Handle(current_functions());
   if ((idx < 0) || (idx >= funcs.Length())) {
@@ -3234,20 +3256,13 @@ FunctionPtr Class::FunctionFromIndex(intptr_t idx) const {
 }
 
 FunctionPtr Class::ImplicitClosureFunctionFromIndex(intptr_t idx) const {
-  const Array& funcs = Array::Handle(current_functions());
-  if ((idx < 0) || (idx >= funcs.Length())) {
+  Function& func = Function::Handle(FunctionFromIndex(idx));
+  if (func.IsNull() || !func.HasImplicitClosureFunction()) {
     return Function::null();
   }
-  Function& func = Function::Handle();
-  func ^= funcs.At(idx);
+  func = func.ImplicitClosureFunction();
   ASSERT(!func.IsNull());
-  if (!func.HasImplicitClosureFunction()) {
-    return Function::null();
-  }
-  const Function& closure_func =
-      Function::Handle(func.ImplicitClosureFunction());
-  ASSERT(!closure_func.IsNull());
-  return closure_func.ptr();
+  return func.ptr();
 }
 
 intptr_t Class::FindImplicitClosureFunctionIndex(const Function& needle) const {
@@ -4680,6 +4695,35 @@ void Class::AddFields(const GrowableArray<const Field*>& new_fields) const {
     new_arr.SetAt(i + num_old_fields, *new_fields.At(i));
   }
   SetFields(new_arr);
+}
+
+intptr_t Class::FindFieldIndex(const Field& needle) const {
+  Thread* thread = Thread::Current();
+  if (EnsureIsFinalized(thread) != Error::null()) {
+    return -1;
+  }
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FIELD_HANDLESCOPE(thread);
+  Array& fields = thread->ArrayHandle();
+  Field& field = thread->FieldHandle();
+  fields = this->fields();
+  ASSERT(!fields.IsNull());
+  for (intptr_t i = 0, n = fields.Length(); i < n; ++i) {
+    field ^= fields.At(i);
+    if (needle.ptr() == field.ptr()) {
+      return i;
+    }
+  }
+  // Not found.
+  return -1;
+}
+
+FieldPtr Class::FieldFromIndex(intptr_t idx) const {
+  Array& fields = Array::Handle(this->fields());
+  if ((idx < 0) || (idx >= fields.Length())) {
+    return Field::null();
+  }
+  return Field::RawCast(fields.At(idx));
 }
 
 bool Class::InjectCIDFields() const {
