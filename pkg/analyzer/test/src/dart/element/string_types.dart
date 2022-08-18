@@ -438,6 +438,7 @@ mixin StringTypes on AbstractTypeSystemTest {
     allPositional('(int?)', [intQuestion]);
     allPositional('(int*)', [intStar]);
     allPositional('(num)', [numNone]);
+    allPositional('(Never)', [neverNone]);
 
     allPositionalQuestion('(int)?', [intNone]);
     allPositionalQuestion('(int?)?', [intQuestion]);
@@ -455,6 +456,7 @@ mixin StringTypes on AbstractTypeSystemTest {
     allPositional('(num, num)', [numNone, numNone]);
     allPositional('(num, Object)', [numNone, objectNone]);
     allPositional('(num, String)', [numNone, stringNone]);
+    allPositional('(Never, Never)', [neverNone, neverNone]);
 
     void allNamed(String str, Map<String, DartType> types) {
       mixed(str, const [], types);
@@ -480,6 +482,7 @@ mixin StringTypes on AbstractTypeSystemTest {
     allNamed('({int* f1})', {'f1': intStar});
     allNamed('({num f1})', {'f1': numNone});
     allNamed('({int f2})', {'f2': intNone});
+    allNamed('({Never f1})', {'f1': neverNone});
 
     allNamedQuestion('({int f1})?', {'f1': intNone});
     allNamedQuestion('({int? f1})?', {'f1': intQuestion});
@@ -497,6 +500,7 @@ mixin StringTypes on AbstractTypeSystemTest {
     allNamed('({num f1, num f2})', {'f1': numNone, 'f2': numNone});
     allNamed('({num f1, Object f2})', {'f1': numNone, 'f2': objectNone});
     allNamed('({num f1, String f2})', {'f1': numNone, 'f2': stringNone});
+    allNamed('({Never f1, Never f2})', {'f1': neverNone, 'f2': neverNone});
 
     mixed('(int, {Object f2})', [intNone], {'f2': objectNone});
     mixed('(int, {String f2})', [intNone], {'f2': stringNone});
