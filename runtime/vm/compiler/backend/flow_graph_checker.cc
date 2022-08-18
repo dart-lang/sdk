@@ -401,6 +401,8 @@ void FlowGraphChecker::VisitUseDef(Instruction* instruction,
     // Initial definitions are partially linked into graph, but some
     // constants are fully linked into graph (so no next() assert).
     ASSERT1(def->previous() != nullptr, def);
+    // Skip checks below for common constants as checking them could be slow.
+    if (IsCommonConstant(def)) return;
   } else {
     // Others are fully linked into graph.
     ASSERT1(def->next() != nullptr, def);
