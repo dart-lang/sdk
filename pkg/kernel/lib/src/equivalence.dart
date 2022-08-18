@@ -666,6 +666,11 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
+  bool visitIntersectionType(IntersectionType node, Node other) {
+    return strategy.checkIntersectionType(this, node, other);
+  }
+
+  @override
   bool visitTypeParameterType(TypeParameterType node, Node other) {
     return strategy.checkTypeParameterType(this, node, other);
   }
@@ -4245,6 +4250,23 @@ class EquivalenceStrategy {
     return result;
   }
 
+  bool checkIntersectionType(
+      EquivalenceVisitor visitor, IntersectionType? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! IntersectionType) return false;
+    if (other is! IntersectionType) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkIntersectionType_left(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkIntersectionType_right(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
   bool checkTypeParameterType(
       EquivalenceVisitor visitor, TypeParameterType? node, Object? other) {
     if (identical(node, other)) return true;
@@ -4256,9 +4278,6 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkTypeParameterType_parameter(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkTypeParameterType_promotedBound(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -7351,6 +7370,16 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.onType, other.onType, 'onType');
   }
 
+  bool checkIntersectionType_left(EquivalenceVisitor visitor,
+      IntersectionType node, IntersectionType other) {
+    return visitor.checkNodes(node.left, other.left, 'left');
+  }
+
+  bool checkIntersectionType_right(EquivalenceVisitor visitor,
+      IntersectionType node, IntersectionType other) {
+    return visitor.checkNodes(node.right, other.right, 'right');
+  }
+
   bool checkTypeParameterType_declaredNullability(EquivalenceVisitor visitor,
       TypeParameterType node, TypeParameterType other) {
     return visitor.checkValues(node.declaredNullability,
@@ -7361,12 +7390,6 @@ class EquivalenceStrategy {
       TypeParameterType node, TypeParameterType other) {
     return visitor.checkDeclarations(
         node.parameter, other.parameter, 'parameter');
-  }
-
-  bool checkTypeParameterType_promotedBound(EquivalenceVisitor visitor,
-      TypeParameterType node, TypeParameterType other) {
-    return visitor.checkNodes(
-        node.promotedBound, other.promotedBound, 'promotedBound');
   }
 
   bool checkNamedType_name(

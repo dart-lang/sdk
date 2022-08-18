@@ -1134,8 +1134,12 @@ class NodeCreator {
         return _createOneOf(_pendingDartTypes, kind, index, [
           () =>
               TypeParameterType(_needTypeParameter(), Nullability.nonNullable),
-          () => TypeParameterType(
-              _needTypeParameter(), Nullability.nonNullable, _createDartType()),
+        ]);
+      case DartTypeKind.IntersectionType:
+        return _createOneOf(_pendingDartTypes, kind, index, [
+          () => IntersectionType(
+              TypeParameterType(_needTypeParameter(), Nullability.nonNullable),
+              _createDartType()),
         ]);
       case DartTypeKind.TypedefType:
         return _createOneOf(_pendingDartTypes, kind, index, [

@@ -11,11 +11,11 @@ class Class<T> {
   method(T o) {
     if (/*cfe.T*/ /*cfe:nnbd.T%*/ o is Class) {
       /*cfe.T & Class<dynamic>*/
-      /*cfe:nnbd.T! & Class<dynamic>!*/
+      /*cfe:nnbd.T% & Class<dynamic>!*/
       o. /*invoke: dynamic*/ method(/*Null*/ null);
-      /*cfe.T & Class<dynamic>|dynamic*/ /*cfe:nnbd.T! & Class<dynamic>!|dynamic*/ o
+      /*cfe.T & Class<dynamic>|dynamic*/ /*cfe:nnbd.T% & Class<dynamic>!|dynamic*/ o
           ?. /*invoke: dynamic*/ method(/*Null*/ null);
-      /*cfe.T & Class<dynamic>|dynamic*/ /*cfe:nnbd.T! & Class<dynamic>!|dynamic*/ o
+      /*cfe.T & Class<dynamic>|dynamic*/ /*cfe:nnbd.T% & Class<dynamic>!|dynamic*/ o
           ?. /*dynamic*/ property;
     }
   }
@@ -24,11 +24,11 @@ class Class<T> {
 method<T>(T o) {
   if (/*cfe.T*/ /*cfe:nnbd.T%*/ o is Class) {
     /*cfe.T & Class<dynamic>*/
-    /*cfe:nnbd.T! & Class<dynamic>!*/
+    /*cfe:nnbd.T% & Class<dynamic>!*/
     o. /*invoke: dynamic*/ method(/*Null*/ null);
-    /*cfe.T & Class<dynamic>|dynamic*/ /*cfe:nnbd.T! & Class<dynamic>!|dynamic*/ o
+    /*cfe.T & Class<dynamic>|dynamic*/ /*cfe:nnbd.T% & Class<dynamic>!|dynamic*/ o
         ?. /*invoke: dynamic*/ method(/*Null*/ null);
-    /*cfe.T & Class<dynamic>|dynamic*/ /*cfe:nnbd.T! & Class<dynamic>!|dynamic*/ o
+    /*cfe.T & Class<dynamic>|dynamic*/ /*cfe:nnbd.T% & Class<dynamic>!|dynamic*/ o
         ?. /*dynamic*/ property;
   }
 }

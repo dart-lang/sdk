@@ -48,6 +48,11 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
+  void visitIntersectionType(ir.IntersectionType node, StringBuffer sb) {
+    sb.write(node.left.parameter.name);
+  }
+
+  @override
   void visitFunctionType(ir.FunctionType node, StringBuffer sb) {
     writeType(node.returnType, sb);
     sb.write(' Function');

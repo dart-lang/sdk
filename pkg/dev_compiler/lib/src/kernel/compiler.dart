@@ -3223,6 +3223,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitTypeParameterType(TypeParameterType type) =>
       _emitTypeParameterType(type);
 
+  @override
+  js_ast.Expression visitIntersectionType(IntersectionType type) =>
+      _emitTypeParameterType(type.left);
+
   js_ast.Expression _emitTypeParameterType(TypeParameterType type,
       {bool emitNullability = true}) {
     var typeParam = _emitTypeParameter(type.parameter);

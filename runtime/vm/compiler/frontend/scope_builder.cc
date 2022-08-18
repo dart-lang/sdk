@@ -1358,6 +1358,9 @@ void ScopeBuilder::VisitDartType() {
     case kTypeParameterType:
       VisitTypeParameterType();
       return;
+    case kIntersectionType:
+      VisitIntersectionType();
+      return;
     default:
       ReportUnexpectedTag("type", tag);
       UNREACHABLE();
@@ -1447,8 +1450,11 @@ void ScopeBuilder::VisitTypeParameterType() {
       }
     }
   }
+}
 
-  helper_.SkipOptionalDartType();  // read bound bound.
+void ScopeBuilder::VisitIntersectionType() {
+  VisitDartType();         // read left.
+  helper_.SkipDartType();  // read right.
 }
 
 void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {

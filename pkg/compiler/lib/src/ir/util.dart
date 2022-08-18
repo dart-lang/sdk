@@ -195,6 +195,11 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitIntersectionType(ir.IntersectionType node) {
+    return true;
+  }
+
+  @override
   bool visitFunctionType(ir.FunctionType node) {
     if (visit(node.returnType)) return true;
     if (visitList(node.positionalParameters)) return true;

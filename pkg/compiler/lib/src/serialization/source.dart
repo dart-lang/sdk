@@ -826,16 +826,26 @@ class DataSourceReader {
         ir.Nullability typeParameterTypeNullability =
             readEnum(ir.Nullability.values);
         ir.DartType? promotedBound = _readDartTypeNode(functionTypeVariables);
-        return ir.TypeParameterType(
-            typeParameter, typeParameterTypeNullability, promotedBound);
+        ir.TypeParameterType typeParameterType =
+            ir.TypeParameterType(typeParameter, typeParameterTypeNullability);
+        if (promotedBound == null) {
+          return typeParameterType;
+        } else {
+          return ir.IntersectionType(typeParameterType, promotedBound);
+        }
       case DartTypeNodeKind.functionTypeVariable:
         int index = readInt();
         assert(0 <= index && index < functionTypeVariables.length);
         ir.Nullability typeParameterTypeNullability =
             readEnum(ir.Nullability.values);
         ir.DartType? promotedBound = _readDartTypeNode(functionTypeVariables);
-        return ir.TypeParameterType(functionTypeVariables[index],
-            typeParameterTypeNullability, promotedBound);
+        ir.TypeParameterType typeParameterType = ir.TypeParameterType(
+            functionTypeVariables[index], typeParameterTypeNullability);
+        if (promotedBound == null) {
+          return typeParameterType;
+        } else {
+          return ir.IntersectionType(typeParameterType, promotedBound);
+        }
       case DartTypeNodeKind.functionType:
         begin(functionTypeNodeTag);
         int typeParameterCount = readInt();

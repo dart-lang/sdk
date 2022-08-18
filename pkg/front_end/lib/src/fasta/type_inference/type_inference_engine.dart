@@ -26,7 +26,7 @@ import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
 /// Visitor to check whether a given type mentions any of a class's type
 /// parameters in a non-covariant fashion.
-class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
+class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
   int _variance;
 
   final List<TypeParameter> _typeParametersToSearchFor;
@@ -36,7 +36,28 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
       : _variance = initialVariance;
 
   @override
-  bool defaultDartType(DartType node) => false;
+  bool defaultDartType(DartType node) {
+    throw new UnsupportedError(
+        "IncludesTypeParametersNonCovariantly.defaultDartType");
+  }
+
+  @override
+  bool visitDynamicType(DynamicType node) => false;
+
+  @override
+  bool visitExtensionType(ExtensionType node) => false;
+
+  @override
+  bool visitNeverType(NeverType node) => false;
+
+  @override
+  bool visitInvalidType(InvalidType node) => false;
+
+  @override
+  bool visitNullType(NullType node) => false;
+
+  @override
+  bool visitVoidType(VoidType node) => false;
 
   @override
   bool visitFunctionType(FunctionType node) {
@@ -83,6 +104,11 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
   bool visitTypeParameterType(TypeParameterType node) {
     return !Variance.greaterThanOrEqual(_variance, node.parameter.variance) &&
         _typeParametersToSearchFor.contains(node.parameter);
+  }
+
+  @override
+  bool visitIntersectionType(IntersectionType node) {
+    return node.left.accept(this);
   }
 }
 
@@ -321,7 +347,9 @@ class OperationsCfe
   }
 
   @override
-  bool isTypeParameterType(DartType type) => type is TypeParameterType;
+  bool isTypeParameterType(DartType type) {
+    return type is TypeParameterType || type is IntersectionType;
+  }
 
   @override
   DartType tryPromoteToType(DartType to, DartType from) {
@@ -329,9 +357,13 @@ class OperationsCfe
       return to;
     }
     if (from is TypeParameterType) {
-      if (isSubtypeOf(to, from.promotedBound ?? from.bound)) {
-        return new TypeParameterType.intersection(
-            from.parameter, from.nullability, to);
+      if (isSubtypeOf(to, from.bound)) {
+        return new IntersectionType(from, to);
+      }
+    }
+    if (from is IntersectionType) {
+      if (isSubtypeOf(to, from.right)) {
+        return new IntersectionType(from.left, to);
       }
     }
     return from;

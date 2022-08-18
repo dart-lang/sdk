@@ -1149,6 +1149,15 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
   bool visitTypeParameterType(TypeParameterType node) => true;
 
   @override
+  bool visitIntersectionType(IntersectionType node) {
+    // The left-hand side of an [IntersectionType] is always a
+    // [TypeParameterType].
+    // ignore: unnecessary_type_check
+    assert(node.left is TypeParameterType);
+    return true;
+  }
+
+  @override
   bool visitTypedefType(TypedefType node) {
     return anyTypeVariables(node.typeArguments);
   }

@@ -12078,6 +12078,335 @@ class NamedType extends Node implements Comparable<NamedType> {
   }
 }
 
+class IntersectionType extends DartType {
+  final TypeParameterType left;
+  final DartType right;
+
+  IntersectionType(this.left, this.right) {
+    // TODO(cstefantsova): Also assert that [rhs] is a subtype of [lhs.bound].
+
+    Nullability leftNullability = left.nullability;
+    Nullability rightNullability = right.nullability;
+    assert(
+        (leftNullability == Nullability.nonNullable &&
+                rightNullability == Nullability.nonNullable) ||
+            (leftNullability == Nullability.nonNullable &&
+                rightNullability == Nullability.undetermined) ||
+            (leftNullability == Nullability.legacy &&
+                rightNullability == Nullability.legacy) ||
+            (leftNullability == Nullability.undetermined &&
+                rightNullability == Nullability.nonNullable) ||
+            (leftNullability == Nullability.undetermined &&
+                rightNullability == Nullability.nullable) ||
+            (leftNullability == Nullability.undetermined &&
+                rightNullability == Nullability.undetermined)
+            // These are observed in real situations:
+            ||
+            // pkg/front_end/test/id_tests/type_promotion_test
+            // replicated in nnbd_mixed/type_parameter_nullability
+            (leftNullability == Nullability.nullable &&
+                rightNullability == Nullability.nonNullable) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/tool/fasta_perf_test
+            // nnbd/issue42089
+            // replicated in nnbd_mixed/type_parameter_nullability
+            (leftNullability == Nullability.nullable &&
+                rightNullability == Nullability.nullable) ||
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/test/dill_round_trip_test
+            // pkg/front_end/test/compile_dart2js_with_no_sdk_test
+            // pkg/front_end/test/fasta/types/large_app_benchmark_test
+            // pkg/front_end/test/incremental_dart2js_test
+            // pkg/front_end/test/read_dill_from_binary_md_test
+            // pkg/front_end/test/static_types/static_type_test
+            // pkg/front_end/test/split_dill_test
+            // pkg/front_end/tool/incremental_perf_test
+            // pkg/vm/test/kernel_front_end_test
+            // general/promoted_null_aware_access
+            // inference/constructors_infer_from_arguments_factory
+            // inference/infer_types_on_loop_indices_for_each_loop
+            // inference/infer_types_on_loop_indices_for_each_loop_async
+            // replicated in nnbd_mixed/type_parameter_nullability
+            (leftNullability == Nullability.legacy &&
+                rightNullability == Nullability.nonNullable) ||
+            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/tool/fasta_perf_test
+            // replicated in nnbd_mixed/type_parameter_nullability
+            (leftNullability == Nullability.nullable &&
+                rightNullability == Nullability.undetermined) ||
+            // These are only observed in tests and might be artifacts of the
+            // tests rather than real situations:
+            //
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (leftNullability == Nullability.legacy &&
+                rightNullability == Nullability.nullable) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (leftNullability == Nullability.nonNullable &&
+                rightNullability == Nullability.nullable) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (leftNullability == Nullability.undetermined &&
+                rightNullability == Nullability.legacy) ||
+            // pkg/kernel/test/clone_test
+            // The legacy nullability is due to RHS being InvalidType.
+            (leftNullability == Nullability.nonNullable &&
+                rightNullability == Nullability.legacy),
+        "Unexpected nullabilities for ${left} & ${right}: "
+        "leftNullability = ${leftNullability}, "
+        "rightNullability = ${rightNullability}.");
+  }
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) => v.visitIntersectionType(this);
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
+      v.visitIntersectionType(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    left.accept(v);
+    right.accept(v);
+  }
+
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is IntersectionType) {
+      return left.equals(other.left, assumptions) &&
+          right.equals(other.right, assumptions);
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode {
+    int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
+    int hash = nullabilityHash;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ left.hashCode));
+    hash = 0x3fffffff & (hash * 31 + (hash ^ right.hashCode));
+    return hash;
+  }
+
+  /// Computes the nullability of [IntersectionType] from its parts.
+  ///
+  /// [nullability] is calculated from [left.nullability] and
+  /// [right.nullability].
+  ///
+  /// In the following program the nullability of `x` is
+  /// [Nullability.undetermined] because it's copied from that of `bar`. The
+  /// nullability of `y` is [Nullability.nonNullable] because its type is an
+  /// intersection type where the LHS is `T` and the RHS is the promoted type
+  /// `int`. The nullability of the type of `y` is computed from the
+  /// nullabilities of those two types.
+  ///
+  ///     class A<T extends Object?> {
+  ///       foo(T bar) {
+  ///         var x = bar;
+  ///         if (bar is int) {
+  ///           var y = bar;
+  ///         }
+  ///       }
+  ///     }
+  ///
+  /// The method combines the nullabilities of [left] and [right] to yield the
+  /// nullability of the intersection type.
+  @override
+  Nullability get nullability {
+    // Note that RHS is always a subtype of the bound of the type parameter.
+
+    // The code below implements the rule for the nullability of an
+    // intersection type as per the following table:
+    //
+    // | LHS \ RHS |  !  |  ?  |  *  |  %  |
+    // |-----------|-----|-----|-----|-----|
+    // |     !     |  !  |  +  | N/A |  !  |
+    // |     ?     | (!) | (?) | N/A | (%) |
+    // |     *     | (*) |  +  |  *  | N/A |
+    // |     %     |  !  |  %  |  +  |  %  |
+    //
+    // In the table, LHS corresponds to [lhsNullability] in the code below; RHS
+    // corresponds to [rhsNullability]; !, ?, *, and % correspond to
+    // nonNullable, nullable, legacy, and undetermined values of the
+    // Nullability enum.
+
+    Nullability lhsNullability = left.nullability;
+    Nullability rhsNullability = right.nullability;
+    assert(
+        (lhsNullability == Nullability.nonNullable &&
+                rhsNullability == Nullability.nonNullable) ||
+            (lhsNullability == Nullability.nonNullable &&
+                rhsNullability == Nullability.undetermined) ||
+            (lhsNullability == Nullability.legacy &&
+                rhsNullability == Nullability.legacy) ||
+            (lhsNullability == Nullability.undetermined &&
+                rhsNullability == Nullability.nonNullable) ||
+            (lhsNullability == Nullability.undetermined &&
+                rhsNullability == Nullability.nullable) ||
+            (lhsNullability == Nullability.undetermined &&
+                rhsNullability == Nullability.undetermined)
+            // Apparently these happens as well:
+            ||
+            // pkg/front_end/test/id_tests/type_promotion_test
+            (lhsNullability == Nullability.nullable &&
+                rhsNullability == Nullability.nonNullable) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/tool/fasta_perf_test
+            // nnbd/issue42089
+            (lhsNullability == Nullability.nullable &&
+                rhsNullability == Nullability.nullable) ||
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/test/dill_round_trip_test
+            // pkg/front_end/test/compile_dart2js_with_no_sdk_test
+            // pkg/front_end/test/fasta/types/large_app_benchmark_test
+            // pkg/front_end/test/incremental_dart2js_test
+            // pkg/front_end/test/read_dill_from_binary_md_test
+            // pkg/front_end/test/static_types/static_type_test
+            // pkg/front_end/test/split_dill_test
+            // pkg/front_end/tool/incremental_perf_test
+            // pkg/vm/test/kernel_front_end_test
+            // general/promoted_null_aware_access
+            // inference/constructors_infer_from_arguments_factory
+            // inference/infer_types_on_loop_indices_for_each_loop
+            // inference/infer_types_on_loop_indices_for_each_loop_async
+            (lhsNullability == Nullability.legacy &&
+                rhsNullability == Nullability.nonNullable) ||
+            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/tool/fasta_perf_test
+            // pkg/front_end/test/fasta/incremental_hello_test
+            (lhsNullability == Nullability.nullable &&
+                rhsNullability == Nullability.undetermined) ||
+
+            // This is created but never observed.
+            // (lhsNullability == Nullability.legacy &&
+            //     rhsNullability == Nullability.nullable) ||
+
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (lhsNullability == Nullability.undetermined &&
+                rhsNullability == Nullability.legacy) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (lhsNullability == Nullability.nonNullable &&
+                rhsNullability == Nullability.nullable),
+        "Unexpected nullabilities for: LHS nullability = $lhsNullability, "
+        "RHS nullability = ${rhsNullability}.");
+
+    // Whenever there's N/A in the table, it means that the corresponding
+    // combination of the LHS and RHS nullability is not possible when
+    // compiling from Dart source files, so we can define it to be whatever is
+    // faster and more convenient to implement.  The verifier should check that
+    // the cases marked as N/A never occur in the output of the CFE.
+    //
+    // The code below uses the following extension of the table function:
+    //
+    // | LHS \ RHS |  !  |  ?  |  *  |  %  |
+    // |-----------|-----|-----|-----|-----|
+    // |     !     |  !  |  !  |  !  |  !  |
+    // |     ?     | (!) | (?) |  *  | (%) |
+    // |     *     | (*) |  *  |  *  |  %  |
+    // |     %     |  !  |  %  |  %  |  %  |
+
+    if (lhsNullability == Nullability.nullable &&
+        rhsNullability == Nullability.nonNullable) {
+      return Nullability.nonNullable;
+    }
+
+    if (lhsNullability == Nullability.nullable &&
+        rhsNullability == Nullability.nullable) {
+      return Nullability.nullable;
+    }
+
+    if (lhsNullability == Nullability.legacy &&
+        rhsNullability == Nullability.nonNullable) {
+      return Nullability.legacy;
+    }
+
+    if (lhsNullability == Nullability.nullable &&
+        rhsNullability == Nullability.undetermined) {
+      return Nullability.undetermined;
+    }
+
+    // Intersection with a non-nullable type always yields a non-nullable type,
+    // as it's the most restrictive kind of types.
+    if (lhsNullability == Nullability.nonNullable ||
+        rhsNullability == Nullability.nonNullable) {
+      return Nullability.nonNullable;
+    }
+
+    // If the nullability of LHS is 'undetermined', the nullability of the
+    // intersection is also 'undetermined' if RHS is 'undetermined' or
+    // nullable.
+    //
+    // Consider the following example:
+    //
+    //     class A<X extends Object?, Y extends X> {
+    //       foo(X x) {
+    //         if (x is Y) {
+    //           x = null;     // Compile-time error.  Consider X = Y = int.
+    //           Object a = x; // Compile-time error.  Consider X = Y = int?.
+    //         }
+    //         if (x is int?) {
+    //           x = null;     // Compile-time error.  Consider X = int.
+    //           Object b = x; // Compile-time error.  Consider X = int?.
+    //         }
+    //       }
+    //     }
+    if (lhsNullability == Nullability.undetermined ||
+        rhsNullability == Nullability.undetermined) {
+      return Nullability.undetermined;
+    }
+
+    return Nullability.legacy;
+  }
+
+  @override
+  Nullability get declaredNullability => nullability;
+
+  @override
+  IntersectionType withDeclaredNullability(Nullability declaredNullability) {
+    if (left.declaredNullability == this.declaredNullability) {
+      return this;
+    }
+    TypeParameterType newLeft =
+        left.withDeclaredNullability(declaredNullability);
+    if (identical(newLeft, left)) {
+      return this;
+    }
+    return new IntersectionType(newLeft, right);
+  }
+
+  @override
+  String toString() {
+    return "IntersectionType(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('(');
+    printer.writeType(left);
+    printer.write(" & ");
+    printer.writeType(right);
+    printer.write(')');
+    printer.write(nullabilityToString(nullability));
+  }
+}
+
 /// Reference to a type variable.
 ///
 /// A type variable has an optional bound because type promotion can change the
@@ -12096,95 +12425,7 @@ class TypeParameterType extends DartType {
 
   TypeParameter parameter;
 
-  /// An optional promoted bound on the type parameter.
-  ///
-  /// 'null' indicates that the type parameter's bound has not been promoted and
-  /// is therefore the same as the bound of [parameter].
-  DartType? promotedBound;
-
-  TypeParameterType.internal(
-      this.parameter, this.declaredNullability, DartType? promotedBound)
-      : this.promotedBound = promotedBound {
-    assert(
-        promotedBound == null ||
-            (declaredNullability == Nullability.nonNullable &&
-                promotedBound.nullability == Nullability.nonNullable) ||
-            (declaredNullability == Nullability.nonNullable &&
-                promotedBound.nullability == Nullability.undetermined) ||
-            (declaredNullability == Nullability.legacy &&
-                promotedBound.nullability == Nullability.legacy) ||
-            (declaredNullability == Nullability.undetermined &&
-                promotedBound.nullability == Nullability.nonNullable) ||
-            (declaredNullability == Nullability.undetermined &&
-                promotedBound.nullability == Nullability.nullable) ||
-            (declaredNullability == Nullability.undetermined &&
-                promotedBound.nullability == Nullability.undetermined)
-            // These are observed in real situations:
-            ||
-            // pkg/front_end/test/id_tests/type_promotion_test
-            // replicated in nnbd_mixed/type_parameter_nullability
-            (declaredNullability == Nullability.nullable &&
-                promotedBound.nullability == Nullability.nonNullable) ||
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
-            // pkg/front_end/test/explicit_creation_test
-            // pkg/front_end/tool/fasta_perf_test
-            // nnbd/issue42089
-            // replicated in nnbd_mixed/type_parameter_nullability
-            (declaredNullability == Nullability.nullable &&
-                promotedBound.nullability == Nullability.nullable) ||
-            // pkg/front_end/test/explicit_creation_test
-            // pkg/front_end/test/dill_round_trip_test
-            // pkg/front_end/test/compile_dart2js_with_no_sdk_test
-            // pkg/front_end/test/fasta/types/large_app_benchmark_test
-            // pkg/front_end/test/incremental_dart2js_test
-            // pkg/front_end/test/read_dill_from_binary_md_test
-            // pkg/front_end/test/static_types/static_type_test
-            // pkg/front_end/test/split_dill_test
-            // pkg/front_end/tool/incremental_perf_test
-            // pkg/vm/test/kernel_front_end_test
-            // general/promoted_null_aware_access
-            // inference/constructors_infer_from_arguments_factory
-            // inference/infer_types_on_loop_indices_for_each_loop
-            // inference/infer_types_on_loop_indices_for_each_loop_async
-            // replicated in nnbd_mixed/type_parameter_nullability
-            (declaredNullability == Nullability.legacy &&
-                promotedBound.nullability == Nullability.nonNullable) ||
-            // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/test/explicit_creation_test
-            // pkg/front_end/tool/fasta_perf_test
-            // replicated in nnbd_mixed/type_parameter_nullability
-            (declaredNullability == Nullability.nullable &&
-                promotedBound.nullability == Nullability.undetermined) ||
-            // These are only observed in tests and might be artifacts of the
-            // tests rather than real situations:
-            //
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
-            (declaredNullability == Nullability.legacy &&
-                promotedBound.nullability == Nullability.nullable) ||
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
-            (declaredNullability == Nullability.nonNullable &&
-                promotedBound.nullability == Nullability.nullable) ||
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
-            (declaredNullability == Nullability.undetermined &&
-                promotedBound.nullability == Nullability.legacy),
-        "Unexpected nullabilities for $parameter & $promotedBound: "
-        "declaredNullability = $declaredNullability, "
-        "promoted bound nullability = ${promotedBound.nullability}.");
-  }
-
-  TypeParameterType(TypeParameter parameter, Nullability declaredNullability,
-      [DartType? promotedBound])
-      : this.internal(parameter, declaredNullability, promotedBound);
-
-  /// Creates an intersection type between a type parameter and [promotedBound].
-  TypeParameterType.intersection(TypeParameter parameter,
-      Nullability declaredNullability, DartType promotedBound)
-      : this.internal(parameter, declaredNullability, promotedBound);
+  TypeParameterType(this.parameter, this.declaredNullability);
 
   /// Creates a type-parameter type to be used in alpha-renaming.
   ///
@@ -12218,9 +12459,7 @@ class TypeParameterType extends DartType {
       v.visitTypeParameterType(this, arg);
 
   @override
-  void visitChildren(Visitor v) {
-    promotedBound?.accept(v);
-  }
+  void visitChildren(Visitor v) {}
 
   @override
   bool operator ==(Object other) => equals(other, null);
@@ -12244,14 +12483,6 @@ class TypeParameterType extends DartType {
           return false;
         }
       }
-      if (promotedBound != null) {
-        if (other.promotedBound == null) return false;
-        if (!promotedBound!.equals(other.promotedBound!, assumptions)) {
-          return false;
-        }
-      } else if (other.promotedBound != null) {
-        return false;
-      }
       return true;
     } else {
       return false;
@@ -12266,36 +12497,14 @@ class TypeParameterType extends DartType {
     int hash = parameter.isFunctionTypeTypeParameter ? 0 : parameter.hashCode;
     int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
     hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
-    hash = 0x3fffffff & (hash * 31 + (hash ^ promotedBound.hashCode));
     return hash;
   }
 
-  /// Returns the bound of the type parameter, accounting for promotions.
-  DartType get bound => promotedBound ?? parameter.bound;
+  /// A quick access to the bound of the parameter.
+  DartType get bound => parameter.bound;
 
-  /// Nullability of the type, calculated from its parts.
-  ///
-  /// [nullability] is calculated from [typeParameterTypeNullability] and the
-  /// nullability of [promotedBound] if it's present.
-  ///
-  /// For example, in the following program [typeParameterTypeNullability] of
-  /// both `x` and `y` is [Nullability.undetermined], because it's copied from
-  /// that of `bar` and T has a nullable type as its bound.  However, despite
-  /// [nullability] of `x` is [Nullability.undetermined], [nullability] of `y`
-  /// is [Nullability.nonNullable] because of its [promotedBound].
-  ///
-  ///     class A<T extends Object?> {
-  ///       foo(T bar) {
-  ///         var x = bar;
-  ///         if (bar is int) {
-  ///           var y = bar;
-  ///         }
-  ///       }
-  ///     }
   @override
-  Nullability get nullability {
-    return getNullability(declaredNullability, promotedBound);
-  }
+  Nullability get nullability => declaredNullability;
 
   /// Gets a new [TypeParameterType] with given [typeParameterTypeNullability].
   ///
@@ -12308,7 +12517,7 @@ class TypeParameterType extends DartType {
     if (declaredNullability == this.declaredNullability) {
       return this;
     }
-    return new TypeParameterType(parameter, declaredNullability, promotedBound);
+    return new TypeParameterType(parameter, declaredNullability);
   }
 
   /// Gets the nullability of a type-parameter type based on the bound.
@@ -12337,9 +12546,6 @@ class TypeParameterType extends DartType {
         type = type.typeArgument;
       }
       if (type is TypeParameterType && type.parameter == typeParameter) {
-        // Intersection types can't appear in the bound.
-        assert(type.promotedBound == null);
-
         nullabilityDependsOnItself = true;
       }
     }
@@ -12355,173 +12561,6 @@ class TypeParameterType extends DartType {
         : boundNullability;
   }
 
-  /// Gets nullability of [TypeParameterType] from arguments to its constructor.
-  ///
-  /// The method combines [typeParameterTypeNullability] and the nullability of
-  /// [promotedBound] to yield the nullability of the intersection type.  If the
-  /// right-hand side of the intersection is absent (that is, if [promotedBound]
-  /// is null), the nullability of the intersection type is simply
-  /// [typeParameterTypeNullability].
-  static Nullability getNullability(
-      Nullability typeParameterTypeNullability, DartType? promotedBound) {
-    // If promotedBound is null, getNullability simply returns the nullability
-    // of the type parameter type.
-    Nullability lhsNullability = typeParameterTypeNullability;
-    if (promotedBound == null) {
-      return lhsNullability;
-    }
-
-    // If promotedBound isn't null, getNullability returns the nullability of an
-    // intersection of the left-hand side (referred to as LHS below) and the
-    // right-hand side (referred to as RHS below).  Note that RHS is always a
-    // subtype of the bound of the type parameter.
-
-    // The code below implements the rule for the nullability of an intersection
-    // type as per the following table:
-    //
-    // | LHS \ RHS |  !  |  ?  |  *  |  %  |
-    // |-----------|-----|-----|-----|-----|
-    // |     !     |  !  |  +  | N/A |  !  |
-    // |     ?     | (!) | (?) | N/A | (%) |
-    // |     *     | (*) |  +  |  *  | N/A |
-    // |     %     |  !  |  %  |  +  |  %  |
-    //
-    // In the table, LHS corresponds to lhsNullability in the code below; RHS
-    // corresponds to promotedBound.nullability; !, ?, *, and % correspond to
-    // nonNullable, nullable, legacy, and undetermined values of the Nullability
-    // enum.
-
-    assert(
-        (lhsNullability == Nullability.nonNullable &&
-                promotedBound.nullability == Nullability.nonNullable) ||
-            (lhsNullability == Nullability.nonNullable &&
-                promotedBound.nullability == Nullability.undetermined) ||
-            (lhsNullability == Nullability.legacy &&
-                promotedBound.nullability == Nullability.legacy) ||
-            (lhsNullability == Nullability.undetermined &&
-                promotedBound.nullability == Nullability.nonNullable) ||
-            (lhsNullability == Nullability.undetermined &&
-                promotedBound.nullability == Nullability.nullable) ||
-            (lhsNullability == Nullability.undetermined &&
-                promotedBound.nullability == Nullability.undetermined)
-            // Apparently these happens as well:
-            ||
-            // pkg/front_end/test/id_tests/type_promotion_test
-            (lhsNullability == Nullability.nullable &&
-                promotedBound.nullability == Nullability.nonNullable) ||
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
-            // pkg/front_end/test/explicit_creation_test
-            // pkg/front_end/tool/fasta_perf_test
-            // nnbd/issue42089
-            (lhsNullability == Nullability.nullable &&
-                promotedBound.nullability == Nullability.nullable) ||
-            // pkg/front_end/test/explicit_creation_test
-            // pkg/front_end/test/dill_round_trip_test
-            // pkg/front_end/test/compile_dart2js_with_no_sdk_test
-            // pkg/front_end/test/fasta/types/large_app_benchmark_test
-            // pkg/front_end/test/incremental_dart2js_test
-            // pkg/front_end/test/read_dill_from_binary_md_test
-            // pkg/front_end/test/static_types/static_type_test
-            // pkg/front_end/test/split_dill_test
-            // pkg/front_end/tool/incremental_perf_test
-            // pkg/vm/test/kernel_front_end_test
-            // general/promoted_null_aware_access
-            // inference/constructors_infer_from_arguments_factory
-            // inference/infer_types_on_loop_indices_for_each_loop
-            // inference/infer_types_on_loop_indices_for_each_loop_async
-            (lhsNullability == Nullability.legacy &&
-                promotedBound.nullability == Nullability.nonNullable) ||
-            // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/test/explicit_creation_test
-            // pkg/front_end/tool/fasta_perf_test
-            // pkg/front_end/test/fasta/incremental_hello_test
-            (lhsNullability == Nullability.nullable &&
-                promotedBound.nullability == Nullability.undetermined) ||
-
-            // This is created but never observed.
-            // (lhsNullability == Nullability.legacy &&
-            //     promotedBound.nullability == Nullability.nullable) ||
-
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
-            (lhsNullability == Nullability.undetermined &&
-                promotedBound.nullability == Nullability.legacy) ||
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
-            (lhsNullability == Nullability.nonNullable &&
-                promotedBound.nullability == Nullability.nullable),
-        "Unexpected nullabilities for: LHS nullability = $lhsNullability, "
-        "RHS nullability = ${promotedBound.nullability}.");
-
-    // Whenever there's N/A in the table, it means that the corresponding
-    // combination of the LHS and RHS nullability is not possible when compiling
-    // from Dart source files, so we can define it to be whatever is faster and
-    // more convenient to implement.  The verifier should check that the cases
-    // marked as N/A never occur in the output of the CFE.
-    //
-    // The code below uses the following extension of the table function:
-    //
-    // | LHS \ RHS |  !  |  ?  |  *  |  %  |
-    // |-----------|-----|-----|-----|-----|
-    // |     !     |  !  |  !  |  !  |  !  |
-    // |     ?     | (!) | (?) |  *  | (%) |
-    // |     *     | (*) |  *  |  *  |  %  |
-    // |     %     |  !  |  %  |  %  |  %  |
-
-    if (lhsNullability == Nullability.nullable &&
-        promotedBound.nullability == Nullability.nonNullable) {
-      return Nullability.nonNullable;
-    }
-
-    if (lhsNullability == Nullability.nullable &&
-        promotedBound.nullability == Nullability.nullable) {
-      return Nullability.nullable;
-    }
-
-    if (lhsNullability == Nullability.legacy &&
-        promotedBound.nullability == Nullability.nonNullable) {
-      return Nullability.legacy;
-    }
-
-    if (lhsNullability == Nullability.nullable &&
-        promotedBound.nullability == Nullability.undetermined) {
-      return Nullability.undetermined;
-    }
-
-    // Intersection with a non-nullable type always yields a non-nullable type,
-    // as it's the most restrictive kind of types.
-    if (lhsNullability == Nullability.nonNullable ||
-        promotedBound.nullability == Nullability.nonNullable) {
-      return Nullability.nonNullable;
-    }
-
-    // If the nullability of LHS is 'undetermined', the nullability of the
-    // intersection is also 'undetermined' if RHS is 'undetermined' or nullable.
-    //
-    // Consider the following example:
-    //
-    //     class A<X extends Object?, Y extends X> {
-    //       foo(X x) {
-    //         if (x is Y) {
-    //           x = null;     // Compile-time error.  Consider X = Y = int.
-    //           Object a = x; // Compile-time error.  Consider X = Y = int?.
-    //         }
-    //         if (x is int?) {
-    //           x = null;     // Compile-time error.  Consider X = int.
-    //           Object b = x; // Compile-time error.  Consider X = int?.
-    //         }
-    //       }
-    //     }
-    if (lhsNullability == Nullability.undetermined ||
-        promotedBound.nullability == Nullability.undetermined) {
-      return Nullability.undetermined;
-    }
-
-    return Nullability.legacy;
-  }
-
   @override
   String toString() {
     return "TypeParameterType(${toStringInternal()})";
@@ -12529,18 +12568,8 @@ class TypeParameterType extends DartType {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    if (promotedBound != null) {
-      printer.write('(');
-      printer.writeTypeParameterName(parameter);
-      printer.write(nullabilityToString(declaredNullability));
-      printer.write(" & ");
-      printer.writeType(promotedBound!);
-      printer.write(')');
-      printer.write(nullabilityToString(nullability));
-    } else {
-      printer.writeTypeParameterName(parameter);
-      printer.write(nullabilityToString(declaredNullability));
-    }
+    printer.writeTypeParameterName(parameter);
+    printer.write(nullabilityToString(declaredNullability));
   }
 }
 

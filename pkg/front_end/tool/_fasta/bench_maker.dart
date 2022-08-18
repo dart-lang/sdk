@@ -334,10 +334,13 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     String name = computeName(node.parameter);
     usedTypeParameters.add(node.parameter);
     sb.write(name);
-    if (node.promotedBound != null) {
-      sb.write(" & ");
-      node.promotedBound!.accept1(this, sb);
-    }
+  }
+
+  @override
+  void visitIntersectionType(IntersectionType node, StringBuffer sb) {
+    node.left.accept1(this, sb);
+    sb.write(" & ");
+    node.right.accept1(this, sb);
   }
 
   @override

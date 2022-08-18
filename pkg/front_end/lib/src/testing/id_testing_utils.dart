@@ -641,10 +641,13 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
   void visitTypeParameterType(TypeParameterType node) {
     sb.write(node.parameter.name);
     sb.write(nullabilityToText(node.nullability, typeRepresentation));
-    if (node.promotedBound != null) {
-      sb.write(' & ');
-      visit(node.promotedBound!);
-    }
+  }
+
+  @override
+  void visitIntersectionType(IntersectionType node) {
+    visit(node.left);
+    sb.write(' & ');
+    visit(node.right);
   }
 
   @override

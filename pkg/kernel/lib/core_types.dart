@@ -1142,15 +1142,12 @@ class CoreTypes {
     }
 
     // BOTTOM(X&T) is true iff BOTTOM(T).
-    if (type is TypeParameterType &&
-        type.promotedBound != null &&
-        type.isPotentiallyNonNullable) {
-      return isBottom(type.promotedBound!);
+    if (type is IntersectionType && type.isPotentiallyNonNullable) {
+      return isBottom(type.right);
     }
 
     // BOTTOM(X extends T) is true iff BOTTOM(T).
     if (type is TypeParameterType && type.isPotentiallyNonNullable) {
-      assert(type.promotedBound == null);
       return isBottom(type.parameter.bound);
     }
 
