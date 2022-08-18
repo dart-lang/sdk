@@ -28,9 +28,7 @@
   },
   "org-dartlang-sdk:///lib/html/dart2js/html_dart2js.dart": {
     "Dynamic access of 'style'.": 1,
-    "Dynamic invocation of 'remove'.": 2,
-    "Dynamic update to 'dart.dom.html::_innerHtml'.": 1,
-    "Dynamic access of 'firstChild'.": 2,
+    "Dynamic invocation of 'remove'.": 1,
     "Dynamic access of 'tagName'.": 2,
     "Dynamic invocation of 'call'.": 2,
     "Dynamic invocation of 'dart.dom.html::_initKeyboardEvent'.": 1,
