@@ -1394,6 +1394,7 @@ class B extends A {
 }
 ''');
     await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'required super.aaa');
     assertHasRegion(HighlightRegionType.KEYWORD, 'super.aaa');
     assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'aaa /*0*/');
   }
