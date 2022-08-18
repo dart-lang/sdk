@@ -15,6 +15,9 @@ import 'package:pub/pub.dart';
 
 import '../core.dart';
 import '../experiments.dart';
+import '../generate_kernel.dart';
+import '../resident_frontend_constants.dart';
+import '../resident_frontend_utils.dart';
 import '../sdk.dart';
 import '../utils.dart';
 import '../vm_interop_handler.dart';
@@ -44,6 +47,23 @@ class RunCommand extends DartdevCommand {
           'Run a Dart program.',
           verbose,
         ) {
+    argParser
+      ..addFlag(
+        'resident',
+        abbr: 'r',
+        negatable: false,
+        help: 'Enable faster startup times with the '
+            'Resident Frontend Compiler.',
+      )
+      ..addOption(
+        'resident-server-info-file',
+        hide: !verbose,
+        help: 'Specify the file that the Dart CLI uses to communicate with '
+            'the Resident Frontend Compiler. Passing this flag results in '
+            'having one unique resident frontend compiler per file. '
+            'This is needed when writing unit '
+            'tests that utilize resident mode in order to maintain isolation.',
+      );
     // NOTE: When updating this list of flags, be sure to add any VM flags to
     // the list of flags in Options::ProcessVMDebuggingOptions in
     // runtime/bin/main_options.cc. Failure to do so will result in those VM
@@ -254,27 +274,59 @@ class RunCommand extends DartdevCommand {
       }
     }
 
+    final hasServerInfoOption = args.wasParsed(
+      serverInfoOption,
+    );
+    final useResidentServer =
+        args.wasParsed(residentOption) || hasServerInfoOption;
+    DartExecutableWithPackageConfig executable;
     try {
-      final executable = await getExecutableForCommand(mainCommand);
-      VmInteropHandler.run(
-        executable.executable,
-        runArgs,
-        packageConfigOverride: executable.packageConfig,
+      executable = await getExecutableForCommand(
+        mainCommand,
+        allowSnapshot: !useResidentServer,
       );
-      return 0;
     } on CommandResolutionFailedException catch (e) {
       log.stderr(e.message);
       return errorExitCode;
     }
-  }
-}
 
-/// Try parsing [maybeUri] as a file uri or [maybeUri] itself if that fails.
-String maybeUriToFilename(String maybeUri) {
-  try {
-    return Uri.parse(maybeUri).toFilePath();
-  } catch (_) {
-    return maybeUri;
+    if (useResidentServer) {
+      final serverInfoFile = hasServerInfoOption
+          ? File(maybeUriToFilename(args[serverInfoOption]))
+          : File(defaultResidentServerInfoFile);
+      try {
+        // TODO(#49694) handle the case when executable is a kernel file
+        executable = await generateKernel(
+          executable,
+          serverInfoFile,
+          args,
+          createCompileJitJson,
+        );
+      } on FrontendCompilerException catch (e) {
+        log.stderr('${ansi.yellow}Failed to build '
+            '${executable.executable}:${ansi.none}');
+        log.stderr(e.message);
+        if (e.issue == CompilationIssue.serverError) {
+          try {
+            await sendAndReceiveResponse(
+              residentServerShutdownCommand,
+              serverInfoFile,
+            );
+          } catch (_) {
+          } finally {
+            cleanupResidentServerInfo(serverInfoFile);
+          }
+        }
+        return errorExitCode;
+      }
+    }
+
+    VmInteropHandler.run(
+      executable.executable,
+      runArgs,
+      packageConfigOverride: executable.packageConfig,
+    );
+    return 0;
   }
 }
 

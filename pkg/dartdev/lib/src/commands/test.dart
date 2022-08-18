@@ -50,7 +50,7 @@ class TestCommand extends DartdevCommand {
         print('');
         printUsage();
       }
-      return 65;
+      return DartdevCommand.errorExitCode;
     }
   }
 }

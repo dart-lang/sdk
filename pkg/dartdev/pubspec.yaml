@@ -21,6 +21,7 @@ dependencies:
   front_end: any
   meta: any
   nnbd_migration: any
+  package_config: any
   path: any
   pub: any
   telemetry: any
