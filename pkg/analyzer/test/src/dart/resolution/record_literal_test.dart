@@ -15,8 +15,14 @@ main() {
 @reflectiveTest
 class RecordLiteralTest extends PubPackageResolutionTest {
   test_noContext_mixed() async {
+    // Restore the code below when record types can be serialized.
+//     await assertNoErrorsInCode(r'''
+// final x = (0, f1: 1, 2, f2: 3, 4);
+// ''');
     await assertNoErrorsInCode(r'''
-final x = (0, f1: 1, 2, f2: 3, 4);
+void f() {
+  (0, f1: 1, 2, f2: 3, 4);
+}
 ''');
 
     final node = findNode.recordLiteral('(0,');
@@ -54,13 +60,19 @@ RecordLiteral
       literal: 4
       staticType: int
   rightParenthesis: )
-  staticType: dynamic
+  staticType: (int, int, int, {int f1, int f2})
 ''');
   }
 
   test_noContext_named() async {
+    // Restore the code below when record types can be serialized.
+//     await assertNoErrorsInCode(r'''
+// final x = (f1: 0, f2: true);
+// ''');
     await assertNoErrorsInCode(r'''
-final x = (f1: 0, f2: true);
+void f() {
+  (f1: 0, f2: true);
+}
 ''');
 
     final node = findNode.recordLiteral('(f1:');
@@ -89,13 +101,19 @@ RecordLiteral
         literal: true
         staticType: bool
   rightParenthesis: )
-  staticType: dynamic
+  staticType: ({int f1, bool f2})
 ''');
   }
 
   test_noContext_positional() async {
+    // Restore the code below when record types can be serialized.
+//     await assertNoErrorsInCode(r'''
+// final x = (0, true);
+// ''');
     await assertNoErrorsInCode(r'''
-final x = (0, true);
+void f() {
+  (0, true);
+}
 ''');
 
     final node = findNode.recordLiteral('(0,');
@@ -110,7 +128,7 @@ RecordLiteral
       literal: true
       staticType: bool
   rightParenthesis: )
-  staticType: dynamic
+  staticType: (int, bool)
 ''');
   }
 }

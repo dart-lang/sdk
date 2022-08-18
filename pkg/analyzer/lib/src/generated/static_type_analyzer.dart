@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -215,6 +217,30 @@ class StaticTypeAnalyzer {
       {required DartType? contextType}) {
     Expression expression = node.expression;
     _inferenceHelper.recordStaticType(node, expression.typeOrThrow,
+        contextType: contextType);
+  }
+
+  void visitRecordLiteral(RecordLiteralImpl node, {DartType? contextType}) {
+    var positionalFields = <RecordPositionalFieldElementImpl>[];
+    var namedFields = <RecordNamedFieldElementImpl>[];
+    for (var field in node.fields) {
+      var fieldType = field.typeOrThrow;
+      if (field is NamedExpression) {
+        var label = field.name.label;
+        namedFields.add(RecordNamedFieldElementImpl(
+            name: label.name, nameOffset: label.offset, type: fieldType));
+      } else {
+        positionalFields.add(RecordPositionalFieldElementImpl(
+            name: '', nameOffset: -1, type: fieldType));
+      }
+    }
+    var element = RecordElementImpl(
+        positionalFields: positionalFields, namedFields: namedFields);
+    element.isSynthetic = true;
+    // TODO(brianwilkerson) Figure out how to get the element for the compilation unit.
+    // element.enclosingElement = (node.root as CompilationUnit).declaredElement!;
+    _inferenceHelper.recordStaticType(
+        node, element.instantiate(nullabilitySuffix: NullabilitySuffix.none),
         contextType: contextType);
   }
 
