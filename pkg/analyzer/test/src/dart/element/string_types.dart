@@ -409,18 +409,9 @@ mixin StringTypes on AbstractTypeSystemTest {
       Map<String, DartType> namedTypes,
     ) {
       final type = recordTypeNone(
-        element: recordElement(
-          positionalFields: positionalTypes.map(
-            (fieldType) {
-              return recordPositionalField(type: fieldType);
-            },
-          ).toList(),
-          namedFields: namedTypes.entries.map((entry) {
-            return recordNamedField(name: entry.key, type: entry.value);
-          }).toList(),
-        ),
+        positionalTypes: positionalTypes,
+        namedTypes: namedTypes,
       );
-      expect(type.toString(), str);
       _defineType(str, type);
     }
 
@@ -428,11 +419,33 @@ mixin StringTypes on AbstractTypeSystemTest {
       mixed(str, types, const {});
     }
 
+    void allPositionalQuestion(String str, List<DartType> types) {
+      final type = recordTypeQuestion(
+        positionalTypes: types,
+      );
+      _defineType(str, type);
+    }
+
+    void allPositionalStar(String str, List<DartType> types) {
+      final type = recordTypeStar(
+        positionalTypes: types,
+      );
+      _defineType(str, type);
+    }
+
     allPositional('(double)', [doubleNone]);
     allPositional('(int)', [intNone]);
     allPositional('(int?)', [intQuestion]);
     allPositional('(int*)', [intStar]);
     allPositional('(num)', [numNone]);
+
+    allPositionalQuestion('(int)?', [intNone]);
+    allPositionalQuestion('(int?)?', [intQuestion]);
+    allPositionalQuestion('(int*)?', [intStar]);
+
+    allPositionalStar('(int)*', [intNone]);
+    allPositionalStar('(int?)*', [intQuestion]);
+    allPositionalStar('(int*)*', [intStar]);
 
     allPositional('(double, int)', [doubleNone, intNone]);
     allPositional('(int, double)', [intNone, doubleNone]);
@@ -447,12 +460,34 @@ mixin StringTypes on AbstractTypeSystemTest {
       mixed(str, const [], types);
     }
 
+    void allNamedQuestion(String str, Map<String, DartType> types) {
+      final type = recordTypeQuestion(
+        namedTypes: types,
+      );
+      _defineType(str, type);
+    }
+
+    void allNamedStar(String str, Map<String, DartType> types) {
+      final type = recordTypeStar(
+        namedTypes: types,
+      );
+      _defineType(str, type);
+    }
+
     allNamed('({double f1})', {'f1': doubleNone});
     allNamed('({int f1})', {'f1': intNone});
     allNamed('({int? f1})', {'f1': intQuestion});
     allNamed('({int* f1})', {'f1': intStar});
     allNamed('({num f1})', {'f1': numNone});
     allNamed('({int f2})', {'f2': intNone});
+
+    allNamedQuestion('({int f1})?', {'f1': intNone});
+    allNamedQuestion('({int? f1})?', {'f1': intQuestion});
+    allNamedQuestion('({int* f1})?', {'f1': intStar});
+
+    allNamedStar('({int f1})*', {'f1': intNone});
+    allNamedStar('({int? f1})*', {'f1': intQuestion});
+    allNamedStar('({int* f1})*', {'f1': intStar});
 
     allNamed('({double f1, int f2})', {'f1': doubleNone, 'f2': intNone});
     allNamed('({int f1, double f2})', {'f1': intNone, 'f2': doubleNone});

@@ -4166,24 +4166,20 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
     check(
       recordTypeNone(
-        element: recordElement(
-          namedFields: [
-            recordNamedField(name: 'f1', type: intNone),
-            recordNamedField(name: 'f2', type: intNone),
-            recordNamedField(name: 'f3', type: intNone),
-            recordNamedField(name: 'f4', type: intNone),
-          ],
-        ),
+        namedTypes: {
+          'f1': intNone,
+          'f2': intNone,
+          'f3': intNone,
+          'f4': intNone,
+        },
       ),
       recordTypeNone(
-        element: recordElement(
-          namedFields: [
-            recordNamedField(name: 'f4', type: intNone),
-            recordNamedField(name: 'f3', type: intNone),
-            recordNamedField(name: 'f2', type: intNone),
-            recordNamedField(name: 'f1', type: intNone),
-          ],
-        ),
+        namedTypes: {
+          'f4': intNone,
+          'f3': intNone,
+          'f2': intNone,
+          'f1': intNone,
+        },
       ),
     );
   }
