@@ -64,6 +64,15 @@ function dataViewFromDartByteData(byteData, byteLength) {
 // A special symbol attached to functions that wrap Dart functions.
 var jsWrappedDartFunctionSymbol = Symbol("JSWrappedDartFunction");
 
+// Calls a constructor with a variable number of arguments.
+function callConstructorVarArgs(constructor, args) {
+    // Apply bind to the constructor. We pass `null` as the first argument
+    // to `bind.apply` because this is `bind`'s unused context
+    // argument(`new` will explicitly create a new context).
+    var factoryFunction = constructor.bind.apply(constructor, [null, ...args]);
+    return new factoryFunction();
+}
+
 // Imports for printing and event loop
 var dart2wasm = {
     printToConsole: function(string) {
@@ -204,6 +213,9 @@ var dart2wasm = {
     isJSObject: function(o) {
         return o instanceof Object;
     },
+    isJSRegExp: function(o) {
+        return o instanceof RegExp;
+    },
     roundtrip: function (o) {
       // This function exists as a hook for the native JS -> Wasm type
       // conversion rules. The Dart runtime will overload variants of this
@@ -229,12 +241,13 @@ var dart2wasm = {
     callMethodVarArgs: function(object, name, args) {
         return object[name].apply(object, args);
     },
-    callConstructorVarArgs: function(constructor, args) {
-        // Apply bind to the constructor. We pass `null` as the first argument
-        // to `bind.apply` because this is `bind`'s unused context
-        // argument(`new` will explicitly create a new context).
-        var factoryFunction = constructor.bind.apply(constructor, [null, ...args]);
-        return new factoryFunction();
+    callConstructorVarArgs: callConstructorVarArgs,
+    safeCallConstructorVarArgs: function(constructor, args) {
+        try {
+            return callConstructorVarArgs(constructor, args);
+        } catch (e) {
+            return String(e);
+        }
     },
     getTimeZoneNameForSeconds: function(secondsSinceEpoch) {
         var date = new Date(secondsSinceEpoch * 1000);
@@ -297,6 +310,17 @@ var dart2wasm = {
           return NaN;
         }
         return parseFloat(jsSource);
+    },
+    quoteStringForRegExp: function(string) {
+        // We specialize this method in the runtime to avoid the overhead of
+        // jumping back and forth between JS and Dart. This method is optimized
+        // to test before replacement, which should be much faster. This might
+        // be worth measuring in real world use cases though.
+        var jsString = stringFromDartString(string);
+        if (/[[\]{}()*+?.\\^$|]/.test(jsString)) {
+            jsString = jsString.replace(/[[\]{}()*+?.\\^$|]/g, '\\$&');
+        }
+        return stringToDartString(jsString);
     },
 };
 
