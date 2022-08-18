@@ -656,13 +656,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
       HInstruction instruction = node.inputs.length == 2
           ? foldUnary(operation, node.inputs[1])
           : foldBinary(operation, node.inputs[1], node.inputs[2]);
-      if (instruction != null) return instruction;
+      if (instruction != null) {
+        _metrics.countOperationFolded.add();
+        return instruction;
+      }
     }
 
     // Try converting the instruction to a builtin instruction.
     HInstruction instruction = node.specializer.tryConvertToBuiltin(node,
         _graph, _globalInferenceResults, commonElements, _closedWorld, _log);
     if (instruction != null) {
+      _metrics.countSpecializations.add();
       return instruction;
     }
 
@@ -736,7 +740,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
     } else if (selector.isGetter) {
       if (commonElements.appliesToJsIndexableLength(selector)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
-        if (optimized != null) return optimized;
+        if (optimized != null) {
+          _metrics.countLengthOptimized.add();
+          return optimized;
+        }
       }
     }
 
@@ -1274,8 +1281,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction value = node.inputs[0];
     AbstractBool isLateSentinel = value.isLateSentinel(_abstractValueDomain);
     if (isLateSentinel.isDefinitelyTrue) {
+      _metrics.countLateSentinelCheckDecided.add();
       return _graph.addConstantBool(true, _closedWorld);
     } else if (isLateSentinel.isDefinitelyFalse) {
+      _metrics.countLateSentinelCheckDecided.add();
       return _graph.addConstantBool(false, _closedWorld);
     }
 
@@ -1320,9 +1329,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
     AbstractBool isTruthy =
         _abstractValueDomain.isTruthy(condition.instructionType);
     if (isTruthy.isDefinitelyTrue) {
+      _metrics.countConditionDecided.add();
       return _replaceHIfCondition(
           node, _graph.addConstantBool(true, _closedWorld));
     } else if (isTruthy.isDefinitelyFalse) {
+      _metrics.countConditionDecided.add();
       return _replaceHIfCondition(
           node, _graph.addConstantBool(false, _closedWorld));
     }
@@ -1443,12 +1454,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (constant is ConstructedConstantValue) {
         ConstantValue value = constant.fields[node.element];
         if (value != null) {
-          _metrics.countInlineConstantsDone.add();
+          _metrics.countFieldGetFolded.add();
           return _graph.addConstant(value, _closedWorld);
         }
       }
     }
-    _metrics.countInlineConstantsSkipped.add();
 
     return node;
   }
@@ -1460,12 +1470,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (receiver.isConstantList()) {
       HConstant constantReceiver = receiver;
       ListConstantValue constant = constantReceiver.constant;
+      _metrics.countGetLengthFolded.add();
       return _graph.addConstantInt(constant.length, _closedWorld);
     }
 
     if (receiver.isConstantString()) {
       HConstant constantReceiver = receiver;
       StringConstantValue constant = constantReceiver.constant;
+      _metrics.countGetLengthFolded.add();
       return _graph.addConstantInt(constant.length, _closedWorld);
     }
 
@@ -1474,6 +1486,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       int /*?*/ length = _abstractValueDomain.getContainerLength(receiverType);
       if (length != null) {
         HInstruction constant = _graph.addConstantInt(length, _closedWorld);
+        _metrics.countGetLengthFolded.add();
         if (_abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
           // If the container can be null, we update all uses of the length
           // access to use the constant instead, but keep the length access in
@@ -1510,6 +1523,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // be able to do with the broader type of [lengthInput].  We should
         // insert a HTypeKnown witnessed by the allocation to narrow the
         // lengthInput.
+        _metrics.countGetLengthFolded.add();
         return lengthInput;
       }
     }
@@ -1518,6 +1532,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         isFixedLength(receiver.instructionType, _closedWorld)) {
       // The input type has changed to fixed-length so change to an unassignable
       // HGetLength to allow more GVN optimizations.
+      _metrics.countGetLengthFolded.add();
       return HGetLength(receiver, node.instructionType, isAssignable: false);
     }
     return node;
@@ -1532,6 +1547,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         ConstantValue foldedValue =
             constant_system.index.fold(receiver.constant, index.constant);
         if (foldedValue != null) {
+          _metrics.countIndexFolded.add();
           return _graph.addConstant(foldedValue, _closedWorld);
         }
       }
@@ -1581,11 +1597,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
         ConstantValue constant = fieldData.constantValue;
         HConstant result = _graph.addConstant(constant, _closedWorld,
             sourceInformation: node.sourceInformation);
+        _metrics.countGettersElided.add();
         _log?.registerConstantFieldGet(node, field, result);
         return result;
       } else {
         receiver = maybeGuardWithNullCheck(receiver, node, field);
         HFieldGet result = _directFieldGet(receiver, field, node);
+        _metrics.countGettersInlined.add();
         _log?.registerFieldGet(node, result);
         return result;
       }
@@ -1658,12 +1676,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
       HInstruction assignField() {
         if (_closedWorld.fieldAnalysis.getFieldData(field).isElided) {
           _log?.registerFieldSet(node);
+          _metrics.countSettersElided.add();
           return value;
         } else {
           HFieldSet result =
               HFieldSet(_abstractValueDomain, field, receiver, value)
                 ..sourceInformation = node.sourceInformation;
           _log?.registerFieldSet(node, result);
+          _metrics.countSettersInlined.add();
           return result;
         }
       }
@@ -2101,9 +2121,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     AbstractBool result = node.evaluate(_closedWorld, _options);
     if (result.isDefinitelyFalse) {
+      _metrics.countIsTestDecided.add();
       return _graph.addConstantBool(false, _closedWorld);
     }
     if (result.isDefinitelyTrue) {
+      _metrics.countIsTestDecided.add();
       return _graph.addConstantBool(true, _closedWorld);
     }
 
@@ -2124,6 +2146,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (specialization != null) {
       AbstractValueWithPrecision checkedType = _abstractValueDomain
           .createFromStaticType(node.dartType, nullable: false);
+      _metrics.countIsTestSimplified.add();
       return HIsTestSimple(node.dartType, checkedType, specialization,
           node.checkedInput, _abstractValueDomain.boolType);
     }
@@ -2137,9 +2160,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitIsTestSimple(HIsTestSimple node) {
     AbstractBool result = node.evaluate(_closedWorld, _options);
     if (result.isDefinitelyFalse) {
+      _metrics.countIsTestDecided.add();
       return _graph.addConstantBool(false, _closedWorld);
     }
     if (result.isDefinitelyTrue) {
+      _metrics.countIsTestDecided.add();
       return _graph.addConstantBool(true, _closedWorld);
     }
     return node;
