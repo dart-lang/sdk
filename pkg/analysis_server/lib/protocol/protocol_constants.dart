@@ -8,7 +8,7 @@
 
 // ignore_for_file: constant_identifier_names
 
-const String PROTOCOL_VERSION = '1.33.2';
+const String PROTOCOL_VERSION = '1.33.3';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';

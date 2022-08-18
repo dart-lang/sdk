@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -139,6 +140,16 @@ class B extends A {
     var fix = fixes.first;
     expect(fix.code, 'unnecessary_new');
     expect(fix.occurrences, 2);
+  }
+
+  Future<void> test_undefinedDiagnostic() async {
+    addDiagnosticCode('foo_bar');
+    addTestFile('''
+''');
+
+    var request = _getRequest();
+    var response = await handleRequest(request);
+    expect(response.error?.message, "The diagnostic 'foo_bar' is undefined.");
   }
 }
 
@@ -395,9 +406,11 @@ abstract class BulkFixesTest extends PubPackageAnalysisServerTest {
   }
 
   Future<EditBulkFixesResult> _getBulkFixes() async {
-    var request =
-        EditBulkFixesParams([workspaceRoot.path], codes: codes).toRequest('0');
+    var request = _getRequest();
     var response = await handleSuccessfulRequest(request);
     return EditBulkFixesResult.fromResponse(response);
   }
+
+  Request _getRequest() =>
+      EditBulkFixesParams([workspaceRoot.path], codes: codes).toRequest('0');
 }

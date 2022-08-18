@@ -198,6 +198,11 @@ public class RequestErrorCode {
   public static final String SORT_MEMBERS_PARSE_ERRORS = "SORT_MEMBERS_PARSE_ERRORS";
 
   /**
+   * A request specified a diagnostic code that is undefined.
+   */
+  public static final String UNDEFINED_DIAGNOSTIC_CODE = "UNDEFINED_DIAGNOSTIC_CODE";
+
+  /**
    * A request was received which the analysis server does not recognize, or cannot handle in its
    * current configuration.
    */

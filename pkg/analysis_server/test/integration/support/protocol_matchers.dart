@@ -1447,6 +1447,7 @@ final Matcher isRequestError = LazyMatcher(() => MatchesJsonObject(
 ///   SERVER_ERROR
 ///   SORT_MEMBERS_INVALID_FILE
 ///   SORT_MEMBERS_PARSE_ERRORS
+///   UNDEFINED_DIAGNOSTIC_CODE
 ///   UNKNOWN_REQUEST
 ///   UNSUPPORTED_FEATURE
 /// }
@@ -1483,6 +1484,7 @@ final Matcher isRequestErrorCode = MatchesEnum('RequestErrorCode', [
   'SERVER_ERROR',
   'SORT_MEMBERS_INVALID_FILE',
   'SORT_MEMBERS_PARSE_ERRORS',
+  'UNDEFINED_DIAGNOSTIC_CODE',
   'UNKNOWN_REQUEST',
   'UNSUPPORTED_FEATURE'
 ]);

@@ -504,6 +504,13 @@ class Response {
             error: RequestError(RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS,
                 'Error during `edit.sortMembers`: file has $numErrors scan/parse errors.'));
 
+  /// Initialize a newly created instance to represent the
+  /// UNDEFINED_DIAGNOSTIC_CODE error condition.
+  Response.undefinedDiagnostic(Request request, String code)
+      : this(request.id,
+            error: RequestError(RequestErrorCode.UNDEFINED_DIAGNOSTIC_CODE,
+                "The diagnostic '$code' is undefined."));
+
   /// Initialize a newly created instance to represent an error condition caused
   /// by a [request] that cannot be handled by any known handlers.
   Response.unknownRequest(Request request)
