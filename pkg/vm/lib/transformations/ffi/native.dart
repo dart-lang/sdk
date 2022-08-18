@@ -258,7 +258,13 @@ class FfiNativeTransformer extends FfiTransformer {
               ExpressionStatement(StaticInvocation(
                 stateErrorThrowNewFunction,
                 Arguments([
-                  ConstantExpression(StringConstant('Native field is nullptr.'))
+                  ConstantExpression(StringConstant(
+                    'A Dart object attempted to access a native peer, '
+                    'but the native peer has been collected (nullptr). '
+                    'This is usually the result of calling methods on a '
+                    'native-backed object when the native resources have '
+                    'already been disposed.',
+                  ))
                 ]),
               )),
               EmptyStatement(),

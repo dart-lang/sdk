@@ -114,7 +114,7 @@ constants  {
   #C6 = 2
   #C7 = 175
   #C8 = 0
-  #C9 = "Native field is nullptr."
+  #C9 = "A Dart object attempted to access a native peer, but the native peer has been collected (nullptr). This is usually the result of calling methods on a native-backed object when the native resources have already been disposed."
   #C10 = true
   #C11 = 13
   #C12 = 37
