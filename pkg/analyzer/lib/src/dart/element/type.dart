@@ -1090,8 +1090,7 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   @override
   R acceptWithArgument<R, A>(
       TypeVisitorWithArgument<R, A> visitor, A argument) {
-    // TODO: implement acceptWithArgument
-    throw UnimplementedError();
+    return visitor.visitRecordType(this, argument);
   }
 
   @override
@@ -1100,9 +1099,16 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   }
 
   @override
-  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
-    // TODO: implement withNullability
-    throw UnimplementedError();
+  RecordTypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
+    if (this.nullabilitySuffix == nullabilitySuffix) {
+      return this;
+    }
+
+    return RecordTypeImpl(
+      element2: element2,
+      fieldTypes: fieldTypes,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 }
 

@@ -115,6 +115,50 @@ class RuntimeTypeEqualityVisitor
   }
 
   @override
+  bool visitRecordType(RecordType T1, DartType T2) {
+    if (T1 is! RecordTypeImpl || T2 is! RecordTypeImpl) {
+      return false;
+    }
+
+    if (!_compatibleNullability(T1, T2)) {
+      return false;
+    }
+
+    final positional1 = T1.positionalFields;
+    final positional2 = T2.positionalFields;
+    if (positional1.length != positional2.length) {
+      return false;
+    }
+
+    final named1 = T1.namedFields;
+    final named2 = T2.namedFields;
+    if (named1.length != named2.length) {
+      return false;
+    }
+
+    for (var i = 0; i < positional1.length; i++) {
+      final field1 = positional1[i];
+      final field2 = positional2[i];
+      if (!field1.type.acceptWithArgument(this, field2.type)) {
+        return false;
+      }
+    }
+
+    for (var i = 0; i < named1.length; i++) {
+      final field1 = named1[i];
+      final field2 = named2[i];
+      if (field1.name != field2.name) {
+        return false;
+      }
+      if (!field1.type.acceptWithArgument(this, field2.type)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  @override
   bool visitTypeParameterType(TypeParameterType T1, DartType T2) {
     return T2 is TypeParameterType &&
         _compatibleNullability(T1, T2) &&
