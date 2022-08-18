@@ -5393,6 +5393,41 @@ class C<T> {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49689')
+  Future<void> test_infer_late_with_cascaded_usage() async {
+    var content = '''
+class A {
+  B b;
+}
+class B {
+  void f() {}
+  void g() {}
+}
+foo(A a) {
+  a.b..f()..g();
+}
+bar(A a) {
+  a.b = B();
+}
+''';
+    var expected = '''
+class A {
+  late B b;
+}
+class B {
+  void f() {}
+  void g() {}
+}
+foo(A a) {
+  a.b..f()..g();
+}
+bar(A a) {
+  a.b = B();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39376')
   Future<void> test_infer_required() async {
     var content = '''
