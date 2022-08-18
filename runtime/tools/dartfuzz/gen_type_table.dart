@@ -913,8 +913,8 @@ void filterOperators(Set<InterfaceType> allTypes) {
 bool isExcludedMethod(InterfaceType tp, MethodElement method) {
   // TODO(bkonyi): Enable operator / for these types after we resolve
   // https://github.com/dart-lang/sdk/issues/39890
-  if (((tp.element.name == 'Float32x4') && (method.name == '/')) ||
-      ((tp.element.name == 'Float64x2') && (method.name == '/'))) {
+  if (((tp.element2.name == 'Float32x4') && (method.name == '/')) ||
+      ((tp.element2.name == 'Float64x2') && (method.name == '/'))) {
     return true;
   }
   return false;
@@ -1107,7 +1107,7 @@ bool shouldFilterConstructor(InterfaceType tp, ConstructorElement cons) {
   // Constructor exclude list
   // TODO(bkonyi): Enable Float32x4.fromInt32x4Bits after we resolve
   // https://github.com/dart-lang/sdk/issues/39890
-  if ((tp.element.name == 'Float32x4') && (cons.name == 'fromInt32x4Bits')) {
+  if ((tp.element2.name == 'Float32x4') && (cons.name == 'fromInt32x4Bits')) {
     return true;
   }
   return false;
@@ -1231,7 +1231,7 @@ Set<InterfaceType> instantiatePTypes(
       } else {
         return;
       }
-      InterfaceType ptx = pType.element.instantiate(
+      InterfaceType ptx = pType.element2.instantiate(
         typeArguments: [iType],
         nullabilitySuffix: NullabilitySuffix.star,
       );
@@ -1252,7 +1252,7 @@ Set<InterfaceType> instantiatePTypes(
         } else {
           return;
         }
-        InterfaceType ptx = pType.element.instantiate(
+        InterfaceType ptx = pType.element2.instantiate(
           typeArguments: [iType1, iType2],
           nullabilitySuffix: NullabilitySuffix.star,
         );
@@ -1286,7 +1286,7 @@ Set<InterfaceType> instantiateAllTypes(
   // complex types like Int8List.
   var filteredITypes = <InterfaceType>{};
   for (var iType in iTypes) {
-    if (iTypeFilter.contains(iType.element.name)) {
+    if (iTypeFilter.contains(iType.element2.name)) {
       filteredITypes.add(iType);
     }
   }
@@ -1309,7 +1309,7 @@ Set<InterfaceType> instantiateAllTypes(
 // Heuristic of which types to include:
 // count the number of operators and
 // check if the type can be constructed from a literal.
-int countOperators(ClassElement ce) {
+int countOperators(InterfaceElement ce) {
   var no = 0;
   ce.methods.forEach((method) {
     if (method.isOperator) {
@@ -1324,7 +1324,7 @@ int countOperators(ClassElement ce) {
       no += 100;
     }
     for (var ci in ce.interfaces) {
-      no += countOperators(ci.element);
+      no += countOperators(ci.element2);
     }
   });
   return no;
@@ -1429,7 +1429,7 @@ void getInterfaceRels(Set<InterfaceType> allTypes) {
         iterableTypes1.add(typName);
       }
     }
-    for (var it in tp.element.allSupertypes) {
+    for (var it in tp.element2.allSupertypes) {
       var ifTypName = typeConstName(it);
       interfaceRels[ifTypName] ??= <String>{};
       interfaceRels[ifTypName]!.add(typName);

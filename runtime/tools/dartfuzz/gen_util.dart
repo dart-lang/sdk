@@ -61,15 +61,15 @@ extension DartTypeExtension on DartType {
       final typeArguments = type.typeArguments;
       if (typeArguments.isEmpty ||
           typeArguments.every((t) => t is DynamicType)) {
-        return type.element.name;
+        return type.element2.name;
       } else {
         final typeArgumentsStr = typeArguments.map((t) => t.asCode).join(', ');
-        return '${type.element.name}<$typeArgumentsStr>';
+        return '${type.element2.name}<$typeArgumentsStr>';
       }
     } else if (type is NeverType) {
       return 'Never';
     } else if (type is TypeParameterType) {
-      return type.element.name;
+      return type.element2.name;
     } else if (type is VoidType) {
       return 'void';
     } else {
