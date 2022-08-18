@@ -1057,11 +1057,6 @@ bool StrictCompareInstr::AttributesEqual(const Instruction& other) const {
          (needs_number_check() == other_op->needs_number_check());
 }
 
-const RuntimeEntry& CaseInsensitiveCompareInstr::TargetFunction() const {
-  return handle_surrogates_ ? kCaseInsensitiveCompareUTF16RuntimeEntry
-                            : kCaseInsensitiveCompareUCS2RuntimeEntry;
-}
-
 bool MathMinMaxInstr::AttributesEqual(const Instruction& other) const {
   auto const other_op = other.AsMathMinMax();
   ASSERT(other_op != NULL);
@@ -3148,10 +3143,10 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
     }
   }
 
-  if ((SpeculativeModeOfInput(0) == kGuardInputs) && !ComputeCanDeoptimize()) {
+  if ((speculative_mode_ == kGuardInputs) && !ComputeCanDeoptimize()) {
     // Remember if we ever learn out input doesn't require checking, as
     // the input Value might be later changed that would make us forget.
-    set_speculative_mode(kNotSpeculative);
+    speculative_mode_ = kNotSpeculative;
   }
 
   return this;

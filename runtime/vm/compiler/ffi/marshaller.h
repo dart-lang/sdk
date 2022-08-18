@@ -131,7 +131,6 @@ class BaseMarshaller : public ZoneAllocated {
 
   bool ContainsHandles() const;
 
-  const Function& dart_signature() const { return dart_signature_; }
   StringPtr function_name() const { return dart_signature_.name(); }
 
  protected:

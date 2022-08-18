@@ -1478,9 +1478,6 @@ class Class : public Object {
   void AddField(const Field& field) const;
   void AddFields(const GrowableArray<const Field*>& fields) const;
 
-  intptr_t FindFieldIndex(const Field& needle) const;
-  FieldPtr FieldFromIndex(intptr_t idx) const;
-
   // If this is a dart:internal.ClassID class, then inject our own const
   // fields. Returns true if synthetic fields are injected and regular
   // field declarations should be ignored.
@@ -1508,7 +1505,6 @@ class Class : public Object {
   }
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
-  intptr_t FindFunctionIndex(const Function& needle) const;
   FunctionPtr FunctionFromIndex(intptr_t idx) const;
   intptr_t FindImplicitClosureFunctionIndex(const Function& needle) const;
   FunctionPtr ImplicitClosureFunctionFromIndex(intptr_t idx) const;
@@ -7776,8 +7772,6 @@ class Instance : public Object {
   friend class Closure;
   friend class Pointer;
   friend class DeferredObject;
-  friend class FlowGraphSerializer;
-  friend class FlowGraphDeserializer;
   friend class RegExp;
   friend class StubCode;
   friend class TypedDataView;
@@ -7904,8 +7898,6 @@ class TypeParameters : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeParameters, Object);
   friend class Class;
   friend class ClassFinalizer;
-  friend class FlowGraphSerializer;
-  friend class FlowGraphDeserializer;
   friend class Function;
   friend class FunctionType;
   friend class Object;
@@ -9919,7 +9911,6 @@ class OneByteString : public AllStatic {
 
   friend class Class;
   friend class ExternalOneByteString;
-  friend class FlowGraphSerializer;
   friend class ImageWriter;
   friend class String;
   friend class StringHasher;
@@ -10040,7 +10031,6 @@ class TwoByteString : public AllStatic {
   }
 
   friend class Class;
-  friend class FlowGraphSerializer;
   friend class ImageWriter;
   friend class String;
   friend class StringHasher;

@@ -61,8 +61,6 @@ class SelectorMap {
   // not have a selector assigned.
   const TableSelector* GetSelector(const Function& interface_target) const;
 
-  const TableSelector* GetSelector(int32_t sid) const;
-
  private:
   static const int32_t kInvalidSelectorId =
       kernel::ProcedureAttributesMetadata::kInvalidSelectorId;

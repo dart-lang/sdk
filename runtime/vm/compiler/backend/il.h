@@ -11,13 +11,11 @@
 
 #include <memory>
 #include <tuple>
-#include <type_traits>
 #include <utility>
 
 #include "vm/allocation.h"
 #include "vm/code_descriptors.h"
 #include "vm/compiler/backend/compile_type.h"
-#include "vm/compiler/backend/il_serializer.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/slot.h"
 #include "vm/compiler/compiler_pass.h"
@@ -590,63 +588,6 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
   DECLARE_INSTRUCTION_NO_BACKEND(type)                                         \
   DECLARE_COMPARISON_METHODS
 
-template <typename T, bool is_enum>
-struct unwrap_enum {};
-
-template <typename T>
-struct unwrap_enum<T, true> {
-  using type = std::underlying_type_t<T>;
-};
-
-template <typename T>
-struct unwrap_enum<T, false> {
-  using type = T;
-};
-
-template <typename T>
-using serializable_type_t =
-    typename unwrap_enum<std::remove_cv_t<T>, std::is_enum<T>::value>::type;
-
-#define WRITE_INSTRUCTION_FIELD(type, name)                                    \
-  s->Write<serializable_type_t<type>>(                                         \
-      static_cast<serializable_type_t<type>>(name));
-#define READ_INSTRUCTION_FIELD(type, name)                                     \
-  , name(static_cast<std::remove_cv_t<type>>(                                  \
-        d->Read<serializable_type_t<type>>()))
-#define DECLARE_INSTRUCTION_FIELD(type, name) type name;
-
-// Every instruction class should declare its serialization via
-// DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS, DECLARE_EMPTY_SERIALIZATION
-// or DECLARE_CUSTOM_SERIALIZATION.
-// If instruction class has fields which reference other instructions,
-// then it should also use DECLARE_EXTRA_SERIALIZATION and serialize
-// those references in WriteExtra/ReadExtra methods.
-#define DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(Instr, BaseClass, FieldList)   \
- public:                                                                       \
-  virtual void WriteTo(FlowGraphSerializer* s) {                               \
-    BaseClass::WriteTo(s);                                                     \
-    FieldList(WRITE_INSTRUCTION_FIELD)                                         \
-  }                                                                            \
-  explicit Instr(FlowGraphDeserializer* d)                                     \
-      : BaseClass(d) FieldList(READ_INSTRUCTION_FIELD) {}                      \
-                                                                               \
- private:                                                                      \
-  FieldList(DECLARE_INSTRUCTION_FIELD)
-
-#define DECLARE_CUSTOM_SERIALIZATION(Instr)                                    \
- public:                                                                       \
-  virtual void WriteTo(FlowGraphSerializer* s);                                \
-  explicit Instr(FlowGraphDeserializer* d);
-
-#define DECLARE_EMPTY_SERIALIZATION(Instr, BaseClass)                          \
- public:                                                                       \
-  explicit Instr(FlowGraphDeserializer* d) : BaseClass(d) {}
-
-#define DECLARE_EXTRA_SERIALIZATION                                            \
- public:                                                                       \
-  virtual void WriteExtra(FlowGraphSerializer* s);                             \
-  virtual void ReadExtra(FlowGraphDeserializer* d);
-
 #if defined(INCLUDE_IL_PRINTER)
 #define PRINT_TO_SUPPORT virtual void PrintTo(BaseTextBuffer* f) const;
 #define PRINT_OPERANDS_TO_SUPPORT                                              \
@@ -774,9 +715,6 @@ class CallTargets : public Cids {
     }
     return true;
   }
-
-  void Write(FlowGraphSerializer* s) const;
-  explicit CallTargets(FlowGraphDeserializer* d);
 
  private:
   void CreateHelper(Zone* zone, const ICData& ic_data);
@@ -1332,9 +1270,6 @@ class Instruction : public ZoneAllocated {
     return Location::kRegister;
   }
 
-  DECLARE_CUSTOM_SERIALIZATION(Instruction)
-  DECLARE_EXTRA_SERIALIZATION
-
  protected:
   // GetDeoptId and/or CopyDeoptIdFrom.
   friend class CallSiteInliner;
@@ -1352,12 +1287,6 @@ class Instruction : public ZoneAllocated {
   void CopyDeoptIdFrom(const Instruction& instr) {
     deopt_id_ = instr.deopt_id_;
   }
-
-  // Write/read locs and environment, but not inputs.
-  // Used when one instruction embeds another and reuses their inputs
-  // (e.g. Branch/IfThenElse/CheckCondition wrap Comparison).
-  void WriteExtraWithoutInputs(FlowGraphSerializer* s);
-  void ReadExtraWithoutInputs(FlowGraphDeserializer* d);
 
  private:
   friend class BranchInstr;          // For RawSetInputAt.
@@ -1411,8 +1340,6 @@ class PureInstruction : public Instruction {
 
   virtual bool AllowsCSE() const { return true; }
   virtual bool HasUnknownSideEffects() const { return false; }
-
-  DECLARE_EMPTY_SERIALIZATION(PureInstruction, Instruction)
 };
 
 // Types to be used as ThrowsTrait for TemplateInstruction/TemplateDefinition.
@@ -1456,8 +1383,6 @@ class TemplateInstruction
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
 
   virtual bool MayThrow() const { return ThrowsTrait::kCanThrow; }
-
-  DECLARE_EMPTY_SERIALIZATION(TemplateInstruction, BaseClass)
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
@@ -1559,8 +1484,6 @@ class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
   }
 
   PRINT_TO_SUPPORT
-  DECLARE_EMPTY_SERIALIZATION(ParallelMoveInstr, TemplateInstruction)
-  DECLARE_EXTRA_SERIALIZATION
 
  private:
   GrowableArray<MoveOperands*> moves_;  // Elements cannot be null.
@@ -1700,9 +1623,6 @@ class BlockEntryInstr : public TemplateInstruction<0, NoThrow> {
   InstructionsIterable instructions() { return InstructionsIterable(this); }
 
   DECLARE_ABSTRACT_INSTRUCTION(BlockEntry)
-
-  DECLARE_CUSTOM_SERIALIZATION(BlockEntryInstr)
-  DECLARE_EXTRA_SERIALIZATION
 
  protected:
   BlockEntryInstr(intptr_t block_id,
@@ -1854,9 +1774,6 @@ class BlockEntryWithInitialDefs : public BlockEntryInstr {
     return this;
   }
 
-  DECLARE_CUSTOM_SERIALIZATION(BlockEntryWithInitialDefs)
-  DECLARE_EXTRA_SERIALIZATION
-
  protected:
   void PrintInitialDefinitionsTo(BaseTextBuffer* f) const;
 
@@ -1939,8 +1856,6 @@ class GraphEntryInstr : public BlockEntryWithInitialDefs {
   }
 
   PRINT_TO_SUPPORT
-  DECLARE_CUSTOM_SERIALIZATION(GraphEntryInstr)
-  DECLARE_EXTRA_SERIALIZATION
 
  private:
   GraphEntryInstr(const ParsedFunction& parsed_function,
@@ -1973,9 +1888,8 @@ class JoinEntryInstr : public BlockEntryInstr {
                  intptr_t deopt_id,
                  intptr_t stack_depth = 0)
       : BlockEntryInstr(block_id, try_index, deopt_id, stack_depth),
-        phis_(nullptr),
-        predecessors_(2)  // Two is the assumed to be the common case.
-  {}
+        predecessors_(2),  // Two is the assumed to be the common case.
+        phis_(NULL) {}
 
   DECLARE_INSTRUCTION(JoinEntry)
 
@@ -1999,14 +1913,6 @@ class JoinEntryInstr : public BlockEntryInstr {
 
   PRINT_TO_SUPPORT
 
-#define FIELD_LIST(F) F(ZoneGrowableArray<PhiInstr*>*, phis_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(JoinEntryInstr,
-                                          BlockEntryInstr,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-  DECLARE_EXTRA_SERIALIZATION
-
  private:
   // Classes that have access to predecessors_ when inlining.
   friend class BlockEntryInstr;
@@ -2022,6 +1928,7 @@ class JoinEntryInstr : public BlockEntryInstr {
   virtual void AddPredecessor(BlockEntryInstr* predecessor);
 
   GrowableArray<BlockEntryInstr*> predecessors_;
+  ZoneGrowableArray<PhiInstr*>* phis_;
 
   DISALLOW_COPY_AND_ASSIGN(JoinEntryInstr);
 };
@@ -2054,6 +1961,7 @@ class TargetEntryInstr : public BlockEntryInstr {
                    intptr_t deopt_id,
                    intptr_t stack_depth = 0)
       : BlockEntryInstr(block_id, try_index, deopt_id, stack_depth),
+        predecessor_(NULL),
         edge_weight_(0.0) {}
 
   DECLARE_INSTRUCTION(TargetEntry)
@@ -2072,12 +1980,6 @@ class TargetEntryInstr : public BlockEntryInstr {
 
   PRINT_TO_SUPPORT
 
-#define FIELD_LIST(F) F(double, edge_weight_)
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TargetEntryInstr,
-                                          BlockEntryInstr,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
   friend class BlockEntryInstr;  // Access to predecessor_ when inlining.
 
@@ -2087,8 +1989,8 @@ class TargetEntryInstr : public BlockEntryInstr {
     predecessor_ = predecessor;
   }
 
-  // Not serialized, set in DiscoverBlocks.
-  BlockEntryInstr* predecessor_ = nullptr;
+  BlockEntryInstr* predecessor_;
+  double edge_weight_;
 
   DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
 };
@@ -2127,7 +2029,6 @@ class FunctionEntryInstr : public BlockEntryWithInitialDefs {
   GraphEntryInstr* graph_entry() const { return graph_entry_; }
 
   PRINT_TO_SUPPORT
-  DECLARE_CUSTOM_SERIALIZATION(FunctionEntryInstr)
 
  private:
   virtual void ClearPredecessors() { graph_entry_ = nullptr; }
@@ -2161,19 +2062,13 @@ class NativeEntryInstr : public FunctionEntryInstr {
 
   PRINT_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const intptr_t, callback_id_)                                              \
-  F(const compiler::ffi::CallbackMarshaller&, marshaller_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(NativeEntryInstr,
-                                          FunctionEntryInstr,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
   void SaveArguments(FlowGraphCompiler* compiler) const;
   void SaveArgument(FlowGraphCompiler* compiler,
                     const compiler::ffi::NativeLocation& loc) const;
+
+  const intptr_t callback_id_;
+  const compiler::ffi::CallbackMarshaller& marshaller_;
 };
 
 // Represents an OSR entrypoint to a function.
@@ -2202,7 +2097,6 @@ class OsrEntryInstr : public BlockEntryWithInitialDefs {
   GraphEntryInstr* graph_entry() const { return graph_entry_; }
 
   PRINT_TO_SUPPORT
-  DECLARE_CUSTOM_SERIALIZATION(OsrEntryInstr)
 
  private:
   virtual void ClearPredecessors() { graph_entry_ = nullptr; }
@@ -2231,12 +2125,8 @@ class IndirectEntryInstr : public JoinEntryInstr {
 
   PRINT_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const intptr_t, indirect_id_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(IndirectEntryInstr,
-                                          JoinEntryInstr,
-                                          FIELD_LIST)
-#undef FIELD_LIST
+ private:
+  const intptr_t indirect_id_;
 };
 
 class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
@@ -2297,7 +2187,6 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
   intptr_t catch_try_index() const { return catch_try_index_; }
 
   PRINT_TO_SUPPORT
-  DECLARE_CUSTOM_SERIALIZATION(CatchBlockEntryInstr)
 
  private:
   friend class BlockEntryInstr;  // Access to predecessor_ when inlining.
@@ -2312,6 +2201,7 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
   BlockEntryInstr* predecessor_;
   const Array& catch_handler_types_;
   const intptr_t catch_try_index_;
+  GrowableArray<Definition*> initial_definitions_;
   const LocalVariable* exception_var_;
   const LocalVariable* stacktrace_var_;
   const LocalVariable* raw_exception_var_;
@@ -2375,9 +2265,6 @@ class AliasIdentity : public ValueObject {
     value_ = other.value_;
     return *this;
   }
-
-  void Write(FlowGraphSerializer* s) const;
-  explicit AliasIdentity(FlowGraphDeserializer* d);
 
  private:
   explicit AliasIdentity(intptr_t value) : value_(value) {}
@@ -2573,8 +2460,6 @@ class Definition : public Instruction {
   virtual Definition* AsDefinition() { return this; }
   virtual const Definition* AsDefinition() const { return this; }
 
-  DECLARE_CUSTOM_SERIALIZATION(Definition)
-
  protected:
   friend class RangeAnalysis;
   friend class Value;
@@ -2625,8 +2510,6 @@ class PureDefinition : public Definition {
 
   virtual bool AllowsCSE() const { return true; }
   virtual bool HasUnknownSideEffects() const { return false; }
-
-  DECLARE_EMPTY_SERIALIZATION(PureDefinition, Definition)
 };
 
 template <intptr_t N,
@@ -2647,7 +2530,6 @@ class TemplateDefinition : public CSETrait<Definition, PureDefinition>::Base {
 
   virtual bool MayThrow() const { return ThrowsTrait::kCanThrow; }
 
-  DECLARE_EMPTY_SERIALIZATION(TemplateDefinition, BaseClass)
  protected:
   EmbeddedArray<Value*, N> inputs_;
 
@@ -2689,8 +2571,6 @@ class VariadicDefinition : public Definition {
 
   intptr_t InputCount() const { return inputs_.length(); }
   Value* InputAt(intptr_t i) const { return inputs_[i]; }
-
-  DECLARE_CUSTOM_SERIALIZATION(VariadicDefinition)
 
  protected:
   InputsArray inputs_;
@@ -2768,7 +2648,6 @@ class PhiInstr : public VariadicDefinition {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   PRINT_TO_SUPPORT
-  DECLARE_CUSTOM_SERIALIZATION(PhiInstr)
 
   enum ReceiverType { kUnknownReceiver = -1, kNotReceiver = 0, kReceiver = 1 };
 
@@ -2843,23 +2722,17 @@ class ParameterInstr : public TemplateDefinition<0, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const intptr_t, index_)                                                    \
-  /* The offset (in words) of the last slot of the parameter, relative */      \
-  /* to the first parameter. */                                                \
-  /* It is used in the FlowGraphAllocator when it sets the assigned */         \
-  /* location and spill slot for the parameter definition. */                  \
-  F(const intptr_t, param_offset_)                                             \
-  F(const Register, base_reg_)                                                 \
-  F(const Representation, representation_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ParameterInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
-  BlockEntryInstr* block_ = nullptr;
+  const intptr_t index_;
+
+  // The offset (in words) of the last slot of the parameter, relative
+  // to the first parameter.
+  // It is used in the FlowGraphAllocator when it sets the assigned location
+  // and spill slot for the parameter definition.
+  const intptr_t param_offset_;
+  const Register base_reg_;
+  const Representation representation_;
+  BlockEntryInstr* block_;
 
   DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
 };
@@ -2892,16 +2765,10 @@ class NativeParameterInstr : public TemplateDefinition<0, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const compiler::ffi::CallbackMarshaller&, marshaller_)                     \
-  F(const intptr_t, def_index_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(NativeParameterInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const compiler::ffi::CallbackMarshaller& marshaller_;
+  const intptr_t def_index_;
+
   DISALLOW_COPY_AND_ASSIGN(NativeParameterInstr);
 };
 
@@ -2948,14 +2815,9 @@ class StoreIndexedUnsafeInstr : public TemplateInstruction<2, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const intptr_t, offset_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(StoreIndexedUnsafeInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const intptr_t offset_;
+
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedUnsafeInstr);
 };
 
@@ -3003,16 +2865,10 @@ class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const intptr_t, offset_)                                                   \
-  F(const Representation, representation_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(LoadIndexedUnsafeInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const intptr_t offset_;
+  const Representation representation_;
+
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedUnsafeInstr);
 };
 
@@ -3065,16 +2921,6 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   Value* dest_start() const { return inputs_[kDestStartPos]; }
   Value* length() const { return inputs_[kLengthPos]; }
 
-#define FIELD_LIST(F)                                                          \
-  F(classid_t, src_cid_)                                                       \
-  F(classid_t, dest_cid_)                                                      \
-  F(intptr_t, element_size_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MemoryCopyInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
   // Set array_reg to point to the index indicated by start (contained in
   // start_reg) of the typed data or string in array (contained in array_reg).
@@ -3098,6 +2944,10 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
         return false;
     }
   }
+
+  classid_t src_cid_;
+  classid_t dest_cid_;
+  intptr_t element_size_;
 
   DISALLOW_COPY_AND_ASSIGN(MemoryCopyInstr);
 };
@@ -3133,14 +2983,9 @@ class TailCallInstr : public TemplateInstruction<1, Throws, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const Code&, code_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TailCallInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const Code& code_;
+
   DISALLOW_COPY_AND_ASSIGN(TailCallInstr);
 };
 
@@ -3174,14 +3019,9 @@ class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const Representation, representation_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(PushArgumentInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const Representation representation_;
+
   DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
 };
 
@@ -3249,17 +3089,11 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const TokenPosition, token_pos_)                                           \
-  F(const intptr_t, yield_index_)                                              \
-  F(const Representation, representation_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ReturnInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const TokenPosition token_pos_;
+  const intptr_t yield_index_;
+  const Representation representation_;
+
   const Code& GetReturnStub(FlowGraphCompiler* compiler) const;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
@@ -3289,14 +3123,9 @@ class NativeReturnInstr : public ReturnInstr {
     return false;
   }
 
-#define FIELD_LIST(F) F(const compiler::ffi::CallbackMarshaller&, marshaller_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(NativeReturnInstr,
-                                          ReturnInstr,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const compiler::ffi::CallbackMarshaller& marshaller_;
+
   void EmitReturnMoves(FlowGraphCompiler* compiler);
 
   DISALLOW_COPY_AND_ASSIGN(NativeReturnInstr);
@@ -3322,14 +3151,9 @@ class ThrowInstr : public TemplateInstruction<1, Throws> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
-#define FIELD_LIST(F) F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ThrowInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const TokenPosition token_pos_;
+
   DISALLOW_COPY_AND_ASSIGN(ThrowInstr);
 };
 
@@ -3362,16 +3186,10 @@ class ReThrowInstr : public TemplateInstruction<2, Throws> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
-#define FIELD_LIST(F)                                                          \
-  F(const TokenPosition, token_pos_)                                           \
-  F(const intptr_t, catch_try_index_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ReThrowInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const TokenPosition token_pos_;
+  const intptr_t catch_try_index_;
+
   DISALLOW_COPY_AND_ASSIGN(ReThrowInstr);
 };
 
@@ -3389,14 +3207,9 @@ class StopInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
-#define FIELD_LIST(F) F(const char*, message_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(StopInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const char* message_;
+
   DISALLOW_COPY_AND_ASSIGN(StopInstr);
 };
 
@@ -3404,9 +3217,10 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
  public:
   explicit GotoInstr(JoinEntryInstr* entry, intptr_t deopt_id)
       : TemplateInstruction(deopt_id),
+        block_(NULL),
+        successor_(entry),
         edge_weight_(0.0),
-        parallel_move_(nullptr),
-        successor_(entry) {}
+        parallel_move_(NULL) {}
 
   DECLARE_INSTRUCTION(Goto)
 
@@ -3456,23 +3270,14 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
 
   PRINT_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(double, edge_weight_)                                                      \
-  /* Parallel move that will be used by linear scan register allocator to */   \
-  /* connect live ranges at the end of the block and resolve phis. */          \
-  F(ParallelMoveInstr*, parallel_move_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(GotoInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-  DECLARE_EXTRA_SERIALIZATION
-
  private:
-  BlockEntryInstr* block_ = nullptr;
-  JoinEntryInstr* successor_ = nullptr;
+  BlockEntryInstr* block_;
+  JoinEntryInstr* successor_;
+  double edge_weight_;
 
-  DISALLOW_COPY_AND_ASSIGN(GotoInstr);
+  // Parallel move that will be used by linear scan register allocator to
+  // connect live ranges at the end of the block and resolve phis.
+  ParallelMoveInstr* parallel_move_;
 };
 
 // IndirectGotoInstr represents a dynamically computed jump. Only
@@ -3534,14 +3339,9 @@ class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
 
   PRINT_TO_SUPPORT
 
-  DECLARE_CUSTOM_SERIALIZATION(IndirectGotoInstr)
-  DECLARE_EXTRA_SERIALIZATION
-
  private:
   GrowableArray<TargetEntryInstr*> successors_;
   const TypedData& offsets_;
-
-  DISALLOW_COPY_AND_ASSIGN(IndirectGotoInstr);
 };
 
 class ComparisonInstr : public Definition {
@@ -3593,17 +3393,6 @@ class ComparisonInstr : public Definition {
 
   DECLARE_ABSTRACT_INSTRUCTION(Comparison)
 
-#define FIELD_LIST(F)                                                          \
-  F(const TokenPosition, token_pos_)                                           \
-  F(Token::Kind, kind_)                                                        \
-  /* Set by optimizer. */                                                      \
-  F(intptr_t, operation_cid_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ComparisonInstr,
-                                          Definition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  protected:
   ComparisonInstr(const InstructionSource& source,
                   Token::Kind kind,
@@ -3614,6 +3403,10 @@ class ComparisonInstr : public Definition {
         operation_cid_(kIllegalCid) {}
 
  private:
+  const TokenPosition token_pos_;
+  Token::Kind kind_;
+  intptr_t operation_cid_;  // Set by optimizer.
+
   DISALLOW_COPY_AND_ASSIGN(ComparisonInstr);
 };
 
@@ -3622,7 +3415,6 @@ class PureComparison : public ComparisonInstr {
   virtual bool AllowsCSE() const { return true; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  DECLARE_EMPTY_SERIALIZATION(PureComparison, ComparisonInstr)
  protected:
   PureComparison(const InstructionSource& source,
                  Token::Kind kind,
@@ -3636,19 +3428,16 @@ template <intptr_t N,
 class TemplateComparison
     : public CSETrait<ComparisonInstr, PureComparison>::Base {
  public:
-  using BaseClass = typename CSETrait<ComparisonInstr, PureComparison>::Base;
-
   TemplateComparison(const InstructionSource& source,
                      Token::Kind kind,
                      intptr_t deopt_id = DeoptId::kNone)
-      : BaseClass(source, kind, deopt_id), inputs_() {}
+      : CSETrait<ComparisonInstr, PureComparison>::Base(source, kind, deopt_id),
+        inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
 
   virtual bool MayThrow() const { return ThrowsTrait::kCanThrow; }
-
-  DECLARE_EMPTY_SERIALIZATION(TemplateComparison, BaseClass)
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
@@ -3660,7 +3449,7 @@ class TemplateComparison
 class BranchInstr : public Instruction {
  public:
   explicit BranchInstr(ComparisonInstr* comparison, intptr_t deopt_id)
-      : Instruction(deopt_id), comparison_(comparison) {
+      : Instruction(deopt_id), comparison_(comparison), constant_target_(NULL) {
     ASSERT(comparison->env() == NULL);
     for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
       comparison->InputAt(i)->set_instruction(this);
@@ -3740,20 +3529,15 @@ class BranchInstr : public Instruction {
 
   PRINT_TO_SUPPORT
 
-#define FIELD_LIST(F) F(ComparisonInstr*, comparison_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(BranchInstr, Instruction, FIELD_LIST)
-#undef FIELD_LIST
-  DECLARE_EXTRA_SERIALIZATION
-
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     comparison()->RawSetInputAt(i, value);
   }
 
-  TargetEntryInstr* true_successor_ = nullptr;
-  TargetEntryInstr* false_successor_ = nullptr;
-  TargetEntryInstr* constant_target_ = nullptr;
+  TargetEntryInstr* true_successor_;
+  TargetEntryInstr* false_successor_;
+  ComparisonInstr* comparison_;
+  TargetEntryInstr* constant_target_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };
@@ -3769,14 +3553,9 @@ class DeoptimizeInstr : public TemplateInstruction<0, NoThrow, Pure> {
 
   DECLARE_INSTRUCTION(Deoptimize)
 
-#define FIELD_LIST(F) F(const ICData::DeoptReasonId, deopt_reason_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(DeoptimizeInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const ICData::DeoptReasonId deopt_reason_;
+
   DISALLOW_COPY_AND_ASSIGN(DeoptimizeInstr);
 };
 
@@ -3805,14 +3584,8 @@ class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(CompileType*, constrained_type_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(RedefinitionInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  CompileType* constrained_type_;
   DISALLOW_COPY_AND_ASSIGN(RedefinitionInstr);
 };
 
@@ -3836,15 +3609,14 @@ class ReachabilityFenceInstr : public TemplateInstruction<1, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-  DECLARE_EMPTY_SERIALIZATION(ReachabilityFenceInstr, TemplateInstruction)
-
  private:
   DISALLOW_COPY_AND_ASSIGN(ReachabilityFenceInstr);
 };
 
 class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  ConstraintInstr(Value* value, Range* constraint) : constraint_(constraint) {
+  ConstraintInstr(Value* value, Range* constraint)
+      : constraint_(constraint), target_(NULL) {
     SetInputAt(0, value);
   }
 
@@ -3874,16 +3646,9 @@ class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(Range*, constraint_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ConstraintInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-  DECLARE_EXTRA_SERIALIZATION
-
  private:
-  TargetEntryInstr* target_ = nullptr;
+  Range* constraint_;
+  TargetEntryInstr* target_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstraintInstr);
 };
@@ -3935,16 +3700,10 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const Object&, value_)                                                     \
-  F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ConstantInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const Object& value_;
+  const TokenPosition token_pos_;
+
   DISALLOW_COPY_AND_ASSIGN(ConstantInstr);
 };
 
@@ -3962,7 +3721,6 @@ class UnboxedConstantInstr : public ConstantInstr {
   uword constant_address() const { return constant_address_; }
 
   DECLARE_INSTRUCTION(UnboxedConstant)
-  DECLARE_CUSTOM_SERIALIZATION(UnboxedConstantInstr)
 
  private:
   const Representation representation_;
@@ -4027,14 +3785,9 @@ class AssertSubtypeInstr : public TemplateInstruction<5, Throws, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AssertSubtypeInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const TokenPosition token_pos_;
+
   DISALLOW_COPY_AND_ASSIGN(AssertSubtypeInstr);
 };
 
@@ -4128,17 +3881,11 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const TokenPosition, token_pos_)                                           \
-  F(const String&, dst_name_)                                                  \
-  F(const Kind, kind_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AssertAssignableInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const TokenPosition token_pos_;
+  const String& dst_name_;
+  const Kind kind_;
+
   DISALLOW_COPY_AND_ASSIGN(AssertAssignableInstr);
 };
 
@@ -4173,14 +3920,9 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AssertBooleanInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const TokenPosition token_pos_;
+
   DISALLOW_COPY_AND_ASSIGN(AssertBooleanInstr);
 };
 
@@ -4232,16 +3974,9 @@ class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const SpecialParameterKind, kind_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(SpecialParameterInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-  DECLARE_EXTRA_SERIALIZATION
-
  private:
-  BlockEntryInstr* block_ = nullptr;
+  const SpecialParameterKind kind_;
+  BlockEntryInstr* block_;
   DISALLOW_COPY_AND_ASSIGN(SpecialParameterInstr);
 };
 
@@ -4348,19 +4083,11 @@ class TemplateDartCall : public VariadicDefinition {
         ArgumentsSizeWithoutTypeArgs(), argument_names());
   }
 
-#define FIELD_LIST(F)                                                          \
-  F(const intptr_t, type_args_len_)                                            \
-  F(const Array&, argument_names_)                                             \
-  F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TemplateDartCall,
-                                          VariadicDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-  DECLARE_EXTRA_SERIALIZATION
-
  private:
+  intptr_t type_args_len_;
+  const Array& argument_names_;
   PushArgumentsArray* push_arguments_ = nullptr;
+  TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(TemplateDartCall);
 };
@@ -4386,7 +4113,6 @@ class ClosureCallInstr : public TemplateDartCall<1> {
   virtual bool HasUnknownSideEffects() const { return true; }
 
   PRINT_OPERANDS_TO_SUPPORT
-  DECLARE_EMPTY_SERIALIZATION(ClosureCallInstr, TemplateDartCall)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ClosureCallInstr);
@@ -4417,10 +4143,7 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
         interface_target_(interface_target),
         tearoff_interface_target_(tearoff_interface_target),
         result_type_(nullptr),
-        has_unique_selector_(false),
-        entry_kind_(Code::EntryKind::kNormal),
-        receiver_is_not_smi_(false),
-        is_call_on_this_(false) {
+        has_unique_selector_(false) {
     ASSERT(function_name.IsNotTemporaryScopedHandle());
     ASSERT(interface_target.IsNotTemporaryScopedHandle());
     ASSERT(tearoff_interface_target.IsNotTemporaryScopedHandle());
@@ -4515,31 +4238,23 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
 
   virtual Representation representation() const;
 
-#define FIELD_LIST(F)                                                          \
-  F(const ICData*, ic_data_)                                                   \
-  F(const String&, function_name_)                                             \
-  /* Binary op, unary op, kGET or kILLEGAL. */                                 \
-  F(const Token::Kind, token_kind_)                                            \
-  F(const Function&, interface_target_)                                        \
-  F(const Function&, tearoff_interface_target_)                                \
-  /* Inferred result type. */                                                  \
-  F(CompileType*, result_type_)                                                \
-  F(bool, has_unique_selector_)                                                \
-  F(Code::EntryKind, entry_kind_)                                              \
-  F(bool, receiver_is_not_smi_)                                                \
-  F(bool, is_call_on_this_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(InstanceCallBaseInstr,
-                                          TemplateDartCall,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  protected:
   friend class CallSpecializer;
   void set_ic_data(ICData* value) { ic_data_ = value; }
   void set_result_type(CompileType* result_type) { result_type_ = result_type; }
 
  private:
+  const ICData* ic_data_;
+  const String& function_name_;
+  const Token::Kind token_kind_;  // Binary op, unary op, kGET or kILLEGAL.
+  const Function& interface_target_;
+  const Function& tearoff_interface_target_;
+  CompileType* result_type_;  // Inferred result type.
+  bool has_unique_selector_;
+  Code::EntryKind entry_kind_ = Code::EntryKind::kNormal;
+  bool receiver_is_not_smi_ = false;
+  bool is_call_on_this_ = false;
+
   DISALLOW_COPY_AND_ASSIGN(InstanceCallBaseInstr);
 };
 
@@ -4568,8 +4283,7 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
             deopt_id,
             interface_target,
             tearoff_interface_target),
-        checked_argument_count_(checked_argument_count),
-        receivers_static_type_(nullptr) {}
+        checked_argument_count_(checked_argument_count) {}
 
   InstanceCallInstr(
       const InstructionSource& source,
@@ -4592,8 +4306,7 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
                               deopt_id,
                               interface_target,
                               tearoff_interface_target),
-        checked_argument_count_(checked_argument_count),
-        receivers_static_type_(nullptr) {}
+        checked_argument_count_(checked_argument_count) {}
 
   DECLARE_INSTRUCTION(InstanceCall)
 
@@ -4622,18 +4335,11 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
   const CallTargets& Targets();
   void SetTargets(const CallTargets* targets) { targets_ = targets; }
 
-#define FIELD_LIST(F)                                                          \
-  F(const intptr_t, checked_argument_count_)                                   \
-  F(const AbstractType*, receivers_static_type_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(InstanceCallInstr,
-                                          InstanceCallBaseInstr,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
   const CallTargets* targets_ = nullptr;
   const class BinaryFeedback* binary_ = nullptr;
+  const intptr_t checked_argument_count_;
+  const AbstractType* receivers_static_type_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallInstr);
 };
@@ -4696,16 +4402,6 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const CallTargets&, targets_)                                              \
-  F(const bool, complete_)                                                     \
-  F(intptr_t, total_call_count_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(PolymorphicInstanceCallInstr,
-                                          InstanceCallBaseInstr,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
   PolymorphicInstanceCallInstr(const InstructionSource& source,
                                const String& function_name,
@@ -4734,6 +4430,10 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
     ASSERT(targets.length() != 0);
     total_call_count_ = CallCount();
   }
+
+  const CallTargets& targets_;
+  const bool complete_;
+  intptr_t total_call_count_;
 
   friend class PolymorphicInliner;
 
@@ -4810,16 +4510,10 @@ class DispatchTableCallInstr : public TemplateDartCall<1> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const Function&, interface_target_)                                        \
-  F(const compiler::TableSelector*, selector_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(DispatchTableCallInstr,
-                                          TemplateDartCall,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const Function& interface_target_;
+  const compiler::TableSelector* selector_;
+
   DISALLOW_COPY_AND_ASSIGN(DispatchTableCallInstr);
 };
 
@@ -4849,16 +4543,6 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT;
 
-#define FIELD_LIST(F)                                                          \
-  /* True if the comparison must check for double or Mint and */               \
-  /* use value comparison instead. */                                          \
-  F(bool, needs_number_check_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(StrictCompareInstr,
-                                          TemplateComparison,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
   Condition EmitComparisonCodeRegConstant(FlowGraphCompiler* compiler,
                                           BranchLabels labels,
@@ -4869,6 +4553,10 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
                        intptr_t input_index,
                        const Object& obj,
                        Condition* condition_out);
+
+  // True if the comparison must check for double or Mint and
+  // use value comparison instead.
+  bool needs_number_check_;
 
   DISALLOW_COPY_AND_ASSIGN(StrictCompareInstr);
 };
@@ -4898,8 +4586,6 @@ class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     return kTagged;
   }
-
-  DECLARE_EMPTY_SERIALIZATION(TestSmiInstr, TemplateComparison)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TestSmiInstr);
@@ -4946,16 +4632,9 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const ZoneGrowableArray<intptr_t>&, cid_results_)                          \
-  F(bool, licm_hoisted_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TestCidsInstr,
-                                          TemplateComparison,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const ZoneGrowableArray<intptr_t>& cid_results_;
+  bool licm_hoisted_;
   DISALLOW_COPY_AND_ASSIGN(TestCidsInstr);
 };
 
@@ -5011,16 +4690,9 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(bool, null_aware_)                                                         \
-  F(const SpeculativeMode, speculative_mode_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(EqualityCompareInstr,
-                                          TemplateComparison,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  bool null_aware_;
+  const SpeculativeMode speculative_mode_;
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareInstr);
 };
 
@@ -5067,14 +4739,8 @@ class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const SpeculativeMode, speculative_mode_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(RelationalOpInstr,
-                                          TemplateComparison,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const SpeculativeMode speculative_mode_;
   DISALLOW_COPY_AND_ASSIGN(RelationalOpInstr);
 };
 
@@ -5149,21 +4815,14 @@ class IfThenElseInstr : public Definition {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(ComparisonInstr*, comparison_)                                             \
-  F(const intptr_t, if_true_)                                                  \
-  F(const intptr_t, if_false_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(IfThenElseInstr,
-                                          Definition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-  DECLARE_EXTRA_SERIALIZATION
-
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     comparison()->RawSetInputAt(i, value);
   }
+
+  ComparisonInstr* comparison_;
+  const intptr_t if_true_;
+  const intptr_t if_false_;
 
   DISALLOW_COPY_AND_ASSIGN(IfThenElseInstr);
 };
@@ -5189,7 +4848,6 @@ class StaticCallInstr : public TemplateDartCall<0> {
         rebind_rule_(rebind_rule),
         result_type_(NULL),
         is_known_list_constructor_(false),
-        entry_kind_(Code::EntryKind::kNormal),
         identity_(AliasIdentity::Unknown()) {
     ASSERT(function.IsZoneHandle());
     ASSERT(!function.IsNull());
@@ -5214,7 +4872,6 @@ class StaticCallInstr : public TemplateDartCall<0> {
         rebind_rule_(rebind_rule),
         result_type_(NULL),
         is_known_list_constructor_(false),
-        entry_kind_(Code::EntryKind::kNormal),
         identity_(AliasIdentity::Unknown()) {
     ASSERT(function.IsZoneHandle());
     ASSERT(!function.IsNull());
@@ -5333,26 +4990,21 @@ class StaticCallInstr : public TemplateDartCall<0> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const ICData*, ic_data_)                                                   \
-  F(const intptr_t, call_count_)                                               \
-  F(const Function&, function_)                                                \
-  F(const ICData::RebindRule, rebind_rule_)                                    \
-  /* Known or inferred result type. */                                         \
-  F(CompileType*, result_type_)                                                \
-  /* 'True' for recognized list constructors. */                               \
-  F(bool, is_known_list_constructor_)                                          \
-  F(Code::EntryKind, entry_kind_)                                              \
-  F(AliasIdentity, identity_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(StaticCallInstr,
-                                          TemplateDartCall,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const ICData* ic_data_;
   const CallTargets* targets_ = nullptr;
   const class BinaryFeedback* binary_ = nullptr;
+  const intptr_t call_count_;
+  const Function& function_;
+  const ICData::RebindRule rebind_rule_;
+  CompileType* result_type_;  // Known or inferred result type.
+
+  // 'True' for recognized list constructors.
+  bool is_known_list_constructor_;
+
+  Code::EntryKind entry_kind_ = Code::EntryKind::kNormal;
+
+  AliasIdentity identity_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallInstr);
 };
@@ -5384,17 +5036,11 @@ class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const LocalVariable&, local_)                                              \
-  F(bool, is_last_)                                                            \
-  F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(LoadLocalInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const LocalVariable& local_;
+  bool is_last_;
+  const TokenPosition token_pos_;
+
   DISALLOW_COPY_AND_ASSIGN(LoadLocalInstr);
 };
 
@@ -5434,21 +5080,14 @@ class DropTempsInstr : public Definition {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const intptr_t, num_temps_)                                                \
-  F(const bool, has_input_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(DropTempsInstr,
-                                          Definition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     ASSERT(has_input_);
     value_ = value;
   }
 
+  const intptr_t num_temps_;
+  const bool has_input_;
   Value* value_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(DropTempsInstr);
@@ -5490,15 +5129,9 @@ class MakeTempInstr : public TemplateDefinition<0, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(ConstantInstr*, null_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MakeTempInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-  DECLARE_EXTRA_SERIALIZATION
-
  private:
+  ConstantInstr* null_;
+
   DISALLOW_COPY_AND_ASSIGN(MakeTempInstr);
 };
 
@@ -5538,18 +5171,12 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const LocalVariable&, local_)                                              \
-  F(bool, is_dead_)                                                            \
-  F(bool, is_last_)                                                            \
-  F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(StoreLocalInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const LocalVariable& local_;
+  bool is_dead_;
+  bool is_last_;
+  const TokenPosition token_pos_;
+
   DISALLOW_COPY_AND_ASSIGN(StoreLocalInstr);
 };
 
@@ -5567,8 +5194,11 @@ class NativeCallInstr : public TemplateDartCall<0> {
                          source),
         native_name_(name),
         function_(function),
-        token_pos_(source.token_pos),
-        link_lazily_(link_lazily) {
+        native_c_function_(NULL),
+        is_bootstrap_native_(false),
+        is_auto_scope_(true),
+        link_lazily_(link_lazily),
+        token_pos_(source.token_pos) {
     ASSERT(name.IsZoneHandle());
     ASSERT(function.IsZoneHandle());
   }
@@ -5594,16 +5224,6 @@ class NativeCallInstr : public TemplateDartCall<0> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const String&, native_name_)                                               \
-  F(const Function&, function_)                                                \
-  F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(NativeCallInstr,
-                                          TemplateDartCall,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
   void set_native_c_function(NativeFunction value) {
     native_c_function_ = value;
@@ -5612,12 +5232,13 @@ class NativeCallInstr : public TemplateDartCall<0> {
   void set_is_bootstrap_native(bool value) { is_bootstrap_native_ = value; }
   void set_is_auto_scope(bool value) { is_auto_scope_ = value; }
 
-  // These fields are not serialized.
-  // IL serialization only supports lazy linking of native functions.
-  NativeFunction native_c_function_ = nullptr;
-  bool is_bootstrap_native_ = false;
-  bool is_auto_scope_ = true;
-  bool link_lazily_ = true;
+  const String& native_name_;
+  const Function& function_;
+  NativeFunction native_c_function_;
+  bool is_bootstrap_native_;
+  bool is_auto_scope_;
+  bool link_lazily_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeCallInstr);
 };
@@ -5682,15 +5303,6 @@ class FfiCallInstr : public VariadicDefinition {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const compiler::ffi::CallMarshaller&, marshaller_)                         \
-  F(bool, is_leaf_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(FfiCallInstr,
-                                          VariadicDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
   LocationSummary* MakeLocationSummaryInternal(Zone* zone,
                                                bool is_optimizing,
@@ -5707,6 +5319,9 @@ class FfiCallInstr : public VariadicDefinition {
   void EmitReturnMoves(FlowGraphCompiler* compiler,
                        const Register temp0,
                        const Register temp1);
+
+  const compiler::ffi::CallMarshaller& marshaller_;
+  bool is_leaf_;
 
   DISALLOW_COPY_AND_ASSIGN(FfiCallInstr);
 };
@@ -5745,15 +5360,9 @@ class CCallInstr : public VariadicDefinition {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const compiler::ffi::NativeCallingConvention&, native_calling_convention_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CCallInstr,
-                                          VariadicDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const compiler::ffi::NativeCallingConvention& native_calling_convention_;
+
   DISALLOW_COPY_AND_ASSIGN(CCallInstr);
 };
 
@@ -5781,14 +5390,9 @@ class RawStoreFieldInstr : public TemplateInstruction<2, NoThrow> {
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
-#define FIELD_LIST(F) F(const int32_t, offset_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(RawStoreFieldInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const int32_t offset_;
+
   DISALLOW_COPY_AND_ASSIGN(RawStoreFieldInstr);
 };
 
@@ -5808,16 +5412,10 @@ class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-#define FIELD_LIST(F)                                                          \
-  F(const TokenPosition, token_pos_)                                           \
-  F(const UntaggedPcDescriptors::Kind, stub_kind_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(DebugStepCheckInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const TokenPosition token_pos_;
+  const UntaggedPcDescriptors::Kind stub_kind_;
+
   DISALLOW_COPY_AND_ASSIGN(DebugStepCheckInstr);
 };
 
@@ -5968,19 +5566,6 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const Slot&, slot_)                                                        \
-  F(StoreBarrierType, emit_store_barrier_)                                     \
-  F(compiler::Assembler::MemoryOrder, memory_order_)                           \
-  F(const TokenPosition, token_pos_)                                           \
-  /* Marks initializing stores. E.g. in the constructor. */                    \
-  F(const bool, is_initialization_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(StoreFieldInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
   friend class JitCallSpecializer;  // For ASSERT(initialization_).
 
@@ -5992,6 +5577,13 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
     return value()->Type()->CanBeSmi() ? compiler::Assembler::kValueCanBeSmi
                                        : compiler::Assembler::kValueIsNotSmi;
   }
+
+  const Slot& slot_;
+  StoreBarrierType emit_store_barrier_;
+  compiler::Assembler::MemoryOrder memory_order_;
+  const TokenPosition token_pos_;
+  // Marks initializing stores. E.g. in the constructor.
+  const bool is_initialization_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreFieldInstr);
 };
@@ -6016,14 +5608,9 @@ class GuardFieldInstr : public TemplateInstruction<1, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const Field&, field_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(GuardFieldInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const Field& field_;
+
   DISALLOW_COPY_AND_ASSIGN(GuardFieldInstr);
 };
 
@@ -6039,8 +5626,6 @@ class GuardFieldClassInstr : public GuardFieldInstr {
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AttributesEqual(const Instruction& other) const;
-
-  DECLARE_EMPTY_SERIALIZATION(GuardFieldClassInstr, GuardFieldInstr)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GuardFieldClassInstr);
@@ -6058,8 +5643,6 @@ class GuardFieldLengthInstr : public GuardFieldInstr {
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AttributesEqual(const Instruction& other) const;
-
-  DECLARE_EMPTY_SERIALIZATION(GuardFieldLengthInstr, GuardFieldInstr)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GuardFieldLengthInstr);
@@ -6083,8 +5666,6 @@ class GuardFieldTypeInstr : public GuardFieldInstr {
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AttributesEqual(const Instruction& other) const;
-
-  DECLARE_EMPTY_SERIALIZATION(GuardFieldTypeInstr, GuardFieldInstr)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GuardFieldTypeInstr);
@@ -6144,15 +5725,11 @@ class TemplateLoadField : public TemplateDefinition<N, Throws> {
   virtual bool CanTriggerGC() const { return calls_initializer(); }
   virtual bool MayThrow() const { return calls_initializer(); }
 
-#define FIELD_LIST(F)                                                          \
-  F(const TokenPosition, token_pos_)                                           \
-  F(const bool, throw_exception_on_initialization_)                            \
-  F(bool, calls_initializer_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TemplateLoadField, Base, FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const TokenPosition token_pos_;
+  const bool throw_exception_on_initialization_;
+  bool calls_initializer_;
+
   DISALLOW_COPY_AND_ASSIGN(TemplateLoadField);
 };
 
@@ -6187,14 +5764,9 @@ class LoadStaticFieldInstr : public TemplateLoadField<0> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const Field&, field_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(LoadStaticFieldInstr,
-                                          TemplateLoadField,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const Field& field_;
+
   DISALLOW_COPY_AND_ASSIGN(LoadStaticFieldInstr);
 };
 
@@ -6229,21 +5801,15 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const Field&, field_)                                                      \
-  F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(StoreStaticFieldInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
   compiler::Assembler::CanBeSmi CanValueBeSmi() const {
     ASSERT(value()->Type()->ToNullableCid() != kSmiCid);
     return value()->Type()->CanBeSmi() ? compiler::Assembler::kValueCanBeSmi
                                        : compiler::Assembler::kValueIsNotSmi;
   }
+
+  const Field& field_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreStaticFieldInstr);
 };
@@ -6315,21 +5881,14 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-#define FIELD_LIST(F)                                                          \
-  F(const bool, index_unboxed_)                                                \
-  F(const intptr_t, index_scale_)                                              \
-  F(const intptr_t, class_id_)                                                 \
-  F(const AlignmentType, alignment_)                                           \
-  F(const TokenPosition, token_pos_)                                           \
-  /* derived from call */                                                      \
-  F(CompileType*, result_type_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(LoadIndexedInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const bool index_unboxed_;
+  const intptr_t index_scale_;
+  const intptr_t class_id_;
+  const AlignmentType alignment_;
+  const TokenPosition token_pos_;
+  CompileType* result_type_;  // derived from call
+
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedInstr);
 };
 
@@ -6403,18 +5962,12 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
     return !can_pack_into_smi() && (representation() == kTagged);
   }
 
-#define FIELD_LIST(F)                                                          \
-  F(const intptr_t, class_id_)                                                 \
-  F(const TokenPosition, token_pos_)                                           \
-  F(const intptr_t, element_count_)                                            \
-  F(Representation, representation_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(LoadCodeUnitsInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const intptr_t class_id_;
+  const TokenPosition token_pos_;
+  const intptr_t element_count_;
+  Representation representation_;
+
   DISALLOW_COPY_AND_ASSIGN(LoadCodeUnitsInstr);
 };
 
@@ -6433,9 +5986,6 @@ class OneByteStringFromCharCodeInstr
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool AttributesEqual(const Instruction& other) const { return true; }
-
-  DECLARE_EMPTY_SERIALIZATION(OneByteStringFromCharCodeInstr,
-                              TemplateDefinition)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(OneByteStringFromCharCodeInstr);
@@ -6459,14 +6009,9 @@ class StringToCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return other.AsStringToCharCode()->cid_ == cid_;
   }
 
-#define FIELD_LIST(F) F(const intptr_t, cid_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(StringToCharCodeInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const intptr_t cid_;
+
   DISALLOW_COPY_AND_ASSIGN(StringToCharCodeInstr);
 };
 
@@ -6538,14 +6083,9 @@ class Utf8ScanInstr : public TemplateDefinition<5, NoThrow> {
 
   PRINT_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const Slot&, scan_flags_field_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(Utf8ScanInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const Slot& scan_flags_field_;
+
   DISALLOW_COPY_AND_ASSIGN(Utf8ScanInstr);
 };
 
@@ -6619,24 +6159,18 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-#define FIELD_LIST(F)                                                          \
-  F(StoreBarrierType, emit_store_barrier_)                                     \
-  F(const bool, index_unboxed_)                                                \
-  F(const intptr_t, index_scale_)                                              \
-  F(const intptr_t, class_id_)                                                 \
-  F(const AlignmentType, alignment_)                                           \
-  F(const TokenPosition, token_pos_)                                           \
-  F(const SpeculativeMode, speculative_mode_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(StoreIndexedInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
   compiler::Assembler::CanBeSmi CanValueBeSmi() const {
     return compiler::Assembler::kValueCanBeSmi;
   }
+
+  StoreBarrierType emit_store_barrier_;
+  const bool index_unboxed_;
+  const intptr_t index_scale_;
+  const intptr_t class_id_;
+  const AlignmentType alignment_;
+  const TokenPosition token_pos_;
+  const SpeculativeMode speculative_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedInstr);
 };
@@ -6658,17 +6192,11 @@ class RecordCoverageInstr : public TemplateInstruction<0, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-#define FIELD_LIST(F)                                                          \
-  F(const Array&, coverage_array_)                                             \
-  F(const intptr_t, coverage_index_)                                           \
-  F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(RecordCoverageInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const Array& coverage_array_;
+  const intptr_t coverage_index_;
+  const TokenPosition token_pos_;
+
   DISALLOW_COPY_AND_ASSIGN(RecordCoverageInstr);
 };
 
@@ -6687,8 +6215,6 @@ class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  DECLARE_EMPTY_SERIALIZATION(BooleanNegateInstr, TemplateDefinition)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BooleanNegateInstr);
@@ -6729,16 +6255,12 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const TokenPosition, token_pos_)                                           \
-  F(const AbstractType&, type_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(InstanceOfInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const TokenPosition token_pos_;
+  Value* value_;
+  Value* type_arguments_;
+  const AbstractType& type_;
+
   DISALLOW_COPY_AND_ASSIGN(InstanceOfInstr);
 };
 
@@ -6802,16 +6324,10 @@ class AllocationInstr : public Definition {
 
   DECLARE_ABSTRACT_INSTRUCTION(Allocation);
 
-#define FIELD_LIST(F)                                                          \
-  F(const TokenPosition, token_pos_)                                           \
-  F(AliasIdentity, identity_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocationInstr,
-                                          Definition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const TokenPosition token_pos_;
+  AliasIdentity identity_;
+
   DISALLOW_COPY_AND_ASSIGN(AllocationInstr);
 };
 
@@ -6824,8 +6340,6 @@ class TemplateAllocation : public AllocationInstr {
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-
-  DECLARE_EMPTY_SERIALIZATION(TemplateAllocation, AllocationInstr)
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
@@ -6848,7 +6362,6 @@ class AllocateObjectInstr : public AllocationInstr {
       : AllocationInstr(source, deopt_id),
         cls_(cls),
         has_type_arguments_(type_arguments != nullptr),
-        type_arguments_slot_(nullptr),
         type_arguments_(type_arguments) {
     ASSERT(cls.IsZoneHandle());
     ASSERT(!cls.IsNull());
@@ -6888,23 +6401,16 @@ class AllocateObjectInstr : public AllocationInstr {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const Class&, cls_)                                                        \
-  F(const bool, has_type_arguments_)                                           \
-  F(const Slot*, type_arguments_slot_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateObjectInstr,
-                                          AllocationInstr,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     ASSERT(has_type_arguments_ && (i == kTypeArgumentsPos));
     type_arguments_ = value;
   }
 
-  Value* type_arguments_ = nullptr;
+  const Class& cls_;
+  const bool has_type_arguments_;
+  Value* type_arguments_;
+  const Slot* type_arguments_slot_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
 };
@@ -6956,8 +6462,6 @@ class AllocateClosureInstr : public TemplateAllocation<2> {
         compiler::target::Closure::InstanceSize());
   }
 
-  DECLARE_EMPTY_SERIALIZATION(AllocateClosureInstr, TemplateAllocation)
-
  private:
   DISALLOW_COPY_AND_ASSIGN(AllocateClosureInstr);
 };
@@ -6984,14 +6488,9 @@ class AllocateUninitializedContextInstr : public TemplateAllocation<0> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const intptr_t, num_context_variables_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateUninitializedContextInstr,
-                                          TemplateAllocation,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const intptr_t num_context_variables_;
+
   DISALLOW_COPY_AND_ASSIGN(AllocateUninitializedContextInstr);
 };
 
@@ -7006,11 +6505,13 @@ class MaterializeObjectInstr : public VariadicDefinition {
                          const ZoneGrowableArray<const Slot*>& slots,
                          InputsArray&& values)
       : VariadicDefinition(std::move(values)),
+        allocation_(allocation),
         cls_(cls),
         num_elements_(num_elements),
         slots_(slots),
-        registers_remapped_(false),
-        allocation_(allocation) {
+        locations_(nullptr),
+        visited_for_liveness_(false),
+        registers_remapped_(false) {
     ASSERT(slots_.length() == InputCount());
   }
 
@@ -7023,10 +6524,7 @@ class MaterializeObjectInstr : public VariadicDefinition {
     return slots_[i]->offset_in_bytes();
   }
 
-  const Location& LocationAt(intptr_t i) {
-    ASSERT(0 <= i && i < InputCount());
-    return locations_[i];
-  }
+  const Location& LocationAt(intptr_t i) { return locations_[i]; }
 
   DECLARE_INSTRUCTION(MaterializeObject)
 
@@ -7055,24 +6553,15 @@ class MaterializeObjectInstr : public VariadicDefinition {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const Class&, cls_)                                                        \
-  F(intptr_t, num_elements_)                                                   \
-  F(const ZoneGrowableArray<const Slot*>&, slots_)                             \
-  F(bool, registers_remapped_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MaterializeObjectInstr,
-                                          VariadicDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-  DECLARE_EXTRA_SERIALIZATION
-
  private:
-  Location* locations_ = nullptr;
+  AllocationInstr* allocation_;
+  const Class& cls_;
+  intptr_t num_elements_;
+  const ZoneGrowableArray<const Slot*>& slots_;
+  Location* locations_;
 
-  // Not serialized.
-  AllocationInstr* allocation_ = nullptr;
-  bool visited_for_liveness_ = false;
+  bool visited_for_liveness_;
+  bool registers_remapped_;
 
   DISALLOW_COPY_AND_ASSIGN(MaterializeObjectInstr);
 };
@@ -7094,8 +6583,6 @@ class ArrayAllocationInstr : public AllocationInstr {
 
   DECLARE_ABSTRACT_INSTRUCTION(ArrayAllocation);
 
-  DECLARE_EMPTY_SERIALIZATION(ArrayAllocationInstr, AllocationInstr)
-
  private:
   DISALLOW_COPY_AND_ASSIGN(ArrayAllocationInstr);
 };
@@ -7110,15 +6597,11 @@ class TemplateArrayAllocation : public ArrayAllocationInstr {
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
 
-  DECLARE_EMPTY_SERIALIZATION(TemplateArrayAllocation, ArrayAllocationInstr)
-
  protected:
   EmbeddedArray<Value*, N> inputs_;
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
-
-  DISALLOW_COPY_AND_ASSIGN(TemplateArrayAllocation);
 };
 
 class CreateArrayInstr : public TemplateArrayAllocation<2> {
@@ -7160,8 +6643,6 @@ class CreateArrayInstr : public TemplateArrayAllocation<2> {
     }
   }
 
-  DECLARE_EMPTY_SERIALIZATION(CreateArrayInstr, TemplateArrayAllocation)
-
  private:
   DISALLOW_COPY_AND_ASSIGN(CreateArrayInstr);
 };
@@ -7200,14 +6681,9 @@ class AllocateTypedDataInstr : public TemplateArrayAllocation<1> {
     }
   }
 
-#define FIELD_LIST(F) F(const classid_t, class_id_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateTypedDataInstr,
-                                          TemplateArrayAllocation,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const classid_t class_id_;
+
   DISALLOW_COPY_AND_ASSIGN(AllocateTypedDataInstr);
 };
 
@@ -7244,14 +6720,9 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const intptr_t, offset_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(LoadUntaggedInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  intptr_t offset_;
+
   DISALLOW_COPY_AND_ASSIGN(LoadUntaggedInstr);
 };
 
@@ -7283,16 +6754,10 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const Representation, representation_)                                     \
-  F(const bool, input_can_be_smi_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(LoadClassIdInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const Representation representation_;
+  const bool input_can_be_smi_;
+
   DISALLOW_COPY_AND_ASSIGN(LoadClassIdInstr);
 };
 
@@ -7372,19 +6837,14 @@ class LoadFieldInstr : public TemplateLoadField<1> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const Slot&, slot_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(LoadFieldInstr,
-                                          TemplateLoadField,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
   intptr_t OffsetInBytes() const { return slot().offset_in_bytes(); }
 
   // Generate code which checks if field is initialized and
   // calls initializer if it is not. Field value is already loaded.
   void EmitNativeCodeForInitializerCall(FlowGraphCompiler* compiler);
+
+  const Slot& slot_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
 };
@@ -7423,16 +6883,10 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const TokenPosition, token_pos_)                                           \
-  F(const AbstractType&, type_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(InstantiateTypeInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const TokenPosition token_pos_;
+  const AbstractType& type_;
+
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeInstr);
 };
 
@@ -7515,17 +6969,11 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<3, Throws> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const TokenPosition, token_pos_)                                           \
-  F(const Class&, instantiator_class_)                                         \
-  F(const Function&, function_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(InstantiateTypeArgumentsInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const TokenPosition token_pos_;
+  const Class& instantiator_class_;
+  const Function& function_;
+
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeArgumentsInstr);
 };
 
@@ -7558,14 +7006,9 @@ class AllocateContextInstr : public TemplateAllocation<0> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const ZoneGrowableArray<const Slot*>&, context_slots_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateContextInstr,
-                                          TemplateAllocation,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const ZoneGrowableArray<const Slot*>& context_slots_;
+
   DISALLOW_COPY_AND_ASSIGN(AllocateContextInstr);
 };
 
@@ -7606,16 +7049,10 @@ class CloneContextInstr : public TemplateDefinition<1, Throws> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
-#define FIELD_LIST(F)                                                          \
-  F(const TokenPosition, token_pos_)                                           \
-  F(const ZoneGrowableArray<const Slot*>&, context_slots_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CloneContextInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const TokenPosition token_pos_;
+  const ZoneGrowableArray<const Slot*>& context_slots_;
+
   DISALLOW_COPY_AND_ASSIGN(CloneContextInstr);
 };
 
@@ -7640,14 +7077,9 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2, NoThrow, Pure> {
 
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
-#define FIELD_LIST(F) F(bool, licm_hoisted_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckEitherNonSmiInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  bool licm_hoisted_;
+
   DISALLOW_COPY_AND_ASSIGN(CheckEitherNonSmiInstr);
 };
 
@@ -7698,13 +7130,6 @@ class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return kNotSpeculative;
   }
 
-#define FIELD_LIST(F) F(const Representation, from_representation_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(BoxInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  protected:
   BoxInstr(Representation from_representation, Value* value)
       : from_representation_(from_representation) {
@@ -7715,6 +7140,8 @@ class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   intptr_t ValueOffset() const {
     return Boxing::ValueOffset(from_representation());
   }
+
+  const Representation from_representation_;
 
   DISALLOW_COPY_AND_ASSIGN(BoxInstr);
 };
@@ -7737,8 +7164,6 @@ class BoxIntegerInstr : public BoxInstr {
 
   DECLARE_ABSTRACT_INSTRUCTION(BoxInteger)
 
-  DECLARE_EMPTY_SERIALIZATION(BoxIntegerInstr, BoxInstr)
-
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxIntegerInstr);
 };
@@ -7755,8 +7180,6 @@ class BoxSmallIntInstr : public BoxIntegerInstr {
 
   DECLARE_INSTRUCTION(BoxSmallInt)
 
-  DECLARE_EMPTY_SERIALIZATION(BoxSmallIntInstr, BoxIntegerInstr)
-
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxSmallIntInstr);
 };
@@ -7767,8 +7190,6 @@ class BoxInteger32Instr : public BoxIntegerInstr {
       : BoxIntegerInstr(representation, value) {}
 
   DECLARE_INSTRUCTION_BACKEND()
-
-  DECLARE_EMPTY_SERIALIZATION(BoxInteger32Instr, BoxIntegerInstr)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxInteger32Instr);
@@ -7781,8 +7202,6 @@ class BoxInt32Instr : public BoxInteger32Instr {
 
   DECLARE_INSTRUCTION_NO_BACKEND(BoxInt32)
 
-  DECLARE_EMPTY_SERIALIZATION(BoxInt32Instr, BoxInteger32Instr)
-
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxInt32Instr);
 };
@@ -7793,8 +7212,6 @@ class BoxUint32Instr : public BoxInteger32Instr {
       : BoxInteger32Instr(kUnboxedUint32, value) {}
 
   DECLARE_INSTRUCTION_NO_BACKEND(BoxUint32)
-
-  DECLARE_EMPTY_SERIALIZATION(BoxUint32Instr, BoxInteger32Instr)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxUint32Instr);
@@ -7808,8 +7225,6 @@ class BoxInt64Instr : public BoxIntegerInstr {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   DECLARE_INSTRUCTION(BoxInt64)
-
-  DECLARE_EMPTY_SERIALIZATION(BoxInt64Instr, BoxIntegerInstr)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxInt64Instr);
@@ -7864,15 +7279,6 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual TokenPosition token_pos() const { return TokenPosition::kBox; }
 
-#define FIELD_LIST(F)                                                          \
-  F(const Representation, representation_)                                     \
-  F(SpeculativeMode, speculative_mode_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(UnboxInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  protected:
   UnboxInstr(Representation representation,
              Value* value,
@@ -7882,10 +7288,6 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
         representation_(representation),
         speculative_mode_(speculative_mode) {
     SetInputAt(0, value);
-  }
-
-  void set_speculative_mode(SpeculativeMode value) {
-    speculative_mode_ = value;
   }
 
  private:
@@ -7899,6 +7301,10 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   intptr_t BoxCid() const { return Boxing::BoxCid(representation_); }
 
   intptr_t ValueOffset() const { return Boxing::ValueOffset(representation_); }
+
+ protected:
+  const Representation representation_;
+  SpeculativeMode speculative_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxInstr);
 };
@@ -7933,14 +7339,9 @@ class UnboxIntegerInstr : public UnboxInstr {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(bool, is_truncating_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(UnboxIntegerInstr,
-                                          UnboxInstr,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  bool is_truncating_;
+
   DISALLOW_COPY_AND_ASSIGN(UnboxIntegerInstr);
 };
 
@@ -7958,8 +7359,6 @@ class UnboxInteger32Instr : public UnboxIntegerInstr {
                           speculative_mode) {}
 
   DECLARE_INSTRUCTION_BACKEND()
-
-  DECLARE_EMPTY_SERIALIZATION(UnboxInteger32Instr, UnboxIntegerInstr)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxInteger32Instr);
@@ -7984,8 +7383,6 @@ class UnboxUint32Instr : public UnboxInteger32Instr {
 
   DECLARE_INSTRUCTION_NO_BACKEND(UnboxUint32)
 
-  DECLARE_EMPTY_SERIALIZATION(UnboxUint32Instr, UnboxInteger32Instr)
-
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxUint32Instr);
 };
@@ -8009,8 +7406,6 @@ class UnboxInt32Instr : public UnboxInteger32Instr {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   DECLARE_INSTRUCTION_NO_BACKEND(UnboxInt32)
-
-  DECLARE_EMPTY_SERIALIZATION(UnboxInt32Instr, UnboxInteger32Instr)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxInt32Instr);
@@ -8040,8 +7435,6 @@ class UnboxInt64Instr : public UnboxIntegerInstr {
   }
 
   DECLARE_INSTRUCTION_NO_BACKEND(UnboxInt64)
-
-  DECLARE_EMPTY_SERIALIZATION(UnboxInt64Instr, UnboxIntegerInstr)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxInt64Instr);
@@ -8101,21 +7494,16 @@ class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const MathUnaryKind, kind_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MathUnaryInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const MathUnaryKind kind_;
+
   DISALLOW_COPY_AND_ASSIGN(MathUnaryInstr);
 };
 
 // Calls into the runtime and performs a case-insensitive comparison of the
 // UTF16 strings (i.e. TwoByteString or ExternalTwoByteString) located at
 // str[lhs_index:lhs_index + length] and str[rhs_index:rhs_index + length].
-// Depending on [handle_surrogates], we will treat the strings as either
+// Depending on the runtime entry passed, we will treat the strings as either
 // UCS2 (no surrogate handling) or UTF16 (surrogates handled appropriately).
 class CaseInsensitiveCompareInstr
     : public TemplateDefinition<4, NoThrow, Pure> {
@@ -8124,9 +7512,9 @@ class CaseInsensitiveCompareInstr
                               Value* lhs_index,
                               Value* rhs_index,
                               Value* length,
-                              bool handle_surrogates,
+                              const RuntimeEntry& entry,
                               intptr_t cid)
-      : handle_surrogates_(handle_surrogates), cid_(cid) {
+      : entry_(entry), cid_(cid) {
     ASSERT(cid == kTwoByteStringCid || cid == kExternalTwoByteStringCid);
     ASSERT(index_scale() == 2);
     SetInputAt(0, str);
@@ -8140,7 +7528,7 @@ class CaseInsensitiveCompareInstr
   Value* rhs_index() const { return inputs_[2]; }
   Value* length() const { return inputs_[3]; }
 
-  const RuntimeEntry& TargetFunction() const;
+  const RuntimeEntry& TargetFunction() const { return entry_; }
   bool IsExternal() const { return cid_ == kExternalTwoByteStringCid; }
   intptr_t class_id() const { return cid_; }
 
@@ -8156,21 +7544,13 @@ class CaseInsensitiveCompareInstr
   virtual CompileType ComputeType() const;
 
   virtual bool AttributesEqual(const Instruction& other) const {
-    const auto* other_compare = other.AsCaseInsensitiveCompare();
-    return (other_compare->handle_surrogates_ == handle_surrogates_) &&
-           (other_compare->cid_ == cid_);
+    return other.AsCaseInsensitiveCompare()->cid_ == cid_;
   }
 
-#define FIELD_LIST(F)                                                          \
-  F(const bool, handle_surrogates_)                                            \
-  F(const intptr_t, cid_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CaseInsensitiveCompareInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const RuntimeEntry& entry_;
+  const intptr_t cid_;
+
   DISALLOW_COPY_AND_ASSIGN(CaseInsensitiveCompareInstr);
 };
 
@@ -8225,16 +7605,10 @@ class MathMinMaxInstr : public TemplateDefinition<2, NoThrow, Pure> {
   virtual CompileType ComputeType() const;
   virtual bool AttributesEqual(const Instruction& other) const;
 
-#define FIELD_LIST(F)                                                          \
-  F(const MethodRecognizer::Kind, op_kind_)                                    \
-  F(const intptr_t, result_cid_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MathMinMaxInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const MethodRecognizer::Kind op_kind_;
+  const intptr_t result_cid_;
+
   DISALLOW_COPY_AND_ASSIGN(MathMinMaxInstr);
 };
 
@@ -8293,17 +7667,11 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
            (speculative_mode_ == other_bin_op->speculative_mode_);
   }
 
-#define FIELD_LIST(F)                                                          \
-  F(const Token::Kind, op_kind_)                                               \
-  F(const TokenPosition, token_pos_)                                           \
-  F(const SpeculativeMode, speculative_mode_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(BinaryDoubleOpInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const Token::Kind op_kind_;
+  const TokenPosition token_pos_;
+  const SpeculativeMode speculative_mode_;
+
   DISALLOW_COPY_AND_ASSIGN(BinaryDoubleOpInstr);
 };
 
@@ -8343,14 +7711,9 @@ class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
-#define FIELD_LIST(F) F(const MethodRecognizer::Kind, op_kind_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(DoubleTestOpInstr,
-                                          TemplateComparison,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const MethodRecognizer::Kind op_kind_;
+
   DISALLOW_COPY_AND_ASSIGN(DoubleTestOpInstr);
 };
 
@@ -8385,15 +7748,8 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   DECLARE_ABSTRACT_INSTRUCTION(UnaryIntegerOp)
 
-#define FIELD_LIST(F) F(const Token::Kind, op_kind_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(UnaryIntegerOpInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
-  DISALLOW_COPY_AND_ASSIGN(UnaryIntegerOpInstr);
+  const Token::Kind op_kind_;
 };
 
 // Handles both Smi operations: BIT_OR and NEGATE.
@@ -8409,8 +7765,6 @@ class UnarySmiOpInstr : public UnaryIntegerOpInstr {
   virtual CompileType ComputeType() const;
 
   DECLARE_INSTRUCTION(UnarySmiOp)
-
-  DECLARE_EMPTY_SERIALIZATION(UnarySmiOpInstr, UnaryIntegerOpInstr)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnarySmiOpInstr);
@@ -8439,8 +7793,6 @@ class UnaryUint32OpInstr : public UnaryIntegerOpInstr {
   }
 
   DECLARE_INSTRUCTION(UnaryUint32Op)
-
-  DECLARE_EMPTY_SERIALIZATION(UnaryUint32OpInstr, UnaryIntegerOpInstr)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnaryUint32OpInstr);
@@ -8480,14 +7832,8 @@ class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
 
   DECLARE_INSTRUCTION(UnaryInt64Op)
 
-#define FIELD_LIST(F) F(const SpeculativeMode, speculative_mode_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(UnaryInt64OpInstr,
-                                          UnaryIntegerOpInstr,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const SpeculativeMode speculative_mode_;
   DISALLOW_COPY_AND_ASSIGN(UnaryInt64OpInstr);
 };
 
@@ -8556,16 +7902,6 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   DECLARE_ABSTRACT_INSTRUCTION(BinaryIntegerOp)
 
-#define FIELD_LIST(F)                                                          \
-  F(const Token::Kind, op_kind_)                                               \
-  F(bool, can_overflow_)                                                       \
-  F(bool, is_truncating_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(BinaryIntegerOpInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  protected:
   void InferRangeHelper(const Range* left_range,
                         const Range* right_range,
@@ -8573,6 +7909,11 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
  private:
   Definition* CreateConstantResult(FlowGraph* graph, const Integer& result);
+
+  const Token::Kind op_kind_;
+
+  bool can_overflow_;
+  bool is_truncating_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryIntegerOpInstr);
 };
@@ -8597,14 +7938,9 @@ class BinarySmiOpInstr : public BinaryIntegerOpInstr {
 
   Range* right_range() const { return right_range_; }
 
-#define FIELD_LIST(F) F(Range*, right_range_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(BinarySmiOpInstr,
-                                          BinaryIntegerOpInstr,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  Range* right_range_;
+
   DISALLOW_COPY_AND_ASSIGN(BinarySmiOpInstr);
 };
 
@@ -8660,8 +7996,6 @@ class BinaryInt32OpInstr : public BinaryIntegerOpInstr {
 
   DECLARE_INSTRUCTION(BinaryInt32Op)
 
-  DECLARE_EMPTY_SERIALIZATION(BinaryInt32OpInstr, BinaryIntegerOpInstr)
-
  private:
   DISALLOW_COPY_AND_ASSIGN(BinaryInt32OpInstr);
 };
@@ -8703,8 +8037,6 @@ class BinaryUint32OpInstr : public BinaryIntegerOpInstr {
   }
 
   DECLARE_INSTRUCTION(BinaryUint32Op)
-
-  DECLARE_EMPTY_SERIALIZATION(BinaryUint32OpInstr, BinaryIntegerOpInstr)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BinaryUint32OpInstr);
@@ -8751,14 +8083,8 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
 
   DECLARE_INSTRUCTION(BinaryInt64Op)
 
-#define FIELD_LIST(F) F(const SpeculativeMode, speculative_mode_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(BinaryInt64OpInstr,
-                                          BinaryIntegerOpInstr,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const SpeculativeMode speculative_mode_;
   DISALLOW_COPY_AND_ASSIGN(BinaryInt64OpInstr);
 };
 
@@ -8787,13 +8113,6 @@ class ShiftIntegerOpInstr : public BinaryIntegerOpInstr {
 
   DECLARE_ABSTRACT_INSTRUCTION(ShiftIntegerOp)
 
-#define FIELD_LIST(F) F(Range*, shift_range_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ShiftIntegerOpInstr,
-                                          BinaryIntegerOpInstr,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  protected:
   static const intptr_t kShiftCountLimit = 63;
 
@@ -8802,6 +8121,8 @@ class ShiftIntegerOpInstr : public BinaryIntegerOpInstr {
   bool IsShiftCountInRange(int64_t max = kShiftCountLimit) const;
 
  private:
+  Range* shift_range_;
+
   DISALLOW_COPY_AND_ASSIGN(ShiftIntegerOpInstr);
 };
 
@@ -8833,8 +8154,6 @@ class ShiftInt64OpInstr : public ShiftIntegerOpInstr {
 
   DECLARE_INSTRUCTION(ShiftInt64Op)
 
-  DECLARE_EMPTY_SERIALIZATION(ShiftInt64OpInstr, ShiftIntegerOpInstr)
-
  private:
   DISALLOW_COPY_AND_ASSIGN(ShiftInt64OpInstr);
 };
@@ -8865,8 +8184,6 @@ class SpeculativeShiftInt64OpInstr : public ShiftIntegerOpInstr {
   virtual CompileType ComputeType() const;
 
   DECLARE_INSTRUCTION(SpeculativeShiftInt64Op)
-
-  DECLARE_EMPTY_SERIALIZATION(SpeculativeShiftInt64OpInstr, ShiftIntegerOpInstr)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(SpeculativeShiftInt64OpInstr);
@@ -8900,8 +8217,6 @@ class ShiftUint32OpInstr : public ShiftIntegerOpInstr {
 
   DECLARE_INSTRUCTION(ShiftUint32Op)
 
-  DECLARE_EMPTY_SERIALIZATION(ShiftUint32OpInstr, ShiftIntegerOpInstr)
-
  private:
   static const intptr_t kUint32ShiftCountLimit = 31;
 
@@ -8931,9 +8246,6 @@ class SpeculativeShiftUint32OpInstr : public ShiftIntegerOpInstr {
   DECLARE_INSTRUCTION(SpeculativeShiftUint32Op)
 
   virtual CompileType ComputeType() const;
-
-  DECLARE_EMPTY_SERIALIZATION(SpeculativeShiftUint32OpInstr,
-                              ShiftIntegerOpInstr)
 
  private:
   static const intptr_t kUint32ShiftCountLimit = 31;
@@ -8986,16 +8298,10 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const Token::Kind, op_kind_)                                               \
-  F(const SpeculativeMode, speculative_mode_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(UnaryDoubleOpInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const Token::Kind op_kind_;
+  const SpeculativeMode speculative_mode_;
+
   DISALLOW_COPY_AND_ASSIGN(UnaryDoubleOpInstr);
 };
 
@@ -9046,18 +8352,12 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const TokenPosition, token_pos_)                                           \
-  F(const intptr_t, stack_depth_)                                              \
-  F(const intptr_t, loop_depth_)                                               \
-  F(const Kind, kind_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckStackOverflowInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const TokenPosition token_pos_;
+  const intptr_t stack_depth_;
+  const intptr_t loop_depth_;
+  const Kind kind_;
+
   DISALLOW_COPY_AND_ASSIGN(CheckStackOverflowInstr);
 };
 
@@ -9081,14 +8381,9 @@ class SmiToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
-#define FIELD_LIST(F) F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(SmiToDoubleInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const TokenPosition token_pos_;
+
   DISALLOW_COPY_AND_ASSIGN(SmiToDoubleInstr);
 };
 
@@ -9111,8 +8406,6 @@ class Int32ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool AttributesEqual(const Instruction& other) const { return true; }
-
-  DECLARE_EMPTY_SERIALIZATION(Int32ToDoubleInstr, TemplateDefinition)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Int32ToDoubleInstr);
@@ -9155,14 +8448,9 @@ class Int64ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return speculative_mode_ == other.AsInt64ToDouble()->speculative_mode_;
   }
 
-#define FIELD_LIST(F) F(const SpeculativeMode, speculative_mode_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(Int64ToDoubleInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const SpeculativeMode speculative_mode_;
+
   DISALLOW_COPY_AND_ASSIGN(Int64ToDoubleInstr);
 };
 
@@ -9207,14 +8495,9 @@ class DoubleToIntegerInstr : public TemplateDefinition<1, Throws, Pure> {
     return other.AsDoubleToInteger()->recognized_kind() == recognized_kind();
   }
 
-#define FIELD_LIST(F) F(const MethodRecognizer::Kind, recognized_kind_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(DoubleToIntegerInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const MethodRecognizer::Kind recognized_kind_;
+
   DISALLOW_COPY_AND_ASSIGN(DoubleToIntegerInstr);
 };
 
@@ -9242,8 +8525,6 @@ class DoubleToSmiInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   virtual bool AttributesEqual(const Instruction& other) const { return true; }
-
-  DECLARE_EMPTY_SERIALIZATION(DoubleToSmiInstr, TemplateDefinition)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DoubleToSmiInstr);
@@ -9288,14 +8569,9 @@ class DoubleToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return other.AsDoubleToDouble()->recognized_kind() == recognized_kind();
   }
 
-#define FIELD_LIST(F) F(const MethodRecognizer::Kind, recognized_kind_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(DoubleToDoubleInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const MethodRecognizer::Kind recognized_kind_;
+
   DISALLOW_COPY_AND_ASSIGN(DoubleToDoubleInstr);
 };
 
@@ -9333,14 +8609,9 @@ class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-#define FIELD_LIST(F) F(const SpeculativeMode, speculative_mode_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(DoubleToFloatInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const SpeculativeMode speculative_mode_;
+
   DISALLOW_COPY_AND_ASSIGN(DoubleToFloatInstr);
 };
 
@@ -9371,8 +8642,6 @@ class FloatToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  DECLARE_EMPTY_SERIALIZATION(FloatToDoubleInstr, TemplateDefinition)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(FloatToDoubleInstr);
@@ -9429,16 +8698,10 @@ class InvokeMathCFunctionInstr : public VariadicDefinition {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const MethodRecognizer::Kind, recognized_kind_)                            \
-  F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(InvokeMathCFunctionInstr,
-                                          VariadicDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const MethodRecognizer::Kind recognized_kind_;
+  const TokenPosition token_pos_;
+
   DISALLOW_COPY_AND_ASSIGN(InvokeMathCFunctionInstr);
 };
 
@@ -9483,17 +8746,10 @@ class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const intptr_t, index_)                                                    \
-  F(const Representation, definition_rep_)                                     \
-  F(const intptr_t, definition_cid_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ExtractNthOutputInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const intptr_t index_;
+  const Representation definition_rep_;
+  const intptr_t definition_cid_;
   DISALLOW_COPY_AND_ASSIGN(ExtractNthOutputInstr);
 };
 
@@ -9521,8 +8777,6 @@ class TruncDivModInstr : public TemplateDefinition<2, NoThrow, Pure> {
   virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   PRINT_OPERANDS_TO_SUPPORT
-
-  DECLARE_EMPTY_SERIALIZATION(TruncDivModInstr, TemplateDefinition)
 
  private:
   Range* divisor_range() const {
@@ -9578,18 +8832,12 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const Cids&, cids_)                                                        \
-  F(bool, licm_hoisted_)                                                       \
-  F(bool, is_bit_test_)                                                        \
-  F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckClassInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const Cids& cids_;
+  bool licm_hoisted_;
+  bool is_bit_test_;
+  const TokenPosition token_pos_;
+
   int EmitCheckCid(FlowGraphCompiler* compiler,
                    int bias,
                    intptr_t cid_start,
@@ -9633,16 +8881,10 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
   bool licm_hoisted() const { return licm_hoisted_; }
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
-#define FIELD_LIST(F)                                                          \
-  F(const TokenPosition, token_pos_)                                           \
-  F(bool, licm_hoisted_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckSmiInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const TokenPosition token_pos_;
+  bool licm_hoisted_;
+
   DISALLOW_COPY_AND_ASSIGN(CheckSmiInstr);
 };
 
@@ -9702,17 +8944,11 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const TokenPosition, token_pos_)                                           \
-  F(const String&, function_name_)                                             \
-  F(const ExceptionType, exception_type_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckNullInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const TokenPosition token_pos_;
+  const String& function_name_;
+  const ExceptionType exception_type_;
+
   DISALLOW_COPY_AND_ASSIGN(CheckNullInstr);
 };
 
@@ -9741,15 +8977,10 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(CidRangeValue, cids_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckClassIdInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
   bool Contains(intptr_t cid) const;
+
+  CidRangeValue cids_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassIdInstr);
 };
@@ -9779,8 +9010,6 @@ class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
 
   // Give a name to the location/input indices.
   enum { kLengthPos = 0, kIndexPos = 1 };
-
-  DECLARE_EMPTY_SERIALIZATION(CheckBoundBase, TemplateDefinition)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CheckBoundBase);
@@ -9816,16 +9045,10 @@ class CheckArrayBoundInstr : public CheckBoundBase {
 
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
-#define FIELD_LIST(F)                                                          \
-  F(bool, generalized_)                                                        \
-  F(bool, licm_hoisted_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckArrayBoundInstr,
-                                          CheckBoundBase,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  bool generalized_;
+  bool licm_hoisted_;
+
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
 };
 
@@ -9879,8 +9102,6 @@ class GenericCheckBoundInstr : public CheckBoundBase {
     return SlowPathSharingSupported(is_optimizing);
   }
 
-  DECLARE_EMPTY_SERIALIZATION(GenericCheckBoundInstr, CheckBoundBase)
-
  private:
   DISALLOW_COPY_AND_ASSIGN(GenericCheckBoundInstr);
 };
@@ -9905,8 +9126,6 @@ class CheckWritableInstr : public TemplateDefinition<1, Throws, Pure> {
   virtual Value* RedefinedValue() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
-
-  DECLARE_EMPTY_SERIALIZATION(CheckWritableInstr, TemplateDefinition)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CheckWritableInstr);
@@ -9948,18 +9167,12 @@ class CheckConditionInstr : public Instruction {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(ComparisonInstr*, comparison_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckConditionInstr,
-                                          Instruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-  DECLARE_EXTRA_SERIALIZATION
-
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     comparison()->RawSetInputAt(i, value);
   }
+
+  ComparisonInstr* comparison_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckConditionInstr);
 };
@@ -10025,17 +9238,11 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const Representation, from_representation_)                                \
-  F(const Representation, to_representation_)                                  \
-  F(bool, is_truncating_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(IntConverterInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const Representation from_representation_;
+  const Representation to_representation_;
+  bool is_truncating_;
+
   DISALLOW_COPY_AND_ASSIGN(IntConverterInstr);
 };
 
@@ -10082,16 +9289,10 @@ class BitCastInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const Representation, from_representation_)                                \
-  F(const Representation, to_representation_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(BitCastInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const Representation from_representation_;
+  const Representation to_representation_;
+
   DISALLOW_COPY_AND_ASSIGN(BitCastInstr);
 };
 
@@ -10116,8 +9317,6 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   }
 
   DECLARE_INSTRUCTION(LoadThread);
-
-  DECLARE_EMPTY_SERIALIZATION(LoadThreadInstr, TemplateDefinition)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(LoadThreadInstr);
@@ -10327,13 +9526,6 @@ class SimdOpInstr : public Definition {
   DECLARE_INSTRUCTION(SimdOp)
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const Kind, kind_)                                                         \
-  F(intptr_t, mask_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(SimdOpInstr, Definition, FIELD_LIST)
-#undef FIELD_LIST
-
  private:
   SimdOpInstr(Kind kind, intptr_t deopt_id)
       : Definition(deopt_id), kind_(kind) {}
@@ -10357,7 +9549,9 @@ class SimdOpInstr : public Definition {
   // We consider SimdOpInstr to be very uncommon so we don't optimize them for
   // size. Any instance of SimdOpInstr has enough space to fit any variation.
   // TODO(dartbug.com/30949) optimize this for size.
+  const Kind kind_;
   Value* inputs_[4];
+  intptr_t mask_;
 
   DISALLOW_COPY_AND_ASSIGN(SimdOpInstr);
 };
@@ -10396,16 +9590,10 @@ class Call1ArgStubInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(Call1ArgStub);
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const StubId, stub_id_)                                                    \
-  F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(Call1ArgStubInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const StubId stub_id_;
+  const TokenPosition token_pos_;
+
   DISALLOW_COPY_AND_ASSIGN(Call1ArgStubInstr);
 };
 
@@ -10446,17 +9634,11 @@ class SuspendInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(Suspend);
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const StubId, stub_id_)                                                    \
-  F(const intptr_t, resume_deopt_id_)                                          \
-  F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(SuspendInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
  private:
+  const StubId stub_id_;
+  const intptr_t resume_deopt_id_;
+  const TokenPosition token_pos_;
+
   DISALLOW_COPY_AND_ASSIGN(SuspendInstr);
 };
 
@@ -10669,9 +9851,6 @@ class Environment : public ZoneAllocated {
   // from the copy.
   Environment* DeepCopy(Zone* zone, intptr_t length) const;
 
-  void Write(FlowGraphSerializer* s) const;
-  explicit Environment(FlowGraphDeserializer* d);
-
  private:
   friend class ShallowIterator;
   friend class compiler::BlockBuilder;  // For Environment constructor.
@@ -10790,9 +9969,6 @@ inline bool Value::CanBe(const Object& value) {
   ConstantInstr* constant = definition()->AsConstant();
   return (constant == nullptr) || constant->value().ptr() == value.ptr();
 }
-#undef DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS
-#undef DECLARE_CUSTOM_SERIALIZATION
-#undef DECLARE_EMPTY_SERIALIZATION
 
 }  // namespace dart
 
