@@ -744,6 +744,12 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitIntersectionType(IntersectionType node) {
+    visited.add(DartTypeKind.IntersectionType);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitTypeParameterType(TypeParameterType node) {
     visited.add(DartTypeKind.TypeParameterType);
     node.visitChildren(this);
@@ -1121,6 +1127,7 @@ enum DartTypeKind {
   FunctionType,
   FutureOrType,
   InterfaceType,
+  IntersectionType,
   InvalidType,
   NeverType,
   NullType,

@@ -2221,7 +2221,10 @@ void KernelReaderHelper::SkipDartType() {
     case kTypeParameterType:
       ReadNullability();       // read nullability.
       ReadUInt();              // read index for parameter.
-      SkipOptionalDartType();  // read bound bound.
+      return;
+    case kIntersectionType:
+      SkipDartType();  // read left.
+      SkipDartType();  // read right.
       return;
     default:
       ReportUnexpectedTag("type", tag);
@@ -3152,6 +3155,9 @@ void TypeTranslator::BuildTypeInternal() {
         refers_to_derived_type_param_ = true;
       }
       break;
+    case kIntersectionType:
+      BuildIntersectionType();
+      break;
     default:
       helper_->ReportUnexpectedTag("type", tag);
       UNREACHABLE();
@@ -3300,7 +3306,6 @@ void TypeTranslator::BuildTypeParameterType() {
   }
 
   intptr_t parameter_index = helper_->ReadUInt();  // read parameter index.
-  helper_->SkipOptionalDartType();                 // read bound.
 
   // If the type is from a constant, the parameter index isn't offset by the
   // enclosing context.
@@ -3396,6 +3401,11 @@ void TypeTranslator::BuildTypeParameterType() {
       helper_->script(), TokenPosition::kNoSource,
       "Unbound type parameter found in %s.  Please report this at dartbug.com.",
       active_class_->ToCString());
+}
+
+void TypeTranslator::BuildIntersectionType() {
+  BuildTypeInternal();      // read left.
+  helper_->SkipDartType();  // read right.
 }
 
 const TypeArguments& TypeTranslator::BuildTypeArguments(intptr_t length) {

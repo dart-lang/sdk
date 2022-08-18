@@ -194,11 +194,6 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   @override
   bool visitTypeParameterType(TypeParameterType node, DartType other) {
     if (other is TypeParameterType) {
-      bool nodeIsIntersection = node.promotedBound != null;
-      bool otherIsIntersection = other.promotedBound != null;
-      if (nodeIsIntersection != otherIsIntersection) {
-        return false;
-      }
       if (!_checkAndRegisterNullabilities(
           node.declaredNullability, other.declaredNullability)) {
         return false;
@@ -206,9 +201,16 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
       if (!identical(_lookup(node.parameter), other.parameter)) {
         return false;
       }
-      return nodeIsIntersection
-          ? node.promotedBound!.accept1(this, other.promotedBound)
-          : true;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitIntersectionType(IntersectionType node, DartType other) {
+    if (other is IntersectionType) {
+      return node.left.accept1(this, other.left) &&
+          node.right.accept1(this, other.right);
     }
     return false;
   }

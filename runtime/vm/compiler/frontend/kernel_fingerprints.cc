@@ -251,9 +251,12 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
       Nullability nullability = ReadNullability();
       BuildHash(static_cast<uint32_t>(nullability));
       ReadUInt();                              // read index for parameter.
-      CalculateOptionalDartTypeFingerprint();  // read bound bound.
       break;
     }
+    case kIntersectionType:
+      CalculateDartTypeFingerprint();  // read left;
+      CalculateDartTypeFingerprint();  // read right;
+      break;
     default:
       ReportUnexpectedTag("type", tag);
       UNREACHABLE();

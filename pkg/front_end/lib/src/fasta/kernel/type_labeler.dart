@@ -175,6 +175,11 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   @override
+  void visitIntersectionType(IntersectionType node) {
+    return node.left.accept(this);
+  }
+
+  @override
   void visitFunctionType(FunctionType node) {
     node.returnType.accept(this);
     result.add(" Function");

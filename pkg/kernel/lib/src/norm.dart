@@ -92,44 +92,43 @@ class _Norm extends ReplacementVisitor {
 
   @override
   DartType? visitTypeParameterType(TypeParameterType node, int variance) {
-    if (node.promotedBound == null) {
-      DartType bound = node.parameter.bound;
-      if (normalizesToNever(bound)) {
-        DartType result = NeverType.fromNullability(node.nullability);
-        return result.accept1(this, variance) ?? result;
-      }
-      assert(!coreTypes.isBottom(bound));
-      // If the bound isn't Never, the type is already normalized.
-      return null;
-    } else {
-      DartType bound = node.promotedBound!;
-      bound = bound.accept1(this, variance) ?? bound;
-      if (bound is NeverType && bound.nullability == Nullability.nonNullable) {
-        return bound;
-      } else if (coreTypes.isTop(bound)) {
-        assert(!coreTypes.isBottom(bound));
-        assert(bound.nullability == Nullability.nullable);
-        return new TypeParameterType(node.parameter, node.declaredNullability);
-      } else if (bound is TypeParameterType &&
-          bound.parameter == node.parameter &&
-          bound.declaredNullability == node.declaredNullability &&
-          bound.promotedBound == null) {
-        assert(!coreTypes.isBottom(bound));
-        assert(!coreTypes.isTop(bound));
-        return new TypeParameterType(node.parameter, node.declaredNullability);
-      } else if (bound == coreTypes.objectNonNullableRawType &&
-          norm(coreTypes, node.parameter.bound) ==
-              coreTypes.objectNonNullableRawType) {
-        return new TypeParameterType(node.parameter, node.declaredNullability);
-      } else if (identical(bound, node.promotedBound)) {
-        // If [bound] is identical to [node.promotedBound], then the NORM
-        // algorithms didn't change the promoted bound, so the [node] is
-        // unchanged as well, and we return null to indicate that.
-        return null;
-      }
-      return new TypeParameterType(
-          node.parameter, node.declaredNullability, bound);
+    DartType bound = node.parameter.bound;
+    if (normalizesToNever(bound)) {
+      DartType result = NeverType.fromNullability(node.nullability);
+      return result.accept1(this, variance) ?? result;
     }
+    assert(!coreTypes.isBottom(bound));
+    // If the bound isn't Never, the type is already normalized.
+    return null;
+  }
+
+  @override
+  DartType? visitIntersectionType(IntersectionType node, int variance) {
+    DartType right = node.right;
+    right = right.accept1(this, variance) ?? right;
+    if (right is NeverType && right.nullability == Nullability.nonNullable) {
+      return right;
+    } else if (coreTypes.isTop(right)) {
+      assert(!coreTypes.isBottom(right));
+      assert(right.nullability == Nullability.nullable);
+      return node.left;
+    } else if (right is TypeParameterType &&
+        right.parameter == node.left.parameter &&
+        right.declaredNullability == node.left.declaredNullability) {
+      assert(!coreTypes.isBottom(right));
+      assert(!coreTypes.isTop(right));
+      return node.left;
+    } else if (right == coreTypes.objectNonNullableRawType &&
+        norm(coreTypes, node.left.parameter.bound) ==
+            coreTypes.objectNonNullableRawType) {
+      return node.left;
+    } else if (identical(right, node.right)) {
+      // If [bound] is identical to [node.right], then the NORM
+      // algorithms didn't change the promoted bound, so the [node] is
+      // unchanged as well, and we return null to indicate that.
+      return null;
+    }
+    return new IntersectionType(node.left, right);
   }
 
   @override
@@ -142,11 +141,9 @@ class _Norm extends ReplacementVisitor {
     if (type is NeverType && type.nullability == Nullability.nonNullable) {
       return true;
     } else if (type is TypeParameterType) {
-      if (type.promotedBound == null) {
-        return normalizesToNever(type.parameter.bound);
-      } else {
-        return normalizesToNever(type.promotedBound!);
-      }
+      return normalizesToNever(type.parameter.bound);
+    } else if (type is IntersectionType) {
+      return normalizesToNever(type.right);
     }
     return false;
   }

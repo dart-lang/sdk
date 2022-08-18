@@ -211,27 +211,22 @@ mixin StandardBounds {
     }
 
     // MOREBOTTOM(X&S, Y&T) = MOREBOTTOM(S, T).
-    if (s is TypeParameterType &&
-        s.promotedBound != null &&
-        t is TypeParameterType &&
-        t.promotedBound != null) {
-      return morebottom(s.promotedBound!, t.promotedBound!);
+    if (s is IntersectionType && t is IntersectionType) {
+      return morebottom(s.right, t.right);
     }
 
     // MOREBOTTOM(X&S, T) = true.
-    if (s is TypeParameterType && s.promotedBound != null) {
+    if (s is IntersectionType) {
       return true;
     }
 
     // MOREBOTTOM(S, X&T) = false.
-    if (t is TypeParameterType && t.promotedBound != null) {
+    if (t is IntersectionType) {
       return false;
     }
 
     // MOREBOTTOM(X extends S, Y extends T) = MOREBOTTOM(S, T).
     if (s is TypeParameterType && t is TypeParameterType) {
-      assert(s.promotedBound == null);
-      assert(t.promotedBound == null);
       return morebottom(s.parameter.bound, t.parameter.bound);
     }
 
@@ -741,8 +736,18 @@ mixin StandardBounds {
           type1, type2, clientLibrary);
     }
 
+    if (type1 is IntersectionType) {
+      return _getNullabilityAwareIntersectionStandardUpperBound(
+          type1, type2, clientLibrary);
+    }
+
     if (type2 is TypeParameterType) {
       return _getNullabilityAwareTypeParameterStandardUpperBound(
+          type2, type1, clientLibrary);
+    }
+
+    if (type2 is IntersectionType) {
+      return _getNullabilityAwareIntersectionStandardUpperBound(
           type2, type1, clientLibrary);
     }
 
@@ -1216,67 +1221,65 @@ mixin StandardBounds {
 
   DartType _getNullabilityAwareTypeParameterStandardUpperBound(
       TypeParameterType type1, DartType type2, Library clientLibrary) {
-    if (type1.promotedBound == null) {
-      // UP(X1 extends B1, T2) =
-      //   T2 if X1 <: T2
-      //   otherwise X1 if T2 <: X1
-      //   otherwise UP(B1a, T2)
-      //     where B1a is the greatest closure of B1 with respect to X1,
-      //     as defined in [inference.md].
-      if (isSubtypeOf(type1, type2, SubtypeCheckMode.withNullabilities)) {
-        return type2.withDeclaredNullability(
-            uniteNullabilities(type1.declaredNullability, type2.nullability));
-      }
-      if (isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
-        return type1.withDeclaredNullability(
-            uniteNullabilities(type1.declaredNullability, type2.nullability));
-      }
-      NullabilityAwareTypeVariableEliminator eliminator =
-          new NullabilityAwareTypeVariableEliminator(
-              eliminationTargets: <TypeParameter>{type1.parameter},
-              bottomType: const NeverType.nonNullable(),
-              topType: coreTypes.objectNullableRawType,
-              topFunctionType: coreTypes.functionNonNullableRawType,
-              unhandledTypeHandler: (type, recursor) => false);
-      return _getNullabilityAwareStandardUpperBound(
-              eliminator.eliminateToGreatest(type1.parameter.bound),
-              type2,
-              clientLibrary)
-          .withDeclaredNullability(uniteNullabilities(
-              type1.declaredNullability,
-              uniteNullabilities(type1.parameter.bound.declaredNullability,
-                  type2.nullability)));
-    } else {
-      // UP(X1 & B1, T2) =
-      //   T2 if X1 <: T2
-      //   otherwise X1 if T2 <: X1
-      //   otherwise UP(B1a, T2)
-      //     where B1a is the greatest closure of B1 with respect to X1,
-      //     as defined in [inference.md].
-      DartType demoted =
-          new TypeParameterType(type1.parameter, type1.declaredNullability);
-      if (isSubtypeOf(demoted, type2, SubtypeCheckMode.withNullabilities)) {
-        return type2.withDeclaredNullability(uniteNullabilities(
-            type1.declaredNullability, type2.declaredNullability));
-      }
-      if (isSubtypeOf(type2, demoted, SubtypeCheckMode.withNullabilities)) {
-        return demoted.withDeclaredNullability(uniteNullabilities(
-            type1.declaredNullability, type2.declaredNullability));
-      }
-      NullabilityAwareTypeVariableEliminator eliminator =
-          new NullabilityAwareTypeVariableEliminator(
-              eliminationTargets: <TypeParameter>{type1.parameter},
-              bottomType: const NeverType.nonNullable(),
-              topType: coreTypes.objectNullableRawType,
-              topFunctionType: coreTypes.functionNonNullableRawType,
-              unhandledTypeHandler: (type, recursor) => false);
-      return _getNullabilityAwareStandardUpperBound(
-              eliminator.eliminateToGreatest(type1.promotedBound!),
-              type2,
-              clientLibrary)
-          .withDeclaredNullability(uniteNullabilities(
-              type1.promotedBound!.declaredNullability, type2.nullability));
+    // UP(X1 extends B1, T2) =
+    //   T2 if X1 <: T2
+    //   otherwise X1 if T2 <: X1
+    //   otherwise UP(B1a, T2)
+    //     where B1a is the greatest closure of B1 with respect to X1,
+    //     as defined in [inference.md].
+    if (isSubtypeOf(type1, type2, SubtypeCheckMode.withNullabilities)) {
+      return type2.withDeclaredNullability(
+          uniteNullabilities(type1.declaredNullability, type2.nullability));
     }
+    if (isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
+      return type1.withDeclaredNullability(
+          uniteNullabilities(type1.declaredNullability, type2.nullability));
+    }
+    NullabilityAwareTypeVariableEliminator eliminator =
+        new NullabilityAwareTypeVariableEliminator(
+            eliminationTargets: <TypeParameter>{type1.parameter},
+            bottomType: const NeverType.nonNullable(),
+            topType: coreTypes.objectNullableRawType,
+            topFunctionType: coreTypes.functionNonNullableRawType,
+            unhandledTypeHandler: (type, recursor) => false);
+    return _getNullabilityAwareStandardUpperBound(
+            eliminator.eliminateToGreatest(type1.parameter.bound),
+            type2,
+            clientLibrary)
+        .withDeclaredNullability(uniteNullabilities(
+            type1.declaredNullability,
+            uniteNullabilities(
+                type1.parameter.bound.declaredNullability, type2.nullability)));
+  }
+
+  DartType _getNullabilityAwareIntersectionStandardUpperBound(
+      IntersectionType type1, DartType type2, Library clientLibrary) {
+    // UP(X1 & B1, T2) =
+    //   T2 if X1 <: T2
+    //   otherwise X1 if T2 <: X1
+    //   otherwise UP(B1a, T2)
+    //     where B1a is the greatest closure of B1 with respect to X1,
+    //     as defined in [inference.md].
+    DartType demoted = type1.left;
+    if (isSubtypeOf(demoted, type2, SubtypeCheckMode.withNullabilities)) {
+      return type2.withDeclaredNullability(uniteNullabilities(
+          type1.declaredNullability, type2.declaredNullability));
+    }
+    if (isSubtypeOf(type2, demoted, SubtypeCheckMode.withNullabilities)) {
+      return demoted.withDeclaredNullability(uniteNullabilities(
+          type1.declaredNullability, type2.declaredNullability));
+    }
+    NullabilityAwareTypeVariableEliminator eliminator =
+        new NullabilityAwareTypeVariableEliminator(
+            eliminationTargets: <TypeParameter>{type1.left.parameter},
+            bottomType: const NeverType.nonNullable(),
+            topType: coreTypes.objectNullableRawType,
+            topFunctionType: coreTypes.functionNonNullableRawType,
+            unhandledTypeHandler: (type, recursor) => false);
+    return _getNullabilityAwareStandardUpperBound(
+            eliminator.eliminateToGreatest(type1.right), type2, clientLibrary)
+        .withDeclaredNullability(uniteNullabilities(
+            type1.right.declaredNullability, type2.nullability));
   }
 
   DartType _getNullabilityObliviousStandardUpperBound(

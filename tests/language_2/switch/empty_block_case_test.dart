@@ -8,11 +8,6 @@ import "package:expect/expect.dart";
 
 // Test that a case with an empty block does not fall through.
 
-// VMOptions=
-// VMOptions=--force-switch-dispatch-type=0
-// VMOptions=--force-switch-dispatch-type=1
-// VMOptions=--force-switch-dispatch-type=2
-
 class EmptyBlockCaseTest {
   static testMain() {
     var exception = null;

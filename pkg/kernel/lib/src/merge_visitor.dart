@@ -281,11 +281,7 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       if (nullability == null) {
         return null;
       }
-      if (a.promotedBound != null && b.promotedBound != null) {
-        return mergePromotedTypeParameterTypes(a, b, nullability);
-      } else if (a.promotedBound == null && b.promotedBound == null) {
-        return mergeTypeParameterTypes(a, b, nullability);
-      }
+      return mergeTypeParameterTypes(a, b, nullability);
     }
     if (b is InvalidType) {
       return b;
@@ -296,22 +292,30 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   DartType mergeTypeParameterTypes(
       TypeParameterType a, TypeParameterType b, Nullability nullability) {
     assert(a.parameter == b.parameter);
-    assert(a.promotedBound == null);
-    assert(b.promotedBound == null);
     return new TypeParameterType(a.parameter, nullability);
   }
 
-  DartType? mergePromotedTypeParameterTypes(
-      TypeParameterType a, TypeParameterType b, Nullability nullability) {
-    assert(a.parameter == b.parameter);
-    assert(a.promotedBound != null);
-    assert(b.promotedBound != null);
-    DartType? newPromotedBound =
-        a.promotedBound!.accept1(this, b.promotedBound);
-    if (newPromotedBound == null) {
+  @override
+  DartType? visitIntersectionType(IntersectionType a, DartType b) {
+    if (b is IntersectionType) {
+      return mergeIntersectionTypes(a, b);
+    }
+    if (b is InvalidType) {
+      return b;
+    }
+    return null;
+  }
+
+  DartType? mergeIntersectionTypes(IntersectionType a, IntersectionType b) {
+    DartType? newLeft = a.left.accept1(this, b.left);
+    if (newLeft == null) {
       return null;
     }
-    return new TypeParameterType(a.parameter, nullability, newPromotedBound);
+    DartType? newRight = a.right.accept1(this, b.right);
+    if (newRight == null) {
+      return null;
+    }
+    return new IntersectionType(newLeft as TypeParameterType, newRight);
   }
 
   @override

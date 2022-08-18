@@ -140,6 +140,7 @@ class Tag {
   static const int SimpleInterfaceType = 96;
   static const int SimpleFunctionType = 97;
   static const int NeverType = 98;
+  static const int IntersectionType = 99;
 
   static const int ConstantExpression = 106;
 
@@ -179,7 +180,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 83;
+  static const int BinaryFormatVersion = 84;
 }
 
 abstract class ConstantTag {

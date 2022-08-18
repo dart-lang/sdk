@@ -110,10 +110,12 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
     // node.parameter.bound is not checked because such a bound doesn't
     // automatically means that the potential errors related to the occurrences
     // of the type-parameter type itself are reported.
-    if (node.promotedBound != null &&
-        node.promotedBound!.accept1(this, visitedTypedefs)) {
-      return true;
-    }
     return false;
+  }
+
+  @override
+  bool visitIntersectionType(
+      IntersectionType node, Set<TypedefType> visitedTypedefs) {
+    return node.right.accept1(this, visitedTypedefs);
   }
 }

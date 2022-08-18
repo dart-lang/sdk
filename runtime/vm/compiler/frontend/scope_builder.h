@@ -47,6 +47,7 @@ class ScopeBuilder {
   void VisitInterfaceType(bool simple);
   void VisitFunctionType(bool simple);
   void VisitTypeParameterType();
+  void VisitIntersectionType();
   void HandleLocalFunction(intptr_t parent_kernel_offset);
 
   AbstractType& BuildAndVisitVariableType();

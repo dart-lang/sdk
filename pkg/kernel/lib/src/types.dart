@@ -106,9 +106,9 @@ class Types with StandardBounds {
       } else if (s is FunctionType) {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
-        return s.promotedBound == null
-            ? relation.isTypeParameterRelated(s, t, this)
-            : relation.isIntersectionRelated(s, t, this);
+        return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is IntersectionType) {
+        return relation.isIntersectionRelated(s, t, this);
       } else if (s is TypedefType) {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
@@ -127,9 +127,9 @@ class Types with StandardBounds {
       } else if (s is FunctionType) {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
-        return s.promotedBound == null
-            ? relation.isTypeParameterRelated(s, t, this)
-            : relation.isIntersectionRelated(s, t, this);
+        return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is IntersectionType) {
+        return relation.isIntersectionRelated(s, t, this);
       } else if (s is TypedefType) {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
@@ -138,50 +138,47 @@ class Types with StandardBounds {
         return relation.isExtensionRelated(s, t, this);
       }
     } else if (t is TypeParameterType) {
-      if (t.promotedBound == null) {
-        const IsTypeParameterSubtypeOf relation =
-            const IsTypeParameterSubtypeOf();
-        if (s is DynamicType) {
-          return relation.isDynamicRelated(s, t, this);
-        } else if (s is VoidType) {
-          return relation.isVoidRelated(s, t, this);
-        } else if (s is InterfaceType) {
-          return relation.isInterfaceRelated(s, t, this);
-        } else if (s is FunctionType) {
-          return relation.isFunctionRelated(s, t, this);
-        } else if (s is TypeParameterType) {
-          return s.promotedBound == null
-              ? relation.isTypeParameterRelated(s, t, this)
-              : relation.isIntersectionRelated(s, t, this);
-        } else if (s is TypedefType) {
-          return relation.isTypedefRelated(s, t, this);
-        } else if (s is FutureOrType) {
-          return relation.isFutureOrRelated(s, t, this);
-        } else if (s is ExtensionType) {
-          return relation.isExtensionRelated(s, t, this);
-        }
-      } else {
-        const IsIntersectionSubtypeOf relation =
-            const IsIntersectionSubtypeOf();
-        if (s is DynamicType) {
-          return relation.isDynamicRelated(s, t, this);
-        } else if (s is VoidType) {
-          return relation.isVoidRelated(s, t, this);
-        } else if (s is InterfaceType) {
-          return relation.isInterfaceRelated(s, t, this);
-        } else if (s is FunctionType) {
-          return relation.isFunctionRelated(s, t, this);
-        } else if (s is TypeParameterType) {
-          return s.promotedBound == null
-              ? relation.isTypeParameterRelated(s, t, this)
-              : relation.isIntersectionRelated(s, t, this);
-        } else if (s is TypedefType) {
-          return relation.isTypedefRelated(s, t, this);
-        } else if (s is FutureOrType) {
-          return relation.isFutureOrRelated(s, t, this);
-        } else if (s is ExtensionType) {
-          return relation.isExtensionRelated(s, t, this);
-        }
+      const IsTypeParameterSubtypeOf relation =
+          const IsTypeParameterSubtypeOf();
+      if (s is DynamicType) {
+        return relation.isDynamicRelated(s, t, this);
+      } else if (s is VoidType) {
+        return relation.isVoidRelated(s, t, this);
+      } else if (s is InterfaceType) {
+        return relation.isInterfaceRelated(s, t, this);
+      } else if (s is FunctionType) {
+        return relation.isFunctionRelated(s, t, this);
+      } else if (s is TypeParameterType) {
+        return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is IntersectionType) {
+        return relation.isIntersectionRelated(s, t, this);
+      } else if (s is TypedefType) {
+        return relation.isTypedefRelated(s, t, this);
+      } else if (s is FutureOrType) {
+        return relation.isFutureOrRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionRelated(s, t, this);
+      }
+    } else if (t is IntersectionType) {
+      const IsIntersectionSubtypeOf relation = const IsIntersectionSubtypeOf();
+      if (s is DynamicType) {
+        return relation.isDynamicRelated(s, t, this);
+      } else if (s is VoidType) {
+        return relation.isVoidRelated(s, t, this);
+      } else if (s is InterfaceType) {
+        return relation.isInterfaceRelated(s, t, this);
+      } else if (s is FunctionType) {
+        return relation.isFunctionRelated(s, t, this);
+      } else if (s is TypeParameterType) {
+        return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is IntersectionType) {
+        return relation.isIntersectionRelated(s, t, this);
+      } else if (s is TypedefType) {
+        return relation.isTypedefRelated(s, t, this);
+      } else if (s is FutureOrType) {
+        return relation.isFutureOrRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionRelated(s, t, this);
       }
     } else if (t is TypedefType) {
       const IsTypedefSubtypeOf relation = const IsTypedefSubtypeOf();
@@ -194,9 +191,9 @@ class Types with StandardBounds {
       } else if (s is FunctionType) {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
-        return s.promotedBound == null
-            ? relation.isTypeParameterRelated(s, t, this)
-            : relation.isIntersectionRelated(s, t, this);
+        return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is IntersectionType) {
+        return relation.isIntersectionRelated(s, t, this);
       } else if (s is TypedefType) {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
@@ -215,9 +212,9 @@ class Types with StandardBounds {
       } else if (s is FunctionType) {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
-        return s.promotedBound == null
-            ? relation.isTypeParameterRelated(s, t, this)
-            : relation.isIntersectionRelated(s, t, this);
+        return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is IntersectionType) {
+        return relation.isIntersectionRelated(s, t, this);
       } else if (s is TypedefType) {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
@@ -236,9 +233,9 @@ class Types with StandardBounds {
       } else if (s is FunctionType) {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
-        return s.promotedBound == null
-            ? relation.isTypeParameterRelated(s, t, this)
-            : relation.isIntersectionRelated(s, t, this);
+        return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is IntersectionType) {
+        return relation.isIntersectionRelated(s, t, this);
       } else if (s is TypedefType) {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
@@ -257,9 +254,9 @@ class Types with StandardBounds {
       } else if (s is FunctionType) {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
-        return s.promotedBound == null
-            ? relation.isTypeParameterRelated(s, t, this)
-            : relation.isIntersectionRelated(s, t, this);
+        return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is IntersectionType) {
+        return relation.isIntersectionRelated(s, t, this);
       } else if (s is TypedefType) {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
@@ -279,9 +276,10 @@ class Types with StandardBounds {
       } else if (s is FunctionType) {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
-        return s.promotedBound == null
-            ? relation.isTypeParameterRelated(s, t, this)
-            : relation.isIntersectionRelated(s, t, this);
+        return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is IntersectionType) {
+        return relation.isIntersectionRelated(s, t, this);
+      } else if (s is IntersectionType) {
       } else if (s is TypedefType) {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
@@ -362,7 +360,7 @@ abstract class TypeRelation<T extends DartType> {
   IsSubtypeOf isInterfaceRelated(InterfaceType s, T t, Types types);
 
   IsSubtypeOf isIntersectionRelated(
-      TypeParameterType intersection, T t, Types types);
+      IntersectionType intersection, T t, Types types);
 
   IsSubtypeOf isFunctionRelated(FunctionType s, T t, Types types);
 
@@ -414,9 +412,9 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
 
   @override
   IsSubtypeOf isIntersectionRelated(
-      TypeParameterType intersection, InterfaceType t, Types types) {
+      IntersectionType intersection, InterfaceType t, Types types) {
     return types.performNullabilityAwareSubtypeCheck(
-        intersection.promotedBound!, t); // Rule 12.
+        intersection.right, t); // Rule 12.
   }
 
   @override
@@ -599,10 +597,9 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
 
   @override
   IsSubtypeOf isIntersectionRelated(
-      TypeParameterType intersection, FunctionType t, Types types) {
+      IntersectionType intersection, FunctionType t, Types types) {
     // Rule 12.
-    return types.performNullabilityAwareSubtypeCheck(
-        intersection.promotedBound!, t);
+    return types.performNullabilityAwareSubtypeCheck(intersection.right, t);
   }
 
   @override
@@ -652,14 +649,14 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
 
   @override
   IsSubtypeOf isIntersectionRelated(
-      TypeParameterType intersection, TypeParameterType t, Types types) {
+      IntersectionType intersection, TypeParameterType t, Types types) {
     // Nullable types aren't promoted to intersection types.
     // TODO(cstefantsova): Uncomment the following when the inference is
     // updated.
     //assert(intersection.typeParameterTypeNullability != Nullability.nullable);
 
     // Rule 8.
-    if (intersection.parameter == t.parameter) {
+    if (intersection.left.parameter == t.parameter) {
       if (intersection.nullability == Nullability.undetermined &&
           t.nullability == Nullability.undetermined) {
         // The two nullabilities are undetermined, but are connected via
@@ -671,8 +668,7 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
 
     // Rule 12.
     return types.performNullabilityAwareSubtypeCheck(
-        intersection.promotedBound!
-            .withDeclaredNullability(intersection.nullability),
+        intersection.right.withDeclaredNullability(intersection.nullability),
         t);
   }
 
@@ -743,7 +739,7 @@ class IsTypedefSubtypeOf extends TypeRelation<TypedefType> {
 
   @override
   IsSubtypeOf isIntersectionRelated(
-      TypeParameterType intersection, TypedefType t, Types types) {
+      IntersectionType intersection, TypedefType t, Types types) {
     return types.performNullabilityAwareSubtypeCheck(intersection, t.unalias);
   }
 
@@ -885,9 +881,9 @@ class IsFutureOrSubtypeOf extends TypeRelation<FutureOrType> {
 
   @override
   IsSubtypeOf isIntersectionRelated(
-      TypeParameterType intersection, FutureOrType t, Types types) {
-    return isTypeParameterRelated(intersection, t, types) // Rule 8.
-        .orSubtypeCheckFor(intersection.promotedBound!, t, types); // Rule 12.
+      IntersectionType intersection, FutureOrType t, Types types) {
+    return isTypeParameterRelated(intersection.left, t, types) // Rule 8.
+        .orSubtypeCheckFor(intersection.right, t, types); // Rule 12.
   }
 
   @override
@@ -903,67 +899,67 @@ class IsFutureOrSubtypeOf extends TypeRelation<FutureOrType> {
   }
 }
 
-class IsIntersectionSubtypeOf extends TypeRelation<TypeParameterType> {
+class IsIntersectionSubtypeOf extends TypeRelation<IntersectionType> {
   const IsIntersectionSubtypeOf();
 
   @override
-  IsSubtypeOf isIntersectionRelated(TypeParameterType sIntersection,
-      TypeParameterType tIntersection, Types types) {
+  IsSubtypeOf isIntersectionRelated(IntersectionType sIntersection,
+      IntersectionType tIntersection, Types types) {
     // Rule 9.
     return const IsTypeParameterSubtypeOf()
-        .isIntersectionRelated(sIntersection, tIntersection, types)
-        .andSubtypeCheckFor(sIntersection, tIntersection.promotedBound!, types);
+        .isIntersectionRelated(sIntersection, tIntersection.left, types)
+        .andSubtypeCheckFor(sIntersection, tIntersection.right, types);
   }
 
   @override
   IsSubtypeOf isTypeParameterRelated(
-      TypeParameterType s, TypeParameterType intersection, Types types) {
+      TypeParameterType s, IntersectionType intersection, Types types) {
     // Rule 9.
     return const IsTypeParameterSubtypeOf()
-        .isTypeParameterRelated(s, intersection, types)
-        .andSubtypeCheckFor(s, intersection.promotedBound!, types);
+        .isTypeParameterRelated(s, intersection.left, types)
+        .andSubtypeCheckFor(s, intersection.right, types);
   }
 
   @override
   IsSubtypeOf isInterfaceRelated(
-      InterfaceType s, TypeParameterType intersection, Types types) {
+      InterfaceType s, IntersectionType intersection, Types types) {
     return const IsSubtypeOf.never();
   }
 
   @override
   IsSubtypeOf isDynamicRelated(
-      DynamicType s, TypeParameterType intersection, Types types) {
+      DynamicType s, IntersectionType intersection, Types types) {
     return const IsSubtypeOf.never();
   }
 
   @override
   IsSubtypeOf isFunctionRelated(
-      FunctionType s, TypeParameterType intersection, Types types) {
+      FunctionType s, IntersectionType intersection, Types types) {
     return const IsSubtypeOf.never();
   }
 
   @override
   IsSubtypeOf isFutureOrRelated(
-      FutureOrType s, TypeParameterType intersection, Types types) {
+      FutureOrType s, IntersectionType intersection, Types types) {
     return const IsSubtypeOf.never();
   }
 
   @override
   IsSubtypeOf isTypedefRelated(
-      TypedefType s, TypeParameterType intersection, Types types) {
+      TypedefType s, IntersectionType intersection, Types types) {
     // Rule 5.
     return types.performNullabilityAwareSubtypeCheck(s.unalias, intersection);
   }
 
   @override
   IsSubtypeOf isVoidRelated(
-      VoidType s, TypeParameterType intersection, Types types) {
+      VoidType s, IntersectionType intersection, Types types) {
     return const IsSubtypeOf.never();
   }
 
   @override
   IsSubtypeOf isExtensionRelated(
-      ExtensionType s, TypeParameterType t, Types types) {
+      ExtensionType s, IntersectionType t, Types types) {
     return const IsSubtypeOf.never();
   }
 }
@@ -988,9 +984,9 @@ class IsNullTypeSubtypeOf implements TypeRelation<NullType> {
 
   @override
   IsSubtypeOf isIntersectionRelated(
-      TypeParameterType intersection, NullType t, Types types) {
+      IntersectionType intersection, NullType t, Types types) {
     return types.performNullabilityAwareMutualSubtypesCheck(
-        intersection.promotedBound!, t);
+        intersection.right, t);
   }
 
   @override
@@ -1043,9 +1039,8 @@ class IsNeverTypeSubtypeOf implements TypeRelation<NeverType> {
 
   @override
   IsSubtypeOf isIntersectionRelated(
-      TypeParameterType intersection, NeverType t, Types types) {
-    return types.performNullabilityAwareSubtypeCheck(
-        intersection.promotedBound!, t);
+      IntersectionType intersection, NeverType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(intersection.right, t);
   }
 
   @override
@@ -1098,7 +1093,7 @@ class IsExtensionTypeSubtypeOf implements TypeRelation<ExtensionType> {
 
   @override
   IsSubtypeOf isIntersectionRelated(
-      TypeParameterType intersection, ExtensionType t, Types types) {
+      IntersectionType intersection, ExtensionType t, Types types) {
     return types.performNullabilityAwareSubtypeCheck(intersection, t.onType);
   }
 

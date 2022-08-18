@@ -2661,19 +2661,21 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   void visitTypeParameterType(TypeParameterType node) {
     writeTypeParameterReference(node.parameter);
     writeNullability(node.declaredNullability);
-    DartType? promotedBound = node.promotedBound;
-    if (promotedBound != null) {
-      writeSpaced('&');
-      writeType(promotedBound);
+  }
 
-      writeWord("/* '");
-      writeNullability(node.declaredNullability, inComment: true);
-      writeWord("' & '");
-      writeDartTypeNullability(promotedBound, inComment: true);
-      writeWord("' = '");
-      writeNullability(node.nullability, inComment: true);
-      writeWord("' */");
-    }
+  @override
+  void visitIntersectionType(IntersectionType node) {
+    writeType(node.left);
+    writeSpaced('&');
+    writeType(node.right);
+    writeWord("/* '");
+
+    writeDartTypeNullability(node.left, inComment: true);
+    writeWord("' & '");
+    writeDartTypeNullability(node.right, inComment: true);
+    writeWord("' = '");
+    writeNullability(node.nullability, inComment: true);
+    writeWord("' */");
   }
 
   @override

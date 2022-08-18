@@ -213,12 +213,15 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
   @override
   DartType? visitTypeParameterType(TypeParameterType node, int variance) {
     Nullability? newNullability = visitNullability(node);
-    if (node.promotedBound != null) {
-      DartType? newPromotedBound = node.promotedBound!.accept1(this, variance);
-      return createPromotedTypeParameterType(
-          node, newNullability, newPromotedBound);
-    }
     return createTypeParameterType(node, newNullability);
+  }
+
+  @override
+  DartType? visitIntersectionType(IntersectionType node, int variance) {
+    DartType? newLeft = node.left.accept1(this, variance);
+    DartType? newRight = node.right.accept1(this, variance);
+    return createIntersectionType(
+        node, newLeft as TypeParameterType?, newRight);
   }
 
   DartType? createTypeParameterType(
@@ -231,16 +234,12 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
     }
   }
 
-  DartType? createPromotedTypeParameterType(TypeParameterType node,
-      Nullability? newNullability, DartType? newPromotedBound) {
-    if (newNullability == null && newPromotedBound == null) {
-      // No nullability or bound needed to be substituted.
+  DartType? createIntersectionType(
+      IntersectionType node, TypeParameterType? left, DartType? right) {
+    if (left == null && right == null) {
       return null;
     } else {
-      return new TypeParameterType(
-          node.parameter,
-          newNullability ?? node.declaredNullability,
-          newPromotedBound ?? node.promotedBound);
+      return new IntersectionType(left ?? node.left, right ?? node.right);
     }
   }
 

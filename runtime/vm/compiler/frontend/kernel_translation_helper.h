@@ -1540,6 +1540,7 @@ class TypeTranslator {
   void BuildInterfaceType(bool simple);
   void BuildFunctionType(bool simple);
   void BuildTypeParameterType();
+  void BuildIntersectionType();
 
   class TypeParameterScope {
    public:

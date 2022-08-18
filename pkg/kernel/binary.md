@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 83;
+  UInt32 formatVersion = 84;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -1529,7 +1529,12 @@ type TypeParameterType extends DartType {
   // the class type parameters in a constructor refer to those declared on the
   // class.
   UInt index;
-  Option<DartType> bound;
+}
+
+type IntersectionType extends DartType {
+  Byte tag = 99;
+  TypeParameterType left;
+  DartType right;
 }
 
 type TypedefType {

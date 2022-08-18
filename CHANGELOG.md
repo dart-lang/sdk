@@ -43,13 +43,17 @@
   to be deleted in a future release. See the related breaking change
   request [#49536](https://github.com/dart-lang/sdk/issues/49536).
 
+#### `dart:isolate`
+
+- Add `Isolate.run` to run a function in a new isolate.
+
 ### Tools
 
 #### Linter
 
 Updated the Linter to `1.27.0`, which includes changes that
 
-- fix `avoid_redundant_argument_values` when referencing required 
+- fix `avoid_redundant_argument_values` when referencing required
   parameters in legacy libraries.
 - improve performance for `use_late_for_private_fields_and_variables`.
 - add new lint: `use_string_in_part_of_directives`.
@@ -105,7 +109,7 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 [language version]: https://dart.dev/guides/language/evolution
 
--  **[Enhanced type inference for generic invocations with function literals][]**: 
+-  **[Enhanced type inference for generic invocations with function literals][]**:
    Invocations of generic methods/constructors that supply function literal
    arguments now have improved type inference. This primarily affects the
    `Iterable.fold` method. For example, in previous versions of Dart, the

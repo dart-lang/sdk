@@ -3053,6 +3053,8 @@ class BinaryBuilder {
         return _readSimpleFunctionType();
       case Tag.TypeParameterType:
         return _readTypeParameterType();
+      case Tag.IntersectionType:
+        return _readIntersectionType();
       default:
         throw fail('unexpected dart type tag: $tag');
     }
@@ -3142,9 +3144,14 @@ class BinaryBuilder {
   DartType _readTypeParameterType() {
     int declaredNullabilityIndex = readByte();
     int index = readUInt30();
-    DartType? bound = readDartTypeOption();
     return new TypeParameterType(typeParameterStack[index],
-        Nullability.values[declaredNullabilityIndex], bound);
+        Nullability.values[declaredNullabilityIndex]);
+  }
+
+  DartType _readIntersectionType() {
+    TypeParameterType left = readDartType() as TypeParameterType;
+    DartType right = readDartType();
+    return new IntersectionType(left, right);
   }
 
   List<TypeParameter> readAndPushTypeParameterList(

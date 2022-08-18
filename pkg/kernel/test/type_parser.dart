@@ -184,11 +184,13 @@ class DartTypeParser {
             default:
               break;
           }
-          return new TypeParameterType(
+          TypeParameterType typeParameterType = new TypeParameterType(
               target,
               nullability ??
-                  TypeParameterType.computeNullabilityFromBound(target),
-              promotedBound);
+                  TypeParameterType.computeNullabilityFromBound(target));
+          return promotedBound == null
+              ? typeParameterType
+              : new IntersectionType(typeParameterType, promotedBound);
         }
         return fail("Unexpected lookup result for $name: $target");
 

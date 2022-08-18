@@ -33,7 +33,7 @@ class Foo<T extends self::A?> extends core::Object {
     if(t is{ForNonNullableByDefault} self::B) {
       self::Foo::T% bar = t{self::Foo::T% & self::B /* '%' & '!' = '!' */};
       if(t{self::Foo::T% & self::B /* '%' & '!' = '!' */} is{ForNonNullableByDefault} self::C) {
-        self::Foo::T baz = t{self::Foo::T & self::C /* '!' & '!' = '!' */};
+        self::Foo::T% baz = t{self::Foo::T% & self::C /* '%' & '!' = '!' */};
       }
     }
   }

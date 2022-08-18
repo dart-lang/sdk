@@ -755,6 +755,12 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     return const EvaluationComplexity.lazy();
   }
 
+  @override
+  EvaluationComplexity visitIntersectionType(ir.IntersectionType node) {
+    _analyzeTypeVariable(node.left, _currentTypeUsage!);
+    return const EvaluationComplexity.lazy();
+  }
+
   EvaluationComplexity visitInContext(ir.Node node, VariableUse use) {
     VariableUse? oldCurrentTypeUsage = _currentTypeUsage;
     _currentTypeUsage = use;

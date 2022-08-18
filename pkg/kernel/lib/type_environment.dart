@@ -115,9 +115,14 @@ abstract class TypeEnvironment extends Types {
 
   /// Returns the non-type parameter type bound of [type].
   DartType _resolveTypeParameterType(DartType type) {
-    while (type is TypeParameterType) {
-      TypeParameterType typeParameterType = type;
-      type = typeParameterType.bound;
+    while (true) {
+      if (type is TypeParameterType) {
+        type = type.bound;
+      } else if (type is IntersectionType) {
+        type = type.right;
+      } else {
+        break;
+      }
     }
     return type;
   }

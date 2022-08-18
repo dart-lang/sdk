@@ -3615,6 +3615,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType? resolveOneStep(DartType type) {
       if (type is TypeParameterType) {
         return type.bound;
+      } else if (type is IntersectionType) {
+        return type.right;
       } else {
         return null;
       }

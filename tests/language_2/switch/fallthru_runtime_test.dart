@@ -8,11 +8,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that FallThroughError is thrown if switch clause does not terminate.
 
-// VMOptions=
-// VMOptions=--force-switch-dispatch-type=0
-// VMOptions=--force-switch-dispatch-type=1
-// VMOptions=--force-switch-dispatch-type=2
-
 import "package:expect/expect.dart";
 
 String test(int n) {
