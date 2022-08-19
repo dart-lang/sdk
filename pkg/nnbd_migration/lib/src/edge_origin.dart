@@ -561,6 +561,17 @@ class NullabilityCommentOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.nullabilityComment;
 }
 
+/// An edge origin arising from a null aware access.
+class NullAwareAccessOrigin extends EdgeOrigin {
+  NullAwareAccessOrigin(super.source, AstNode super.node);
+
+  @override
+  String get description => 'null aware access';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.nullAwareAccess;
+}
+
 /// Edge origin resulting from the presence of an optional formal parameter.
 ///
 /// For example, in the following code snippet:

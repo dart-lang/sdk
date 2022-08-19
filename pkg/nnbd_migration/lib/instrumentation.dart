@@ -285,6 +285,7 @@ enum EdgeOriginKind {
   nonNullableUsage,
   nonNullAssertion,
   nullabilityComment,
+  nullAwareAccess,
   optionalFormalParameter,
   parameterInheritance,
   quiverCheckNotNull,
