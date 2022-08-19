@@ -572,6 +572,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           }
           break;
         case ObjectAccessTargetKind.nullableInstanceMember:
+        case ObjectAccessTargetKind.superMember:
         case ObjectAccessTargetKind.objectMember:
         case ObjectAccessTargetKind.nullableCallFunction:
         case ObjectAccessTargetKind.nullableExtensionMember:
@@ -3602,9 +3603,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult visitSuperIndexSet(
       SuperIndexSet node, DartType typeContext) {
-    ObjectAccessTarget indexSetTarget = new ObjectAccessTarget.interfaceMember(
-        thisType!, node.setter,
-        isPotentiallyNullable: false);
+    ObjectAccessTarget indexSetTarget = thisType!.classNode.isMixinDeclaration
+        ? new ObjectAccessTarget.interfaceMember(thisType!, node.setter,
+            isPotentiallyNullable: false)
+        : new ObjectAccessTarget.superMember(thisType!, node.setter);
 
     DartType indexType = indexSetTarget.getIndexKeyType(this);
     DartType valueType = indexSetTarget.getIndexSetValueType(this);
@@ -3640,7 +3642,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // the type of the value parameter.
     DartType inferredType = valueResult.inferredType;
 
-    assert(indexSetTarget.isInstanceMember || indexSetTarget.isObjectMember,
+    assert(indexSetTarget.isInstanceMember || indexSetTarget.isSuperMember,
         'Unexpected index set target $indexSetTarget.');
     instrumentation?.record(uriForInstrumentation, node.fileOffset, 'target',
         new InstrumentationValueForMember(node.setter));
@@ -3925,8 +3927,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ExpressionInferenceResult visitIfNullSuperIndexSet(
       IfNullSuperIndexSet node, DartType typeContext) {
     ObjectAccessTarget readTarget = node.getter != null
-        ? new ObjectAccessTarget.interfaceMember(thisType!, node.getter!,
-            isPotentiallyNullable: false)
+        ? (thisType!.classNode.isMixinDeclaration
+            ? new ObjectAccessTarget.interfaceMember(thisType!, node.getter!,
+                isPotentiallyNullable: false)
+            : new ObjectAccessTarget.superMember(thisType!, node.getter!))
         : const ObjectAccessTarget.missing();
 
     DartType readType = readTarget.getReturnType(this);
@@ -3935,8 +3939,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType readIndexType = readTarget.getIndexKeyType(this);
 
     ObjectAccessTarget writeTarget = node.setter != null
-        ? new ObjectAccessTarget.interfaceMember(thisType!, node.setter!,
-            isPotentiallyNullable: false)
+        ? (thisType!.classNode.isMixinDeclaration
+            ? new ObjectAccessTarget.interfaceMember(thisType!, node.setter!,
+                isPotentiallyNullable: false)
+            : new ObjectAccessTarget.superMember(thisType!, node.setter!))
         : const ObjectAccessTarget.missing();
 
     DartType writeIndexType = writeTarget.getIndexKeyType(this);
@@ -3962,7 +3968,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     writeIndex =
         ensureAssignable(writeIndexType, indexResult.inferredType, writeIndex);
 
-    assert(readTarget.isInstanceMember || readTarget.isObjectMember);
+    assert(readTarget.isInstanceMember || readTarget.isSuperMember);
     instrumentation?.record(uriForInstrumentation, node.readOffset, 'target',
         new InstrumentationValueForMember(node.getter!));
     Expression read = new SuperMethodInvocation(
@@ -3997,7 +4003,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       returnedValue = createVariableGet(valueVariable);
     }
 
-    assert(writeTarget.isInstanceMember || writeTarget.isObjectMember);
+    assert(writeTarget.isInstanceMember || writeTarget.isSuperMember);
     instrumentation?.record(uriForInstrumentation, node.writeOffset, 'target',
         new InstrumentationValueForMember(node.setter!));
     Expression write = new SuperMethodInvocation(
@@ -4455,6 +4461,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
+      case ObjectAccessTargetKind.superMember:
         if ((binaryTarget.isInstanceMember || binaryTarget.isObjectMember) &&
             instrumentation != null &&
             leftType == const DynamicType()) {
@@ -4572,6 +4579,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
+      case ObjectAccessTargetKind.superMember:
         if ((unaryTarget.isInstanceMember || unaryTarget.isObjectMember) &&
             instrumentation != null &&
             expressionType == const DynamicType()) {
@@ -4697,6 +4705,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
+      case ObjectAccessTargetKind.superMember:
         InstanceAccessKind kind;
         switch (readTarget.kind) {
           case ObjectAccessTargetKind.instanceMember:
@@ -4820,6 +4829,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
+      case ObjectAccessTargetKind.superMember:
         InstanceAccessKind kind;
         switch (writeTarget.kind) {
           case ObjectAccessTargetKind.instanceMember:
@@ -4937,6 +4947,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
+      case ObjectAccessTargetKind.superMember:
         Member member = readTarget.member!;
         if ((readTarget.isInstanceMember || readTarget.isObjectMember) &&
             instrumentation != null &&
@@ -5111,6 +5122,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
+      case ObjectAccessTargetKind.superMember:
         InstanceAccessKind kind;
         switch (writeTarget.kind) {
           case ObjectAccessTargetKind.instanceMember:
@@ -5464,9 +5476,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult visitCompoundSuperIndexSet(
       CompoundSuperIndexSet node, DartType typeContext) {
-    ObjectAccessTarget readTarget = new ObjectAccessTarget.interfaceMember(
-        thisType!, node.getter,
-        isPotentiallyNullable: false);
+    ObjectAccessTarget readTarget = thisType!.classNode.isMixinDeclaration
+        ? new ObjectAccessTarget.interfaceMember(thisType!, node.getter,
+            isPotentiallyNullable: false)
+        : new ObjectAccessTarget.superMember(thisType!, node.getter);
 
     DartType readType = readTarget.getReturnType(this);
     DartType readIndexType = readTarget.getIndexKeyType(this);
@@ -5488,7 +5501,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     readIndex =
         ensureAssignable(readIndexType, indexResult.inferredType, readIndex);
 
-    assert(readTarget.isInstanceMember || readTarget.isObjectMember);
+    assert(readTarget.isInstanceMember || readTarget.isSuperMember);
     instrumentation?.record(uriForInstrumentation, node.readOffset, 'target',
         new InstrumentationValueForMember(node.getter));
     Expression read = new SuperMethodInvocation(
@@ -5510,9 +5523,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       left = read;
     }
-    ObjectAccessTarget writeTarget = new ObjectAccessTarget.interfaceMember(
-        thisType!, node.setter,
-        isPotentiallyNullable: false);
+    ObjectAccessTarget writeTarget = thisType!.classNode.isMixinDeclaration
+        ? new ObjectAccessTarget.interfaceMember(thisType!, node.setter,
+            isPotentiallyNullable: false)
+        : new ObjectAccessTarget.superMember(thisType!, node.setter);
 
     DartType writeIndexType = writeTarget.getIndexKeyType(this);
 
@@ -5544,7 +5558,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       valueExpression = createVariableGet(valueVariable);
     }
 
-    assert(writeTarget.isInstanceMember || writeTarget.isObjectMember);
+    assert(writeTarget.isInstanceMember || writeTarget.isSuperMember);
     instrumentation?.record(uriForInstrumentation, node.writeOffset, 'target',
         new InstrumentationValueForMember(node.setter));
     Expression write = new SuperMethodInvocation(
@@ -6353,9 +6367,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitSuperPropertySet(
       SuperPropertySet node, DartType typeContext) {
-    ObjectAccessTarget writeTarget = new ObjectAccessTarget.interfaceMember(
-        thisType!, node.interfaceTarget,
-        isPotentiallyNullable: false);
+    ObjectAccessTarget writeTarget = thisType!.classNode.isMixinDeclaration
+        ? new ObjectAccessTarget.interfaceMember(
+            thisType!, node.interfaceTarget,
+            isPotentiallyNullable: false)
+        : new ObjectAccessTarget.superMember(thisType!, node.interfaceTarget);
     DartType writeContext = writeTarget.getSetterType(this);
     writeContext = computeTypeFromSuperClass(
         node.interfaceTarget.enclosingClass!, writeContext);

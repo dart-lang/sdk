@@ -25,6 +25,9 @@ enum ObjectAccessTargetKind {
   /// potentially nullable receiver.
   objectMember,
 
+  /// A valid access to a statically known super member.
+  superMember,
+
   /// A (non-nullable) access to the `.call` method of a function. This is used
   /// for access on `Function` and on function types.
   callFunction,
@@ -80,6 +83,10 @@ abstract class ObjectAccessTarget {
         : new InstanceAccessTarget.nonNullable(receiverType, member);
   }
 
+  /// Creates an access to the super [member].
+  factory ObjectAccessTarget.superMember(DartType receiverType, Member member) =
+      InstanceAccessTarget.superMember;
+
   /// Creates an access to the Object [member].
   factory ObjectAccessTarget.objectMember(
       DartType receiverType, Member member) = InstanceAccessTarget.object;
@@ -125,6 +132,9 @@ abstract class ObjectAccessTarget {
 
   /// Returns `true` if this is an access to an instance member.
   bool get isInstanceMember => kind == ObjectAccessTargetKind.instanceMember;
+
+  /// Returns `true` if this is an access to a super member.
+  bool get isSuperMember => kind == ObjectAccessTargetKind.superMember;
 
   /// Returns `true` if this is an access to an Object member.
   bool get isObjectMember => kind == ObjectAccessTargetKind.objectMember;
@@ -371,6 +381,10 @@ class InstanceAccessTarget extends ObjectAccessTarget {
   InstanceAccessTarget.nullable(this.receiverType, this.member)
       : super.internal(ObjectAccessTargetKind.nullableInstanceMember);
 
+  /// Creates an access to the super [member].
+  InstanceAccessTarget.superMember(this.receiverType, this.member)
+      : super.internal(ObjectAccessTargetKind.superMember);
+
   /// Creates an access to the Object [member].
   InstanceAccessTarget.object(this.receiverType, this.member)
       : super.internal(ObjectAccessTargetKind.objectMember);
@@ -378,32 +392,28 @@ class InstanceAccessTarget extends ObjectAccessTarget {
   @override
   FunctionType getFunctionType(InferenceVisitorBase base) {
     return _getFunctionType(
-        base, base.getGetterTypeForMemberTarget(member, receiverType));
+        base,
+        base.getGetterTypeForMemberTarget(member, receiverType,
+            isSuper: isSuperMember));
   }
 
   @override
   DartType getGetterType(InferenceVisitorBase base) {
-    return base.getGetterTypeForMemberTarget(member, receiverType);
+    return base.getGetterTypeForMemberTarget(member, receiverType,
+        isSuper: isSuperMember);
   }
 
   @override
   DartType getSetterType(InferenceVisitorBase base) {
     Member interfaceMember = member;
     Class memberClass = interfaceMember.enclosingClass!;
-    DartType setterType;
-    if (interfaceMember is Procedure) {
-      assert(interfaceMember.kind == ProcedureKind.Setter);
-      List<VariableDeclaration> setterParameters =
-          interfaceMember.function.positionalParameters;
-      setterType = setterParameters.length > 0
-          ? setterParameters[0].type
-          : const DynamicType();
-    } else if (interfaceMember is Field) {
-      setterType = interfaceMember.type;
-    } else {
-      throw unexpected(
-          interfaceMember.runtimeType.toString(), 'getSetterType', -1, null);
-    }
+    assert(
+        interfaceMember is Field && interfaceMember.hasSetter ||
+            interfaceMember is Procedure && interfaceMember.isSetter,
+        "Unexpected setter target $interfaceMember");
+    DartType setterType = isSuperMember
+        ? interfaceMember.superSetterType
+        : interfaceMember.setterType;
     if (memberClass.typeParameters.isNotEmpty) {
       DartType resolvedReceiverType = base.resolveTypeParameter(receiverType);
       if (resolvedReceiverType is InterfaceType) {
@@ -439,7 +449,9 @@ class InstanceAccessTarget extends ObjectAccessTarget {
   @override
   DartType getIndexKeyType(InferenceVisitorBase base) {
     FunctionType functionType = _getFunctionType(
-        base, base.getGetterTypeForMemberTarget(member, receiverType));
+        base,
+        base.getGetterTypeForMemberTarget(member, receiverType,
+            isSuper: isSuperMember));
     if (functionType.positionalParameters.length >= 1) {
       return functionType.positionalParameters[0];
     }
@@ -449,7 +461,9 @@ class InstanceAccessTarget extends ObjectAccessTarget {
   @override
   DartType getIndexSetValueType(InferenceVisitorBase base) {
     FunctionType functionType = _getFunctionType(
-        base, base.getGetterTypeForMemberTarget(member, receiverType));
+        base,
+        base.getGetterTypeForMemberTarget(member, receiverType,
+            isSuper: isSuperMember));
     if (functionType.positionalParameters.length >= 2) {
       return functionType.positionalParameters[1];
     }
@@ -459,14 +473,18 @@ class InstanceAccessTarget extends ObjectAccessTarget {
   @override
   DartType getReturnType(InferenceVisitorBase base) {
     FunctionType functionType = _getFunctionType(
-        base, base.getGetterTypeForMemberTarget(member, receiverType));
+        base,
+        base.getGetterTypeForMemberTarget(member, receiverType,
+            isSuper: isSuperMember));
     return functionType.returnType;
   }
 
   @override
   DartType getBinaryOperandType(InferenceVisitorBase base) {
     FunctionType functionType = _getFunctionType(
-        base, base.getGetterTypeForMemberTarget(member, receiverType));
+        base,
+        base.getGetterTypeForMemberTarget(member, receiverType,
+            isSuper: isSuperMember));
     if (functionType.positionalParameters.isNotEmpty) {
       return functionType.positionalParameters.first;
     }
