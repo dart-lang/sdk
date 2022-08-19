@@ -1712,6 +1712,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   std::unique_ptr<VirtualMemory> regexp_backtracking_stack_cache_ = nullptr;
 
+  std::atomic<intptr_t> wake_pause_event_handler_count_;
+
   static Dart_IsolateGroupCreateCallback create_group_callback_;
   static Dart_InitializeIsolateCallback initialize_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;

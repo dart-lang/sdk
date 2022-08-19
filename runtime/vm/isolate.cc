@@ -1732,6 +1732,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       spawn_count_monitor_(),
       handler_info_cache_(),
       catch_entry_moves_cache_(),
+      wake_pause_event_handler_count_(0),
       loaded_prefixes_set_storage_(nullptr) {
   FlagsCopyFrom(api_flags);
   SetErrorsFatal(true);
@@ -3503,6 +3504,7 @@ void Isolate::WakePauseEventHandler(Dart_Isolate isolate) {
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   MonitorLocker ml(iso->pause_loop_monitor_);
   ml.Notify();
+  iso->wake_pause_event_handler_count_.fetch_add(1, std::memory_order_relaxed);
 }
 
 void Isolate::PauseEventHandler() {
@@ -3518,6 +3520,7 @@ void Isolate::PauseEventHandler() {
   MonitorLocker ml(pause_loop_monitor_, false);
 
   Dart_MessageNotifyCallback saved_notify_callback = message_notify_callback();
+  ASSERT(wake_pause_event_handler_count_.load() == 0);
   set_message_notify_callback(Isolate::WakePauseEventHandler);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -3531,7 +3534,6 @@ void Isolate::PauseEventHandler() {
                                               ->start_time_micros();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   bool resume = false;
-  bool handle_non_service_messages = false;
   while (true) {
     // Handle all available vm service messages, up to a resume
     // request.
@@ -3542,8 +3544,6 @@ void Isolate::PauseEventHandler() {
     }
     if (resume) {
       break;
-    } else {
-      handle_non_service_messages = true;
     }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -3567,8 +3567,11 @@ void Isolate::PauseEventHandler() {
   // message notify callback to check for unhandled messages. Otherwise, events
   // may be left unhandled until the next event comes in. See
   // https://github.com/dart-lang/sdk/issues/37312.
-  if ((saved_notify_callback != nullptr) && handle_non_service_messages) {
-    saved_notify_callback(Api::CastIsolate(this));
+  if (saved_notify_callback != nullptr) {
+    while (wake_pause_event_handler_count_.fetch_sub(
+               1, std::memory_order_acq_rel) > 0) {
+      saved_notify_callback(Api::CastIsolate(this));
+    }
   }
   set_message_notify_callback(saved_notify_callback);
   Dart_ExitScope();
