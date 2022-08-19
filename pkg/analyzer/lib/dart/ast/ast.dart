@@ -553,6 +553,15 @@ abstract class AstVisitor<R> {
 
   R? visitRecordLiteral(RecordLiteral node);
 
+  R? visitRecordTypeAnnotation(RecordTypeAnnotation node);
+
+  R? visitRecordTypeAnnotationNamedField(RecordTypeAnnotationNamedField node);
+
+  R? visitRecordTypeAnnotationNamedFields(RecordTypeAnnotationNamedFields node);
+
+  R? visitRecordTypeAnnotationPositionalField(
+      RecordTypeAnnotationPositionalField node);
+
   R? visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node);
 

@@ -630,6 +630,33 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    _runSubscriptions(node, registry._forRecordTypeAnnotation);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedField(
+      RecordTypeAnnotationNamedField node) {
+    _runSubscriptions(node, registry._forRecordTypeAnnotationNamedField);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedFields(
+      RecordTypeAnnotationNamedFields node) {
+    _runSubscriptions(node, registry._forRecordTypeAnnotationNamedFields);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRecordTypeAnnotationPositionalField(
+      RecordTypeAnnotationPositionalField node) {
+    _runSubscriptions(node, registry._forRecordTypeAnnotationPositionalField);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     _runSubscriptions(node, registry._forRedirectingConstructorInvocation);
@@ -977,6 +1004,13 @@ class NodeLintRegistry {
   final List<_Subscription<PrefixExpression>> _forPrefixExpression = [];
   final List<_Subscription<PropertyAccess>> _forPropertyAccess = [];
   final List<_Subscription<RecordLiteral>> _forRecordLiterals = [];
+  final List<_Subscription<RecordTypeAnnotation>> _forRecordTypeAnnotation = [];
+  final List<_Subscription<RecordTypeAnnotationNamedField>>
+      _forRecordTypeAnnotationNamedField = [];
+  final List<_Subscription<RecordTypeAnnotationNamedFields>>
+      _forRecordTypeAnnotationNamedFields = [];
+  final List<_Subscription<RecordTypeAnnotationPositionalField>>
+      _forRecordTypeAnnotationPositionalField = [];
   final List<_Subscription<RedirectingConstructorInvocation>>
       _forRedirectingConstructorInvocation = [];
   final List<_Subscription<RethrowExpression>> _forRethrowExpression = [];

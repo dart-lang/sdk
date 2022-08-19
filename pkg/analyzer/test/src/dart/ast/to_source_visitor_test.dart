@@ -2804,6 +2804,44 @@ var v = !(a == b);
         ]));
   }
 
+  void test_visitRecordTypeAnnotation_mixed() {
+    _assertSource(
+        "(int, bool, {int a, bool b})",
+        AstTestFactory.recordTypeAnnotation(positionalFields: [
+          AstTestFactory.recordTypeAnnotationPositionalField(
+              AstTestFactory.namedType4('int')),
+          AstTestFactory.recordTypeAnnotationPositionalField(
+              AstTestFactory.namedType4('bool')),
+        ], namedFields: [
+          AstTestFactory.recordTypeAnnotationNamedField(
+              AstTestFactory.namedType4('int'), 'a'),
+          AstTestFactory.recordTypeAnnotationNamedField(
+              AstTestFactory.namedType4('bool'), 'b'),
+        ]));
+  }
+
+  void test_visitRecordTypeAnnotation_named() {
+    _assertSource(
+        "({int a, bool b})",
+        AstTestFactory.recordTypeAnnotation(positionalFields: [], namedFields: [
+          AstTestFactory.recordTypeAnnotationNamedField(
+              AstTestFactory.namedType4('int'), 'a'),
+          AstTestFactory.recordTypeAnnotationNamedField(
+              AstTestFactory.namedType4('bool'), 'b'),
+        ]));
+  }
+
+  void test_visitRecordTypeAnnotation_positional() {
+    _assertSource(
+        "(int, bool)",
+        AstTestFactory.recordTypeAnnotation(positionalFields: [
+          AstTestFactory.recordTypeAnnotationPositionalField(
+              AstTestFactory.namedType4('int')),
+          AstTestFactory.recordTypeAnnotationPositionalField(
+              AstTestFactory.namedType4('bool')),
+        ], namedFields: []));
+  }
+
   void test_visitRedirectingConstructorInvocation_named() {
     _assertSource(
         "this.c()", AstTestFactory.redirectingConstructorInvocation2("c"));

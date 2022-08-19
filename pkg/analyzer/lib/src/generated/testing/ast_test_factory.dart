@@ -988,6 +988,42 @@ class AstTestFactory {
     );
   }
 
+  static RecordTypeAnnotation recordTypeAnnotation(
+      {required List<RecordTypeAnnotationPositionalField> positionalFields,
+      required List<RecordTypeAnnotationNamedField> namedFields,
+      bool isNullable = false}) {
+    return RecordTypeAnnotationImpl(
+        positionalFields: positionalFields,
+        namedFields: namedFields.isEmpty
+            ? null
+            : RecordTypeAnnotationNamedFieldsImpl(
+                leftBracket:
+                    TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+                fields: namedFields,
+                rightBracket:
+                    TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET)),
+        question:
+            isNullable ? TokenFactory.tokenFromType(TokenType.QUESTION) : null);
+  }
+
+  static RecordTypeAnnotationNamedField recordTypeAnnotationNamedField(
+      TypeAnnotationImpl type, String name) {
+    return RecordTypeAnnotationNamedFieldImpl(
+        comma: TokenFactory.tokenFromType(TokenType.COMMA),
+        metadata: null,
+        name: TokenFactory.tokenFromString(name),
+        type: type);
+  }
+
+  static RecordTypeAnnotationPositionalField
+      recordTypeAnnotationPositionalField(TypeAnnotationImpl type) {
+    return RecordTypeAnnotationPositionalFieldImpl(
+        comma: TokenFactory.tokenFromType(TokenType.COMMA),
+        metadata: null,
+        name: null,
+        type: type);
+  }
+
   static RedirectingConstructorInvocationImpl redirectingConstructorInvocation(
           [List<Expression> arguments = const []]) =>
       redirectingConstructorInvocation2(null, arguments);
