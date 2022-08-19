@@ -266,16 +266,43 @@ Isolate* PortMap::GetIsolate(Dart_Port id) {
   return handler->isolate();
 }
 
-bool PortMap::IsReceiverInThisIsolateGroup(Dart_Port receiver,
-                                           IsolateGroup* group) {
+Dart_Port PortMap::GetOriginId(Dart_Port id) {
   MutexLocker ml(mutex_);
   if (ports_ == nullptr) {
-    return false;
+    return ILLEGAL_PORT;
+  }
+  auto it = ports_->TryLookup(id);
+  if (it == ports_->end()) {
+    // Port does not exist.
+    return ILLEGAL_PORT;
+  }
+
+  MessageHandler* handler = (*it).handler;
+  Isolate* isolate = handler->isolate();
+  if (isolate == nullptr) {
+    // Message handler is a native port instead of an isolate.
+    return ILLEGAL_PORT;
+  }
+  return isolate->origin_id();
+}
+
+bool PortMap::IsReceiverInThisIsolateGroupOrClosed(Dart_Port receiver,
+                                                   IsolateGroup* group) {
+  MutexLocker ml(mutex_);
+  if (ports_ == nullptr) {
+    // Port was closed.
+    return true;
   }
   auto it = ports_->TryLookup(receiver);
-  if (it == ports_->end()) return false;
+  if (it == ports_->end()) {
+    // Port was closed.
+    return true;
+  }
   auto isolate = (*it).handler->isolate();
-  if (isolate == nullptr) return false;
+  if (isolate == nullptr) {
+    // Port belongs to a native port instead of an isolate.
+    return false;
+  }
   return isolate->group() == group;
 }
 

@@ -25546,7 +25546,7 @@ const char* ReceivePort::ToCString() const {
 }
 
 SendPortPtr SendPort::New(Dart_Port id, Heap::Space space) {
-  return New(id, Isolate::Current()->origin_id(), space);
+  return New(id, ILLEGAL_PORT, space);
 }
 
 SendPortPtr SendPort::New(Dart_Port id,

@@ -101,21 +101,29 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_get_hashcode, 0, 1) {
   return Smi::New(hash);
 }
 
+static bool InSameGroup(Isolate* sender, const SendPort& receiver) {
+  // Cannot determine whether sender is in same group (yet).
+  if (sender->origin_id() == ILLEGAL_PORT) return false;
+
+  // Only allow arbitrary messages between isolates of the same IG.
+  return sender->origin_id() == receiver.origin_id();
+}
+
 DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
-  // TODO(iposva): Allow for arbitrary messages to be sent.
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
 
   const Dart_Port destination_port_id = port.Id();
-  const bool can_send_any_object = isolate->origin_id() == port.origin_id();
-  // We have to check whether the receiver has the same isolate group (e.g.
-  // native message handlers such as an IOService handler does not but does
-  // share the same origin port).
-  const bool same_group = PortMap::IsReceiverInThisIsolateGroup(
-      destination_port_id, isolate->group());
+  const bool same_group = InSameGroup(isolate, port);
+#if defined(DEBUG)
+  if (same_group) {
+    ASSERT(PortMap::IsReceiverInThisIsolateGroupOrClosed(destination_port_id,
+                                                         isolate->group()));
+  }
+#endif
+
   // TODO(turnidge): Throw an exception when the return value is false?
-  PortMap::PostMessage(WriteMessage(can_send_any_object, same_group, obj,
-                                    destination_port_id,
+  PortMap::PostMessage(WriteMessage(same_group, obj, destination_port_id,
                                     Message::kNormalPriority));
   return Object::null();
 }
@@ -326,7 +334,15 @@ DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
   GET_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   if (!port.IsNull()) {
     GET_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
-    if (!PortMap::IsReceiverInThisIsolateGroup(port.Id(), isolate->group())) {
+
+    const bool same_group = InSameGroup(isolate, port);
+#if defined(DEBUG)
+    if (same_group) {
+      ASSERT(PortMap::IsReceiverInThisIsolateGroupOrClosed(port.Id(),
+                                                           isolate->group()));
+    }
+#endif
+    if (!same_group) {
       const auto& error =
           String::Handle(String::New("exit with final message is only allowed "
                                      "for isolates in one isolate group."));
@@ -868,8 +884,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     }
     {
       // If parent isolate died, we ignore the fact that we cannot notify it.
-      PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
-                                        /* same_group */ false, message,
+      PortMap::PostMessage(WriteMessage(/*same_group=*/false, message,
                                         state_->parent_port(),
                                         Message::kNormalPriority));
     }
@@ -959,7 +974,6 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
   // serializable this will throw an exception.
   SerializedObjectBuffer message_buffer;
   message_buffer.set_message(WriteMessage(
-      /*can_send_any_object=*/true,
       /*same_group=*/true, message, ILLEGAL_PORT, Message::kNormalPriority));
 
   const char* utf8_package_config =
@@ -1041,14 +1055,11 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   SerializedObjectBuffer message_buffer;
   {
     arguments_buffer.set_message(WriteMessage(
-        /* can_send_any_object */ false,
-        /* same_group */ false, args, ILLEGAL_PORT, Message::kNormalPriority));
+        /*same_group=*/false, args, ILLEGAL_PORT, Message::kNormalPriority));
   }
   {
-    message_buffer.set_message(WriteMessage(/* can_send_any_object */ false,
-                                            /* same_group */ false, message,
-                                            ILLEGAL_PORT,
-                                            Message::kNormalPriority));
+    message_buffer.set_message(WriteMessage(
+        /*same_group=*/false, message, ILLEGAL_PORT, Message::kNormalPriority));
   }
 
   // Canonicalize the uri with respect to the current isolate.
@@ -1168,8 +1179,7 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
   // Ensure message writer (and it's resources, e.g. forwarding tables) are
   // cleaned up before handling interrupts.
   {
-    PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
-                                      /* same_group */ false, msg, port.Id(),
+    PortMap::PostMessage(WriteMessage(/*same_group=*/false, msg, port.Id(),
                                       Message::kOOBPriority));
   }
 

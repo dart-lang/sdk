@@ -8297,6 +8297,48 @@ TEST_CASE(DartAPI_NativePortPostExternalTypedData) {
   EXPECT(Dart_CloseNativePort(port_id));
 }
 
+static void UnreachableMessageHandler(Dart_Port dest_port_id,
+                                      Dart_CObject* message) {
+  UNREACHABLE();
+}
+
+TEST_CASE(DartAPI_NativePortPostUserClass) {
+  const char* kScriptChars =
+      "import 'dart:isolate';\n"
+      "class ABC {}\n"
+      "void callPort(SendPort port) {\n"
+      "  port.send(new ABC());\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_EnterScope();
+
+  Dart_Port port_id =
+      Dart_NewNativePort("Port123", UnreachableMessageHandler, true);
+
+  // Test send with port open.
+  {
+    Dart_Handle send_port = Dart_NewSendPort(port_id);
+    EXPECT_VALID(send_port);
+    Dart_Handle dart_args[1];
+    dart_args[0] = send_port;
+    Dart_Handle result = Dart_Invoke(lib, NewString("callPort"), 1, dart_args);
+    EXPECT_ERROR(result, "");
+  }
+
+  // Test send with port closed.
+  {
+    Dart_CloseNativePort(port_id);
+    Dart_Handle send_port = Dart_NewSendPort(port_id);
+    EXPECT_VALID(send_port);
+    Dart_Handle dart_args[1];
+    dart_args[0] = send_port;
+    Dart_Handle result = Dart_Invoke(lib, NewString("callPort"), 1, dart_args);
+    EXPECT_ERROR(result, "");
+  }
+
+  Dart_ExitScope();
+}
+
 static void NewNativePort_nativeReceiveNull(Dart_Port dest_port_id,
                                             Dart_CObject* message) {
   EXPECT_NOTNULL(message);

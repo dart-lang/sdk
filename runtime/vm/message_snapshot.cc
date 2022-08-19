@@ -3871,8 +3871,7 @@ Dart_CObject* ApiMessageDeserializer::Deserialize() {
   return ReadRef();
 }
 
-std::unique_ptr<Message> WriteMessage(bool can_send_any_object,
-                                      bool same_group,
+std::unique_ptr<Message> WriteMessage(bool same_group,
                                       const Object& obj,
                                       Dart_Port dest_port,
                                       Message::Priority priority) {
@@ -3887,7 +3886,7 @@ std::unique_ptr<Message> WriteMessage(bool can_send_any_object,
   }
 
   Thread* thread = Thread::Current();
-  MessageSerializer serializer(thread, can_send_any_object);
+  MessageSerializer serializer(thread, /*can_send_any_object=*/false);
 
   volatile bool has_exception = false;
   {
