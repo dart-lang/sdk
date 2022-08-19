@@ -74,6 +74,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b = function.body;
   }
 
+  w.Module get m => translator.m;
+
   Member get member => reference.asMember;
 
   w.ValueType get returnType => translator
@@ -155,6 +157,18 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       }
     }
 
+    if (member.function!.asyncMarker == AsyncMarker.Async &&
+        !reference.isAsyncInnerReference) {
+      // Generate the async wrapper function, i.e. the function that gets
+      // called when an async function is called. The inner function, containing
+      // the body of the async function, is marked as an async inner reference
+      // and is generated separately.
+      Procedure procedure = member as Procedure;
+      w.BaseFunction inner =
+          translator.functions.getFunction(procedure.asyncInnerReference);
+      return generateAsyncWrapper(procedure.function, inner);
+    }
+
     return generateBody(member);
   }
 
@@ -226,6 +240,77 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b.end();
   }
 
+  /// Generate the async wrapper for an async function and its associated
+  /// stub function.
+  ///
+  /// The async wrapper is the outer function that gets called when the async
+  /// function is called. It bundles up the arguments to the function into an
+  /// arguments struct along with a reference to the stub function.
+  ///
+  /// This struct is passed to the async helper, which allocates a new stack and
+  /// calls the stub function on that stack.
+  ///
+  /// The stub function unwraps the arguments from the struct and calls the
+  /// inner function, containing the implementation of the async function.
+  void generateAsyncWrapper(FunctionNode functionNode, w.BaseFunction inner) {
+    w.DefinedFunction stub =
+        m.addFunction(translator.functions.asyncStubFunctionType);
+    w.BaseFunction asyncHelper =
+        translator.functions.getFunction(translator.asyncHelper.reference);
+
+    w.Instructions stubBody = stub.body;
+    w.Local stubArguments = stub.locals[0];
+    w.Local stubStack = stub.locals[1];
+
+    // Push the type argument to the async helper, specifying the type argument
+    // of the returned `Future`.
+    DartType returnType = functionNode.returnType;
+    DartType innerType = returnType is InterfaceType &&
+            returnType.classNode == translator.coreTypes.futureClass
+        ? returnType.typeArguments.single
+        : const DynamicType();
+    types.makeType(this, innerType);
+
+    // Create struct for stub reference and arguments
+    w.StructType baseStruct = translator.functions.asyncStubBaseStruct;
+    w.StructType argsStruct = m.addStructType("${function.functionName} (args)",
+        fields: baseStruct.fields, superType: baseStruct);
+
+    // Push stub reference
+    w.Global stubGlobal = translator.makeFunctionRef(stub);
+    b.global_get(stubGlobal);
+
+    // Transfer function arguments to inner
+    w.Local argsLocal =
+        stub.addLocal(w.RefType.def(argsStruct, nullable: false));
+    stubBody.local_get(stubArguments);
+    translator.convertType(stub, stubArguments.type, argsLocal.type);
+    stubBody.local_set(argsLocal);
+    int arity = function.type.inputs.length;
+    for (int i = 0; i < arity; i++) {
+      int fieldIndex = argsStruct.fields.length;
+      w.ValueType type = function.locals[i].type;
+      argsStruct.fields.add(w.FieldType(type, mutable: false));
+      b.local_get(function.locals[i]);
+      stubBody.local_get(argsLocal);
+      stubBody.struct_get(argsStruct, fieldIndex);
+    }
+    b.struct_new(argsStruct);
+
+    // Call async helper
+    b.call(asyncHelper);
+    translator.convertType(function, asyncHelper.type.outputs.single,
+        function.type.outputs.single);
+    b.end();
+
+    // Call inner function from stub
+    stubBody.local_get(stubStack);
+    stubBody.call(inner);
+    translator.convertType(
+        stub, inner.type.outputs.single, stub.type.outputs.single);
+    stubBody.end();
+  }
+
   void generateBody(Member member) {
     ParameterInfo paramInfo = translator.paramInfoFor(reference);
     bool hasThis = member.isInstanceMember || member is Constructor;
@@ -254,11 +339,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       Class cls = member.enclosingClass!;
       ClassInfo info = translator.classInfo[cls]!;
       thisLocal = paramLocals[0];
+      assert(!thisLocal!.type.nullable);
       w.RefType thisType = info.nonNullableType;
       if (translator.needsConversion(paramLocals[0].type, thisType) &&
           !(cls == translator.objectInfo.cls ||
               cls == translator.ffiPointerClass ||
-              translator.isFfiCompound(cls))) {
+              translator.isFfiCompound(cls) ||
+              translator.isWasmType(cls))) {
         preciseThisLocal = addLocal(thisType);
         b.local_get(paramLocals[0]);
         b.ref_cast(info.struct);
@@ -312,7 +399,16 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   /// Generate code for the body of a lambda.
-  void generateLambda(Lambda lambda, Closures closures) {
+  w.DefinedFunction generateLambda(Lambda lambda, Closures closures) {
+    if (lambda.functionNode.asyncMarker == AsyncMarker.Async &&
+        lambda.function == function) {
+      w.DefinedFunction inner =
+          translator.functions.addAsyncInnerFunctionFor(function);
+      generateAsyncWrapper(lambda.functionNode, inner);
+      return CodeGenerator(translator, inner, reference)
+          .generateLambda(lambda, closures);
+    }
+
     this.closures = closures;
 
     final int implicitParams = 1;
@@ -357,6 +453,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     lambda.functionNode.body!.accept(this);
     _implicitReturn();
     b.end();
+
+    return function;
   }
 
   void _implicitReturn() {
@@ -1071,6 +1169,23 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   void visitYieldStatement(YieldStatement node) => defaultStatement(node);
 
   @override
+  w.ValueType visitAwaitExpression(
+      AwaitExpression node, w.ValueType expectedType) {
+    w.BaseFunction awaitHelper =
+        translator.functions.getFunction(translator.awaitHelper.reference);
+
+    // The stack for the suspension is the last parameter to the function.
+    w.Local stack = function.locals[function.type.inputs.length - 1];
+    assert(stack.type == translator.functions.asyncStackType);
+
+    wrap(node.operand, translator.topInfo.nullableType);
+    b.local_get(stack);
+    b.call(awaitHelper);
+
+    return translator.topInfo.nullableType;
+  }
+
+  @override
   w.ValueType visitBlockExpression(
       BlockExpression node, w.ValueType expectedType) {
     node.body.accept(this);
@@ -1292,7 +1407,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitEqualsNull(EqualsNull node, w.ValueType expectedType) {
-    wrap(node.expression, const w.RefType.any());
+    wrap(node.expression, const w.RefType.any(nullable: true));
     b.ref_is_null();
     return w.NumType.i32;
   }

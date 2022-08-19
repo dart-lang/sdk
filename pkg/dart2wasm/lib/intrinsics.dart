@@ -347,8 +347,7 @@ class Intrinsifier {
     }
 
     // WasmAnyRef.toObject
-    if (cls == translator.wasmAnyRefClass) {
-      assert(name == "toObject");
+    if (cls == translator.wasmAnyRefClass && name == "toObject") {
       w.Label succeed = b.block(const [], [translator.topInfo.nonNullableType]);
       w.Label fail = b.block(const [], const [w.RefType.any(nullable: false)]);
       codeGen.wrap(receiver, w.RefType.any(nullable: false));
@@ -957,21 +956,12 @@ class Intrinsifier {
       }
 
       // (WasmFuncRef|WasmFunction).fromRef constructors
-      if ((cls == translator.wasmFuncRefClass ||
-              cls == translator.wasmFunctionClass) &&
-          name == "fromRef") {
+      if (cls == translator.wasmFunctionClass && name == "fromFuncRef") {
         Expression ref = node.arguments.positional[0];
         w.RefType resultType = typeOfExp(node) as w.RefType;
         w.Label succeed = b.block(const [], [resultType]);
-        w.Label fail =
-            b.block(const [], const [w.RefType.any(nullable: false)]);
-        codeGen.wrap(ref, w.RefType.any(nullable: false));
-        b.br_on_non_func(fail);
-        if (cls == translator.wasmFunctionClass) {
-          b.br_on_cast_fail(fail, resultType.heapType as w.FunctionType);
-        }
-        b.br(succeed);
-        b.end(); // fail
+        codeGen.wrap(ref, w.RefType.func(nullable: false));
+        b.br_on_cast(succeed, resultType.heapType as w.FunctionType);
         codeGen.throwWasmRefError("a function with the expected signature");
         b.end(); // succeed
         return resultType;
@@ -1014,6 +1004,29 @@ class Intrinsifier {
           w.RefType valueType = targetType as w.RefType;
           codeGen.wrap(value, valueType);
           return valueType;
+      }
+    }
+
+    // dart:wasm static functions
+    if (node.target.enclosingLibrary.name == "dart.wasm") {
+      Expression value = node.arguments.positional.single;
+      switch (name) {
+        case "_externalizeNonNullable":
+          codeGen.wrap(value, w.RefType.any(nullable: false));
+          b.extern_externalize();
+          return w.RefType.extern(nullable: false);
+        case "_externalizeNullable":
+          codeGen.wrap(value, w.RefType.any(nullable: true));
+          b.extern_externalize();
+          return w.RefType.extern(nullable: true);
+        case "_internalizeNonNullable":
+          codeGen.wrap(value, w.RefType.extern(nullable: false));
+          b.extern_internalize();
+          return w.RefType.any(nullable: false);
+        case "_internalizeNullable":
+          codeGen.wrap(value, w.RefType.extern(nullable: true));
+          b.extern_internalize();
+          return w.RefType.any(nullable: true);
       }
     }
 
@@ -1320,6 +1333,22 @@ class Intrinsifier {
         }
         throw "Unrecognized typed data getter: ${cls.name}.$name";
       }
+    }
+
+    // _asyncBridge2
+    if (member.enclosingLibrary.name == "dart.async" &&
+        name == "_asyncBridge2") {
+      w.Local args = paramLocals[0];
+      w.Local stack = paramLocals[1];
+      const int stubFieldIndex = 0;
+
+      b.local_get(args);
+      b.local_get(stack);
+      b.local_get(args);
+      b.ref_cast(translator.functions.asyncStubBaseStruct);
+      b.struct_get(translator.functions.asyncStubBaseStruct, stubFieldIndex);
+      b.call_ref();
+      return true;
     }
 
     // int members

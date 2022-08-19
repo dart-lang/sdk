@@ -13871,6 +13871,7 @@ class RequestError implements HasToJson {
 ///   SERVER_ERROR
 ///   SORT_MEMBERS_INVALID_FILE
 ///   SORT_MEMBERS_PARSE_ERRORS
+///   UNDEFINED_DIAGNOSTIC_CODE
 ///   UNKNOWN_REQUEST
 ///   UNSUPPORTED_FEATURE
 /// }
@@ -14037,6 +14038,10 @@ class RequestErrorCode implements Enum {
   static const RequestErrorCode SORT_MEMBERS_PARSE_ERRORS =
       RequestErrorCode._('SORT_MEMBERS_PARSE_ERRORS');
 
+  /// A request specified a diagnostic code that is undefined.
+  static const RequestErrorCode UNDEFINED_DIAGNOSTIC_CODE =
+      RequestErrorCode._('UNDEFINED_DIAGNOSTIC_CODE');
+
   /// A request was received which the analysis server does not recognize, or
   /// cannot handle in its current configuration.
   static const RequestErrorCode UNKNOWN_REQUEST =
@@ -14084,6 +14089,7 @@ class RequestErrorCode implements Enum {
     SERVER_ERROR,
     SORT_MEMBERS_INVALID_FILE,
     SORT_MEMBERS_PARSE_ERRORS,
+    UNDEFINED_DIAGNOSTIC_CODE,
     UNKNOWN_REQUEST,
     UNSUPPORTED_FEATURE
   ];
@@ -14159,6 +14165,8 @@ class RequestErrorCode implements Enum {
         return SORT_MEMBERS_INVALID_FILE;
       case 'SORT_MEMBERS_PARSE_ERRORS':
         return SORT_MEMBERS_PARSE_ERRORS;
+      case 'UNDEFINED_DIAGNOSTIC_CODE':
+        return UNDEFINED_DIAGNOSTIC_CODE;
       case 'UNKNOWN_REQUEST':
         return UNKNOWN_REQUEST;
       case 'UNSUPPORTED_FEATURE':

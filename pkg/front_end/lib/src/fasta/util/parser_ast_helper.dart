@@ -1826,6 +1826,49 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void beginRecordType(Token leftBracket) {
+    RecordTypeBegin data =
+        new RecordTypeBegin(ParserAstType.BEGIN, leftBracket: leftBracket);
+    seen(data);
+  }
+
+  @override
+  void endRecordType(Token leftBracket, Token? questionMark, int count) {
+    RecordTypeEnd data = new RecordTypeEnd(ParserAstType.END,
+        leftBracket: leftBracket, questionMark: questionMark, count: count);
+    seen(data);
+  }
+
+  @override
+  void beginRecordTypeEntry() {
+    RecordTypeEntryBegin data = new RecordTypeEntryBegin(ParserAstType.BEGIN);
+    seen(data);
+  }
+
+  @override
+  void endRecordTypeEntry() {
+    RecordTypeEntryEnd data = new RecordTypeEntryEnd(ParserAstType.END);
+    seen(data);
+  }
+
+  @override
+  void beginRecordTypeNamedFields(Token leftBracket) {
+    RecordTypeNamedFieldsBegin data = new RecordTypeNamedFieldsBegin(
+        ParserAstType.BEGIN,
+        leftBracket: leftBracket);
+    seen(data);
+  }
+
+  @override
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    RecordTypeNamedFieldsEnd data = new RecordTypeNamedFieldsEnd(
+        ParserAstType.END,
+        count: count,
+        leftBracket: leftBracket);
+    seen(data);
+  }
+
+  @override
   void beginFunctionType(Token beginToken) {
     FunctionTypeBegin data =
         new FunctionTypeBegin(ParserAstType.BEGIN, beginToken: beginToken);
@@ -5918,6 +5961,76 @@ class NoNameHandle extends ParserAstNode {
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
+      };
+}
+
+class RecordTypeBegin extends ParserAstNode {
+  final Token leftBracket;
+
+  RecordTypeBegin(ParserAstType type, {required this.leftBracket})
+      : super("RecordType", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "leftBracket": leftBracket,
+      };
+}
+
+class RecordTypeEnd extends ParserAstNode {
+  final Token leftBracket;
+  final Token? questionMark;
+  final int count;
+
+  RecordTypeEnd(ParserAstType type,
+      {required this.leftBracket, this.questionMark, required this.count})
+      : super("RecordType", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "leftBracket": leftBracket,
+        "questionMark": questionMark,
+        "count": count,
+      };
+}
+
+class RecordTypeEntryBegin extends ParserAstNode {
+  RecordTypeEntryBegin(ParserAstType type) : super("RecordTypeEntry", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {};
+}
+
+class RecordTypeEntryEnd extends ParserAstNode {
+  RecordTypeEntryEnd(ParserAstType type) : super("RecordTypeEntry", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {};
+}
+
+class RecordTypeNamedFieldsBegin extends ParserAstNode {
+  final Token leftBracket;
+
+  RecordTypeNamedFieldsBegin(ParserAstType type, {required this.leftBracket})
+      : super("RecordTypeNamedFields", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "leftBracket": leftBracket,
+      };
+}
+
+class RecordTypeNamedFieldsEnd extends ParserAstNode {
+  final int count;
+  final Token leftBracket;
+
+  RecordTypeNamedFieldsEnd(ParserAstType type,
+      {required this.count, required this.leftBracket})
+      : super("RecordTypeNamedFields", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "count": count,
+        "leftBracket": leftBracket,
       };
 }
 

@@ -75,7 +75,7 @@ import '../fasta_codes.dart'
         Message,
         Template,
         noLength,
-        templateExperimentDisabled;
+        templateExperimentNotEnabledOffByDefault;
 import '../identifiers.dart'
     show Identifier, InitializedIdentifier, QualifiedName, flattenName;
 import '../messages.dart' as messages show getLocationFromUri;
@@ -3962,10 +3962,13 @@ class BodyBuilder extends StackListenerImpl
   void endRecordLiteral(Token token, int count) {
     debugEvent("RecordLiteral");
 
-    addProblem(
-        templateExperimentDisabled.withArguments(ExperimentalFlag.records.name),
-        token.offset,
-        noLength);
+    if (!libraryFeatures.records.isEnabled) {
+      addProblem(
+          templateExperimentNotEnabledOffByDefault
+              .withArguments(ExperimentalFlag.records.name),
+          token.offset,
+          noLength);
+    }
 
     // TODO: Actual implementation of record literals.
     // For now we pretend it's an empty list.
@@ -4301,6 +4304,42 @@ class BodyBuilder extends StackListenerImpl
         }
       }
     }
+  }
+
+  @override
+  void endRecordType(Token leftBracket, Token? questionMark, int count) {
+    debugEvent("RecordType");
+    if (!libraryFeatures.records.isEnabled) {
+      addProblem(
+          templateExperimentNotEnabledOffByDefault
+              .withArguments(ExperimentalFlag.records.name),
+          leftBracket.offset,
+          noLength);
+    }
+
+    if (!libraryBuilder.isNonNullableByDefault) {
+      reportErrorIfNullableType(questionMark);
+    }
+
+    // TODO: Implement record type. This currently pushes a dummy type.
+
+    push(libraryBuilder.addVoidType(leftBracket.charOffset));
+  }
+
+  @override
+  void endRecordTypeEntry() {
+    // TODO: Implement record type entry.
+    debugEvent("RecordTypeEntry");
+
+    pop(); // identifier - name of field - or null.
+    pop(); // named type - type of field.
+    pop(); // List of metadata expressions - or null.
+  }
+
+  @override
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    debugEvent("RecordTypeNamedFields");
+    // TODO: Implement record type named fields.
   }
 
   @override

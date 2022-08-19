@@ -1582,7 +1582,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
                                                  bool is_optimizing) const {
-  constexpr Register saved_csp = kAbiFirstPreservedCpuReg;
+  // Compare FfiCallInstr's use of kFfiAnyNonAbiRegister.
+  constexpr Register saved_csp = CallingConventions::kFfiAnyNonAbiRegister;
   ASSERT(IsAbiPreservedRegister(saved_csp));
   return MakeLocationSummaryInternal(zone, (R(saved_csp)));
 }

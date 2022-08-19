@@ -449,7 +449,7 @@ class DefinedTable extends Table {
       : elements = List.filled(minSize, null);
 
   void setElement(int index, BaseFunction function) {
-    assert(type == RefType.func(),
+    assert(type == RefType.func(nullable: true),
         "Elements are only supported for funcref tables");
     elements[index] = function;
   }

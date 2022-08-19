@@ -2434,6 +2434,42 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void endRecordType(Token leftBracket, Token? questionMark, int count) {
+    debugEvent("RecordType");
+    _reportFeatureNotEnabled(
+      feature: ExperimentalFeatures.records,
+      startToken: leftBracket,
+    );
+
+    if (!enableNonNullable) {
+      reportErrorIfNullableType(questionMark);
+    }
+
+    // TODO: Implement record type. This currently pushes a dummy type.
+
+    push(
+      ast.namedType(
+        name: ast.simpleIdentifier(leftBracket),
+        typeArguments: null,
+        question: questionMark,
+      ),
+    );
+  }
+
+  @override
+  void endRecordTypeEntry() {
+    // TODO: Implement record type entry.
+    pop(); // Identifier.
+    pop(); // Type.
+    pop(); // Metadata.
+  }
+
+  @override
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    // TODO: Implement record type named fields.
+  }
+
+  @override
   void endRedirectingFactoryBody(Token equalToken, Token endToken) {
     assert(optional('=', equalToken));
     debugEvent("RedirectingFactoryBody");

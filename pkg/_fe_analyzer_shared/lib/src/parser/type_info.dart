@@ -129,7 +129,13 @@ bool isGeneralizedFunctionType(Token token) {
       (optional('<', token.next!) || optional('(', token.next!));
 }
 
-bool isValidTypeReference(Token token) {
+bool isPossibleRecordType(Token token) {
+  return optional('(', token) &&
+      token.endGroup != null &&
+      !token.endGroup!.isSynthetic;
+}
+
+bool isValidNonRecordTypeReference(Token token) {
   int kind = token.kind;
   if (IDENTIFIER_TOKEN == kind) return true;
   if (KEYWORD_TOKEN == kind) {
@@ -152,7 +158,7 @@ bool isValidTypeReference(Token token) {
 TypeInfo computeType(final Token token, bool required,
     [bool inDeclaration = false, bool acceptKeywordForSimpleType = false]) {
   Token next = token.next!;
-  if (!isValidTypeReference(next)) {
+  if (!isValidNonRecordTypeReference(next) && !isPossibleRecordType(next)) {
     // As next is not a valid type reference, this is all recovery.
     if (next.type.isBuiltIn) {
       TypeParamOrArgInfo typeParamOrArg =
@@ -213,6 +219,23 @@ TypeInfo computeType(final Token token, bool required,
         .computeNoTypeGFT(token, required);
   }
 
+  if (isPossibleRecordType(next)) {
+    // ([...])
+    Token after = next.endGroup!.next!;
+    if (isGeneralizedFunctionType(after)) {
+      // ([...]) `Function`
+      return new ComplexTypeInfo(token, noTypeParamOrArg)
+          .computeRecordTypeGFT(required);
+    }
+    if (optional('?', after) && isGeneralizedFunctionType(after.next!)) {
+      // ([...]) `?` `Function`
+      return new ComplexTypeInfo(token, noTypeParamOrArg)
+          .computeRecordTypeQuestionGFT(required);
+    }
+    return new ComplexTypeInfo(token, noTypeParamOrArg)
+        .computeRecordType(required);
+  }
+
   // We've seen an identifier.
 
   TypeParamOrArgInfo typeParamOrArg =
@@ -255,7 +278,7 @@ TypeInfo computeType(final Token token, bool required,
 
   if (optional('.', next)) {
     next = next.next!;
-    if (isValidTypeReference(next)) {
+    if (isValidNonRecordTypeReference(next)) {
       // We've seen identifier `.` identifier
       typeParamOrArg = computeTypeParamOrArg(next, inDeclaration);
       next = next.next!;

@@ -14,7 +14,7 @@ external WasmAnyRef singularArray(WasmAnyRef element);
 
 @pragma("wasm:import", "Reflect.apply")
 external WasmAnyRef apply(
-    WasmAnyRef target, WasmAnyRef thisArgument, WasmAnyRef argumentsList);
+    WasmFuncRef target, WasmAnyRef thisArgument, WasmAnyRef argumentsList);
 
 WasmAnyRef? anyRef;
 WasmEqRef? eqRef;
@@ -78,18 +78,11 @@ test() {
   var ff = WasmFunction.fromFunction(fun);
   ff.call(dartObjectRef);
   apply(ff, createObject(null), singularArray(dartObjectRef));
-  Expect.isFalse(ff.isObject);
 
   // Cast a typed function reference to a `funcref` and back.
   WasmFuncRef funcref = WasmFuncRef.fromWasmFunction(ff);
-  var ff2 = WasmFunction<void Function(WasmEqRef)>.fromRef(funcref);
+  var ff2 = WasmFunction<void Function(WasmEqRef)>.fromFuncRef(funcref);
   ff2.call(dartObjectRef);
-  Expect.isFalse(ff2.isObject);
-
-  // Casting a non-function JS object to a typed function reference throws.
-  Expect.throws(() {
-    WasmFunction<double Function(double)>.fromRef(jsObject1);
-  }, (_) => true);
 
   // Create a typed function reference from an import and call it.
   var createObjectFun = WasmFunction.fromFunction(createObject);

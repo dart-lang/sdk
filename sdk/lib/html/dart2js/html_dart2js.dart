@@ -13783,7 +13783,7 @@ class Element extends Node
           _parseDocument!.createElement("body") as BodyElement;
     }
 
-    var contextElement;
+    Element contextElement;
     if (this is BodyElement) {
       contextElement = _parseDocument!.body!;
     } else {
@@ -13802,7 +13802,7 @@ class Element extends Node
 
       fragment = _parseDocument!.createDocumentFragment();
       while (contextElement.firstChild != null) {
-        fragment.append(contextElement.firstChild);
+        fragment.append(contextElement.firstChild!);
       }
     }
     if (contextElement != _parseDocument!.body) {

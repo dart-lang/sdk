@@ -6,35 +6,35 @@ main() {
   var record1 = (1, 2, a: 3, b: 4);
   //            ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the 'records' language feature to be enabled.
+  // [cfe] This requires the experimental 'records' language feature to be enabled.
   print(record1);
 
   // With ending comma.
   var record2 = (42, 42, 42, );
   //            ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the 'records' language feature to be enabled.
+  // [cfe] This requires the experimental 'records' language feature to be enabled.
   print(record2);
   var record3 = (foo: 42, bar: 42, 42, baz: 42, );
   //            ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the 'records' language feature to be enabled.
+  // [cfe] This requires the experimental 'records' language feature to be enabled.
   print(record3);
 
   // Nested.
   var record4 = ((42, 42), 42);
   //            ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the 'records' language feature to be enabled.
+  // [cfe] This requires the experimental 'records' language feature to be enabled.
   //             ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the 'records' language feature to be enabled.
+  // [cfe] This requires the experimental 'records' language feature to be enabled.
   print(record4);
 
   // With function inside.
   var record5 = ((foo, bar) => 42, 42);
   //            ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the 'records' language feature to be enabled.
+  // [cfe] This requires the experimental 'records' language feature to be enabled.
   print(record5);
 }

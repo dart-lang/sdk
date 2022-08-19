@@ -139,6 +139,24 @@ class ReplacementVisitor
     );
   }
 
+  RecordTypeImpl? createRecordType({
+    required RecordTypeImpl type,
+    required InstantiatedTypeAliasElement? newAlias,
+    required List<DartType>? newFieldTypes,
+    required NullabilitySuffix? newNullability,
+  }) {
+    if (newAlias == null && newFieldTypes == null && newNullability == null) {
+      return null;
+    }
+
+    return RecordTypeImpl(
+      element2: type.element2,
+      fieldTypes: newFieldTypes ?? type.fieldTypes,
+      nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
+      alias: newAlias ?? type.alias,
+    );
+  }
+
   DartType? createTypeParameterType({
     required TypeParameterType type,
     required NullabilitySuffix? newNullability,
@@ -423,9 +441,32 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitRecordType(RecordType type) {
-    // TODO: implement visitRecordType
-    throw UnimplementedError();
+  DartType? visitRecordType(covariant RecordTypeImpl type) {
+    var newNullability = visitNullability(type);
+
+    InstantiatedTypeAliasElement? newAlias;
+    var alias = type.alias;
+    if (alias != null) {
+      var newArguments = _typeArguments(
+        alias.element.typeParameters,
+        alias.typeArguments,
+      );
+      if (newArguments != null) {
+        newAlias = InstantiatedTypeAliasElementImpl(
+          element: alias.element,
+          typeArguments: newArguments,
+        );
+      }
+    }
+
+    final newFieldTypes = _typeList(type.fieldTypes);
+
+    return createRecordType(
+      type: type,
+      newAlias: newAlias,
+      newFieldTypes: newFieldTypes,
+      newNullability: newNullability,
+    );
   }
 
   DartType? visitTypeArgument(
@@ -480,6 +521,19 @@ class ReplacementVisitor
     List<DartType>? newArguments;
     for (var i = 0; i < arguments.length; i++) {
       var substitution = visitTypeArgument(parameters[i], arguments[i]);
+      if (substitution != null) {
+        newArguments ??= arguments.toList(growable: false);
+        newArguments[i] = substitution;
+      }
+    }
+
+    return newArguments;
+  }
+
+  List<DartType>? _typeList(List<DartType> arguments) {
+    List<DartType>? newArguments;
+    for (var i = 0; i < arguments.length; i++) {
+      var substitution = arguments[i].accept(this);
       if (substitution != null) {
         newArguments ??= arguments.toList(growable: false);
         newArguments[i] = substitution;

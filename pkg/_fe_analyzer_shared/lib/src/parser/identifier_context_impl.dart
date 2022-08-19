@@ -12,7 +12,7 @@ import 'identifier_context.dart';
 
 import 'parser_impl.dart' show Parser;
 
-import 'type_info.dart' show isValidTypeReference;
+import 'type_info.dart' show isValidNonRecordTypeReference;
 
 import 'util.dart' show isOneOf, isOneOfOrEof, optional;
 
@@ -580,6 +580,59 @@ class FormalParameterDeclarationIdentifierContext extends IdentifierContext {
   }
 }
 
+/// See [IdentifierContext.recordFieldDeclaration].
+/// TODO(jensj): Initially this is just a copy of
+/// FormalParameterDeclarationIdentifierContext. This should be updated
+/// to better fit the specific use case.
+class RecordFieldDeclarationIdentifierContext extends IdentifierContext {
+  const RecordFieldDeclarationIdentifierContext()
+      : super('recordFieldDeclaration', inDeclaration: true);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next!;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
+      return identifier;
+    }
+
+    // Recovery
+    const List<String> followingValues = const [
+      ':',
+      '=',
+      ',',
+      '(',
+      ')',
+      '[',
+      ']',
+      '{',
+      '}',
+    ];
+    if (((looksLikeStartOfNextTopLevelDeclaration(identifier) ||
+                looksLikeStartOfNextClassMember(identifier) ||
+                looksLikeStatementStart(identifier)) &&
+            !isOneOf(identifier.next!, okNextValueInFormalParameter)) ||
+        isOneOfOrEof(identifier, followingValues)) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: codes.templateExpectedIdentifier.withArguments(identifier));
+    } else {
+      if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
+        // When in doubt, consume the token to ensure we make progress
+        // but insert a synthetic identifier to satisfy listeners.
+        identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
+      }
+    }
+    return identifier;
+  }
+}
+
 /// See [IdentifierContext.importPrefixDeclaration].
 class ImportPrefixIdentifierContext extends IdentifierContext {
   const ImportPrefixIdentifierContext()
@@ -1021,7 +1074,9 @@ class NamedArgumentReferenceIdentifierContext extends IdentifierContext {
 }
 
 /// See [IdentifierContext.namedRecordFieldReference].
-/// Initially this is just a copy of NamedArgumentReferenceIdentifierContext.
+/// TODO(jensj): Initially this is just a copy of
+/// NamedArgumentReferenceIdentifierContext. This should be updated
+/// to better fit the specific use case.
 class NamedRecordFieldReferenceIdentifierContext extends IdentifierContext {
   const NamedRecordFieldReferenceIdentifierContext()
       : super('namedRecordFieldReference', allowedInConstantExpression: true);
@@ -1220,7 +1275,7 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
   Token ensureIdentifier(Token token, Parser parser) {
     Token next = token.next!;
     assert(next.kind != IDENTIFIER_TOKEN);
-    if (isValidTypeReference(next)) {
+    if (isValidNonRecordTypeReference(next)) {
       return next;
     } else if (next.isKeywordOrIdentifier) {
       if (optional("void", next)) {

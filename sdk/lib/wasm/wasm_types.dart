@@ -34,18 +34,34 @@ class WasmAnyRef extends _WasmBase {
   ///
   /// Will throw if the reference is not a Dart object.
   external Object toObject();
+
+  WasmExternRef externalize() => _externalizeNonNullable(this);
 }
+
+extension ExternalizeNullable on WasmAnyRef? {
+  WasmExternRef? externalize() => _externalizeNullable(this);
+}
+
+/// The Wasm `externref` type.
+@pragma("wasm:entry-point")
+class WasmExternRef extends _WasmBase {
+  WasmAnyRef internalize() => _internalizeNonNullable(this);
+}
+
+extension InternalizeNullable on WasmExternRef? {
+  WasmAnyRef? internalize() => _internalizeNullable(this);
+}
+
+external WasmExternRef _externalizeNonNullable(WasmAnyRef ref);
+external WasmExternRef? _externalizeNullable(WasmAnyRef? ref);
+external WasmAnyRef _internalizeNonNullable(WasmExternRef ref);
+external WasmAnyRef? _internalizeNullable(WasmExternRef? ref);
 
 /// The Wasm `funcref` type.
 @pragma("wasm:entry-point")
-class WasmFuncRef extends WasmAnyRef {
+class WasmFuncRef extends _WasmBase {
   /// Upcast typed function reference to `funcref`
   external factory WasmFuncRef.fromWasmFunction(WasmFunction<Function> fun);
-
-  /// Downcast `anyref` to `funcref`.
-  ///
-  /// Will throw if the reference is not a `funcref`.
-  external factory WasmFuncRef.fromRef(WasmAnyRef ref);
 }
 
 /// The Wasm `eqref` type.
@@ -143,10 +159,10 @@ class WasmFunction<F extends Function> extends WasmFuncRef {
   /// parameters and no type parameters.
   external factory WasmFunction.fromFunction(F f);
 
-  /// Downcast `anyref` to a typed function reference.
+  /// Downcast `funcref` to a typed function reference.
   ///
   /// Will throw if the reference is not a function with the expected signature.
-  external factory WasmFunction.fromRef(WasmAnyRef ref);
+  external factory WasmFunction.fromFuncRef(WasmFuncRef ref);
 
   /// Call the function referred to by this typed function reference.
   @pragma("wasm:entry-point")

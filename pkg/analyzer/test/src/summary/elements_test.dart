@@ -34752,6 +34752,44 @@ library
 ''');
   }
 
+  test_recordType_classField_fromLiteral() async {
+    var library = await buildLibrary('''
+class A {
+  final x = (0, true);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final x @18
+            type: (int, bool)
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @-1
+            returnType: (int, bool)
+''');
+  }
+
+  test_recordType_topVariable_fromLiteral() async {
+    var library = await buildLibrary('''
+final x = (0, true);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static final x @6
+        type: (int, bool)
+    accessors
+      synthetic static get x @-1
+        returnType: (int, bool)
+''');
+  }
+
   test_setter_documented() async {
     var library = await buildLibrary('''
 // Extra comment so doc comment offset != 0

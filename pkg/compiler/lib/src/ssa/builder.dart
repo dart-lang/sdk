@@ -5137,9 +5137,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         _typeInferenceMap.resultTypeOfSelector(selector, receiverType);
     HInvokeDynamic invoke;
     if (selector.isGetter) {
+      _metrics.countGettersTotal.add();
       invoke = HInvokeDynamicGetter(selector, receiverType, element, inputs,
           isIntercepted, resultType, sourceInformation);
     } else if (selector.isSetter) {
+      _metrics.countSettersTotal.add();
       invoke = HInvokeDynamicSetter(selector, receiverType, element, inputs,
           isIntercepted, resultType, sourceInformation);
     } else if (selector.isClosureCall) {
@@ -5840,9 +5842,9 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         providedArguments, typeArguments, currentNode, sourceInformation,
         instanceType: instanceType);
     if (inlined) {
-      _metrics.countInlinesDone.add();
+      _metrics.countMethodInlined.add();
     } else {
-      _metrics.countInlinesSkipped.add();
+      _metrics.countMethodNotInlined.add();
     }
     return inlined;
   }

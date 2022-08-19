@@ -2180,12 +2180,39 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant RecordLiteralImpl node, {
     DartType? contextType,
   }) {
-    // TODO(brianwilkerson) Implement resolution for record literals.
     checkUnreachableNode(node);
-    for (final field in node.fields) {
-      analyzeExpression(field, null);
+    if (contextType is RecordType) {
+      var positionalFields = contextType.positionalFields;
+      var namedFields = contextType.namedFields;
+
+      RecordTypeNamedField? getNamedField(String name) {
+        for (var field in namedFields) {
+          if (field.name == name) {
+            return field;
+          }
+        }
+        return null;
+      }
+
+      var index = 0;
+      for (var field in node.fields) {
+        DartType? fieldContextType;
+        if (field is NamedExpression) {
+          var name = field.name.label.name;
+          fieldContextType = getNamedField(name)?.type;
+        } else {
+          if (index < positionalFields.length) {
+            fieldContextType = positionalFields[index++].type;
+          }
+        }
+        analyzeExpression(field, fieldContextType);
+      }
+    } else {
+      for (var field in node.fields) {
+        analyzeExpression(field, null);
+      }
     }
-    node.staticType = typeProvider.dynamicType;
+    typeAnalyzer.visitRecordLiteral(node, contextType: contextType);
   }
 
   @override

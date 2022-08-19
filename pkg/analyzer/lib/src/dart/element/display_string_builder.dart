@@ -236,14 +236,22 @@ class ElementDisplayStringBuilder {
   }
 
   void writeTypeParameterType(TypeParameterTypeImpl type) {
-    _write(type.element2.displayName);
-    _writeNullability(type.nullabilitySuffix);
-
-    var promotedBound = type.promotedBound;
+    final promotedBound = type.promotedBound;
     if (promotedBound != null) {
+      final hasSuffix = type.nullabilitySuffix != NullabilitySuffix.none;
+      if (hasSuffix) {
+        _write('(');
+      }
+      _write(type.element2.displayName);
       _write(' & ');
       _writeType(promotedBound);
+      if (hasSuffix) {
+        _write(')');
+      }
+    } else {
+      _write(type.element2.displayName);
     }
+    _writeNullability(type.nullabilitySuffix);
   }
 
   void writeUnknownInferredType() {

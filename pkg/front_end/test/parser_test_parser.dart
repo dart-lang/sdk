@@ -437,6 +437,37 @@ class TestParser extends Parser {
   }
 
   @override
+  Token parseRecordType(final Token start, Token token) {
+    doPrint('parseRecordType(' '$start, ' '$token)');
+    indent++;
+    var result = super.parseRecordType(start, token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseRecordTypeField(Token token,
+      {required bool identifierIsOptional}) {
+    doPrint('parseRecordTypeField('
+        '$token, '
+        'identifierIsOptional: $identifierIsOptional)');
+    indent++;
+    var result = super.parseRecordTypeField(token,
+        identifierIsOptional: identifierIsOptional);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseRecordTypeNamedFields(Token token) {
+    doPrint('parseRecordTypeNamedFields(' '$token)');
+    indent++;
+    var result = super.parseRecordTypeNamedFields(token);
+    indent--;
+    return result;
+  }
+
+  @override
   Token parseFormalParametersRequiredOpt(Token token, MemberKind kind) {
     doPrint('parseFormalParametersRequiredOpt(' '$token, ' '$kind)');
     indent++;

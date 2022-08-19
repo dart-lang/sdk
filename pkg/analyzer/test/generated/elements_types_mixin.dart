@@ -560,12 +560,18 @@ mixin ElementsTypesMixin {
   }
 
   RecordElementImpl recordElement({
-    List<RecordPositionalFieldElementImpl> positionalFields = const [],
-    List<RecordNamedFieldElementImpl> namedFields = const [],
+    List<DartType> positionalTypes = const [],
+    Map<String, DartType> namedTypes = const {},
   }) {
     return RecordElementImpl(
-      positionalFields: positionalFields,
-      namedFields: namedFields,
+      positionalFields: positionalTypes.map(
+        (fieldType) {
+          return recordPositionalField(type: fieldType);
+        },
+      ).toList(),
+      namedFields: namedTypes.entries.map((entry) {
+        return recordNamedField(name: entry.key, type: entry.value);
+      }).toList(),
     );
   }
 
@@ -590,11 +596,49 @@ mixin ElementsTypesMixin {
     );
   }
 
-  RecordTypeImpl recordTypeNone({
-    required RecordElementImpl element,
+  RecordTypeImpl recordType({
+    List<DartType> positionalTypes = const [],
+    Map<String, DartType> namedTypes = const {},
+    required NullabilitySuffix nullabilitySuffix,
   }) {
-    return element.instantiate(
+    return recordElement(
+      positionalTypes: positionalTypes,
+      namedTypes: namedTypes,
+    ).instantiate(
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  RecordTypeImpl recordTypeNone({
+    List<DartType> positionalTypes = const [],
+    Map<String, DartType> namedTypes = const {},
+  }) {
+    return recordType(
+      positionalTypes: positionalTypes,
+      namedTypes: namedTypes,
       nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  RecordTypeImpl recordTypeQuestion({
+    List<DartType> positionalTypes = const [],
+    Map<String, DartType> namedTypes = const {},
+  }) {
+    return recordType(
+      positionalTypes: positionalTypes,
+      namedTypes: namedTypes,
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  RecordTypeImpl recordTypeStar({
+    List<DartType> positionalTypes = const [],
+    Map<String, DartType> namedTypes = const {},
+  }) {
+    return recordType(
+      positionalTypes: positionalTypes,
+      namedTypes: namedTypes,
+      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 

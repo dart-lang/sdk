@@ -26,6 +26,7 @@ import 'type_info.dart';
 
 import 'util.dart'
     show
+        isOneOfOrEof,
         optional,
         skipMetadata,
         splitGtEq,
@@ -356,7 +357,7 @@ class SimpleType implements TypeInfo {
   @override
   Token parseType(Token token, Parser parser) {
     token = token.next!;
-    assert(isValidTypeReference(token));
+    assert(isValidNonRecordTypeReference(token));
     parser.listener.handleIdentifier(token, IdentifierContext.typeReference);
     token = noTypeParamOrArg.parseArguments(token, parser);
     return parseTypeRest(token, parser);
@@ -508,6 +509,13 @@ class ComplexTypeInfo implements TypeInfo {
   /// whether it has a return type, otherwise this is `null`.
   bool? gftHasReturnType;
 
+  /// If the type is a record type.
+  bool recordType = false;
+
+  /// If this is a generalized function type with a record type included in the
+  /// return type. E.g. `(int, int) Function(bool) Function(int)`.
+  bool gftReturnTypeHasRecordType = false;
+
   @override
   bool recovered;
 
@@ -582,6 +590,8 @@ class ComplexTypeInfo implements TypeInfo {
       // Push the non-existing return type first. The loop below will
       // generate the full type.
       noType.parseType(token, parser);
+    } else if (recordType || gftReturnTypeHasRecordType) {
+      token = parser.parseRecordType(start, token);
     } else {
       Token typeRefOrPrefix = token.next!;
       if (optional('void', typeRefOrPrefix)) {
@@ -675,6 +685,122 @@ class ComplexTypeInfo implements TypeInfo {
     return this;
   }
 
+  /// Given (a possible) RecordType of the form
+  ///
+  ///    `(` unchecked content `)`
+  ///
+  /// compute the type and return the receiver or one of the [TypeInfo]
+  /// constants.
+  TypeInfo computeRecordType(bool required) {
+    assert(isPossibleRecordType(start));
+    Token token = start;
+    Token endGroup = token.endGroup!;
+
+    // Verify stuff between parenthesis.
+    _checkIfRecordTypeParenthesisAreRecovered(token, endGroup);
+
+    token = endGroup;
+    if (!required) {
+      Token next = token.next!;
+      if (optional('?', next)) {
+        next = next.next!;
+      }
+      if (!(next.isIdentifier)) {
+        // This could for instance be `(int x, int y) {`.
+        return noType;
+      }
+      Token afterIdentifier = next.next!;
+      // TODO(jensj): Are there any other instances where it's a valid
+      // (optional) record type?
+      if (!isOneOfOrEof(afterIdentifier, const [";", "=", "(", ",", ")"])) {
+        // This could for instance be `(int x, int y) async {`.
+        return noType;
+      }
+    }
+    assert(optional(')', token));
+
+    beforeQuestionMark = null;
+    end = token;
+    token = token.next!;
+
+    if (optional('?', token)) {
+      beforeQuestionMark = end;
+      end = token;
+      token = token.next!;
+    }
+
+    recordType = true;
+
+    assert(end != null);
+    return this;
+  }
+
+  /// Check if the presumed record type has correct syntax between its
+  /// parenthesis. If not [recovered] will be set to true.
+  /// Keep in sync with [Parser.parseRecordType] et al.
+  void _checkIfRecordTypeParenthesisAreRecovered(
+      Token token, final Token endGroup) {
+    int parameterCount = 0;
+    bool hasNamedFields = false;
+    while (true) {
+      Token next = token.next!;
+      if (optional(')', next)) {
+        token = next;
+        break;
+      } else if (hasNamedFields &&
+          optional('}', next) &&
+          optional(')', next.next!)) {
+        token = next.next!;
+        break;
+      }
+      ++parameterCount;
+      String? value = next.stringValue;
+      if (!hasNamedFields && identical(value, '{')) {
+        hasNamedFields = true;
+        token = token.next!;
+      }
+      if (optional('@', token.next!)) {
+        token = skipMetadata(token);
+      }
+      TypeInfo type = computeType(token, /* required = */ true);
+      if (type.recovered) {
+        recovered = true;
+        return;
+      }
+      token = type.skipType(token);
+      if (token.next!.isIdentifier) {
+        token = token.next!;
+      } else if (hasNamedFields) {
+        recovered = true;
+        return;
+      }
+
+      next = token.next!;
+      if (!optional(',', next)) {
+        Token next = token.next!;
+        if (optional(')', next)) {
+          token = next;
+        } else if (optional('}', next) && optional(')', next.next!)) {
+          token = next.next!;
+        } else {
+          // Recovery.
+          recovered = true;
+          return;
+        }
+        break;
+      }
+      token = next;
+    }
+
+    if (!recovered &&
+        (parameterCount == 0 ||
+            (parameterCount == 1 && !hasNamedFields) ||
+            token != endGroup)) {
+      recovered = true;
+      return;
+    }
+  }
+
   /// Given void `Function` non-identifier, compute the type
   /// and return the receiver or one of the [TypeInfo] constants.
   TypeInfo computeVoidGFT(bool required) {
@@ -692,7 +818,7 @@ class ComplexTypeInfo implements TypeInfo {
   /// Given identifier `Function` non-identifier, compute the type
   /// and return the receiver or one of the [TypeInfo] constants.
   TypeInfo computeIdentifierGFT(bool required) {
-    assert(isValidTypeReference(start));
+    assert(isValidNonRecordTypeReference(start));
     assert(optional('Function', start.next!));
 
     computeRest(start, required);
@@ -703,10 +829,32 @@ class ComplexTypeInfo implements TypeInfo {
     return this;
   }
 
+  /// Given
+  ///
+  ///   `(` unchecked content assumed to be RecordType `)`
+  ///      `Function` non-identifier
+  ///
+  /// compute the type and return the receiver or one of the [TypeInfo]
+  /// constants.
+  TypeInfo computeRecordTypeGFT(bool required) {
+    assert(isPossibleRecordType(start));
+    assert(optional('Function', start.endGroup!.next!));
+
+    // TODO(jensj): Check the record type stuff to set recovered properly.
+
+    computeRest(start.endGroup!, required);
+    if (gftHasReturnType == null) {
+      return computeRecordType(required);
+    }
+    assert(end != null);
+    gftReturnTypeHasRecordType = true;
+    return this;
+  }
+
   /// Given identifier `?` `Function` non-identifier, compute the type
   /// and return the receiver or one of the [TypeInfo] constants.
   TypeInfo computeIdentifierQuestionGFT(bool required) {
-    assert(isValidTypeReference(start));
+    assert(isValidNonRecordTypeReference(start));
     assert(optional('?', start.next!));
     assert(optional('Function', start.next!.next!));
 
@@ -715,6 +863,29 @@ class ComplexTypeInfo implements TypeInfo {
       return simpleNullableType;
     }
     assert(end != null);
+    return this;
+  }
+
+  /// Given
+  ///
+  ///   `(` unchecked content assumed to be RecordType `)` `?`
+  ///      `Function` non-identifier
+  ///
+  /// compute the type and return the receiver or one of the [TypeInfo]
+  /// constants.
+  TypeInfo computeRecordTypeQuestionGFT(bool required) {
+    assert(isPossibleRecordType(start));
+    assert(optional('?', start.endGroup!.next!));
+    assert(optional('Function', start.endGroup!.next!.next!));
+
+    // TODO(jensj): Check the record type stuff to set recovered properly.
+
+    computeRest(start.endGroup!, required);
+    if (gftHasReturnType == null) {
+      return computeRecordType(required);
+    }
+    assert(end != null);
+    gftReturnTypeHasRecordType = true;
     return this;
   }
 
@@ -732,7 +903,7 @@ class ComplexTypeInfo implements TypeInfo {
   /// Given identifier `<` ... `>`, compute the type
   /// and return the receiver or one of the [TypeInfo] constants.
   TypeInfo computeSimpleWithTypeArguments(bool required) {
-    assert(isValidTypeReference(start));
+    assert(isValidNonRecordTypeReference(start));
     assert(optional('<', start.next!));
     assert(typeArguments != noTypeParamOrArg);
 
@@ -1236,7 +1407,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       }
       token = next;
       next = token.next!;
-      typeFollowsExtends = isValidTypeReference(next);
+      typeFollowsExtends = isValidNonRecordTypeReference(next);
 
       if (parseCloser(token)) {
         return token;

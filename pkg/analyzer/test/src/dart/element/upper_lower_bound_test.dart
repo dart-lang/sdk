@@ -1243,6 +1243,66 @@ class LowerBoundTest extends _BoundsTestBase {
     check(intQuestion, doubleQuestion, neverQuestion);
   }
 
+  test_recordType2_differentShape() {
+    void check(String T1, String T2) {
+      _checkGreatestLowerBound2(T1, T2, 'Never');
+    }
+
+    check('(int)', '(int, String)');
+
+    check('({int f1, String f2})', '({int f1})');
+    check('({int f1})', '({int f2})');
+  }
+
+  test_recordType2_sameShape_named() {
+    _checkGreatestLowerBound2(
+      '({int f1})',
+      '({int f1})',
+      '({int f1})',
+    );
+
+    _checkGreatestLowerBound2(
+      '({int f1})',
+      '({num f1})',
+      '({int f1})',
+    );
+
+    _checkGreatestLowerBound2(
+      '({int f1})',
+      '({double f1})',
+      '({Never f1})',
+    );
+
+    _checkGreatestLowerBound2(
+      '({int f1, double f2})',
+      '({double f1, int f2})',
+      '({Never f1, Never f2})',
+    );
+  }
+
+  test_recordType2_sameShape_positional() {
+    _checkGreatestLowerBound2('(int)', '(int)', '(int)');
+    _checkGreatestLowerBound2('(int)', '(num)', '(int)');
+    _checkGreatestLowerBound2('(int)', '(double)', '(Never)');
+
+    _checkGreatestLowerBound2(
+      '(int, String)',
+      '(int, String)',
+      '(int, String)',
+    );
+
+    _checkGreatestLowerBound2(
+      '(int, double)',
+      '(double, int)',
+      '(Never, Never)',
+    );
+  }
+
+  test_recordType_andNot() {
+    _checkGreatestLowerBound2('(int)', 'int', 'Never');
+    _checkGreatestLowerBound2('(int)', 'void Function()', 'Never');
+  }
+
   test_self() {
     var T = typeParameter('T');
 
@@ -1310,6 +1370,7 @@ class LowerBoundTest extends _BoundsTestBase {
     check(voidNone, futureOrNone(intNone));
     check(voidNone, neverNone);
     check(voidNone, functionTypeNone(returnType: voidNone));
+    check(voidNone, typeOfString('(int, int)'));
 
     check(dynamicNone, objectNone);
     check(dynamicNone, intNone);
@@ -1319,6 +1380,7 @@ class LowerBoundTest extends _BoundsTestBase {
     check(dynamicNone, futureOrNone(intNone));
     check(dynamicNone, neverNone);
     check(dynamicNone, functionTypeNone(returnType: voidNone));
+    check(dynamicNone, typeOfString('(int, int)'));
 
     check(objectQuestion, objectNone);
     check(objectQuestion, intNone);
@@ -1328,6 +1390,7 @@ class LowerBoundTest extends _BoundsTestBase {
     check(objectQuestion, futureOrNone(intNone));
     check(objectQuestion, neverNone);
     check(objectQuestion, functionTypeNone(returnType: voidNone));
+    check(objectQuestion, typeOfString('(int, int)'));
 
     check(objectStar, objectNone);
     check(objectStar, intNone);
@@ -1337,10 +1400,12 @@ class LowerBoundTest extends _BoundsTestBase {
     check(objectStar, futureOrNone(intNone));
     check(objectStar, neverNone);
     check(objectStar, functionTypeNone(returnType: voidNone));
+    check(objectStar, typeOfString('(int, int)'));
 
     check(futureOrNone(voidNone), intNone);
     check(futureOrQuestion(voidNone), intNone);
     check(futureOrStar(voidNone), intNone);
+    check(futureOrStar(voidNone), typeOfString('(int, int)'));
   }
 
   test_top_top() {
@@ -1439,6 +1504,14 @@ actual: $resultStr
 expected: $expectedStr
 actual: $resultStr
 ''');
+  }
+
+  void _checkGreatestLowerBound2(String T1, String T2, String expected) {
+    _checkGreatestLowerBound(
+      typeOfString(T1),
+      typeOfString(T2),
+      typeOfString(expected),
+    );
   }
 }
 
@@ -2552,12 +2625,6 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
 
 @reflectiveTest
 class UpperBound_RecordTypes_Test extends _BoundsTestBase {
-  @override
-  void setUp() {
-    super.setUp();
-    defineStringTypes();
-  }
-
   test_differentShape() {
     void check(String T1, String T2) {
       _checkLeastUpperBound2(T1, T2, 'Record');
@@ -3423,6 +3490,12 @@ class UpperBoundTest extends _BoundsTestBase {
 
 @reflectiveTest
 class _BoundsTestBase extends AbstractTypeSystemTest with StringTypes {
+  @override
+  void setUp() {
+    super.setUp();
+    defineStringTypes();
+  }
+
   void _assertBottom(DartType type) {
     if (!typeSystem.isBottom(type)) {
       fail('isBottom must be true: ${_typeString(type)}');

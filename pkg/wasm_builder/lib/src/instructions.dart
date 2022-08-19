@@ -223,7 +223,7 @@ class Instructions with SerializerMixin {
   }
 
   ValueType get _topOfStack {
-    if (!reachable) return RefType.any();
+    if (!reachable) return RefType.top(nullable: true);
     if (_stackTypes.isEmpty) _reportError("Stack underflow");
     return _stackTypes.last;
   }
@@ -896,7 +896,8 @@ class Instructions with SerializerMixin {
 
   /// Emit a `ref.is_null` instruction.
   void ref_is_null() {
-    assert(_verifyTypes(const [RefType.any()], const [NumType.i32],
+    assert(_verifyTypes(
+        const [RefType.top(nullable: true)], const [NumType.i32],
         trace: const ['ref.is_null']));
     writeByte(0xD1);
   }
@@ -911,16 +912,16 @@ class Instructions with SerializerMixin {
 
   /// Emit a `ref.as_non_null` instruction.
   void ref_as_non_null() {
-    assert(_verifyTypes(
-        const [RefType.any()], [_topOfStack.withNullability(false)],
+    assert(_verifyTypes(const [RefType.top(nullable: true)],
+        [_topOfStack.withNullability(false)],
         trace: const ['ref.as_non_null']));
     writeByte(0xD3);
   }
 
   /// Emit a `br_on_null` instruction.
   void br_on_null(Label label) {
-    assert(_verifyTypes(
-        const [RefType.any()], [_topOfStack.withNullability(false)],
+    assert(_verifyTypes(const [RefType.top(nullable: true)],
+        [_topOfStack.withNullability(false)],
         trace: ['br_on_null', label]));
     assert(_verifyBranchTypes(label, 1));
     writeByte(0xD4);
@@ -929,7 +930,9 @@ class Instructions with SerializerMixin {
 
   /// Emit a `ref.eq` instruction.
   void ref_eq() {
-    assert(_verifyTypes(const [RefType.eq(), RefType.eq()], const [NumType.i32],
+    assert(_verifyTypes(
+        const [RefType.eq(nullable: true), RefType.eq(nullable: true)],
+        const [NumType.i32],
         trace: const ['ref.eq']));
     writeByte(0xD5);
   }
@@ -937,7 +940,7 @@ class Instructions with SerializerMixin {
   /// Emit a `br_on_non_null` instruction.
   void br_on_non_null(Label label) {
     assert(_verifyBranchTypes(label, 1, [_topOfStack.withNullability(false)]));
-    assert(_verifyTypes(const [RefType.any()], const [],
+    assert(_verifyTypes(const [RefType.top(nullable: true)], const [],
         trace: ['br_on_non_null', label]));
     writeByte(0xD6);
     _writeLabel(label);
@@ -1104,21 +1107,24 @@ class Instructions with SerializerMixin {
 
   /// Emit an `i31.new` instruction.
   void i31_new() {
-    assert(_verifyTypes(const [NumType.i32], const [RefType.i31()],
+    assert(_verifyTypes(
+        const [NumType.i32], const [RefType.i31(nullable: false)],
         trace: const ['i31.new']));
     writeBytes(const [0xFB, 0x20]);
   }
 
   /// Emit an `i31.get_s` instruction.
   void i31_get_s() {
-    assert(_verifyTypes(const [RefType.i31()], const [NumType.i32],
+    assert(_verifyTypes(
+        const [RefType.i31(nullable: false)], const [NumType.i32],
         trace: const ['i31.get_s']));
     writeBytes(const [0xFB, 0x21]);
   }
 
   /// Emit an `i31.get_u` instruction.
   void i31_get_u() {
-    assert(_verifyTypes(const [RefType.i31()], const [NumType.i32],
+    assert(_verifyTypes(
+        const [RefType.i31(nullable: false)], const [NumType.i32],
         trace: const ['i31.get_u']));
     writeBytes(const [0xFB, 0x22]);
   }
@@ -1175,63 +1181,41 @@ class Instructions with SerializerMixin {
     writeSigned(targetType.index);
   }
 
-  /// Emit a `ref.is_func` instruction.
-  void ref_is_func() {
-    assert(_verifyTypes(const [RefType.any()], const [NumType.i32],
-        trace: const ['ref.is_func']));
-    writeBytes(const [0xFB, 0x50]);
-  }
-
   /// Emit a `ref.is_data` instruction.
   void ref_is_data() {
-    assert(_verifyTypes(const [RefType.any()], const [NumType.i32],
+    assert(_verifyTypes(
+        const [RefType.any(nullable: true)], const [NumType.i32],
         trace: const ['ref.is_data']));
     writeBytes(const [0xFB, 0x51]);
   }
 
   /// Emit a `ref.is_i31` instruction.
   void ref_is_i31() {
-    assert(_verifyTypes(const [RefType.any()], const [NumType.i32],
+    assert(_verifyTypes(
+        const [RefType.any(nullable: true)], const [NumType.i32],
         trace: const ['ref.is_i31']));
     writeBytes(const [0xFB, 0x52]);
   }
 
-  /// Emit a `ref.as_func` instruction.
-  void ref_as_func() {
-    assert(_verifyTypes(
-        const [RefType.any()], const [RefType.func(nullable: false)],
-        trace: const ['ref.as_func']));
-    writeBytes(const [0xFB, 0x58]);
-  }
-
   /// Emit a `ref.as_data` instruction.
   void ref_as_data() {
-    assert(_verifyTypes(
-        const [RefType.any()], const [RefType.data(nullable: false)],
+    assert(_verifyTypes(const [RefType.any(nullable: true)],
+        const [RefType.data(nullable: false)],
         trace: const ['ref.as_data']));
     writeBytes(const [0xFB, 0x59]);
   }
 
   /// Emit a `ref.as_i31` instruction.
   void ref_as_i31() {
-    assert(_verifyTypes(
-        const [RefType.any()], const [RefType.i31(nullable: false)],
+    assert(_verifyTypes(const [RefType.any(nullable: true)],
+        const [RefType.i31(nullable: false)],
         trace: const ['ref.as_i31']));
     writeBytes(const [0xFB, 0x5A]);
   }
 
-  /// Emit a `br_on_func` instruction.
-  void br_on_func(Label label) {
-    assert(_verifyTypes(const [RefType.any()], [_topOfStack],
-        trace: ['br_on_func', label]));
-    assert(_verifyBranchTypes(label, 1, const [RefType.func(nullable: false)]));
-    writeBytes(const [0xFB, 0x60]);
-    _writeLabel(label);
-  }
-
   /// Emit a `br_on_data` instruction.
   void br_on_data(Label label) {
-    assert(_verifyTypes(const [RefType.any()], [_topOfStack],
+    assert(_verifyTypes(const [RefType.any(nullable: true)], [_topOfStack],
         trace: ['br_on_data', label]));
     assert(_verifyBranchTypes(label, 1, const [RefType.data(nullable: false)]));
     writeBytes(const [0xFB, 0x61]);
@@ -1240,28 +1224,18 @@ class Instructions with SerializerMixin {
 
   /// Emit a `br_on_i31` instruction.
   void br_on_i31(Label label) {
-    assert(_verifyTypes(const [RefType.any()], [_topOfStack],
+    assert(_verifyTypes(const [RefType.any(nullable: true)], [_topOfStack],
         trace: ['br_on_i31', label]));
     assert(_verifyBranchTypes(label, 1, const [RefType.i31(nullable: false)]));
     writeBytes(const [0xFB, 0x62]);
     _writeLabel(label);
   }
 
-  /// Emit a `br_on_non_func` instruction.
-  void br_on_non_func(Label label) {
-    assert(_verifyBranchTypes(label, 1, [_topOfStack]));
-    assert(_verifyTypes(
-        const [RefType.any()], const [RefType.func(nullable: false)],
-        trace: ['br_on_non_func', label]));
-    writeBytes(const [0xFB, 0x63]);
-    _writeLabel(label);
-  }
-
   /// Emit a `br_on_non_data` instruction.
   void br_on_non_data(Label label) {
     assert(_verifyBranchTypes(label, 1, [_topOfStack]));
-    assert(_verifyTypes(
-        const [RefType.any()], const [RefType.data(nullable: false)],
+    assert(_verifyTypes(const [RefType.any(nullable: true)],
+        const [RefType.data(nullable: false)],
         trace: ['br_on_non_data', label]));
     writeBytes(const [0xFB, 0x64]);
     _writeLabel(label);
@@ -1270,11 +1244,27 @@ class Instructions with SerializerMixin {
   /// Emit a `br_on_non_i31` instruction.
   void br_on_non_i31(Label label) {
     assert(_verifyBranchTypes(label, 1, [_topOfStack]));
-    assert(_verifyTypes(
-        const [RefType.any()], const [RefType.i31(nullable: false)],
+    assert(_verifyTypes(const [RefType.any(nullable: true)],
+        const [RefType.i31(nullable: false)],
         trace: ['br_on_non_i31', label]));
     writeBytes(const [0xFB, 0x65]);
     _writeLabel(label);
+  }
+
+  /// Emit an `extern.internalize` instruction.
+  void extern_internalize() {
+    assert(_verifyTypesFun(const [RefType.extern(nullable: true)],
+        (inputs) => [RefType.any(nullable: inputs.single.nullable)],
+        trace: ['extern.internalize']));
+    writeBytes(const [0xFB, 0x70]);
+  }
+
+  /// Emit an `extern.externalize` instruction.
+  void extern_externalize() {
+    assert(_verifyTypesFun(const [RefType.any(nullable: true)],
+        (inputs) => [RefType.extern(nullable: inputs.single.nullable)],
+        trace: ['extern.externalize']));
+    writeBytes(const [0xFB, 0x71]);
   }
 
   // Numeric instructions

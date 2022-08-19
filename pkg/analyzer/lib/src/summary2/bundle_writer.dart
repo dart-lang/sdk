@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
@@ -674,6 +675,9 @@ class ResolutionSink extends _SummaryDataWriter {
       writeByte(Tag.NeverType);
       _writeNullabilitySuffix(type.nullabilitySuffix);
       _writeTypeAliasElementArguments(type);
+    } else if (type is RecordTypeImpl) {
+      _writeRecordType(type);
+      _writeTypeAliasElementArguments(type);
     } else if (type is TypeParameterType) {
       writeByte(Tag.TypeParameterType);
       writeElement(type.element2);
@@ -801,6 +805,22 @@ class ResolutionSink extends _SummaryDataWriter {
     } else {
       writeBool(false);
     }
+  }
+
+  void _writeRecordType(RecordTypeImpl type) {
+    writeByte(Tag.RecordType);
+
+    writeList<RecordTypePositionalField>(type.positionalFields, (field) {
+      _writeOptionalStringReference(field.element.name);
+      writeType(field.type);
+    });
+
+    writeList<RecordTypeNamedField>(type.namedFields, (field) {
+      _writeStringReference(field.element.name);
+      writeType(field.type);
+    });
+
+    _writeNullabilitySuffix(type.nullabilitySuffix);
   }
 
   void _writeTypeAliasElementArguments(DartType type) {

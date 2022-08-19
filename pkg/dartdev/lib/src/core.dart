@@ -27,6 +27,8 @@ bool isDiagnostics = false;
 void Function(ArgParser argParser, String cmdName)? flagContributor;
 
 abstract class DartdevCommand extends Command<int> {
+  static const errorExitCode = 65;
+
   final String _name;
   final String _description;
   final bool _verbose;

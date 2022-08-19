@@ -381,11 +381,7 @@ class SubstituteTest extends _Base {
     final T = typeParameter('T');
 
     final type = recordTypeNone(
-      element: recordElement(
-        positionalFields: [
-          recordPositionalField(type: intNone),
-        ],
-      ),
+      positionalTypes: [intNone],
     );
 
     assertType(type, '(int)');
@@ -399,12 +395,7 @@ class SubstituteTest extends _Base {
       name: 'Alias',
       typeParameters: [T],
       aliasedType: recordTypeNone(
-        element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: intNone),
-            recordPositionalField(type: stringNone),
-          ],
-        ),
+        positionalTypes: [intNone, stringNone],
       ),
     );
 
@@ -424,12 +415,10 @@ class SubstituteTest extends _Base {
       name: 'Alias',
       typeParameters: [T],
       aliasedType: recordTypeNone(
-        element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: T_none),
-            recordPositionalField(type: listNone(T_none)),
-          ],
-        ),
+        positionalTypes: [
+          T_none,
+          listNone(T_none),
+        ],
       ),
     );
 
@@ -442,12 +431,10 @@ class SubstituteTest extends _Base {
     final T_none = typeParameterTypeNone(T);
 
     final type = recordTypeNone(
-      element: recordElement(
-        namedFields: [
-          recordNamedField(name: 'f1', type: T_none),
-          recordNamedField(name: 'f2', type: listNone(T_none)),
-        ],
-      ),
+      namedTypes: {
+        'f1': T_none,
+        'f2': listNone(T_none),
+      },
     );
 
     assertType(type, '({T f1, List<T> f2})');
@@ -459,12 +446,10 @@ class SubstituteTest extends _Base {
     final T_none = typeParameterTypeNone(T);
 
     final type = recordTypeNone(
-      element: recordElement(
-        positionalFields: [
-          recordPositionalField(type: T_none),
-          recordPositionalField(type: listNone(T_none)),
-        ],
-      ),
+      positionalTypes: [
+        T_none,
+        listNone(T_none),
+      ],
     );
 
     assertType(type, '(T, List<T>)');

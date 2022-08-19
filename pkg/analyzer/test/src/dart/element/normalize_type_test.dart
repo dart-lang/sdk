@@ -341,52 +341,40 @@ class NormalizeTypeTest extends AbstractTypeSystemTest {
   test_recordType() {
     _check(
       recordTypeNone(
-        element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: intNone),
-          ],
-        ),
+        positionalTypes: [
+          intNone,
+        ],
       ),
       recordTypeNone(
-        element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: intNone),
-          ],
-        ),
+        positionalTypes: [
+          intNone,
+        ],
       ),
     );
 
     _check(
       recordTypeNone(
-        element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: futureOrNone(objectNone)),
-          ],
-        ),
+        positionalTypes: [
+          futureOrNone(objectNone),
+        ],
       ),
       recordTypeNone(
-        element: recordElement(
-          positionalFields: [
-            recordPositionalField(type: objectNone),
-          ],
-        ),
+        positionalTypes: [
+          objectNone,
+        ],
       ),
     );
 
     _check(
       recordTypeNone(
-        element: recordElement(
-          namedFields: [
-            recordNamedField(name: 'foo', type: futureOrNone(objectNone)),
-          ],
-        ),
+        namedTypes: {
+          'foo': futureOrNone(objectNone),
+        },
       ),
       recordTypeNone(
-        element: recordElement(
-          namedFields: [
-            recordNamedField(name: 'foo', type: objectNone),
-          ],
-        ),
+        namedTypes: {
+          'foo': objectNone,
+        },
       ),
     );
   }

@@ -125,8 +125,9 @@ class Tag {
   static const int InterfaceType_noTypeArguments_none = 7;
   static const int InterfaceType_noTypeArguments_question = 8;
   static const int InterfaceType_noTypeArguments_star = 9;
-  static const int TypeParameterType = 10;
-  static const int VoidType = 11;
+  static const int RecordType = 10;
+  static const int TypeParameterType = 11;
+  static const int VoidType = 12;
 }
 
 enum TypeParameterVarianceTag {

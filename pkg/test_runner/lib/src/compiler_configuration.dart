@@ -573,8 +573,9 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       CommandArtifact? artifact) {
     return [
       '--experimental-wasm-gc',
-      '--experimental-wasm-nn-locals',
       '--wasm-gc-js-interop',
+      '--experimental-wasm-stack-switching',
+      '--experimental-wasm-type-reflection',
       'pkg/dart2wasm/bin/run_wasm.js',
       '--',
       artifact!.filename,

@@ -42,6 +42,11 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       negatable: false,
       help: 'Apply the proposed changes.',
     );
+    argParser.addMultiOption(
+      'code',
+      help: 'Apply fixes for one (or more) diagnostic codes.',
+      valueHelp: 'code1,code2,...',
+    );
     argParser.addFlag(
       'compare-to-golden',
       defaultsTo: false,
@@ -73,6 +78,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       printUsage();
       return 0;
     }
+    var codes = args['code'];
 
     var target = _getTarget(args.rest);
     if (!target.existsSync()) {
@@ -121,7 +127,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       List<SourceFileEdit> edits;
       var pass = 0;
       do {
-        var fixes = await server.requestBulkFixes(fixPath, inTestMode);
+        var fixes = await server.requestBulkFixes(fixPath, inTestMode, codes);
         _mergeDetails(detailsMap, fixes.details);
         edits = fixes.edits;
         _applyEdits(server, edits);

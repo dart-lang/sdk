@@ -174,6 +174,35 @@ linter:
           ]));
     });
 
+    test('--dry-run --code (single)', () async {
+      p = project(
+        mainSrc: '''
+var x = "";
+class A {
+  A a() => new A();
+}
+''',
+        analysisOptions: '''
+linter:
+  rules:
+    - prefer_single_quotes
+    - unnecessary_new
+''',
+      );
+      var result = await runFix(
+          ['--dry-run', '--code', 'prefer_single_quotes', '.'],
+          workingDir: p!.dirPath);
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(
+          result.stdout,
+          stringContainsInOrder([
+            '1 proposed fix in 1 file.',
+            'lib${Platform.pathSeparator}main.dart',
+            '  prefer_single_quotes $bullet 1 fix',
+          ]));
+    });
+
     test('--apply lib/main.dart', () async {
       p = project(
         mainSrc: '''
@@ -196,6 +225,103 @@ linter:
             'main.dart',
             '  prefer_single_quotes $bullet 1 fix',
             '1 fix made in 1 file.',
+          ]));
+    });
+
+    test('--apply --code (single)', () async {
+      p = project(
+        mainSrc: '''
+var x = "";
+class A {
+  A a() => new A();
+}
+''',
+        analysisOptions: '''
+linter:
+  rules:
+    - prefer_single_quotes
+    - unnecessary_new
+''',
+      );
+      var result = await runFix(
+          ['--apply', '--code', 'prefer_single_quotes', '.'],
+          workingDir: p!.dirPath);
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(
+          result.stdout,
+          stringContainsInOrder([
+            'Applying fixes...',
+            'lib${Platform.pathSeparator}main.dart',
+            '  prefer_single_quotes $bullet 1 fix',
+            '1 fix made in 1 file.',
+          ]));
+    });
+
+    test('--apply --code (multiple)', () async {
+      p = project(
+        mainSrc: '''
+var x = "";
+class A {
+  A a() => new A();
+}
+''',
+        analysisOptions: '''
+linter:
+  rules:
+    - prefer_single_quotes
+    - unnecessary_new
+''',
+      );
+      var result = await runFix([
+        '--apply',
+        '--code',
+        'prefer_single_quotes',
+        '--code',
+        'unnecessary_new',
+        '.'
+      ], workingDir: p!.dirPath);
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(
+          result.stdout,
+          stringContainsInOrder([
+            'Applying fixes...',
+            'lib${Platform.pathSeparator}main.dart',
+            '  prefer_single_quotes $bullet 1 fix',
+            '  unnecessary_new $bullet 1 fix',
+            '2 fixes made in 1 file.',
+          ]));
+    });
+
+    test('--apply --code (multiple: comma-delimited)', () async {
+      p = project(
+        mainSrc: '''
+var x = "";
+class A {
+  A a() => new A();
+}
+''',
+        analysisOptions: '''
+linter:
+  rules:
+    - prefer_single_quotes
+    - unnecessary_new
+''',
+      );
+      var result = await runFix(
+          ['--apply', '--code=prefer_single_quotes,unnecessary_new', '.'],
+          workingDir: p!.dirPath);
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(
+          result.stdout,
+          stringContainsInOrder([
+            'Applying fixes...',
+            'lib${Platform.pathSeparator}main.dart',
+            '  prefer_single_quotes $bullet 1 fix',
+            '  unnecessary_new $bullet 1 fix',
+            '2 fixes made in 1 file.',
           ]));
     });
 

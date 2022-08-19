@@ -25,12 +25,13 @@ main() {
   funcrefTable[2.toWasmI32()] = WasmFunction.fromFunction(f3);
 
   // Reading and calling functions in untyped function table
-  WasmFunction<void Function()>.fromRef(funcrefTable[0.toWasmI32()]!).call();
-  WasmFunction<void Function(int)>.fromRef(funcrefTable[1.toWasmI32()]!)
+  WasmFunction<void Function()>.fromFuncRef(funcrefTable[0.toWasmI32()]!)
+      .call();
+  WasmFunction<void Function(int)>.fromFuncRef(funcrefTable[1.toWasmI32()]!)
       .call(4);
   Expect.equals(
       6,
-      WasmFunction<int Function(int)>.fromRef(funcrefTable[2.toWasmI32()]!)
+      WasmFunction<int Function(int)>.fromFuncRef(funcrefTable[2.toWasmI32()]!)
           .call(5));
 
   // Calling functions in untyped function table with callIndirect

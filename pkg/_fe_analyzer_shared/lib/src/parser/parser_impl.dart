@@ -110,7 +110,7 @@ import 'type_info.dart'
         computeMethodTypeArguments,
         computeType,
         computeTypeParamOrArg,
-        isValidTypeReference,
+        isValidNonRecordTypeReference,
         noType,
         noTypeParamOrArg;
 
@@ -533,7 +533,11 @@ class Parser {
       directiveState?.checkDeclaration();
       // Handle the edge case where a modifier is being used as an identifier
       return parseTopLevelMemberImpl(start);
+    } else if (/* record type */ optional('(', next)) {
+      directiveState?.checkDeclaration();
+      return parseTopLevelMemberImpl(start);
     }
+
     // Recovery
     if (next.isOperator && optional('(', next.next!)) {
       // This appears to be a top level operator declaration, which is invalid.
@@ -1277,7 +1281,7 @@ class Parser {
       reportRecoverableError(
           withKeyword, codes.templateExpectedButGot.withArguments('with'));
       withKeyword = rewriter.insertSyntheticKeyword(token, Keyword.WITH);
-      if (!isValidTypeReference(withKeyword.next!)) {
+      if (!isValidNonRecordTypeReference(withKeyword.next!)) {
         rewriter.insertSyntheticIdentifier(withKeyword);
       }
     }
@@ -1361,6 +1365,152 @@ class Parser {
     assert(optional(')', closeBrace));
     listener.endFormalParameters(/* count = */ 0, token, closeBrace, kind);
     return closeBrace;
+  }
+
+  /// Parse a record type similarly as a formal parameter list of a function.
+  ///
+  /// TODO(jensj): Update this to fit any new updates to the spec.
+  /// E.g. having two recordTypeNamedField entries doesn't make sense.
+  ///
+  /// recordType          ::= '(' recordTypeFields ',' recordTypeNamedFields ')'
+  ///                       | '(' recordTypeFields ','? ')'
+  ///                       | '(' recordTypeNamedFields ')'
+  ///
+  /// recordTypeFields      ::= recordTypeField ( ',' recordTypeField )*
+  /// recordTypeField       ::= metadata type identifier?
+  ///
+  /// recordTypeNamedFields ::= '{' recordTypeNamedField
+  ///                           ( ',' recordTypeNamedField )* ','? '}'
+  /// recordTypeNamedField  ::= type identifier
+  /// recordTypeNamedField  ::= metadata typedIdentifier
+  Token parseRecordType(final Token start, Token token) {
+    token = token.next!;
+    assert(optional('(', token));
+
+    listener.beginRecordType(start);
+
+    Token begin = token;
+
+    /// parameterCount counting the presence of named fields as 1.
+    int parameterCount = 0;
+    bool hasNamedFields = false;
+    while (true) {
+      Token next = token.next!;
+      if (optional(')', next)) {
+        token = next;
+        break;
+      }
+      ++parameterCount;
+      String? value = next.stringValue;
+      if (identical(value, '{')) {
+        hasNamedFields = true;
+        token = parseRecordTypeNamedFields(token);
+        token = ensureCloseParen(token, begin);
+        break;
+      }
+      token = parseRecordTypeField(token, identifierIsOptional: true);
+      next = token.next!;
+      if (!optional(',', next)) {
+        Token next = token.next!;
+        if (optional(')', next)) {
+          token = next;
+        } else {
+          // Recovery.
+          // TODO: This is copied from parseFormalParametersRest.
+          // We could possibly either have more specific recovery here
+          // or have the recovery in a shared method.
+          if (begin.endGroup!.isSynthetic) {
+            // Scanner has already reported a missing `)` error,
+            // but placed the `)` in the wrong location, so move it.
+            token = rewriter.moveSynthetic(token, begin.endGroup!);
+          } else if (next.kind == IDENTIFIER_TOKEN &&
+              next.next!.kind == IDENTIFIER_TOKEN) {
+            // Looks like a missing comma
+            token = rewriteAndRecover(
+                token,
+                codes.templateExpectedButGot.withArguments(','),
+                new SyntheticToken(TokenType.COMMA, next.charOffset));
+            continue;
+          } else {
+            token = ensureCloseParen(token, begin);
+          }
+        }
+        break;
+      }
+      token = next;
+    }
+    assert(optional(')', token));
+
+    if (parameterCount == 0) {
+      reportRecoverableError(token, codes.messageEmptyRecordTypeFieldsList);
+    } else if (parameterCount == 1 && !hasNamedFields) {
+      reportRecoverableError(token, codes.messageOnlyOneRecordTypeFieldsList);
+    }
+
+    Token? questionMark = token.next!;
+    if (optional('?', questionMark)) {
+      token = questionMark;
+    } else {
+      questionMark = null;
+    }
+    listener.endRecordType(start, questionMark, parameterCount);
+
+    return token;
+  }
+
+  Token parseRecordTypeField(Token token,
+      {required bool identifierIsOptional}) {
+    listener.beginRecordTypeEntry();
+    token = parseMetadataStar(token);
+    token = computeType(
+      token,
+      /* required = */ true,
+    ).ensureTypeOrVoid(token, this);
+    if (token.next!.isIdentifier || !identifierIsOptional) {
+      token = ensureIdentifier(token, IdentifierContext.recordFieldDeclaration);
+    } else {
+      listener.handleNoName(token.next!);
+    }
+    listener.endRecordTypeEntry();
+    return token;
+  }
+
+  Token parseRecordTypeNamedFields(Token token) {
+    Token begin = token = token.next!;
+    assert(optional('{', token));
+    listener.beginRecordTypeNamedFields(begin);
+    int parameterCount = 0;
+    Token next;
+    while (true) {
+      next = token.next!;
+      if (optional('}', next)) {
+        // breaking with next pointing to '}'.
+        break;
+      }
+      token = parseRecordTypeField(token, identifierIsOptional: false);
+      next = token.next!;
+      ++parameterCount;
+      if (!optional(',', next)) {
+        if (!optional('}', next)) {
+          // Recovery
+          reportRecoverableError(
+              next, codes.templateExpectedButGot.withArguments('}'));
+          // Scanner guarantees a closing bracket.
+          next = begin.endGroup!;
+        }
+        // breaking with next pointing to '}'.
+        break;
+      }
+      token = next;
+    }
+    token = next;
+    assert(optional('}', token));
+    if (parameterCount == 0) {
+      reportRecoverableError(
+          token, codes.messageEmptyRecordTypeNamedFieldsList);
+    }
+    listener.endRecordTypeNamedFields(parameterCount, begin);
+    return token;
   }
 
   /// Parses the formal parameter list of a function.
@@ -4476,7 +4626,7 @@ class Parser {
     Token factoryKeyword = token = token.next!;
     assert(optional('factory', factoryKeyword));
 
-    if (!isValidTypeReference(token.next!)) {
+    if (!isValidNonRecordTypeReference(token.next!)) {
       // Recovery
       ModifierContext context = new ModifierContext(this)
         ..externalToken = externalToken
@@ -7781,7 +7931,13 @@ class Parser {
         // 'on' type catchPart?
         onKeyword = token;
         TypeInfo typeInfo = computeType(token, /* required = */ true);
-        if (catchCount > 0 && (typeInfo == noType || typeInfo.recovered)) {
+        // TODO(jensj): Record types wreak havoc here so waiting for input from
+        // language team. For now pretend like we don't know record types.
+        // https://github.com/dart-lang/language/issues/2406
+        if (catchCount > 0 &&
+            (typeInfo == noType ||
+                typeInfo.recovered ||
+                (typeInfo is ComplexTypeInfo && typeInfo.recordType))) {
           // Not a valid on-clause and we have enough catch counts to be a valid
           // try block already.
           // This could for instance be code like `on([...])` or `on = 42` after

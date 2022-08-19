@@ -194,10 +194,11 @@ class AnalysisServer {
   }
 
   Future<EditBulkFixesResult> requestBulkFixes(
-      String filePath, bool inTestMode) {
+      String filePath, bool inTestMode, List<String> codes) {
     return _sendCommand('edit.bulkFixes', params: <String, dynamic>{
       'included': [path.canonicalize(filePath)],
-      'inTestMode': inTestMode
+      'inTestMode': inTestMode,
+      if (codes.isNotEmpty) 'codes': codes,
     }).then((result) {
       return EditBulkFixesResult.fromJson(
           ResponseDecoder(null), 'result', result);

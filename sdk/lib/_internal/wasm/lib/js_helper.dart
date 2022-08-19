@@ -6,8 +6,11 @@
 library dart._js_helper;
 
 import 'dart:_internal';
+import 'dart:collection';
 import 'dart:typed_data';
 import 'dart:wasm';
+
+part 'regexp_helper.dart';
 
 /// [JSValue] is the root of the JS interop object hierarchy.
 class JSValue {
@@ -15,7 +18,11 @@ class JSValue {
 
   JSValue(this._ref);
 
-  static JSValue? box(WasmAnyRef? ref) => ref == null ? null : JSValue(ref);
+  // Currently we always explictly box JS ref's in [JSValue] objects. In the
+  // future, we will want to leave these values unboxed when possible, even when
+  // they are nullable.
+  static JSValue? box(WasmAnyRef? ref) =>
+      isDartNull(ref) ? null : JSValue(ref!);
 
   WasmAnyRef toAnyRef() => _ref;
   String toString() => jsStringToDartString(_ref);
@@ -39,8 +46,78 @@ extension ListOfObjectToJS on List<Object?> {
 }
 
 extension ObjectToJS on Object {
-  JSValue toJS() => JSValue(jsObjectFromDartObject(this));
+  WasmAnyRef toAnyRef() => jsObjectFromDartObject(this);
+  JSValue toJS() => JSValue(toAnyRef());
 }
+
+// For now both `null` and `undefined` in JS map to `null` in Dart.
+bool isDartNull(WasmAnyRef? ref) => ref == null || isJSUndefined(ref);
+
+/// A [JSArray] is a wrapper for a native JSArray.
+class JSArray extends JSValue {
+  JSArray(WasmAnyRef ref) : super(ref);
+
+  static JSArray? box(WasmAnyRef? ref) =>
+      isDartNull(ref) ? null : JSArray(ref!);
+
+  JSValue? pop() =>
+      JSValue.box(callMethodVarArgsRaw(_ref, 'pop'.toAnyRef(), [].toAnyRef()));
+  JSValue? operator [](int index) =>
+      JSValue.box(getPropertyRaw(_ref, intToJSNumber(index)));
+  void operator []=(int index, JSValue? value) =>
+      setPropertyRaw(_ref, intToJSNumber(index), value?.toAnyRef());
+  int get length =>
+      toDartNumber(getPropertyRaw(_ref, 'length'.toAnyRef())!).floor();
+}
+
+/// A [JSObject] is a wrapper for any JS object literal.
+class JSObject extends JSValue {
+  JSObject(WasmAnyRef ref) : super(ref);
+
+  static JSObject? box(WasmAnyRef? ref) =>
+      isDartNull(ref) ? null : JSObject(ref!);
+
+  JSValue? operator [](String key) =>
+      JSValue.box(getPropertyRaw(_ref, key.toAnyRef()));
+  void operator []=(String key, JSValue? value) =>
+      setPropertyRaw(_ref, key.toAnyRef(), value?.toAnyRef());
+}
+
+class JSArrayIteratorAdapter<T> extends Iterator<T> {
+  final JSArray array;
+  int index = -1;
+
+  JSArrayIteratorAdapter(this.array);
+
+  @override
+  bool moveNext() {
+    index++;
+    if (index > array.length) {
+      throw 'Iterator out of bounds';
+    }
+    return index < array.length;
+  }
+
+  @override
+  T get current => dartifyRaw(array[index]?.toAnyRef()) as T;
+}
+
+/// [JSArrayIterableAdapter] lazily adapts a [JSArray] to Dart's [Iterable]
+/// interface.
+class JSArrayIterableAdapter<T> extends EfficientLengthIterable<T> {
+  final JSArray array;
+
+  JSArrayIterableAdapter(this.array);
+
+  @override
+  Iterator<T> get iterator => JSArrayIteratorAdapter<T>(array);
+
+  @override
+  int get length => array.length;
+}
+
+// Convert to double to avoid converting to [BigInt] in the case of int64.
+WasmAnyRef intToJSNumber(int i) => toJSNumber(i.toDouble());
 
 WasmAnyRef? getConstructorString(String constructor) =>
     getPropertyRaw(globalThisRaw(), constructor.toAnyRef());
@@ -112,6 +189,9 @@ external bool isJSWrappedDartFunction(WasmAnyRef? o);
 
 @pragma("wasm:import", "dart2wasm.isJSObject")
 external bool isJSObject(WasmAnyRef? o);
+
+@pragma("wasm:import", "dart2wasm.isJSRegExp")
+external bool isJSRegExp(WasmAnyRef object);
 
 // The JS runtime will run helpful conversion routines between refs and bool /
 // double. In the longer term hopefully we can find a way to avoid the round
@@ -187,6 +267,10 @@ external WasmAnyRef globalThisRaw();
 @pragma("wasm:import", "dart2wasm.callConstructorVarArgs")
 external WasmAnyRef callConstructorVarArgsRaw(WasmAnyRef o, WasmAnyRef args);
 
+@pragma("wasm:import", "dart2wasm.safeCallConstructorVarArgs")
+external WasmAnyRef safeCallConstructorVarArgsRaw(
+    WasmAnyRef o, WasmAnyRef args);
+
 @pragma("wasm:import", "dart2wasm.hasProperty")
 external bool hasPropertyRaw(WasmAnyRef o, WasmAnyRef name);
 
@@ -202,7 +286,7 @@ external WasmAnyRef? callMethodVarArgsRaw(
     WasmAnyRef o, WasmAnyRef method, WasmAnyRef? args);
 
 @pragma("wasm:import", "dart2wasm.stringify")
-external String stringifyRaw(WasmAnyRef? object);
+external String stringify(WasmAnyRef? object);
 
 // Currently, `allowInterop` returns a Function type. This is unfortunate for
 // Dart2wasm because it means arbitrary Dart functions can flow to JS util
@@ -408,6 +492,14 @@ F _wrapDartFunction<F extends Function>(F f, String trampolineName) {
   functionToJSWrapper[f] = wrappedFunction;
   return f;
 }
+
+/// Returns the JS constructor object for a given [String].
+WasmAnyRef getConstructorRaw(String name) =>
+    getPropertyRaw(globalThisRaw(), name.toAnyRef())!;
+
+/// Equivalent to `Object.keys(object)`.
+JSArray objectKeys(JSValue object) => JSArray(callMethodVarArgsRaw(
+    getConstructorRaw('Object'), 'keys'.toAnyRef(), [object].toAnyRef())!);
 
 /// Methods used by the wasm runtime.
 @pragma("wasm:export", "\$listLength")

@@ -66,6 +66,7 @@ class Translator {
   late final Class wasmTypesBaseClass;
   late final Class wasmArrayBaseClass;
   late final Class wasmAnyRefClass;
+  late final Class wasmExternRefClass;
   late final Class wasmFuncRefClass;
   late final Class wasmEqRefClass;
   late final Class wasmDataRefClass;
@@ -110,6 +111,8 @@ class Translator {
   late final Procedure wasmFunctionCall;
   late final Procedure wasmTableCallIndirect;
   late final Procedure stackTraceCurrent;
+  late final Procedure asyncHelper;
+  late final Procedure awaitHelper;
   late final Procedure stringEquals;
   late final Procedure stringInterpolate;
   late final Procedure throwNullCheckError;
@@ -189,6 +192,7 @@ class Translator {
     wasmTypesBaseClass = lookupWasm("_WasmBase");
     wasmArrayBaseClass = lookupWasm("_WasmArray");
     wasmAnyRefClass = lookupWasm("WasmAnyRef");
+    wasmExternRefClass = lookupWasm("WasmExternRef");
     wasmFuncRefClass = lookupWasm("WasmFuncRef");
     wasmEqRefClass = lookupWasm("WasmEqRef");
     wasmDataRefClass = lookupWasm("WasmDataRef");
@@ -237,6 +241,14 @@ class Translator {
         .firstWhere((p) => p.name.text == "callIndirect");
     stackTraceCurrent =
         stackTraceClass.procedures.firstWhere((p) => p.name.text == "current");
+    asyncHelper = component.libraries
+        .firstWhere((l) => l.name == "dart.async")
+        .procedures
+        .firstWhere((p) => p.name.text == "_asyncHelper");
+    awaitHelper = component.libraries
+        .firstWhere((l) => l.name == "dart.async")
+        .procedures
+        .firstWhere((p) => p.name.text == "_awaitHelper");
     stringEquals =
         stringBaseClass.procedures.firstWhere((p) => p.name.text == "==");
     stringInterpolate = stringBaseClass.procedures
@@ -279,6 +291,7 @@ class Translator {
       coreTypes.intClass: w.NumType.i64,
       coreTypes.doubleClass: w.NumType.f64,
       wasmAnyRefClass: const w.RefType.any(nullable: false),
+      wasmExternRefClass: const w.RefType.extern(nullable: false),
       wasmFuncRefClass: const w.RefType.func(nullable: false),
       wasmEqRefClass: const w.RefType.eq(nullable: false),
       wasmDataRefClass: const w.RefType.data(nullable: false),
@@ -404,9 +417,10 @@ class Translator {
       }
 
       for (Lambda lambda in codeGen.closures.lambdas.values) {
-        CodeGenerator(this, lambda.function, reference)
-            .generateLambda(lambda, codeGen.closures);
-        _printFunction(lambda.function, "$canonicalName (closure)");
+        w.DefinedFunction lambdaFunction =
+            CodeGenerator(this, lambda.function, reference)
+                .generateLambda(lambda, codeGen.closures);
+        _printFunction(lambdaFunction, "$canonicalName (closure)");
       }
     }
 
@@ -489,7 +503,7 @@ class Translator {
         }
         if (isWasmType(cls)) {
           if (builtin.isPrimitive) throw "Wasm numeric types can't be nullable";
-          return (builtin as w.RefType).withNullability(true);
+          return (builtin as w.RefType).withNullability(nullable);
         }
         if (cls == ffiPointerClass) throw "FFI types can't be nullable";
         Class? boxedClass = boxedClasses[builtin];
@@ -591,7 +605,7 @@ class Translator {
 
   w.FunctionType closureFunctionType(int parameterCount) {
     return m.addFunctionType([
-      w.RefType.data(),
+      w.RefType.data(nullable: false),
       ...List<w.ValueType>.filled(parameterCount, topInfo.nullableType)
     ], [
       topInfo.nullableType
@@ -706,7 +720,6 @@ class Translator {
         }
         var heapType = (to as w.RefType).heapType;
         if (heapType is w.FunctionType) {
-          b.ref_as_func();
           b.ref_cast(heapType);
           return;
         }

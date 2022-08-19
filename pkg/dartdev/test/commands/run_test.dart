@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dartdev/src/resident_frontend_constants.dart';
+import 'package:dartdev/src/resident_frontend_utils.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -16,9 +18,12 @@ const devToolsMessagePrefix =
     'The Dart DevTools debugger and profiler is available at: http://127.0.0.1:';
 const dartVMServiceMessagePrefix =
     'The Dart VM service is listening on http://127.0.0.1:';
+const residentFrontendServerPrefix =
+    'The Resident Frontend Compiler is listening at 127.0.0.1:';
 
-void main() {
+void main() async {
   group('run', run, timeout: longTimeout);
+  group('run --resident', residentRun, timeout: longTimeout);
 }
 
 void run() {
@@ -537,4 +542,318 @@ void main(List<String> args) => print("$b $args");
       skip: Platform.isWindows,
     );
   });
+}
+
+void residentRun() {
+  late TestProject serverInfoDirectory, p;
+  late String serverInfoFile;
+
+  setUpAll(() async {
+    serverInfoDirectory = project(mainSrc: 'void main() {}');
+    serverInfoFile = path.join(serverInfoDirectory.dirPath, 'info');
+    final result = await serverInfoDirectory.run([
+      'run',
+      '--$serverInfoOption=$serverInfoFile',
+      serverInfoDirectory.relativeFilePath,
+    ]);
+    expect(result.exitCode, 0);
+    expect(File(serverInfoFile).existsSync(), true);
+    expect(
+        Directory(path.join(
+          serverInfoDirectory.dirPath,
+          '.dart_tool',
+          dartdevKernelCache,
+        )).listSync(),
+        isNotEmpty);
+  });
+
+  tearDownAll(() async {
+    try {
+      await sendAndReceiveResponse(
+        residentServerShutdownCommand,
+        File(path.join(serverInfoDirectory.dirPath, 'info')),
+      );
+    } catch (_) {}
+
+    serverInfoDirectory.dispose();
+  });
+
+  tearDown(() async => await p.dispose());
+
+  test("'Hello World'", () async {
+    p = project(mainSrc: "void main() { print('Hello World'); }");
+    final result = await p.run([
+      'run',
+      '--$serverInfoOption=$serverInfoFile',
+      p.relativeFilePath,
+    ]);
+    Directory? kernelCache = p.findDirectory('.dart_tool/kernel');
+
+    expect(result.exitCode, 0);
+    expect(
+      result.stdout,
+      allOf(
+        contains('Hello World'),
+        isNot(contains(residentFrontendServerPrefix)),
+      ),
+    );
+    expect(result.stderr, isEmpty);
+    expect(kernelCache, isNot(null));
+  });
+
+  test('same server used from different directories', () async {
+    p = project(mainSrc: "void main() { print('1'); }");
+    TestProject p2 = project(mainSrc: "void main() { print('2'); }");
+    addTearDown(() async => p2.dispose());
+
+    final runResult1 = await p.run([
+      'run',
+      '--$serverInfoOption=$serverInfoFile',
+      p.relativeFilePath,
+    ]);
+    final runResult2 = await p2.run([
+      'run',
+      '--$serverInfoOption=$serverInfoFile',
+      p2.relativeFilePath,
+    ]);
+
+    expect(runResult1.exitCode, allOf(0, equals(runResult2.exitCode)));
+    expect(
+      runResult1.stdout,
+      allOf(
+        contains('1'),
+        isNot(contains(residentFrontendServerPrefix)),
+      ),
+    );
+    expect(
+      runResult2.stdout,
+      allOf(
+        contains('2'),
+        isNot(contains(residentFrontendServerPrefix)),
+      ),
+    );
+  });
+
+  test('kernel cache respects directory structure', () async {
+    p = project(name: 'foo');
+    p.file('lib/main.dart', 'void main() {}');
+    p.file('bin/main.dart', 'void main() {}');
+
+    final runResult1 = await p.run([
+      'run',
+      '--$serverInfoOption=$serverInfoFile',
+      path.join(p.dirPath, 'lib/main.dart'),
+    ]);
+    expect(runResult1.exitCode, 0);
+    expect(runResult1.stdout, isEmpty);
+    expect(runResult1.stderr, isEmpty);
+
+    final runResult2 = await p.run([
+      'run',
+      '--$serverInfoOption=$serverInfoFile',
+      path.join(p.dirPath, 'bin/main.dart'),
+    ]);
+    expect(runResult2.exitCode, 0);
+    expect(runResult2.stdout, isEmpty);
+    expect(runResult2.stderr, isEmpty);
+
+    final cache = p.findDirectory('.dart_tool/kernel');
+    expect(cache, isNot(null));
+    expect(Directory(path.join(cache!.path, 'lib')).existsSync(), true);
+    expect(Directory(path.join(cache.path, 'bin')).existsSync(), true);
+  });
+
+  test('standalone dart program', () async {
+    p = project(mainSrc: 'void main() {}');
+    p.deleteFile('pubspec.yaml');
+    final runResult = await p.run([
+      'run',
+      '--$serverInfoOption=$serverInfoFile',
+      p.relativeFilePath,
+    ]);
+
+    expect(runResult.stderr,
+        contains('resident mode is only supported for Dart packages.'));
+    expect(runResult.exitCode, isNot(0));
+    expect(File(serverInfoFile).existsSync(), true);
+  });
+
+  test('directory that the server is started in is deleted', () async {
+    // The first command will start the server process in the p2
+    // project directory.
+    // This directory is deleted. The second command will attempt to run again
+    // The server process should not fail on this second attempt. If it does,
+    // the 3rd command will result in a new server starting.
+    Directory tempServerInfoDir = Directory.systemTemp.createTempSync('a');
+    String tempServerInfoFile = path.join(tempServerInfoDir.path, 'info');
+    addTearDown(() async {
+      try {
+        await sendAndReceiveResponse(
+          residentServerShutdownCommand,
+          File(tempServerInfoFile),
+        );
+      } catch (_) {}
+      await deleteDirectory(tempServerInfoDir);
+    });
+    p = project(mainSrc: 'void main() {}');
+    TestProject p2 = project(mainSrc: 'void main() {}');
+    final runResult1 = await p2.run([
+      'run',
+      '--$serverInfoOption=$tempServerInfoFile',
+      p2.relativeFilePath,
+    ]);
+    await deleteDirectory(p2.dir);
+    expect(runResult1.exitCode, 0);
+    expect(runResult1.stdout, contains(residentFrontendServerPrefix));
+
+    await p.run([
+      'run',
+      '--$serverInfoOption=$tempServerInfoFile',
+      p.relativeFilePath,
+    ]);
+    final runResult2 = await p.run([
+      'run',
+      '--$serverInfoOption=$tempServerInfoFile',
+      p.relativeFilePath,
+    ]);
+
+    expect(runResult2.exitCode, 0);
+    expect(runResult2.stderr, isEmpty);
+    expect(runResult2.stdout, isNot(contains(residentFrontendServerPrefix)));
+  });
+
+  test('VM flags are passed properly', () async {
+    p = project(mainSrc: "void main() { print('Hello World'); }");
+
+    // --observe sets the following flags by default:
+    //   --enable-vm-service
+    //   --pause-isolate-on-exit
+    //   --pause-isolate-on-unhandled-exception
+    //   --warn-on-pause-with-no-debugger
+    //
+    // This test ensures that allowed arguments for dart run which are valid VM
+    // arguments are properly handled by the VM.
+    ProcessResult result = await p.run([
+      'run',
+      '--$serverInfoOption=$serverInfoFile',
+      '--observe',
+      '--pause-isolates-on-start',
+      // This should negate the above flag.
+      '--no-pause-isolates-on-start',
+      '--no-pause-isolates-on-exit',
+      '--no-pause-isolates-on-unhandled-exceptions',
+      '-Dfoo=bar',
+      '--define=bar=foo',
+      p.relativeFilePath,
+    ]);
+
+    expect(
+      result.stdout,
+      isNot(
+        matches(
+            r'The Resident Frontend Compiler is listening at 127.0.0.1:[0-9]+'),
+      ),
+    );
+    expect(
+      result.stdout,
+      matches(
+          r'The Dart VM service is listening on http:\/\/127.0.0.1:8181\/[a-zA-Z0-9_-]+=\/\n.*'),
+    );
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+
+    // Again, with --disable-service-auth-codes.
+    result = await p.run([
+      'run',
+      '--$serverInfoOption=$serverInfoFile',
+      '--observe',
+      '--pause-isolates-on-start',
+      // This should negate the above flag.
+      '--no-pause-isolates-on-start',
+      '--no-pause-isolates-on-exit',
+      '--no-pause-isolates-on-unhandled-exceptions',
+      '--disable-service-auth-codes',
+      '-Dfoo=bar',
+      '--define=bar=foo',
+      p.relativeFilePath,
+    ]);
+
+    expect(
+      result.stdout,
+      isNot(
+        matches(
+            r'The Resident Frontend Compiler is listening at 127.0.0.1:[0-9]+'),
+      ),
+    );
+    expect(
+      result.stdout,
+      contains('The Dart VM service is listening on http://127.0.0.1:8181/\n'),
+    );
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+
+    // Again, with IPv6.
+    result = await p.run([
+      'run',
+      '--$serverInfoOption=$serverInfoFile',
+      '--observe=8181/::1',
+      '--pause-isolates-on-start',
+      // This should negate the above flag.
+      '--no-pause-isolates-on-start',
+      '--no-pause-isolates-on-exit',
+      '--no-pause-isolates-on-unhandled-exceptions',
+      '-Dfoo=bar',
+      '--define=bar=foo',
+      p.relativeFilePath,
+    ]);
+
+    expect(
+      result.stdout,
+      isNot(
+        matches(
+            r'The Resident Frontend Compiler is listening at 127.0.0.1:[0-9]+'),
+      ),
+    );
+    expect(
+      result.stdout,
+      matches(
+          r'The Dart VM service is listening on http:\/\/\[::1\]:8181\/[a-zA-Z0-9_-]+=\/\n.*'),
+    );
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  });
+
+  test('custom package_config path', () async {
+    p = project(name: 'foo');
+    final bar = TestProject(name: 'bar');
+    final baz = TestProject(name: 'baz', mainSrc: '''
+  import 'package:bar/bar.dart'
+  void main() {}
+''');
+    addTearDown(() async => bar.dispose());
+    addTearDown(() async => baz.dispose());
+
+    p.file('custom_packages.json', '''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "bar",
+      "rootUri": "${bar.dirPath}",
+      "packageUri": "${path.join(bar.dirPath, 'lib')}"
+    }
+  ]
+}
+''');
+    final runResult = await baz.run([
+      'run',
+      '--$serverInfoOption=$serverInfoFile',
+      '--packages=${path.join(p.dirPath, 'custom_packages.json')}',
+      baz.relativeFilePath,
+    ]);
+
+    expect(runResult.exitCode, 0);
+    expect(runResult.stderr, isEmpty);
+    expect(runResult.stdout, isEmpty);
+  }, skip: 'until a --packages flag is added to the run command');
 }
