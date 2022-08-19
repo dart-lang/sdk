@@ -64,7 +64,9 @@ external void _callAsyncBridge(WasmEqRef args, Completer<Object?> completer);
 
 @pragma("wasm:export", "\$asyncBridge")
 WasmAnyRef? _asyncBridge(
-    WasmExternRef? stack, WasmDataRef args, Completer<Object?> completer) {
+    WasmExternRef? stack, WasmExternRef? argsRef, WasmExternRef? completerRef) {
+  WasmDataRef args = unsafeCastOpaque(argsRef!.internalize());
+  Completer<Object?> completer = unsafeCastOpaque(completerRef!.internalize());
   try {
     Object? result = _asyncBridge2(args, stack);
     completer.complete(result);

@@ -83,14 +83,14 @@ var dart2wasm = {
             dartInstance.exports.$call0(closure);
         }, milliseconds);
     },
-    futurePromise: WebAssembly.suspendOnReturnedPromise(
-        new WebAssembly.Function(
-            {parameters: ['externref'], results: ['externref']},
-            function(future) {
-                return new Promise(function (resolve, reject) {
-                    dartInstance.exports.$awaitCallback(future, resolve);
-                });
-            })),
+    futurePromise: new WebAssembly.Function(
+        {parameters: ['externref', 'externref'], results: ['externref']},
+        function(future) {
+            return new Promise(function (resolve, reject) {
+                dartInstance.exports.$awaitCallback(future, resolve);
+            });
+        },
+        {suspending: 'first'}),
     callResolve: function(resolve, result) {
         // This trampoline is needed because [resolve] is a JS function that
         // can't be called directly from Wasm.
@@ -364,7 +364,10 @@ if (arguments.length > 1) {
 var dartInstance = instantiate(arguments[0], importObject);
 
 // Initialize async bridge.
-var asyncBridge = WebAssembly.returnPromiseOnSuspend(dartInstance.exports.$asyncBridge);
+var asyncBridge = new WebAssembly.Function(
+    {parameters: ['externref', 'externref'], results: ['externref']},
+    dartInstance.exports.$asyncBridge,
+    {promising: 'first'});
 
 // Call `main`. If tasks are placed into the event loop (by scheduling tasks
 // explicitly or awaiting Futures), these will automatically keep the script

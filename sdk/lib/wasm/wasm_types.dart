@@ -52,7 +52,7 @@ extension InternalizeNullable on WasmExternRef? {
   WasmAnyRef? internalize() => _internalizeNullable(this);
 }
 
-// TODO(askesc): Add intrinsics for these when the `intern.externalize` and
+// TODO(askesc): Add intrinsics for these when the `extern.externalize` and
 // `extern.internalize` instructions are implemented in V8.
 @pragma("wasm:import", "dart2wasm.roundtrip")
 external WasmExternRef _externalizeNonNullable(WasmAnyRef ref);
