@@ -29,11 +29,24 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/task/api/model.dart';
 
-/// During evaluation of enum constants we might need to report an error
-/// that is associated with the [InstanceCreationExpression], but this
-/// expression is synthetic. Instead, we remember the corresponding
-/// [EnumConstantDeclaration] and report the error on it.
-final enumConstantErrorNodes = Expando<EnumConstantDeclaration>();
+class ConstantEvaluationConfiguration {
+  /// During evaluation of enum constants we might need to report an error
+  /// that is associated with the [InstanceCreationExpression], but this
+  /// expression is synthetic. Instead, we remember the corresponding
+  /// [EnumConstantDeclaration] and report the error on it.
+  final Map<Expression, EnumConstantDeclaration> _enumConstants = {};
+
+  void addEnumConstant({
+    required EnumConstantDeclaration declaration,
+    required Expression initializer,
+  }) {
+    _enumConstants[initializer] = declaration;
+  }
+
+  AstNode errorNode(AstNode node) {
+    return _enumConstants[node] ?? node;
+  }
+}
 
 /// Helper class encapsulating the methods for evaluating constants and
 /// constant instance creation expressions.
@@ -44,6 +57,8 @@ class ConstantEvaluationEngine {
   /// Whether the `non-nullable` feature is enabled.
   final bool _isNonNullableByDefault;
 
+  final ConstantEvaluationConfiguration configuration;
+
   /// Initialize a newly created [ConstantEvaluationEngine].
   ///
   /// [declaredVariables] is the set of variables declared on the command
@@ -51,6 +66,7 @@ class ConstantEvaluationEngine {
   ConstantEvaluationEngine({
     required DeclaredVariables declaredVariables,
     required bool isNonNullableByDefault,
+    required this.configuration,
   })  : _declaredVariables = declaredVariables,
         _isNonNullableByDefault = isNonNullableByDefault;
 
@@ -2599,7 +2615,7 @@ class _InstanceCreationEvaluator {
       declaredVariables,
       errorReporter,
       library,
-      enumConstantErrorNodes[node] ?? node,
+      evaluationEngine.configuration.errorNode(node),
       constructor,
       typeArguments,
       namedNodes: namedNodes,

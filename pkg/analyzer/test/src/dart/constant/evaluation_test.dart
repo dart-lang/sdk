@@ -2020,6 +2020,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
           declaredVariables: DeclaredVariables.fromMap(declaredVariables),
           isNonNullableByDefault:
               unit.featureSet.isEnabled(Feature.non_nullable),
+          configuration: ConstantEvaluationConfiguration(),
         ),
         this.result.libraryElement as LibraryElementImpl,
         errorReporter,
