@@ -217,9 +217,24 @@ class DataSourceReader {
   /// from a file other than the one currently being read from.
   E readWithSource<E>(DataSourceReader source, E f()) {
     final lastSource = _sourceReader;
+    final lastEntityReader = _entityReader;
+    final lastEntityLookup = _entityLookup;
+    final lastLocalLookup = _localLookup;
+    final lastComponentLookup = _componentLookup;
+    final lastCodegenReader = _codegenReader;
     _sourceReader = source._sourceReader;
+    _entityReader = source._entityReader;
+    _entityLookup = source._entityLookup;
+    _localLookup = source._localLookup;
+    _componentLookup = source._componentLookup;
+    _codegenReader = source._codegenReader;
     final value = f();
     _sourceReader = lastSource;
+    _entityReader = lastEntityReader;
+    _entityLookup = lastEntityLookup;
+    _localLookup = lastLocalLookup;
+    _componentLookup = lastComponentLookup;
+    _codegenReader = lastCodegenReader;
     return value;
   }
 
