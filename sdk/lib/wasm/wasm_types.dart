@@ -52,15 +52,9 @@ extension InternalizeNullable on WasmExternRef? {
   WasmAnyRef? internalize() => _internalizeNullable(this);
 }
 
-// TODO(askesc): Add intrinsics for these when the `extern.externalize` and
-// `extern.internalize` instructions are implemented in V8.
-@pragma("wasm:import", "dart2wasm.roundtrip")
 external WasmExternRef _externalizeNonNullable(WasmAnyRef ref);
-@pragma("wasm:import", "dart2wasm.roundtrip")
 external WasmExternRef? _externalizeNullable(WasmAnyRef? ref);
-@pragma("wasm:import", "dart2wasm.roundtrip")
 external WasmAnyRef _internalizeNonNullable(WasmExternRef ref);
-@pragma("wasm:import", "dart2wasm.roundtrip")
 external WasmAnyRef? _internalizeNullable(WasmExternRef? ref);
 
 /// The Wasm `funcref` type.

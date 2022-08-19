@@ -1251,6 +1251,22 @@ class Instructions with SerializerMixin {
     _writeLabel(label);
   }
 
+  /// Emit an `extern.internalize` instruction.
+  void extern_internalize() {
+    assert(_verifyTypesFun(const [RefType.extern(nullable: true)],
+        (inputs) => [RefType.any(nullable: inputs.single.nullable)],
+        trace: ['extern.internalize']));
+    writeBytes(const [0xFB, 0x70]);
+  }
+
+  /// Emit an `extern.externalize` instruction.
+  void extern_externalize() {
+    assert(_verifyTypesFun(const [RefType.any(nullable: true)],
+        (inputs) => [RefType.extern(nullable: inputs.single.nullable)],
+        trace: ['extern.externalize']));
+    writeBytes(const [0xFB, 0x71]);
+  }
+
   // Numeric instructions
 
   /// Emit an `i32.const` instruction.

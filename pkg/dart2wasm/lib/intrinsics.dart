@@ -1007,6 +1007,29 @@ class Intrinsifier {
       }
     }
 
+    // dart:wasm static functions
+    if (node.target.enclosingLibrary.name == "dart.wasm") {
+      Expression value = node.arguments.positional.single;
+      switch (name) {
+        case "_externalizeNonNullable":
+          codeGen.wrap(value, w.RefType.any(nullable: false));
+          b.extern_externalize();
+          return w.RefType.extern(nullable: false);
+        case "_externalizeNullable":
+          codeGen.wrap(value, w.RefType.any(nullable: true));
+          b.extern_externalize();
+          return w.RefType.extern(nullable: true);
+        case "_internalizeNonNullable":
+          codeGen.wrap(value, w.RefType.extern(nullable: false));
+          b.extern_internalize();
+          return w.RefType.any(nullable: false);
+        case "_internalizeNullable":
+          codeGen.wrap(value, w.RefType.extern(nullable: true));
+          b.extern_internalize();
+          return w.RefType.any(nullable: true);
+      }
+    }
+
     return null;
   }
 
