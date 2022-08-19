@@ -6,7 +6,7 @@
 //
 // Run as follows:
 //
-// $> d8 --experimental-wasm-gc --wasm-gc-js-interop run_wasm.js -- <dart_module>.wasm [<ffi_module>.wasm]
+// $> d8 --experimental-wasm-gc --wasm-gc-js-interop --experimental-wasm-stack-switching --experimental-wasm-type-reflection run_wasm.js -- <dart_module>.wasm [<ffi_module>.wasm]
 //
 // If an FFI module is specified, it will be instantiated first, and its
 // exports will be supplied as imports to the Dart module under the 'ffi'
@@ -73,7 +73,7 @@ function callConstructorVarArgs(constructor, args) {
     return new factoryFunction();
 }
 
-// Imports for printing and event loop
+// Imports
 var dart2wasm = {
     printToConsole: function(string) {
         console.log(stringFromDartString(string))
@@ -82,6 +82,25 @@ var dart2wasm = {
         setTimeout(function() {
             dartInstance.exports.$call0(closure);
         }, milliseconds);
+    },
+    futurePromise: WebAssembly.suspendOnReturnedPromise(
+        new WebAssembly.Function(
+            {parameters: ['externref'], results: ['externref']},
+            function(future) {
+                return new Promise(function (resolve, reject) {
+                    dartInstance.exports.$awaitCallback(future, resolve);
+                });
+            })),
+    callResolve: function(resolve, result) {
+        // This trampoline is needed because [resolve] is a JS function that
+        // can't be called directly from Wasm.
+        resolve(result);
+    },
+    callAsyncBridge: function(args, completer) {
+        // This trampoline is needed because [asyncBridge] is a function wrapped
+        // by `returnPromiseOnSuspend`, and the stack-switching functionality of
+        // that wrapper is implemented as part of the export adapter.
+        asyncBridge(args, completer);
     },
     getCurrentStackTrace: function() {
         // [Error] should be supported in most browsers.
@@ -331,10 +350,7 @@ function instantiate(filename, imports) {
     return new WebAssembly.Instance(module, imports);
 }
 
-// Import from the global scope.
-var importObject = (typeof window !== 'undefined')
-    ? window
-    : Realm.global(Realm.current());
+var importObject = globalThis;
 
 // Is an FFI module specified?
 if (arguments.length > 1) {
@@ -347,5 +363,10 @@ if (arguments.length > 1) {
 // Instantiate the Dart module, importing from the global scope.
 var dartInstance = instantiate(arguments[0], importObject);
 
-var result = dartInstance.exports.main();
-if (result) console.log(result);
+// Initialize async bridge.
+var asyncBridge = WebAssembly.returnPromiseOnSuspend(dartInstance.exports.$asyncBridge);
+
+// Call `main`. If tasks are placed into the event loop (by scheduling tasks
+// explicitly or awaiting Futures), these will automatically keep the script
+// alive even after `main` returns.
+dartInstance.exports.main();

@@ -1322,6 +1322,22 @@ class Intrinsifier {
       }
     }
 
+    // _asyncBridge2
+    if (member.enclosingLibrary.name == "dart.async" &&
+        name == "_asyncBridge2") {
+      w.Local args = paramLocals[0];
+      w.Local stack = paramLocals[1];
+      const int stubFieldIndex = 0;
+
+      b.local_get(args);
+      b.local_get(stack);
+      b.local_get(args);
+      b.ref_cast(translator.functions.asyncStubBaseStruct);
+      b.struct_get(translator.functions.asyncStubBaseStruct, stubFieldIndex);
+      b.call_ref();
+      return true;
+    }
+
     // int members
     if (member.enclosingClass == translator.boxedIntClass &&
         member.function.body == null) {

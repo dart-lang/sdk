@@ -28,6 +28,17 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
   // allocation of that class is encountered
   final Map<int, List<Reference>> _pendingAllocation = {};
 
+  final w.ValueType asyncStackType = const w.RefType.any(nullable: true);
+
+  late final w.FunctionType asyncStubFunctionType = m.addFunctionType(
+      [const w.RefType.data(nullable: false), asyncStackType],
+      [translator.topInfo.nullableType]);
+
+  late final w.StructType asyncStubBaseStruct = m.addStructType("#AsyncStub",
+      fields: [
+        w.FieldType(w.RefType.def(asyncStubFunctionType, nullable: false))
+      ]);
+
   FunctionCollector(this.translator);
 
   w.Module get m => translator.m;
@@ -106,11 +117,22 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
       worklist.add(target);
+      if (target.isAsyncInnerReference) {
+        w.BaseFunction outer = getFunction(target.asProcedure.reference);
+        return addAsyncInnerFunctionFor(outer);
+      }
       w.FunctionType ftype = target.isTearOffReference
           ? translator.dispatchTable.selectorForTarget(target).signature
           : target.asMember.accept1(this, target);
       return m.addFunction(ftype, "${target.asMember}");
     });
+  }
+
+  w.DefinedFunction addAsyncInnerFunctionFor(w.BaseFunction outer) {
+    w.FunctionType ftype = m.addFunctionType(
+        [...outer.type.inputs, asyncStackType],
+        [translator.topInfo.nullableType]);
+    return m.addFunction(ftype, "${outer.functionName} (inner)");
   }
 
   void activateSelector(SelectorInfo selector) {
@@ -200,8 +222,9 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
     // The JS embedder will not accept Wasm struct types as parameter or return
     // types for functions called from JS. We need to use eqref instead.
     w.ValueType adjustExternalType(w.ValueType type) {
-      if (isImportOrExport && type.isSubtypeOf(w.RefType.eq())) {
-        return w.RefType.eq();
+      if (isImportOrExport &&
+          type.isSubtypeOf(translator.topInfo.nullableType)) {
+        return w.RefType.eq(nullable: type.nullable);
       }
       return type;
     }
@@ -217,7 +240,9 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
     List<w.ValueType> outputs = returnType is VoidType ||
             returnType is NeverType ||
             returnType is NullType
-        ? const []
+        ? member.function?.asyncMarker == AsyncMarker.Async
+            ? [adjustExternalType(translator.topInfo.nullableType)]
+            : const []
         : [adjustExternalType(translator.translateType(returnType))];
 
     return m.addFunctionType(inputs, outputs);

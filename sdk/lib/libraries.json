@@ -179,7 +179,10 @@
       },
       "async": {
         "uri": "async/async.dart",
-        "patches": "_internal/wasm/lib/timer_patch.dart"
+        "patches": [
+          "_internal/wasm/lib/async_patch.dart",
+          "_internal/wasm/lib/timer_patch.dart"
+        ]
       },
       "collection": {
         "uri": "collection/collection.dart",

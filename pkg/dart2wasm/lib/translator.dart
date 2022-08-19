@@ -110,6 +110,8 @@ class Translator {
   late final Procedure wasmFunctionCall;
   late final Procedure wasmTableCallIndirect;
   late final Procedure stackTraceCurrent;
+  late final Procedure asyncHelper;
+  late final Procedure awaitHelper;
   late final Procedure stringEquals;
   late final Procedure stringInterpolate;
   late final Procedure throwNullCheckError;
@@ -237,6 +239,14 @@ class Translator {
         .firstWhere((p) => p.name.text == "callIndirect");
     stackTraceCurrent =
         stackTraceClass.procedures.firstWhere((p) => p.name.text == "current");
+    asyncHelper = component.libraries
+        .firstWhere((l) => l.name == "dart.async")
+        .procedures
+        .firstWhere((p) => p.name.text == "_asyncHelper");
+    awaitHelper = component.libraries
+        .firstWhere((l) => l.name == "dart.async")
+        .procedures
+        .firstWhere((p) => p.name.text == "_awaitHelper");
     stringEquals =
         stringBaseClass.procedures.firstWhere((p) => p.name.text == "==");
     stringInterpolate = stringBaseClass.procedures
@@ -404,9 +414,10 @@ class Translator {
       }
 
       for (Lambda lambda in codeGen.closures.lambdas.values) {
-        CodeGenerator(this, lambda.function, reference)
-            .generateLambda(lambda, codeGen.closures);
-        _printFunction(lambda.function, "$canonicalName (closure)");
+        w.DefinedFunction lambdaFunction =
+            CodeGenerator(this, lambda.function, reference)
+                .generateLambda(lambda, codeGen.closures);
+        _printFunction(lambdaFunction, "$canonicalName (closure)");
       }
     }
 
