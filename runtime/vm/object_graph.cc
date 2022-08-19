@@ -1338,16 +1338,18 @@ void HeapSnapshotWriter::Write() {
         }
         WriteUtf8("");  // Reserved
 
+        bool via_offsets_table = false;
         intptr_t field_count = 0;
         intptr_t min_offset = kIntptrMax;
         for (const auto& entry : OffsetsTable::offsets_table()) {
           if (entry.class_id == cid) {
+            via_offsets_table = true;
             field_count++;
             intptr_t offset = entry.offset;
             min_offset = Utils::Minimum(min_offset, offset);
           }
         }
-        if (cls.is_finalized()) {
+        if (!via_offsets_table && cls.is_finalized()) {
           do {
             fields = cls.fields();
             if (!fields.IsNull()) {
@@ -1376,7 +1378,7 @@ void HeapSnapshotWriter::Write() {
             WriteUtf8("");  // Reserved
           }
         }
-        if (cls.is_finalized()) {
+        if (!via_offsets_table && cls.is_finalized()) {
           do {
             fields = cls.fields();
             if (!fields.IsNull()) {
