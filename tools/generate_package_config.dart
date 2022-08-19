@@ -25,8 +25,13 @@ void main(List<String> args) {
     platform('runtime/observatory_2'),
     platform('sdk/lib/_internal/sdk_library_metadata'),
     platform('third_party/devtools/devtools_shared'),
+    // Explicitly add package:file (shadowed by //pubspec.yaml).
+    platform('third_party/pkg/file/packages/file'),
     platform('tools/package_deps'),
   ];
+
+  // Remove the package at the top-level of the package:file monorepo.
+  packageDirs.remove(platform('third_party/pkg/file'));
 
   var cfePackageDirs = [
     platform('pkg/front_end/testcases'),
