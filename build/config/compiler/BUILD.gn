@@ -377,7 +377,10 @@ config("compiler") {
     } else if (is_linux) {
       toolchain_stamp_file =
           "//buildtools/linux-x64/clang/.versions/clang.cipd_version"
-    } else {
+    } else if (is_mac && host_cpu == "arm64") {
+      toolchain_stamp_file =
+          "//buildtools/mac-arm64/clang/.versions/clang.cipd_version"
+    } else if (is_mac) {
       toolchain_stamp_file =
           "//buildtools/mac-x64/clang/.versions/clang.cipd_version"
     }

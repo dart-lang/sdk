@@ -66,8 +66,8 @@ vars = {
   # The list of revisions for these tools comes from Fuchsia, here:
   # https://fuchsia.googlesource.com/integration/+/HEAD/toolchain
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_revision": "aaaf8e4c409f080f35ea227b20dc6ac8a45c2fa4",
-  "gn_revision": "e62d4e1938a45babc9afb6db543f388cd1802a52",
+  "clang_revision": "60d276923902051192eba692e5312e605c9d9f65",
+  "gn_revision": "0bcd37bd2b83f1a9ee17088037ebdfe6eab6d31a",
 
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "bb994c6f067340c1135eb43eed84f4b33cfa7397",
@@ -454,8 +454,7 @@ deps = {
               "version": "git_revision:" + Var("clang_revision"),
           },
       ],
-      # TODO(https://fxbug.dev/73385): Use arm64 toolchain on arm64 when it exists.
-      "condition": "host_cpu == x64 and host_os == mac or host_cpu == arm64 and host_os == mac",
+      "condition": "host_os == mac", # On ARM64 Macs too because Goma doesn't support the host-arm64 toolchain.
       "dep_type": "cipd",
   },
   Var("dart_root") + "/buildtools/win-x64/clang": {
@@ -476,6 +475,16 @@ deps = {
           },
       ],
       "condition": "host_os == 'linux' and host_cpu == 'arm64'",
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/buildtools/mac-arm64/clang": {
+      "packages": [
+          {
+              "package": "fuchsia/third_party/clang/mac-arm64",
+              "version": "git_revision:" + Var("clang_revision"),
+          },
+      ],
+      "condition": "host_os == 'mac' and host_cpu == 'arm64'",
       "dep_type": "cipd",
   },
 
