@@ -164,16 +164,16 @@ class DevCompilerTarget extends Target {
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
+    var jsInteropChecks = JsInteropChecks(
+        coreTypes,
+        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
+        _nativeClasses!);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     var staticInteropClassEraser =
         StaticInteropClassEraser(coreTypes, referenceFromIndex);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
-      JsInteropChecks(
-              coreTypes,
-              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
-              _nativeClasses!)
-          .visitLibrary(library);
+      jsInteropChecks.visitLibrary(library);
       jsUtilOptimizer.visitLibrary(library);
       staticInteropClassEraser.visitLibrary(library);
     }

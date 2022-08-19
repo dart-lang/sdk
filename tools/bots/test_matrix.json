@@ -3146,7 +3146,8 @@
             "-ndart2wasm-hostasserts-linux-x64-d8",
             "language",
             "corelib",
-            "web/wasm"
+            "web/wasm",
+            "lib/js/static_interop_test"
           ],
           "shards": 3,
           "fileset": "dart2wasm_hostasserts"
