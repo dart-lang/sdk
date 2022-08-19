@@ -1728,6 +1728,9 @@ class ResolutionReader {
       var nullability = _readNullability();
       var type = NeverTypeImpl.instance.withNullability(nullability);
       return _readAliasElementArguments(type);
+    } else if (tag == Tag.RecordType) {
+      final type = _readRecordType();
+      return _readAliasElementArguments(type);
     } else if (tag == Tag.TypeParameterType) {
       var element = readElement() as TypeParameterElement;
       var nullability = _readNullability();
@@ -1978,6 +1981,31 @@ class ResolutionReader {
     var reference = _referenceReader.referenceOfIndex(referenceIndex);
 
     return _elementFactory.elementOfReference(reference);
+  }
+
+  RecordTypeImpl _readRecordType() {
+    final positionalFields = readTypedList(() {
+      return RecordPositionalFieldElementImpl(
+        name: _reader.readOptionalStringReference(),
+        nameOffset: -1,
+        type: readRequiredType(),
+      );
+    });
+
+    final namedFields = readTypedList(() {
+      return RecordNamedFieldElementImpl(
+        name: _reader.readStringReference(),
+        nameOffset: -1,
+        type: readRequiredType(),
+      );
+    });
+
+    final nullabilitySuffix = _readNullability();
+
+    return RecordElementImpl(
+      positionalFields: positionalFields,
+      namedFields: namedFields,
+    ).instantiate(nullabilitySuffix: nullabilitySuffix);
   }
 
   AstNode _readRequiredNode() {
