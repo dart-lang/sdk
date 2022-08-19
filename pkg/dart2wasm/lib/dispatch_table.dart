@@ -298,7 +298,7 @@ class DispatchTable {
       }
     }
 
-    wasmTable = m.addTable(w.RefType.func(), table.length);
+    wasmTable = m.addTable(w.RefType.func(nullable: true), table.length);
   }
 
   void output() {

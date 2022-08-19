@@ -339,11 +339,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       Class cls = member.enclosingClass!;
       ClassInfo info = translator.classInfo[cls]!;
       thisLocal = paramLocals[0];
+      assert(!thisLocal!.type.nullable);
       w.RefType thisType = info.nonNullableType;
       if (translator.needsConversion(paramLocals[0].type, thisType) &&
           !(cls == translator.objectInfo.cls ||
               cls == translator.ffiPointerClass ||
-              translator.isFfiCompound(cls))) {
+              translator.isFfiCompound(cls) ||
+              translator.isWasmType(cls))) {
         preciseThisLocal = addLocal(thisType);
         b.local_get(paramLocals[0]);
         b.ref_cast(info.struct);
@@ -1405,7 +1407,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitEqualsNull(EqualsNull node, w.ValueType expectedType) {
-    wrap(node.expression, const w.RefType.any());
+    wrap(node.expression, const w.RefType.any(nullable: true));
     b.ref_is_null();
     return w.NumType.i32;
   }

@@ -347,8 +347,7 @@ class Intrinsifier {
     }
 
     // WasmAnyRef.toObject
-    if (cls == translator.wasmAnyRefClass) {
-      assert(name == "toObject");
+    if (cls == translator.wasmAnyRefClass && name == "toObject") {
       w.Label succeed = b.block(const [], [translator.topInfo.nonNullableType]);
       w.Label fail = b.block(const [], const [w.RefType.any(nullable: false)]);
       codeGen.wrap(receiver, w.RefType.any(nullable: false));
@@ -957,21 +956,12 @@ class Intrinsifier {
       }
 
       // (WasmFuncRef|WasmFunction).fromRef constructors
-      if ((cls == translator.wasmFuncRefClass ||
-              cls == translator.wasmFunctionClass) &&
-          name == "fromRef") {
+      if (cls == translator.wasmFunctionClass && name == "fromFuncRef") {
         Expression ref = node.arguments.positional[0];
         w.RefType resultType = typeOfExp(node) as w.RefType;
         w.Label succeed = b.block(const [], [resultType]);
-        w.Label fail =
-            b.block(const [], const [w.RefType.any(nullable: false)]);
-        codeGen.wrap(ref, w.RefType.any(nullable: false));
-        b.br_on_non_func(fail);
-        if (cls == translator.wasmFunctionClass) {
-          b.br_on_cast_fail(fail, resultType.heapType as w.FunctionType);
-        }
-        b.br(succeed);
-        b.end(); // fail
+        codeGen.wrap(ref, w.RefType.func(nullable: false));
+        b.br_on_cast(succeed, resultType.heapType as w.FunctionType);
         codeGen.throwWasmRefError("a function with the expected signature");
         b.end(); // succeed
         return resultType;

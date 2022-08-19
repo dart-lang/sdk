@@ -282,7 +282,7 @@ class ClassInfoCollector {
         if (field.isInstanceMember) {
           w.ValueType wasmType = translator.translateType(field.type);
           // TODO(askesc): Generalize this check for finer nullability control
-          if (wasmType != w.RefType.data()) {
+          if (wasmType != w.RefType.data(nullable: false)) {
             wasmType = wasmType.withNullability(true);
           }
           translator.fieldIndex[field] = info.struct.fields.length;

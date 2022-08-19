@@ -28,7 +28,7 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
   // allocation of that class is encountered
   final Map<int, List<Reference>> _pendingAllocation = {};
 
-  final w.ValueType asyncStackType = const w.RefType.any(nullable: true);
+  final w.ValueType asyncStackType = const w.RefType.extern(nullable: true);
 
   late final w.FunctionType asyncStubFunctionType = m.addFunctionType(
       [const w.RefType.data(nullable: false), asyncStackType],
