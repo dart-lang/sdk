@@ -126,8 +126,8 @@ class VerifyOriginId : public IsolateVisitor {
 
 static std::unique_ptr<Message> SerializeMessage(Dart_Port dest_port,
                                                  const Instance& obj) {
-  return WriteMessage(/* can_send_any_object */ false, /* same_group */ false,
-                      obj, dest_port, Message::kNormalPriority);
+  return WriteMessage(/* same_group */ false, obj, dest_port,
+                      Message::kNormalPriority);
 }
 
 static std::unique_ptr<Message> SerializeMessage(Zone* zone,
@@ -1042,8 +1042,7 @@ void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   element = Capability::New(capability);
   msg.SetAt(2, element);
 
-  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
-                                    /* same_group */ false, msg, main_port(),
+  PortMap::PostMessage(WriteMessage(/* same_group */ false, msg, main_port(),
                                     Message::kOOBPriority));
 }
 
@@ -3435,8 +3434,7 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
     element = Smi::New(Isolate::kBeforeNextEventAction);
     msg.SetAt(2, element);
     std::unique_ptr<Message> message = WriteMessage(
-        /* can_send_any_object */ false, /* same_group */ false, msg,
-        main_port(), Message::kOOBPriority);
+        /* same_group */ false, msg, main_port(), Message::kOOBPriority);
     bool posted = PortMap::PostMessage(std::move(message));
     ASSERT(posted);
   }

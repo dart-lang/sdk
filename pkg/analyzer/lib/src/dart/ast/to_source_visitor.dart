@@ -902,6 +902,48 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    var positionalFields = node.positionalFields;
+    var namedFields = node.namedFields;
+
+    sink.write('(');
+    if (positionalFields.isNotEmpty) {
+      _visitNodeList(positionalFields, separator: ', ');
+      if (namedFields != null) {
+        sink.write(', ');
+      }
+    }
+    _visitNode(namedFields);
+    sink.write(')');
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedField(
+      RecordTypeAnnotationNamedField node) {
+    _visitNode(node.type);
+    sink.write(' ');
+    sink.write(node.name);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedFields(
+      RecordTypeAnnotationNamedFields node) {
+    sink.write('{');
+    _visitNodeList(node.fields, separator: ', ');
+    sink.write('}');
+  }
+
+  @override
+  void visitRecordTypeAnnotationPositionalField(
+      RecordTypeAnnotationPositionalField node) {
+    _visitNode(node.type);
+    if (node.name != null) {
+      sink.write(' ');
+      sink.write(node.name);
+    }
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     sink.write('this');

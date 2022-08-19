@@ -6009,6 +6009,24 @@ main() {
             .stmt,
       ]);
     });
+
+    test('prevented by non-promotability of target', () {
+      h.thisType = 'C';
+      h.addMember('C', '_field1', 'D', promotable: false);
+      h.addMember('D', '_field2', 'Object?', promotable: true);
+      h.run([
+        if_(
+            thisOrSuperProperty('_field1').property('_field2').isNot('String'),
+            [
+              return_(),
+            ]),
+        checkNotPromoted(thisOrSuperProperty('_field1').property('_field2')),
+        thisOrSuperProperty('_field1')
+            .property('_field2')
+            .checkType('Object?')
+            .stmt,
+      ]);
+    });
   });
 }
 
@@ -6125,7 +6143,9 @@ extension on FlowModel<Type> {
           variableInfo[h.promotionKeyStore.keyForVariable(variable)]
                   ?.promotedTypes
                   ?.last ??
-              variable.type);
+              variable.type,
+          isPromotable: true,
+          isThisOrSuper: false);
 
   FlowModel<Type> _write(
           FlowAnalysisTestHarness h,

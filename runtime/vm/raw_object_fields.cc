@@ -166,7 +166,7 @@ namespace dart {
   F(LinkedHashMap, hash_mask_)                                                 \
   F(LinkedHashMap, data_)                                                      \
   F(LinkedHashMap, used_data_)                                                 \
-  F(LinkedHashSet, deleted_keys_)                                              \
+  F(LinkedHashMap, deleted_keys_)                                              \
   F(LinkedHashSet, type_arguments_)                                            \
   F(LinkedHashSet, index_)                                                     \
   F(LinkedHashSet, hash_mask_)                                                 \

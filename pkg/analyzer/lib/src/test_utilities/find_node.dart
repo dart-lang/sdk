@@ -432,6 +432,10 @@ class FindNode {
     return _node(search, (n) => n is RecordLiteral);
   }
 
+  RecordTypeAnnotation recordTypeAnnotation(String search) {
+    return _node(search, (n) => n is RecordTypeAnnotation);
+  }
+
   RedirectingConstructorInvocation redirectingConstructorInvocation(
       String search) {
     return _node(search, (n) => n is RedirectingConstructorInvocation);

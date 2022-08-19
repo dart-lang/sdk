@@ -1038,6 +1038,43 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    var other = _other as RecordTypeAnnotation;
+    return _isEqualNodeLists(node.positionalFields, other.positionalFields) &&
+        isEqualNodes(node.namedFields, other.namedFields) &&
+        isEqualTokens(node.question, other.question);
+  }
+
+  @override
+  bool visitRecordTypeAnnotationNamedField(
+      RecordTypeAnnotationNamedField node) {
+    var other = _other as RecordTypeAnnotationNamedField;
+    return isEqualTokens(node.comma, other.comma) &&
+        _isEqualNodeLists(node.metadata, other.metadata) &&
+        isEqualTokens(node.name, other.name) &&
+        isEqualNodes(node.type, other.type);
+  }
+
+  @override
+  bool visitRecordTypeAnnotationNamedFields(
+      RecordTypeAnnotationNamedFields node) {
+    var other = _other as RecordTypeAnnotationNamedFields;
+    return isEqualTokens(node.leftBracket, other.leftBracket) &&
+        _isEqualNodeLists(node.fields, other.fields) &&
+        isEqualTokens(node.rightBracket, other.rightBracket);
+  }
+
+  @override
+  bool visitRecordTypeAnnotationPositionalField(
+      RecordTypeAnnotationPositionalField node) {
+    var other = _other as RecordTypeAnnotationPositionalField;
+    return isEqualTokens(node.comma, other.comma) &&
+        _isEqualNodeLists(node.metadata, other.metadata) &&
+        isEqualTokens(node.name, other.name) &&
+        isEqualNodes(node.type, other.type);
+  }
+
+  @override
   bool visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     RedirectingConstructorInvocation other =
@@ -2764,6 +2801,50 @@ class NodeReplacer implements AstVisitor<bool> {
   bool visitRecordLiteral(covariant RecordLiteralImpl node) {
     if (_replaceInList(node.fields)) {
       return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    if (_replaceInList(node.positionalFields)) {
+      return true;
+    } else if (identical(node.namedFields, _oldNode)) {
+      // node.namedFields = _newNode as RecordTypeAnnotationNamedFields;
+      throw UnimplementedError();
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitRecordTypeAnnotationNamedField(
+      RecordTypeAnnotationNamedField node) {
+    if (_replaceInList(node.metadata)) {
+      return true;
+    } else if (identical(node.type, _oldNode)) {
+      // node.type = _newNode as TypeAnnotation;
+      throw UnimplementedError();
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitRecordTypeAnnotationNamedFields(
+      RecordTypeAnnotationNamedFields node) {
+    if (_replaceInList(node.fields)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitRecordTypeAnnotationPositionalField(
+      RecordTypeAnnotationPositionalField node) {
+    if (_replaceInList(node.metadata)) {
+      return true;
+    } else if (identical(node.type, _oldNode)) {
+      // node.type = _newNode as TypeAnnotation;
+      throw UnimplementedError();
     }
     return visitNode(node);
   }

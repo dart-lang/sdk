@@ -13,65 +13,81 @@ class PromotionKeyStore<Variable extends Object> {
 
   final Map<Variable, int> _variableKeys = new Map<Variable, int>.identity();
 
-  final List<Variable?> _keyToVariable = [];
-
-  /// List of maps indicating the set of properties of each promotable entity
-  /// being tracked by flow analysis.  The list is indexed by the promotion key
-  /// of the target, and the map is indexed by the property name.
-  ///
-  /// Null list elements are considered equivalent to an empty map (this allows
-  /// us so save memory due to the fact that most entries will not be accessed).
-  final List<Map<String, int>?> _properties = [];
-
-  /// List of integers indicating, for each promotable entity, the key of the
-  /// next promotable entity whose [_rootVariableKey] is the same.  Keys with
-  /// the same root are linked together in a loop (so to iterate through them,
-  /// continue walking the chain until you reach your starting point).
-  final List<int> _nextKeyWithSameRoot = [];
-
-  /// List of integers indicating, for each promotable entity, the variable key
-  /// for the variable that forms the root of the property accesses that led
-  /// to this variable key.  For example, the entry for a property access
-  /// `a.b.c` points to the promotion key for `a`.
-  final List<int> _rootVariableKey = [];
+  final List<_PromotionKeyInfo<Variable>> _keyToInfo = [];
 
   /// Gets the key of the next promotable entity whose [_rootVariableKey] is the
   /// same as [key].  Keys with the same root are linked together in a loop (so
   /// to iterate through them, continue walking the chain until you reach your
   /// starting point).
-  int getNextKeyWithSameRoot(int key) => _nextKeyWithSameRoot[key];
+  int getNextKeyWithSameRoot(int key) => _keyToInfo[key].nextKeyWithSameRoot;
 
   int getProperty(int targetKey, String propertyName) =>
-      (_properties[targetKey] ??= {})[propertyName] ??=
+      (_keyToInfo[targetKey].properties ??= {})[propertyName] ??=
           _makeNewKey(targetKey: targetKey);
 
   /// Gets the variable key for the variable that forms the root of the property
   /// accesses that led to [promotionKey].  For example, the root variable key
   /// for a property access `a.b.c` is the promotion key for `a`.
-  int getRootVariableKey(int promotionKey) => _rootVariableKey[promotionKey];
+  int getRootVariableKey(int promotionKey) =>
+      _keyToInfo[promotionKey].rootVariableKey;
 
   int keyForVariable(Variable variable) =>
       _variableKeys[variable] ??= _makeNewKey(variable: variable);
 
-  Variable? variableForKey(int variableKey) => _keyToVariable[variableKey];
+  Variable? variableForKey(int variableKey) => _keyToInfo[variableKey].variable;
 
   int _makeNewKey({Variable? variable, int? targetKey}) {
-    int key = _keyToVariable.length;
-    _keyToVariable.add(variable);
-    _properties.add(null);
+    int key = _keyToInfo.length;
+    int rootVariableKey;
+    int nextKeyWithSameRoot;
     if (targetKey == null) {
-      _rootVariableKey.add(key);
-      // This key does not represent a property, so its _nextKeyWithSameRoot
+      rootVariableKey = key;
+      // This key does not represent a property, so its nextKeyWithSameRoot
       // pointer should point to itself.
-      _nextKeyWithSameRoot.add(key);
+      nextKeyWithSameRoot = key;
     } else {
-      _rootVariableKey.add(_rootVariableKey[targetKey]);
+      _PromotionKeyInfo<Variable> targetInfo = _keyToInfo[targetKey];
+      rootVariableKey = targetInfo.rootVariableKey;
       // This key represents a property of [targetKey], so its
-      // _nextKeyWithSameRoot should be linked into whatever chain [targetKey]
+      // nextKeyWithSameRoot should be linked into whatever chain [targetKey]
       // is in.
-      _nextKeyWithSameRoot.add(_nextKeyWithSameRoot[targetKey]);
-      _nextKeyWithSameRoot[targetKey] = key;
+      nextKeyWithSameRoot = targetInfo.nextKeyWithSameRoot;
+      targetInfo.nextKeyWithSameRoot = key;
     }
+    _keyToInfo.add(new _PromotionKeyInfo(
+        variable: variable,
+        nextKeyWithSameRoot: nextKeyWithSameRoot,
+        rootVariableKey: rootVariableKey));
     return key;
   }
+}
+
+/// Class storing detailed information about a single promotion key.
+class _PromotionKeyInfo<Variable extends Object> {
+  /// The variable associated with the key, if any.
+  final Variable? variable;
+
+  /// Map indicating the set of properties of this promotable entity being
+  /// tracked by flow analysis.  The map is indexed by the property name.
+  ///
+  /// Null is considered equivalent to an empty map (this allows us to save
+  /// memory due to the fact that most promotion keys won't be subject to any
+  /// property access).
+  Map<String, int>? properties;
+
+  /// The key of the next promotable entity whose [_rootVariableKey] is the same
+  /// as this one.  Keys with the same root are linked together in a loop (so to
+  /// iterate through them, continue walking the chain until you reach your
+  /// starting point).
+  int nextKeyWithSameRoot;
+
+  /// The variable key for the variable that forms the root of the property
+  /// accesses that led to this variable key.  For example, the entry for a
+  /// property access `a.b.c` points to the promotion key for `a`.
+  final int rootVariableKey;
+
+  _PromotionKeyInfo(
+      {required this.variable,
+      required this.nextKeyWithSameRoot,
+      required this.rootVariableKey});
 }

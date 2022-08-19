@@ -2169,8 +2169,7 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   }
 
   const Object& object = Object::Handle(Z, Api::UnwrapHandle(handle));
-  return PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
-                                           /* same_group */ false, object,
+  return PortMap::PostMessage(WriteMessage(/* same_group */ false, object,
                                            port_id, Message::kNormalPriority));
 }
 
@@ -2181,7 +2180,8 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
     return Api::NewError("%s: illegal port_id %" Pd64 ".", CURRENT_FUNC,
                          port_id);
   }
-  return Api::NewHandle(T, SendPort::New(port_id));
+  int64_t origin_id = PortMap::GetOriginId(port_id);
+  return Api::NewHandle(T, SendPort::New(port_id, origin_id));
 }
 
 DART_EXPORT Dart_Handle Dart_SendPortGetId(Dart_Handle port,

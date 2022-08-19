@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show Message, LocatedMessage;
+import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/js_interop.dart' as jsInteropHelper;
 import 'package:_js_interop_checks/src/transformations/js_util_wasm_optimizer.dart';
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
@@ -32,6 +35,7 @@ class WasmTarget extends Target {
   Class? _compactLinkedCustomHashSet;
   Class? _oneByteString;
   Class? _twoByteString;
+  Map<String, Class>? _nativeClasses;
 
   @override
   bool get enableNoSuchMethodForwarders => true;
@@ -87,16 +91,24 @@ class WasmTarget extends Target {
   }
 
   void _performJSInteropTransformations(
+      Component component,
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> interopDependentLibraries,
+      DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex) {
+    _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
+    final jsInteropChecks = JsInteropChecks(
+        coreTypes,
+        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
+        _nativeClasses!);
     final jsUtilOptimizer = JsUtilWasmOptimizer(coreTypes, hierarchy);
     final staticInteropClassEraser = StaticInteropClassEraser(
         coreTypes, referenceFromIndex,
         libraryForJavaScriptObject: 'dart:_js_helper',
         classNameOfJavaScriptObject: 'JSValue');
     for (Library library in interopDependentLibraries) {
+      jsInteropChecks.visitLibrary(library);
       jsUtilOptimizer.visitLibrary(library);
       staticInteropClassEraser.visitLibrary(library);
     }
@@ -133,8 +145,8 @@ class WasmTarget extends Target {
     if (transitiveImportingJSInterop.isEmpty) {
       logger?.call("Skipped JS interop transformations");
     } else {
-      _performJSInteropTransformations(coreTypes, hierarchy,
-          transitiveImportingJSInterop, referenceFromIndex);
+      _performJSInteropTransformations(component, coreTypes, hierarchy,
+          transitiveImportingJSInterop, diagnosticReporter, referenceFromIndex);
       logger?.call("Transformed JS interop classes");
     }
     transformMixins.transformLibraries(

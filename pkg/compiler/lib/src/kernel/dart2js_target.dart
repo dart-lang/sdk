@@ -74,6 +74,7 @@ class Dart2jsTarget extends Target {
   final CompilerOptions? options;
   final bool canPerformGlobalTransforms;
   final bool supportsUnevaluatedConstants;
+  Map<String, ir.Class>? _nativeClasses;
 
   Dart2jsTarget(this.name, this.flags,
       {this.options,
@@ -148,16 +149,16 @@ class Dart2jsTarget extends Target {
       ReferenceFromIndex? referenceFromIndex,
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
-    var nativeClasses = JsInteropChecks.getNativeClasses(component);
+    _nativeClasses = JsInteropChecks.getNativeClasses(component);
+    var jsInteropChecks = JsInteropChecks(
+        coreTypes,
+        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
+        _nativeClasses!);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     var staticInteropClassEraser =
         StaticInteropClassEraser(coreTypes, referenceFromIndex);
     for (var library in libraries) {
-      JsInteropChecks(
-              coreTypes,
-              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
-              nativeClasses)
-          .visitLibrary(library);
+      jsInteropChecks.visitLibrary(library);
       // TODO (rileyporter): Merge js_util optimizations with other lowerings
       // in the single pass in `transformations/lowering.dart`.
       jsUtilOptimizer.visitLibrary(library);

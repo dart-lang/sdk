@@ -9726,11 +9726,17 @@ abstract class RecordTypeAnnotationFieldImpl extends AstNodeImpl
 class RecordTypeAnnotationImpl extends TypeAnnotationImpl
     implements RecordTypeAnnotation {
   @override
+  Token leftParenthesis;
+
+  @override
   final NodeListImpl<RecordTypeAnnotationPositionalField> positionalFields =
       NodeListImpl._();
 
   @override
   final RecordTypeAnnotationNamedFieldsImpl? namedFields;
+
+  @override
+  Token rightParenthesis;
 
   @override
   final Token? question;
@@ -9739,33 +9745,32 @@ class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   DartType? type;
 
   RecordTypeAnnotationImpl({
+    required this.leftParenthesis,
     required List<RecordTypeAnnotationPositionalField> positionalFields,
     required this.namedFields,
+    required this.rightParenthesis,
     required this.question,
   }) {
     this.positionalFields._initialize(this, positionalFields);
   }
 
   @override
-  Token get beginToken {
-    return positionalFields.beginToken ?? namedFields!.beginToken;
-  }
+  Token get beginToken => leftParenthesis;
 
   @override
-  Token get endToken {
-    return namedFields?.endToken ?? positionalFields.endToken!;
-  }
+  Token get endToken => rightParenthesis;
 
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('leftParenthesis', leftParenthesis)
     ..addNodeList('positionalFields', positionalFields)
     ..addNode('namedFields', namedFields)
+    ..addToken('rightParenthesis', rightParenthesis)
     ..addToken('question', question);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
+    return visitor.visitRecordTypeAnnotation(this);
   }
 
   @override
@@ -9789,8 +9794,7 @@ class RecordTypeAnnotationNamedFieldImpl extends RecordTypeAnnotationFieldImpl
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
+    return visitor.visitRecordTypeAnnotationNamedField(this);
   }
 }
 
@@ -9827,8 +9831,7 @@ class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
+    return visitor.visitRecordTypeAnnotationNamedFields(this);
   }
 
   @override
@@ -9852,8 +9855,7 @@ class RecordTypeAnnotationPositionalFieldImpl
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
+    return visitor.visitRecordTypeAnnotationPositionalField(this);
   }
 }
 

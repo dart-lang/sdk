@@ -1927,7 +1927,7 @@ class FlowModel<Type extends Object> {
     if (promotedType != null) {
       newPromotedTypes =
           VariableModel._addToPromotedTypes(info.promotedTypes, promotedType);
-      if (reference.isPromotable(helper) &&
+      if (reference.isPromotable &&
           helper.typeOperations.isNever(promotedType)) {
         newReachable = reachable.setUnreachable();
       }
@@ -2113,12 +2113,6 @@ class FlowModel<Type extends Object> {
 /// variables in [_FlowAnalysisImpl].
 @visibleForTesting
 abstract class FlowModelHelper<Type extends Object> {
-  /// The set of fields that can be promoted.  The type of the set element is
-  /// `Object?` to match the type of the `propertyMember` argument of
-  /// [promotedFieldType], [propertyGet], and [thisOrSuperPropertyGet].
-  @visibleForTesting
-  Set<Object?> get promotableFields;
-
   /// The [PromotionKeyStore], which tracks the unique integer assigned to
   /// everything in the control flow that might be promotable.
   @visibleForTesting
@@ -2366,14 +2360,16 @@ class Reachability {
 /// Container object combining a [Reference] object with its static type.
 @visibleForTesting
 class ReferenceWithType<Type extends Object> {
-  int promotionKey;
+  final int promotionKey;
 
   final Type type;
 
-  ReferenceWithType(this.promotionKey, this.type);
+  final bool isPromotable;
 
-  bool isPromotable(FlowModelHelper<Type> helper) =>
-      helper.promotionKeyStore.variableForKey(promotionKey) != null;
+  final bool isThisOrSuper;
+
+  ReferenceWithType(this.promotionKey, this.type,
+      {required this.isPromotable, required this.isThisOrSuper});
 
   @override
   String toString() => 'ReferenceWithType($promotionKey, $type)';
@@ -3105,13 +3101,16 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   final PromotionKeyStore<Variable> promotionKeyStore;
 
-  @override
-  final Set<Object?> promotableFields;
+  /// The set of fields that can be promoted.  The type of the set element is
+  /// `Object?` to match the type of the `propertyMember` argument of
+  /// [promotedFieldType], [propertyGet], and [thisOrSuperPropertyGet].
+  final Set<Object?> _promotableFields;
 
   _FlowAnalysisImpl(this.operations, this._assignedVariables,
       {required this.respectImplicitlyTypedVarInitializers,
-      this.promotableFields = const {}})
-      : promotionKeyStore = _assignedVariables.promotionKeyStore {
+      Set<Object?> promotableFields = const {}})
+      : promotionKeyStore = _assignedVariables.promotionKeyStore,
+        _promotableFields = promotableFields {
     if (!_assignedVariables.isFinished) {
       _assignedVariables.finish();
     }
@@ -3502,10 +3501,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (isImplicitlyTyped && operations.isTypeParameterType(initializerType)) {
       _current = _current
           .tryPromoteForTypeCheck(
-              this,
-              new ReferenceWithType<Type>(variableKey,
-                  promotedType(variable) ?? operations.variableType(variable)),
-              initializerType)
+              this, _variableReference(variable, variableKey), initializerType)
           .ifTrue;
     }
   }
@@ -3720,10 +3716,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void thisOrSuper(Expression expression, Type staticType) {
-    _storeExpressionReference(
-        expression,
-        new ReferenceWithType<Type>(
-            promotionKeyStore.thisPromotionKey, staticType));
+    _storeExpressionReference(expression, _thisOrSuperReference(staticType));
   }
 
   @override
@@ -3812,9 +3805,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     int variableKey = promotionKeyStore.keyForVariable(variable);
     VariableModel<Type> variableModel = _current._getInfo(variableKey);
     Type? promotedType = variableModel.promotedTypes?.last;
-    Type currentType = promotedType ?? operations.variableType(variable);
     _storeExpressionReference(
-        expression, new ReferenceWithType<Type>(variableKey, currentType));
+        expression, _variableReference(variable, variableKey));
     ExpressionInfo<Type>? expressionInfo = variableModel.ssaNode?.expressionInfo
         ?.rebaseForward(operations, _current);
     if (expressionInfo != null) {
@@ -3873,9 +3865,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       return () => {};
     }
     return _getNonPromotionReasons(
-        new ReferenceWithType<Type>(
-            promotionKeyStore.thisPromotionKey, staticType),
-        currentThisInfo);
+        _thisOrSuperReference(staticType), currentThisInfo);
   }
 
   @override
@@ -3998,6 +3988,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   Type? _handleProperty(Expression? wholeExpression, Expression? target,
       String propertyName, Object? propertyMember, Type staticType) {
     int targetKey;
+    bool isPromotable = _promotableFields.contains(propertyMember);
     if (target == null) {
       targetKey = promotionKeyStore.thisPromotionKey;
     } else {
@@ -4005,14 +3996,18 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
           _getExpressionReference(target);
       if (targetReference == null) return null;
       targetKey = targetReference.promotionKey;
+      if (!targetReference.isPromotable && !targetReference.isThisOrSuper) {
+        isPromotable = false;
+      }
     }
     _PropertyReferenceWithType<Type> propertyReference =
         new _PropertyReferenceWithType<Type>(propertyName, propertyMember,
-            promotionKeyStore.getProperty(targetKey, propertyName), staticType);
+            promotionKeyStore.getProperty(targetKey, propertyName), staticType,
+            isPromotable: isPromotable);
     if (wholeExpression != null) {
       _storeExpressionReference(wholeExpression, propertyReference);
     }
-    if (!propertyReference.isPromotable(this)) {
+    if (!propertyReference.isPromotable) {
       return null;
     }
     if (_current
@@ -4054,6 +4049,17 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _expressionWithReference = expression;
     _expressionReference = expressionReference;
   }
+
+  ReferenceWithType<Type> _thisOrSuperReference(Type staticType) =>
+      new ReferenceWithType<Type>(
+          promotionKeyStore.thisPromotionKey, staticType,
+          isPromotable: false, isThisOrSuper: true);
+
+  ReferenceWithType<Type> _variableReference(
+          Variable variable, int variableKey) =>
+      new ReferenceWithType<Type>(variableKey,
+          promotedType(variable) ?? operations.variableType(variable),
+          isPromotable: true, isThisOrSuper: false);
 }
 
 /// Base class for objects representing constructs in the Dart programming
@@ -4709,11 +4715,9 @@ class _PropertyReferenceWithType<Type extends Object>
   final Object? propertyMember;
 
   _PropertyReferenceWithType(
-      this.propertyName, this.propertyMember, super.promotionKey, super.type);
-
-  @override
-  bool isPromotable(FlowModelHelper<Type> helper) =>
-      helper.promotableFields.contains(propertyMember);
+      this.propertyName, this.propertyMember, super.promotionKey, super.type,
+      {required super.isPromotable})
+      : super(isThisOrSuper: false);
 
   @override
   String toString() =>
