@@ -2470,16 +2470,11 @@ class AstBuilder extends StackListener {
     var name = pop() as SimpleIdentifier?;
     var type = pop() as TypeAnnotationImpl;
     var metadata = pop() as List<Annotation>?;
-    var comma = (name ?? type).endToken.next;
-    if (comma?.type != TokenType.COMMA) {
-      comma = null;
-    }
 
     push(RecordTypeAnnotationPositionalFieldImpl(
       metadata: metadata,
       type: type,
       name: name?.token,
-      comma: comma,
     ));
   }
 
@@ -2493,7 +2488,6 @@ class AstBuilder extends StackListener {
     var fields = <RecordTypeAnnotationNamedField>[];
     for (var elem in elements) {
       fields.add(RecordTypeAnnotationNamedFieldImpl(
-        comma: elem.comma,
         metadata: elem.metadata,
         type: elem.type,
         name: elem.name!,

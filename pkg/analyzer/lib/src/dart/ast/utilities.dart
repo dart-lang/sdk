@@ -1049,8 +1049,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitRecordTypeAnnotationNamedField(
       RecordTypeAnnotationNamedField node) {
     var other = _other as RecordTypeAnnotationNamedField;
-    return isEqualTokens(node.comma, other.comma) &&
-        _isEqualNodeLists(node.metadata, other.metadata) &&
+    return _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.name, other.name) &&
         isEqualNodes(node.type, other.type);
   }
@@ -1068,8 +1067,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitRecordTypeAnnotationPositionalField(
       RecordTypeAnnotationPositionalField node) {
     var other = _other as RecordTypeAnnotationPositionalField;
-    return isEqualTokens(node.comma, other.comma) &&
-        _isEqualNodeLists(node.metadata, other.metadata) &&
+    return _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.name, other.name) &&
         isEqualNodes(node.type, other.type);
   }

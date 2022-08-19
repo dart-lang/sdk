@@ -562,12 +562,10 @@ RecordTypeAnnotation
       type: NamedType
         name: SimpleIdentifier
           token: int
-      comma: ,
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: SimpleIdentifier
           token: bool
-      comma: ,
   namedFields: RecordTypeAnnotationNamedFields
     leftBracket: {
     fields
@@ -576,7 +574,6 @@ RecordTypeAnnotation
           name: SimpleIdentifier
             token: int
         name: a
-        comma: ,
       RecordTypeAnnotationNamedField
         type: NamedType
           name: SimpleIdentifier
@@ -605,7 +602,6 @@ RecordTypeAnnotation
           name: SimpleIdentifier
             token: int
         name: a
-        comma: ,
       RecordTypeAnnotationNamedField
         type: NamedType
           name: SimpleIdentifier
@@ -631,7 +627,6 @@ RecordTypeAnnotation
       type: NamedType
         name: SimpleIdentifier
           token: int
-      comma: ,
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: SimpleIdentifier
@@ -656,7 +651,6 @@ RecordTypeAnnotation
       type: NamedType
         name: SimpleIdentifier
           token: int
-      comma: ,
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: SimpleIdentifier

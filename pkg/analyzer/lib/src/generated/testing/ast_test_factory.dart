@@ -1011,19 +1011,13 @@ class AstTestFactory {
   static RecordTypeAnnotationNamedField recordTypeAnnotationNamedField(
       TypeAnnotationImpl type, String name) {
     return RecordTypeAnnotationNamedFieldImpl(
-        comma: TokenFactory.tokenFromType(TokenType.COMMA),
-        metadata: null,
-        name: TokenFactory.tokenFromString(name),
-        type: type);
+        metadata: null, name: TokenFactory.tokenFromString(name), type: type);
   }
 
   static RecordTypeAnnotationPositionalField
       recordTypeAnnotationPositionalField(TypeAnnotationImpl type) {
     return RecordTypeAnnotationPositionalFieldImpl(
-        comma: TokenFactory.tokenFromType(TokenType.COMMA),
-        metadata: null,
-        name: null,
-        type: type);
+        metadata: null, name: null, type: type);
   }
 
   static RedirectingConstructorInvocationImpl redirectingConstructorInvocation(
