@@ -36,6 +36,7 @@ ai
 aiki
 ainv
 aka
+al
 alexmarkov
 aligned
 alive
@@ -371,6 +372,7 @@ dirtifying
 dirty
 disallow
 disambiguating
+disambiguation
 disambiguator
 discovers
 disjoint
@@ -443,6 +445,7 @@ escalate
 establish
 established
 estimate
+et
 eval
 exchanging
 execute
@@ -579,6 +582,7 @@ hardcode
 harness
 hashes
 hashing
+havoc
 heap
 height
 hello
@@ -1574,6 +1578,7 @@ worthwhile
 worthy
 woven
 wrappers
+wreak
 writeln
 wrongfully
 wrt

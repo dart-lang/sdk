@@ -639,6 +639,36 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void beginRecordType(Token beginToken) {
+    _unhandled();
+  }
+
+  @override
+  void endRecordType(Token leftBracket, Token? questionMark, int count) {
+    _unhandled();
+  }
+
+  @override
+  void beginRecordTypeEntry() {
+    _unhandled();
+  }
+
+  @override
+  void endRecordTypeEntry() {
+    _unhandled();
+  }
+
+  @override
+  void beginRecordTypeNamedFields(Token leftBracket) {
+    _unhandled();
+  }
+
+  @override
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    _unhandled();
+  }
+
+  @override
   void beginFunctionType(Token beginToken) {
     _unhandled();
   }

@@ -1987,6 +1987,47 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void beginRecordType(Token leftBracket) {
+    seen(leftBracket);
+    doPrint('beginRecordType(' '$leftBracket)');
+    indent++;
+  }
+
+  @override
+  void endRecordType(Token leftBracket, Token? questionMark, int count) {
+    indent--;
+    seen(leftBracket);
+    seen(questionMark);
+    doPrint('endRecordType(' '$leftBracket, ' '$questionMark, ' '$count)');
+  }
+
+  @override
+  void beginRecordTypeEntry() {
+    doPrint('beginRecordTypeEntry()');
+    indent++;
+  }
+
+  @override
+  void endRecordTypeEntry() {
+    indent--;
+    doPrint('endRecordTypeEntry()');
+  }
+
+  @override
+  void beginRecordTypeNamedFields(Token leftBracket) {
+    seen(leftBracket);
+    doPrint('beginRecordTypeNamedFields(' '$leftBracket)');
+    indent++;
+  }
+
+  @override
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    indent--;
+    seen(leftBracket);
+    doPrint('endRecordTypeNamedFields(' '$count, ' '$leftBracket)');
+  }
+
+  @override
   void beginFunctionType(Token beginToken) {
     seen(beginToken);
     doPrint('beginFunctionType(' '$beginToken)');

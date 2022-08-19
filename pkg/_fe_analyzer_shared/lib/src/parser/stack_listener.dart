@@ -655,7 +655,7 @@ class StackImpl implements Stack {
 class DebugStack implements Stack {
   Stack realStack = new StackImpl();
   Stack stackTraceStack = new StackImpl();
-  List<StackTrace> latestStacktraces = <StackTrace>[];
+  List<StackTrace?> latestStacktraces = <StackTrace?>[];
 
   @override
   Object? operator [](int index) {

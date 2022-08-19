@@ -23,6 +23,7 @@ import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:kernel/ast.dart'
     show AsyncMarker, InvalidType, Nullability, ProcedureKind, Variance;
 
+import '../../api_prototype/experimental_flags.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -2578,6 +2579,41 @@ class OutlineBuilder extends StackListenerImpl {
     libraryBuilder.beginNestedDeclaration(
         TypeParameterScopeKind.functionType, "#function_type",
         hasMembers: false);
+  }
+
+  @override
+  void endRecordType(Token leftBracket, Token? questionMark, int count) {
+    debugEvent("RecordType");
+    if (!libraryFeatures.records.isEnabled) {
+      addProblem(
+          templateExperimentNotEnabledOffByDefault
+              .withArguments(ExperimentalFlag.records.name),
+          leftBracket.offset,
+          noLength);
+    }
+
+    if (!libraryBuilder.isNonNullableByDefault) {
+      reportErrorIfNullableType(questionMark);
+    }
+
+    // TODO: Implement record type.
+
+    push(libraryBuilder.addVoidType(leftBracket.charOffset));
+  }
+
+  @override
+  void endRecordTypeEntry() {
+    // TODO: Implement record type entry.
+
+    pop(); // int - offset of name of field (or next token if there's no name).
+    pop(); // String - name of field - or null.
+    pop(); // named type - type of field.
+    pop(); // List of metadata - or null.
+  }
+
+  @override
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    // TODO: Implement record type named fields.
   }
 
   @override

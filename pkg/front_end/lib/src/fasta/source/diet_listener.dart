@@ -274,6 +274,27 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void endRecordType(Token leftBracket, Token? questionMark, int count) {
+    // TODO: Implement record type.
+    debugEvent("RecordType");
+  }
+
+  @override
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    // TODO: Implement record type named fields.
+    debugEvent("RecordTypeNamedFields");
+  }
+
+  @override
+  void endRecordTypeEntry() {
+    // TODO: Implement record type entry.
+    debugEvent("RecordTypeEntry");
+
+    pop(); // String - name of field - or null.
+    pop(); // Token - start of metadata (@) - or null.
+  }
+
+  @override
   void endFunctionType(Token functionToken, Token? questionMark) {
     debugEvent("FunctionType");
     discard(1);

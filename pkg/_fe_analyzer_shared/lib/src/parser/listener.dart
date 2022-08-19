@@ -1375,6 +1375,43 @@ class Listener implements UnescapeErrorListener {
     logEvent("NoName");
   }
 
+  void beginRecordType(Token leftBracket) {}
+
+  /// Handle the end of a record type declaration.
+  ///
+  /// Substructures:
+  /// - RecordTypeEntry*
+  /// - RecordTypeNamedFields?
+  ///
+  /// Notice that [count] is:
+  /// - the number of RecordTypeEntries if there are no named fields, or
+  /// - the number of RecordTypeEntries + 1 if there are named fields.
+  void endRecordType(Token leftBracket, Token? questionMark, int count) {
+    logEvent("RecordType");
+  }
+
+  void beginRecordTypeEntry() {}
+
+  /// Handle the end of the record type entries.
+  ///
+  /// Substructures:
+  /// - metadata
+  /// - type
+  /// - identifier
+  void endRecordTypeEntry() {
+    logEvent("RecordTypeEntry");
+  }
+
+  void beginRecordTypeNamedFields(Token leftBracket) {}
+
+  /// Handle the end of the record type named fields.
+  ///
+  /// Substructures:
+  /// - RecordTypeEntry*
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    logEvent("RecordTypeNamedFields");
+  }
+
   void beginFunctionType(Token beginToken) {}
 
   /// Handle the end of a generic function type declaration.

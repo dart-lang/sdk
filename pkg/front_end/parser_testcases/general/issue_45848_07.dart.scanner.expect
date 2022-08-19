@@ -1,0 +1,31 @@
+void f(bool b1, bool b2) {
+print('b1=$b1, b2=$b2');
+}
+
+g(int x, int y, int a, int b, int c, int d) {
+f(x<y, (a, b) > (c, d));
+}
+
+main() {
+g(0, 1, 2, 3, 5, 6);
+}
+
+
+
+
+
+void[KeywordToken] f[StringToken]([BeginToken]bool[StringToken] b1[StringToken],[SimpleToken] bool[StringToken] b2[StringToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]'b1=[StringToken]$[SimpleToken]b1[StringToken], b2=[StringToken]$[SimpleToken]b2[StringToken]'[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+g[StringToken]([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken],[SimpleToken] int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken],[SimpleToken] int[StringToken] c[StringToken],[SimpleToken] int[StringToken] d[StringToken])[SimpleToken] {[BeginToken]
+f[StringToken]([BeginToken]x[StringToken]<[BeginToken]y[StringToken],[SimpleToken] ([BeginToken]a[StringToken],[SimpleToken] b[StringToken])[SimpleToken] >[SimpleToken] ([BeginToken]c[StringToken],[SimpleToken] d[StringToken])[SimpleToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+g[StringToken]([BeginToken]0[StringToken],[SimpleToken] 1[StringToken],[SimpleToken] 2[StringToken],[SimpleToken] 3[StringToken],[SimpleToken] 5[StringToken],[SimpleToken] 6[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+
+
+[SimpleToken]

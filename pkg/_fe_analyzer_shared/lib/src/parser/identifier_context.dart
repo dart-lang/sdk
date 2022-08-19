@@ -72,6 +72,11 @@ abstract class IdentifierContext {
       formalParameterDeclaration =
       const FormalParameterDeclarationIdentifierContext();
 
+  /// Identifier is a record field being declared as part of a record type
+  /// declaration.
+  static const RecordFieldDeclarationIdentifierContext recordFieldDeclaration =
+      const RecordFieldDeclarationIdentifierContext();
+
   /// Identifier is a formal parameter being declared as part of a catch block
   /// in a try/catch/finally statement.
   static const CatchParameterIdentifierContext catchParameter =

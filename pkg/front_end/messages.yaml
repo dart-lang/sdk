@@ -315,6 +315,36 @@ EmptyNamedParameterList:
       foo();
     }
 
+EmptyRecordTypeFieldsList:
+  problemMessage: "Record type fields list cannot be empty."
+  correctionMessage: "Try adding a record type field to the list."
+  analyzerCode: "MISSING_IDENTIFIER"
+  experiments: records
+  script: >
+    main() {
+      (/*missing*/) record = (1, 2,);
+    }
+
+EmptyRecordTypeNamedFieldsList:
+  problemMessage: "Record type named fields list cannot be empty."
+  correctionMessage: "Try adding a record type named field to the list."
+  analyzerCode: "MISSING_IDENTIFIER"
+  experiments: records
+  script: >
+    main() {
+      (int, int, {/*missing*/}) record = (1, 2,);
+    }
+
+OnlyOneRecordTypeFieldsList:
+  problemMessage: "Record type fields list cannot contain only one element without a named field."
+  correctionMessage: "Try adding another record type field to the list or add a named field."
+  analyzerCode: "MISSING_IDENTIFIER"
+  experiments: records
+  script: >
+    main() {
+      (int /*missing*/) record = (1, 2,);
+    }
+
 EmptyOptionalParameterList:
   problemMessage: "Optional parameter lists cannot be empty."
   correctionMessage: "Try adding an optional parameter to the list."
