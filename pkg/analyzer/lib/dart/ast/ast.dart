@@ -4113,11 +4113,17 @@ abstract class RecordLiteral implements Literal {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class RecordTypeAnnotation implements TypeAnnotation {
+  /// The left parenthesis.
+  Token get leftParenthesis;
+
   /// The optional named fields.
   RecordTypeAnnotationNamedFields? get namedFields;
 
   /// The positional fields (might be empty).
   NodeList<RecordTypeAnnotationPositionalField> get positionalFields;
+
+  /// The right parenthesis.
+  Token get rightParenthesis;
 }
 
 /// A field in a [RecordTypeAnnotation].

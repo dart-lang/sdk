@@ -993,6 +993,7 @@ class AstTestFactory {
       required List<RecordTypeAnnotationNamedField> namedFields,
       bool isNullable = false}) {
     return RecordTypeAnnotationImpl(
+        leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
         positionalFields: positionalFields,
         namedFields: namedFields.isEmpty
             ? null
@@ -1002,6 +1003,7 @@ class AstTestFactory {
                 fields: namedFields,
                 rightBracket:
                     TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET)),
+        rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
         question:
             isNullable ? TokenFactory.tokenFromType(TokenType.QUESTION) : null);
   }
