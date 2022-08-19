@@ -696,7 +696,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           ..fileOffset = fileOffset;
 
     DartType tearoffType =
-        getGetterTypeForMemberTarget(callMember, expressionType)
+        getGetterTypeForMemberTarget(callMember, expressionType, isSuper: false)
             .withDeclaredNullability(expressionType.nullability);
     Expression tearOff = new InstanceTearOff(
         InstanceAccessKind.Instance, new VariableGet(t), callName,
@@ -740,9 +740,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 AssignabilityKind.unassignableCantTearoff,
                 needsTearOff: false);
           }
-          expressionType =
-              getGetterTypeForMemberTarget(callMember, expressionType)
-                  .withDeclaredNullability(expressionType.nullability);
+          expressionType = getGetterTypeForMemberTarget(
+                  callMember, expressionType,
+                  isSuper: false)
+              .withDeclaredNullability(expressionType.nullability);
         }
       }
     }
@@ -1315,11 +1316,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ///    c.getter; // The getter type is `int`.
   ///
   DartType getGetterTypeForMemberTarget(
-      Member interfaceMember, DartType receiverType) {
+      Member interfaceMember, DartType receiverType,
+      {required bool isSuper}) {
     Class memberClass = interfaceMember.enclosingClass!;
     assert(interfaceMember is Field || interfaceMember is Procedure,
         "Unexpected interface member $interfaceMember.");
-    DartType calleeType = interfaceMember.getterType;
+    DartType calleeType =
+        isSuper ? interfaceMember.superGetterType : interfaceMember.getterType;
     if (memberClass.typeParameters.isNotEmpty) {
       receiverType = resolveTypeParameter(receiverType);
       if (receiverType is InterfaceType) {
@@ -1360,7 +1363,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       Member? member =
           _getInterfaceMember(calleeType.classNode, callName, false, -1);
       if (member != null) {
-        DartType callType = getGetterTypeForMemberTarget(member, calleeType);
+        DartType callType =
+            getGetterTypeForMemberTarget(member, calleeType, isSuper: false);
         if (callType is FunctionType) {
           if (!isNonNullableByDefault) {
             callType = legacyErasure(callType);
@@ -3194,6 +3198,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
+      case ObjectAccessTargetKind.superMember:
         Member member = target.member!;
         if (member is Procedure) {
           if (member.kind == ProcedureKind.Getter) {
@@ -3382,24 +3387,20 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       Name methodName,
       ArgumentsImpl arguments,
       DartType typeContext,
-      Procedure? procedure) {
+      Procedure procedure) {
     int fileOffset = expression.fileOffset;
-    ObjectAccessTarget target = procedure != null
+    ObjectAccessTarget target = thisType!.classNode.isMixinDeclaration
         ? new ObjectAccessTarget.interfaceMember(thisType!, procedure,
             isPotentiallyNullable: false)
-        : const ObjectAccessTarget.missing();
+        : new ObjectAccessTarget.superMember(thisType!, procedure);
     DartType receiverType = thisType!;
     bool isSpecialCasedBinaryOperator =
         target.isSpecialCasedBinaryOperator(this);
-    DartType calleeType = target.getGetterType(this);
-    FunctionType functionType = target.getFunctionType(this);
-    if (procedure != null) {
-      calleeType =
-          computeTypeFromSuperClass(procedure.enclosingClass!, calleeType);
-      functionType =
-          computeTypeFromSuperClass(procedure.enclosingClass!, functionType)
-              as FunctionType;
-    }
+    DartType calleeType = computeTypeFromSuperClass(
+        procedure.enclosingClass!, target.getGetterType(this));
+    FunctionType functionType = computeTypeFromSuperClass(
+            procedure.enclosingClass!, target.getFunctionType(this))
+        as FunctionType;
     if (isNonNullableByDefault &&
         methodName == equalsName &&
         functionType.positionalParameters.length == 1) {
@@ -3427,16 +3428,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Performs the core type inference algorithm for super property get.
   ExpressionInferenceResult inferSuperPropertyGet(
-      Expression expression, Name name, DartType typeContext, Member? member) {
-    ObjectAccessTarget readTarget = member != null
+      Expression expression, Name name, DartType typeContext, Member member) {
+    ObjectAccessTarget readTarget = thisType!.classNode.isMixinDeclaration
         ? new ObjectAccessTarget.interfaceMember(thisType!, member,
             isPotentiallyNullable: false)
-        : const ObjectAccessTarget.missing();
-    DartType inferredType = readTarget.getGetterType(this);
-    if (member != null) {
-      inferredType =
-          computeTypeFromSuperClass(member.enclosingClass!, inferredType);
-    }
+        : new ObjectAccessTarget.superMember(thisType!, member);
+    DartType inferredType = computeTypeFromSuperClass(
+        member.enclosingClass!, readTarget.getGetterType(this));
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       return instantiateTearOff(inferredType, typeContext, expression);
     }
