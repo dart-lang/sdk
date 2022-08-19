@@ -1,4 +1,4 @@
-extension on Object {
+extension Foo on Object {
   set f(int x) {}
 }
 

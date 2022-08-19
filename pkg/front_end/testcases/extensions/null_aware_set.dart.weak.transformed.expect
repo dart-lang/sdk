@@ -2,10 +2,10 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-extension _extension#0 on core::Object {
-  set f = self::_extension#0|set#f;
+extension Foo on core::Object {
+  set f = self::Foo|set#f;
 }
-static method _extension#0|set#f(lowered final core::Object #this, core::int x) → void {}
+static method Foo|set#f(lowered final core::Object #this, core::int x) → void {}
 static method fun(core::String? s) → void {
-  let final core::String? #t1 = s in #t1 == null ?{void} null : self::_extension#0|set#f(#t1{core::String}, 1);
+  let final core::String? #t1 = s in #t1 == null ?{void} null : self::Foo|set#f(#t1{core::String}, 1);
 }
