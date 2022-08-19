@@ -909,6 +909,33 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    node.positionalFields.accept(this);
+    node.namedFields?.accept(this);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedField(
+    RecordTypeAnnotationNamedField node,
+  ) {
+    node.type.accept(this);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedFields(
+    RecordTypeAnnotationNamedFields node,
+  ) {
+    node.fields.accept(this);
+  }
+
+  @override
+  void visitRecordTypeAnnotationPositionalField(
+    RecordTypeAnnotationPositionalField node,
+  ) {
+    node.type.accept(this);
+  }
+
+  @override
   void visitSimpleFormalParameter(
     covariant SimpleFormalParameterImpl node,
   ) {
