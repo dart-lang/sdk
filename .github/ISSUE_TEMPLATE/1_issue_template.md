@@ -1,3 +1,8 @@
+---
+name: General issue
+about: Report a bug or suggest a feature
+title: 'Create an issue'
+---
 Thank you for taking the time to file an issue!
 
 This tracker is for issues related to:
