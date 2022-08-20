@@ -3502,13 +3502,11 @@ InstancePtr Isolate::LookupServiceExtensionHandler(const String& name) {
 
 void Isolate::WakePauseEventHandler(Dart_Isolate isolate) {
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-
   MonitorLocker ml(iso->pause_loop_monitor_);
   ml.Notify();
 
   Dart_MessageNotifyCallback current_notify_callback =
       iso->message_notify_callback();
-
   // It is possible that WakePauseEventHandler was replaced by original callback
   // while waiting for pause_loop_monitor_. In that case PauseEventHandler
   // is no longer running and the original callback needs to be invoked instead
