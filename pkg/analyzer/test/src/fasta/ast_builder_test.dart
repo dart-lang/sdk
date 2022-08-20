@@ -523,9 +523,7 @@ LibraryAugmentationDirective
 
   void test_recordLiteral() {
     var parseResult = parseStringWithErrors(r'''
-void f() {
-  var r = (0, a: 1);
-}
+final x = (0, a: 1);
 ''');
     parseResult.assertNoErrors();
 
@@ -543,6 +541,49 @@ RecordLiteral
         colon: :
       expression: IntegerLiteral
         literal: 1
+  rightParenthesis: )
+''');
+  }
+
+  void test_recordLiteral_named_trailingComma() {
+    var parseResult = parseStringWithErrors(r'''
+final x = (0, a: 1,);
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.recordLiteral('(0');
+    assertParsedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    IntegerLiteral
+      literal: 0
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: a
+        colon: :
+      expression: IntegerLiteral
+        literal: 1
+  rightParenthesis: )
+''');
+  }
+
+  void test_recordLiteral_positional_trailingComma() {
+    var parseResult = parseStringWithErrors(r'''
+final x = (0, 1,);
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.recordLiteral('(0');
+    assertParsedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    IntegerLiteral
+      literal: 0
+    IntegerLiteral
+      literal: 1
   rightParenthesis: )
 ''');
   }
@@ -612,6 +653,34 @@ RecordTypeAnnotation
 ''');
   }
 
+  void test_recordTypeAnnotation_named_trailingComma() {
+    var parseResult = parseStringWithErrors(r'''
+void f(({int a, bool b,}) r) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.recordTypeAnnotation('({int');
+    assertParsedNodeText(node, r'''
+RecordTypeAnnotation
+  leftParenthesis: (
+  namedFields: RecordTypeAnnotationNamedFields
+    leftBracket: {
+    fields
+      RecordTypeAnnotationNamedField
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        name: a
+      RecordTypeAnnotationNamedField
+        type: NamedType
+          name: SimpleIdentifier
+            token: bool
+        name: b
+    rightBracket: }
+  rightParenthesis: )
+''');
+  }
+
   void test_recordTypeAnnotation_nullable() {
     var parseResult = parseStringWithErrors(r'''
 void f((int, bool)? r) {}
@@ -639,6 +708,29 @@ RecordTypeAnnotation
   void test_recordTypeAnnotation_positional() {
     var parseResult = parseStringWithErrors(r'''
 void f((int, bool) r) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.recordTypeAnnotation('(int');
+    assertParsedNodeText(node, r'''
+RecordTypeAnnotation
+  leftParenthesis: (
+  positionalFields
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: SimpleIdentifier
+          token: bool
+  rightParenthesis: )
+''');
+  }
+
+  void test_recordTypeAnnotation_positional_trailingComma() {
+    var parseResult = parseStringWithErrors(r'''
+void f((int, bool,) r) {}
 ''');
     parseResult.assertNoErrors();
 

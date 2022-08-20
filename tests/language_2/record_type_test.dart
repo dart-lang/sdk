@@ -7,7 +7,6 @@
 main() {
   (int, int) record1 = (1, 2);
 //^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                     ^
@@ -18,7 +17,6 @@ main() {
   // [cfe] This expression has type 'void' and can't be used.
   (int x, int y) record1Named = (1, 2);
 //^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                              ^
@@ -30,7 +28,6 @@ main() {
 
   (int, int, ) record2 = (1, 2);
 //^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                       ^
@@ -42,7 +39,6 @@ main() {
 
   (int x, int y, ) record2Named = (1, 2);
 //^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                                ^
@@ -54,7 +50,6 @@ main() {
 
   (int, int, {int a, int b}) record3 = (1, 2, a: 3, b: 4);
 //^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                                     ^
@@ -66,7 +61,6 @@ main() {
 
   (int x, int y, {int a, int b}) record3Named = (1, 2, a: 3, b: 4);
 //^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                                              ^
@@ -78,7 +72,6 @@ main() {
 
   (int, int, {int a, int b, }) record4 = (1, 2, a: 3, b: 4);
 //^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                                       ^
@@ -90,7 +83,6 @@ main() {
 
   (int x, int y, {int a, int b, }) record4Named = (1, 2, a: 3, b: 4);
 //^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                                                ^
@@ -113,15 +105,12 @@ main() {
   // [cfe] This expression has type 'void' and can't be used.
   (int, int) Function ((int, int) a) z1 = ((int, int) a) { return (42, 42); };
 //^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                     ^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                                         ^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                                                                ^
@@ -131,11 +120,9 @@ main() {
 
 (int, int) foo((int, {bool b}) inputRecord, int x) {
 // [error column 1, length 1]
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //             ^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
   if (inputRecord.b) return (42, 42);
@@ -155,7 +142,6 @@ main() {
 class Bar {
   (int, int) foo(int x) => (42, 42);
 //^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                         ^
