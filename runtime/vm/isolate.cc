@@ -3502,9 +3502,24 @@ InstancePtr Isolate::LookupServiceExtensionHandler(const String& name) {
 
 void Isolate::WakePauseEventHandler(Dart_Isolate isolate) {
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+
   MonitorLocker ml(iso->pause_loop_monitor_);
   ml.Notify();
-  iso->wake_pause_event_handler_count_.fetch_add(1, std::memory_order_relaxed);
+
+  Dart_MessageNotifyCallback current_notify_callback =
+      iso->message_notify_callback();
+
+  // It is possible that WakePauseEventHandler was replaced by original callback
+  // while waiting for pause_loop_monitor_. In that case PauseEventHandler
+  // is no longer running and the original callback needs to be invoked instead
+  // of incrementing wake_pause_event_handler_count_.
+  if (current_notify_callback != Isolate::WakePauseEventHandler) {
+    if (current_notify_callback != nullptr) {
+      current_notify_callback(isolate);
+    }
+  } else {
+    ++iso->wake_pause_event_handler_count_;
+  }
 }
 
 void Isolate::PauseEventHandler() {
@@ -3520,7 +3535,7 @@ void Isolate::PauseEventHandler() {
   MonitorLocker ml(pause_loop_monitor_, false);
 
   Dart_MessageNotifyCallback saved_notify_callback = message_notify_callback();
-  ASSERT(wake_pause_event_handler_count_.load() == 0);
+  ASSERT(wake_pause_event_handler_count_ == 0);
   set_message_notify_callback(Isolate::WakePauseEventHandler);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -3568,12 +3583,12 @@ void Isolate::PauseEventHandler() {
   // may be left unhandled until the next event comes in. See
   // https://github.com/dart-lang/sdk/issues/37312.
   if (saved_notify_callback != nullptr) {
-    while (wake_pause_event_handler_count_.fetch_sub(
-               1, std::memory_order_acq_rel) > 0) {
+    while (wake_pause_event_handler_count_ > 0) {
       saved_notify_callback(Api::CastIsolate(this));
+      --wake_pause_event_handler_count_;
     }
   } else {
-    wake_pause_event_handler_count_.store(0);
+    wake_pause_event_handler_count_ = 0;
   }
   set_message_notify_callback(saved_notify_callback);
   Dart_ExitScope();
