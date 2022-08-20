@@ -142,6 +142,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// information used in flow analysis.  Otherwise `null`.
   AssignedVariables<AstNode, PromotableElement>? _assignedVariables;
 
+  /// The outermost function or method being visited, or `null` if the visitor
+  /// is not inside any function or method.
+  ExecutableElement? _currentExecutable;
+
   /// The [DecoratedType] of the innermost function or method being visited, or
   /// `null` if the visitor is not inside any function or method.
   ///
@@ -1036,6 +1040,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var previousPostDominatedLocals = _postDominatedLocals;
     var previousElementsWrittenToInLocalFunction =
         _elementsWrittenToInLocalFunction;
+    var previousExecutable = _currentExecutable;
+    _currentExecutable ??= node.declaredElement;
     try {
       if (node.parent is! FunctionDeclaration) {
         _elementsWrittenToInLocalFunction = {};
@@ -1060,6 +1066,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _currentFieldFormals = previousFieldFormals;
       _currentFunctionExpression = previousFunction;
       _postDominatedLocals = previousPostDominatedLocals;
+      _currentExecutable = previousExecutable;
     }
   }
 
@@ -1394,7 +1401,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } else if (calleeIsStatic) {
         _dispatch(target);
       } else if (isNullAware) {
-        targetType = _dispatch(target);
+        targetType = _handleNullAwareTarget(target, node);
       } else {
         targetType = _handleTarget(target, node.methodName.name, callee);
       }
@@ -2624,6 +2631,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       ConstructorName? redirectedConstructor) {
     assert(_currentFunctionType == null);
     assert(_currentFieldFormals.isEmpty);
+    assert(_currentExecutable == null);
     _dispatchList(metadata);
     _dispatch(returnType);
     _createFlowAnalysis(node, parameters);
@@ -2632,6 +2640,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _currentFieldFormals = declaredElement is ConstructorElement
         ? _computeFieldFormalMap(declaredElement)
         : const {};
+    _currentExecutable = declaredElement;
     _addParametersToFlowAnalysis(parameters);
     // Push a scope of post-dominated declarations on the stack.
     _postDominatedLocals.pushScope(elements: declaredElement.parameters);
@@ -2726,6 +2735,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _currentFunctionType = null;
       _currentFieldFormals = const {};
       _postDominatedLocals.popScope();
+      _currentExecutable = null;
     }
   }
 
@@ -3105,6 +3115,21 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     return calleeType.returnType;
   }
 
+  DecoratedType? _handleNullAwareTarget(Expression? target, Expression node) {
+    var targetType = _dispatch(target);
+    if (target is SimpleIdentifier) {
+      var targetElement = target.staticElement;
+      if (targetElement is ParameterElement &&
+          targetElement.enclosingElement3 == _currentExecutable &&
+          !_currentExecutable!.name.startsWith('_')) {
+        _graph.makeNullable(
+            _variables.decoratedElementType(targetElement).node!,
+            NullAwareAccessOrigin(source, node));
+      }
+    }
+    return targetType;
+  }
+
   DecoratedType? _handleNullCheckHint(
       Expression expression, DecoratedType? type) {
     // Sometimes we think we're looking at an expression but we're really not
@@ -3157,7 +3182,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (calleeIsStatic) {
       _dispatch(target);
     } else if (isNullAware) {
-      targetType = _dispatch(target);
+      targetType = _handleNullAwareTarget(target, node);
     } else {
       targetType = _handleTarget(target, propertyName, callee);
     }

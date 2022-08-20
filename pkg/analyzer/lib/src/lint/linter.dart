@@ -370,6 +370,7 @@ class LinterContextImpl implements LinterContext {
     var evaluationEngine = ConstantEvaluationEngine(
       declaredVariables: declaredVariables,
       isNonNullableByDefault: isEnabled(Feature.non_nullable),
+      configuration: ConstantEvaluationConfiguration(),
     );
 
     var dependencies = <ConstantEvaluationTarget>[];
@@ -378,9 +379,10 @@ class LinterContextImpl implements LinterContext {
     );
 
     computeConstants(
-      declaredVariables,
-      dependencies,
-      libraryElement.featureSet,
+      declaredVariables: declaredVariables,
+      constants: dependencies,
+      featureSet: libraryElement.featureSet,
+      configuration: ConstantEvaluationConfiguration(),
     );
 
     var visitor = ConstantVisitor(
@@ -484,9 +486,10 @@ class LinterContextImpl implements LinterContext {
     var dependenciesFinder = ConstantExpressionsDependenciesFinder();
     node.accept(dependenciesFinder);
     computeConstants(
-      declaredVariables,
-      dependenciesFinder.dependencies.toList(),
-      libraryElement.featureSet,
+      declaredVariables: declaredVariables,
+      constants: dependenciesFinder.dependencies.toList(),
+      featureSet: libraryElement.featureSet,
+      configuration: ConstantEvaluationConfiguration(),
     );
 
     var listener = _ConstantAnalysisErrorListener();

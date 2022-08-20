@@ -2436,37 +2436,68 @@ class AstBuilder extends StackListener {
   @override
   void endRecordType(Token leftBracket, Token? questionMark, int count) {
     debugEvent("RecordType");
-    _reportFeatureNotEnabled(
-      feature: ExperimentalFeatures.records,
-      startToken: leftBracket,
-    );
 
-    if (!enableNonNullable) {
-      reportErrorIfNullableType(questionMark);
+    if (!enableRecords) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.records,
+        startToken: leftBracket,
+      );
     }
-
-    // TODO: Implement record type. This currently pushes a dummy type.
-
-    push(
-      ast.namedType(
-        name: ast.simpleIdentifier(leftBracket),
-        typeArguments: null,
-        question: questionMark,
-      ),
-    );
+    RecordTypeAnnotationNamedFieldsImpl? namedFields;
+    var elements = popTypedList<Object>(count) ?? const [];
+    var last = elements.lastOrNull;
+    if (last is RecordTypeAnnotationNamedFieldsImpl) {
+      elements.removeLast();
+      namedFields = last;
+    }
+    var positionalFields = <RecordTypeAnnotationPositionalField>[];
+    for (var elem in elements) {
+      positionalFields.add(elem as RecordTypeAnnotationPositionalField);
+    }
+    push(RecordTypeAnnotationImpl(
+      leftParenthesis: leftBracket,
+      positionalFields: positionalFields,
+      namedFields: namedFields,
+      rightParenthesis: leftBracket.endGroup!,
+      question: questionMark,
+    ));
   }
 
   @override
   void endRecordTypeEntry() {
-    // TODO: Implement record type entry.
-    pop(); // Identifier.
-    pop(); // Type.
-    pop(); // Metadata.
+    debugEvent("RecordTypeEntry");
+
+    var name = pop() as SimpleIdentifier?;
+    var type = pop() as TypeAnnotationImpl;
+    var metadata = pop() as List<Annotation>?;
+
+    push(RecordTypeAnnotationPositionalFieldImpl(
+      metadata: metadata,
+      type: type,
+      name: name?.token,
+    ));
   }
 
   @override
   void endRecordTypeNamedFields(int count, Token leftBracket) {
-    // TODO: Implement record type named fields.
+    debugEvent("RecordTypeNamedFields");
+
+    var elements =
+        popTypedList<RecordTypeAnnotationPositionalFieldImpl>(count) ??
+            const [];
+    var fields = <RecordTypeAnnotationNamedField>[];
+    for (var elem in elements) {
+      fields.add(RecordTypeAnnotationNamedFieldImpl(
+        metadata: elem.metadata,
+        type: elem.type,
+        name: elem.name!,
+      ));
+    }
+    push(RecordTypeAnnotationNamedFieldsImpl(
+      leftBracket: leftBracket,
+      fields: fields,
+      rightBracket: leftBracket.endGroup!,
+    ));
   }
 
   @override

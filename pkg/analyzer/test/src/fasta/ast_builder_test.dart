@@ -547,6 +547,118 @@ RecordLiteral
 ''');
   }
 
+  void test_recordTypeAnnotation_mixed() {
+    var parseResult = parseStringWithErrors(r'''
+void f((int, bool, {int a, bool b}) r) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.recordTypeAnnotation('(int');
+    assertParsedNodeText(node, r'''
+RecordTypeAnnotation
+  leftParenthesis: (
+  positionalFields
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: SimpleIdentifier
+          token: bool
+  namedFields: RecordTypeAnnotationNamedFields
+    leftBracket: {
+    fields
+      RecordTypeAnnotationNamedField
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        name: a
+      RecordTypeAnnotationNamedField
+        type: NamedType
+          name: SimpleIdentifier
+            token: bool
+        name: b
+    rightBracket: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_recordTypeAnnotation_named() {
+    var parseResult = parseStringWithErrors(r'''
+void f(({int a, bool b}) r) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.recordTypeAnnotation('({int');
+    assertParsedNodeText(node, r'''
+RecordTypeAnnotation
+  leftParenthesis: (
+  namedFields: RecordTypeAnnotationNamedFields
+    leftBracket: {
+    fields
+      RecordTypeAnnotationNamedField
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+        name: a
+      RecordTypeAnnotationNamedField
+        type: NamedType
+          name: SimpleIdentifier
+            token: bool
+        name: b
+    rightBracket: }
+  rightParenthesis: )
+''');
+  }
+
+  void test_recordTypeAnnotation_nullable() {
+    var parseResult = parseStringWithErrors(r'''
+void f((int, bool)? r) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.recordTypeAnnotation('(int');
+    assertParsedNodeText(node, r'''
+RecordTypeAnnotation
+  leftParenthesis: (
+  positionalFields
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: SimpleIdentifier
+          token: bool
+  rightParenthesis: )
+  question: ?
+''');
+  }
+
+  void test_recordTypeAnnotation_positional() {
+    var parseResult = parseStringWithErrors(r'''
+void f((int, bool) r) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.recordTypeAnnotation('(int');
+    assertParsedNodeText(node, r'''
+RecordTypeAnnotation
+  leftParenthesis: (
+  positionalFields
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: SimpleIdentifier
+          token: bool
+  rightParenthesis: )
+''');
+  }
+
   void test_superFormalParameter() {
     var parseResult = parseStringWithErrors(r'''
 class A {

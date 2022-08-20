@@ -9691,13 +9691,9 @@ abstract class RecordTypeAnnotationFieldImpl extends AstNodeImpl
   @override
   final TypeAnnotationImpl type;
 
-  @override
-  final Token? comma;
-
   RecordTypeAnnotationFieldImpl({
     required List<Annotation>? metadata,
     required this.type,
-    required this.comma,
   }) {
     this.metadata._initialize(this, metadata);
     _becomeParentOf(type);
@@ -9707,14 +9703,13 @@ abstract class RecordTypeAnnotationFieldImpl extends AstNodeImpl
   Token get beginToken => metadata.beginToken ?? type.beginToken;
 
   @override
-  Token get endToken => comma ?? type.endToken;
+  Token get endToken => name ?? type.endToken;
 
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addNodeList('metadata', metadata)
     ..addNode('type', type)
-    ..addToken('name', name)
-    ..addToken('comma', comma);
+    ..addToken('name', name);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9789,7 +9784,6 @@ class RecordTypeAnnotationNamedFieldImpl extends RecordTypeAnnotationFieldImpl
     required super.metadata,
     required super.type,
     required this.name,
-    required super.comma,
   });
 
   @override
@@ -9850,7 +9844,6 @@ class RecordTypeAnnotationPositionalFieldImpl
     required super.metadata,
     required super.type,
     required this.name,
-    required super.comma,
   });
 
   @override

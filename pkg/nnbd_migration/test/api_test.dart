@@ -7232,12 +7232,187 @@ void g(MapGetter? mapGetter) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_null_aware_call_on_closure_param_not_nullable() async {
+    // The null-aware access on `i` is *not* considered a strong enough signal
+    // that `i` is meant to be nullable, because the migration tool can see all
+    // callers of the closure, so it can tell whether it needs to be nullable or
+    // not.
+    //
+    // (Note: this is not strictly true, because the closure could be called
+    // from elsewhere.  But it's a heuristic that seems to be usually right in
+    // the cases we've found so far.)
+    var content = '''
+main() {
+  var x = (int i) => i?.abs();
+}
+''';
+    var expected = '''
+main() {
+  var x = (int i) => i.abs();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_null_aware_call_on_local_param_not_nullable() async {
+    // The null-aware access on `i` is *not* considered a strong enough signal
+    // that `i` is meant to be nullable, because the migration tool can see all
+    // callers of `f`, so it can tell whether it needs to be nullable or not.
+    //
+    // (Note: this is not strictly true, because the local function could be
+    // torn off and called from elsewhere.  But it's a heuristic that seems to
+    // be usually right in the cases we've found so far.)
+    var content = '''
+main() {
+  int f(int i) => i?.abs();
+}
+''';
+    var expected = '''
+main() {
+  int f(int i) => i.abs();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_null_aware_call_on_private_param_not_nullable() async {
+    // The null-aware access on `i` is *not* considered a strong enough signal
+    // that `i` is meant to be nullable, because the migration tool can see all
+    // callers of `_f`, so it can tell whether it needs to be nullable or not.
+    var content = 'int _f(int i) => i?.abs();';
+    var expected = 'int _f(int i) => i.abs();';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_null_aware_call_on_public_param_implies_nullable() async {
+    // The null-aware access on `i` is considered a strong signal that `i` is
+    // meant to be nullable.
+    var content = 'int f(int i) => i?.abs();';
+    var expected = 'int? f(int? i) => i?.abs();';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_null_aware_call_on_public_param_overridable_by_hint() async {
+    // The null-aware access on `i` is considered a strong signal that `i` is
+    // meant to be nullable, but an explicit `/*!*/` is a stronger signal.
+    var content = 'int f(int/*!*/ i) => i?.abs();';
+    var expected = 'int f(int i) => i.abs();';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_null_aware_call_on_public_param_overridable_by_intent() async {
+    // The null-aware access on `i` is considered a strong signal that `i` is
+    // meant to be nullable, but non-null intent is a stronger signal.
+    var content = '''
+int f(int i) {
+  print(i + 1);
+  return i?.abs();
+}
+''';
+    var expected = '''
+int f(int i) {
+  print(i + 1);
+  return i.abs();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_null_aware_call_tearoff() async {
     // Kind of a weird use case because `f?.call` is equivalent to `f`, but
     // let's make sure we analyze it correctly.
     var content =
         'int Function(int) g(int/*?*/ Function(int)/*?*/ f) => f?.call;';
     var expected = 'int? Function(int)? g(int? Function(int)? f) => f?.call;';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_null_aware_get_on_closure_param_not_nullable() async {
+    // The null-aware access on `i` is *not* considered a strong enough signal
+    // that `i` is meant to be nullable, because the migration tool can see all
+    // callers of the closure, so it can tell whether it needs to be nullable or
+    // not.
+    //
+    // (Note: this is not strictly true, because the closure could be called
+    // from elsewhere.  But it's a heuristic that seems to be usually right in
+    // the cases we've found so far.)
+    var content = '''
+main() {
+  var x = (int i) => i?.isEven;
+}
+''';
+    var expected = '''
+main() {
+  var x = (int i) => i.isEven;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_null_aware_get_on_local_param_not_nullable() async {
+    // The null-aware access on `i` is *not* considered a strong enough signal
+    // that `i` is meant to be nullable, because the migration tool can see all
+    // callers of `f`, so it can tell whether it needs to be nullable or not.
+    //
+    // (Note: this is not strictly true, because the local function could be
+    // torn off and called from elsewhere.  But it's a heuristic that seems to
+    // be usually right in the cases we've found so far.)
+    var content = '''
+main() {
+  bool f(int i) => i?.isEven;
+}
+''';
+    var expected = '''
+main() {
+  bool f(int i) => i.isEven;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_null_aware_get_on_private_param_not_nullable() async {
+    // The null-aware access on `i` is *not* considered a strong enough signal
+    // that `i` is meant to be nullable, because the migration tool can see all
+    // callers of `_f`, so it can tell whether it needs to be nullable or not.
+    var content = 'bool _f(int i) => i?.isEven;';
+    var expected = 'bool _f(int i) => i.isEven;';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_null_aware_get_on_public_param_implies_nullable() async {
+    // The null-aware access on `i` is considered a strong signal that `i` is
+    // meant to be nullable.
+    var content = 'bool f(int i) => i?.isEven;';
+    var expected = 'bool? f(int? i) => i?.isEven;';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_null_aware_get_on_public_param_overridable_by_hint() async {
+    // The null-aware access on `i` is considered a strong signal that `i` is
+    // meant to be nullable, but an explicit `/*!*/` is a stronger signal.
+    var content = 'bool f(int/*!*/ i) => i?.isEven;';
+    var expected = 'bool f(int i) => i.isEven;';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_null_aware_get_on_public_param_overridable_by_intent() async {
+    // The null-aware access on `i` is considered a strong signal that `i` is
+    // meant to be nullable, but non-null intent is a stronger signal.
+    var content = '''
+bool f(int i) {
+  print(i + 1);
+  return i?.isEven;
+}
+''';
+    var expected = '''
+bool f(int i) {
+  print(i + 1);
+  return i.isEven;
+}
+''';
     await _checkSingleFileChanges(content, expected);
   }
 
@@ -7268,6 +7443,141 @@ main() {
 int? f(int? i) => i?.abs();
 main() {
   f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_null_aware_set_on_closure_param_not_nullable() async {
+    // The null-aware access on `c` is *not* considered a strong enough signal
+    // that `c` is meant to be nullable, because the migration tool can see all
+    // callers of the closure, so it can tell whether it needs to be nullable or
+    // not.
+    //
+    // (Note: this is not strictly true, because the closure could be called
+    // from elsewhere.  But it's a heuristic that seems to be usually right in
+    // the cases we've found so far.)
+    var content = '''
+class C {
+  int i = 0;
+}
+main() {
+  var x = (C c) { c?.i = 0; };
+}
+''';
+    var expected = '''
+class C {
+  int i = 0;
+}
+main() {
+  var x = (C c) { c.i = 0; };
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_null_aware_set_on_local_param_not_nullable() async {
+    // The null-aware access on `c` is *not* considered a strong enough signal
+    // that `c` is meant to be nullable, because the migration tool can see all
+    // callers of `f`, so it can tell whether it needs to be nullable or not.
+    //
+    // (Note: this is not strictly true, because the local function could be
+    // torn off and called from elsewhere.  But it's a heuristic that seems to
+    // be usually right in the cases we've found so far.)
+    var content = '''
+class C {
+  int i = 0;
+}
+main() {
+  void f(C c) { c?.i = 0; }
+}
+''';
+    var expected = '''
+class C {
+  int i = 0;
+}
+main() {
+  void f(C c) { c.i = 0; }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_null_aware_set_on_private_param_not_nullable() async {
+    // The null-aware access on `c` is *not* considered a strong enough signal
+    // that `c` is meant to be nullable, because the migration tool can see all
+    // callers of `_f`, so it can tell whether it needs to be nullable or not.
+    var content = '''
+class C {
+  int i = 0;
+}
+void _f(C c) { c?.i = 0; }
+''';
+    var expected = '''
+class C {
+  int i = 0;
+}
+void _f(C c) { c.i = 0; }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_null_aware_set_on_public_param_implies_nullable() async {
+    // The null-aware access on `c` is considered a strong signal that `c` is
+    // meant to be nullable.
+    var content = '''
+class C {
+  int i = 0;
+}
+void f(C c) { c?.i = 0; }
+''';
+    var expected = '''
+class C {
+  int i = 0;
+}
+void f(C? c) { c?.i = 0; }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_null_aware_set_on_public_param_overridable_by_hint() async {
+    // The null-aware access on `c` is considered a strong signal that `c` is
+    // meant to be nullable, but an explicit `/*!*/` is a stronger signal.
+    var content = '''
+class C {
+  int i = 0;
+}
+void f(C/*!*/ c) { c?.i = 0; }
+''';
+    var expected = '''
+class C {
+  int i = 0;
+}
+void f(C c) { c.i = 0; }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_null_aware_set_on_public_param_overridable_by_intent() async {
+    // The null-aware access on `c` is considered a strong signal that `c` is
+    // meant to be nullable, but non-null intent is a stronger signal.
+    var content = '''
+class C {
+  int i = 0;
+}
+void f(C c) {
+  print(c.i);
+  c?.i = 0;
+}
+''';
+    var expected = '''
+class C {
+  int i = 0;
+}
+void f(C c) {
+  print(c.i);
+  c.i = 0;
 }
 ''';
     await _checkSingleFileChanges(content, expected);

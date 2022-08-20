@@ -2786,60 +2786,70 @@ var v = !(a == b);
             AstTestFactory.identifier3("a"), "b", TokenType.QUESTION_PERIOD));
   }
 
-  void test_visitRecordLiteral_named() {
+  void test_visitRecordLiteral_mixed() {
+    final code = '(0, true, a: 0, b: true)';
+    var findNode = _parseStringToFindNode('''
+final x = $code;
+''');
     _assertSource(
-        "(a: 1, b: 2)",
-        AstTestFactory.recordLiteral([
-          AstTestFactory.namedExpression2('a', AstTestFactory.integer(1)),
-          AstTestFactory.namedExpression2('b', AstTestFactory.integer(2)),
-        ]));
+      code,
+      findNode.recordLiteral(code),
+    );
+  }
+
+  void test_visitRecordLiteral_named() {
+    final code = '(a: 0, b: true)';
+    var findNode = _parseStringToFindNode('''
+final x = $code;
+''');
+    _assertSource(
+      code,
+      findNode.recordLiteral(code),
+    );
   }
 
   void test_visitRecordLiteral_positional() {
+    final code = '(0, true)';
+    var findNode = _parseStringToFindNode('''
+final x = $code;
+''');
     _assertSource(
-        "(1, 2)",
-        AstTestFactory.recordLiteral([
-          AstTestFactory.integer(1),
-          AstTestFactory.integer(2),
-        ]));
+      code,
+      findNode.recordLiteral(code),
+    );
   }
 
   void test_visitRecordTypeAnnotation_mixed() {
+    final code = '(int, bool, {int a, bool b})';
+    var findNode = _parseStringToFindNode('''
+$code f() {}
+''');
     _assertSource(
-        "(int, bool, {int a, bool b})",
-        AstTestFactory.recordTypeAnnotation(positionalFields: [
-          AstTestFactory.recordTypeAnnotationPositionalField(
-              AstTestFactory.namedType4('int')),
-          AstTestFactory.recordTypeAnnotationPositionalField(
-              AstTestFactory.namedType4('bool')),
-        ], namedFields: [
-          AstTestFactory.recordTypeAnnotationNamedField(
-              AstTestFactory.namedType4('int'), 'a'),
-          AstTestFactory.recordTypeAnnotationNamedField(
-              AstTestFactory.namedType4('bool'), 'b'),
-        ]));
+      code,
+      findNode.recordTypeAnnotation(code),
+    );
   }
 
   void test_visitRecordTypeAnnotation_named() {
+    final code = '({int a, bool b})';
+    var findNode = _parseStringToFindNode('''
+$code f() {}
+''');
     _assertSource(
-        "({int a, bool b})",
-        AstTestFactory.recordTypeAnnotation(positionalFields: [], namedFields: [
-          AstTestFactory.recordTypeAnnotationNamedField(
-              AstTestFactory.namedType4('int'), 'a'),
-          AstTestFactory.recordTypeAnnotationNamedField(
-              AstTestFactory.namedType4('bool'), 'b'),
-        ]));
+      code,
+      findNode.recordTypeAnnotation(code),
+    );
   }
 
   void test_visitRecordTypeAnnotation_positional() {
+    final code = '(int, bool)';
+    var findNode = _parseStringToFindNode('''
+$code f() {}
+''');
     _assertSource(
-        "(int, bool)",
-        AstTestFactory.recordTypeAnnotation(positionalFields: [
-          AstTestFactory.recordTypeAnnotationPositionalField(
-              AstTestFactory.namedType4('int')),
-          AstTestFactory.recordTypeAnnotationPositionalField(
-              AstTestFactory.namedType4('bool')),
-        ], namedFields: []));
+      code,
+      findNode.recordTypeAnnotation(code),
+    );
   }
 
   void test_visitRedirectingConstructorInvocation_named() {

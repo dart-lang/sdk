@@ -230,10 +230,20 @@ class LibraryAnalyzer {
 
   /// Compute [_constants] in all units.
   void _computeConstants(Iterable<CompilationUnitImpl> units) {
+    final configuration = ConstantEvaluationConfiguration();
     var constants = [
-      for (var unit in units) ..._findConstants(unit),
+      for (var unit in units)
+        ..._findConstants(
+          unit: unit,
+          configuration: configuration,
+        ),
     ];
-    computeConstants(_declaredVariables, constants, _libraryElement.featureSet);
+    computeConstants(
+      declaredVariables: _declaredVariables,
+      constants: constants,
+      featureSet: _libraryElement.featureSet,
+      configuration: configuration,
+    );
   }
 
   /// Compute diagnostics in [units], including errors and warnings, hints,
@@ -495,6 +505,24 @@ class LibraryAnalyzer {
     }
 
     return errors.where((AnalysisError e) => !isIgnored(e)).toList();
+  }
+
+  /// Find constants in [unit] to compute.
+  List<ConstantEvaluationTarget> _findConstants({
+    required CompilationUnit unit,
+    required ConstantEvaluationConfiguration configuration,
+  }) {
+    ConstantFinder constantFinder = ConstantFinder(
+      configuration: configuration,
+    );
+    unit.accept(constantFinder);
+
+    var dependenciesFinder = ConstantExpressionsDependenciesFinder();
+    unit.accept(dependenciesFinder);
+    return [
+      ...constantFinder.constantsToCompute,
+      ...dependenciesFinder.dependencies,
+    ];
   }
 
   RecordingErrorListener _getErrorListener(FileState file) =>
@@ -1000,19 +1028,6 @@ class LibraryAnalyzer {
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.DUPLICATE_PART, partUri, [partSource.uri]);
     }
-  }
-
-  /// Find constants in [unit] to compute.
-  static List<ConstantEvaluationTarget> _findConstants(CompilationUnit unit) {
-    ConstantFinder constantFinder = ConstantFinder();
-    unit.accept(constantFinder);
-
-    var dependenciesFinder = ConstantExpressionsDependenciesFinder();
-    unit.accept(dependenciesFinder);
-    return [
-      ...constantFinder.constantsToCompute,
-      ...dependenciesFinder.dependencies,
-    ];
   }
 }
 

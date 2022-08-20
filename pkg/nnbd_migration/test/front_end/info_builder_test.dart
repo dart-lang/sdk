@@ -1032,9 +1032,9 @@ int  f(int/*!*/ x, int  y) => x ??= y;
 
   void test_nullAwarenessUnnecessaryInStrongMode() async {
     var unit = await buildInfoForSingleTestFile('''
-int f(String s) => s?.length;
+int f(String/*!*/ s) => s?.length;
 ''', migratedContent: '''
-int  f(String  s) => s?.length;
+int  f(String/*!*/ s) => s?.length;
 ''', warnOnWeakCode: true);
     var question = '?';
     var questionOffset = unit.content!.indexOf(question);

@@ -71,6 +71,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           declaredVariables: declaredVariables,
           isNonNullableByDefault:
               _currentLibrary.featureSet.isEnabled(Feature.non_nullable),
+          configuration: ConstantEvaluationConfiguration(),
         );
 
   @override

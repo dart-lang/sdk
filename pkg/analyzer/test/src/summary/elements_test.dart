@@ -34752,7 +34752,29 @@ library
 ''');
   }
 
-  test_recordType_classField_fromLiteral() async {
+  test_recordType_class_field() async {
+    var library = await buildLibrary('''
+class A {
+  final (int, String) x;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final x @32
+            type: (int, String)
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @-1
+            returnType: (int, String)
+''');
+  }
+
+  test_recordType_class_field_fromLiteral() async {
     var library = await buildLibrary('''
 class A {
   final x = (0, true);
@@ -34771,6 +34793,131 @@ library
         accessors
           synthetic get x @-1
             returnType: (int, bool)
+''');
+  }
+
+  test_recordType_class_method_formalParameter() async {
+    var library = await buildLibrary('''
+class A {
+  void foo((int, String) a) {}
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+        methods
+          foo @17
+            parameters
+              requiredPositional a @35
+                type: (int, String)
+            returnType: void
+''');
+  }
+
+  test_recordType_class_method_returnType() async {
+    var library = await buildLibrary('''
+class A {
+  (int, String) foo() {}
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+        methods
+          foo @26
+            returnType: (int, String)
+''');
+  }
+
+  test_recordType_topFunction_formalParameter() async {
+    var library = await buildLibrary('''
+void f((int, String) a) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional a @21
+            type: (int, String)
+        returnType: void
+''');
+  }
+
+  test_recordType_topFunction_returnType_mixed() async {
+    var library = await buildLibrary('''
+(int, String, {bool c}) f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @24
+        returnType: (int, String, {bool c})
+''');
+  }
+
+  test_recordType_topFunction_returnType_named() async {
+    var library = await buildLibrary('''
+({int a, String b}) f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @20
+        returnType: ({int a, String b})
+''');
+  }
+
+  test_recordType_topFunction_returnType_nullable() async {
+    var library = await buildLibrary('''
+(int, String)? f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @15
+        returnType: (int, String)?
+''');
+  }
+
+  test_recordType_topFunction_returnType_positional() async {
+    var library = await buildLibrary('''
+(int, String) f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @14
+        returnType: (int, String)
+''');
+  }
+
+  test_recordType_topVariable() async {
+    var library = await buildLibrary('''
+final (int, String) x;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static final x @20
+        type: (int, String)
+    accessors
+      synthetic static get x @-1
+        returnType: (int, String)
 ''');
   }
 

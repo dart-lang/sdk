@@ -4131,10 +4131,6 @@ abstract class RecordTypeAnnotation implements TypeAnnotation {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class RecordTypeAnnotationField implements AstNode {
-  /// The comma at the end of the field, either before the next field,
-  /// or optional after the last field.
-  Token? get comma;
-
   /// The annotations associated with the field.
   NodeList<Annotation> get metadata;
 
