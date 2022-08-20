@@ -3572,6 +3572,8 @@ void Isolate::PauseEventHandler() {
                1, std::memory_order_acq_rel) > 0) {
       saved_notify_callback(Api::CastIsolate(this));
     }
+  } else {
+    wake_pause_event_handler_count_.store(0);
   }
   set_message_notify_callback(saved_notify_callback);
   Dart_ExitScope();
