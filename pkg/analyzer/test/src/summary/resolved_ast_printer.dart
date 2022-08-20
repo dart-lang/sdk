@@ -975,7 +975,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('RecordTypeAnnotation');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeType('staticType', node.type);
+      _writeType('type', node.type);
     });
   }
 
