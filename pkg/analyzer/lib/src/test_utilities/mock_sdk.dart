@@ -579,6 +579,8 @@ abstract class Pattern {
   Iterable<Match> allMatches(String string, [int start = 0]);
 }
 
+abstract class Record {}
+
 abstract class RegExp implements Pattern {
   external factory RegExp(String source, {bool unicode = false});
 }
