@@ -12,6 +12,7 @@ import 'binary_expression_test.dart' as binary_expression;
 import 'class_alias_test.dart' as class_alias;
 import 'class_test.dart' as class_resolution;
 import 'comment_test.dart' as comment;
+import 'conditional_expression_test.dart' as conditional_expression;
 import 'constant_test.dart' as constant;
 import 'constructor_reference_test.dart' as constructor_reference;
 import 'constructor_test.dart' as constructor;
@@ -84,6 +85,7 @@ main() {
     binary_expression.main();
     class_alias.main();
     class_resolution.main();
+    conditional_expression.main();
     comment.main();
     constant.main();
     constructor.main();

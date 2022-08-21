@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../context_collection_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -60,6 +60,62 @@ ConditionalExpression
     literal: null
     staticType: Null
   staticType: (T & int)?
+''');
+  }
+
+  test_recordType_differentShape() async {
+    await assertNoErrorsInCode('''
+void f(bool b, (int, String) r1, ({int a}) r2) {
+  b ? r1 : r2;
+}
+''');
+
+    final node = findNode.conditionalExpression('b ?');
+    assertResolvedNodeText(node, r'''
+ConditionalExpression
+  condition: SimpleIdentifier
+    token: b
+    staticElement: self::@function::f::@parameter::b
+    staticType: bool
+  question: ?
+  thenExpression: SimpleIdentifier
+    token: r1
+    staticElement: self::@function::f::@parameter::r1
+    staticType: (int, String)
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: r2
+    staticElement: self::@function::f::@parameter::r2
+    staticType: ({int a})
+  staticType: Record
+''');
+  }
+
+  test_recordType_sameShape_named() async {
+    await assertNoErrorsInCode('''
+void f(bool b, ({int a}) r1, ({double a}) r2) {
+  b ? r1 : r2;
+}
+''');
+
+    final node = findNode.conditionalExpression('b ?');
+    assertResolvedNodeText(node, r'''
+ConditionalExpression
+  condition: SimpleIdentifier
+    token: b
+    staticElement: self::@function::f::@parameter::b
+    staticType: bool
+  question: ?
+  thenExpression: SimpleIdentifier
+    token: r1
+    staticElement: self::@function::f::@parameter::r1
+    staticType: ({int a})
+  colon: :
+  elseExpression: SimpleIdentifier
+    token: r2
+    staticElement: self::@function::f::@parameter::r2
+    staticType: ({double a})
+  staticType: ({num a})
 ''');
   }
 
