@@ -31,8 +31,6 @@ class ObjectPointerVisitor;
   V(BooleanExpression, "boolean expression")                                   \
   V(BoundsCheckForPartialInstantiation, "_boundsCheckForPartialInstantiation") \
   V(ByteData, "ByteData")                                                      \
-  V(ByteDataDot, "ByteData.")                                                  \
-  V(ByteDataDot_view, "ByteData._view")                                        \
   V(Call, "call")                                                              \
   V(CastError, "_CastError")                                                   \
   V(CheckLoaded, "_checkLoaded")                                               \

@@ -6,15 +6,72 @@ library dart.js_util;
 
 import "dart:_internal";
 import "dart:_js_helper";
+import "dart:collection";
+import "dart:typed_data";
+import "dart:wasm";
 
 @patch
-dynamic jsify(Object? object) => JSValue.box(jsifyRaw(object));
+dynamic jsify(Object? object) {
+  HashMap<Object?, Object?> convertedObjects =
+      HashMap<Object?, Object?>.identity();
+  Object? convert(Object? o) {
+    if (convertedObjects.containsKey(o)) {
+      return convertedObjects[o];
+    }
+
+    if (o == null ||
+        o is num ||
+        o is bool ||
+        o is Function ||
+        o is JSValue ||
+        o is String ||
+        o is Int8List ||
+        o is Uint8List ||
+        o is Uint8ClampedList ||
+        o is Int16List ||
+        o is Uint16List ||
+        o is Int32List ||
+        o is Uint32List ||
+        o is Float32List ||
+        o is Float64List ||
+        o is ByteBuffer ||
+        o is ByteData ||
+        o is num) {
+      return JSValue.box(jsifyRaw(o));
+    }
+
+    if (o is Map) {
+      JSValue convertedMap = newObject<JSValue>();
+      convertedObjects[o] = convertedMap;
+      for (final key in o.keys) {
+        JSValue convertedKey = convert(key) as JSValue;
+        setPropertyRaw(convertedMap.toAnyRef(), convertedKey.toAnyRef(),
+            (convert(o[key]) as JSValue).toAnyRef());
+      }
+      return convertedMap;
+    } else if (o is Iterable) {
+      JSValue convertedIterable = _newArray();
+      convertedObjects[o] = convertedIterable;
+      for (Object? item in o) {
+        callMethod(convertedIterable, 'push', [convert(item)]);
+      }
+      return convertedIterable;
+    } else {
+      // None of the objects left will require recursive conversions.
+      return JSValue.box(jsifyRaw(o));
+    }
+  }
+
+  return convert(object);
+}
 
 @patch
 Object get globalThis => JSValue(globalThisRaw());
 
 @patch
 T newObject<T>() => JSValue(newObjectRaw()) as T;
+
+JSValue _newArray() => JSValue(newArrayRaw());
 
 @patch
 bool hasProperty(Object o, String name) =>
@@ -94,13 +151,70 @@ Object? objectGetPrototypeOf(Object? object) => throw 'unimplemented';
 Object? get objectPrototype => throw 'unimplemented';
 
 @patch
-List<Object?> objectKeys(Object? object) => throw 'unimplemented';
+List<Object?> objectKeys(Object? object) =>
+    dartifyRaw(objectKeysRaw(jsifyRaw(object))) as List<Object?>;
 
 @patch
 Object? dartify(Object? object) {
-  if (object is JSValue) {
-    return dartifyRaw(object.toAnyRef())!;
-  } else {
-    return object;
+  HashMap<Object?, Object?> convertedObjects =
+      HashMap<Object?, Object?>.identity();
+  Object? convert(Object? o) {
+    if (convertedObjects.containsKey(o)) {
+      return convertedObjects[o];
+    }
+    if (o is! JSValue) {
+      return o;
+    }
+
+    WasmAnyRef ref = o.toAnyRef();
+    if (isJSBoolean(ref) ||
+        isJSNumber(ref) ||
+        isJSString(ref) ||
+        isJSUndefined(ref) ||
+        isJSBoolean(ref) ||
+        isJSNumber(ref) ||
+        isJSString(ref) ||
+        isJSInt8Array(ref) ||
+        isJSUint8Array(ref) ||
+        isJSUint8ClampedArray(ref) ||
+        isJSInt16Array(ref) ||
+        isJSUint16Array(ref) ||
+        isJSInt32Array(ref) ||
+        isJSUint32Array(ref) ||
+        isJSFloat32Array(ref) ||
+        isJSFloat64Array(ref) ||
+        isJSArrayBuffer(ref) ||
+        isJSDataView(ref)) {
+      return dartifyRaw(ref);
+    }
+
+    // TODO(joshualitt) handle Date and Promise.
+
+    if (isJSSimpleObject(ref)) {
+      Map<Object?, Object?> dartMap = {};
+      convertedObjects[o] = dartMap;
+      // Keys will be a list of Dart [String]s.
+      List<Object?> keys = objectKeys(o);
+      for (int i = 0; i < keys.length; i++) {
+        Object? key = keys[i];
+        if (key != null) {
+          dartMap[key] = convert(
+              JSValue.box(getPropertyRaw(ref, (key as String).toAnyRef())));
+        }
+      }
+      return dartMap;
+    } else if (isJSArray(ref)) {
+      List<Object?> dartList = [];
+      convertedObjects[o] = dartList;
+      int length = getProperty<double>(o, 'length').toInt();
+      for (int i = 0; i < length; i++) {
+        dartList.add(convert(JSValue.box(objectReadIndex(ref, i))));
+      }
+      return dartList;
+    } else {
+      return dartifyRaw(ref);
+    }
   }
+
+  return convert(object);
 }

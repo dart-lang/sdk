@@ -165,6 +165,9 @@ var dart2wasm = {
     objectReadIndex: function(o, i) {
         return o[i];
     },
+    objectKeys: function(o) {
+        return Object.keys(o);
+    },
     unwrapJSWrappedDartFunction: function(o) {
         return o.dartFunction;
     },
@@ -235,15 +238,25 @@ var dart2wasm = {
     isJSRegExp: function(o) {
         return o instanceof RegExp;
     },
-    roundtrip: function (o) {
-      // This function exists as a hook for the native JS -> Wasm type
-      // conversion rules. The Dart runtime will overload variants of this
-      // function with the necessary return type to trigger the desired
-      // coercion.
-      return o;
+    isJSSimpleObject: function(o) {
+        var proto = Object.getPrototypeOf(o);
+        return proto === Object.prototype || proto === null;
+    },
+    roundtrip: function(o) {
+        // This function exists as a hook for the native JS -> Wasm type
+        // conversion rules. The Dart runtime will overload variants of this
+        // function with the necessary return type to trigger the desired
+        // coercion.
+        return o;
+    },
+    toJSBoolean: function(b) {
+        return !!b;
     },
     newObject: function() {
         return {};
+    },
+    newArray: function() {
+        return [];
     },
     globalThis: function() {
         return globalThis;
