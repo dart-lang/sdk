@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=
+// VMOptions=--force-switch-dispatch-type=0
+// VMOptions=--force-switch-dispatch-type=1
+// VMOptions=--force-switch-dispatch-type=2
+
 import 'package:expect/expect.dart';
 
 main() {
