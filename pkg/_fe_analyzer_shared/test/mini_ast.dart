@@ -59,11 +59,17 @@ Statement checkUnassigned(Var variable, bool expectedUnassignedState) =>
 
 Statement continue_() => new _Continue();
 
-Statement declare(Var variable, {required bool initialized}) =>
-    new _Declare(variable, initialized ? expr(variable.type.type) : null);
-
-Statement declareInitialized(Var variable, Expression initializer) =>
-    new _Declare(variable, initializer);
+Statement declare(Var variable,
+        {bool isLate = false,
+        bool isFinal = false,
+        String? type,
+        Expression? initializer,
+        String? expectInferredType}) =>
+    new _Declare(variable, initializer,
+        isLate: isLate,
+        isFinal: isFinal,
+        declaredType: type == null ? null : Type(type),
+        expectInferredType: expectInferredType);
 
 Statement do_(List<Statement> body, Expression condition) =>
     _Do(block(body), condition);
@@ -669,19 +675,30 @@ abstract class TryStatement extends Statement implements TryBuilder {
 /// analysis testing.
 class Var implements Promotable {
   final String name;
-  final Type type;
-  final bool isFinal;
-  final bool isImplicitlyTyped;
-  final bool isLate;
 
-  Var(this.name, String typeStr,
-      {this.isFinal = false,
-      this.isImplicitlyTyped = false,
-      this.isLate = false})
-      : type = Type(typeStr);
+  /// The type of the variable, or `null` if it is not yet known.
+  Type? _type;
+
+  Var(this.name);
 
   /// Creates an L-value representing a reference to this variable.
   LValue get expr => new _VariableReference(this, null);
+
+  /// Gets the type if known; otherwise throws an exception.
+  Type get type {
+    if (_type == null) {
+      throw 'Type not yet known';
+    } else {
+      return _type!;
+    }
+  }
+
+  set type(Type value) {
+    if (_type != null) {
+      throw 'Type already set';
+    }
+    _type = value;
+  }
 
   @override
   void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
@@ -692,7 +709,7 @@ class Var implements Promotable {
       new _VariableReference(this, callback);
 
   @override
-  String toString() => '$type $name';
+  String toString() => 'var $name';
 
   /// Creates an expression representing a write to this variable.
   Expression write(Expression? value) => expr.write(value);
@@ -992,10 +1009,18 @@ class _Continue extends Statement {
 }
 
 class _Declare extends Statement {
+  final bool isLate;
+  final bool isFinal;
+  final Type? declaredType;
   final Var variable;
   final Expression? initializer;
+  final String? expectInferredType;
 
-  _Declare(this.variable, this.initializer);
+  _Declare(this.variable, this.initializer,
+      {required this.isLate,
+      required this.isFinal,
+      required this.declaredType,
+      this.expectInferredType});
 
   @override
   void preVisit(AssignedVariables<Node, Var> assignedVariables) {
@@ -1005,22 +1030,28 @@ class _Declare extends Statement {
 
   @override
   String toString() {
-    var latePart = variable.isLate ? 'late ' : '';
-    var finalPart = variable.isFinal ? 'final ' : '';
-    var initializerPart = initializer != null ? ' = $initializer' : '';
-    return '$latePart$finalPart$variable${initializerPart};';
+    var parts = <String>[
+      if (isLate) 'late',
+      if (isFinal) 'final',
+      if (declaredType != null) declaredType!.type else if (!isFinal) 'var',
+      variable.name,
+      if (initializer != null) '= $initializer'
+    ];
+    return '${parts.join(' ')};';
   }
 
   @override
   void visit(Harness h) {
     h.irBuilder.atom(variable.name);
     h.typeAnalyzer.analyzeVariableDeclaration(
-        this, variable.type, variable, initializer,
-        isFinal: variable.isFinal, isLate: variable.isLate);
+        this, declaredType, variable, initializer,
+        isFinal: isFinal, isLate: isLate);
+    var expectInferredType = this.expectInferredType;
+    if (expectInferredType != null) {
+      expect(variable.type.type, expectInferredType);
+    }
     h.irBuilder.apply(
-        ['declare', if (variable.isLate) 'late', if (variable.isFinal) 'final']
-            .join('_'),
-        2);
+        ['declare', if (isLate) 'late', if (isFinal) 'final'].join('_'), 2);
   }
 }
 
@@ -1360,6 +1391,8 @@ class _MiniAstTypeAnalyzer {
 
   late final Type boolType = Type('bool');
 
+  late final Type dynamicType = Type('dynamic');
+
   late final Type neverType = Type('Never');
 
   late final Type nullType = Type('Null');
@@ -1629,18 +1662,21 @@ class _MiniAstTypeAnalyzer {
   }
 
   void analyzeVariableDeclaration(
-      Statement node, Type type, Var variable, Expression? initializer,
+      Statement node, Type? declaredType, Var variable, Expression? initializer,
       {required bool isFinal, required bool isLate}) {
     if (initializer == null) {
       handleNoInitializer();
       flow.declare(variable, false);
+      variable.type = declaredType ?? dynamicType;
     } else {
       var initializerType = analyzeExpression(initializer);
       flow.declare(variable, true);
+      variable.type =
+          declaredType ?? variableTypeFromInitializerType(initializerType);
       flow.initialize(variable, initializerType, initializer,
           isFinal: isFinal,
           isLate: isLate,
-          isImplicitlyTyped: variable.isImplicitlyTyped);
+          isImplicitlyTyped: declaredType == null);
     }
   }
 
@@ -1700,6 +1736,22 @@ class _MiniAstTypeAnalyzer {
   _PropertyElement lookupInterfaceMember(
       Node node, Type receiverType, String memberName) {
     return _harness.getMember(receiverType, memberName);
+  }
+
+  /// Computes the type that should be inferred for an implicitly typed variable
+  /// whose initializer expression has static type [type].
+  Type variableTypeFromInitializerType(Type type) {
+    // Variables whose initializer has type `Null` receive the inferred type
+    // `dynamic`.
+    if (_harness.classifyType(type) == TypeClassification.nullOrEquivalent) {
+      type = dynamicType;
+    }
+    // Variables whose initializer type includes a promoted type variable
+    // receive the nearest supertype that could be expressed in Dart source code
+    // (e.g. `T&int` is demoted to `T`).
+    // TODO(paulberry): add language tests to verify that the behavior of
+    // `type.recursivelyDemote` matches what the analyzer and CFE do.
+    return type.recursivelyDemote(covariant: true) ?? type;
   }
 
   _PropertyElement _lookupMember(
