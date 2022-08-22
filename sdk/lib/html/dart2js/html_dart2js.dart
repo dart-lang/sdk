@@ -11844,7 +11844,7 @@ class _ChildrenElementList extends ListBase<Element>
   }
 
   void _filter(bool test(Element element), bool retainMatching) {
-    var removed;
+    Iterable<Element> removed;
     if (retainMatching) {
       removed = _element.children.where((e) => !test(e));
     } else {
@@ -13969,7 +13969,7 @@ class Element extends Node
     return JS('bool', r'!(#.attributes instanceof NamedNodeMap)', element);
   }
 
-  static String _safeTagName(element) {
+  static String _safeTagName(Element element) {
     String result = 'element tag unavailable';
     try {
       if (element.tagName is String) {
