@@ -3784,39 +3784,12 @@ Dart_GetTypeOfExternalTypedData(Dart_Handle object) {
   return Dart_TypedData_kInvalid;
 }
 
-static ObjectPtr GetByteDataConstructor(Thread* thread,
-                                        const String& constructor_name,
-                                        intptr_t num_args) {
-  const Library& lib = Library::Handle(
-      thread->isolate_group()->object_store()->typed_data_library());
-  ASSERT(!lib.IsNull());
-  const Class& cls = Class::Handle(
-      thread->zone(), lib.LookupClassAllowPrivate(Symbols::ByteData()));
-  ASSERT(!cls.IsNull());
-  return ResolveConstructor(CURRENT_FUNC, cls, Symbols::ByteData(),
-                            constructor_name, num_args);
-}
-
 static Dart_Handle NewByteData(Thread* thread, intptr_t length) {
-  CHECK_LENGTH(length, TypedData::MaxElements(kTypedDataInt8ArrayCid));
-  Zone* zone = thread->zone();
-  Object& result = Object::Handle(zone);
-  result = GetByteDataConstructor(thread, Symbols::ByteDataDot(), 1);
-  ASSERT(!result.IsNull());
-  ASSERT(result.IsFunction());
-  const Function& factory = Function::Cast(result);
-  ASSERT(!factory.IsGenerativeConstructor());
-
-  // Create the argument list.
-  const Array& args = Array::Handle(zone, Array::New(2));
-  // Factories get type arguments.
-  args.SetAt(0, Object::null_type_arguments());
-  args.SetAt(1, Smi::Handle(zone, Smi::New(length)));
-
-  // Invoke the constructor and return the new object.
-  result = DartEntry::InvokeFunction(factory, args);
-  ASSERT(result.IsInstance() || result.IsNull() || result.IsError());
-  return Api::NewHandle(thread, result.ptr());
+  CHECK_LENGTH(length, TypedData::MaxElements(kTypedDataUint8ArrayCid));
+  const TypedData& array =
+      TypedData::Handle(TypedData::New(kTypedDataUint8ArrayCid, length));
+  return Api::NewHandle(thread,
+                        TypedDataView::New(kByteDataViewCid, array, 0, length));
 }
 
 static Dart_Handle NewTypedData(Thread* thread, intptr_t cid, intptr_t length) {
@@ -3862,31 +3835,10 @@ static Dart_Handle NewExternalByteData(Thread* thread,
   if (Api::IsError(ext_data)) {
     return ext_data;
   }
-  Object& result = Object::Handle(zone);
-  result = GetByteDataConstructor(thread, Symbols::ByteDataDot_view(), 3);
-  ASSERT(!result.IsNull());
-  ASSERT(result.IsFunction());
-  const Function& factory = Function::Cast(result);
-  ASSERT(!factory.IsGenerativeConstructor());
-
-  // Create the argument list.
-  const intptr_t num_args = 3;
-  const Array& args = Array::Handle(zone, Array::New(num_args + 1));
-  // Factories get type arguments.
-  args.SetAt(0, Object::null_type_arguments());
   const ExternalTypedData& array =
       Api::UnwrapExternalTypedDataHandle(zone, ext_data);
-  args.SetAt(1, array);
-  Smi& smi = Smi::Handle(zone);
-  smi = Smi::New(0);
-  args.SetAt(2, smi);
-  smi = Smi::New(length);
-  args.SetAt(3, smi);
-
-  // Invoke the constructor and return the new object.
-  result = DartEntry::InvokeFunction(factory, args);
-  ASSERT(result.IsNull() || result.IsInstance() || result.IsError());
-  return Api::NewHandle(thread, result.ptr());
+  return Api::NewHandle(thread,
+                        TypedDataView::New(kByteDataViewCid, array, 0, length));
 }
 
 DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,

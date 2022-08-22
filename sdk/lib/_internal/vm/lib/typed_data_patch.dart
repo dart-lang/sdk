@@ -38,15 +38,12 @@ import 'dart:math' show Random;
 class ByteData implements TypedData {
   @patch
   @pragma("vm:recognized", "other")
-  @pragma("vm:entry-point")
   factory ByteData(int length) {
     final list = new Uint8List(length) as _TypedList;
     _rangeCheck(list.lengthInBytes, 0, length);
     return new _ByteDataView._(list, 0, length);
   }
 
-  // Called directly from C code.
-  @pragma("vm:entry-point")
   factory ByteData._view(_TypedList typedData, int offsetInBytes, int length) {
     _rangeCheck(typedData.lengthInBytes, offsetInBytes, length);
     return new _ByteDataView._(typedData, offsetInBytes, length);
