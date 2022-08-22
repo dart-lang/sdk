@@ -477,7 +477,7 @@ class FfiNativeTransformer extends FfiTransformer {
 
     // static final _myMethod$FfiNative$Ptr = ..
     final resolvedField = _createResolvedFfiNativeField(
-        node.name.text,
+        '${node.name.text}\$${node.kind.name}',
         nativeFunctionName,
         isLeaf,
         wrappedDartFunctionType,

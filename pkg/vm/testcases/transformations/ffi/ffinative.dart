@@ -41,6 +41,12 @@ class NativeClassy extends NativeFieldWrapperClass1 {
 
   @FfiNative<Bool Function(Pointer<Void>)>('doesntmatter')
   external bool blah();
+
+  @FfiNative<Bool Function(Pointer<Void>)>('doesntmatter', isLeaf: true)
+  external bool get myField;
+
+  @FfiNative<Void Function(Pointer<Void>, Bool)>('doesntmatter', isLeaf: true)
+  external set myField(bool value);
 }
 
 void main() {
@@ -54,4 +60,6 @@ void main() {
   NativeClassy().goodHasReceiverPtrAndHandle(NativeClassy());
   NativeClassy().meh(true);
   NativeClassy().blah();
+  final b = NativeClassy().myField;
+  NativeClassy().myField = !b;
 }
