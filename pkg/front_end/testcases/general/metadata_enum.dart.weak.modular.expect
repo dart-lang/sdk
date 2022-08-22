@@ -5,9 +5,9 @@ import "dart:core" as core;
 @#C1
 class E extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E> values = #C11;
-  static const field self::E E1 = #C4;
-  static const field self::E E2 = #C7;
-  static const field self::E E3 = #C10;
+  enum-element static const field self::E E1 = #C4;
+  enum-element static const field self::E E2 = #C7;
+  enum-element static const field self::E E3 = #C10;
   const constructor •(core::int #index, core::String #name) → self::E
     : super core::_Enum::•(#index, #name)
     ;

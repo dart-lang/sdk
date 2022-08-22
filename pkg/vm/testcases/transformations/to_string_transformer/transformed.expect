@@ -21,9 +21,9 @@ class Foo extends core::Object implements self::IFoo {
 }
 class FooEnum extends core::_Enum /*isEnum*/  {
   static const field core::List<self::FooEnum> values = #C11;
-  static const field self::FooEnum A = #C4;
-  static const field self::FooEnum B = #C7;
-  static const field self::FooEnum C = #C10;
+  enum-element static const field self::FooEnum A = #C4;
+  enum-element static const field self::FooEnum B = #C7;
+  enum-element static const field self::FooEnum C = #C10;
   const constructor •(core::int #index, core::String #name) → self::FooEnum
     : super core::_Enum::•(#index, #name)
     ;

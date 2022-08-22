@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 84;
+  UInt32 formatVersion = 85;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -382,7 +382,8 @@ type Field extends Member {
   FileOffset fileEndOffset;
   UInt flags (isFinal, isConst, isStatic, isCovariantByDeclaration,
                 isCovariantByClass, isLate, isExtensionMember,
-                isNonNullableByDefault, isInternalImplementation);
+                isNonNullableByDefault, isInternalImplementation,
+                isEnumElement);
   Name name;
   List<Expression> annotations;
   DartType type;

@@ -6395,8 +6395,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Set<Field?>? enumFields;
     if (expressionType is InterfaceType && expressionType.classNode.isEnum) {
       enumFields = <Field?>{
-        ...expressionType.classNode.fields.where(
-            (Field field) => field.isConst && field.type == expressionType)
+        ...expressionType.classNode.fields
+            .where((Field field) => field.isEnumElement)
       };
       if (expressionType.isPotentiallyNullable) {
         enumFields.add(null);

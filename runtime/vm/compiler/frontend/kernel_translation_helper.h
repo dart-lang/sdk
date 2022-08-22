@@ -492,6 +492,9 @@ class FieldHelper {
     kIsGenericCovariantImpl = 1 << 4,
     kIsLate = 1 << 5,
     kExtensionMember = 1 << 6,
+    kNonNullableByDefault = 1 << 7,
+    kInternalImplementation = 1 << 8,
+    kEnumElement = 1 << 9,
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)

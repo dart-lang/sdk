@@ -424,7 +424,7 @@ Try removing the extra positional arguments.
 }
 class Enum#4 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
   static const field core::List<self::Enum#4> values = #C4;
-  static const field self::Enum#4 a = #C3;
+  enum-element static const field self::Enum#4 a = #C3;
   const constructor •(core::int #index, core::String #name) → self::Enum#4
     : super core::_Enum::•(#index, #name)
     ;
@@ -433,9 +433,9 @@ class Enum#4 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///
 }
 class Enum#3 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
   static const field core::List<self::Enum#3> values = #C12;
-  static const field self::Enum#3 a = #C5;
-  static const field self::Enum#3 b = #C8;
-  static const field self::Enum#3 c = #C11;
+  enum-element static const field self::Enum#3 a = #C5;
+  enum-element static const field self::Enum#3 b = #C8;
+  enum-element static const field self::Enum#3 c = #C11;
   const constructor •(core::int #index, core::String #name) → self::Enum#3
     : super core::_Enum::•(#index, #name)
     ;
@@ -444,9 +444,9 @@ class Enum#3 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///
 }
 class Enum#2 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
   static const field core::List<self::Enum#2> values = #C17;
-  static const field self::Enum#2 Enum = #C14;
-  static const field self::Enum#2 a = #C15;
-  static const field self::Enum#2 b = #C16;
+  enum-element static const field self::Enum#2 Enum = #C14;
+  enum-element static const field self::Enum#2 a = #C15;
+  enum-element static const field self::Enum#2 b = #C16;
   const constructor •(core::int #index, core::String #name) → self::Enum#2
     : super core::_Enum::•(#index, #name)
     ;
@@ -455,9 +455,9 @@ class Enum#2 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///
 }
 class Enum#1 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Enum#1> values = #C21;
-  static const field self::Enum#1 a = #C18;
-  static const field self::Enum#1 b = #C19;
-  static const field self::Enum#1 c = #C20;
+  enum-element static const field self::Enum#1 a = #C18;
+  enum-element static const field self::Enum#1 b = #C19;
+  enum-element static const field self::Enum#1 c = #C20;
   const constructor •(core::int #index, core::String #name) → self::Enum#1
     : super core::_Enum::•(#index, #name)
     ;
@@ -466,9 +466,9 @@ class Enum#1 extends core::_Enum /*isEnum*/  {
 }
 class Enum extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Enum> values = #C25;
-  static const field self::Enum Enum = #C22;
-  static const field self::Enum a = #C23;
-  static const field self::Enum b = #C24;
+  enum-element static const field self::Enum Enum = #C22;
+  enum-element static const field self::Enum a = #C23;
+  enum-element static const field self::Enum b = #C24;
   const constructor •(core::int #index, core::String #name) → self::Enum
     : super core::_Enum::•(#index, #name)
     ;
@@ -477,11 +477,11 @@ class Enum extends core::_Enum /*isEnum*/  {
 }
 class AnotherEnum extends core::_Enum /*isEnum*/  {
   static const field core::List<self::AnotherEnum> values = #C35;
-  static const field self::AnotherEnum a = #C26;
-  static const field self::AnotherEnum b = #C27;
-  static const field self::AnotherEnum c = #C28;
-  static const field self::AnotherEnum _name = #C31;
-  static const field self::AnotherEnum index = #C34;
+  enum-element static const field self::AnotherEnum a = #C26;
+  enum-element static const field self::AnotherEnum b = #C27;
+  enum-element static const field self::AnotherEnum c = #C28;
+  enum-element static const field self::AnotherEnum _name = #C31;
+  enum-element static const field self::AnotherEnum index = #C34;
   const constructor •(core::int #index, core::String #name) → self::AnotherEnum
     : super core::_Enum::•(#index, #name)
     ;
