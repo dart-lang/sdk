@@ -731,7 +731,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       if (member is Constructor) {
         // Make sure instance field initializers are visited.
         for (var f in member.enclosingClass.members) {
-          if ((f is Field) && !f.isStatic && (f.initializer != null)) {
+          if ((f is Field) &&
+              !f.isStatic &&
+              !f.isLate &&
+              (f.initializer != null)) {
             _entryPointsListener.addRawCall(
                 new DirectSelector(f, callKind: CallKind.FieldInitializer));
           }
