@@ -251,7 +251,8 @@ both in JIT and AOT modes. This also affects Flutter except Flutter Web.
 Besides smaller code size and better performance of async methods,
 the new implementation carries a few subtle changes in behavior:
 
-- If `async` method returns before reaching the first `await`, it now returns a completed Future.
+- If `async` method returns before reaching the first `await`, it now
+  returns a completed Future.
   Previously `async` methods completed resulting Future in separate microtasks.
 
 - Stack traces no longer have duplicate entries for `async` methods.
@@ -264,7 +265,8 @@ the new implementation carries a few subtle changes in behavior:
   variables in `async`/`async*`/`sync*` methods, which means that unused
   objects stored in local variables in such methods might be garbage
   collected earlier than they were before
-  (see issue [#36983](https://github.com/dart-lang/sdk/issues/36983) for details).
+  (see issue [#36983](https://github.com/dart-lang/sdk/issues/36983)
+  for details).
 
 ### Tools
 
@@ -341,13 +343,21 @@ Updated the Linter to `1.25.0`, which includes changes that
 * `dart pub outdated` now shows which of your dependencies are discontinued.
 * `dart pub publish` will now list all the files it is about to publish.
 
+## 2.17.7 - 2022-08-24
+
+This is a patch release that:
+
+- fixes a crash in the debugger (issue [#49209][]).
+
+[#49209]: https://github.com/dart-lang/sdk/issues/49209
+
 ## 2.17.6 - 2022-07-13
 
 This is a patch release that:
 
-- Improves code completion for Flutter (issue [#49054][]).
-- Fixes a crash on ARM (issue [#106510][]).
-- Fixes a compiler crash with Finalizable parameters (issue [#49402][]).
+- improves code completion for Flutter (issue [#49054][]).
+- fixes a crash on ARM (issue [#106510][]).
+- fixes a compiler crash with Finalizable parameters (issue [#49402][]).
 
 [#49054]: https://github.com/dart-lang/sdk/issues/49054
 [#106510]: https://github.com/flutter/flutter/issues/106510
@@ -357,8 +367,9 @@ This is a patch release that:
 
 This is a patch release that:
 
-- Improves analysis of enums and switch (issue [#49188][]).
-- Fixes a compiler crash when initializing Finalizable objects (issue [#49075][]).
+- improves analysis of enums and switch (issue [#49188][]).
+- fixes a compiler crash when initializing Finalizable objects
+  (issue [#49075][]).
 
 [#49188]: https://github.com/dart-lang/sdk/issues/49188
 [#49075]: https://github.com/dart-lang/sdk/issues/49075
