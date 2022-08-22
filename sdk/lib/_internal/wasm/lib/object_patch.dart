@@ -55,6 +55,7 @@ class Object {
   static String _toString(obj) => "Instance of '${obj.runtimeType}'";
 
   @patch
+  @pragma("wasm:entry-point")
   dynamic noSuchMethod(Invocation invocation) {
     throw new NoSuchMethodError.withInvocation(this, invocation);
   }

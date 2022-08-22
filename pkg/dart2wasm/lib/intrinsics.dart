@@ -629,6 +629,25 @@ class Intrinsifier {
     return w.NumType.i64;
   }
 
+  w.ValueType changeListClassID(StaticInvocation node, Class newClass) {
+    ClassInfo receiverInfo = translator.classInfo[translator.listBaseClass]!;
+    codeGen.wrap(
+        node.arguments.positional.single, receiverInfo.nonNullableType);
+    w.Local receiverLocal =
+        codeGen.function.addLocal(receiverInfo.nonNullableType);
+    b.local_tee(receiverLocal);
+    // We ignore the type argument and just update the classID of the
+    // receiver.
+    // TODO(joshualitt): If the amount of free space is significant, it
+    // might be worth doing a copy here.
+    ClassInfo newInfo = translator.classInfo[newClass]!;
+    ClassInfo topInfo = translator.topInfo;
+    b.i32_const(newInfo.classId);
+    b.struct_set(topInfo.struct, FieldIndex.classId);
+    b.local_get(receiverLocal);
+    return newInfo.nonNullableType;
+  }
+
   w.ValueType? generateStaticIntrinsic(StaticInvocation node) {
     String name = node.name.text;
     Class? cls = node.target.enclosingClass;
@@ -805,24 +824,9 @@ class Intrinsifier {
         case "getID":
           return getID(node.arguments.positional.single);
         case "makeListFixedLength":
-          ClassInfo receiverInfo =
-              translator.classInfo[translator.listBaseClass]!;
-          codeGen.wrap(
-              node.arguments.positional.single, receiverInfo.nonNullableType);
-          w.Local receiverLocal =
-              codeGen.function.addLocal(receiverInfo.nonNullableType);
-          b.local_tee(receiverLocal);
-          // We ignore the type argument and just update the classID of the
-          // receiver.
-          // TODO(joshualitt): If the amount of free space is significant, it
-          // might be worth doing a copy here.
-          ClassInfo topInfo = translator.topInfo;
-          ClassInfo fixedLengthListInfo =
-              translator.classInfo[translator.fixedLengthListClass]!;
-          b.i32_const(fixedLengthListInfo.classId);
-          b.struct_set(topInfo.struct, FieldIndex.classId);
-          b.local_get(receiverLocal);
-          return fixedLengthListInfo.nonNullableType;
+          return changeListClassID(node, translator.fixedLengthListClass);
+        case "makeFixedListUnmodifiable":
+          return changeListClassID(node, translator.immutableListClass);
       }
     }
 

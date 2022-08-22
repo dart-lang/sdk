@@ -11,6 +11,7 @@ import 'package:dart2wasm/closures.dart';
 import 'package:dart2wasm/code_generator.dart';
 import 'package:dart2wasm/constants.dart';
 import 'package:dart2wasm/dispatch_table.dart';
+import 'package:dart2wasm/dynamic_dispatch.dart';
 import 'package:dart2wasm/functions.dart';
 import 'package:dart2wasm/globals.dart';
 import 'package:dart2wasm/param_info.dart';
@@ -108,6 +109,7 @@ class Translator {
   late final Class typeErrorClass;
   late final Class typeUniverseClass;
   late final Class symbolClass;
+  late final Class invocationClass;
   late final Procedure wasmFunctionCall;
   late final Procedure wasmTableCallIndirect;
   late final Procedure stackTraceCurrent;
@@ -127,6 +129,11 @@ class Translator {
   late final Procedure isSubtype;
   late final Procedure objectRuntimeType;
   late final Procedure typeAsNullable;
+  late final Procedure objectNoSuchMethod;
+  late final Procedure invocationGetterFactory;
+  late final Procedure invocationSetterFactory;
+  late final Procedure invocationMethodFactory;
+  late final Procedure invocationGenericMethodFactory;
   late final Map<Class, w.StorageType> builtinTypes;
   late final Map<w.ValueType, Class> boxedClasses;
 
@@ -137,6 +144,7 @@ class Translator {
   late final Constants constants;
   late final Types types;
   late final FunctionCollector functions;
+  late final DynamicDispatcher dynamics;
 
   // Information about the program used and updated by the various phases.
   final List<ClassInfo> classes = [];
@@ -175,6 +183,7 @@ class Translator {
     dispatchTable = DispatchTable(this);
     functions = FunctionCollector(this);
     types = Types(this);
+    dynamics = DynamicDispatcher(this);
 
     Class Function(String) makeLookup(String libraryName) {
       Library library =
@@ -286,6 +295,18 @@ class Translator {
     typeAsNullable = lookupCore("_Type")
         .procedures
         .firstWhere((p) => p.name.text == "asNullable");
+    objectNoSuchMethod = lookupCore("Object")
+        .procedures
+        .firstWhere((p) => p.name.text == "noSuchMethod");
+    invocationClass = lookupCore('Invocation');
+    invocationGetterFactory =
+        invocationClass.procedures.firstWhere((p) => p.name.text == "getter");
+    invocationSetterFactory =
+        invocationClass.procedures.firstWhere((p) => p.name.text == "setter");
+    invocationMethodFactory =
+        invocationClass.procedures.firstWhere((p) => p.name.text == "method");
+    invocationGenericMethodFactory = invocationClass.procedures
+        .firstWhere((p) => p.name.text == "genericMethod");
     builtinTypes = {
       coreTypes.boolClass: w.NumType.i32,
       coreTypes.intClass: w.NumType.i64,
@@ -339,6 +360,7 @@ class Translator {
     m = w.Module(watchPoints: options.watchPoints);
     voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
 
+    dynamics.collect();
     classInfoCollector.collect();
 
     functions.collectImportsAndExports();
