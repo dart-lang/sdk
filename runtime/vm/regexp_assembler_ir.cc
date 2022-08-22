@@ -928,15 +928,9 @@ void IRRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
 
     Definition* is_match_def;
 
-    if (unicode) {
-      is_match_def = new (Z) CaseInsensitiveCompareInstr(
-          string_value, lhs_index_value, rhs_index_value, length_value,
-          kCaseInsensitiveCompareUTF16RuntimeEntry, specialization_cid_);
-    } else {
-      is_match_def = new (Z) CaseInsensitiveCompareInstr(
-          string_value, lhs_index_value, rhs_index_value, length_value,
-          kCaseInsensitiveCompareUCS2RuntimeEntry, specialization_cid_);
-    }
+    is_match_def = new (Z) CaseInsensitiveCompareInstr(
+        string_value, lhs_index_value, rhs_index_value, length_value,
+        /*handle_surrogates=*/unicode, specialization_cid_);
 
     BranchOrBacktrack(Comparison(kNE, is_match_def, BoolConstant(true)),
                       on_no_match);

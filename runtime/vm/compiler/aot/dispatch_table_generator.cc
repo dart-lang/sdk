@@ -375,6 +375,10 @@ int32_t SelectorMap::SelectorId(const Function& interface_target) const {
 const TableSelector* SelectorMap::GetSelector(
     const Function& interface_target) const {
   const int32_t sid = SelectorId(interface_target);
+  return GetSelector(sid);
+}
+
+const TableSelector* SelectorMap::GetSelector(int32_t sid) const {
   if (sid == kInvalidSelectorId) return nullptr;
   const TableSelector* selector = &selectors_[sid];
   if (!selector->IsUsed()) return nullptr;

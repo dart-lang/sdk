@@ -2896,4 +2896,120 @@ void FlowGraph::Print(const char* phase) {
   FlowGraphPrinter::PrintGraph(phase, this);
 }
 
+class SSACompactor : public ValueObject {
+ public:
+  SSACompactor(intptr_t num_blocks,
+               intptr_t num_ssa_vars,
+               ZoneGrowableArray<Definition*>* detached_defs)
+      : block_num_(num_blocks),
+        ssa_num_(num_ssa_vars),
+        detached_defs_(detached_defs) {
+    block_num_.EnsureLength(num_blocks, -1);
+    ssa_num_.EnsureLength(num_ssa_vars, -1);
+  }
+
+  void RenumberGraph(FlowGraph* graph) {
+    for (auto block : graph->reverse_postorder()) {
+      block_num_[block->block_id()] = 1;
+      CollectDetachedMaterializations(block->env());
+
+      if (auto* block_with_idefs = block->AsBlockEntryWithInitialDefs()) {
+        for (Definition* def : *block_with_idefs->initial_definitions()) {
+          RenumberDefinition(def);
+          CollectDetachedMaterializations(def->env());
+        }
+      }
+      if (auto* join = block->AsJoinEntry()) {
+        for (PhiIterator it(join); !it.Done(); it.Advance()) {
+          RenumberDefinition(it.Current());
+        }
+      }
+      for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+        Instruction* instr = it.Current();
+        if (Definition* def = instr->AsDefinition()) {
+          RenumberDefinition(def);
+        }
+        CollectDetachedMaterializations(instr->env());
+      }
+    }
+    for (auto* def : (*detached_defs_)) {
+      RenumberDefinition(def);
+    }
+    graph->set_current_ssa_temp_index(current_ssa_index_);
+
+    // Preserve order between block ids to as predecessors are sorted
+    // by block ids.
+    intptr_t current_block_index = 0;
+    for (intptr_t i = 0, n = block_num_.length(); i < n; ++i) {
+      if (block_num_[i] >= 0) {
+        block_num_[i] = current_block_index++;
+      }
+    }
+    for (auto block : graph->reverse_postorder()) {
+      block->set_block_id(block_num_[block->block_id()]);
+    }
+    graph->set_max_block_id(current_block_index - 1);
+  }
+
+ private:
+  void RenumberDefinition(Definition* def) {
+    if (def->HasSSATemp()) {
+      const intptr_t old_index = def->ssa_temp_index();
+      intptr_t new_index = ssa_num_[old_index];
+      if (new_index < 0) {
+        ssa_num_[old_index] = new_index = current_ssa_index_++;
+      }
+      def->set_ssa_temp_index(new_index);
+    }
+  }
+
+  bool IsDetachedDefinition(Definition* def) {
+    return def->IsMaterializeObject() && (def->next() == nullptr);
+  }
+
+  void AddDetachedDefinition(Definition* def) {
+    for (intptr_t i = 0, n = detached_defs_->length(); i < n; ++i) {
+      if ((*detached_defs_)[i] == def) {
+        return;
+      }
+    }
+    detached_defs_->Add(def);
+    // Follow inputs as detached definitions can reference other
+    // detached definitions.
+    for (intptr_t i = 0, n = def->InputCount(); i < n; ++i) {
+      Definition* input = def->InputAt(i)->definition();
+      if (IsDetachedDefinition(input)) {
+        AddDetachedDefinition(input);
+      }
+    }
+    ASSERT(def->env() == nullptr);
+  }
+
+  void CollectDetachedMaterializations(Environment* env) {
+    if (env == nullptr) {
+      return;
+    }
+    for (Environment::DeepIterator it(env); !it.Done(); it.Advance()) {
+      Definition* def = it.CurrentValue()->definition();
+      if (IsDetachedDefinition(def)) {
+        AddDetachedDefinition(def);
+      }
+    }
+  }
+
+  GrowableArray<intptr_t> block_num_;
+  GrowableArray<intptr_t> ssa_num_;
+  intptr_t current_ssa_index_ = 0;
+  ZoneGrowableArray<Definition*>* detached_defs_;
+};
+
+void FlowGraph::CompactSSA(ZoneGrowableArray<Definition*>* detached_defs) {
+  if (detached_defs == nullptr) {
+    detached_defs = new (Z) ZoneGrowableArray<Definition*>(Z, 0);
+  }
+  SSACompactor compactor(max_block_id() + 1, current_ssa_temp_index(),
+                         detached_defs);
+  compactor.RenumberGraph(this);
+}
+
 }  // namespace dart
