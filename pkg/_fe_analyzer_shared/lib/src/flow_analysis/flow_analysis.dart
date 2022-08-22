@@ -1923,19 +1923,13 @@ class FlowModel<Type extends Object> {
     }
 
     List<Type>? newPromotedTypes = info.promotedTypes;
-    Reachability newReachable = reachable;
     if (promotedType != null) {
       newPromotedTypes =
           VariableModel._addToPromotedTypes(info.promotedTypes, promotedType);
-      if (reference.isPromotable &&
-          helper.typeOperations.isNever(promotedType)) {
-        newReachable = reachable.setUnreachable();
-      }
     }
 
     return identical(newTested, info.tested) &&
-            identical(newPromotedTypes, info.promotedTypes) &&
-            newReachable == reachable
+            identical(newPromotedTypes, info.promotedTypes)
         ? this
         : _updateVariableInfo(
             reference.promotionKey,
@@ -1946,7 +1940,7 @@ class FlowModel<Type extends Object> {
                 unassigned: info.unassigned,
                 ssaNode: info.ssaNode,
                 nonPromotionHistory: info.nonPromotionHistory),
-            reachable: newReachable);
+            reachable: reachable);
   }
 
   /// Gets the info for [promotionKey] reference, creating it if it doesn't
@@ -3423,6 +3417,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     } else {
       shortcutState = _current;
     }
+    if (operations.classifyType(leftHandSideType) ==
+        TypeClassification.nullOrEquivalent) {
+      shortcutState = shortcutState.setUnreachable();
+    }
     _stack.add(new _IfNullExpressionContext<Type>(shortcutState));
     // Note: we are now on the RHS of the `??`, and so at this point in the
     // flow, it is known that the LHS evaluated to `null`.  It's tempting to
@@ -3516,13 +3514,17 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void isExpression_end(Expression isExpression, Expression subExpression,
       bool isNot, Type type) {
-    ReferenceWithType<Type>? subExpressionReference =
-        _getExpressionReference(subExpression);
-    if (subExpressionReference != null) {
-      ExpressionInfo<Type> expressionInfo =
-          _current.tryPromoteForTypeCheck(this, subExpressionReference, type);
-      _storeExpressionInfo(
-          isExpression, isNot ? expressionInfo.invert() : expressionInfo);
+    if (operations.isNever(type)) {
+      booleanLiteral(isExpression, isNot);
+    } else {
+      ReferenceWithType<Type>? subExpressionReference =
+          _getExpressionReference(subExpression);
+      if (subExpressionReference != null) {
+        ExpressionInfo<Type> expressionInfo =
+            _current.tryPromoteForTypeCheck(this, subExpressionReference, type);
+        _storeExpressionInfo(
+            isExpression, isNot ? expressionInfo.invert() : expressionInfo);
+      }
     }
   }
 
@@ -3629,13 +3631,15 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void nullAwareAccess_rightBegin(Expression? target, Type targetType) {
-    // ignore:unnecessary_null_comparison
-    assert(targetType != null);
     _current = _current.split();
     _stack.add(new _NullAwareAccessContext<Type>(_current));
     ReferenceWithType<Type>? targetReference = _getExpressionReference(target);
     if (targetReference != null) {
       _current = _current.tryMarkNonNullable(this, targetReference).ifTrue;
+    }
+    if (operations.classifyType(targetType) ==
+        TypeClassification.nullOrEquivalent) {
+      _current = _current.setUnreachable();
     }
   }
 

@@ -45,6 +45,12 @@ DEFINE_FLAG(bool,
             false,
             "Print huge methods (less optimized)");
 
+DEFINE_FLAG(int,
+            force_switch_dispatch_type,
+            -1,
+            "Force switch statements to use a particular dispatch type: "
+            "-1=auto, 0=linear scan, 1=binary search, 2=jump table");
+
 namespace kernel {
 
 #define Z (zone_)
@@ -476,9 +482,9 @@ Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   }
 }
 
-Fragment FlowGraphBuilder::IndirectGoto(intptr_t target_count) {
+IndirectGotoInstr* FlowGraphBuilder::IndirectGoto(intptr_t target_count) {
   Value* index = Pop();
-  return Fragment(new (Z) IndirectGotoInstr(target_count, index));
+  return new (Z) IndirectGotoInstr(target_count, index);
 }
 
 Fragment FlowGraphBuilder::ThrowLateInitializationError(
@@ -4952,6 +4958,201 @@ const Function& FlowGraphBuilder::PrependTypeArgumentsFunction() {
     ASSERT(!prepend_type_arguments_.IsNull());
   }
   return prepend_type_arguments_;
+}
+
+int64_t SwitchHelper::ExpressionRange() const {
+  const int64_t min = expression_min().AsInt64Value();
+  const int64_t max = expression_max().AsInt64Value();
+  ASSERT(min <= max);
+  const uint64_t diff = static_cast<uint64_t>(max) - static_cast<uint64_t>(min);
+  // Saturate to avoid overflow.
+  if (diff > static_cast<uint64_t>(kMaxInt64 - 1)) {
+    return kMaxInt64;
+  }
+  return static_cast<int64_t>(diff + 1);
+}
+
+bool SwitchHelper::RequiresLowerBoundCheck() const {
+  if (is_enum_switch()) {
+    if (expression_min().IsZero()) {
+      // Enum indexes are always positive.
+      return false;
+    }
+  }
+  return true;
+}
+
+bool SwitchHelper::RequiresUpperBoundCheck() const {
+  if (is_enum_switch()) {
+    return has_default() || !is_exhaustive();
+  }
+  return true;
+}
+
+SwitchDispatch SwitchHelper::SelectDispatchStrategy() {
+  // For small to medium-sized switches, binary search is faster than a
+  // jump table.
+  // Please update runtime/tests/vm/dart/optimized_switch_test.dart
+  // when changing this constant.
+  const intptr_t kJumpTableMinExpressions = 16;
+  // This limit comes from IndirectGotoInstr.
+  // Realistically, the current limit should never be hit by any code.
+  const intptr_t kJumpTableMaxSize = kMaxInt32;
+  // Sometimes the switch expressions don't cover a contiguous range.
+  // If the ratio of holes to expressions is too great we fall back to a
+  // binary search to avoid code size explosion.
+  const double kJumpTableMaxHolesRatio = 1.0;
+
+  if (!is_optimizable()) {
+    // The switch is not optimizable, so we can only use linear scan.
+    return kSwitchDispatchLinearScan;
+  }
+
+  if (FLAG_force_switch_dispatch_type == kSwitchDispatchLinearScan) {
+    return kSwitchDispatchLinearScan;
+  }
+
+  PrepareForOptimizedSwitch();
+
+  if (!is_optimizable()) {
+    // While preparing for an optimized switch we might have discovered that
+    // the switch is not optimizable after all.
+    return kSwitchDispatchLinearScan;
+  }
+
+  if (FLAG_force_switch_dispatch_type == kSwitchDispatchBinarySearch) {
+    return kSwitchDispatchBinarySearch;
+  }
+
+  const int64_t range = ExpressionRange();
+  if (range > kJumpTableMaxSize) {
+    return kSwitchDispatchBinarySearch;
+  }
+
+  const intptr_t num_expressions = expressions().length();
+  ASSERT(num_expressions <= range);
+
+  const intptr_t max_holes = num_expressions * kJumpTableMaxHolesRatio;
+  const int64_t holes = range - num_expressions;
+
+  if (FLAG_force_switch_dispatch_type != kSwitchDispatchJumpTable) {
+    if (num_expressions < kJumpTableMinExpressions) {
+      return kSwitchDispatchBinarySearch;
+    }
+
+    if (holes > max_holes) {
+      return kSwitchDispatchBinarySearch;
+    }
+  }
+
+  // After this point we will use a jump table.
+
+  // In the general case, bounds checks are required before a jump table
+  // to handle all possible integer values.
+  // For enums, the set of possible index values is known and much smaller
+  // than the set of all possible integer values. A jump table that covers
+  // either or both bounds of the range of index values requires only one or
+  // no bounds checks.
+  // If the expressions of an enum switch don't cover the full range of
+  // values we can try to extend the jump table to cover the full range, but
+  // not beyond kJumpTableMaxHolesRatio.
+  // The count of enum values is not available when the flow graph is
+  // constructed. The lower bound is always 0 so eliminating the lower
+  // bound check is still possible by extending expression_min to 0.
+  //
+  // In the case of an integer switch we try to extend expression_min to 0
+  // for a different reason.
+  // If the range starts at zero it directly maps to the jump table
+  // and we don't need to adjust the switch variable before the
+  // jump table.
+  if (expression_min().AsInt64Value() > 0) {
+    const intptr_t holes_budget = Utils::Minimum(
+        // Holes still available.
+        max_holes - holes,
+        // Entries left in the jump table.
+        kJumpTableMaxSize - range);
+
+    const int64_t required_holes = expression_min().AsInt64Value();
+    if (required_holes <= holes_budget) {
+      expression_min_ = &Object::smi_zero();
+    }
+  }
+
+  return kSwitchDispatchJumpTable;
+}
+
+void SwitchHelper::PrepareForOptimizedSwitch() {
+  // Find the min and max of integer representations of expressions.
+  // We also populate SwitchExpressions.integer for later use.
+  const Field* enum_index_field = nullptr;
+  for (intptr_t i = 0; i < expressions_.length(); ++i) {
+    SwitchExpression& expression = expressions_[i];
+    sorted_expressions_.Add(&expression);
+
+    const Instance& value = expression.value();
+    const Integer* integer = nullptr;
+    if (is_enum_switch()) {
+      if (enum_index_field == nullptr) {
+        enum_index_field =
+            &Field::Handle(zone_, IG->object_store()->enum_index_field());
+      }
+      integer = &Integer::ZoneHandle(
+          zone_, Integer::RawCast(value.GetField(*enum_index_field)));
+    } else {
+      integer = &Integer::Cast(value);
+    }
+    expression.set_integer(*integer);
+    if (i == 0) {
+      expression_min_ = integer;
+      expression_max_ = integer;
+    } else {
+      if (expression_min_->CompareWith(*integer) > 0) {
+        expression_min_ = integer;
+      }
+      if (expression_max_->CompareWith(*integer) < 0) {
+        expression_max_ = integer;
+      }
+    }
+  }
+
+  // Sort expressions by their integer value.
+  sorted_expressions_.Sort(
+      [](SwitchExpression* const* a, SwitchExpression* const* b) {
+        return (*a)->integer().CompareWith((*b)->integer());
+      });
+
+  // Check that there are no duplicate case expressions.
+  // Duplicate expressions are allowed in switch statements, but
+  // optimized switches don't implemented them.
+  for (intptr_t i = 0; i < sorted_expressions_.length() - 1; ++i) {
+    const SwitchExpression& a = *sorted_expressions_.At(i);
+    const SwitchExpression& b = *sorted_expressions_.At(i + 1);
+    if (a.integer().Equals(b.integer())) {
+      is_optimizable_ = false;
+      break;
+    }
+  }
+}
+
+void SwitchHelper::AddExpression(intptr_t case_index,
+                                 TokenPosition position,
+                                 const Instance& value) {
+  case_expression_counts_[case_index]++;
+
+  expressions_.Add(SwitchExpression(case_index, position, value));
+
+  if (is_optimizable_ || expression_class_ == nullptr) {
+    // Check the type of the expression for use in an optimized switch.
+    const Class& value_class = Class::ZoneHandle(zone_, value.clazz());
+    if (expression_class_ == nullptr) {
+      expression_class_ = &value_class;
+      // Only integer and enum expressions can be used in an optimized switch.
+      is_optimizable_ = value.IsInteger() || value_class.is_enum_class();
+    } else if (value_class.ptr() != expression_class_->ptr()) {
+      // At least one expression has a different type than the others.
+      is_optimizable_ = false;
+    }
+  }
 }
 
 }  // namespace kernel

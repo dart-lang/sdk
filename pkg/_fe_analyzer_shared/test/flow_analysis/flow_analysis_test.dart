@@ -36,6 +36,18 @@ main() {
       ]);
     });
 
+    test("asExpression_end() sets reachability for Never", () {
+      // Note: this is handled by the general mechanism that marks control flow
+      // as reachable after any expression with static type `Never`.  This is
+      // implemented in the flow analysis client, but we test it here anyway as
+      // a validation of the "mini AST" logic.
+      h.run([
+        checkReachable(true),
+        expr('int').as_('Never').stmt,
+        checkReachable(false),
+      ]);
+    });
+
     test('assert_afterCondition promotes', () {
       var x = Var('x', 'int?');
       h.run([
@@ -1144,6 +1156,28 @@ main() {
       ]);
     });
 
+    test(
+        'ifNullExpression sets shortcut reachability correctly for `Null` type',
+        () {
+      h.run([
+        expr('Null')
+            .ifNull(checkReachable(true).thenExpr(throw_(expr('Object'))))
+            .thenStmt(checkReachable(false))
+            .stmt,
+      ]);
+    });
+
+    test(
+        'ifNullExpression sets shortcut reachability correctly for non-null '
+        'type', () {
+      h.run([
+        expr('Object')
+            .ifNull(checkReachable(true).thenExpr(throw_(expr('Object'))))
+            .thenStmt(checkReachable(true))
+            .stmt,
+      ]);
+    });
+
     test('ifStatement with early exit promotes in unreachable code', () {
       var x = Var('x', 'int?');
       h.run([
@@ -1511,27 +1545,27 @@ main() {
       ]);
     });
 
-    test('isExpression_end() does not set reachability for `this`', () {
+    test('isExpression_end() sets reachability for `this`', () {
       h.thisType = 'C';
       h.addSubtype('Never', 'C', true);
       h.addFactor('C', 'Never', 'C');
       h.run([
         if_(this_.is_('Never'), [
-          checkReachable(true),
+          checkReachable(false),
         ], [
           checkReachable(true),
         ]),
       ]);
     });
 
-    group('isExpression_end() does not set reachability for property gets', () {
+    group('isExpression_end() sets reachability for property gets', () {
       test('on a variable', () {
         h.addMember('C', 'f', 'Object?');
         var x = Var('x', 'C');
         h.run([
           declare(x, initialized: true),
           if_(x.expr.property('f').is_('Never'), [
-            checkReachable(true),
+            checkReachable(false),
           ], [
             checkReachable(true),
           ]),
@@ -1542,7 +1576,7 @@ main() {
         h.addMember('C', 'f', 'Object?');
         h.run([
           if_(expr('C').property('f').is_('Never'), [
-            checkReachable(true),
+            checkReachable(false),
           ], [
             checkReachable(true),
           ]),
@@ -1554,7 +1588,7 @@ main() {
         h.addMember('C', 'f', 'Object?');
         h.run([
           if_(this_.property('f').is_('Never'), [
-            checkReachable(true),
+            checkReachable(false),
           ], [
             checkReachable(true),
           ]),
@@ -1566,12 +1600,22 @@ main() {
         h.addMember('C', 'f', 'Object?');
         h.run([
           if_(thisOrSuperProperty('f').is_('Never'), [
-            checkReachable(true),
+            checkReachable(false),
           ], [
             checkReachable(true),
           ]),
         ]);
       });
+    });
+
+    test('isExpression_end() sets reachability for arbitrary exprs', () {
+      h.run([
+        if_(expr('int').is_('Never'), [
+          checkReachable(false),
+        ], [
+          checkReachable(true),
+        ]),
+      ]);
     });
 
     test('labeledBlock without break', () {
@@ -1710,6 +1754,16 @@ main() {
       ]);
     });
 
+    test('nonNullAssert_end sets reachability if type is `Null`', () {
+      // Note: this is handled by the general mechanism that marks control flow
+      // as reachable after any expression with static type `Never`.  This is
+      // implemented in the flow analysis client, but we test it here anyway as
+      // a validation of the "mini AST" logic.
+      h.run([
+        expr('Null').nonNullAssert.thenStmt(checkReachable(false)).stmt,
+      ]);
+    });
+
     test('nullAwareAccess temporarily promotes', () {
       var x = Var('x', 'int?');
       late SsaNode<Type> ssaBeforePromotion;
@@ -1756,6 +1810,17 @@ main() {
             ]).thenExpr(x.write(expr('int?'))).thenStmt(checkNotPromoted(x)))
             .stmt,
         checkNotPromoted(x),
+      ]);
+    });
+
+    test('nullAwareAccess sets reachability correctly for `Null` type', () {
+      h.run([
+        expr('Null')
+            .nullAwareAccess(block([
+              checkReachable(false),
+            ]).thenExpr(expr('Object?')))
+            .thenStmt(checkReachable(true))
+            .stmt,
       ]);
     });
 
@@ -3932,7 +3997,7 @@ main() {
       test('promote to Never', () {
         var s1 = FlowModel<Type>(Reachability.initial);
         var s2 = s1._tryMarkNonNullable(h, nullVar).ifTrue;
-        expect(s2.reachable.overallReachable, false);
+        expect(s2.reachable.overallReachable, true);
         expect(s2._infoFor(h, nullVar),
             _matchVariableModel(chain: ['Never'], ofInterest: []));
       });

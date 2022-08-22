@@ -889,7 +889,8 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   // Fall through to &is_simple_case
 
   const RegisterSet caller_saved_registers(
-      TypeTestABI::kSubtypeTestCacheStubCallerSavedRegisters);
+      TypeTestABI::kSubtypeTestCacheStubCallerSavedRegisters,
+      /*fpu_registers=*/0);
 
   __ Bind(&is_simple_case);
   {

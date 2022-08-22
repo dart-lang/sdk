@@ -1815,7 +1815,7 @@ RangeBoundary RangeBoundary::Shl(const RangeBoundary& value_boundary,
   int64_t value = value_boundary.ConstantValue();
 
   if (value == 0) {
-    return RangeBoundary(0);
+    return RangeBoundary::FromConstant(0);
   } else if (shift_count == 0 ||
              (limit > 0 && Utils::IsInt(static_cast<int>(limit), value))) {
     // Result stays in 64 bit range.

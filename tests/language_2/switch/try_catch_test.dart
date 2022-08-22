@@ -7,6 +7,11 @@
 // Regression test for issue 18869: Check that try-catch is working correctly
 // inside switch-case clauses.
 
+// VMOptions=
+// VMOptions=--force-switch-dispatch-type=0
+// VMOptions=--force-switch-dispatch-type=1
+// VMOptions=--force-switch-dispatch-type=2
+
 import "package:expect/expect.dart";
 
 test_switch() {

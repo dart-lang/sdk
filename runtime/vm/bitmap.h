@@ -54,6 +54,9 @@ class BitmapBuilder : public ZoneAllocated {
   void Print() const;
   void AppendAsBytesTo(BaseWriteStream* stream) const;
 
+  void Write(BaseWriteStream* stream) const;
+  void Read(ReadStream* stream);
+
  private:
   static constexpr intptr_t kIncrementSizeInBytes = 16;
   static constexpr intptr_t kInlineCapacityInBytes = 16;

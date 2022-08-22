@@ -1,2 +1,2 @@
 main() {}
-void test(var x) {}
+void test(Never x) {}

@@ -1660,7 +1660,13 @@ class _MiniAstTypeAnalyzer {
   }
 
   Type dispatchExpression(Expression expression, Type context) =>
-      _irBuilder.guard(expression, () => expression.visit(_harness, context));
+      _irBuilder.guard(expression, () {
+        var type = expression.visit(_harness, context);
+        if (flow.operations.isNever(type)) {
+          flow.handleExit();
+        }
+        return type;
+      });
 
   void dispatchStatement(Statement statement) =>
       _irBuilder.guard(statement, () => statement.visit(_harness));

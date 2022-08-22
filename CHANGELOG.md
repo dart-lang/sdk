@@ -2,6 +2,30 @@
 
 ### Language
 
+- **Breaking change** [#49635][]: Flag additional code as unreachable due to
+  types `Null` and `Never`.  Several unusual constructs that lead to unreachable
+  code are now recognized by flow analysis:
+
+  - Control flow after an expression of the form `e ?? other` or `e ??= other`,
+    where `e` has static type `Null` and `other` has static type `Never`, is
+    considered unreachable.
+
+  - Control flow predicated on an expression of the form `e is Never` evaluating
+    to `true` is considered unreachable.
+
+  - Control flow predicated on an expression of the form `e is! Never`
+    evaluating to `false` is considered unreachable.
+
+  - Control flow on the RHS of a null-aware access such as `e?.property...`,
+    `e?.property = ...` or `e?.method(...)`, where `e` has static type `Null`,
+    is considered unreachable (Note: this can arise in the presence of extension
+    methods).
+
+  Previously, these behaviors only took effect if `e` was a reference to a local
+  variable.
+
+[#49635]: https://github.com/dart-lang/sdk/issues/49635
+
 ### Libraries
 
 #### `dart:convert`
