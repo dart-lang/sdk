@@ -1,10 +1,18 @@
+## 2.17.7 - 2022-08-24
+
+This is a patch release that:
+
+- fixes a crash in the debugger (issue [#49209][]).
+
+[#49209]: https://github.com/dart-lang/sdk/issues/49209
+
 ## 2.17.6 - 2022-07-13
 
 This is a patch release that:
 
-- Improves code completion for Flutter (issue [#49054][]).
-- Fixes a crash on ARM (issue [#106510][]).
-- Fixes a compiler crash with Finalizable parameters (issue [#49402][]).
+- improves code completion for Flutter (issue [#49054][]).
+- fixes a crash on ARM (issue [#106510][]).
+- fixes a compiler crash with Finalizable parameters (issue [#49402][]).
 
 [#49054]: https://github.com/dart-lang/sdk/issues/49054
 [#106510]: https://github.com/flutter/flutter/issues/106510
@@ -14,8 +22,9 @@ This is a patch release that:
 
 This is a patch release that:
 
-- Improves analysis of enums and switch (issue [#49188][]).
-- Fixes a compiler crash when initializing Finalizable objects (issue [#49075][]).
+- improves analysis of enums and switch (issue [#49188][]).
+- fixes a compiler crash when initializing Finalizable objects
+  (issue [#49075][]).
 
 [#49188]: https://github.com/dart-lang/sdk/issues/49188
 [#49075]: https://github.com/dart-lang/sdk/issues/49075
