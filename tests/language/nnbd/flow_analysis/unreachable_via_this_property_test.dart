@@ -92,9 +92,9 @@ class C extends B {
     } else {
       y = null;
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.  But x should still have static type `int`.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 
@@ -107,9 +107,9 @@ class C extends B {
     } else {
       y = null;
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.  But x should still have static type `int`.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 
@@ -124,9 +124,9 @@ class C extends B {
         y = null;
       }
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.  But x should still have static type `int`.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 
@@ -141,9 +141,9 @@ class C extends B {
         y = null;
       }
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.  But x should still have static type `int`.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 }
@@ -224,9 +224,9 @@ extension on D {
     } else {
       y = null;
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.  But x should still have static type `int`.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 
@@ -239,9 +239,9 @@ extension on D {
     } else {
       y = null;
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.  But x should still have static type `int`.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 
@@ -256,9 +256,9 @@ extension on D {
         y = null;
       }
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.  But x should still have static type `int`.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 
@@ -273,9 +273,9 @@ extension on D {
         y = null;
       }
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.  But x should still have static type `int`.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 }
@@ -359,9 +359,9 @@ class _C extends _B {
     } else {
       y = null;
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.  But x should still have static type `int`.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 
@@ -374,9 +374,9 @@ class _C extends _B {
     } else {
       y = null;
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.  But x should still have static type `int`.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 
@@ -391,9 +391,9 @@ class _C extends _B {
         y = null;
       }
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.  But x should still have static type `int`.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 
@@ -408,9 +408,9 @@ class _C extends _B {
         y = null;
       }
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.  But x should still have static type `int`.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 }
@@ -491,9 +491,9 @@ extension on _D {
     } else {
       y = null;
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.  But x should still have static type `int`.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 
@@ -506,9 +506,9 @@ extension on _D {
     } else {
       y = null;
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.  But x should still have static type `int`.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 
@@ -523,9 +523,9 @@ extension on _D {
         y = null;
       }
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.  But x should still have static type `int`.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 
@@ -540,9 +540,9 @@ extension on _D {
         y = null;
       }
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.  But x should still have static type `int`.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 }

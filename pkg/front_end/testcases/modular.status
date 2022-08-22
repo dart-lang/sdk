@@ -81,6 +81,4 @@ nnbd_mixed/inheritance_from_opt_in: TypeCheckError
 nnbd_mixed/issue41567: TypeCheckError
 nnbd_mixed/messages_with_types_opt_in: TypeCheckError
 nnbd_mixed/messages_with_types_opt_out: TypeCheckError
-regress/issue_31180: TypeCheckError
-regress/issue_31180_2: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError

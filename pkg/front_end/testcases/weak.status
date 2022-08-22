@@ -248,8 +248,6 @@ rasta/unresolved_constructor: RuntimeError
 rasta/unresolved_for_in: RuntimeError
 regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
-regress/issue_31180: TypeCheckError
-regress/issue_31180_2: TypeCheckError
 regress/issue_32972: RuntimeError
 regress/issue_33452: RuntimeError # Test has an intentional error
 regress/issue_34225: RuntimeError
