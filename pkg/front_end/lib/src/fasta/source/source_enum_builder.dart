@@ -477,7 +477,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
             fieldReference: fieldReference,
             fieldGetterReference: getterReference,
             fieldSetterReference: setterReference,
-            initializerToken: enumConstantInfo.argumentsBeginToken);
+            initializerToken: enumConstantInfo.argumentsBeginToken,
+            isEnumElement: true);
         members[name] = fieldBuilder..next = existing;
         elementBuilders.add(fieldBuilder);
       }

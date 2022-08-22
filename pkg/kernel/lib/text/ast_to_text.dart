@@ -1101,6 +1101,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   void visitField(Field node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
+    writeModifier(node.isEnumElement, 'enum-element');
     writeModifier(node.isLate, 'late');
     writeModifier(node.isStatic, 'static');
     writeModifier(node.isCovariantByDeclaration, 'covariant-by-declaration');

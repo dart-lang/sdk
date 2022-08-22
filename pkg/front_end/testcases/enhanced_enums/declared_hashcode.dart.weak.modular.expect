@@ -108,7 +108,7 @@ import "dart:core" as core;
 
 class E1 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E1> values = #C4;
-  static const field self::E1 element = #C3;
+  enum-element static const field self::E1 element = #C3;
   const constructor •(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
@@ -119,7 +119,7 @@ class E1 extends core::_Enum /*isEnum*/  {
 }
 class E2 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E2> values = #C6;
-  static const field self::E2 element = #C5;
+  enum-element static const field self::E2 element = #C5;
   const constructor •(core::int #index, core::String #name) → self::E2
     : super core::_Enum::•(#index, #name)
     ;
@@ -131,7 +131,7 @@ class E2 extends core::_Enum /*isEnum*/  {
 class E3 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E3> values = #C9;
   final field core::int hashCode = 42;
-  static const field self::E3 element = #C8;
+  enum-element static const field self::E3 element = #C8;
   const constructor •(core::int #index, core::String #name) → self::E3
     : super core::_Enum::•(#index, #name)
     ;
@@ -140,7 +140,7 @@ class E3 extends core::_Enum /*isEnum*/  {
 }
 class E4 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E4> values = #C11;
-  static const field self::E4 element = #C10;
+  enum-element static const field self::E4 element = #C10;
   const constructor •(core::int #index, core::String #name) → self::E4
     : super core::_Enum::•(#index, #name)
     ;
@@ -151,7 +151,7 @@ class E4 extends core::_Enum /*isEnum*/  {
 }
 class E5 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E5> values = #C13;
-  static const field self::E5 element = #C12;
+  enum-element static const field self::E5 element = #C12;
   const constructor •(core::int #index, core::String #name) → self::E5
     : super core::_Enum::•(#index, #name)
     ;
@@ -165,7 +165,7 @@ class E6 extends core::_Enum /*isEnum*/  {
   final field core::int foo = 0;
   final field core::int hashCode = 1;
   final field core::int bar = 2;
-  static const field self::E6 element = #C16;
+  enum-element static const field self::E6 element = #C16;
   const constructor •(core::int #index, core::String #name) → self::E6
     : super core::_Enum::•(#index, #name)
     ;
@@ -174,7 +174,7 @@ class E6 extends core::_Enum /*isEnum*/  {
 }
 class E7 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E7> values = #C19;
-  static const field self::E7 element = #C18;
+  enum-element static const field self::E7 element = #C18;
   const constructor •(core::int #index, core::String #name) → self::E7
     : super core::_Enum::•(#index, #name)
     ;
@@ -185,7 +185,7 @@ class E7 extends core::_Enum /*isEnum*/  {
 }
 class E8 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E8> values = #C21;
-  static const field self::E8 element = #C20;
+  enum-element static const field self::E8 element = #C20;
   const constructor •(core::int #index, core::String #name) → self::E8
     : super core::_Enum::•(#index, #name)
     ;
@@ -195,7 +195,7 @@ class E8 extends core::_Enum /*isEnum*/  {
 }
 class E9 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E9> values = #C23;
-  static const field self::E9 element = #C22;
+  enum-element static const field self::E9 element = #C22;
   const constructor •(core::int #index, core::String #name) → self::E9
     : super core::_Enum::•(#index, #name)
     ;
@@ -205,7 +205,7 @@ class E9 extends core::_Enum /*isEnum*/  {
 }
 class E10 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E10> values = #C25;
-  static const field self::E10 element = #C24;
+  enum-element static const field self::E10 element = #C24;
   const constructor •(core::int #index, core::String #name) → self::E10
     : super core::_Enum::•(#index, #name)
     ;
@@ -216,7 +216,7 @@ class E10 extends core::_Enum /*isEnum*/  {
 }
 class E11 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E11> values = #C27;
-  static const field self::E11 element = #C26;
+  enum-element static const field self::E11 element = #C26;
   const constructor •(core::int #index, core::String #name) → self::E11
     : super core::_Enum::•(#index, #name)
     ;
@@ -226,7 +226,7 @@ class E11 extends core::_Enum /*isEnum*/  {
 }
 class E12 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E12> values = #C30;
-  static const field self::E12 hashCode = #C29;
+  enum-element static const field self::E12 hashCode = #C29;
   const constructor •(core::int #index, core::String #name) → self::E12
     : super core::_Enum::•(#index, #name)
     ;
@@ -241,7 +241,7 @@ abstract class I13 extends core::Object {
 }
 class E13 extends core::_Enum implements self::I13 /*isEnum*/  {
   static const field core::List<self::E13> values = #C32;
-  static const field self::E13 element = #C31;
+  enum-element static const field self::E13 element = #C31;
   const constructor •(core::int #index, core::String #name) → self::E13
     : super core::_Enum::•(#index, #name)
     ;
@@ -256,7 +256,7 @@ abstract class I14 extends core::Object {
 }
 class E14 extends core::_Enum implements self::I14 /*isEnum*/  {
   static const field core::List<self::E14> values = #C34;
-  static const field self::E14 element = #C33;
+  enum-element static const field self::E14 element = #C33;
   const constructor •(core::int #index, core::String #name) → self::E14
     : super core::_Enum::•(#index, #name)
     ;

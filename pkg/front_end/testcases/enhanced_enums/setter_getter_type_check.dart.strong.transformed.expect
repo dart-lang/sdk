@@ -15,8 +15,8 @@ import "dart:core" as core;
 
 class E<T extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E<dynamic>> values = #C7;
-  static const field self::E<core::int> element = #C3;
-  static const field self::E<core::int> element2 = #C6;
+  enum-element static const field self::E<core::int> element = #C3;
+  enum-element static const field self::E<core::int> element2 = #C6;
   const constructor •(core::int #index, core::String #name) → self::E<self::E::T%>
     : super core::_Enum::•(#index, #name)
     ;

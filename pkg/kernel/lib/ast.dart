@@ -2187,7 +2187,8 @@ class Field extends Member {
       int transformerFlags: 0,
       required Uri fileUri,
       Reference? fieldReference,
-      Reference? getterReference})
+      Reference? getterReference,
+      bool isEnumElement: false})
       : this.getterReference = getterReference ?? new Reference(),
         this.setterReference = null,
         super(name, fileUri, fieldReference) {
@@ -2200,6 +2201,7 @@ class Field extends Member {
     this.isConst = isConst;
     this.isStatic = isStatic;
     this.isLate = isLate;
+    this.isEnumElement = isEnumElement;
     this.transformerFlags = transformerFlags;
   }
 
@@ -2230,6 +2232,7 @@ class Field extends Member {
   static const int FlagExtensionMember = 1 << 6;
   static const int FlagNonNullableByDefault = 1 << 7;
   static const int FlagInternalImplementation = 1 << 8;
+  static const int FlagEnumElement = 1 << 9;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariantByDeclaration => flags & FlagCovariant != 0;
@@ -2261,6 +2264,18 @@ class Field extends Member {
   /// lowering.
   @override
   bool get isInternalImplementation => flags & FlagInternalImplementation != 0;
+
+  /// If `true` this field is an enum element.
+  ///
+  /// For instance
+  ///
+  ///    enum A {
+  ///      a, b;
+  ///      static const A c = A.a;
+  ///    }
+  ///
+  /// the fields `a` and `b` are enum elements whereas `c` is a regular field.
+  bool get isEnumElement => flags & FlagEnumElement != 0;
 
   void set isCovariantByDeclaration(bool value) {
     flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
@@ -2297,6 +2312,10 @@ class Field extends Member {
     flags = value
         ? (flags | FlagInternalImplementation)
         : (flags & ~FlagInternalImplementation);
+  }
+
+  void set isEnumElement(bool value) {
+    flags = value ? (flags | FlagEnumElement) : (flags & ~FlagEnumElement);
   }
 
   @override

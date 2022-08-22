@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class E extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E> values = const <self::E>[self::E::a];
-  static const field self::E a = const self::E::b(0, "a");
+  enum-element static const field self::E a = const self::E::b(0, "a");
   const constructor b(core::int #index, core::String #name) → self::E
     : super core::_Enum::•(#index, #name)
     ;

@@ -73,6 +73,10 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
   final bool isSynthesized;
 
+  /// If `true`, this field builder is for the field corresponding to an enum
+  /// element.
+  final bool isEnumElement;
+
   SourceFieldBuilder(
       this.metadata,
       this.type,
@@ -93,7 +97,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       Reference? lateSetterReference,
       Token? initializerToken,
       Token? constInitializerToken,
-      this.isSynthesized = false})
+      this.isSynthesized = false,
+      this.isEnumElement = false})
       : _constInitializerToken = constInitializerToken,
         super(libraryBuilder, charOffset) {
     type.registerInferredTypeListener(this);
@@ -113,6 +118,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       assert(lateIsSetSetterReference == null);
       assert(lateGetterReference == null);
       assert(lateSetterReference == null);
+      assert(!isEnumElement, "Unexpected abstract/external enum element");
       _fieldEncoding = new AbstractOrExternalFieldEncoding(
           this,
           name,
@@ -132,6 +138,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
             hasInitializer: hasInitializer,
             isFinal: isFinal,
             isStatic: !isInstanceMember)) {
+      assert(!isEnumElement, "Unexpected late enum element");
       if (hasInitializer) {
         if (isFinal) {
           _fieldEncoding = new LateFinalFieldWithInitializerEncoding(
@@ -210,6 +217,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
         !isInstanceMember &&
         !isConst &&
         hasInitializer) {
+      assert(!isEnumElement, "Unexpected non-const enum element");
       if (isFinal) {
         _fieldEncoding = new LateFinalFieldWithInitializerEncoding(
             name,
@@ -260,7 +268,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
           isNonNullableByDefault: libraryBuilder.isNonNullableByDefault,
           fieldReference: fieldReference,
           getterReference: fieldGetterReference,
-          setterReference: fieldSetterReference);
+          setterReference: fieldSetterReference,
+          isEnumElement: isEnumElement);
     }
 
     if (type is InferableTypeBuilder) {
@@ -614,7 +623,8 @@ class RegularFieldEncoding implements FieldEncoding {
       required bool isNonNullableByDefault,
       required Reference? fieldReference,
       required Reference? getterReference,
-      required Reference? setterReference}) {
+      required Reference? setterReference,
+      required bool isEnumElement}) {
     // ignore: unnecessary_null_comparison
     assert(isFinal != null);
     // ignore: unnecessary_null_comparison
@@ -634,7 +644,8 @@ class RegularFieldEncoding implements FieldEncoding {
             isLate: isLate,
             fileUri: fileUri,
             fieldReference: fieldReference,
-            getterReference: getterReference)
+            getterReference: getterReference,
+            isEnumElement: isEnumElement)
         : new Field.mutable(
             nameScheme.getFieldName(FieldNameType.Field, name,
                 isSynthesized: false),

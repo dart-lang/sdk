@@ -61,8 +61,8 @@ import "dart:async";
 
 class Enum extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Enum> values = #C7;
-  static const field self::Enum a = #C3;
-  static const field self::Enum b = #C6;
+  enum-element static const field self::Enum a = #C3;
+  enum-element static const field self::Enum b = #C6;
   const constructor •(core::int #index, core::String #name) → self::Enum
     : super core::_Enum::•(#index, #name)
     ;
