@@ -769,17 +769,7 @@ class TreeShaker {
                   mayHaveSideEffects(f.initializer!)) ||
               (f.isLate && f.isFinal) ||
               isFieldFinalizable(f)) ||
-      isMemberReferencedFromNativeCode(f) ||
-      _isInstanceFieldOfAllocatedEnum(f);
-
-  /// Preserve instance fields of allocated enums as VM relies on their
-  /// existence. Non-allocated enums are converted into ordinary classes during
-  /// the 2nd pass.
-  bool _isInstanceFieldOfAllocatedEnum(Field node) =>
-      !node.isStatic &&
-      node.enclosingClass != null &&
-      node.enclosingClass!.isEnum &&
-      isClassAllocated(node.enclosingClass!);
+      isMemberReferencedFromNativeCode(f);
 
   void addClassUsedInType(Class c) {
     if (_classesUsedInType.add(c)) {
