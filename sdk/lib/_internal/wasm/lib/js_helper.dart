@@ -190,6 +190,9 @@ external bool isJSWrappedDartFunction(WasmAnyRef? o);
 @pragma("wasm:import", "dart2wasm.isJSObject")
 external bool isJSObject(WasmAnyRef? o);
 
+@pragma("wasm:import", "dart2wasm.isJSSimpleObject")
+external bool isJSSimpleObject(WasmAnyRef? o);
+
 @pragma("wasm:import", "dart2wasm.isJSRegExp")
 external bool isJSRegExp(WasmAnyRef object);
 
@@ -204,6 +207,9 @@ external WasmAnyRef toJSNumber(double d);
 
 @pragma("wasm:import", "dart2wasm.roundtrip")
 external bool toDartBool(WasmAnyRef ref);
+
+@pragma("wasm:import", "dart2wasm.toJSBoolean")
+external WasmAnyRef toJSBoolean(bool b);
 
 @pragma("wasm:import", "dart2wasm.objectLength")
 external double objectLength(WasmAnyRef ref);
@@ -261,6 +267,9 @@ external void evalRaw(WasmAnyRef code);
 @pragma("wasm:import", "dart2wasm.newObject")
 external WasmAnyRef newObjectRaw();
 
+@pragma("wasm:import", "dart2wasm.newArray")
+external WasmAnyRef newArrayRaw();
+
 @pragma("wasm:import", "dart2wasm.globalThis")
 external WasmAnyRef globalThisRaw();
 
@@ -288,6 +297,9 @@ external WasmAnyRef? callMethodVarArgsRaw(
 @pragma("wasm:import", "dart2wasm.stringify")
 external String stringify(WasmAnyRef? object);
 
+@pragma("wasm:import", "dart2wasm.objectKeys")
+external WasmAnyRef objectKeysRaw(WasmAnyRef? o);
+
 // Currently, `allowInterop` returns a Function type. This is unfortunate for
 // Dart2wasm because it means arbitrary Dart functions can flow to JS util
 // calls. Our only solutions is to cache every function called with
@@ -306,6 +318,8 @@ WasmAnyRef jsArrayBufferFromDartByteBuffer(ByteBuffer buffer) {
 WasmAnyRef? jsifyRaw(Object? object) {
   if (object == null) {
     return null;
+  } else if (object is bool) {
+    return toJSBoolean(object);
   } else if (object is Function) {
     assert(functionToJSWrapper.containsKey(object),
         'Must call `allowInterop` on functions before they flow to JS');
