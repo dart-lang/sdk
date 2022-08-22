@@ -343,8 +343,8 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
     if (result != expected) {
       fail('''
 Expected ${expected ? 'equal' : 'not equal'}.
-T1: ${_typeString(T1)}
-T2: ${_typeString(T2)}
+T1: ${typeString(T1)}
+T2: ${typeString(T2)}
 ''');
     }
 
@@ -352,8 +352,8 @@ T2: ${_typeString(T2)}
     if (result != expected) {
       fail('''
 Expected ${expected ? 'equal' : 'not equal'}.
-T1: ${_typeString(T1)}
-T2: ${_typeString(T2)}
+T1: ${typeString(T1)}
+T2: ${typeString(T2)}
 ''');
     }
   }
@@ -378,9 +378,5 @@ T2: ${_typeString(T2)}
       typeOfString(T1),
       typeOfString(T2),
     );
-  }
-
-  String _typeString(DartType type) {
-    return type.getDisplayString(withNullability: true);
   }
 }

@@ -14,9 +14,7 @@ mixin StringTypes on AbstractTypeSystemTest {
 
   void assertExpectedString(DartType type, String? expectedString) {
     if (expectedString != null) {
-      var typeStr = _typeStr(type);
-
-      typeStr += _typeParametersStr(type);
+      var typeStr = typeString(type);
 
       expect(typeStr, expectedString);
     }
@@ -98,6 +96,11 @@ mixin StringTypes on AbstractTypeSystemTest {
       fail('No DartType for: $str');
     }
     return type;
+  }
+
+  String typeString(DartType type) {
+    return type.getDisplayString(withNullability: true) +
+        _typeParametersStr(type);
   }
 
   void _defineFunctionTypes() {
@@ -507,20 +510,20 @@ mixin StringTypes on AbstractTypeSystemTest {
   }
 
   void _defineType(String str, DartType type) {
-    if (_typeStr(type) != str) {
-      fail('Expected: $str\nActual: ${_typeStr(type)}');
+    if (typeString(type) != str) {
+      fail('Expected: $str\nActual: ${typeString(type)}');
     }
 
     for (var entry in _types.entries) {
       var key = entry.key;
-      if (key == 'Never' || _typeStr(type) == 'Never') {
+      if (key == 'Never' || typeString(type) == 'Never') {
         // We have aliases for Never.
       } else {
         var value = entry.value;
         if (key == str) {
           fail('Duplicate type: $str;  existing: $value;  new: $type');
         }
-        if (_typeStr(value) == _typeStr(type)) {
+        if (typeString(value) == typeString(type)) {
           fail('Duplicate type: $str');
         }
       }
@@ -537,10 +540,6 @@ mixin StringTypes on AbstractTypeSystemTest {
       typeStr += ', $typeParameter';
     }
     return typeStr;
-  }
-
-  static String _typeStr(DartType type) {
-    return type.getDisplayString(withNullability: true);
   }
 }
 

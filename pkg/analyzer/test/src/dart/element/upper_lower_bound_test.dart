@@ -5,11 +5,8 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_visitor.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -34,14 +31,14 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
   static final Map<String, StackTrace> _isMoreTopChecked = {};
 
   void isBottom(DartType type) {
-    expect(typeSystem.isBottom(type), isTrue, reason: _typeString(type));
+    expect(typeSystem.isBottom(type), isTrue, reason: typeString(type));
   }
 
   void isMoreBottom(DartType T, DartType S) {
     _assertIsBottomOrNull(T);
     _assertIsBottomOrNull(S);
 
-    var str = '${_typeString(T)} vs ${_typeString(S)}';
+    var str = '${typeString(T)} vs ${typeString(S)}';
     _checkUniqueTypeStr(_isMoreBottomChecked, str);
 
     expect(typeSystem.isMoreBottom(T, S), isTrue, reason: str);
@@ -51,21 +48,21 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     _assertIsTopOrObject(T);
     _assertIsTopOrObject(S);
 
-    var str = '${_typeString(T)} vs ${_typeString(S)}';
+    var str = '${typeString(T)} vs ${typeString(S)}';
     _checkUniqueTypeStr(_isMoreTopChecked, str);
 
     expect(typeSystem.isMoreTop(T, S), isTrue, reason: str);
   }
 
   void isNotBottom(DartType type) {
-    expect(typeSystem.isBottom(type), isFalse, reason: _typeString(type));
+    expect(typeSystem.isBottom(type), isFalse, reason: typeString(type));
   }
 
   void isNotMoreBottom(DartType T, DartType S) {
     _assertIsBottomOrNull(T);
     _assertIsBottomOrNull(S);
 
-    var str = '${_typeString(T)} vs ${_typeString(S)}';
+    var str = '${typeString(T)} vs ${typeString(S)}';
     _checkUniqueTypeStr(_isMoreBottomChecked, str);
 
     expect(typeSystem.isMoreBottom(T, S), isFalse, reason: str);
@@ -75,34 +72,34 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     _assertIsTopOrObject(T);
     _assertIsTopOrObject(S);
 
-    var str = '${_typeString(T)} vs ${_typeString(S)}';
+    var str = '${typeString(T)} vs ${typeString(S)}';
     _checkUniqueTypeStr(_isMoreTopChecked, str);
 
     expect(typeSystem.isMoreTop(T, S), isFalse, reason: str);
   }
 
   void isNotNull(DartType type) {
-    expect(typeSystem.isNull(type), isFalse, reason: _typeString(type));
+    expect(typeSystem.isNull(type), isFalse, reason: typeString(type));
   }
 
   void isNotObject(DartType type) {
-    expect(typeSystem.isObject(type), isFalse, reason: _typeString(type));
+    expect(typeSystem.isObject(type), isFalse, reason: typeString(type));
   }
 
   void isNotTop(DartType type) {
-    expect(typeSystem.isTop(type), isFalse, reason: _typeString(type));
+    expect(typeSystem.isTop(type), isFalse, reason: typeString(type));
   }
 
   void isNull(DartType type) {
-    expect(typeSystem.isNull(type), isTrue, reason: _typeString(type));
+    expect(typeSystem.isNull(type), isTrue, reason: typeString(type));
   }
 
   void isObject(DartType type) {
-    expect(typeSystem.isObject(type), isTrue, reason: _typeString(type));
+    expect(typeSystem.isObject(type), isTrue, reason: typeString(type));
   }
 
   void isTop(DartType type) {
-    expect(typeSystem.isTop(type), isTrue, reason: _typeString(type));
+    expect(typeSystem.isTop(type), isTrue, reason: typeString(type));
   }
 
   test_isBottom() {
@@ -472,7 +469,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
     // TOP(dynamic) is true
     isTop(dynamicNone);
-    isTop(UnknownInferredType.instance);
+    expect(typeSystem.isTop(UnknownInferredType.instance), isTrue);
 
     // TOP(void) is true
     isTop(voidNone);
@@ -501,14 +498,14 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
   /// types. No need to check other types.
   void _assertIsBottomOrNull(DartType type) {
     expect(typeSystem.isBottom(type) || typeSystem.isNull(type), isTrue,
-        reason: _typeString(type));
+        reason: typeString(type));
   }
 
   /// [TypeSystemImpl.isMoreTop] can be used only for `TOP` or `OBJECT`
   /// types. No need to check other types.
   void _assertIsTopOrObject(DartType type) {
     expect(typeSystem.isTop(type) || typeSystem.isObject(type), isTrue,
-        reason: _typeString(type));
+        reason: typeString(type));
   }
 
   void _checkUniqueTypeStr(Map<String, StackTrace> map, String str) {
@@ -1482,10 +1479,10 @@ class LowerBoundTest extends _BoundsTestBase {
 
   void _checkGreatestLowerBound(DartType T1, DartType T2, DartType expected,
       {bool checkSubtype = true}) {
-    var expectedStr = _typeString(expected);
+    var expectedStr = typeString(expected);
 
     var result = typeSystem.getGreatestLowerBound(T1, T2);
-    var resultStr = _typeString(result);
+    var resultStr = typeString(result);
     expect(result, expected, reason: '''
 expected: $expectedStr
 actual: $resultStr
@@ -1499,7 +1496,7 @@ actual: $resultStr
 
     // Check for symmetry.
     result = typeSystem.getGreatestLowerBound(T2, T1);
-    resultStr = _typeString(result);
+    resultStr = typeString(result);
     expect(result, expected, reason: '''
 expected: $expectedStr
 actual: $resultStr
@@ -1534,7 +1531,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       returnType: voidNone,
     );
     expect(
-      _typeString(T1),
+      typeString(T1),
       'void Function(void Function(String, int, int))',
     );
 
@@ -1554,7 +1551,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       returnType: voidNone,
     );
     expect(
-      _typeString(T2),
+      typeString(T2),
       'void Function(void Function(int, double, num))',
     );
 
@@ -1574,7 +1571,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       returnType: voidNone,
     );
     expect(
-      _typeString(expected),
+      typeString(expected),
       'void Function(void Function(Object, num, num))',
     );
 
@@ -1605,7 +1602,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       returnType: voidNone,
     );
     expect(
-      _typeString(T1),
+      typeString(T1),
       'void Function(void Function(void Function(String, int, int)))',
     );
 
@@ -1632,7 +1629,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       returnType: voidNone,
     );
     expect(
-      _typeString(T2),
+      typeString(T2),
       'void Function(void Function(void Function(int, double, num)))',
     );
 
@@ -1659,7 +1656,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       returnType: voidNone,
     );
     expect(
-      _typeString(expected),
+      typeString(expected),
       'void Function(void Function(void Function(Never, Never, int)))',
     );
 
@@ -2059,12 +2056,12 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       );
       {
         final result = typeSystem.getLeastUpperBound(T1, T2);
-        final resultStr = _typeString(result);
+        final resultStr = typeString(result);
         expect(resultStr, 'T Function<T extends num>()');
       }
       {
         final result = typeSystem.getLeastUpperBound(T2, T1);
-        final resultStr = _typeString(result);
+        final resultStr = typeString(result);
         expect(resultStr, 'U Function<U extends num>()');
       }
     }
@@ -3498,25 +3495,25 @@ class _BoundsTestBase extends AbstractTypeSystemTest with StringTypes {
 
   void _assertBottom(DartType type) {
     if (!typeSystem.isBottom(type)) {
-      fail('isBottom must be true: ${_typeString(type)}');
+      fail('isBottom must be true: ${typeString(type)}');
     }
   }
 
   void _assertNotBottom(DartType type) {
     if (typeSystem.isBottom(type)) {
-      fail('isBottom must be false: ${_typeString(type)}');
+      fail('isBottom must be false: ${typeString(type)}');
     }
   }
 
   void _assertNotNull(DartType type) {
     if (typeSystem.isNull(type)) {
-      fail('isNull must be false: ${_typeString(type)}');
+      fail('isNull must be false: ${typeString(type)}');
     }
   }
 
   void _assertNotObject(DartType type) {
     if (typeSystem.isObject(type)) {
-      fail('isObject must be false: ${_typeString(type)}');
+      fail('isObject must be false: ${typeString(type)}');
     }
   }
 
@@ -3529,19 +3526,19 @@ class _BoundsTestBase extends AbstractTypeSystemTest with StringTypes {
 
   void _assertNotTop(DartType type) {
     if (typeSystem.isTop(type)) {
-      fail('isTop must be false: ${_typeString(type)}');
+      fail('isTop must be false: ${typeString(type)}');
     }
   }
 
   void _assertNull(DartType type) {
     if (!typeSystem.isNull(type)) {
-      fail('isNull must be true: ${_typeString(type)}');
+      fail('isNull must be true: ${typeString(type)}');
     }
   }
 
   void _assertNullability(DartType type, NullabilitySuffix expected) {
     if (type.nullabilitySuffix != expected) {
-      fail('Expected $expected in ${_typeString(type)}');
+      fail('Expected $expected in ${typeString(type)}');
     }
   }
 
@@ -3559,21 +3556,21 @@ class _BoundsTestBase extends AbstractTypeSystemTest with StringTypes {
 
   void _assertObject(DartType type) {
     if (!typeSystem.isObject(type)) {
-      fail('isObject must be true: ${_typeString(type)}');
+      fail('isObject must be true: ${typeString(type)}');
     }
   }
 
   void _assertTop(DartType type) {
     if (!typeSystem.isTop(type)) {
-      fail('isTop must be true: ${_typeString(type)}');
+      fail('isTop must be true: ${typeString(type)}');
     }
   }
 
   void _checkLeastUpperBound(DartType T1, DartType T2, DartType expected) {
-    var expectedStr = _typeString(expected);
+    var expectedStr = typeString(expected);
 
     var result = typeSystem.getLeastUpperBound(T1, T2);
-    var resultStr = _typeString(result);
+    var resultStr = typeString(result);
     expect(result, expected, reason: '''
 expected: $expectedStr
 actual: $resultStr
@@ -3585,7 +3582,7 @@ actual: $resultStr
 
     // Check for symmetry.
     result = typeSystem.getLeastUpperBound(T2, T1);
-    resultStr = _typeString(result);
+    resultStr = typeString(result);
     expect(result, expected, reason: '''
 expected: $expectedStr
 actual: $resultStr
@@ -3599,106 +3596,4 @@ actual: $resultStr
       typeOfString(expected),
     );
   }
-
-  String _typeParametersStr(DartType type) {
-    var typeStr = '';
-
-    var typeParameterCollector = _TypeParameterCollector();
-    type.accept(typeParameterCollector);
-    for (var typeParameter in typeParameterCollector.typeParameters) {
-      typeStr += ', $typeParameter';
-    }
-    return typeStr;
-  }
-
-  String _typeString(DartType type) {
-    return type.getDisplayString(withNullability: true) +
-        _typeParametersStr(type);
-  }
-}
-
-class _TypeParameterCollector
-    implements TypeVisitor<void>, InferenceTypeVisitor<void> {
-  final Set<String> typeParameters = {};
-
-  /// We don't need to print bounds for these type parameters, because
-  /// they are already included into the function type itself, and cannot
-  /// be promoted.
-  final Set<TypeParameterElement> functionTypeParameters = {};
-
-  @override
-  void visitDynamicType(DynamicType type) {}
-
-  @override
-  void visitFunctionType(FunctionType type) {
-    functionTypeParameters.addAll(type.typeFormals);
-    for (var typeParameter in type.typeFormals) {
-      var bound = typeParameter.bound;
-      if (bound != null) {
-        bound.accept(this);
-      }
-    }
-    for (var parameter in type.parameters) {
-      parameter.type.accept(this);
-    }
-    type.returnType.accept(this);
-  }
-
-  @override
-  void visitInterfaceType(InterfaceType type) {
-    for (var typeArgument in type.typeArguments) {
-      typeArgument.accept(this);
-    }
-  }
-
-  @override
-  void visitNeverType(NeverType type) {}
-
-  @override
-  void visitRecordType(RecordType type) {
-    final fields = [
-      ...type.positionalFields,
-      ...type.namedFields,
-    ];
-    for (final field in fields) {
-      field.type.accept(this);
-    }
-  }
-
-  @override
-  void visitTypeParameterType(TypeParameterType type) {
-    if (!functionTypeParameters.contains(type.element2)) {
-      var bound = type.element2.bound;
-      var promotedBound = (type as TypeParameterTypeImpl).promotedBound;
-
-      if (bound == null && promotedBound == null) {
-        return;
-      }
-
-      var str = '';
-
-      if (bound != null) {
-        var boundStr = bound.getDisplayString(withNullability: true);
-        str += '${type.element2.name} extends $boundStr';
-      }
-
-      if (promotedBound != null) {
-        var promotedBoundStr = promotedBound.getDisplayString(
-          withNullability: true,
-        );
-        if (str.isNotEmpty) {
-          str += ', ';
-        }
-        str += '${type.element2.name} & $promotedBoundStr';
-      }
-
-      typeParameters.add(str);
-    }
-  }
-
-  @override
-  void visitUnknownInferredType(UnknownInferredType type) {}
-
-  @override
-  void visitVoidType(VoidType type) {}
 }
