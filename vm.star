@@ -10,6 +10,7 @@ load("//lib/dart.star", "dart")
 load(
     "//lib/defaults.star",
     "arm64",
+    "focal",
     "mac",
     "no_android",
     "pinned_xcode",
@@ -530,10 +531,12 @@ _extra_builder("vm-ffi-android-product-arm64c", category = "vm|ffi|p64")
 _extra_builder(
     "vm-precomp-ffi-qemu-linux-release-arm",
     category = "vm|ffi|qa",
+    dimensions = focal,
 )
 _extra_builder(
     "vm-precomp-ffi-qemu-linux-release-riscv64",
     category = "vm|ffi|qr",
+    dimensions = focal,
 )
 
 # Isolate stress test builder
