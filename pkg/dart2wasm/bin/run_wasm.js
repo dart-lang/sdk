@@ -385,4 +385,4 @@ var asyncBridge = new WebAssembly.Function(
 // Call `main`. If tasks are placed into the event loop (by scheduling tasks
 // explicitly or awaiting Futures), these will automatically keep the script
 // alive even after `main` returns.
-dartInstance.exports.main();
+dartInstance.exports.$main();
