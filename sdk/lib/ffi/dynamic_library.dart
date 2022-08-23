@@ -85,5 +85,5 @@ extension DynamicLibraryExtension on DynamicLibrary {
   /// ```
   external F lookupFunction<T extends Function, F extends Function>(
       String symbolName,
-      {bool isLeaf: false});
+      {bool isLeaf = false});
 }

@@ -156,7 +156,7 @@ extension NativeFunctionPointer<NF extends Function>
   /// Convert to Dart function, automatically marshalling the arguments
   /// and return value.
   external DF asFunction<@DartRepresentationOf('NF') DF extends Function>(
-      {bool isLeaf: false});
+      {bool isLeaf = false});
 }
 
 //
@@ -877,7 +877,7 @@ abstract class NativeApi {
 class FfiNative<T> {
   final String nativeName;
   final bool isLeaf;
-  const FfiNative(this.nativeName, {this.isLeaf: false});
+  const FfiNative(this.nativeName, {this.isLeaf = false});
 }
 
 // Bootstrapping native for getting the FFI native C function pointer to look

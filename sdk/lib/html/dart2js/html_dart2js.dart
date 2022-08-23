@@ -2186,12 +2186,12 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   gl.RenderingContext? getContext3d(
-      {alpha: true,
-      depth: true,
-      stencil: false,
-      antialias: true,
-      premultipliedAlpha: true,
-      preserveDrawingBuffer: false}) {
+      {alpha = true,
+      depth = true,
+      stencil = false,
+      antialias = true,
+      premultipliedAlpha = true,
+      preserveDrawingBuffer = false}) {
     var options = {
       'alpha': alpha,
       'depth': depth,
@@ -3155,8 +3155,8 @@ class Comment extends CharacterData {
 @Native("CompositionEvent")
 class CompositionEvent extends UIEvent {
   factory CompositionEvent(String type,
-      {bool canBubble: false,
-      bool cancelable: false,
+      {bool canBubble = false,
+      bool cancelable = false,
       Window? view,
       String? data,
       String? locale}) {
@@ -8991,7 +8991,7 @@ class CustomEvent extends Event {
   var _dartDetail;
 
   factory CustomEvent(String type,
-      {bool canBubble: true, bool cancelable: true, Object? detail}) {
+      {bool canBubble = true, bool cancelable = true, Object? detail}) {
     final CustomEvent e = document._createEvent('CustomEvent') as CustomEvent;
 
     e._dartDetail = detail;
@@ -9612,7 +9612,7 @@ class DirectoryEntry extends Entry {
    * the returned Future will complete with an error if a directory already
    * exists with the specified `path`.
    */
-  Future<Entry> createDirectory(String path, {bool exclusive: false}) {
+  Future<Entry> createDirectory(String path, {bool exclusive = false}) {
     return _getDirectory(path,
         options: {'create': true, 'exclusive': exclusive});
   }
@@ -9640,7 +9640,7 @@ class DirectoryEntry extends Entry {
    * the returned Future will complete with an error if a file already
    * exists at the specified `path`.
    */
-  Future<Entry> createFile(String path, {bool exclusive: false}) {
+  Future<Entry> createFile(String path, {bool exclusive = false}) {
     return _getFile(path, options: {'create': true, 'exclusive': exclusive});
   }
 
@@ -15567,7 +15567,7 @@ class Event extends JavaScriptObject {
   //
   // Contrary to JS, we default canBubble and cancelable to true, since that's
   // what people want most of the time anyway.
-  factory Event(String type, {bool canBubble: true, bool cancelable: true}) {
+  factory Event(String type, {bool canBubble = true, bool cancelable = true}) {
     return new Event.eventType('Event', type,
         canBubble: canBubble, cancelable: cancelable);
   }
@@ -15581,7 +15581,7 @@ class Event extends JavaScriptObject {
    *     var e = new Event.type('MouseEvent', 'mousedown', true, true);
    */
   factory Event.eventType(String type, String name,
-      {bool canBubble: true, bool cancelable: true}) {
+      {bool canBubble = true, bool cancelable = true}) {
     final Event e = document._createEvent(type);
     e._initEvent(name, canBubble, cancelable);
     return e;
@@ -15702,7 +15702,7 @@ class Event extends JavaScriptObject {
 
 @Native("EventSource")
 class EventSource extends EventTarget {
-  factory EventSource(String url, {withCredentials: false}) {
+  factory EventSource(String url, {withCredentials = false}) {
     var parsedOptions = {
       'withCredentials': withCredentials,
     };
@@ -17509,8 +17509,8 @@ class HRElement extends HtmlElement {
 @Native("HashChangeEvent")
 class HashChangeEvent extends Event {
   factory HashChangeEvent(String type,
-      {bool canBubble: true,
-      bool cancelable: true,
+      {bool canBubble = true,
+      bool cancelable = true,
       String? oldUrl,
       String? newUrl}) {
     var options = {
@@ -20100,14 +20100,14 @@ class KeyboardEvent extends UIEvent {
    */
   factory KeyboardEvent(String type,
       {Window? view,
-      bool canBubble: true,
-      bool cancelable: true,
+      bool canBubble = true,
+      bool cancelable = true,
       int? location,
       int? keyLocation, // Legacy alias for location
-      bool ctrlKey: false,
-      bool altKey: false,
-      bool shiftKey: false,
-      bool metaKey: false}) {
+      bool ctrlKey = false,
+      bool altKey = false,
+      bool shiftKey = false,
+      bool metaKey = false}) {
     if (view == null) {
       view = window;
     }
@@ -21638,13 +21638,13 @@ class MessageChannel extends JavaScriptObject {
 @Native("MessageEvent")
 class MessageEvent extends Event {
   factory MessageEvent(String type,
-      {bool canBubble: false,
-      bool cancelable: false,
+      {bool canBubble = false,
+      bool cancelable = false,
       Object? data,
       String? origin,
       String? lastEventId,
       Window? source,
-      List<MessagePort> messagePorts: const []}) {
+      List<MessagePort> messagePorts = const []}) {
     if (source == null) {
       source = window;
     }
@@ -22296,18 +22296,18 @@ typedef void MojoWatchCallback(int result);
 class MouseEvent extends UIEvent {
   factory MouseEvent(String type,
       {Window? view,
-      int detail: 0,
-      int screenX: 0,
-      int screenY: 0,
-      int clientX: 0,
-      int clientY: 0,
-      int button: 0,
-      bool canBubble: true,
-      bool cancelable: true,
-      bool ctrlKey: false,
-      bool altKey: false,
-      bool shiftKey: false,
-      bool metaKey: false,
+      int detail = 0,
+      int screenX = 0,
+      int screenY = 0,
+      int clientX = 0,
+      int clientY = 0,
+      int button = 0,
+      bool canBubble = true,
+      bool cancelable = true,
+      bool ctrlKey = false,
+      bool altKey = false,
+      bool shiftKey = false,
+      bool metaKey = false,
       EventTarget? relatedTarget}) {
     if (view == null) {
       view = window;
@@ -22778,7 +22778,7 @@ class Navigator extends NavigatorConcurrentHardware
    * * [MediaStream.supported]
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
-  Future<MediaStream> getUserMedia({audio: false, video: false}) {
+  Future<MediaStream> getUserMedia({audio = false, video = false}) {
     var completer = new Completer<MediaStream>();
     var options = {'audio': audio, 'video': video};
     _ensureGetUserMedia();
@@ -24450,7 +24450,7 @@ class OptGroupElement extends HtmlElement {
 @Native("HTMLOptionElement")
 class OptionElement extends HtmlElement {
   factory OptionElement(
-      {String data: '', String value: '', bool selected: false}) {
+      {String data = '', String value = '', bool selected = false}) {
     return new OptionElement._(data, value, null, selected);
   }
 
@@ -29277,8 +29277,8 @@ typedef void StorageErrorCallback(DomError error);
 @Native("StorageEvent")
 class StorageEvent extends Event {
   factory StorageEvent(String type,
-      {bool canBubble: false,
-      bool cancelable: false,
+      {bool canBubble = false,
+      bool cancelable = false,
       String? key,
       String? oldValue,
       String? newValue,
@@ -30073,8 +30073,8 @@ class TextDetector extends JavaScriptObject {
 @Native("TextEvent")
 class TextEvent extends UIEvent {
   factory TextEvent(String type,
-      {bool canBubble: false,
-      bool cancelable: false,
+      {bool canBubble = false,
+      bool cancelable = false,
       Window? view,
       String? data}) {
     if (view == null) {
@@ -30912,9 +30912,9 @@ class UIEvent extends Event {
   // what people want most of the time anyway.
   factory UIEvent(String type,
       {Window? view,
-      int detail: 0,
-      bool canBubble: true,
-      bool cancelable: true}) {
+      int detail = 0,
+      bool canBubble = true,
+      bool cancelable = true}) {
     if (view == null) {
       view = window;
     }
@@ -32013,22 +32013,22 @@ class WebSocket extends EventTarget {
 class WheelEvent extends MouseEvent {
   factory WheelEvent(String type,
       {Window? view,
-      num deltaX: 0,
-      num deltaY: 0,
-      num deltaZ: 0,
-      int deltaMode: 0,
-      int detail: 0,
-      int screenX: 0,
-      int screenY: 0,
-      int clientX: 0,
-      int clientY: 0,
-      int button: 0,
-      bool canBubble: true,
-      bool cancelable: true,
-      bool ctrlKey: false,
-      bool altKey: false,
-      bool shiftKey: false,
-      bool metaKey: false,
+      num deltaX = 0,
+      num deltaY = 0,
+      num deltaZ = 0,
+      int deltaMode = 0,
+      int detail = 0,
+      int screenX = 0,
+      int screenY = 0,
+      int clientX = 0,
+      int clientY = 0,
+      int button = 0,
+      bool canBubble = true,
+      bool cancelable = true,
+      bool ctrlKey = false,
+      bool altKey = false,
+      bool shiftKey = false,
+      bool metaKey = false,
       EventTarget? relatedTarget}) {
     var options = {
       'view': view,
@@ -32392,7 +32392,7 @@ class Window extends EventTarget
    * the sandboxed file system for use. Because the file system is sandboxed,
    * applications cannot access file systems created in other web pages.
    */
-  Future<FileSystem> requestFileSystem(int size, {bool persistent: false}) {
+  Future<FileSystem> requestFileSystem(int size, {bool persistent = false}) {
     return _requestFileSystem(persistent ? 1 : 0, size);
   }
 
@@ -34638,7 +34638,6 @@ abstract class _DocumentType extends Node implements ChildNode {
   }
 
   // From ChildNode
-
 }
 
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -35753,7 +35752,6 @@ abstract class _WorkerLocation extends JavaScriptObject
   }
 
   // From URLUtilsReadOnly
-
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35771,7 +35769,6 @@ abstract class _WorkerNavigator extends NavigatorConcurrentHardware
   // From NavigatorID
 
   // From NavigatorOnLine
-
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36058,7 +36055,7 @@ class _DataAttributeMap extends MapBase<String, String> {
    * and capitalizing the following letter. Optionally [startUppercase] to
    * capitalize the first letter.
    */
-  String _toCamelCase(String hyphenedName, {bool startUppercase: false}) {
+  String _toCamelCase(String hyphenedName, {bool startUppercase = false}) {
     var segments = hyphenedName.split('-');
     int start = startUppercase ? 0 : 1;
     for (int i = start; i < segments.length; i++) {
@@ -37139,7 +37136,7 @@ class EventStreamProvider<T extends Event> {
    * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
    *   from MDN.
    */
-  Stream<T> forTarget(EventTarget? e, {bool useCapture: false}) =>
+  Stream<T> forTarget(EventTarget? e, {bool useCapture = false}) =>
       new _EventStream<T>(e, _eventType, useCapture);
 
   /**
@@ -37164,7 +37161,7 @@ class EventStreamProvider<T extends Event> {
    * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
    *   from MDN.
    */
-  ElementStream<T> forElement(Element e, {bool useCapture: false}) {
+  ElementStream<T> forElement(Element e, {bool useCapture = false}) {
     return new _ElementEventStreamImpl<T>(e, _eventType, useCapture);
   }
 
@@ -37184,7 +37181,7 @@ class EventStreamProvider<T extends Event> {
    *   from MDN.
    */
   ElementStream<T> _forElementList(ElementList<Element> e,
-      {bool useCapture: false}) {
+      {bool useCapture = false}) {
     return new _ElementListEventStreamImpl<T>(e, _eventType, useCapture);
   }
 
@@ -37538,16 +37535,16 @@ class _CustomEventStreamProvider<T extends Event>
   final _eventTypeGetter;
   const _CustomEventStreamProvider(this._eventTypeGetter);
 
-  Stream<T> forTarget(EventTarget? e, {bool useCapture: false}) {
+  Stream<T> forTarget(EventTarget? e, {bool useCapture = false}) {
     return new _EventStream<T>(e, _eventTypeGetter(e), useCapture);
   }
 
-  ElementStream<T> forElement(Element e, {bool useCapture: false}) {
+  ElementStream<T> forElement(Element e, {bool useCapture = false}) {
     return new _ElementEventStreamImpl<T>(e, _eventTypeGetter(e), useCapture);
   }
 
   ElementStream<T> _forElementList(ElementList<Element> e,
-      {bool useCapture: false}) {
+      {bool useCapture = false}) {
     return new _ElementListEventStreamImpl<T>(
         e, _eventTypeGetter(e), useCapture);
   }
@@ -39014,7 +39011,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
 
   /** Return a stream for KeyEvents for the specified target. */
   // Note: this actually functions like a factory constructor.
-  CustomStream<KeyEvent> forTarget(EventTarget? e, {bool useCapture: false}) {
+  CustomStream<KeyEvent> forTarget(EventTarget? e, {bool useCapture = false}) {
     var handler =
         new _KeyboardEventHandler.initializeAllEventListeners(_type, e);
     return handler._stream;
@@ -40585,15 +40582,15 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** Programmatically create a new KeyEvent (and KeyboardEvent). */
   factory KeyEvent(String type,
       {Window? view,
-      bool canBubble: true,
-      bool cancelable: true,
-      int keyCode: 0,
-      int charCode: 0,
-      int location: 1,
-      bool ctrlKey: false,
-      bool altKey: false,
-      bool shiftKey: false,
-      bool metaKey: false,
+      bool canBubble = true,
+      bool cancelable = true,
+      int keyCode = 0,
+      int charCode = 0,
+      int location = 1,
+      bool ctrlKey = false,
+      bool altKey = false,
+      bool shiftKey = false,
+      bool metaKey = false,
       EventTarget? currentTarget}) {
     if (view == null) {
       view = window;

@@ -275,7 +275,7 @@ abstract class _AcceptStructuredClone {
     return e;
   }
 
-  convertNativeToDart_AcceptStructuredClone(object, {mustCopy: false}) {
+  convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
     this.mustCopy = mustCopy;
     var copy = walk(object);
     return copy;

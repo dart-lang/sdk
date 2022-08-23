@@ -210,7 +210,8 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
 
   Iterable<E> takeWhile(bool test(E element)) => super.takeWhile(test);
 
-  List<E> toList({bool growable: true}) => List<E>.of(this, growable: growable);
+  List<E> toList({bool growable = true}) =>
+      List<E>.of(this, growable: growable);
 
   Set<E> toSet() {
     Set<E> result = Set<E>();
@@ -291,7 +292,7 @@ class SubListIterable<E> extends ListIterable<E> {
     }
   }
 
-  List<E> toList({bool growable: true}) {
+  List<E> toList({bool growable = true}) {
     int start = _start;
     int end = _iterable.length;
     int? endOrLength = _endOrLength;
@@ -756,7 +757,7 @@ class EmptyIterable<E> extends EfficientLengthIterable<E> {
 
   Iterable<E> takeWhile(bool test(E element)) => this;
 
-  List<E> toList({bool growable: true}) => List<E>.empty(growable: growable);
+  List<E> toList({bool growable = true}) => List<E>.empty(growable: growable);
 
   Set<E> toSet() => Set<E>();
 }

@@ -24,9 +24,9 @@ class Process {
   static Future<Process> start(String executable, List<String> arguments,
       {String? workingDirectory,
       Map<String, String>? environment,
-      bool includeParentEnvironment: true,
-      bool runInShell: false,
-      ProcessStartMode mode: ProcessStartMode.normal}) {
+      bool includeParentEnvironment = true,
+      bool runInShell = false,
+      ProcessStartMode mode = ProcessStartMode.normal}) {
     _ProcessImpl process = new _ProcessImpl(
         executable,
         arguments,
@@ -42,10 +42,10 @@ class Process {
   static Future<ProcessResult> run(String executable, List<String> arguments,
       {String? workingDirectory,
       Map<String, String>? environment,
-      bool includeParentEnvironment: true,
-      bool runInShell: false,
-      Encoding? stdoutEncoding: systemEncoding,
-      Encoding? stderrEncoding: systemEncoding}) {
+      bool includeParentEnvironment = true,
+      bool runInShell = false,
+      Encoding? stdoutEncoding = systemEncoding,
+      Encoding? stderrEncoding = systemEncoding}) {
     return _runNonInteractiveProcess(
         executable,
         arguments,
@@ -61,10 +61,10 @@ class Process {
   static ProcessResult runSync(String executable, List<String> arguments,
       {String? workingDirectory,
       Map<String, String>? environment,
-      bool includeParentEnvironment: true,
-      bool runInShell: false,
-      Encoding? stdoutEncoding: systemEncoding,
-      Encoding? stderrEncoding: systemEncoding}) {
+      bool includeParentEnvironment = true,
+      bool runInShell = false,
+      Encoding? stdoutEncoding = systemEncoding,
+      Encoding? stderrEncoding = systemEncoding}) {
     return _runNonInteractiveProcessSync(
         executable,
         arguments,

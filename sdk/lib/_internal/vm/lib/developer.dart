@@ -19,7 +19,7 @@ import "dart:isolate" show SendPort;
 
 @patch
 @pragma("vm:external-name", "Developer_debugger")
-external bool debugger({bool when: true, String? message});
+external bool debugger({bool when = true, String? message});
 
 @patch
 @pragma("vm:external-name", "Developer_inspect")
@@ -29,8 +29,8 @@ external Object? inspect(Object? object);
 void log(String message,
     {DateTime? time,
     int? sequenceNumber,
-    int level: 0,
-    String name: '',
+    int level = 0,
+    String name = '',
     Zone? zone,
     Object? error,
     StackTrace? stackTrace}) {

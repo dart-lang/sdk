@@ -46,10 +46,10 @@ class JSSyntaxRegExp implements RegExp {
       'RegExp/$pattern/' + JS('String', '#.flags', _nativeRegExp);
 
   JSSyntaxRegExp(String source,
-      {bool multiLine: false,
-      bool caseSensitive: true,
-      bool unicode: false,
-      bool dotAll: false})
+      {bool multiLine = false,
+      bool caseSensitive = true,
+      bool unicode = false,
+      bool dotAll = false})
       : this.pattern = source,
         this._nativeRegExp = makeNative(
             source, multiLine, caseSensitive, unicode, dotAll, false);

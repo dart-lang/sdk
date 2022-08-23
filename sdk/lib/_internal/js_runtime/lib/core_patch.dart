@@ -266,13 +266,13 @@ class AbstractClassInstantiationError {
 class DateTime {
   @patch
   DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
-      {bool isUtc: false})
+      {bool isUtc = false})
       // `0 + millisecondsSinceEpoch` forces the inferred result to be non-null.
       : this._withValue(0 + millisecondsSinceEpoch, isUtc: isUtc);
 
   @patch
   DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
-      {bool isUtc: false})
+      {bool isUtc = false})
       : this._withValue(
             _microsecondInRoundedMilliseconds(microsecondsSinceEpoch),
             isUtc: isUtc);
@@ -440,7 +440,7 @@ class List<E> {
   factory List([int? length]) = JSArray<E>.list;
 
   @patch
-  factory List.filled(int length, E fill, {bool growable: false}) {
+  factory List.filled(int length, E fill, {bool growable = false}) {
     var result = growable
         ? new JSArray<E>.growable(length)
         : new JSArray<E>.fixed(length);
@@ -456,12 +456,12 @@ class List<E> {
   }
 
   @patch
-  factory List.empty({bool growable: false}) {
+  factory List.empty({bool growable = false}) {
     return growable ? new JSArray<E>.growable(0) : new JSArray<E>.fixed(0);
   }
 
   @patch
-  factory List.from(Iterable elements, {bool growable: true}) {
+  factory List.from(Iterable elements, {bool growable = true}) {
     List<E> list = <E>[];
     for (E e in elements) {
       list.add(e);
@@ -471,7 +471,7 @@ class List<E> {
   }
 
   @patch
-  factory List.of(Iterable<E> elements, {bool growable: true}) {
+  factory List.of(Iterable<E> elements, {bool growable = true}) {
     if (growable == true) return List._of(elements);
     if (growable == false) return List._fixedOf(elements);
 
@@ -606,10 +606,10 @@ class RegExp {
   @pragma('dart2js:noInline')
   @patch
   factory RegExp(String source,
-          {bool multiLine: false,
-          bool caseSensitive: true,
-          bool unicode: false,
-          bool dotAll: false}) =>
+          {bool multiLine = false,
+          bool caseSensitive = true,
+          bool unicode = false,
+          bool dotAll = false}) =>
       new JSSyntaxRegExp(source,
           multiLine: multiLine,
           caseSensitive: caseSensitive,

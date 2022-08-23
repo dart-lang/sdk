@@ -8,10 +8,10 @@
 class RegExp {
   @patch
   factory RegExp(String source,
-      {bool multiLine: false,
-      bool caseSensitive: true,
-      bool unicode: false,
-      bool dotAll: false}) {
+      {bool multiLine = false,
+      bool caseSensitive = true,
+      bool unicode = false,
+      bool dotAll = false}) {
     _RegExpHashKey key =
         new _RegExpHashKey(source, multiLine, caseSensitive, unicode, dotAll);
     _RegExpHashValue? value = _cache[key];
@@ -212,10 +212,10 @@ class _RegExpMatch implements RegExpMatch {
 class _RegExp implements RegExp {
   @pragma("vm:external-name", "RegExp_factory")
   external factory _RegExp(String pattern,
-      {bool multiLine: false,
-      bool caseSensitive: true,
-      bool unicode: false,
-      bool dotAll: false});
+      {bool multiLine = false,
+      bool caseSensitive = true,
+      bool unicode = false,
+      bool dotAll = false});
 
   RegExpMatch? firstMatch(String input) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
