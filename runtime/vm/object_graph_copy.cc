@@ -176,6 +176,15 @@ static bool CanShareObject(ObjectPtr obj, uword tags) {
     return Closure::RawCast(obj)->untag()->context() == Object::null();
   }
 
+  if (IsUnmodifiableTypedDataViewClassId(cid)) {
+    // Unmodifiable typed data views may have mutable backing stores.
+    return TypedDataView::RawCast(obj)
+        ->untag()
+        ->typed_data()
+        ->untag()
+        ->IsImmutable();
+  }
+
   return false;
 }
 

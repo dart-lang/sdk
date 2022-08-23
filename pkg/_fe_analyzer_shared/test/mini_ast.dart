@@ -9,6 +9,7 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
     show EqualityInfo, FlowAnalysis, Operations;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:test/test.dart';
 
@@ -232,7 +233,7 @@ abstract class Expression extends Node {
   Expression thenStmt(Statement stmt) =>
       new _WrappedExpression(null, this, stmt);
 
-  Type visit(Harness h, Type context);
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context);
 }
 
 class Harness with TypeOperations<Type> implements Operations<Var, Type> {
@@ -736,7 +737,7 @@ class _As extends Expression {
   String toString() => '$target as $type';
 
   @override
-  Type visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     return h.typeAnalyzer.analyzeTypeCast(this, target, type);
   }
 }
@@ -799,10 +800,10 @@ class _BooleanLiteral extends Expression {
   String toString() => '$value';
 
   @override
-  Type visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     var type = h.typeAnalyzer.analyzeBoolLiteral(this, value);
     h.irBuilder.atom('$value');
-    return type;
+    return new SimpleTypeAnalysisResult<Type>(type: type);
   }
 }
 
@@ -888,11 +889,11 @@ class _CheckExpressionType extends Expression {
   String toString() => '$target (expected type: $expectedType)';
 
   @override
-  Type visit(Harness h, Type context) {
-    var type = h.typeAnalyzer.analyzeExpression(target);
-    h.flow.forwardExpression(this, target);
-    expect(type.type, expectedType, reason: '$_creationTrace');
-    return type;
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    var result =
+        h.typeAnalyzer.analyzeParenthesizedExpression(this, target, context);
+    expect(result.type.type, expectedType, reason: '$_creationTrace');
+    return result;
   }
 }
 
@@ -986,11 +987,11 @@ class _Conditional extends Expression {
   String toString() => '$condition ? $ifTrue : $ifFalse';
 
   @override
-  Type visit(Harness h, Type context) {
-    var type = h.typeAnalyzer
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    var result = h.typeAnalyzer
         .analyzeConditionalExpression(this, condition, ifTrue, ifFalse);
     h.irBuilder.apply('if', 3);
-    return type;
+    return result;
   }
 }
 
@@ -1096,12 +1097,12 @@ class _Equal extends Expression {
   String toString() => '$lhs ${isInverted ? '!=' : '=='} $rhs';
 
   @override
-  Type visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     var operatorName = isInverted ? '!=' : '==';
-    var type =
+    var result =
         h.typeAnalyzer.analyzeBinaryExpression(this, lhs, operatorName, rhs);
     h.irBuilder.apply(operatorName, 2);
-    return type;
+    return result;
   }
 }
 
@@ -1284,10 +1285,10 @@ class _IfNull extends Expression {
   String toString() => '$lhs ?? $rhs';
 
   @override
-  Type visit(Harness h, Type context) {
-    var type = h.typeAnalyzer.analyzeIfNullExpression(this, lhs, rhs);
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    var result = h.typeAnalyzer.analyzeIfNullExpression(this, lhs, rhs);
     h.irBuilder.apply('ifNull', 2);
-    return type;
+    return result;
   }
 }
 
@@ -1307,7 +1308,7 @@ class _Is extends Expression {
   String toString() => '$target is${isInverted ? '!' : ''} $type';
 
   @override
-  Type visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     return h.typeAnalyzer
         .analyzeTypeTest(this, target, type, isInverted: isInverted);
   }
@@ -1355,12 +1356,12 @@ class _Logical extends Expression {
   String toString() => '$lhs ${isAnd ? '&&' : '||'} $rhs';
 
   @override
-  Type visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     var operatorName = isAnd ? '&&' : '||';
-    var type =
+    var result =
         h.typeAnalyzer.analyzeBinaryExpression(this, lhs, operatorName, rhs);
     h.irBuilder.apply(operatorName, 2);
-    return type;
+    return result;
   }
 }
 
@@ -1418,7 +1419,7 @@ class _MiniAstTypeAnalyzer {
     flow.assert_end();
   }
 
-  Type analyzeBinaryExpression(
+  SimpleTypeAnalysisResult<Type> analyzeBinaryExpression(
       Expression node, Expression lhs, String operatorName, Expression rhs) {
     bool isEquals = false;
     bool isNot = false;
@@ -1466,7 +1467,7 @@ class _MiniAstTypeAnalyzer {
     } else if (isLogical) {
       flow.logicalBinaryOp_end(node, rhs, isAnd: isAnd);
     }
-    return boolType;
+    return new SimpleTypeAnalysisResult<Type>(type: boolType);
   }
 
   void analyzeBlock(Iterable<Statement> statements) {
@@ -1484,8 +1485,8 @@ class _MiniAstTypeAnalyzer {
     flow.handleBreak(target ?? _currentBreakTarget!);
   }
 
-  Type analyzeConditionalExpression(Expression node, Expression condition,
-      Expression ifTrue, Expression ifFalse) {
+  SimpleTypeAnalysisResult<Type> analyzeConditionalExpression(Expression node,
+      Expression condition, Expression ifTrue, Expression ifFalse) {
     flow.conditional_conditionBegin();
     analyzeExpression(condition);
     flow.conditional_thenBegin(condition, node);
@@ -1493,7 +1494,8 @@ class _MiniAstTypeAnalyzer {
     flow.conditional_elseBegin(ifTrue);
     var ifFalseType = analyzeExpression(ifFalse);
     flow.conditional_end(node, ifFalse);
-    return leastUpperBound(ifTrueType, ifFalseType);
+    return new SimpleTypeAnalysisResult<Type>(
+        type: leastUpperBound(ifTrueType, ifFalseType));
   }
 
   void analyzeContinueStatement() {
@@ -1511,21 +1513,22 @@ class _MiniAstTypeAnalyzer {
   Type analyzeExpression(Expression expression, [Type? context]) {
     // TODO(paulberry): make the [context] argument required.
     context ??= unknownType;
-    return dispatchExpression(expression, context);
+    return dispatchExpression(expression, context).resolveShorting();
   }
 
   void analyzeExpressionStatement(Expression expression) {
     analyzeExpression(expression);
   }
 
-  Type analyzeIfNullExpression(
+  SimpleTypeAnalysisResult<Type> analyzeIfNullExpression(
       Expression node, Expression lhs, Expression rhs) {
     var leftType = analyzeExpression(lhs);
     flow.ifNullExpression_rightBegin(lhs, leftType);
     var rightType = analyzeExpression(rhs);
     flow.ifNullExpression_end();
-    return leastUpperBound(
-        flow.operations.promoteToNonNull(leftType), rightType);
+    return new SimpleTypeAnalysisResult<Type>(
+        type: leastUpperBound(
+            flow.operations.promoteToNonNull(leftType), rightType));
   }
 
   void analyzeIfStatement(Statement node, Expression condition,
@@ -1550,36 +1553,42 @@ class _MiniAstTypeAnalyzer {
     flow.labeledStatement_end();
   }
 
-  Type analyzeLogicalNot(Expression node, Expression expression) {
+  SimpleTypeAnalysisResult<Type> analyzeLogicalNot(
+      Expression node, Expression expression) {
     analyzeExpression(expression);
     flow.logicalNot_end(node, expression);
-    return boolType;
+    return new SimpleTypeAnalysisResult<Type>(type: boolType);
   }
 
-  Type analyzeNonNullAssert(Expression node, Expression expression) {
+  SimpleTypeAnalysisResult<Type> analyzeNonNullAssert(
+      Expression node, Expression expression) {
     var type = analyzeExpression(expression);
     flow.nonNullAssert_end(expression);
-    return flow.operations.promoteToNonNull(type);
+    return new SimpleTypeAnalysisResult<Type>(
+        type: flow.operations.promoteToNonNull(type));
   }
 
-  Type analyzeNullLiteral(Expression node) {
+  SimpleTypeAnalysisResult<Type> analyzeNullLiteral(Expression node) {
     flow.nullLiteral(node);
-    return nullType;
+    return new SimpleTypeAnalysisResult<Type>(type: nullType);
   }
 
-  Type analyzeParenthesizedExpression(Expression node, Expression expression) {
-    var type = analyzeExpression(expression);
+  SimpleTypeAnalysisResult<Type> analyzeParenthesizedExpression(
+      Expression node, Expression expression, Type context) {
+    var type = analyzeExpression(expression, context);
     flow.parenthesizedExpression(node, expression);
-    return type;
+    return new SimpleTypeAnalysisResult<Type>(type: type);
   }
 
-  Type analyzePropertyGet(
+  ExpressionTypeAnalysisResult<Type> analyzePropertyGet(
       Expression node, Expression receiver, String propertyName) {
     var receiverType = analyzeExpression(receiver);
     var member = _lookupMember(node, receiverType, propertyName);
     var promotedType =
         flow.propertyGet(node, receiver, propertyName, member, member._type);
-    return promotedType ?? member._type;
+    // TODO(paulberry): handle null shorting
+    return new SimpleTypeAnalysisResult<Type>(
+        type: promotedType ?? member._type);
   }
 
   void analyzeReturnStatement() {
@@ -1600,23 +1609,26 @@ class _MiniAstTypeAnalyzer {
     flow.switchStatement_end(isSwitchExhaustive(node));
   }
 
-  Type analyzeThis(Expression node) {
+  SimpleTypeAnalysisResult<Type> analyzeThis(Expression node) {
     var thisType = this.thisType;
     flow.thisOrSuper(node, thisType);
-    return thisType;
+    return new SimpleTypeAnalysisResult<Type>(type: thisType);
   }
 
-  Type analyzeThisPropertyGet(Expression node, String propertyName) {
+  SimpleTypeAnalysisResult<Type> analyzeThisPropertyGet(
+      Expression node, String propertyName) {
     var member = _lookupMember(node, thisType, propertyName);
     var promotedType =
         flow.thisOrSuperPropertyGet(node, propertyName, member, member._type);
-    return promotedType ?? member._type;
+    return new SimpleTypeAnalysisResult<Type>(
+        type: promotedType ?? member._type);
   }
 
-  Type analyzeThrow(Expression node, Expression expression) {
+  SimpleTypeAnalysisResult<Type> analyzeThrow(
+      Expression node, Expression expression) {
     analyzeExpression(expression);
     flow.handleExit();
-    return neverType;
+    return new SimpleTypeAnalysisResult<Type>(type: neverType);
   }
 
   void analyzeTryStatement(Statement node, Statement body,
@@ -1648,17 +1660,19 @@ class _MiniAstTypeAnalyzer {
     }
   }
 
-  Type analyzeTypeCast(Expression node, Expression expression, Type type) {
+  SimpleTypeAnalysisResult<Type> analyzeTypeCast(
+      Expression node, Expression expression, Type type) {
     analyzeExpression(expression);
     flow.asExpression_end(expression, type);
-    return type;
+    return new SimpleTypeAnalysisResult<Type>(type: type);
   }
 
-  Type analyzeTypeTest(Expression node, Expression expression, Type type,
+  SimpleTypeAnalysisResult<Type> analyzeTypeTest(
+      Expression node, Expression expression, Type type,
       {bool isInverted = false}) {
     analyzeExpression(expression);
     flow.isExpression_end(node, expression, isInverted, type);
-    return boolType;
+    return new SimpleTypeAnalysisResult<Type>(type: boolType);
   }
 
   void analyzeVariableDeclaration(
@@ -1680,11 +1694,12 @@ class _MiniAstTypeAnalyzer {
     }
   }
 
-  Type analyzeVariableGet(
+  SimpleTypeAnalysisResult<Type> analyzeVariableGet(
       Expression node, Var variable, void Function(Type?)? callback) {
     var promotedType = flow.variableRead(node, variable);
     callback?.call(promotedType);
-    return promotedType ?? variable.type;
+    return new SimpleTypeAnalysisResult<Type>(
+        type: promotedType ?? variable.type);
   }
 
   void analyzeWhileLoop(Statement node, Expression condition, Statement body) {
@@ -1695,13 +1710,14 @@ class _MiniAstTypeAnalyzer {
     flow.whileStatement_end();
   }
 
-  Type dispatchExpression(Expression expression, Type context) =>
+  ExpressionTypeAnalysisResult<Type> dispatchExpression(
+          Expression expression, Type context) =>
       _irBuilder.guard(expression, () {
-        var type = expression.visit(_harness, context);
-        if (flow.operations.isNever(type)) {
+        var result = expression.visit(_harness, context);
+        if (flow.operations.isNever(result.provisionalType)) {
           flow.handleExit();
         }
-        return type;
+        return result;
       });
 
   void dispatchStatement(Statement statement) =>
@@ -1784,7 +1800,7 @@ class _NonNullAssert extends Expression {
   String toString() => '$operand!';
 
   @override
-  Type visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     return h.typeAnalyzer.analyzeNonNullAssert(this, operand);
   }
 }
@@ -1803,7 +1819,7 @@ class _Not extends Expression {
   String toString() => '!$operand';
 
   @override
-  Type visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     return h.typeAnalyzer.analyzeLogicalNot(this, operand);
   }
 }
@@ -1827,14 +1843,14 @@ class _NullAwareAccess extends Expression {
   String toString() => '$lhs?.${isCascaded ? '.' : ''}($rhs)';
 
   @override
-  Type visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     var lhsType = h.typeAnalyzer.analyzeExpression(lhs);
     h.flow.nullAwareAccess_rightBegin(isCascaded ? null : lhs, lhsType);
     var rhsType = h.typeAnalyzer.analyzeExpression(rhs);
     h.flow.nullAwareAccess_end();
     var type = h._lub(rhsType, Type('Null'));
     h.irBuilder.apply(_fakeMethodName, 2);
-    return type;
+    return new SimpleTypeAnalysisResult<Type>(type: type);
   }
 }
 
@@ -1848,10 +1864,10 @@ class _NullLiteral extends Expression {
   String toString() => 'null';
 
   @override
-  Type visit(Harness h, Type context) {
-    var type = h.typeAnalyzer.analyzeNullLiteral(this);
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    var result = h.typeAnalyzer.analyzeNullLiteral(this);
     h.irBuilder.atom('null');
-    return type;
+    return result;
   }
 }
 
@@ -1869,8 +1885,8 @@ class _ParenthesizedExpression extends Expression {
   String toString() => '($expr)';
 
   @override
-  Type visit(Harness h, Type context) {
-    return h.typeAnalyzer.analyzeParenthesizedExpression(this, expr);
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    return h.typeAnalyzer.analyzeParenthesizedExpression(this, expr, context);
   }
 }
 
@@ -1886,10 +1902,10 @@ class _PlaceholderExpression extends Expression {
   String toString() => '(expr with type $type)';
 
   @override
-  Type visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     h.irBuilder.atom(type.type);
     h.irBuilder.apply('expr', 1);
-    return type;
+    return new SimpleTypeAnalysisResult<Type>(type: type);
   }
 }
 
@@ -1907,7 +1923,7 @@ class _Property extends PromotableLValue {
   }
 
   @override
-  Type visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     return h.typeAnalyzer.analyzePropertyGet(this, target, propertyName);
   }
 
@@ -1994,10 +2010,10 @@ class _This extends Expression {
   String toString() => 'this';
 
   @override
-  Type visit(Harness h, Type context) {
-    var type = h.typeAnalyzer.analyzeThis(this);
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    var result = h.typeAnalyzer.analyzeThis(this);
     h.irBuilder.atom('this');
-    return type;
+    return result;
   }
 }
 
@@ -2011,10 +2027,10 @@ class _ThisOrSuperProperty extends PromotableLValue {
       {_LValueDisposition disposition = _LValueDisposition.read}) {}
 
   @override
-  Type visit(Harness h, Type context) {
-    var type = h.typeAnalyzer.analyzeThisPropertyGet(this, propertyName);
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    var result = h.typeAnalyzer.analyzeThisPropertyGet(this, propertyName);
     h.irBuilder.atom('this.$propertyName');
-    return type;
+    return result;
   }
 
   @override
@@ -2046,7 +2062,7 @@ class _Throw extends Expression {
   String toString() => 'throw ...';
 
   @override
-  Type visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     return h.typeAnalyzer.analyzeThrow(this, operand);
   }
 }
@@ -2122,10 +2138,10 @@ class _VariableReference extends LValue {
   String toString() => variable.name;
 
   @override
-  Type visit(Harness h, Type context) {
-    var type = h.typeAnalyzer.analyzeVariableGet(this, variable, callback);
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    var result = h.typeAnalyzer.analyzeVariableGet(this, variable, callback);
     h.irBuilder.atom(variable.name);
-    return type;
+    return result;
   }
 
   @override
@@ -2188,7 +2204,7 @@ class _WrappedExpression extends Expression {
   }
 
   @override
-  Type visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     late MiniIrTmp beforeTmp;
     if (before != null) {
       h.typeAnalyzer.dispatchStatement(before!);
@@ -2207,7 +2223,7 @@ class _WrappedExpression extends Expression {
     if (before != null) {
       h.irBuilder.let(beforeTmp);
     }
-    return type;
+    return new SimpleTypeAnalysisResult<Type>(type: type);
   }
 }
 
@@ -2230,7 +2246,7 @@ class _Write extends Expression {
   String toString() => '$lhs = $rhs';
 
   @override
-  Type visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     var rhs = this.rhs;
     Type type;
     if (rhs == null) {
@@ -2241,6 +2257,7 @@ class _Write extends Expression {
       type = h.typeAnalyzer.analyzeExpression(rhs);
     }
     lhs._visitWrite(h, this, type, rhs);
-    return type;
+    // TODO(paulberry): null shorting
+    return new SimpleTypeAnalysisResult<Type>(type: type);
   }
 }

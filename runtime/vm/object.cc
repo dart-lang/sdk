@@ -18725,7 +18725,8 @@ intptr_t LoadingUnit::LoadingUnitOf(const Function& function) {
 }
 
 intptr_t LoadingUnit::LoadingUnitOf(const Code& code) {
-  if (code.IsStubCode() || code.IsTypeTestStubCode()) {
+  if (code.IsStubCode() || code.IsTypeTestStubCode() ||
+      code.IsAllocationStubCode()) {
     return LoadingUnit::kRootId;
   } else {
     Thread* thread = Thread::Current();
@@ -18739,13 +18740,7 @@ intptr_t LoadingUnit::LoadingUnitOf(const Code& code) {
     LoadingUnit& unit = thread->LoadingUnitHandle();
     Function& func = thread->FunctionHandle();
 
-    if (code.IsAllocationStubCode()) {
-      cls ^= code.owner();
-      lib = cls.library();
-      unit = lib.loading_unit();
-      ASSERT(!unit.IsNull());
-      return unit.id();
-    } else if (code.IsFunctionCode()) {
+    if (code.IsFunctionCode()) {
       func ^= code.function();
       cls = func.Owner();
       lib = cls.library();

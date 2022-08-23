@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 
 import '../mini_ast.dart';
@@ -55,11 +56,11 @@ class _GetExpressionInfo extends Expression {
   }
 
   @override
-  Type visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     var type = h.typeAnalyzer.analyzeExpression(target);
     h.flow.forwardExpression(this, target);
     callback(h.flow.expressionInfoForTesting(this));
-    return type;
+    return new SimpleTypeAnalysisResult<Type>(type: type);
   }
 }
 
@@ -94,13 +95,13 @@ class _WhyNotPromoted extends Expression {
   String toString() => '$target (whyNotPromoted)';
 
   @override
-  Type visit(Harness h, Type context) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     var type = h.typeAnalyzer.analyzeExpression(target);
     h.flow.forwardExpression(this, target);
     Type.withComparisonsAllowed(() {
       callback(h.flow.whyNotPromoted(this)());
     });
-    return type;
+    return new SimpleTypeAnalysisResult<Type>(type: type);
   }
 }
 

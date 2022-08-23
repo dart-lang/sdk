@@ -314,6 +314,9 @@ class Object {
   bool IsCanonical() const { return ptr()->untag()->IsCanonical(); }
   void SetCanonical() const { ptr()->untag()->SetCanonical(); }
   void ClearCanonical() const { ptr()->untag()->ClearCanonical(); }
+  bool IsImmutable() const { return ptr()->untag()->IsImmutable(); }
+  void SetImmutable() const { ptr()->untag()->SetImmutable(); }
+  void ClearImmutable() const { ptr()->untag()->ClearImmutable(); }
   intptr_t GetClassId() const {
     return !ptr()->IsHeapObject() ? static_cast<intptr_t>(kSmiCid)
                                   : ptr()->untag()->GetClassId();

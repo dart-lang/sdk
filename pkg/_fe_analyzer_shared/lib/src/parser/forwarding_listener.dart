@@ -227,8 +227,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endRecordType(Token leftBracket, Token? questionMark, int count) {
-    listener?.endRecordType(leftBracket, questionMark, count);
+  void endRecordType(
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
+    listener?.endRecordType(leftBracket, questionMark, count, hasNamedFields);
   }
 
   @override

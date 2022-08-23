@@ -1994,11 +1994,16 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endRecordType(Token leftBracket, Token? questionMark, int count) {
+  void endRecordType(
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
     indent--;
     seen(leftBracket);
     seen(questionMark);
-    doPrint('endRecordType(' '$leftBracket, ' '$questionMark, ' '$count)');
+    doPrint('endRecordType('
+        '$leftBracket, '
+        '$questionMark, '
+        '$count, '
+        '$hasNamedFields)');
   }
 
   @override

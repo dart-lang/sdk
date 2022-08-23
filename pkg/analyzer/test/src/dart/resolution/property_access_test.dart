@@ -269,6 +269,179 @@ AssignmentExpression
   staticType: int
 ''');
   }
+
+  /// TODO(scheglov) Add extension with type parameters.
+  test_ofExtension_onRecordType() async {
+    await assertNoErrorsInCode('''
+extension IntStringRecordExtension on (int, String) {
+  int get foo => 0;
+}
+
+void f((int, String) r) {
+  (r).foo;
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: (int, String)
+    rightParenthesis: )
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::IntStringRecordExtension::@getter::foo
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofRecordType_namedField() async {
+    await assertNoErrorsInCode('''
+void f(({int foo}) r) {
+  (r).foo;
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({int foo})
+    rightParenthesis: )
+    staticType: ({int foo})
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofRecordType_namedField_nullAware() async {
+    await assertNoErrorsInCode('''
+void f(({int foo})? r) {
+  (r)?.foo;
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({int foo})?
+    rightParenthesis: )
+    staticType: ({int foo})?
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: int
+  staticType: int?
+''');
+  }
+
+  test_ofRecordType_Object_hashCode() async {
+    await assertNoErrorsInCode('''
+void f(({int foo}) r) {
+  (r).hashCode;
+}
+''');
+
+    final node = findNode.propertyAccess('hashCode;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({int foo})
+    rightParenthesis: )
+    staticType: ({int foo})
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    staticElement: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofRecordType_unresolved() async {
+    await assertErrorsInCode('''
+void f(({int foo}) r) {
+  (r).bar;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 3),
+    ]);
+
+    final node = findNode.propertyAccess('bar;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({int foo})
+    rightParenthesis: )
+    staticType: ({int foo})
+  operator: .
+  propertyName: SimpleIdentifier
+    token: bar
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  /// Even though positional fields can have names, these names cannot be
+  /// used to access these fields.
+  test_ofRecordType_unresolved_positionalField() async {
+    await assertErrorsInCode('''
+void f((int foo, String) r) {
+  (r).foo;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 36, 3),
+    ]);
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: (int, String)
+    rightParenthesis: )
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+  }
 }
 
 mixin PropertyAccessResolutionTestCases on PubPackageResolutionTest {

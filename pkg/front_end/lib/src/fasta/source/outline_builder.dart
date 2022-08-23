@@ -2582,8 +2582,10 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endRecordType(Token leftBracket, Token? questionMark, int count) {
+  void endRecordType(
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
     debugEvent("RecordType");
+
     if (!libraryFeatures.records.isEnabled) {
       addProblem(
           templateExperimentNotEnabledOffByDefault

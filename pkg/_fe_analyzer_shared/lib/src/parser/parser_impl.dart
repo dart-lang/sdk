@@ -1453,7 +1453,8 @@ class Parser {
     } else {
       questionMark = null;
     }
-    listener.endRecordType(start, questionMark, parameterCount);
+    listener.endRecordType(start, questionMark, parameterCount,
+        /* hasNamedFields = */ hasNamedFields);
 
     return token;
   }

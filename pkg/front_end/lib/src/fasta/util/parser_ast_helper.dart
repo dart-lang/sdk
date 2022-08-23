@@ -1833,9 +1833,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endRecordType(Token leftBracket, Token? questionMark, int count) {
+  void endRecordType(
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
     RecordTypeEnd data = new RecordTypeEnd(ParserAstType.END,
-        leftBracket: leftBracket, questionMark: questionMark, count: count);
+        leftBracket: leftBracket,
+        questionMark: questionMark,
+        count: count,
+        hasNamedFields: hasNamedFields);
     seen(data);
   }
 
@@ -5980,9 +5984,13 @@ class RecordTypeEnd extends ParserAstNode {
   final Token leftBracket;
   final Token? questionMark;
   final int count;
+  final bool hasNamedFields;
 
   RecordTypeEnd(ParserAstType type,
-      {required this.leftBracket, this.questionMark, required this.count})
+      {required this.leftBracket,
+      this.questionMark,
+      required this.count,
+      required this.hasNamedFields})
       : super("RecordType", type);
 
   @override
@@ -5990,6 +5998,7 @@ class RecordTypeEnd extends ParserAstNode {
         "leftBracket": leftBracket,
         "questionMark": questionMark,
         "count": count,
+        "hasNamedFields": hasNamedFields,
       };
 }
 
