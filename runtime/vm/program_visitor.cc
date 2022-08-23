@@ -1468,15 +1468,8 @@ class AssignLoadingUnitsCodeVisitor : public ObjectVisitor {
         }
         id = unit_.id();
       }
-    } else if (code.IsAllocationStubCode()) {
-      cls_ ^= code.owner();
-      lib_ = cls_.library();
-      unit_ = lib_.loading_unit();
-      if (unit_.IsNull()) {
-        return;  // Assignment remains LoadingUnit::kIllegalId
-      }
-      id = unit_.id();
-    } else if (code.IsTypeTestStubCode() || code.IsStubCode()) {
+    } else if (code.IsTypeTestStubCode() || code.IsStubCode() ||
+               code.IsAllocationStubCode()) {
       id = LoadingUnit::kRootId;
     } else {
       UNREACHABLE();
