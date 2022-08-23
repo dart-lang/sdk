@@ -270,7 +270,6 @@ AssignmentExpression
 ''');
   }
 
-  /// TODO(scheglov) Add extension with type parameters.
   test_ofExtension_onRecordType() async {
     await assertNoErrorsInCode('''
 extension IntStringRecordExtension on (int, String) {
@@ -299,6 +298,39 @@ PropertyAccess
     staticElement: self::@extension::IntStringRecordExtension::@getter::foo
     staticType: int
   staticType: int
+''');
+  }
+
+  test_ofExtension_onRecordType_generic() async {
+    await assertNoErrorsInCode('''
+extension BiRecordExtension<T, U> on (T, U) {
+  Map<T, U> get foo => {};
+}
+
+void f((int, String) r) {
+  (r).foo;
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: (int, String)
+    rightParenthesis: )
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: PropertyAccessorMember
+      base: self::@extension::BiRecordExtension::@getter::foo
+      substitution: {T: int, U: String}
+    staticType: Map<int, String>
+  staticType: Map<int, String>
 ''');
   }
 
