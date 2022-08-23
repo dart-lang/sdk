@@ -46,7 +46,7 @@ class VirtualTreeElement extends CustomElement implements Renderable {
 
   factory VirtualTreeElement(VirtualTreeCreateCallback create,
       VirtualTreeUpdateCallback update, VritualTreeGetChildrenCallback children,
-      {Iterable items: const [],
+      {Iterable items = const [],
       VirtualTreeSearchCallback? search,
       RenderingQueue? queue}) {
     assert(create != null);
@@ -59,8 +59,8 @@ class VirtualTreeElement extends CustomElement implements Renderable {
     e._collection = new VirtualCollectionElement(() {
       var element;
       return element = create((
-          {bool autoToggleSingleChildNodes: false,
-          bool autoToggleWholeTree: false}) {
+          {bool autoToggleSingleChildNodes = false,
+          bool autoToggleWholeTree = false}) {
         var item = e._collection!.getItemFromElement(element);
         if (e.isExpanded(item)) {
           e.collapse(item,
@@ -86,8 +86,8 @@ class VirtualTreeElement extends CustomElement implements Renderable {
   }
 
   void expand(item,
-      {bool autoExpandSingleChildNodes: false,
-      bool autoExpandWholeTree: false}) {
+      {bool autoExpandSingleChildNodes = false,
+      bool autoExpandWholeTree = false}) {
     if (_expanded.add(item)) _r.dirty();
     if (autoExpandWholeTree) {
       // The tree is potentially very deep, simple recursion can produce a
@@ -109,8 +109,8 @@ class VirtualTreeElement extends CustomElement implements Renderable {
   }
 
   void collapse(item,
-      {bool autoCollapseSingleChildNodes: false,
-      bool autoCollapseWholeTree: false}) {
+      {bool autoCollapseSingleChildNodes = false,
+      bool autoCollapseWholeTree = false}) {
     if (_expanded.remove(item)) _r.dirty();
     if (autoCollapseWholeTree) {
       // The tree is potentially very deep, simple recursion can produce a

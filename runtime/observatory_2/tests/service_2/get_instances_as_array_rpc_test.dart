@@ -39,8 +39,8 @@ var tests = <IsolateTest>[
     }
 
     Future<int> instanceCount(String className,
-        {bool includeSubclasses: false,
-        bool includeImplementors: false}) async {
+        {bool includeSubclasses = false,
+        bool includeImplementors = false}) async {
       Map params = {
         "objectId": isolate.rootLibrary.classes
             .singleWhere((cls) => cls.name == className)

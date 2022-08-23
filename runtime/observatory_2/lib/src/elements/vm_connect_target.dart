@@ -33,7 +33,7 @@ class VMConnectTargetElement extends CustomElement implements Renderable {
   bool get current => _current;
 
   factory VMConnectTargetElement(M.Target target,
-      {bool current: false, RenderingQueue queue}) {
+      {bool current = false, RenderingQueue queue}) {
     assert(target != null);
     assert(current != null);
     VMConnectTargetElement e = new VMConnectTargetElement.created();

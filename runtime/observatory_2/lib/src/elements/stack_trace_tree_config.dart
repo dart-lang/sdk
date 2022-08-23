@@ -62,12 +62,12 @@ class StackTraceTreeConfigElement extends CustomElement implements Renderable {
   set filter(String value) => _filter = _r.checkAndReact(_filter, value);
 
   factory StackTraceTreeConfigElement(
-      {bool showMode: true,
-      bool showDirection: true,
-      bool showFilter: true,
-      String filter: '',
-      ProfileTreeMode mode: ProfileTreeMode.function,
-      M.ProfileTreeDirection direction: M.ProfileTreeDirection.exclusive,
+      {bool showMode = true,
+      bool showDirection = true,
+      bool showFilter = true,
+      String filter = '',
+      ProfileTreeMode mode = ProfileTreeMode.function,
+      M.ProfileTreeDirection direction = M.ProfileTreeDirection.exclusive,
       RenderingQueue queue}) {
     assert(showMode != null);
     assert(showDirection != null);

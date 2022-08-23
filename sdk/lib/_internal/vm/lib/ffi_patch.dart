@@ -498,7 +498,7 @@ T _checkAbiSpecificIntegerMapping<T>(T? object) {
 extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
   @patch
-  DF asFunction<DF extends Function>({bool isLeaf: false}) =>
+  DF asFunction<DF extends Function>({bool isLeaf = false}) =>
       throw UnsupportedError("The body is inlined in the frontend.");
 }
 

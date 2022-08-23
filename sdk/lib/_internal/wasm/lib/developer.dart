@@ -11,7 +11,7 @@ import "dart:async" show Zone;
 // Stubs for `developer.dart`.
 
 @patch
-bool debugger({bool when: true, String? message}) => when;
+bool debugger({bool when = true, String? message}) => when;
 
 @patch
 Object? inspect(Object? object) => object;
@@ -20,8 +20,8 @@ Object? inspect(Object? object) => object;
 void log(String message,
     {DateTime? time,
     int? sequenceNumber,
-    int level: 0,
-    String name: '',
+    int level = 0,
+    String name = '',
     Zone? zone,
     Object? error,
     StackTrace? stackTrace}) {}

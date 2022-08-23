@@ -38,7 +38,7 @@ abstract class _ListBase<E> extends ListBase<E> {
     }
   }
 
-  List<E> toList({bool growable: true}) {
+  List<E> toList({bool growable = true}) {
     return List.from(this, growable: growable);
   }
 }

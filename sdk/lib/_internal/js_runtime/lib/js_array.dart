@@ -654,7 +654,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
 
   String toString() => ListBase.listToString(this);
 
-  List<E> toList({bool growable: true}) =>
+  List<E> toList({bool growable = true}) =>
       growable ? _toListGrowable() : _toListFixed();
 
   List<E> _toListGrowable() =>

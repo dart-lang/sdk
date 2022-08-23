@@ -200,7 +200,7 @@ mixin _IntListMixin implements List<int> {
 
   Iterator<int> get iterator => new _TypedListIterator<int>(this);
 
-  List<int> toList({bool growable: true}) {
+  List<int> toList({bool growable = true}) {
     return new List<int>.from(this, growable: growable);
   }
 
@@ -551,7 +551,7 @@ mixin _DoubleListMixin implements List<double> {
 
   Iterator<double> get iterator => new _TypedListIterator<double>(this);
 
-  List<double> toList({bool growable: true}) {
+  List<double> toList({bool growable = true}) {
     return new List<double>.from(this, growable: growable);
   }
 
@@ -974,7 +974,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
 
   Iterator<Float32x4> get iterator => new _TypedListIterator<Float32x4>(this);
 
-  List<Float32x4> toList({bool growable: true}) {
+  List<Float32x4> toList({bool growable = true}) {
     return new List<Float32x4>.from(this, growable: growable);
   }
 
@@ -1327,7 +1327,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
 
   Iterator<Int32x4> get iterator => new _TypedListIterator<Int32x4>(this);
 
-  List<Int32x4> toList({bool growable: true}) {
+  List<Int32x4> toList({bool growable = true}) {
     return new List<Int32x4>.from(this, growable: growable);
   }
 
@@ -1681,7 +1681,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
 
   Iterator<Float64x2> get iterator => new _TypedListIterator<Float64x2>(this);
 
-  List<Float64x2> toList({bool growable: true}) {
+  List<Float64x2> toList({bool growable = true}) {
     return new List<Float64x2>.from(this, growable: growable);
   }
 

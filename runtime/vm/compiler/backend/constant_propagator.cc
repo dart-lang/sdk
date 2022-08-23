@@ -232,10 +232,8 @@ void ConstantPropagator::VisitGoto(GotoInstr* instr) {
 }
 
 void ConstantPropagator::VisitIndirectGoto(IndirectGotoInstr* instr) {
-  if (reachable_->Contains(instr->GetBlock()->preorder_number())) {
-    for (intptr_t i = 0; i < instr->SuccessorCount(); i++) {
-      SetReachable(instr->SuccessorAt(i));
-    }
+  for (intptr_t i = 0; i < instr->SuccessorCount(); i++) {
+    SetReachable(instr->SuccessorAt(i));
   }
 }
 
@@ -1504,11 +1502,7 @@ static bool HasPhis(BlockEntryInstr* block) {
 }
 
 static bool IsEmptyBlock(BlockEntryInstr* block) {
-  // A block containing a goto to itself forms an infinite loop.
-  // We don't consider this an empty block to handle the edge-case where code
-  // reduces to an infinite loop.
-  return block->next()->IsGoto() &&
-         block->next()->AsGoto()->successor() != block && !HasPhis(block) &&
+  return block->next()->IsGoto() && !HasPhis(block) &&
          !block->IsIndirectEntry();
 }
 

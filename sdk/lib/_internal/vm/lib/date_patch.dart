@@ -33,7 +33,7 @@ class DateTime {
 
   @patch
   DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
-      {bool isUtc: false})
+      {bool isUtc = false})
       : this._withValue(
             _validateMilliseconds(millisecondsSinceEpoch) *
                 Duration.microsecondsPerMillisecond,
@@ -41,7 +41,7 @@ class DateTime {
 
   @patch
   DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
-      {bool isUtc: false})
+      {bool isUtc = false})
       : this._withValue(microsecondsSinceEpoch, isUtc: isUtc);
 
   @patch

@@ -17,7 +17,7 @@ class List<E> {
   external factory List([int? length]);
 
   @patch
-  factory List.filled(int length, E fill, {bool growable: false}) {
+  factory List.filled(int length, E fill, {bool growable = false}) {
     // All error handling on the length parameter is done at the implementation
     // of new _List.
     var result = growable ? new _GrowableList<E>(length) : new _List<E>(length);
@@ -30,7 +30,7 @@ class List<E> {
   }
 
   @patch
-  factory List.from(Iterable elements, {bool growable: true}) {
+  factory List.from(Iterable elements, {bool growable = true}) {
     // If elements is an Iterable<E>, we won't need a type-test for each
     // element.
     if (elements is Iterable<E>) {
@@ -46,7 +46,7 @@ class List<E> {
   }
 
   @patch
-  factory List.of(Iterable<E> elements, {bool growable: true}) {
+  factory List.of(Iterable<E> elements, {bool growable = true}) {
     if (growable) {
       return _GrowableList.of(elements);
     } else {

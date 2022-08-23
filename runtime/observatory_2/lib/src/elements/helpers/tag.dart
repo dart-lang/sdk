@@ -93,5 +93,5 @@ class Tag<T extends CustomElement> {
   /// Dependent tags that need to be registered for this tag to work properly.
   final Iterable<Tag> dependencies;
 
-  const Tag(this.name, {this.dependencies: const []});
+  const Tag(this.name, {this.dependencies = const []});
 }

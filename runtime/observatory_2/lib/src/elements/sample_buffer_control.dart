@@ -47,8 +47,8 @@ class SampleBufferControlElement extends CustomElement implements Renderable {
       M.VM vm,
       M.SampleProfileLoadingProgress progress,
       Stream<M.SampleProfileLoadingProgressEvent> progressStream,
-      {M.SampleProfileTag selectedTag: M.SampleProfileTag.none,
-      bool showTag: true,
+      {M.SampleProfileTag selectedTag = M.SampleProfileTag.none,
+      bool showTag = true,
       RenderingQueue queue}) {
     assert(progress != null);
     assert(progressStream != null);
@@ -112,7 +112,7 @@ class SampleBufferControlElement extends CustomElement implements Renderable {
   }
 
   static List<Element> _createStatusMessage(String message,
-      {double progress: 0.0}) {
+      {double progress = 0.0}) {
     return [
       new DivElement()
         ..classes = ['statusBox', 'shadow', 'center']

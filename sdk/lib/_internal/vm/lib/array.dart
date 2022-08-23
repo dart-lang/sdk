@@ -62,7 +62,7 @@ abstract class _Array<E> extends FixedLengthListBase<E> {
     throw IterableElementError.tooMany();
   }
 
-  List<E> toList({bool growable: true}) {
+  List<E> toList({bool growable = true}) {
     var length = this.length;
     if (length > 0) {
       _List result = _slice(0, length, !growable);

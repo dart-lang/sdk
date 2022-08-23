@@ -93,7 +93,7 @@ convertDartToNative_PrepareForStructuredClone(value) =>
     new _StructuredCloneDart2Js()
         .convertDartToNative_PrepareForStructuredClone(value);
 
-convertNativeToDart_AcceptStructuredClone(object, {mustCopy: false}) =>
+convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) =>
     new _AcceptStructuredCloneDart2Js()
         .convertNativeToDart_AcceptStructuredClone(object, mustCopy: mustCopy);
 

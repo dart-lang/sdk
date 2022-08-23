@@ -17,7 +17,7 @@ JsObject get context => _context;
 
 final JsObject _context = _castToJsObject(_wrapToDart(JS('', 'self')));
 
-_convertDartFunction(Function f, {bool captureThis: false}) {
+_convertDartFunction(Function f, {bool captureThis = false}) {
   return JS(
       'JavaScriptFunction',
       '''

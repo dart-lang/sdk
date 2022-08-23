@@ -143,7 +143,7 @@ class CpuProfileElement extends CustomElement implements Renderable {
     children = content;
   }
 
-  Future _request({bool clear: false, bool forceFetch: false}) async {
+  Future _request({bool clear = false, bool forceFetch = false}) async {
     _progress = null;
     _progressStream =
         _profiles.get(isolate, _tag, clear: clear, forceFetch: forceFetch);

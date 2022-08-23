@@ -3063,7 +3063,7 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
     }
   }
 
-  void print(String line, {bool newline: true}) {
+  void print(String line, {bool newline = true}) {
     var span = new SpanElement();
     span.classes.add('normal');
     span.appendText(line);
@@ -3073,7 +3073,7 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
     _append(span);
   }
 
-  void printBold(String line, {bool newline: true}) {
+  void printBold(String line, {bool newline = true}) {
     var span = new SpanElement();
     span.classes.add('bold');
     span.appendText(line);
@@ -3083,7 +3083,7 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
     _append(span);
   }
 
-  void printRed(String line, {bool newline: true}) {
+  void printRed(String line, {bool newline = true}) {
     var span = new SpanElement();
     span.classes.add('red');
     span.appendText(line);
@@ -3108,7 +3108,7 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
   }
 
   void printRef(S.Isolate isolate, S.Instance ref, M.ObjectRepository objects,
-      {bool newline: true}) {
+      {bool newline = true}) {
     _append(new InstanceRefElement(isolate, ref, objects, queue: app.queue)
         .element);
     if (newline) {
