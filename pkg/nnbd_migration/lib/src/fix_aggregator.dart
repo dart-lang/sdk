@@ -56,7 +56,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   /// refers to it.
   final Map<LibraryElement?, String?> _importPrefixes = {};
 
-  final bool? _warnOnWeakCode;
+  final bool _warnOnWeakCode;
 
   FixAggregator._(this.planner, this._changes, this._warnOnWeakCode,
       CompilationUnitElement compilationUnitElement) {
@@ -198,7 +198,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   /// Runs the [FixAggregator] on a [unit] and returns the resulting edits.
   static Map<int?, List<AtomicEdit>>? run(CompilationUnit unit,
       String? sourceText, Map<AstNode?, NodeChange> changes,
-      {bool? removeViaComments = false, bool? warnOnWeakCode = false}) {
+      {bool? removeViaComments = false, bool warnOnWeakCode = false}) {
     var planner = EditPlanner(unit.lineInfo, sourceText,
         removeViaComments: removeViaComments);
     var aggregator = FixAggregator._(
@@ -438,7 +438,7 @@ class NodeChangeForAssignment
   NodeProducingEditPlan _apply(
       AssignmentExpression node, FixAggregator aggregator) {
     var lhsPlan = aggregator.planForNode(node.leftHandSide);
-    if (isWeakNullAware && !aggregator._warnOnWeakCode!) {
+    if (isWeakNullAware && !aggregator._warnOnWeakCode) {
       // Just keep the LHS
       return aggregator.planner.extract(node, lhsPlan as NodeProducingEditPlan,
           infoAfter: AtomicEditInfo(
@@ -460,7 +460,7 @@ class NodeChangeForAssignment
     var operatorPlan = super._makeOperatorPlan(aggregator, node, operator);
     if (operatorPlan != null) return operatorPlan;
     if (isWeakNullAware) {
-      assert(aggregator._warnOnWeakCode!);
+      assert(aggregator._warnOnWeakCode);
       return aggregator.planner.informativeMessageForToken(node, operator,
           info: AtomicEditInfo(
               NullabilityFixDescription
@@ -640,7 +640,7 @@ mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
   EditPlan? _applyConditional(N node, FixAggregator aggregator,
       AstNode conditionNode, AstNode thenNode, AstNode? elseNode) {
     if (conditionValue == null) return null;
-    if (aggregator._warnOnWeakCode!) {
+    if (aggregator._warnOnWeakCode) {
       var conditionPlan = aggregator.innerPlanForNode(conditionNode);
       var info = AtomicEditInfo(
           conditionValue!
@@ -1024,12 +1024,12 @@ mixin NodeChangeForNullAware<N extends Expression> on NodeChange<N> {
   /// Otherwise returns `null`.
   EditPlan? _applyNullAware(N node, FixAggregator aggregator) {
     if (!removeNullAwareness) return null;
-    var description = aggregator._warnOnWeakCode!
+    var description = aggregator._warnOnWeakCode
         ? NullabilityFixDescription.nullAwarenessUnnecessaryInStrongMode
         : NullabilityFixDescription.removeNullAwareness;
     return aggregator.planner.removeNullAwareness(node,
         info: AtomicEditInfo(description, const {}),
-        isInformative: aggregator._warnOnWeakCode!);
+        isInformative: aggregator._warnOnWeakCode);
   }
 }
 
