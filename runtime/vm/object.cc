@@ -2374,8 +2374,8 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
     cls = Class::New<Instance, RTN::Instance>(kFfiNativeFunctionCid,
                                               isolate_group);
-    cls.set_type_arguments_field_offset(Pointer::type_arguments_offset(),
-                                        RTN::Pointer::type_arguments_offset());
+    cls.set_type_arguments_field_offset(Instance::NextFieldOffset(),
+                                        RTN::Instance::NextFieldOffset());
     cls.set_num_type_arguments_unsafe(1);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
@@ -4875,14 +4875,15 @@ ClassPtr Class::NewNativeWrapper(const Library& library,
     cls.set_super_type(Type::Handle(Type::ObjectType()));
     // Compute instance size. First word contains a pointer to a properly
     // sized typed array once the first native field has been set.
-    const intptr_t host_instance_size = sizeof(UntaggedInstance) + kWordSize;
+    const intptr_t host_instance_size =
+        sizeof(UntaggedInstance) + kCompressedWordSize;
 #if defined(DART_PRECOMPILER)
     const intptr_t target_instance_size =
         compiler::target::Instance::InstanceSize() +
-        compiler::target::kWordSize;
+        compiler::target::kCompressedWordSize;
 #else
     const intptr_t target_instance_size =
-        sizeof(UntaggedInstance) + compiler::target::kWordSize;
+        sizeof(UntaggedInstance) + compiler::target::kCompressedWordSize;
 #endif
     cls.set_instance_size(
         RoundedAllocationSize(host_instance_size),
@@ -5349,6 +5350,10 @@ void Class::set_is_loaded(bool value) const {
 void Class::set_is_finalized() const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!is_finalized());
+  set_is_finalized_unsafe();
+}
+
+void Class::set_is_finalized_unsafe() const {
   set_state_bits(
       ClassFinalizedBits::update(UntaggedClass::kFinalized, state_bits()));
 }

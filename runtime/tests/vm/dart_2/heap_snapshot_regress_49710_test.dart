@@ -20,12 +20,10 @@ main() async {
     VMInternalsForTesting.writeHeapSnapshotToFile(file);
     final snapshot = loadHeapSnapshotFromFile(file);
     for (final klass in snapshot.classes) {
-      // Ensure field indices are unique.
+      // Ensure field indices are unique, densly numbered from 0.
       final fields = klass.fields.toList()..sort((a, b) => a.index - b.index);
-      int lastIndex = -1;
       for (int i = 0; i < fields.length; ++i) {
-        Expect.notEquals(lastIndex, fields[i].index);
-        lastIndex = fields[i].index;
+        Expect.equals(i, fields[i].index);
       }
     }
   });

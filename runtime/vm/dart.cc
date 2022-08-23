@@ -957,6 +957,43 @@ bool Dart::DetectNullSafety(const char* script_uri,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
+// The runtime assumes it can create certain kinds of objects at-will without
+// a check whether their class need to be finalized first.
+//
+// Some of those objects can end up flowing to user code (i.e. their class is a
+// subclass of [Instance]).
+//
+// We therefore ensure that classes are finalized before objects of them are
+// created or at least before such objects can reach user code.
+static void FinalizeBuiltinClasses(Thread* thread) {
+  auto class_table = thread->isolate_group()->class_table();
+  Class& cls = Class::Handle(thread->zone());
+
+#define ENSURE_FINALIZED(clazz)                                                \
+  if (class_table->HasValidClassAt(k##clazz##Cid)) {                           \
+    cls = class_table->At(k##clazz##Cid);                                      \
+    RELEASE_ASSERT(cls.EnsureIsFinalized(thread) == Object::null());           \
+  }
+
+  CLASS_LIST_INSTANCE_SINGLETONS(ENSURE_FINALIZED)
+  CLASS_LIST_ARRAYS(ENSURE_FINALIZED)
+  CLASS_LIST_STRINGS(ENSURE_FINALIZED)
+  // No maps/sets.
+
+#define ENSURE_TD_FINALIZED(clazz)                                             \
+  ENSURE_FINALIZED(TypedData##clazz)                                           \
+  ENSURE_FINALIZED(TypedData##clazz##View)                                     \
+  ENSURE_FINALIZED(ExternalTypedData##clazz)                                   \
+  ENSURE_FINALIZED(UnmodifiableTypedData##clazz##View)
+
+  CLASS_LIST_TYPED_DATA(ENSURE_TD_FINALIZED)
+#undef ENSURE_TD_FINALIZED
+
+  ENSURE_FINALIZED(ByteDataView)
+  ENSURE_FINALIZED(UnmodifiableByteDataView)
+  ENSURE_FINALIZED(ByteBuffer)
+}
+
 ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
                                  const uint8_t* snapshot_instructions,
                                  const uint8_t* kernel_buffer,
@@ -1019,6 +1056,7 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
            Code::null());
 #endif
   } else {
+    FinalizeBuiltinClasses(T);
 #if !defined(TARGET_ARCH_IA32)
     if (I != Dart::vm_isolate()) {
       if (IG->object_store()->build_generic_method_extractor_code() !=
