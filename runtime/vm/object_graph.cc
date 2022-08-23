@@ -27,6 +27,141 @@ static bool IsUserClass(intptr_t cid) {
   return !IsInternalOnlyClassId(cid);
 }
 
+// A slot in the fixed-size portion of a heap object.
+//
+// This may be a regulard dart field, a unboxed dart field or
+// a slot of any type in a predefined layout.
+struct ObjectSlot {
+  uint16_t offset;
+  bool is_compressed_pointer;
+  const char* name;
+  ObjectSlot(uint16_t offset, bool is_compressed_pointer, const char* name)
+      : offset(offset),
+        is_compressed_pointer(is_compressed_pointer),
+        name(name) {}
+};
+
+class ObjectSlots {
+ public:
+  using ObjectSlotsType = ZoneGrowableArray<ObjectSlot>;
+
+  explicit ObjectSlots(Thread* thread) {
+    auto class_table = thread->isolate_group()->class_table();
+    const intptr_t class_count = class_table->NumCids();
+
+    HANDLESCOPE(thread);
+    auto& cls = Class::Handle(thread->zone());
+    auto& fields = Array::Handle(thread->zone());
+    auto& field = Field::Handle(thread->zone());
+    auto& name = String::Handle(thread->zone());
+
+    cid2object_slots_.FillWith(nullptr, 0, class_count);
+    contains_only_tagged_words_.FillWith(false, 0, class_count);
+
+    for (intptr_t cid = 1; cid < class_count; cid++) {
+      if (!class_table->HasValidClassAt(cid)) continue;
+
+      // Non-finalized classes are abstract, so we will not collect any field
+      // information for them.
+      cls = class_table->At(cid);
+      if (!cls.is_finalized()) continue;
+
+      auto slots = cid2object_slots_[cid] = new ObjectSlotsType();
+      for (const auto& entry : OffsetsTable::offsets_table()) {
+        if (entry.class_id == cid) {
+          slots->Add(ObjectSlot(entry.offset, entry.is_compressed_pointer,
+                                entry.field_name));
+        }
+      }
+
+      // The VM doesn't define a layout for the object, so it's a regular Dart
+      // class.
+      if (slots->is_empty()) {
+        // If the class has native fields, the native fields array is the first
+        // field and therefore starts after the `kWordSize` tagging word.
+        if (cls.num_native_fields() > 0) {
+          slots->Add(ObjectSlot(kWordSize, true, "native_fields"));
+        }
+        // If the class or any super class is generic, it will have a type
+        // arguments vector.
+        const auto tav_offset = cls.host_type_arguments_field_offset();
+        if (tav_offset != Class::kNoTypeArguments) {
+          slots->Add(ObjectSlot(tav_offset, true, "type_arguments"));
+        }
+
+        // Add slots for all user-defined instance fields in the hierarchy.
+        while (!cls.IsNull()) {
+          fields = cls.fields();
+          if (!fields.IsNull()) {
+            for (intptr_t i = 0; i < fields.Length(); ++i) {
+              field ^= fields.At(i);
+              if (!field.is_instance()) continue;
+              name = field.name();
+              // If the field is unboxed, we don't know the size of it (may be
+              // multiple words) - but that doesn't matter because
+              //   a) we will process instances using the slots we collect
+              //     (instead of regular GC visitor
+              //   b) we will not write the value of the field and instead treat
+              //     it like a dummy reference to 0 (like we do with Smis).
+              const bool kIsUnboxedField =
+                  FLAG_precompiled_mode && field.is_unboxing_candidate();
+              slots->Add(ObjectSlot(field.HostOffset(), !kIsUnboxedField,
+                                    name.ToCString()));
+            }
+          }
+          cls = cls.SuperClass();
+        }
+      }
+
+      // We sort the slots, so we'll visit the slots in memory order.
+      slots->Sort([](const ObjectSlot* a, const ObjectSlot* b) {
+        return a->offset - b->offset;
+      });
+
+      // As optimization as well as to support variable-length data, we remember
+      // whether this class has only pure tagged pointers in it, then we can
+      // safely use regular GC visitors.
+      bool contains_only_tagged_words = true;
+      for (auto& slot : *slots) {
+        if (!slot.is_compressed_pointer) {
+          contains_only_tagged_words = false;
+          break;
+        }
+      }
+#if defined(DEBUG)
+      // For pure pointer objects, the slots have to start after tagging word
+      // and be without holes (otherwise, e.g. if a slot was not declared,
+      // the visitors will visit them but we won't emit the field description in
+      // the heap snapshot).
+      if (contains_only_tagged_words) {
+        intptr_t expected_offset = kWordSize;
+        for (auto& slot : *slots) {
+          RELEASE_ASSERT(slot.offset = expected_offset);
+          expected_offset += kCompressedWordSize;
+        }
+      }
+      ASSERT(contains_only_tagged_words ||
+             cid != kArrayCid && cid != kImmutableArrayCid);
+#endif  // defined(DEBUG)
+
+      contains_only_tagged_words_[cid] = contains_only_tagged_words;
+    }
+  }
+
+  const ObjectSlotsType* ObjectSlotsFor(intptr_t cid) const {
+    return cid2object_slots_[cid];
+  }
+
+  // Returns `true` if all fields are tagged (i.e. no unboxed fields).
+  bool ContainsOnlyTaggedPointers(intptr_t cid) {
+    return contains_only_tagged_words_[cid];
+  }
+
+ private:
+  GrowableArray<ObjectSlotsType*> cid2object_slots_;
+  GrowableArray<bool> contains_only_tagged_words_;
+};
+
 // The state of a pre-order, depth-first traversal of an object graph.
 // When a node is visited, *all* its children are pushed to the stack at once.
 // We insert a sentinel between the node and its children on the stack, to
@@ -787,17 +922,24 @@ class Pass1Visitor : public ObjectVisitor,
                      public ObjectPointerVisitor,
                      public HandleVisitor {
  public:
-  explicit Pass1Visitor(HeapSnapshotWriter* writer)
+  explicit Pass1Visitor(HeapSnapshotWriter* writer, ObjectSlots* object_slots)
       : ObjectVisitor(),
         ObjectPointerVisitor(IsolateGroup::Current()),
         HandleVisitor(Thread::Current()),
-        writer_(writer) {}
+        writer_(writer),
+        object_slots_(object_slots) {}
 
   void VisitObject(ObjectPtr obj) {
     if (obj->IsPseudoObject()) return;
 
     writer_->AssignObjectId(obj);
-    obj->untag()->VisitPointersPrecise(isolate_group(), this);
+    const auto cid = obj->GetClassId();
+
+    if (object_slots_->ContainsOnlyTaggedPointers(cid)) {
+      obj->untag()->VisitPointersPrecise(isolate_group(), this);
+    } else {
+      writer_->CountReferences(object_slots_->ObjectSlotsFor(cid)->length());
+    }
   }
 
   void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
@@ -826,6 +968,7 @@ class Pass1Visitor : public ObjectVisitor,
 
  private:
   HeapSnapshotWriter* const writer_;
+  ObjectSlots* object_slots_;
 
   DISALLOW_COPY_AND_ASSIGN(Pass1Visitor);
 };
@@ -897,12 +1040,13 @@ class Pass2Visitor : public ObjectVisitor,
                      public ObjectPointerVisitor,
                      public HandleVisitor {
  public:
-  explicit Pass2Visitor(HeapSnapshotWriter* writer)
+  explicit Pass2Visitor(HeapSnapshotWriter* writer, ObjectSlots* object_slots)
       : ObjectVisitor(),
         ObjectPointerVisitor(IsolateGroup::Current()),
         HandleVisitor(Thread::Current()),
         isolate_group_(thread()->isolate_group()),
-        writer_(writer) {}
+        writer_(writer),
+        object_slots_(object_slots) {}
 
   void VisitObject(ObjectPtr obj) {
     if (obj->IsPseudoObject()) return;
@@ -1029,10 +1173,28 @@ class Pass2Visitor : public ObjectVisitor,
       writer_->WriteUnsigned(kNoData);
     }
 
-    DoCount();
-    obj->untag()->VisitPointersPrecise(isolate_group_, this);
-    DoWrite();
-    obj->untag()->VisitPointersPrecise(isolate_group_, this);
+    if (object_slots_->ContainsOnlyTaggedPointers(cid)) {
+      DoCount();
+      obj->untag()->VisitPointersPrecise(isolate_group_, this);
+      DoWrite();
+      obj->untag()->VisitPointersPrecise(isolate_group_, this);
+    } else {
+      auto slots = object_slots_->ObjectSlotsFor(cid);
+      DoCount();
+      counted_ += slots->length();
+      DoWrite();
+      for (auto& slot : *slots) {
+        if (slot.is_compressed_pointer) {
+          auto target = reinterpret_cast<CompressedObjectPtr*>(
+              UntaggedObject::ToAddr(obj->untag()) + slot.offset);
+          VisitCompressedPointers(obj->heap_base(), target, target);
+        } else {
+          writer_->WriteUnsigned(0);
+        }
+        written_++;
+        total_++;
+      }
+    }
   }
 
   void ScrubAndWriteUtf8(StringPtr str) {
@@ -1122,6 +1284,7 @@ class Pass2Visitor : public ObjectVisitor,
  private:
   IsolateGroup* isolate_group_;
   HeapSnapshotWriter* const writer_;
+  ObjectSlots* object_slots_;
   bool writing_ = false;
   intptr_t counted_ = 0;
   intptr_t written_ = 0;
@@ -1253,6 +1416,8 @@ void HeapSnapshotWriter::Write() {
     WriteUnsigned(external);
   }
 
+  ObjectSlots object_slots(thread());
+
   {
     HANDLESCOPE(thread());
     ClassTable* class_table = isolate_group()->class_table();
@@ -1261,8 +1426,6 @@ void HeapSnapshotWriter::Write() {
     Class& cls = Class::Handle();
     Library& lib = Library::Handle();
     String& str = String::Handle();
-    Array& fields = Array::Handle();
-    Field& field = Field::Handle();
 
     intptr_t field_table_size = isolate()->field_table()->NumFieldIds();
     const char** field_table_names =
@@ -1312,6 +1475,7 @@ void HeapSnapshotWriter::Write() {
         WriteUtf8("");  // Reserved
       }
     }
+
     ASSERT(kNumExtraCids == 3);
     for (intptr_t cid = 1; cid <= class_count_; cid++) {
       if (!class_table->HasValidClassAt(cid)) {
@@ -1338,68 +1502,20 @@ void HeapSnapshotWriter::Write() {
         }
         WriteUtf8("");  // Reserved
 
-        bool via_offsets_table = false;
-        intptr_t field_count = 0;
-        intptr_t min_offset = kIntptrMax;
-        for (const auto& entry : OffsetsTable::offsets_table()) {
-          if (entry.class_id == cid) {
-            via_offsets_table = true;
-            field_count++;
-            intptr_t offset = entry.offset;
-            min_offset = Utils::Minimum(min_offset, offset);
-          }
-        }
-        if (!via_offsets_table && cls.is_finalized()) {
-          do {
-            fields = cls.fields();
-            if (!fields.IsNull()) {
-              for (intptr_t i = 0; i < fields.Length(); i++) {
-                field ^= fields.At(i);
-                if (field.is_instance()) {
-                  field_count++;
-                }
-              }
-            }
-            cls = cls.SuperClass();
-          } while (!cls.IsNull());
-          cls = class_table->At(cid);
-        }
-
-        WriteUnsigned(field_count);
-        for (const auto& entry : OffsetsTable::offsets_table()) {
-          if (entry.class_id == cid) {
-            intptr_t flags = 1;  // Strong.
-            WriteUnsigned(flags);
-            intptr_t offset = entry.offset;
-            intptr_t index = (offset - min_offset) / kCompressedWordSize;
-            ASSERT(index >= 0);
+        if (auto slots = object_slots.ObjectSlotsFor(cid)) {
+          WriteUnsigned(slots->length());
+          for (intptr_t index = 0; index < slots->length(); ++index) {
+            const auto& slot = (*slots)[index];
+            const intptr_t kStrongFlag = 1;
+            WriteUnsigned(kStrongFlag);
             WriteUnsigned(index);
-            WriteUtf8(entry.field_name);
+            ScrubAndWriteUtf8(const_cast<char*>(slot.name));
             WriteUtf8("");  // Reserved
           }
-        }
-        if (!via_offsets_table && cls.is_finalized()) {
-          do {
-            fields = cls.fields();
-            if (!fields.IsNull()) {
-              for (intptr_t i = 0; i < fields.Length(); i++) {
-                field ^= fields.At(i);
-                if (field.is_instance()) {
-                  intptr_t flags = 1;  // Strong.
-                  WriteUnsigned(flags);
-                  intptr_t index = (field.HostOffset() / kCompressedWordSize) -
-                                   (kWordSize / kCompressedWordSize);
-                  ASSERT(index >= 0);
-                  WriteUnsigned(index);
-                  str = field.name();
-                  ScrubAndWriteUtf8(const_cast<char*>(str.ToCString()));
-                  WriteUtf8("");  // Reserved
-                }
-              }
-            }
-            cls = cls.SuperClass();
-          } while (!cls.IsNull());
-          cls = class_table->At(cid);
+        } else {
+          // May be an abstract class.
+          ASSERT(!cls.is_finalized());
+          WriteUnsigned(0);
         }
       }
     }
@@ -1410,7 +1526,7 @@ void HeapSnapshotWriter::Write() {
   intptr_t num_isolates = 0;
   intptr_t num_image_objects = 0;
   {
-    Pass1Visitor visitor(this);
+    Pass1Visitor visitor(this, &object_slots);
 
     // Root "objects".
     {
@@ -1448,7 +1564,7 @@ void HeapSnapshotWriter::Write() {
   }
 
   {
-    Pass2Visitor visitor(this);
+    Pass2Visitor visitor(this, &object_slots);
 
     WriteUnsigned(reference_count_);
     WriteUnsigned(object_count_);

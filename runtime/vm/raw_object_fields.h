@@ -32,6 +32,7 @@ class OffsetsTable : public ZoneAllocated {
   struct OffsetsTableEntry {
     intptr_t class_id;
     const char* field_name;
+    bool is_compressed_pointer;
     intptr_t offset;
   };
 
