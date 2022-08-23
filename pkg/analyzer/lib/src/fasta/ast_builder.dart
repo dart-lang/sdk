@@ -2434,7 +2434,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endRecordType(Token leftBracket, Token? questionMark, int count) {
+  void endRecordType(
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
     debugEvent("RecordType");
 
     if (!enableRecords) {

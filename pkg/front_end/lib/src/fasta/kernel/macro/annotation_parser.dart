@@ -644,7 +644,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endRecordType(Token leftBracket, Token? questionMark, int count) {
+  void endRecordType(
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
     _unhandled();
   }
 

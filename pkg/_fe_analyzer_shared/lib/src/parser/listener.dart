@@ -1384,9 +1384,10 @@ class Listener implements UnescapeErrorListener {
   /// - RecordTypeNamedFields?
   ///
   /// Notice that [count] is:
-  /// - the number of RecordTypeEntries if there are no named fields, or
-  /// - the number of RecordTypeEntries + 1 if there are named fields.
-  void endRecordType(Token leftBracket, Token? questionMark, int count) {
+  /// - the number of RecordTypeEntries if [hasNamedFields] is `false`, or
+  /// - the number of RecordTypeEntries + 1 if [hasNamedFields] is `true`.
+  void endRecordType(
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
     logEvent("RecordType");
   }
 
