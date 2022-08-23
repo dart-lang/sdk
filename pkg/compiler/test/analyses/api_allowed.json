@@ -83,12 +83,6 @@
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/js_patch.dart": {
     "Dynamic invocation of '[]'.": 1
   },
-  "org-dartlang-sdk:///lib/svg/dart2js/svg_dart2js.dart": {
-    "Dynamic invocation of 'createFragment'.": 1,
-    "Dynamic access of 'nodes'.": 1,
-    "Dynamic invocation of 'where'.": 1,
-    "Dynamic access of 'single'.": 1
-  },
   "org-dartlang-sdk:///lib/core/errors.dart": {
     "Dynamic access of 'length'.": 2
   }
