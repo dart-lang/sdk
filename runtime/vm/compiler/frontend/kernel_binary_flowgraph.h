@@ -152,7 +152,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void InlineBailout(const char* reason);
   Fragment DebugStepCheck(TokenPosition position);
   Fragment LoadLocal(LocalVariable* variable);
-  IndirectGotoInstr* IndirectGoto(intptr_t target_count);
+  Fragment IndirectGoto(intptr_t target_count);
   Fragment Return(
       TokenPosition position,
       intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
@@ -349,12 +349,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildForStatement(TokenPosition* position);
   Fragment BuildForInStatement(bool async, TokenPosition* position);
   Fragment BuildSwitchStatement(TokenPosition* position);
-  Fragment BuildSwitchCase(SwitchHelper* helper, intptr_t case_index);
-  Fragment BuildLinearScanSwitch(SwitchHelper* helper);
-  Fragment BuildOptimizedSwitchPrelude(SwitchHelper* helper,
-                                       JoinEntryInstr* join);
-  Fragment BuildBinarySearchSwitch(SwitchHelper* helper);
-  Fragment BuildJumpTableSwitch(SwitchHelper* helper);
   Fragment BuildContinueSwitchStatement(TokenPosition* position);
   Fragment BuildIfStatement(TokenPosition* position);
   Fragment BuildReturnStatement(TokenPosition* position);
