@@ -207,4 +207,12 @@ typedef A B();
       error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 25, 1),
     ]);
   }
+
+  test_usingRecordType_directly() async {
+    await assertErrorsInCode(r'''
+typedef F = (F, int) Function();
+''', [
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1),
+    ]);
+  }
 }

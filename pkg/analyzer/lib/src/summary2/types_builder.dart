@@ -204,8 +204,6 @@ class TypesBuilder {
       element.returnType = returnType;
     } else if (node is MixinDeclaration) {
       _mixinDeclaration(node);
-    } else if (node is RecordTypeAnnotationImpl) {
-      recordTypeAnnotation(node);
     } else if (node is SimpleFormalParameter) {
       var element = node.declaredElement as ParameterElementImpl;
       element.type = node.type?.type ?? _dynamicType;
@@ -351,33 +349,6 @@ class TypesBuilder {
     return node.typeParameters
         .map<TypeParameterElement>((p) => p.declaredElement2!)
         .toList();
-  }
-
-  static void recordTypeAnnotation(RecordTypeAnnotationImpl node) {
-    final positionalFields = node.positionalFields.map((field) {
-      return RecordPositionalFieldElementImpl(
-        name: field.name?.lexeme,
-        nameOffset: -1,
-        type: field.type.typeOrThrow,
-      );
-    }).toList();
-
-    final namedFields = node.namedFields?.fields.map((field) {
-      return RecordNamedFieldElementImpl(
-        name: field.name.lexeme,
-        nameOffset: -1,
-        type: field.type.typeOrThrow,
-      );
-    }).toList();
-
-    node.type = RecordElementImpl(
-      positionalFields: positionalFields,
-      namedFields: namedFields ?? const [],
-    ).instantiate(
-      nullabilitySuffix: node.question != null
-          ? NullabilitySuffix.question
-          : NullabilitySuffix.none,
-    );
   }
 
   /// The [FunctionType] to use when a function type is expected for a type

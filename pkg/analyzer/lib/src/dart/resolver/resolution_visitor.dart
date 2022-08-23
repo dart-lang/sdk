@@ -23,7 +23,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/summary2/types_builder.dart';
+import 'package:analyzer/src/summary2/record_type_builder.dart';
 
 class ElementHolder {
   final ElementImpl _element;
@@ -971,7 +971,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitRecordTypeAnnotation(covariant RecordTypeAnnotationImpl node) {
     node.visitChildren(this);
-    TypesBuilder.recordTypeAnnotation(node);
+    RecordTypeBuilder.buildType(node);
   }
 
   @override

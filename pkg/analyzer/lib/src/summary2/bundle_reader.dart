@@ -1826,6 +1826,16 @@ class ResolutionReader {
             typeArguments: aliasArguments,
           ),
         );
+      } else if (type is RecordTypeImpl) {
+        return RecordTypeImpl(
+          element2: type.element2,
+          fieldTypes: type.fieldTypes,
+          nullabilitySuffix: type.nullabilitySuffix,
+          alias: InstantiatedTypeAliasElementImpl(
+            element: aliasElement,
+            typeArguments: aliasArguments,
+          ),
+        );
       } else if (type is TypeParameterType) {
         return TypeParameterTypeImpl(
           element: type.element2,
