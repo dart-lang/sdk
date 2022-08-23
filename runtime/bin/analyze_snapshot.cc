@@ -9,19 +9,24 @@
 #include "bin/options.h"
 #include "bin/platform.h"
 
-#if !defined(DART_HOST_OS_FUCHSIA)
+#if defined(TARGET_ARCH_IS_64_BIT) && defined(DART_PRECOMPILED_RUNTIME) &&     \
+    (defined(DART_TARGET_OS_ANDROID) || defined(DART_TARGET_OS_LINUX))
+#define SUPPORT_ANALYZE_SNAPSHOT
+#endif
+
+#ifdef SUPPORT_ANALYZE_SNAPSHOT
 #include "include/analyze_snapshot_api.h"
 #endif
 
 namespace dart {
 namespace bin {
-#if !defined(DART_HOST_OS_FUCHSIA)
-
+#ifdef SUPPORT_ANALYZE_SNAPSHOT
 #define STRING_OPTIONS_LIST(V) V(out, out_path)
 
 #define BOOL_OPTIONS_LIST(V)                                                   \
   V(help, help)                                                                \
-  V(version, version)
+  V(sdk_version, sdk_version)                                                  \
+  V(pp, pp)
 
 #define STRING_OPTION_DEFINITION(flag, variable)                               \
   static const char* variable = nullptr;                                       \
@@ -43,11 +48,12 @@ static void PrintUsage() {
 "Common options:                                                             \n"
 "--help                                                                      \n"
 "  Display this message.                                                     \n"
-"--version                                                                   \n"
+"--sdk_version                                                               \n"
 "  Print the SDK version.                                                    \n"
 "--out                                                                       \n"
 "  Path to generate the analysis results JSON.                               \n"
-"                                                                            \n"
+"--pp                                                                        \n"
+"  Flag to pretty-print analysis to stdout.                                  \n"
 "If omitting [<vm-flags>] the VM parsing the snapshot is created with the    \n"
 "following default flags:                                                    \n"
 "--enable_mirrors=false                                                      \n"
@@ -82,7 +88,7 @@ static int ParseArguments(int argc,
     i += 1;
   }
 
-  // Parse out the kernel inputs.
+  // Parse out remaining inputs.
   while (i < argc) {
     inputs->AddArgument(argv[i]);
     i++;
@@ -91,7 +97,7 @@ static int ParseArguments(int argc,
   if (help) {
     PrintUsage();
     Platform::Exit(0);
-  } else if (version) {
+  } else if (sdk_version) {
     Syslog::PrintErr("Dart SDK version: %s\n", Dart_VersionString());
     Platform::Exit(0);
   }
@@ -101,13 +107,6 @@ static int ParseArguments(int argc,
     Syslog::PrintErr("At least one input is required\n");
     return -1;
   }
-
-  if (out_path == nullptr) {
-    Syslog::PrintErr(
-        "Please specify an output path for analysis with the --out flag.\n\n");
-    return -1;
-  }
-
   return 0;
 }
 
@@ -237,10 +236,17 @@ int RunAnalyzer(int argc, char** argv) {
   intptr_t out_len = 0;
 
   Dart_EnterScope();
-  Dart_DumpSnapshotInformationAsJson(&out, &out_len, &info);
-  WriteFile(out_path, out, out_len);
-  // Since ownership of the JSON buffer is ours, free before we exit.
-  free(out);
+  if (out_path != nullptr) {
+    Dart_DumpSnapshotInformationAsJson(&out, &out_len, &info);
+    WriteFile(out_path, out, out_len);
+    // Since ownership of the JSON buffer is ours, free before we exit.
+    free(out);
+  }
+
+  if (pp) {
+    Dart_DumpSnapshotInformationPP(&info);
+  }
+
   Dart_ExitScope();
   Dart_ShutdownIsolate();
   // Unload our DartELF to avoid leaks
@@ -252,9 +258,14 @@ int RunAnalyzer(int argc, char** argv) {
 }  // namespace dart
 
 int main(int argc, char** argv) {
-#if !defined(DART_HOST_OS_FUCHSIA)
+#ifdef SUPPORT_ANALYZE_SNAPSHOT
   return dart::bin::RunAnalyzer(argc, argv);
-#endif
-  dart::Syslog::PrintErr("Cannot run on Fuchsia.\n");
+#else
+  dart::Syslog::PrintErr("Unsupported platform.\n");
+  dart::Syslog::PrintErr(
+      "Requires SDK with following "
+      "flags:\n\tTARGET_ARCH_IS_64_BIT\n\tDART_PRECOMPILED_RUNTIME\n\tDART_"
+      "TARGET_OS_ANDROID || DART_TARGET_OS_LINUX");
   return dart::bin::kErrorExitCode;
+#endif
 }
