@@ -20,6 +20,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
+import 'package:collection/collection.dart';
 
 class PropertyElementResolver with ScopeHelpers {
   final ResolverVisitor _resolver;
@@ -449,6 +450,17 @@ class PropertyElementResolver with ScopeHelpers {
       return PropertyElementResolverResult();
     }
 
+    if (targetType is RecordType) {
+      final field = targetType.namedFields.firstWhereOrNull(
+        (field) => field.name == propertyName.name,
+      );
+      if (field != null) {
+        return PropertyElementResolverResult(
+          recordField: field,
+        );
+      }
+    }
+
     var result = _resolver.typePropertyResolver.resolve(
       receiver: target,
       receiverType: targetType,
@@ -852,6 +864,7 @@ class PropertyElementResolverResult {
   final Element? writeElementRequested;
   final Element? writeElementRecovery;
   final FunctionType? functionTypeCallType;
+  final RecordTypeNamedField? recordField;
 
   /// If [IndexExpression] is resolved, the context type of the index.
   /// Might be `null` if `[]` or `[]=` are not resolved or invalid.
@@ -864,6 +877,7 @@ class PropertyElementResolverResult {
     this.writeElementRecovery,
     this.indexContextType,
     this.functionTypeCallType,
+    this.recordField,
   });
 
   Element? get readElement {

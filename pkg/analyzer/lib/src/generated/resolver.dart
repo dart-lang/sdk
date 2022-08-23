@@ -2151,6 +2151,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       type = element.returnType;
     } else if (result.functionTypeCallType != null) {
       type = result.functionTypeCallType!;
+    } else if (result.recordField != null) {
+      type = result.recordField!.type;
     } else {
       type = DynamicTypeImpl.instance;
     }
