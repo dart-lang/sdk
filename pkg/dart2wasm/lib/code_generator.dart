@@ -1319,13 +1319,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitDynamicInvocation(
       DynamicInvocation node, w.ValueType expectedType) {
-    if (node.name.text != "call") {
-      unimplemented(node, "Dynamic invocation of ${node.name.text}",
-          [if (expectedType != voidMarker) expectedType]);
-      return expectedType;
+    // Handle dynamic 'call' seperately.
+    if (node.name.text == "call") {
+      return _functionCall(
+          node.arguments.positional.length, node.receiver, node.arguments);
     }
-    return _functionCall(
-        node.arguments.positional.length, node.receiver, node.arguments);
+    return translator.dynamics.emitDynamicCall(this, node);
   }
 
   @override
@@ -1703,34 +1702,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitDynamicGet(DynamicGet node, w.ValueType expectedType) {
-    // Provisional implementation of dynamic get which assumes the getter
-    // is present (otherwise it traps or calls something random) and
-    // does not support tearoffs. This is sufficient to handle the
-    // dynamic .length calls in the core libraries.
+    return translator.dynamics.emitDynamicCall(this, node);
+  }
 
-    SelectorInfo selector =
-        translator.dispatchTable.selectorForDynamicName(node.name.text);
-
-    // Evaluate receiver
-    wrap(node.receiver, selector.signature.inputs.first);
-    w.Local receiverVar = addLocal(selector.signature.inputs.first);
-    assert(!receiverVar.type.nullable);
-    b.local_tee(receiverVar);
-
-    // Dispatch table call
-    b.comment("Dynamic get of '${selector.name}'");
-    int offset = selector.offset!;
-    b.local_get(receiverVar);
-    b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-    if (offset != 0) {
-      b.i32_const(offset);
-      b.i32_add();
-    }
-    b.call_indirect(selector.signature, translator.dispatchTable.wasmTable);
-
-    translator.functions.activateSelector(selector);
-
-    return translator.outputOrVoid(selector.signature.outputs);
+  @override
+  w.ValueType visitDynamicSet(DynamicSet node, w.ValueType expectedType) {
+    return translator.dynamics.emitDynamicCall(this, node);
   }
 
   w.ValueType _directGet(
@@ -1975,25 +1952,27 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     return nonNullOperandType;
   }
 
-  void _visitArguments(Arguments node, Reference target, int signatureOffset) {
-    final w.FunctionType signature = translator.signatureFor(target);
-    final ParameterInfo paramInfo = translator.paramInfoFor(target);
-    for (int i = 0; i < node.types.length; i++) {
-      types.makeType(this, node.types[i]);
+  void visitArgumentsLists(List<Expression> positional,
+      w.FunctionType signature, ParameterInfo paramInfo, int signatureOffset,
+      {List<DartType> typeArguments = const [],
+      List<NamedExpression> named = const [],
+      bool requiresTypeChecks = false}) {
+    for (int i = 0; i < typeArguments.length; i++) {
+      types.makeType(this, typeArguments[i]);
     }
-    signatureOffset += node.types.length;
-    for (int i = 0; i < node.positional.length; i++) {
-      wrap(node.positional[i], signature.inputs[signatureOffset + i]);
+    signatureOffset += typeArguments.length;
+    for (int i = 0; i < positional.length; i++) {
+      wrap(positional[i], signature.inputs[signatureOffset + i]);
     }
     // Default values for positional parameters
-    for (int i = node.positional.length; i < paramInfo.positional.length; i++) {
+    for (int i = positional.length; i < paramInfo.positional.length; i++) {
       final w.ValueType type = signature.inputs[signatureOffset + i];
       translator.constants
           .instantiateConstant(function, b, paramInfo.positional[i]!, type);
     }
     // Named arguments
     final Map<String, w.Local> namedLocals = {};
-    for (var namedArg in node.named) {
+    for (var namedArg in named) {
       final w.ValueType type = signature
           .inputs[signatureOffset + paramInfo.nameIndex[namedArg.name]!];
       final w.Local namedLocal = addLocal(type);
@@ -2012,6 +1991,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
             .instantiateConstant(function, b, paramInfo.named[name]!, type);
       }
     }
+  }
+
+  void _visitArguments(Arguments node, Reference target, int signatureOffset) {
+    final w.FunctionType signature = translator.signatureFor(target);
+    final ParameterInfo paramInfo = translator.paramInfoFor(target);
+    visitArgumentsLists(node.positional, signature, paramInfo, signatureOffset,
+        typeArguments: node.types, named: node.named);
   }
 
   @override

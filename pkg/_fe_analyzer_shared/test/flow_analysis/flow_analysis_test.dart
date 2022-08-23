@@ -19,10 +19,10 @@ main() {
 
   group('API', () {
     test('asExpression_end promotes variables', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       late SsaNode<Type> ssaBeforePromotion;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         x.expr.as_('int').stmt,
         checkPromoted(x, 'int'),
@@ -49,22 +49,22 @@ main() {
     });
 
     test('assert_afterCondition promotes', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         assert_(x.expr.eq(nullLiteral),
             checkPromoted(x, 'int').thenExpr(expr('String'))),
       ]);
     });
 
     test('assert_end joins previous and ifTrue states', () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
-      var z = Var('z', 'int?');
+      var x = Var('x');
+      var y = Var('y');
+      var z = Var('z');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
-        declare(z, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(z, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         z.expr.as_('int').stmt,
         assert_(block([
@@ -84,9 +84,9 @@ main() {
     });
 
     test('conditional_thenBegin promotes true branch', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr
             .notEq(nullLiteral)
             .conditional(checkPromoted(x, 'int').thenExpr(expr('int')),
@@ -97,9 +97,9 @@ main() {
     });
 
     test('conditional_elseBegin promotes false branch', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr
             .eq(nullLiteral)
             .conditional(checkNotPromoted(x).thenExpr(expr('Null')),
@@ -111,13 +111,13 @@ main() {
 
     test('conditional_end keeps promotions common to true and false branches',
         () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
-      var z = Var('z', 'int?');
+      var x = Var('x');
+      var y = Var('y');
+      var z = Var('z');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
-        declare(z, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(z, type: 'int?', initializer: expr('int?')),
         expr('bool')
             .conditional(
                 block([
@@ -140,13 +140,13 @@ main() {
       //   promotes x, but not y or z
       // }
 
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
-      var z = Var('z', 'int?');
+      var x = Var('x');
+      var y = Var('y');
+      var z = Var('z');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
-        declare(z, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(z, type: 'int?', initializer: expr('int?')),
         if_(
             expr('bool').conditional(
                 x.expr.notEq(nullLiteral).and(y.expr.notEq(nullLiteral)),
@@ -165,13 +165,13 @@ main() {
       //   promotes x, but not y or z
       // }
 
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
-      var z = Var('z', 'int?');
+      var x = Var('x');
+      var y = Var('y');
+      var z = Var('z');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
-        declare(z, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(z, type: 'int?', initializer: expr('int?')),
         if_(
             expr('bool').conditional(
                 x.expr.eq(nullLiteral).or(y.expr.eq(nullLiteral)),
@@ -186,9 +186,9 @@ main() {
     });
 
     test('declare() sets Ssa', () {
-      var x = Var('x', 'Object');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: false),
+        declare(x, type: 'Object'),
         getSsaNodes((nodes) {
           expect(nodes[x], isNotNull);
         }),
@@ -196,10 +196,10 @@ main() {
     });
 
     test('equalityOp(x != null) promotes true branch', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       late SsaNode<Type> ssaBeforePromotion;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         if_(x.expr.notEq(nullLiteral), [
           checkReachable(true),
@@ -214,9 +214,9 @@ main() {
     });
 
     test('equalityOp(x != null) when x is non-nullable', () {
-      var x = Var('x', 'int');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int', initializer: expr('int')),
         if_(x.expr.notEq(nullLiteral), [
           checkReachable(true),
           checkNotPromoted(x),
@@ -248,9 +248,9 @@ main() {
     });
 
     test('equalityOp(x != <null expr>) does not promote', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         if_(x.expr.notEq(expr('Null')), [
           checkNotPromoted(x),
         ], [
@@ -260,10 +260,10 @@ main() {
     });
 
     test('equalityOp(x == null) promotes false branch', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       late SsaNode<Type> ssaBeforePromotion;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         if_(x.expr.eq(nullLiteral), [
           checkReachable(true),
@@ -278,9 +278,9 @@ main() {
     });
 
     test('equalityOp(x == null) when x is non-nullable', () {
-      var x = Var('x', 'int');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int', initializer: expr('int')),
         if_(x.expr.eq(nullLiteral), [
           checkReachable(true),
           checkNotPromoted(x),
@@ -292,10 +292,10 @@ main() {
     });
 
     test('equalityOp(null != x) promotes true branch', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       late SsaNode<Type> ssaBeforePromotion;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         if_(nullLiteral.notEq(x.expr), [
           checkPromoted(x, 'int'),
@@ -308,9 +308,9 @@ main() {
     });
 
     test('equalityOp(<null expr> != x) does not promote', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         if_(expr('Null').notEq(x.expr), [
           checkNotPromoted(x),
         ], [
@@ -320,10 +320,10 @@ main() {
     });
 
     test('equalityOp(null == x) promotes false branch', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       late SsaNode<Type> ssaBeforePromotion;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         if_(nullLiteral.eq(x.expr), [
           checkNotPromoted(x),
@@ -396,9 +396,9 @@ main() {
     });
 
     test('conditionEqNull() does not promote write-captured vars', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         if_(x.expr.notEq(nullLiteral), [
           checkPromoted(x, 'int'),
         ]),
@@ -412,30 +412,30 @@ main() {
     });
 
     test('declare(initialized: false) assigns new SSA ids', () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(x, initialized: false),
-        declare(y, initialized: false),
+        declare(x, type: 'int?'),
+        declare(y, type: 'int?'),
         getSsaNodes((nodes) => expect(nodes[y], isNot(nodes[x]))),
       ]);
     });
 
     test('declare(initialized: true) assigns new SSA ids', () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => expect(nodes[y], isNot(nodes[x]))),
       ]);
     });
 
     test('doStatement_bodyBegin() un-promotes', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       late SsaNode<Type> ssaBeforeLoop;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         checkPromoted(x, 'int'),
         getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
@@ -448,9 +448,9 @@ main() {
     });
 
     test('doStatement_bodyBegin() handles write captures in the loop', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         do_([
           x.expr.as_('int').stmt,
           // The promotion should have no effect, because the second time
@@ -464,9 +464,9 @@ main() {
     });
 
     test('doStatement_conditionBegin() joins continue state', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         do_(
             [
               if_(x.expr.notEq(nullLiteral), [
@@ -484,9 +484,9 @@ main() {
     });
 
     test('doStatement_end() promotes', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         do_([], checkNotPromoted(x).thenExpr(x.expr.eq(nullLiteral))),
         checkPromoted(x, 'int'),
       ]);
@@ -498,9 +498,9 @@ main() {
       // attempt to promote a field (e.g. `x.y != null`) we need to make sure we
       // don't wipe out information about the target variable (`x`).
       h.addMember('C', 'y', 'Object?');
-      var x = Var('x', 'C');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'C', initializer: expr('C')),
         checkAssigned(x, true),
         if_(x.expr.property('y').notEq(nullLiteral), [
           checkAssigned(x, true),
@@ -529,9 +529,9 @@ main() {
     group('equalityOp_end does not set reachability for property gets', () {
       test('on a variable', () {
         h.addMember('C', 'f', 'Object?');
-        var x = Var('x', 'C');
+        var x = Var('x');
         h.run([
-          declare(x, initialized: true),
+          declare(x, type: 'C', initializer: expr('C')),
           if_(x.expr.property('f').is_('Null'), [
             if_(x.expr.property('f').eq(nullLiteral), [
               checkReachable(true),
@@ -596,10 +596,10 @@ main() {
     });
 
     test('for_conditionBegin() un-promotes', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       late SsaNode<Type> ssaBeforeLoop;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         checkPromoted(x, 'int'),
         getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
@@ -617,9 +617,9 @@ main() {
     });
 
     test('for_conditionBegin() handles write captures in the loop', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         checkPromoted(x, 'int'),
         for_(
@@ -637,14 +637,19 @@ main() {
     });
 
     test('for_conditionBegin() handles not-yet-seen variables', () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(y, initialized: true),
+        declare(y, type: 'int?', initializer: expr('int?')),
         y.expr.as_('int').stmt,
-        for_(null, declare(x, initialized: true).thenExpr(expr('bool')), null, [
-          x.write(expr('Null')).stmt,
-        ]),
+        for_(
+            null,
+            declare(x, type: 'int?', initializer: expr('int?'))
+                .thenExpr(expr('bool')),
+            null,
+            [
+              x.write(expr('Null')).stmt,
+            ]),
       ]);
     });
 
@@ -656,9 +661,10 @@ main() {
     });
 
     test('for_bodyBegin() promotes', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        for_(declare(x, initialized: true), x.expr.notEq(nullLiteral), null, [
+        for_(declare(x, type: 'int?', initializer: expr('int?')),
+            x.expr.notEq(nullLiteral), null, [
           checkPromoted(x, 'int'),
         ]),
       ]);
@@ -667,9 +673,10 @@ main() {
     test('for_bodyBegin() can be used with a null statement', () {
       // This is needed for collection elements that are for-loops.
 
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        for_(declare(x, initialized: true), x.expr.notEq(nullLiteral), null, [],
+        for_(declare(x, type: 'int?', initializer: expr('int?')),
+            x.expr.notEq(nullLiteral), null, [],
             forCollection: true),
       ]);
     });
@@ -679,13 +686,13 @@ main() {
       // x, y, and z.  We promote x and y in the continue path, and x and z in
       // the current path.  Inside the updater, only x should be promoted.
 
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
-      var z = Var('z', 'int?');
+      var x = Var('x');
+      var y = Var('y');
+      var z = Var('z');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
-        declare(z, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(z, type: 'int?', initializer: expr('int?')),
         for_(
             null,
             expr('bool'),
@@ -711,13 +718,13 @@ main() {
       // x, y, and z.  We promote x and y in the break path, and x and z in the
       // condition-false path.  After the loop, only x should be promoted.
 
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
-      var z = Var('z', 'int?');
+      var x = Var('x');
+      var y = Var('y');
+      var z = Var('z');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
-        declare(z, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(z, type: 'int?', initializer: expr('int?')),
         for_(null, x.expr.eq(nullLiteral).or(z.expr.eq(nullLiteral)), null, [
           if_(expr('bool'), [
             x.expr.as_('int').stmt,
@@ -732,13 +739,13 @@ main() {
     });
 
     test('for_end() with break updates Ssa of modified vars', () {
-      var x = Var('x', 'int?');
-      var y = Var('x', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       late SsaNode<Type> xSsaInsideLoop;
       late SsaNode<Type> ySsaInsideLoop;
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         for_(null, expr('bool'), null, [
           x.write(expr('int?')).stmt,
           if_(expr('bool'), [break_()]),
@@ -760,13 +767,13 @@ main() {
     test(
         'for_end() with break updates Ssa of modified vars when types were '
         'tested', () {
-      var x = Var('x', 'int?');
-      var y = Var('x', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       late SsaNode<Type> xSsaInsideLoop;
       late SsaNode<Type> ySsaInsideLoop;
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         for_(null, expr('bool'), null, [
           x.write(expr('int?')).stmt,
           if_(expr('bool'), [break_()]),
@@ -787,10 +794,10 @@ main() {
     });
 
     test('forEach_bodyBegin() un-promotes', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       late SsaNode<Type> ssaBeforeLoop;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         checkPromoted(x, 'int'),
         getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
@@ -803,9 +810,9 @@ main() {
     });
 
     test('forEach_bodyBegin() handles write captures in the loop', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         checkPromoted(x, 'int'),
         forEachWithNonVariable(expr('List<int?>'), [
@@ -819,9 +826,9 @@ main() {
     });
 
     test('forEach_bodyBegin() writes to loop variable', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: false),
+        declare(x, type: 'int?'),
         checkAssigned(x, false),
         forEachWithVariableSet(x, expr('List<int?>'), [
           checkAssigned(x, true),
@@ -831,9 +838,9 @@ main() {
     });
 
     test('forEach_bodyBegin() does not write capture loop variable', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: false),
+        declare(x, type: 'int?'),
         checkAssigned(x, false),
         forEachWithVariableSet(x, expr('List<int?>'), [
           checkAssigned(x, true),
@@ -844,9 +851,9 @@ main() {
     });
 
     test('forEach_bodyBegin() pushes conservative join state', () {
-      var x = Var('x', 'int');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: false),
+        declare(x, type: 'int'),
         checkUnassigned(x, true),
         forEachWithNonVariable(expr('List<int>'), [
           // Since a write to x occurs somewhere in the loop, x should no
@@ -862,9 +869,9 @@ main() {
     });
 
     test('forEach_end() restores state before loop', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         forEachWithNonVariable(expr('List<int?>'), [
           x.expr.as_('int').stmt,
           checkPromoted(x, 'int'),
@@ -875,11 +882,11 @@ main() {
 
     test('functionExpression_begin() cancels promotions of self-captured vars',
         () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         y.expr.as_('int').stmt,
         checkPromoted(x, 'int'),
@@ -908,10 +915,11 @@ main() {
 
     test('functionExpression_begin() cancels promotions of other-captured vars',
         () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(x, initialized: true), declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt, y.expr.as_('int').stmt,
         checkPromoted(x, 'int'), checkPromoted(y, 'int'),
         localFunction([
@@ -938,11 +946,12 @@ main() {
     });
 
     test('functionExpression_begin() cancels promotions of written vars', () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       late SsaNode<Type> ssaBeforeFunction;
       h.run([
-        declare(x, initialized: true), declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt, y.expr.as_('int').stmt,
         checkPromoted(x, 'int'),
         getSsaNodes((nodes) => ssaBeforeFunction = nodes[x]!),
@@ -969,23 +978,24 @@ main() {
     });
 
     test('functionExpression_begin() handles not-yet-seen variables', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
         localFunction([]),
         // x is declared after the local function, so the local function
         // cannot possibly write to x.
-        declare(x, initialized: true), x.expr.as_('int').stmt,
+        declare(x, type: 'int?', initializer: expr('int?')),
+        x.expr.as_('int').stmt,
         checkPromoted(x, 'int'), x.write(expr('Null')).stmt,
       ]);
     });
 
     test('functionExpression_begin() handles not-yet-seen write-captured vars',
         () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         y.expr.as_('int').stmt,
         getSsaNodes((nodes) => expect(nodes[x], isNotNull)),
         localFunction([
@@ -1004,9 +1014,9 @@ main() {
     test(
         'functionExpression_end does not propagate "definitely unassigned" '
         'data', () {
-      var x = Var('x', 'int');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: false),
+        declare(x, type: 'int'),
         checkUnassigned(x, true),
         localFunction([
           // The function expression could be called at any time, so x might
@@ -1084,9 +1094,9 @@ main() {
     });
 
     test('ifNullExpression allows ensure guarding', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr
             .ifNull(block([
               checkReachable(true),
@@ -1102,9 +1112,9 @@ main() {
     });
 
     test('ifNullExpression allows promotion of tested var', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr
             .ifNull(block([
               checkReachable(true),
@@ -1120,9 +1130,9 @@ main() {
     });
 
     test('ifNullExpression discards promotions unrelated to tested expr', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         expr('int?')
             .ifNull(block([
               checkReachable(true),
@@ -1179,9 +1189,9 @@ main() {
     });
 
     test('ifStatement with early exit promotes in unreachable code', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         return_(),
         checkReachable(false),
         if_(x.expr.eq(nullLiteral), [
@@ -1193,9 +1203,9 @@ main() {
     });
 
     test('ifStatement_end(false) keeps else branch if then branch exits', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         if_(x.expr.eq(nullLiteral), [
           return_(),
         ]),
@@ -1206,16 +1216,16 @@ main() {
     test(
         'ifStatement_end() discards non-matching expression info from joined '
         'branches', () {
-      var w = Var('w', 'Object');
-      var x = Var('x', 'bool');
-      var y = Var('y', 'bool');
-      var z = Var('z', 'bool');
+      var w = Var('w');
+      var x = Var('x');
+      var y = Var('y');
+      var z = Var('z');
       late SsaNode<Type> xSsaNodeBeforeIf;
       h.run([
-        declare(w, initialized: true),
-        declare(x, initialized: true),
-        declare(y, initialized: true),
-        declare(z, initialized: true),
+        declare(w, type: 'Object', initializer: expr('Object')),
+        declare(x, type: 'bool', initializer: expr('bool')),
+        declare(y, type: 'bool', initializer: expr('bool')),
+        declare(z, type: 'bool', initializer: expr('bool')),
         x.write(w.expr.is_('int')).stmt,
         getSsaNodes((nodes) {
           xSsaNodeBeforeIf = nodes[x]!;
@@ -1237,10 +1247,10 @@ main() {
     test(
         'ifStatement_end() ignores non-matching SSA info from "then" path if '
         'unreachable', () {
-      var x = Var('x', 'Object');
+      var x = Var('x');
       late SsaNode<Type> xSsaNodeBeforeIf;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'Object', initializer: expr('Object')),
         getSsaNodes((nodes) {
           xSsaNodeBeforeIf = nodes[x]!;
         }),
@@ -1257,10 +1267,10 @@ main() {
     test(
         'ifStatement_end() ignores non-matching SSA info from "else" path if '
         'unreachable', () {
-      var x = Var('x', 'Object');
+      var x = Var('x');
       late SsaNode<Type> xSsaNodeBeforeIf;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'Object', initializer: expr('Object')),
         getSsaNodes((nodes) {
           xSsaNodeBeforeIf = nodes[x]!;
         }),
@@ -1275,17 +1285,17 @@ main() {
     });
 
     test('initialize() promotes when not final', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declareInitialized(x, expr('int')),
+        declare(x, type: 'int?', initializer: expr('int')),
         checkPromoted(x, 'int'),
       ]);
     });
 
     test('initialize() does not promote when final', () {
-      var x = Var('x', 'int?', isFinal: true);
+      var x = Var('x');
       h.run([
-        declareInitialized(x, expr('int')),
+        declare(x, isFinal: true, type: 'int?', initializer: expr('int')),
         checkNotPromoted(x),
       ]);
     });
@@ -1294,20 +1304,25 @@ main() {
         () {
       test('when not final', () {
         h.addSubtype('T&int', 'T', true);
+        h.addSubtype('T&int', 'Object', true);
         h.addFactor('T', 'T&int', 'T');
-        var x = Var('x', 'T', isImplicitlyTyped: true);
+        var x = Var('x');
         h.run([
-          declareInitialized(x, expr('T&int')),
+          declare(x, initializer: expr('T&int')),
           checkPromoted(x, 'T&int'),
         ]);
       });
 
       test('when final', () {
         h.addSubtype('T&int', 'T', true);
+        h.addSubtype('T&int', 'Object', true);
         h.addFactor('T', 'T&int', 'T');
-        var x = Var('x', 'T', isFinal: true, isImplicitlyTyped: true);
+        var x = Var('x');
         h.run([
-          declareInitialized(x, expr('T&int')),
+          declare(x,
+              isFinal: true,
+              initializer: expr('T&int'),
+              expectInferredType: 'T'),
           checkPromoted(x, 'T&int'),
         ]);
       });
@@ -1317,17 +1332,17 @@ main() {
         "initialize() doesn't promote explicitly typed vars to type "
         'parameter types', () {
       test('when not final', () {
-        var x = Var('x', 'T');
+        var x = Var('x');
         h.run([
-          declareInitialized(x, expr('T&int')),
+          declare(x, type: 'T', initializer: expr('T&int')),
           checkNotPromoted(x),
         ]);
       });
 
       test('when final', () {
-        var x = Var('x', 'T', isFinal: true);
+        var x = Var('x');
         h.run([
-          declareInitialized(x, expr('T&int')),
+          declare(x, isFinal: true, type: 'T', initializer: expr('T&int')),
           checkNotPromoted(x),
         ]);
       });
@@ -1337,31 +1352,34 @@ main() {
         "initialize() doesn't promote implicitly typed vars to ordinary types",
         () {
       test('when not final', () {
-        var x = Var('x', 'dynamic', isImplicitlyTyped: true);
+        var x = Var('x');
         h.run([
-          declareInitialized(x, expr('Null')),
+          declare(x, initializer: expr('Null'), expectInferredType: 'dynamic'),
           checkNotPromoted(x),
         ]);
       });
 
       test('when final', () {
-        var x = Var('x', 'dynamic', isFinal: true, isImplicitlyTyped: true);
+        var x = Var('x');
         h.run([
-          declareInitialized(x, expr('Null')),
+          declare(x,
+              isFinal: true,
+              initializer: expr('Null'),
+              expectInferredType: 'dynamic'),
           checkNotPromoted(x),
         ]);
       });
     });
 
     test('initialize() stores expressionInfo when not late', () {
-      var x = Var('x', 'Object');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       late ExpressionInfo<Type> writtenValueInfo;
       h.run([
-        declare(y, initialized: true),
-        declareInitialized(
-            x,
-            y.expr.eq(nullLiteral).getExpressionInfo((info) {
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(x,
+            type: 'Object',
+            initializer: y.expr.eq(nullLiteral).getExpressionInfo((info) {
               expect(info, isNotNull);
               writtenValueInfo = info!;
             })),
@@ -1372,11 +1390,12 @@ main() {
     });
 
     test('initialize() does not store expressionInfo when late', () {
-      var x = Var('x', 'Object', isLate: true);
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(y, initialized: true),
-        declareInitialized(x, y.expr.eq(nullLiteral)),
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(x,
+            isLate: true, type: 'Object', initializer: y.expr.eq(nullLiteral)),
         getSsaNodes((nodes) {
           expect(nodes[x]!.expressionInfo, isNull);
         }),
@@ -1387,11 +1406,12 @@ main() {
         'initialize() does not store expressionInfo for implicitly typed '
         'vars, pre-bug fix', () {
       h.respectImplicitlyTypedVarInitializers = false;
-      var x = Var('x', 'Object', isImplicitlyTyped: true);
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(y, initialized: true),
-        declareInitialized(x, y.expr.eq(nullLiteral)),
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(x,
+            initializer: y.expr.eq(nullLiteral), expectInferredType: 'bool'),
         getSsaNodes((nodes) {
           expect(nodes[x]!.expressionInfo, isNull);
         }),
@@ -1402,11 +1422,12 @@ main() {
         'initialize() stores expressionInfo for implicitly typed '
         'vars, post-bug fix', () {
       h.respectImplicitlyTypedVarInitializers = true;
-      var x = Var('x', 'Object', isImplicitlyTyped: true);
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(y, initialized: true),
-        declareInitialized(x, y.expr.eq(nullLiteral)),
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(x,
+            initializer: y.expr.eq(nullLiteral), expectInferredType: 'bool'),
         getSsaNodes((nodes) {
           expect(nodes[x]!.expressionInfo, isNotNull);
         }),
@@ -1417,11 +1438,11 @@ main() {
         'initialize() stores expressionInfo for explicitly typed '
         'vars, pre-bug fix', () {
       h.respectImplicitlyTypedVarInitializers = false;
-      var x = Var('x', 'Object');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(y, initialized: true),
-        declareInitialized(x, y.expr.eq(nullLiteral)),
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(x, type: 'Object', initializer: y.expr.eq(nullLiteral)),
         getSsaNodes((nodes) {
           expect(nodes[x]!.expressionInfo, isNotNull);
         }),
@@ -1430,18 +1451,18 @@ main() {
 
     test('initialize() does not store expressionInfo for trivial expressions',
         () {
-      var x = Var('x', 'Object');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(y, initialized: true),
+        declare(y, type: 'int?', initializer: expr('int?')),
         localFunction([
           y.write(expr('int?')).stmt,
         ]),
-        declareInitialized(
-            x,
+        declare(x,
+            type: 'Object',
             // `y == null` is a trivial expression because y has been write
             // captured.
-            y.expr
+            initializer: y.expr
                 .eq(nullLiteral)
                 .getExpressionInfo((info) => expect(info, isNotNull))),
         getSsaNodes((nodes) {
@@ -1453,10 +1474,10 @@ main() {
     void _checkIs(String declaredType, String tryPromoteType,
         String? expectedPromotedTypeThen, String? expectedPromotedTypeElse,
         {bool inverted = false}) {
-      var x = Var('x', declaredType);
+      var x = Var('x');
       late SsaNode<Type> ssaBeforePromotion;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: declaredType, initializer: expr(declaredType)),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         if_(x.expr.is_(tryPromoteType, isInverted: inverted), [
           checkReachable(true),
@@ -1517,9 +1538,9 @@ main() {
     });
 
     test('isExpression_end() does not promote write-captured vars', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         if_(x.expr.is_('int'), [
           checkPromoted(x, 'int'),
         ]),
@@ -1528,19 +1549,6 @@ main() {
         ]),
         if_(x.expr.is_('int'), [
           checkNotPromoted(x),
-        ]),
-      ]);
-    });
-
-    test('isExpression_end() handles not-yet-seen variables', () {
-      var x = Var('x', 'int?');
-      h.run([
-        if_(x.expr.is_('int'), [
-          checkPromoted(x, 'int'),
-        ]),
-        declare(x, initialized: true),
-        localFunction([
-          x.write(expr('Null')).stmt,
         ]),
       ]);
     });
@@ -1561,9 +1569,9 @@ main() {
     group('isExpression_end() sets reachability for property gets', () {
       test('on a variable', () {
         h.addMember('C', 'f', 'Object?');
-        var x = Var('x', 'C');
+        var x = Var('x');
         h.run([
-          declare(x, initialized: true),
+          declare(x, type: 'C', initializer: expr('C')),
           if_(x.expr.property('f').is_('Never'), [
             checkReachable(false),
           ], [
@@ -1619,9 +1627,9 @@ main() {
     });
 
     test('labeledBlock without break', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         if_(x.expr.isNot('int'), [
           labeled((_) => return_()),
         ]),
@@ -1630,9 +1638,9 @@ main() {
     });
 
     test('labeledBlock with break joins', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         if_(x.expr.isNot('int'), [
           labeled((t) => block([
                 if_(expr('bool'), [
@@ -1646,9 +1654,9 @@ main() {
     });
 
     test('logicalBinaryOp_rightBegin(isAnd: true) promotes in RHS', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr
             .notEq(nullLiteral)
             .and(checkPromoted(x, 'int').thenExpr(expr('bool')))
@@ -1657,9 +1665,9 @@ main() {
     });
 
     test('logicalBinaryOp_rightEnd(isAnd: true) keeps promotions from RHS', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         if_(expr('bool').and(x.expr.notEq(nullLiteral)), [
           checkPromoted(x, 'int'),
         ]),
@@ -1668,9 +1676,9 @@ main() {
 
     test('logicalBinaryOp_rightEnd(isAnd: false) keeps promotions from RHS',
         () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         if_(expr('bool').or(x.expr.eq(nullLiteral)), [], [
           checkPromoted(x, 'int'),
         ]),
@@ -1678,9 +1686,9 @@ main() {
     });
 
     test('logicalBinaryOp_rightBegin(isAnd: false) promotes in RHS', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr
             .eq(nullLiteral)
             .or(checkPromoted(x, 'int').thenExpr(expr('bool')))
@@ -1693,11 +1701,11 @@ main() {
       //   promotes x and y
       // }
 
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         if_(x.expr.notEq(nullLiteral).and(y.expr.notEq(nullLiteral)), [
           checkPromoted(x, 'int'),
           checkPromoted(y, 'int'),
@@ -1710,11 +1718,11 @@ main() {
       //   promotes x and y
       // }
 
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         if_(x.expr.eq(nullLiteral).or(y.expr.eq(nullLiteral)), [], [
           checkPromoted(x, 'int'),
           checkPromoted(y, 'int'),
@@ -1723,9 +1731,9 @@ main() {
     });
 
     test('logicalNot_end() inverts a condition', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         if_(x.expr.eq(nullLiteral).not, [
           checkPromoted(x, 'int'),
         ], [
@@ -1743,10 +1751,10 @@ main() {
     });
 
     test('nonNullAssert_end(x) promotes', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       late SsaNode<Type> ssaBeforePromotion;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         x.expr.nonNullAssert.stmt,
         checkPromoted(x, 'int'),
@@ -1765,10 +1773,10 @@ main() {
     });
 
     test('nullAwareAccess temporarily promotes', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       late SsaNode<Type> ssaBeforePromotion;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         x.expr
             .nullAwareAccess(block([
@@ -1784,9 +1792,9 @@ main() {
     });
 
     test('nullAwareAccess does not promote the target of a cascade', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr
             .nullAwareAccess(
                 block([
@@ -1799,9 +1807,9 @@ main() {
     });
 
     test('nullAwareAccess preserves demotions', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         expr('int')
             .nullAwareAccess(block([
@@ -1825,9 +1833,9 @@ main() {
     });
 
     test('nullAwareAccess_end ignores shorting if target is non-nullable', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         expr('int')
             .nullAwareAccess(block([
               checkReachable(true),
@@ -1842,9 +1850,9 @@ main() {
     });
 
     test('parenthesizedExpression preserves promotion behaviors', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         if_(
             x.expr.parenthesized.notEq(nullLiteral.parenthesized).parenthesized,
             [
@@ -1854,9 +1862,9 @@ main() {
     });
 
     test('promote promotes to a subtype and sets type of interest', () {
-      var x = Var('x', 'num?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'num?', initializer: expr('num?')),
         checkNotPromoted(x),
         x.expr.as_('num').stmt,
         checkPromoted(x, 'num'),
@@ -1870,9 +1878,9 @@ main() {
     });
 
     test('promote does not promote to a non-subtype', () {
-      var x = Var('x', 'num?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'num?', initializer: expr('num?')),
         checkNotPromoted(x),
         x.expr.as_('String').stmt,
         checkNotPromoted(x),
@@ -1880,9 +1888,9 @@ main() {
     });
 
     test('promote does not promote if variable is write-captured', () {
-      var x = Var('x', 'num?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'num?', initializer: expr('num?')),
         checkNotPromoted(x),
         localFunction([
           x.write(expr('num')).stmt,
@@ -1895,17 +1903,17 @@ main() {
     test('promotedType handles not-yet-seen variables', () {
       // Note: this is needed for error recovery in the analyzer.
 
-      var x = Var('x', 'int');
+      var x = Var('x');
       h.run([
         checkNotPromoted(x),
-        declare(x, initialized: true),
+        declare(x, type: 'int', initializer: expr('int')),
       ]);
     });
 
     test('switchStatement_beginCase(false) restores previous promotions', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         switch_(
             expr('Null'),
@@ -1926,9 +1934,9 @@ main() {
     });
 
     test('switchStatement_beginCase(false) does not un-promote', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         switch_(
             expr('Null'),
@@ -1945,9 +1953,9 @@ main() {
 
     test('switchStatement_beginCase(false) handles write captures in cases',
         () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         switch_(
             expr('Null'),
@@ -1965,10 +1973,10 @@ main() {
     });
 
     test('switchStatement_beginCase(true) un-promotes', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       late SsaNode<Type> ssaBeforeSwitch;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         switch_(
             expr('Null').thenStmt(block([
@@ -1989,9 +1997,9 @@ main() {
     });
 
     test('switchStatement_beginCase(true) handles write captures in cases', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         switch_(
             expr('Null'),
@@ -2010,13 +2018,13 @@ main() {
     });
 
     test('switchStatement_end(false) joins break and default', () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
-      var z = Var('z', 'int?');
+      var x = Var('x');
+      var y = Var('y');
+      var z = Var('z');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
-        declare(z, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(z, type: 'int?', initializer: expr('int?')),
         y.expr.as_('int').stmt,
         z.expr.as_('int').stmt,
         switch_(
@@ -2036,15 +2044,15 @@ main() {
     });
 
     test('switchStatement_end(true) joins breaks', () {
-      var w = Var('w', 'int?');
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
-      var z = Var('z', 'int?');
+      var w = Var('w');
+      var x = Var('x');
+      var y = Var('y');
+      var z = Var('z');
       h.run([
-        declare(w, initialized: true),
-        declare(x, initialized: true),
-        declare(y, initialized: true),
-        declare(z, initialized: true),
+        declare(w, type: 'int?', initializer: expr('int?')),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(z, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         y.expr.as_('int').stmt,
         z.expr.as_('int').stmt,
@@ -2073,9 +2081,9 @@ main() {
     });
 
     test('switchStatement_end(true) allows fall-through of last case', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         switch_(
             expr('Null'),
             [
@@ -2091,11 +2099,11 @@ main() {
     });
 
     test('tryCatchStatement_bodyEnd() restores pre-try state', () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         y.expr.as_('int').stmt,
         try_([
           x.expr.as_('int').stmt,
@@ -2110,10 +2118,10 @@ main() {
 
     test('tryCatchStatement_bodyEnd() un-promotes variables assigned in body',
         () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       late SsaNode<Type> ssaAfterTry;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         checkPromoted(x, 'int'),
         try_([
@@ -2133,9 +2141,9 @@ main() {
       // the try body, because an exception could occur at any time.  We check
       // this by putting an exit in the try body.
 
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         checkPromoted(x, 'int'),
         try_([
@@ -2152,9 +2160,9 @@ main() {
 
     test('tryCatchStatement_catchBegin() restores previous post-body state',
         () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         try_([]).catch_(body: [
           x.expr.as_('int').stmt,
           checkPromoted(x, 'int'),
@@ -2165,8 +2173,8 @@ main() {
     });
 
     test('tryCatchStatement_catchBegin() initializes vars', () {
-      var e = Var('e', 'int');
-      var st = Var('st', 'StackTrace');
+      var e = Var('e');
+      var st = Var('st');
       h.run([
         try_([]).catch_(exception: e, stackTrace: st, body: [
           checkAssigned(e, true),
@@ -2177,12 +2185,13 @@ main() {
 
     test('tryCatchStatement_catchEnd() joins catch state with after-try state',
         () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
-      var z = Var('z', 'int?');
+      var x = Var('x');
+      var y = Var('y');
+      var z = Var('z');
       h.run([
-        declare(x, initialized: true), declare(y, initialized: true),
-        declare(z, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(z, type: 'int?', initializer: expr('int?')),
         try_([
           x.expr.as_('int').stmt,
           y.expr.as_('int').stmt,
@@ -2197,12 +2206,13 @@ main() {
     });
 
     test('tryCatchStatement_catchEnd() joins catch states', () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
-      var z = Var('z', 'int?');
+      var x = Var('x');
+      var y = Var('y');
+      var z = Var('z');
       h.run([
-        declare(x, initialized: true), declare(y, initialized: true),
-        declare(z, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(z, type: 'int?', initializer: expr('int?')),
         try_([
           return_(),
         ]).catch_(body: [
@@ -2219,11 +2229,11 @@ main() {
     });
 
     test('tryFinallyStatement_finallyBegin() restores pre-try state', () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         y.expr.as_('int').stmt,
         try_([
           x.expr.as_('int').stmt,
@@ -2239,11 +2249,11 @@ main() {
     test(
         'tryFinallyStatement_finallyBegin() un-promotes variables assigned in '
         'body', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       late SsaNode<Type> ssaAtStartOfTry;
       late SsaNode<Type> ssaAfterTry;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         checkPromoted(x, 'int'),
         try_([
@@ -2271,9 +2281,9 @@ main() {
       // the try body, because an exception could occur at any time.  We check
       // this by putting an exit in the try body.
 
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         try_([
           localFunction([
             x.write(expr('int?')).stmt,
@@ -2287,10 +2297,11 @@ main() {
     });
 
     test('tryFinallyStatement_end() restores promotions from try body', () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(x, initialized: true), declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         try_([
           x.expr.as_('int').stmt,
           checkPromoted(x, 'int'),
@@ -2307,12 +2318,13 @@ main() {
     test(
         'tryFinallyStatement_end() does not restore try body promotions for '
         'variables assigned in finally', () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       late SsaNode<Type> xSsaAtEndOfFinally;
       late SsaNode<Type> ySsaAtEndOfFinally;
       h.run([
-        declare(x, initialized: true), declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         try_([
           x.expr.as_('int').stmt,
           checkPromoted(x, 'int'),
@@ -2345,14 +2357,15 @@ main() {
       test(
           'tryFinallyStatement_end() restores SSA nodes from try block when it'
           'is sound to do so', () {
-        var x = Var('x', 'int?');
-        var y = Var('y', 'int?');
+        var x = Var('x');
+        var y = Var('y');
         late SsaNode<Type> xSsaAtEndOfTry;
         late SsaNode<Type> ySsaAtEndOfTry;
         late SsaNode<Type> xSsaAtEndOfFinally;
         late SsaNode<Type> ySsaAtEndOfFinally;
         h.run([
-          declare(x, initialized: true), declare(y, initialized: true),
+          declare(x, type: 'int?', initializer: expr('int?')),
+          declare(y, type: 'int?', initializer: expr('int?')),
           try_([
             x.write(expr('int?')).stmt,
             y.write(expr('int?')).stmt,
@@ -2419,10 +2432,10 @@ main() {
       test(
           'tryFinallyStatement_end() handles a variable declared only in the '
           'try block', () {
-        var x = Var('x', 'int?');
+        var x = Var('x');
         h.run([
           try_([
-            declare(x, initialized: true),
+            declare(x, type: 'int?', initializer: expr('int?')),
           ]).finally_([]),
         ]);
       });
@@ -2430,10 +2443,10 @@ main() {
       test(
           'tryFinallyStatement_end() handles a variable declared only in the '
           'finally block', () {
-        var x = Var('x', 'int?');
+        var x = Var('x');
         h.run([
           try_([]).finally_([
-            declare(x, initialized: true),
+            declare(x, type: 'int?', initializer: expr('int?')),
           ]),
         ]);
       });
@@ -2441,9 +2454,9 @@ main() {
       test(
           'tryFinallyStatement_end() handles a variable that was write '
           'captured in the try block', () {
-        var x = Var('x', 'int?');
+        var x = Var('x');
         h.run([
-          declare(x, initialized: true),
+          declare(x, type: 'int?', initializer: expr('int?')),
           try_([
             localFunction([
               x.write(expr('int?')).stmt,
@@ -2458,9 +2471,9 @@ main() {
       test(
           'tryFinallyStatement_end() handles a variable that was write '
           'captured in the finally block', () {
-        var x = Var('x', 'int?');
+        var x = Var('x');
         h.run([
-          declare(x, initialized: true),
+          declare(x, type: 'int?', initializer: expr('int?')),
           try_([]).finally_([
             localFunction([
               x.write(expr('int?')).stmt,
@@ -2475,9 +2488,9 @@ main() {
       test(
           'tryFinallyStatement_end() handles a variable that was promoted in '
           'the try block and write captured in the finally block', () {
-        var x = Var('x', 'int?');
+        var x = Var('x');
         h.run([
-          declare(x, initialized: true),
+          declare(x, type: 'int?', initializer: expr('int?')),
           try_([
             if_(x.expr.eq(nullLiteral), [
               return_(),
@@ -2500,9 +2513,9 @@ main() {
       test(
           'tryFinallyStatement_end() keeps promotions from both try and '
           'finally blocks when there is no write in the finally block', () {
-        var x = Var('x', 'Object');
+        var x = Var('x');
         h.run([
-          declare(x, initialized: true),
+          declare(x, type: 'Object', initializer: expr('Object')),
           try_([
             if_(x.expr.is_('num', isInverted: true), [
               return_(),
@@ -2523,9 +2536,9 @@ main() {
       test(
           'tryFinallyStatement_end() keeps promotions from the finally block '
           'when there is a write in the finally block', () {
-        var x = Var('x', 'Object');
+        var x = Var('x');
         h.run([
-          declare(x, initialized: true),
+          declare(x, type: 'Object', initializer: expr('Object')),
           try_([
             if_(x.expr.is_('String', isInverted: true), [
               return_(),
@@ -2544,9 +2557,9 @@ main() {
       test(
           'tryFinallyStatement_end() keeps tests from both the try and finally '
           'blocks', () {
-        var x = Var('x', 'Object');
+        var x = Var('x');
         h.run([
-          declare(x, initialized: true),
+          declare(x, type: 'Object', initializer: expr('Object')),
           try_([
             if_(x.expr.is_('String', isInverted: true), []),
             checkNotPromoted(x),
@@ -2568,9 +2581,9 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables not definitely assigned '
           'in either the try or finally block', () {
-        var x = Var('x', 'Object');
+        var x = Var('x');
         h.run([
-          declare(x, initialized: false),
+          declare(x, type: 'Object'),
           checkAssigned(x, false),
           try_([
             if_(expr('bool'), [
@@ -2590,9 +2603,9 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables definitely assigned in '
           'the try block', () {
-        var x = Var('x', 'Object');
+        var x = Var('x');
         h.run([
-          declare(x, initialized: false),
+          declare(x, type: 'Object'),
           checkAssigned(x, false),
           try_([
             x.write(expr('Object')).stmt,
@@ -2610,9 +2623,9 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables definitely assigned in '
           'the finally block', () {
-        var x = Var('x', 'Object');
+        var x = Var('x');
         h.run([
-          declare(x, initialized: false),
+          declare(x, type: 'Object'),
           checkAssigned(x, false),
           try_([
             if_(expr('bool'), [
@@ -2630,9 +2643,9 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables definitely unassigned '
           'in both the try and finally blocks', () {
-        var x = Var('x', 'Object');
+        var x = Var('x');
         h.run([
-          declare(x, initialized: false),
+          declare(x, type: 'Object'),
           checkUnassigned(x, true),
           try_([
             checkUnassigned(x, true),
@@ -2646,9 +2659,9 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables definitely unassigned '
           'in the try but not the finally block', () {
-        var x = Var('x', 'Object');
+        var x = Var('x');
         h.run([
-          declare(x, initialized: false),
+          declare(x, type: 'Object'),
           checkUnassigned(x, true),
           try_([
             checkUnassigned(x, true),
@@ -2665,9 +2678,9 @@ main() {
       test(
           'tryFinallyStatement_end() handles variables definitely unassigned '
           'in the finally but not the try block', () {
-        var x = Var('x', 'Object');
+        var x = Var('x');
         h.run([
-          declare(x, initialized: false),
+          declare(x, type: 'Object'),
           checkUnassigned(x, true),
           try_([
             if_(expr('bool'), [
@@ -2683,13 +2696,13 @@ main() {
     });
 
     test('variableRead() restores promotions from previous write()', () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
-      var z = Var('z', 'bool');
+      var x = Var('x');
+      var y = Var('y');
+      var z = Var('z');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
-        declare(z, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(z, type: 'bool', initializer: expr('bool')),
         // Create a variable that promotes x if its value is true, and y if its
         // value is false.
         z
@@ -2716,17 +2729,16 @@ main() {
     });
 
     test('variableRead() restores promotions from previous initialization', () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
-      var z = Var('z', 'bool');
+      var x = Var('x');
+      var y = Var('y');
+      var z = Var('z');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         // Create a variable that promotes x if its value is true, and y if its
         // value is false.
-        declareInitialized(
-            z,
-            x.expr.notEq(nullLiteral).conditional(
+        declare(z,
+            initializer: x.expr.notEq(nullLiteral).conditional(
                 booleanLiteral(true),
                 y.expr.notEq(nullLiteral).conditional(
                     booleanLiteral(false), throw_(expr('Object'))))),
@@ -2748,15 +2760,15 @@ main() {
     });
 
     test('variableRead() rebases old promotions', () {
-      var w = Var('w', 'int?');
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
-      var z = Var('z', 'bool');
+      var w = Var('w');
+      var x = Var('x');
+      var y = Var('y');
+      var z = Var('z');
       h.run([
-        declare(w, initialized: true),
-        declare(x, initialized: true),
-        declare(y, initialized: true),
-        declare(z, initialized: true),
+        declare(w, type: 'int?', initializer: expr('int?')),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(z, type: 'bool', initializer: expr('bool')),
         // Create a variable that promotes x if its value is true, and y if its
         // value is false.
         z
@@ -2790,11 +2802,11 @@ main() {
       // we think it will give an inconsistent feel because comparisons like
       // `if (i == null)` *don't* promote.
 
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         y.write(nullLiteral).stmt,
         checkNotPromoted(x),
         checkNotPromoted(y),
@@ -2811,10 +2823,10 @@ main() {
     });
 
     test('whileStatement_conditionBegin() un-promotes', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       late SsaNode<Type> ssaBeforeLoop;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         checkPromoted(x, 'int'),
         getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
@@ -2831,9 +2843,9 @@ main() {
 
     test('whileStatement_conditionBegin() handles write captures in the loop',
         () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         checkPromoted(x, 'int'),
         while_(
@@ -2849,21 +2861,24 @@ main() {
     });
 
     test('whileStatement_conditionBegin() handles not-yet-seen variables', () {
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(y, initialized: true),
+        declare(y, type: 'int?', initializer: expr('int?')),
         y.expr.as_('int').stmt,
-        while_(declare(x, initialized: true).thenExpr(expr('bool')), [
-          x.write(expr('Null')).stmt,
-        ]),
+        while_(
+            declare(x, type: 'int?', initializer: expr('int?'))
+                .thenExpr(expr('bool')),
+            [
+              x.write(expr('Null')).stmt,
+            ]),
       ]);
     });
 
     test('whileStatement_bodyBegin() promotes', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         while_(x.expr.notEq(nullLiteral), [
           checkPromoted(x, 'int'),
         ]),
@@ -2875,13 +2890,13 @@ main() {
       // x, y, and z.  We promote x and y in the break path, and x and z in the
       // condition-false path.  After the loop, only x should be promoted.
 
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
-      var z = Var('z', 'int?');
+      var x = Var('x');
+      var y = Var('y');
+      var z = Var('z');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
-        declare(z, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
+        declare(z, type: 'int?', initializer: expr('int?')),
         while_(x.expr.eq(nullLiteral).or(z.expr.eq(nullLiteral)), [
           if_(expr('bool'), [
             x.expr.as_('int').stmt,
@@ -2896,13 +2911,13 @@ main() {
     });
 
     test('whileStatement_end() with break updates Ssa of modified vars', () {
-      var x = Var('x', 'int?');
-      var y = Var('x', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       late SsaNode<Type> xSsaInsideLoop;
       late SsaNode<Type> ySsaInsideLoop;
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         while_(expr('bool'), [
           x.write(expr('int?')).stmt,
           if_(expr('bool'), [break_()]),
@@ -2924,13 +2939,13 @@ main() {
     test(
         'whileStatement_end() with break updates Ssa of modified vars when '
         'types were tested', () {
-      var x = Var('x', 'int?');
-      var y = Var('x', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       late SsaNode<Type> xSsaInsideLoop;
       late SsaNode<Type> ySsaInsideLoop;
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         while_(expr('bool'), [
           x.write(expr('int?')).stmt,
           if_(expr('bool'), [break_()]),
@@ -2951,13 +2966,13 @@ main() {
     });
 
     test('write() de-promotes and updates Ssa of a promoted variable', () {
-      var x = Var('x', 'Object');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       late SsaNode<Type> ssaBeforeWrite;
       late ExpressionInfo<Type> writtenValueInfo;
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'Object', initializer: expr('Object')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         checkPromoted(x, 'int'),
         getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
@@ -2976,13 +2991,13 @@ main() {
     });
 
     test('write() updates Ssa', () {
-      var x = Var('x', 'Object');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       late SsaNode<Type> ssaBeforeWrite;
       late ExpressionInfo<Type> writtenValueInfo;
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'Object', initializer: expr('Object')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
         x
             .write(y.expr.eq(nullLiteral).getExpressionInfo((info) {
@@ -3010,13 +3025,13 @@ main() {
       // But there are a lot of corner cases to test and it's not clear how much
       // the benefit will be, so for now we're not doing it.
 
-      var x = Var('x', 'int?');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       late SsaNode<Type> xSsaBeforeWrite;
       late SsaNode<Type> ySsa;
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) {
           xSsaBeforeWrite = nodes[x]!;
           ySsa = nodes[y]!;
@@ -3030,12 +3045,12 @@ main() {
     });
 
     test('write() does not store expressionInfo for trivial expressions', () {
-      var x = Var('x', 'Object');
-      var y = Var('y', 'int?');
+      var x = Var('x');
+      var y = Var('y');
       late SsaNode<Type> ssaBeforeWrite;
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'Object', initializer: expr('Object')),
+        declare(y, type: 'int?', initializer: expr('int?')),
         localFunction([
           y.write(expr('int?')).stmt,
         ]),
@@ -3055,10 +3070,10 @@ main() {
     });
 
     test('write() permits expression to be null', () {
-      var x = Var('x', 'Object');
+      var x = Var('x');
       late SsaNode<Type> ssaBeforeWrite;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'Object', initializer: expr('Object')),
         getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
         x.write(null).stmt,
         getSsaNodes((nodes) {
@@ -3069,9 +3084,9 @@ main() {
     });
 
     test('Infinite loop does not implicitly assign variables', () {
-      var x = Var('x', 'int');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: false),
+        declare(x, type: 'int'),
         while_(booleanLiteral(true), [
           x.write(expr('Null')).stmt,
         ]),
@@ -3080,9 +3095,9 @@ main() {
     });
 
     test('If(false) does not discard promotions', () {
-      var x = Var('x', 'Object');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'Object', initializer: expr('Object')),
         x.expr.as_('int').stmt,
         checkPromoted(x, 'int'),
         if_(booleanLiteral(false), [
@@ -3092,9 +3107,9 @@ main() {
     });
 
     test('Promotions do not occur when a variable is write-captured', () {
-      var x = Var('x', 'Object');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'Object', initializer: expr('Object')),
         localFunction([
           x.write(expr('Object')).stmt,
         ]),
@@ -3106,9 +3121,9 @@ main() {
     });
 
     test('Promotion cancellation of write-captured vars survives join', () {
-      var x = Var('x', 'Object');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'Object', initializer: expr('Object')),
         if_(expr('bool'), [
           localFunction([
             x.write(expr('Object')).stmt,
@@ -3126,12 +3141,12 @@ main() {
     });
 
     test('issue 47991', () {
-      var b = Var('b', 'bool');
-      var i = Var('i', 'int', isFinal: true);
+      var b = Var('b');
+      var i = Var('i');
       h.run([
         localFunction([
-          declareInitialized(b, expr('bool').or(expr('bool'))),
-          declare(i, initialized: false),
+          declare(b, type: 'bool', initializer: expr('bool').or(expr('bool'))),
+          declare(i, isFinal: true, type: 'int'),
           if_(b.expr, [
             checkUnassigned(i, true),
             i.write(expr('int')).stmt,
@@ -3284,10 +3299,10 @@ main() {
   });
 
   group('State', () {
-    var intVar = Var('x', 'int');
-    var intQVar = Var('x', 'int?');
-    var objectQVar = Var('x', 'Object?');
-    var nullVar = Var('x', 'Null');
+    var intVar = Var('x')..type = Type('int');
+    var intQVar = Var('x')..type = Type('int?');
+    var objectQVar = Var('x')..type = Type('Object?');
+    var nullVar = Var('x')..type = Type('Null');
 
     group('setUnreachable', () {
       var unreachable = FlowModel<Type>(Reachability.initial.setUnreachable());
@@ -3436,7 +3451,7 @@ main() {
     });
 
     group('write', () {
-      var objectQVar = Var('x', 'Object?');
+      var objectQVar = Var('x')..type = Type('Object?');
 
       test('without declaration', () {
         // This should not happen in valid code, but test that we don't crash.
@@ -3606,7 +3621,7 @@ main() {
 
       group('Promotes to NonNull of a type of interest', () {
         test('when declared type', () {
-          var x = Var('x', 'int?');
+          var x = Var('x')..type = Type('int?');
 
           var s1 = FlowModel<Type>(Reachability.initial)._declare(h, x, true);
           expect(s1.variableInfo, {
@@ -3623,7 +3638,7 @@ main() {
         });
 
         test('when declared type, if write-captured', () {
-          var x = Var('x', 'int?');
+          var x = Var('x')..type = Type('int?');
 
           var s1 = FlowModel<Type>(Reachability.initial)._declare(h, x, true);
           expect(s1.variableInfo, {
@@ -3774,7 +3789,7 @@ main() {
           });
 
           test('; first', () {
-            var x = Var('x', 'Object?');
+            var x = Var('x')..type = Type('Object?');
 
             var s1 = FlowModel<Type>(Reachability.initial)
                 ._declare(h, x, true)
@@ -3800,7 +3815,7 @@ main() {
           });
 
           test('; second', () {
-            var x = Var('x', 'Object?');
+            var x = Var('x')..type = Type('Object?');
 
             var s1 = FlowModel<Type>(Reachability.initial)
                 ._declare(h, x, true)
@@ -3826,7 +3841,7 @@ main() {
           });
 
           test('; nullable and non-nullable', () {
-            var x = Var('x', 'Object?');
+            var x = Var('x')..type = Type('Object?');
 
             var s1 = FlowModel<Type>(Reachability.initial)
                 ._declare(h, x, true)
@@ -3911,7 +3926,7 @@ main() {
 
     group('demotion, to NonNull', () {
       test('when promoted via test', () {
-        var x = Var('x', 'Object?');
+        var x = Var('x')..type = Type('Object?');
 
         var s1 = FlowModel<Type>(Reachability.initial)
             ._declare(h, x, true)
@@ -3938,7 +3953,7 @@ main() {
     });
 
     group('declare', () {
-      var objectQVar = Var('x', 'Object?');
+      var objectQVar = Var('x')..type = Type('Object?');
 
       test('initialized', () {
         var s =
@@ -4068,10 +4083,10 @@ main() {
       });
 
       test('assignments', () {
-        var a = Var('a', 'int');
-        var b = Var('b', 'int');
-        var c = Var('c', 'int');
-        var d = Var('d', 'int');
+        var a = Var('a')..type = Type('int');
+        var b = Var('b')..type = Type('int');
+        var c = Var('c')..type = Type('int');
+        var d = Var('d')..type = Type('int');
         var s0 = FlowModel<Type>(Reachability.initial)
             ._declare(h, a, false)
             ._declare(h, b, false)
@@ -4091,10 +4106,10 @@ main() {
       });
 
       test('write captured', () {
-        var a = Var('a', 'int');
-        var b = Var('b', 'int');
-        var c = Var('c', 'int');
-        var d = Var('d', 'int');
+        var a = Var('a')..type = Type('int');
+        var b = Var('b')..type = Type('int');
+        var c = Var('c')..type = Type('int');
+        var d = Var('d')..type = Type('int');
         var s0 = FlowModel<Type>(Reachability.initial)
             ._declare(h, a, false)
             ._declare(h, b, false)
@@ -4123,7 +4138,7 @@ main() {
       });
 
       test('write captured and promoted', () {
-        var a = Var('a', 'num');
+        var a = Var('a')..type = Type('num');
         var s0 = FlowModel<Type>(Reachability.initial)._declare(h, a, false);
         // In s1, a is write captured.  In s2 it's promoted.
         var s1 = s0._conservativeJoin(h, [a], [a]);
@@ -4141,7 +4156,7 @@ main() {
       test('promotion', () {
         void _check(String? thisType, String? otherType, bool unsafe,
             List<String>? expectedChain) {
-          var x = Var('x', 'Object?');
+          var x = Var('x')..type = Type('Object?');
           var s0 = FlowModel<Type>(Reachability.initial)._declare(h, x, true);
           var s1 = s0;
           if (unsafe) {
@@ -4203,7 +4218,7 @@ main() {
         //   block, the expected promotion chain is [expectedResult].
         void _check(List<String> before, List<String> inTry,
             List<String> inFinally, List<String> expectedResult) {
-          var x = Var('x', 'Object?');
+          var x = Var('x')..type = Type('Object?');
           var initialModel =
               FlowModel<Type>(Reachability.initial)._declare(h, x, true);
           for (var t in before) {
@@ -4254,7 +4269,7 @@ main() {
       });
 
       test('types of interest', () {
-        var a = Var('a', 'Object');
+        var a = Var('a')..type = Type('Object');
         var s0 = FlowModel<Type>(Reachability.initial)._declare(h, a, false);
         var s1 = s0._tryPromoteForTypeCheck(h, a, 'int').ifFalse;
         var s2 = s0._tryPromoteForTypeCheck(h, a, 'String').ifFalse;
@@ -4269,7 +4284,7 @@ main() {
       });
 
       test('variable present in one state but not the other', () {
-        var x = Var('x', 'Object?');
+        var x = Var('x')..type = Type('Object?');
         var s0 = FlowModel<Type>(Reachability.initial);
         var s1 = s0._declare(h, x, true);
         expect(s1.rebaseForward(h, s0), same(s0));
@@ -4439,10 +4454,10 @@ main() {
     const emptyMap = const <int, VariableModel<Type>>{};
 
     setUp(() {
-      x = h.promotionKeyStore.keyForVariable(Var('x', 'Object?'));
-      y = h.promotionKeyStore.keyForVariable(Var('y', 'Object?'));
-      z = h.promotionKeyStore.keyForVariable(Var('z', 'Object?'));
-      w = h.promotionKeyStore.keyForVariable(Var('w', 'Object?'));
+      x = h.promotionKeyStore.keyForVariable(Var('x')..type = Type('Object?'));
+      y = h.promotionKeyStore.keyForVariable(Var('y')..type = Type('Object?'));
+      z = h.promotionKeyStore.keyForVariable(Var('z')..type = Type('Object?'));
+      w = h.promotionKeyStore.keyForVariable(Var('w')..type = Type('Object?'));
     });
 
     VariableModel<Type> model(List<Type>? promotionChain,
@@ -4619,7 +4634,7 @@ main() {
     const emptyMap = const <int, VariableModel<Type>>{};
 
     setUp(() {
-      x = h.promotionKeyStore.keyForVariable(Var('x', 'Object?'));
+      x = h.promotionKeyStore.keyForVariable(Var('x')..type = Type('Object?'));
     });
 
     VariableModel<Type> varModel(List<Type>? promotionChain,
@@ -4710,7 +4725,7 @@ main() {
     const emptyMap = const <int, VariableModel<Type>>{};
 
     setUp(() {
-      x = h.promotionKeyStore.keyForVariable(Var('x', 'Object?'));
+      x = h.promotionKeyStore.keyForVariable(Var('x')..type = Type('Object?'));
     });
 
     VariableModel<Type> model(List<Type> typesOfInterest) =>
@@ -4756,8 +4771,9 @@ main() {
       group('promotes a variable whose type is shown by its condition', () {
         test('within then-block', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             if_(x.expr.is_('int'), [
               checkPromoted(x, 'int'),
             ]),
@@ -4766,8 +4782,9 @@ main() {
 
         test('but not within else-block', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             if_(x.expr.is_('int'), [], [
               checkNotPromoted(x),
             ]),
@@ -4776,8 +4793,9 @@ main() {
 
         test('unless the then-block mutates it', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             if_(x.expr.is_('int'), [
               checkNotPromoted(x),
               x.write(expr('int')).stmt,
@@ -4787,8 +4805,9 @@ main() {
 
         test('even if the condition mutates it', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             if_(
                 x
                     .write(expr('int'))
@@ -4803,8 +4822,9 @@ main() {
 
         test('even if the else-block mutates it', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             if_(x.expr.is_('int'), [
               checkPromoted(x, 'int'),
             ], [
@@ -4815,8 +4835,9 @@ main() {
 
         test('unless a closure mutates it', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             if_(x.expr.is_('int'), [
               checkNotPromoted(x),
             ]),
@@ -4830,8 +4851,9 @@ main() {
             'unless a closure in the then-block accesses it and it is mutated '
             'anywhere', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             if_(x.expr.is_('int'), [
               checkNotPromoted(x),
               localFunction([
@@ -4846,8 +4868,9 @@ main() {
             'unless a closure in the then-block accesses it and it is mutated '
             'anywhere, even if the access is deeply nested', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             if_(x.expr.is_('int'), [
               checkNotPromoted(x),
               localFunction([
@@ -4864,8 +4887,9 @@ main() {
             'even if a closure in the condition accesses it and it is mutated '
             'somewhere', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             if_(
                 localFunction([
                   x.expr.stmt,
@@ -4881,8 +4905,9 @@ main() {
             'even if a closure in the else-block accesses it and it is mutated '
             'somewhere', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             if_(x.expr.is_('int'), [
               checkPromoted(x, 'int'),
             ], [
@@ -4898,8 +4923,9 @@ main() {
             'even if a closure in the then-block accesses it, provided it is '
             'not mutated anywhere', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             if_(x.expr.is_('int'), [
               checkPromoted(x, 'int'),
               localFunction([
@@ -4919,17 +4945,20 @@ main() {
 
       test('handles a condition that is a variable', () {
         h.legacy = true;
-        var x = Var('x', 'bool');
+        var x = Var('x');
         h.run([
+          declare(x, type: 'bool'),
           if_(x.expr, []),
         ]);
       });
 
       test('handles multiple promotions', () {
         h.legacy = true;
-        var x = Var('x', 'Object');
-        var y = Var('y', 'Object');
+        var x = Var('x');
+        var y = Var('y');
         h.run([
+          declare(x, type: 'Object'),
+          declare(y, type: 'Object'),
           if_(x.expr.is_('int').and(y.expr.is_('String')), [
             checkPromoted(x, 'int'),
             checkPromoted(y, 'String'),
@@ -4942,8 +4971,9 @@ main() {
       group('promotes a variable whose type is shown by its condition', () {
         test('within then-expression', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             x.expr
                 .is_('int')
                 .conditional(checkPromoted(x, 'int').thenExpr(expr('Object')),
@@ -4954,8 +4984,9 @@ main() {
 
         test('but not within else-expression', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             x.expr
                 .is_('int')
                 .conditional(expr('Object'),
@@ -4966,8 +4997,9 @@ main() {
 
         test('unless the then-expression mutates it', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             x.expr
                 .is_('int')
                 .conditional(
@@ -4982,8 +5014,9 @@ main() {
 
         test('even if the condition mutates it', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             x
                 .write(expr('int'))
                 .parenthesized
@@ -4997,8 +5030,9 @@ main() {
 
         test('even if the else-expression mutates it', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             x.expr
                 .is_('int')
                 .conditional(checkPromoted(x, 'int').thenExpr(expr('int')),
@@ -5009,8 +5043,9 @@ main() {
 
         test('unless a closure mutates it', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             x.expr
                 .is_('int')
                 .conditional(checkNotPromoted(x).thenExpr(expr('Object')),
@@ -5026,8 +5061,9 @@ main() {
             'unless a closure in the then-expression accesses it and it is '
             'mutated anywhere', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             x.expr
                 .is_('int')
                 .conditional(
@@ -5047,8 +5083,9 @@ main() {
             'even if a closure in the condition accesses it and it is mutated '
             'somewhere', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             localFunction([
               x.expr.stmt,
             ])
@@ -5065,8 +5102,9 @@ main() {
             'even if a closure in the else-expression accesses it and it is '
             'mutated somewhere', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             x.expr
                 .is_('int')
                 .conditional(
@@ -5083,8 +5121,9 @@ main() {
             'even if a closure in the then-expression accesses it, provided it '
             'is not mutated anywhere', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             x.expr
                 .is_('int')
                 .conditional(
@@ -5109,17 +5148,20 @@ main() {
 
       test('handles a condition that is a variable', () {
         h.legacy = true;
-        var x = Var('x', 'bool');
+        var x = Var('x');
         h.run([
+          declare(x, type: 'bool'),
           x.expr.conditional(expr('Object'), expr('Object')).stmt,
         ]);
       });
 
       test('handles multiple promotions', () {
         h.legacy = true;
-        var x = Var('x', 'Object');
-        var y = Var('y', 'Object');
+        var x = Var('x');
+        var y = Var('y');
         h.run([
+          declare(x, type: 'Object'),
+          declare(y, type: 'Object'),
           x.expr
               .is_('int')
               .and(y.expr.is_('String'))
@@ -5139,8 +5181,9 @@ main() {
         group("shows a variable's type", () {
           test('if the lhs shows the type', () {
             h.legacy = true;
-            var x = Var('x', 'Object');
+            var x = Var('x');
             h.run([
+              declare(x, type: 'Object'),
               if_(x.expr.is_('int').and(expr('bool')), [
                 checkPromoted(x, 'int'),
               ]),
@@ -5149,8 +5192,9 @@ main() {
 
           test('if the rhs shows the type', () {
             h.legacy = true;
-            var x = Var('x', 'Object');
+            var x = Var('x');
             h.run([
+              declare(x, type: 'Object'),
               if_(expr('bool').and(x.expr.is_('int')), [
                 checkPromoted(x, 'int'),
               ]),
@@ -5159,8 +5203,9 @@ main() {
 
           test('unless the rhs mutates it', () {
             h.legacy = true;
-            var x = Var('x', 'Object');
+            var x = Var('x');
             h.run([
+              declare(x, type: 'Object'),
               if_(x.expr.is_('int').and(x.write(expr('bool'))), [
                 checkNotPromoted(x),
               ]),
@@ -5170,8 +5215,9 @@ main() {
           test('unless the rhs mutates it, even if the rhs also shows the type',
               () {
             h.legacy = true;
-            var x = Var('x', 'Object');
+            var x = Var('x');
             h.run([
+              declare(x, type: 'Object'),
               if_(
                   expr('bool').and(x
                       .write(expr('Object'))
@@ -5185,8 +5231,9 @@ main() {
 
           test('unless a closure mutates it', () {
             h.legacy = true;
-            var x = Var('x', 'Object');
+            var x = Var('x');
             h.run([
+              declare(x, type: 'Object'),
               if_(x.expr.is_('int').and(expr('bool')), [
                 checkNotPromoted(x),
               ]),
@@ -5200,8 +5247,9 @@ main() {
         group('promotes a variable whose type is shown by its lhs', () {
           test('within its rhs', () {
             h.legacy = true;
-            var x = Var('x', 'Object');
+            var x = Var('x');
             h.run([
+              declare(x, type: 'Object'),
               x.expr
                   .is_('int')
                   .and(checkPromoted(x, 'int').thenExpr(expr('bool')))
@@ -5211,8 +5259,9 @@ main() {
 
           test('unless the lhs mutates it', () {
             h.legacy = true;
-            var x = Var('x', 'Object');
+            var x = Var('x');
             h.run([
+              declare(x, type: 'Object'),
               x
                   .write(expr('int'))
                   .parenthesized
@@ -5226,8 +5275,9 @@ main() {
 
           test('unless the rhs mutates it', () {
             h.legacy = true;
-            var x = Var('x', 'Object');
+            var x = Var('x');
             h.run([
+              declare(x, type: 'Object'),
               x.expr
                   .is_('int')
                   .and(checkNotPromoted(x).thenExpr(x.write(expr('bool'))))
@@ -5237,8 +5287,9 @@ main() {
 
           test('unless a closure mutates it', () {
             h.legacy = true;
-            var x = Var('x', 'Object');
+            var x = Var('x');
             h.run([
+              declare(x, type: 'Object'),
               x.expr
                   .is_('int')
                   .and(checkNotPromoted(x).thenExpr(expr('bool')))
@@ -5253,8 +5304,9 @@ main() {
               'unless a closure in the rhs accesses it and it is mutated '
               'anywhere', () {
             h.legacy = true;
-            var x = Var('x', 'Object');
+            var x = Var('x');
             h.run([
+              declare(x, type: 'Object'),
               x.expr
                   .is_('int')
                   .and(block([
@@ -5272,8 +5324,9 @@ main() {
               'even if a closure in the lhs accesses it and it is mutated '
               'somewhere', () {
             h.legacy = true;
-            var x = Var('x', 'Object');
+            var x = Var('x');
             h.run([
+              declare(x, type: 'Object'),
               localFunction([
                 x.expr.stmt,
               ])
@@ -5290,8 +5343,9 @@ main() {
               'even if a closure in the rhs accesses it, provided it is not '
               'mutated anywhere', () {
             h.legacy = true;
-            var x = Var('x', 'Object');
+            var x = Var('x');
             h.run([
+              declare(x, type: 'Object'),
               x.expr
                   .is_('int')
                   .and(block([
@@ -5307,11 +5361,12 @@ main() {
 
         test('uses lhs promotion if rhs is not to a subtype', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           // Note: for this to be an effective test, we need to mutate `x` on
           // the LHS of the outer `&&` so that `x` is not promoted on the RHS
           // (and thus the lesser promotion on the RHS can take effect).
           h.run([
+            declare(x, type: 'Object'),
             if_(
                 x
                     .write(expr('Object'))
@@ -5327,8 +5382,9 @@ main() {
 
         test('uses rhs promotion if rhs is to a subtype', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             if_(x.expr.is_('num').and(x.expr.is_('int')), [
               checkPromoted(x, 'int'),
             ]),
@@ -5337,9 +5393,11 @@ main() {
 
         test('can handle multiple promotions on lhs', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
-          var y = Var('y', 'Object');
+          var x = Var('x');
+          var y = Var('y');
           h.run([
+            declare(x, type: 'Object'),
+            declare(y, type: 'Object'),
             x.expr
                 .is_('int')
                 .and(y.expr.is_('String'))
@@ -5354,9 +5412,11 @@ main() {
 
         test('handles variables', () {
           h.legacy = true;
-          var x = Var('x', 'bool');
-          var y = Var('y', 'bool');
+          var x = Var('x');
+          var y = Var('y');
           h.run([
+            declare(x, type: 'bool'),
+            declare(y, type: 'bool'),
             if_(x.expr.and(y.expr), []),
           ]);
         });
@@ -5371,8 +5431,9 @@ main() {
 
       test('or is ignored', () {
         h.legacy = true;
-        var x = Var('x', 'Object');
+        var x = Var('x');
         h.run([
+          declare(x, type: 'Object'),
           if_(x.expr.is_('int').or(x.expr.is_('int')), [
             checkNotPromoted(x),
           ], [
@@ -5386,8 +5447,9 @@ main() {
       group("shows a variable's type", () {
         test('normally', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             if_(x.expr.is_('int'), [
               checkPromoted(x, 'int'),
             ], [
@@ -5398,8 +5460,9 @@ main() {
 
         test('unless the test is inverted', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             if_(x.expr.is_('int', isInverted: true), [
               checkNotPromoted(x),
             ], [
@@ -5411,8 +5474,9 @@ main() {
         test('unless the tested type is not a subtype of the declared type',
             () {
           h.legacy = true;
-          var x = Var('x', 'String');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'String'),
             if_(x.expr.is_('int'), [
               checkNotPromoted(x),
             ], [
@@ -5423,8 +5487,9 @@ main() {
 
         test("even when the variable's type has been previously promoted", () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             if_(x.expr.is_('num'), [
               if_(x.expr.is_('int'), [
                 checkPromoted(x, 'int'),
@@ -5439,8 +5504,9 @@ main() {
             'unless the tested type is not a subtype of the previously '
             'promoted type', () {
           h.legacy = true;
-          var x = Var('x', 'Object');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'Object'),
             if_(x.expr.is_('String'), [
               if_(x.expr.is_('int'), [
                 checkPromoted(x, 'String'),
@@ -5454,8 +5520,9 @@ main() {
         test('even when the declared type is a type variable', () {
           h.legacy = true;
           h.addPromotionException('T', 'int', 'T&int');
-          var x = Var('x', 'T');
+          var x = Var('x');
           h.run([
+            declare(x, type: 'T'),
             if_(x.expr.is_('int'), [
               checkPromoted(x, 'T&int'),
             ]),
@@ -5474,8 +5541,9 @@ main() {
     test('forwardExpression does not re-activate a deeply nested expression',
         () {
       h.legacy = true;
-      var x = Var('x', 'Object');
+      var x = Var('x');
       h.run([
+        declare(x, type: 'Object'),
         if_(x.expr.is_('int').eq(expr('Object')).thenStmt(block([])), [
           checkNotPromoted(x),
         ]),
@@ -5486,8 +5554,9 @@ main() {
         'parenthesizedExpression does not re-activate a deeply nested '
         'expression', () {
       h.legacy = true;
-      var x = Var('x', 'Object');
+      var x = Var('x');
       h.run([
+        declare(x, type: 'Object'),
         if_(x.expr.is_('int').eq(expr('Object')).parenthesized, [
           checkNotPromoted(x),
         ]),
@@ -5496,8 +5565,9 @@ main() {
 
     test('variableRead returns the promoted type if promoted', () {
       h.legacy = true;
-      var x = Var('x', 'Object');
+      var x = Var('x');
       h.run([
+        declare(x, type: 'Object'),
         if_(
             x
                 .readAndCheckPromotedType((type) => expect(type, isNull))
@@ -5513,10 +5583,10 @@ main() {
 
   group('why not promoted', () {
     test('due to assignment', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       late Expression writeExpression;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         if_(x.expr.eq(nullLiteral), [
           return_(),
         ]),
@@ -5533,10 +5603,10 @@ main() {
     });
 
     test('due to assignment, multiple demotions', () {
-      var x = Var('x', 'Object?');
+      var x = Var('x');
       late Expression writeExpression;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'Object?', initializer: expr('Object?')),
         if_(x.expr.isNot('int?'), [
           return_(),
         ]),
@@ -5557,10 +5627,10 @@ main() {
     });
 
     test('preserved in join when one branch unreachable', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       late Expression writeExpression;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         if_(x.expr.eq(nullLiteral), [
           return_(),
         ]),
@@ -5580,10 +5650,10 @@ main() {
     });
 
     test('preserved in later promotions', () {
-      var x = Var('x', 'Object');
+      var x = Var('x');
       late Expression writeExpression;
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'Object', initializer: expr('Object')),
         if_(x.expr.is_('int', isInverted: true), [
           return_(),
         ]),
@@ -5603,9 +5673,9 @@ main() {
     });
 
     test('re-promotion', () {
-      var x = Var('x', 'int?');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'int?', initializer: expr('int?')),
         if_(x.expr.eq(nullLiteral), [
           return_(),
         ]),
@@ -5655,9 +5725,9 @@ main() {
 
       test('via variable', () {
         h.addMember('C', 'field', 'Object?');
-        var x = Var('x', 'C');
+        var x = Var('x');
         h.run([
-          declare(x, initialized: true),
+          declare(x, type: 'C', initializer: expr('C')),
           if_(x.expr.property('field').eq(nullLiteral), [
             return_(),
           ]),
@@ -5708,9 +5778,9 @@ main() {
   group('Field promotion', () {
     test('promotable field', () {
       h.addMember('C', '_field', 'Object?', promotable: true);
-      var x = Var('x', 'C');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'C', initializer: expr('C')),
         if_(x.expr.property('_field').eq(nullLiteral), [
           return_(),
         ]),
@@ -5733,9 +5803,9 @@ main() {
 
     test('non-promotable field', () {
       h.addMember('C', '_field', 'Object?', promotable: false);
-      var x = Var('x', 'C');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'C', initializer: expr('C')),
         if_(x.expr.property('_field').eq(nullLiteral), [
           return_(),
         ]),
@@ -5758,9 +5828,9 @@ main() {
 
     test('multiply promoted', () {
       h.addMember('C', '_field', 'Object?', promotable: true);
-      var x = Var('x', 'C');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'C', initializer: expr('C')),
         if_(x.expr.property('_field').eq(nullLiteral), [
           return_(),
         ]),
@@ -5792,9 +5862,9 @@ main() {
       h.addMember('C', '_field', 'num?', promotable: true);
       h.addSubtype('C', 'B', true);
       h.addFactor('B', 'C', 'B');
-      var x = Var('x', 'B');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'B', initializer: expr('B')),
         if_(x.expr.property('_field').eq(nullLiteral), [
           return_(),
         ]),
@@ -5813,9 +5883,9 @@ main() {
       h.addMember('C', '_field', 'num?', promotable: true);
       h.addSubtype('C', 'B', true);
       h.addFactor('B', 'C', 'B');
-      var x = Var('x', 'B');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'B', initializer: expr('B')),
         if_(x.expr.property('_field').isNot('int'), [
           return_(),
         ]),
@@ -5834,9 +5904,9 @@ main() {
       h.addMember('C', '_field', 'Object?', promotable: true);
       h.addSubtype('C', 'B', true);
       h.addFactor('B', 'C', 'B');
-      var x = Var('x', 'B');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'B', initializer: expr('B')),
         if_(x.expr.is_('C'), [
           if_(x.expr.property('_field').notEq(nullLiteral), [
             checkPromoted(x.expr.property('_field'), 'Object'),
@@ -5855,9 +5925,9 @@ main() {
       h.addMember('C', '_field', 'Object?', promotable: true);
       h.addSubtype('C', 'B', true);
       h.addFactor('B', 'C', 'B');
-      var x = Var('x', 'B');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'B', initializer: expr('B')),
         if_(x.expr.property('_field').notEq(nullLiteral), [
           checkNotPromoted(x.expr.property('_field')),
           x.expr.property('_field').checkType('Object?').stmt,
@@ -5875,11 +5945,11 @@ main() {
       h.thisType = 'C';
       h.addMember('C', '_field1', 'Object?', promotable: true);
       h.addMember('C', '_field2', 'Object?', promotable: true);
-      var x = Var('x', 'C');
-      var y = Var('x', 'C');
+      var x = Var('x');
+      var y = Var('y');
       h.run([
-        declare(x, initialized: true),
-        declare(y, initialized: true),
+        declare(x, type: 'C', initializer: expr('C')),
+        declare(y, type: 'C', initializer: expr('C')),
         if_(thisOrSuperProperty('_field1').isNot('String'), [
           return_(),
         ]),
@@ -5914,9 +5984,9 @@ main() {
     test('cancelled by write to local var', () {
       h.thisType = 'C';
       h.addMember('C', '_field', 'Object?', promotable: true);
-      var x = Var('x', 'C');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'C', initializer: expr('C')),
         if_(x.expr.property('_field').isNot('String'), [
           return_(),
         ]),
@@ -5932,9 +6002,9 @@ main() {
       h.thisType = 'C';
       h.addMember('C', '_field1', 'D', promotable: true);
       h.addMember('D', '_field2', 'Object?', promotable: true);
-      var x = Var('x', 'C');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'C', initializer: expr('C')),
         if_(x.expr.property('_field1').property('_field2').isNot('String'), [
           return_(),
         ]),
@@ -5953,9 +6023,9 @@ main() {
     test('cancelled by write to local var later in loop', () {
       h.thisType = 'C';
       h.addMember('C', '_field', 'Object?', promotable: true);
-      var x = Var('x', 'C');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'C', initializer: expr('C')),
         if_(x.expr.property('_field').isNot('String'), [
           return_(),
         ]),
@@ -5973,9 +6043,9 @@ main() {
       h.thisType = 'C';
       h.addMember('C', '_field1', 'D', promotable: true);
       h.addMember('D', '_field2', 'Object?', promotable: true);
-      var x = Var('x', 'C');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'C', initializer: expr('C')),
         if_(x.expr.property('_field1').property('_field2').isNot('String'), [
           return_(),
         ]),
@@ -5996,9 +6066,9 @@ main() {
     test('cancelled by capture of local var', () {
       h.thisType = 'C';
       h.addMember('C', '_field', 'Object?', promotable: true);
-      var x = Var('x', 'C');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'C', initializer: expr('C')),
         if_(x.expr.property('_field').isNot('String'), [
           return_(),
         ]),
@@ -6016,9 +6086,9 @@ main() {
       h.thisType = 'C';
       h.addMember('C', '_field1', 'D', promotable: true);
       h.addMember('D', '_field2', 'Object?', promotable: true);
-      var x = Var('x', 'C');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'C', initializer: expr('C')),
         if_(x.expr.property('_field1').property('_field2').isNot('String'), [
           return_(),
         ]),
@@ -6039,9 +6109,9 @@ main() {
     test('prevented by previous capture of local var', () {
       h.thisType = 'C';
       h.addMember('C', '_field', 'Object?', promotable: true);
-      var x = Var('x', 'C');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'C', initializer: expr('C')),
         localFunction([
           x.write(expr('C')).stmt,
         ]),
@@ -6057,9 +6127,9 @@ main() {
       h.thisType = 'C';
       h.addMember('C', '_field1', 'D', promotable: true);
       h.addMember('D', '_field2', 'Object?', promotable: true);
-      var x = Var('x', 'C');
+      var x = Var('x');
       h.run([
-        declare(x, initialized: true),
+        declare(x, type: 'C', initializer: expr('C')),
         localFunction([
           x.write(expr('C')).stmt,
         ]),

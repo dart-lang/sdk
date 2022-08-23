@@ -142,6 +142,7 @@ class Object {
   ///
   /// The default behavior is to throw a [NoSuchMethodError].
   @pragma("vm:entry-point")
+  @pragma("wasm:entry-point")
   external dynamic noSuchMethod(Invocation invocation);
 
   /// A representation of the runtime type of the object.

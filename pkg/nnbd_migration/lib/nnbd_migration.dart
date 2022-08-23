@@ -327,7 +327,7 @@ abstract class NullabilityMigration {
       {bool? permissive,
       NullabilityMigrationInstrumentation? instrumentation,
       bool? removeViaComments,
-      bool? warnOnWeakCode}) = NullabilityMigrationImpl;
+      bool warnOnWeakCode}) = NullabilityMigrationImpl;
 
   /// Check if this migration is being run permissively.
   bool? get isPermissive;
