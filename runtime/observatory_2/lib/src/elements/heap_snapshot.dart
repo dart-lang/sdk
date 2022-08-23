@@ -690,7 +690,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
   }
 
   static List<Element> _createStatusMessage(String message,
-      {String description: '', double progress: 0.0}) {
+      {String description = '', double progress = 0.0}) {
     return [
       new DivElement()
         ..classes = ['content-centered-big']

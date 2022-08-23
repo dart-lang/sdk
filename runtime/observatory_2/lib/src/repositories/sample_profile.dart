@@ -35,7 +35,7 @@ class SampleProfileLoadingProgress extends M.SampleProfileLoadingProgress {
   SampleProfile get profile => _profile;
 
   SampleProfileLoadingProgress(this.owner, this.tag, this.clear,
-      {this.type: M.SampleProfileType.cpu, this.cls}) {
+      {this.type = M.SampleProfileType.cpu, this.cls}) {
     _run();
   }
 
@@ -115,7 +115,7 @@ class IsolateSampleProfileRepository
 
   Stream<SampleProfileLoadingProgressEvent> get(
       M.IsolateRef i, M.SampleProfileTag t,
-      {bool clear: false, bool forceFetch: false}) {
+      {bool clear = false, bool forceFetch = false}) {
     assert(clear != null);
     assert(forceFetch != null);
     S.Isolate isolate = i as S.Isolate;
@@ -132,7 +132,7 @@ class IsolateSampleProfileRepository
 class ClassSampleProfileRepository implements M.ClassSampleProfileRepository {
   Stream<SampleProfileLoadingProgressEvent> get(
       covariant M.Isolate i, M.ClassRef c, M.SampleProfileTag t,
-      {bool clear: false, bool forceFetch: false}) {
+      {bool clear = false, bool forceFetch = false}) {
     S.Isolate isolate = i as S.Isolate;
     S.Class cls = c as S.Class;
     assert(isolate != null);
@@ -158,7 +158,7 @@ class NativeMemorySampleProfileRepository
   SampleProfileLoadingProgress _last;
 
   Stream<SampleProfileLoadingProgressEvent> get(M.VM vm, M.SampleProfileTag t,
-      {bool forceFetch: false, bool clear: false}) {
+      {bool forceFetch = false, bool clear = false}) {
     assert(forceFetch != null);
     S.VM owner = vm as S.VM;
     assert(owner != null);

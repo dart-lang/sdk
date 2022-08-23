@@ -501,7 +501,7 @@ class AllocationProfileElement extends CustomElement implements Renderable {
     ];
   }
 
-  Future _refresh({bool gc: false, bool reset: false}) async {
+  Future _refresh({bool gc = false, bool reset = false}) async {
     _profile = null;
     _r.dirty();
     _profile = await _repository.get(_isolate, gc: gc, reset: reset);

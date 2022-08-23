@@ -89,7 +89,7 @@ class Tracer {
     events.clear();
   }
 
-  TraceEvent trace(String message, {Map map: null}) {
+  TraceEvent trace(String message, {Map map = null}) {
     var event = new TraceEvent.msg(_time.elapsedMicroseconds, message, map);
     events.add(event);
     return event;

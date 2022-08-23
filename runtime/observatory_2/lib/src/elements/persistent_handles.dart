@@ -247,7 +247,7 @@ class PersistentHandlesPageElement extends CustomElement implements Renderable {
     ];
   }
 
-  Future _refresh({bool gc: false, bool reset: false}) async {
+  Future _refresh({bool gc = false, bool reset = false}) async {
     _handles = null;
     _r.dirty();
     _handles = await _repository.get(_isolate);

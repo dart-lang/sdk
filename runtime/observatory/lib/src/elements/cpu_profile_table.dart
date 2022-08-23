@@ -404,7 +404,7 @@ class CpuProfileTableElement extends CustomElement implements Renderable {
     return node.profileFunction == _selected;
   }
 
-  Future _request({bool clear: false, bool forceFetch: false}) async {
+  Future _request({bool clear = false, bool forceFetch = false}) async {
     _progress = null;
     _progressStream = _profiles.get(isolate, M.SampleProfileTag.vmOnly,
         clear: clear, forceFetch: forceFetch);

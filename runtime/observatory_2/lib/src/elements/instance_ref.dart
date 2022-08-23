@@ -30,7 +30,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
 
   factory InstanceRefElement(
       M.IsolateRef isolate, M.InstanceRef instance, M.ObjectRepository objects,
-      {RenderingQueue queue, bool expandable: true}) {
+      {RenderingQueue queue, bool expandable = true}) {
     assert(isolate != null);
     assert(instance != null);
     assert(objects != null);
@@ -283,7 +283,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
                 anyRef(_isolate, element, _objects, queue: _r.queue)
               ])
             .toList()
-              ..addAll(_createShowMoreButton());
+          ..addAll(_createShowMoreButton());
       case M.InstanceKind.map:
         return _loadedInstance.associations
             .map<Element>((association) => new DivElement()
@@ -294,7 +294,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
                 anyRef(_isolate, association.value, _objects, queue: _r.queue)
               ])
             .toList()
-              ..addAll(_createShowMoreButton());
+          ..addAll(_createShowMoreButton());
       case M.InstanceKind.uint8ClampedList:
       case M.InstanceKind.uint8List:
       case M.InstanceKind.uint16List:
@@ -313,7 +313,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
         return _loadedInstance.typedElements
             .map<Element>((e) => new DivElement()..text = '[ ${index++} ] : $e')
             .toList()
-              ..addAll(_createShowMoreButton());
+          ..addAll(_createShowMoreButton());
       case M.InstanceKind.mirrorReference:
         return [
           new SpanElement()..text = '<referent> : ',

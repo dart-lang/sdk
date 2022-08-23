@@ -26,7 +26,7 @@ class NavNotifyElement extends CustomElement implements Renderable {
       _notifyOnPause = _r.checkAndReact(_notifyOnPause, value);
 
   factory NavNotifyElement(M.NotificationRepository repository,
-      {bool notifyOnPause: true, RenderingQueue? queue}) {
+      {bool notifyOnPause = true, RenderingQueue? queue}) {
     assert(repository != null);
     assert(notifyOnPause != null);
     NavNotifyElement e = new NavNotifyElement.created();

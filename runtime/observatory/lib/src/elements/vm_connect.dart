@@ -28,7 +28,7 @@ class VMConnectElement extends CustomElement implements Renderable {
 
   factory VMConnectElement(
       M.TargetRepository targets, M.NotificationRepository notifications,
-      {String address: '', RenderingQueue? queue}) {
+      {String address = '', RenderingQueue? queue}) {
     assert(address != null);
     assert(notifications != null);
     assert(targets != null);
