@@ -2618,6 +2618,13 @@ Dart_NewExternalTypedDataWithFinalizer(Dart_TypedData_Type type,
                                        void* peer,
                                        intptr_t external_allocation_size,
                                        Dart_HandleFinalizer callback);
+DART_EXPORT Dart_Handle Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+    Dart_TypedData_Type type,
+    const void* data,
+    intptr_t length,
+    void* peer,
+    intptr_t external_allocation_size,
+    Dart_HandleFinalizer callback);
 
 /**
  * Returns a ByteBuffer object for the typed data.

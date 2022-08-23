@@ -311,6 +311,10 @@ class UntaggedObject {
   void SetCanonical() { tags_.UpdateBool<CanonicalBit>(true); }
   void ClearCanonical() { tags_.UpdateBool<CanonicalBit>(false); }
 
+  bool IsImmutable() const { return tags_.Read<ImmutableBit>(); }
+  void SetImmutable() { tags_.UpdateBool<ImmutableBit>(true); }
+  void ClearImmutable() { tags_.UpdateBool<ImmutableBit>(false); }
+
   bool InVMIsolateHeap() const;
 
   // Support for GC remembered bit.

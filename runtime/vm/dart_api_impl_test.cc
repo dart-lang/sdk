@@ -2885,6 +2885,210 @@ TEST_CASE(DartAPI_ByteDataDirectAccessVerified) {
   TestByteDataDirectAccess();
 }
 
+TEST_CASE(DartAPI_NewUnmodifiableExternalTypedDataWithFinalizer) {
+  const char* kScriptChars = R"(
+class Expect {
+  static equals(a, b) {
+    if (a != b) {
+      throw 'not equal. expected: $a, got: $b';
+    }
+  }
+  static throws(block) {
+    bool threw = false;
+    try { block(); } catch (e) { threw = true; }
+    if (!threw) throw 'did not throw';
+  }
+}
+testList(data) {
+  for (var i = 0; i < data.length; i++) {
+    Expect.equals(i, data[i]);
+    Expect.throws(() => data[i] = 0);
+  }
+}
+testBytes(data) {
+  for (var i = 0; i < data.length; i++) {
+    Expect.equals(i, data.getUint8(i));
+    Expect.throws(() => data.setUint8(i, 0));
+  }
+})";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  {
+    uint8_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kUint8, &data[0], ARRAY_SIZE(data), nullptr, 0, nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kUint8, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    int8_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kInt8, &data[0], ARRAY_SIZE(data), nullptr, 0, nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kInt8, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    uint16_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kUint16, &data[0], ARRAY_SIZE(data), nullptr, 0,
+        nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kUint16, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    int16_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kInt16, &data[0], ARRAY_SIZE(data), nullptr, 0, nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kInt16, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    uint32_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kUint32, &data[0], ARRAY_SIZE(data), nullptr, 0,
+        nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kUint32, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    int32_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kInt32, &data[0], ARRAY_SIZE(data), nullptr, 0, nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kInt32, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    uint64_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kUint64, &data[0], ARRAY_SIZE(data), nullptr, 0,
+        nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kUint64, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    int64_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kInt64, &data[0], ARRAY_SIZE(data), nullptr, 0, nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kInt64, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    float data[] = {0.0f, 1.0f, 2.0f, 3.0f};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kFloat32, &data[0], ARRAY_SIZE(data), nullptr, 0,
+        nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kFloat32, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), 1, &typed_data);
+    EXPECT_VALID(result);
+    EXPECT_VALID(result);
+  }
+
+  {
+    double data[] = {0.0, 1.0, 2.0, 3.0};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kFloat64, &data[0], ARRAY_SIZE(data), nullptr, 0,
+        nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kFloat64, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testList"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+
+  {
+    uint8_t data[] = {0, 1, 2, 3};
+    Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+        Dart_TypedData_kByteData, &data[0], ARRAY_SIZE(data), nullptr, 0,
+        nullptr);
+    EXPECT_VALID(typed_data);
+    EXPECT_EQ(Dart_TypedData_kByteData, Dart_GetTypeOfTypedData(typed_data));
+    Dart_Handle args[1];
+    args[0] = typed_data;
+    Dart_Handle result =
+        Dart_Invoke(lib, NewString("testBytes"), ARRAY_SIZE(args), args);
+    EXPECT_VALID(result);
+  }
+}
+
+TEST_CASE(DartAPI_UnmodifiableTypedData_PassByReference) {
+  const char* kScriptChars = R"(
+import 'dart:isolate';
+test(original) {
+  var port = new RawReceivePort();
+  port.handler = (msg) {
+    port.close();
+    if (!identical(original, msg)) throw "got a copy";
+  };
+  port.sendPort.send(original);
+})";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  uint8_t data[] = {0, 1, 2, 3};
+  Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+      Dart_TypedData_kUint8, &data[0], ARRAY_SIZE(data), nullptr, 0, nullptr);
+  EXPECT_VALID(typed_data);
+  EXPECT_EQ(Dart_TypedData_kUint8, Dart_GetTypeOfTypedData(typed_data));
+  Dart_Handle args[1];
+  args[0] = typed_data;
+  Dart_Handle result =
+      Dart_Invoke(lib, NewString("test"), ARRAY_SIZE(args), args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT_VALID(result);
+}
+
 static void NopCallback(void* isolate_callback_data, void* peer) {}
 
 TEST_CASE(DartAPI_ExternalAllocationDuringNoCallbackScope) {
