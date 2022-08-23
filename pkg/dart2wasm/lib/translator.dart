@@ -585,6 +585,9 @@ class Translator {
           ? type.bound.withDeclaredNullability(type.nullability)
           : type.bound);
     }
+    if (type is IntersectionType) {
+      return translateStorageType(type.left);
+    }
     if (type is FutureOrType) {
       return topInfo.typeWithNullability(type.isPotentiallyNullable);
     }
