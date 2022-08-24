@@ -41,7 +41,7 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose: false}) {
+      {bool verbose = false}) {
     if (member.isField) {
       DartTypes dartTypes = compiler.frontendStrategy.commonElements.dartTypes;
       JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;

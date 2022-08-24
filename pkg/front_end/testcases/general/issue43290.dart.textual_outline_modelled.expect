@@ -1,5 +1,5 @@
 class Class {
-  const Class({this.length: 0});
+  const Class({this.length = 0});
   final int length;
   method1a() {}
   method1b() {}

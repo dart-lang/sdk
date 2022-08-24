@@ -38,7 +38,7 @@ main() {
   aFactInst(true, c: 87);
   aFactInst(false, c: 87, b: '');
   aRedirectInst(true);
-  
+
   var bNew = B.new;
   var bNamed = B.named;
   var bFact = B.fact;
@@ -75,6 +75,6 @@ main() {
 class Class<S, T> {
   Class(S a, T b);
   Class.named(S a, [T? b, int c = 42]);
-  factory Class.fact(S a, {T? b, int c: 42}) => Class.named(a, b, c);
+  factory Class.fact(S a, {T? b, int c = 42}) => Class.named(a, b, c);
   factory Class.redirect(S a) = Class.named;
 }

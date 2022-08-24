@@ -306,7 +306,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   /// Return list of same size as input with possibly translated uris.
-  Uri getEntryPointUri(Uri entryPoint, {bool issueProblem: false}) {
+  Uri getEntryPointUri(Uri entryPoint, {bool issueProblem = false}) {
     String scheme = entryPoint.scheme;
     switch (scheme) {
       case "package":
@@ -593,7 +593,7 @@ class KernelTarget extends TargetImplementation {
   /// component.
   Future<BuildResult> buildComponent(
       {required MacroApplications? macroApplications,
-      bool verify: false}) async {
+      bool verify = false}) async {
     if (loader.first == null) {
       return new BuildResult(macroApplications: macroApplications);
     }

@@ -1466,8 +1466,8 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
       required String type2,
       required String upperBound,
       String? typeParameters,
-      bool nonNull1: false,
-      bool nonNull2: false}) {
+      bool nonNull1 = false,
+      bool nonNull2 = false}) {
     typeParserEnvironment.withTypeParameters(typeParameters,
         (List<TypeParameter> typeParameterNodes) {
       DartType dartType1 = parseType(type1);

@@ -35,11 +35,11 @@ class TypeEnvironment {
   final bool testBackendWorld;
 
   static Future<TypeEnvironment> create(String source,
-      {bool expectNoErrors: false,
-      bool expectNoWarningsOrErrors: false,
-      bool testBackendWorld: false,
-      List<String> options: const <String>[],
-      Map<String, String> fieldTypeMap: const <String, String>{}}) async {
+      {bool expectNoErrors = false,
+      bool expectNoWarningsOrErrors = false,
+      bool testBackendWorld = false,
+      List<String> options = const <String>[],
+      Map<String, String> fieldTypeMap = const <String, String>{}}) async {
     memory.DiagnosticCollector collector = new memory.DiagnosticCollector();
     Uri uri = Uri.parse('memory:main.dart');
     memory.CompilationResult result = await memory.runCompiler(
@@ -62,7 +62,7 @@ class TypeEnvironment {
     return new TypeEnvironment._(compiler, testBackendWorld: testBackendWorld);
   }
 
-  TypeEnvironment._(Compiler this.compiler, {this.testBackendWorld: false});
+  TypeEnvironment._(Compiler this.compiler, {this.testBackendWorld = false});
 
   DartType legacyWrap(DartType type) {
     return options.useLegacySubtyping ? types.legacyType(type) : type;
@@ -225,7 +225,7 @@ class FunctionTypeData {
 ///
 ///     $returnType $name$parameters => null;
 String createMethods(List<FunctionTypeData> dataList,
-    {String additionalData: '', String prefix: ''}) {
+    {String additionalData = '', String prefix = ''}) {
   StringBuffer sb = new StringBuffer();
   for (FunctionTypeData data in dataList) {
     sb.writeln(
@@ -243,7 +243,7 @@ String createMethods(List<FunctionTypeData> dataList,
 ///
 /// where a field using the typedef is add to make the type accessible by name.
 String createTypedefs(List<FunctionTypeData> dataList,
-    {String additionalData: '', String prefix: ''}) {
+    {String additionalData = '', String prefix = ''}) {
   StringBuffer sb = new StringBuffer();
   for (int index = 0; index < dataList.length; index++) {
     FunctionTypeData data = dataList[index];
@@ -259,7 +259,7 @@ String createTypedefs(List<FunctionTypeData> dataList,
 }
 
 /// Return source code that uses the function types in [dataList].
-String createUses(List<FunctionTypeData> dataList, {String prefix: ''}) {
+String createUses(List<FunctionTypeData> dataList, {String prefix = ''}) {
   StringBuffer sb = new StringBuffer();
   for (int index = 0; index < dataList.length; index++) {
     FunctionTypeData data = dataList[index];

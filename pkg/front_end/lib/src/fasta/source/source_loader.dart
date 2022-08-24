@@ -323,7 +323,7 @@ class SourceLoader extends Loader {
       SourceLibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner,
-      bool isAugmentation: false}) {
+      bool isAugmentation = false}) {
     return new SourceLibraryBuilder(
         importUri: importUri,
         fileUri: fileUri,
@@ -561,7 +561,7 @@ class SourceLoader extends Loader {
       LibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner,
-      bool isAugmentation: false}) {
+      bool isAugmentation = false}) {
     LibraryBuilder libraryBuilder = _read(uri,
         fileUri: fileUri,
         origin: origin,
@@ -624,7 +624,7 @@ class SourceLoader extends Loader {
       LibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner,
-      bool isAugmentation: false}) {
+      bool isAugmentation = false}) {
     LibraryBuilder? libraryBuilder = _builders[uri];
     if (libraryBuilder == null) {
       if (target.dillTarget.isLoaded) {
@@ -691,10 +691,10 @@ class SourceLoader extends Loader {
   @override
   FormattedMessage? addProblem(
       Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled: false,
+      {bool wasHandled = false,
       List<LocatedMessage>? context,
       Severity? severity,
-      bool problemOnLibrary: false,
+      bool problemOnLibrary = false,
       List<Uri>? involvedFiles}) {
     return addMessage(message, charOffset, length, fileUri, severity,
         wasHandled: wasHandled,
@@ -716,9 +716,9 @@ class SourceLoader extends Loader {
   /// [wasHandled] is false.
   FormattedMessage? addMessage(Message message, int charOffset, int length,
       Uri? fileUri, Severity? severity,
-      {bool wasHandled: false,
+      {bool wasHandled = false,
       List<LocatedMessage>? context,
-      bool problemOnLibrary: false,
+      bool problemOnLibrary = false,
       List<Uri>? involvedFiles}) {
     assert(
         fileUri != missingUri, "Message unexpectedly reported on missing uri.");
@@ -819,7 +819,7 @@ severity: $severity
       templateSourceOutlineSummary;
 
   Future<Token> tokenize(SourceLibraryBuilder libraryBuilder,
-      {bool suppressLexicalErrors: false}) async {
+      {bool suppressLexicalErrors = false}) async {
     target.benchmarker?.beginSubdivide(BenchmarkSubdivides.tokenize);
     Uri fileUri = libraryBuilder.fileUri;
 
@@ -2416,16 +2416,16 @@ severity: $severity
 
   Expression instantiateNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isField: false,
-      bool isLocalVariable: false,
-      bool isDynamic: false,
-      bool isSuper: false,
-      bool isStatic: false,
-      bool isConstructor: false,
-      bool isTopLevel: false}) {
+      {bool isMethod = false,
+      bool isGetter = false,
+      bool isSetter = false,
+      bool isField = false,
+      bool isLocalVariable = false,
+      bool isDynamic = false,
+      bool isSuper = false,
+      bool isStatic = false,
+      bool isConstructor = false,
+      bool isTopLevel = false}) {
     return target.backendTarget.instantiateNoSuchMethodError(
         coreTypes, receiver, name, arguments, offset,
         isMethod: isMethod,

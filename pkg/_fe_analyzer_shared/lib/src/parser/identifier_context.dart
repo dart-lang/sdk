@@ -305,14 +305,14 @@ abstract class IdentifierContext {
   final Template<_MessageWithArgument<Token>> recoveryTemplate;
 
   const IdentifierContext(this._name,
-      {this.inDeclaration: false,
-      this.inLibraryOrPartOfDeclaration: false,
-      this.inSymbol: false,
-      this.isContinuation: false,
-      this.isScopeReference: false,
-      this.isBuiltInIdentifierAllowed: true,
+      {this.inDeclaration = false,
+      this.inLibraryOrPartOfDeclaration = false,
+      this.inSymbol = false,
+      this.isContinuation = false,
+      this.isScopeReference = false,
+      this.isBuiltInIdentifierAllowed = true,
       bool? allowedInConstantExpression,
-      this.recoveryTemplate: templateExpectedIdentifier})
+      this.recoveryTemplate = templateExpectedIdentifier})
       : this.allowedInConstantExpression =
             // Generally, declarations are legal in constant expressions.  A
             // continuation doesn't affect constant expressions: if what it's

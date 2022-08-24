@@ -48,7 +48,7 @@ abstract class ErrorCode {
   const ErrorCode({
     String? correctionMessage,
     this.hasPublishedDocs = false,
-    this.isUnresolvedIdentifier: false,
+    this.isUnresolvedIdentifier = false,
     required this.name,
     required String problemMessage,
     required this.uniqueName,

@@ -17,7 +17,7 @@ String nullabilityToString(Nullability nullability) {
   }
 }
 
-String nameToString(Name? node, {bool includeLibraryName: false}) {
+String nameToString(Name? node, {bool includeLibraryName = false}) {
   if (node == null) {
     return 'null';
   } else if (node.library != null && includeLibraryName) {
@@ -32,7 +32,7 @@ String libraryNameToString(Library? node) {
 }
 
 String qualifiedClassNameToString(Class node,
-    {bool includeLibraryName: false}) {
+    {bool includeLibraryName = false}) {
   TreeNode? parent = node.parent;
   if (parent is Library && includeLibraryName) {
     return libraryNameToString(parent) + '::' + classNameToString(node);
@@ -42,7 +42,8 @@ String qualifiedClassNameToString(Class node,
 }
 
 String qualifiedCanonicalNameToString(CanonicalName canonicalName,
-    {bool includeLibraryName: false, bool includeLibraryNamesInTypes: false}) {
+    {bool includeLibraryName = false,
+    bool includeLibraryNamesInTypes = false}) {
   if (canonicalName.isRoot) {
     return '<root>';
   } else if (canonicalName.parent!.isRoot) {
@@ -90,7 +91,7 @@ String qualifiedCanonicalNameToString(CanonicalName canonicalName,
 }
 
 String qualifiedClassNameToStringByReference(Reference? reference,
-    {bool includeLibraryName: false}) {
+    {bool includeLibraryName = false}) {
   if (reference == null) {
     return '<missing-class-reference>';
   } else {
@@ -116,7 +117,7 @@ String classNameToString(Class? node) {
 }
 
 String qualifiedExtensionNameToString(Extension node,
-    {bool includeLibraryName: false}) {
+    {bool includeLibraryName = false}) {
   TreeNode? parent = node.parent;
   if (parent is Library && includeLibraryName) {
     return libraryNameToString(parent) + '::' + extensionNameToString(node);
@@ -126,7 +127,7 @@ String qualifiedExtensionNameToString(Extension node,
 }
 
 String qualifiedExtensionNameToStringByReference(Reference? reference,
-    {bool includeLibraryName: false}) {
+    {bool includeLibraryName = false}) {
   if (reference == null) {
     return '<missing-extension-reference>';
   } else {
@@ -152,7 +153,7 @@ String extensionNameToString(Extension? node) {
 }
 
 String qualifiedTypedefNameToString(Typedef node,
-    {bool includeLibraryName: false}) {
+    {bool includeLibraryName = false}) {
   TreeNode? parent = node.parent;
   if (parent is Library && includeLibraryName) {
     return libraryNameToString(parent) + '::' + typedefNameToString(node);
@@ -162,7 +163,7 @@ String qualifiedTypedefNameToString(Typedef node,
 }
 
 String qualifiedTypedefNameToStringByReference(Reference? reference,
-    {bool includeLibraryName: false}) {
+    {bool includeLibraryName = false}) {
   if (reference == null) {
     return '<missing-typedef-reference>';
   } else {
@@ -188,7 +189,7 @@ String typedefNameToString(Typedef? node) {
 }
 
 String qualifiedMemberNameToString(Member node,
-    {bool includeLibraryName: false}) {
+    {bool includeLibraryName = false}) {
   TreeNode? parent = node.parent;
   if (parent is Class) {
     return qualifiedClassNameToString(parent,
@@ -203,7 +204,7 @@ String qualifiedMemberNameToString(Member node,
 }
 
 String qualifiedMemberNameToStringByReference(Reference? reference,
-    {bool includeLibraryName: false}) {
+    {bool includeLibraryName = false}) {
   if (reference == null) {
     return '<missing-member-reference>';
   } else {
@@ -229,7 +230,7 @@ String memberNameToString(Member node) {
 }
 
 String qualifiedTypeParameterNameToString(TypeParameter node,
-    {bool includeLibraryName: false}) {
+    {bool includeLibraryName = false}) {
   TreeNode? parent = node.parent;
   if (parent is Class) {
     return qualifiedClassNameToString(parent,

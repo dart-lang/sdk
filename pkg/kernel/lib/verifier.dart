@@ -9,7 +9,9 @@ import 'transformations/flags.dart';
 import 'type_environment.dart' show StatefulStaticTypeContext, TypeEnvironment;
 
 void verifyComponent(Component component,
-    {bool? isOutline, bool? afterConst, bool constantsAreAlwaysInlined: true}) {
+    {bool? isOutline,
+    bool? afterConst,
+    bool constantsAreAlwaysInlined = true}) {
   VerifyingVisitor.check(component,
       isOutline: isOutline,
       afterConst: afterConst,

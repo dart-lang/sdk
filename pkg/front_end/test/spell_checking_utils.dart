@@ -20,7 +20,7 @@ enum Dictionaries {
 Map<Dictionaries, Set<String>>? loadedDictionaries;
 
 SpellingResult spellcheckString(String s,
-    {List<Dictionaries>? dictionaries, bool splitAsCode: false}) {
+    {List<Dictionaries>? dictionaries, bool splitAsCode = false}) {
   dictionaries ??= const [Dictionaries.common];
   ensureDictionariesLoaded(dictionaries);
 
@@ -182,7 +182,7 @@ Uri dictionaryToUri(Dictionaries dictionaryType) {
 }
 
 List<String> splitStringIntoWords(String s, List<int> splitOffsets,
-    {bool splitAsCode: false}) {
+    {bool splitAsCode = false}) {
   List<String> result = <String>[];
   // Match whitespace and the characters "-", "=", "|", "/", ",".
   String regExpStringInner = r"\s-=\|\/,";

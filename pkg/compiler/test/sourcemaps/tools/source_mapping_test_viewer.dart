@@ -123,7 +123,7 @@ class OutputConfigurations implements Configurations {
 
 Future<Measurement> runTest(
     String config, String filename, Uri uri, List<String> options,
-    {Uri outputUri, bool verbose, bool missingOnly: false}) async {
+    {Uri outputUri, bool verbose, bool missingOnly = false}) async {
   TestResult result =
       await runTests(config, filename, uri, options, verbose: verbose);
   if (outputUri != null) {

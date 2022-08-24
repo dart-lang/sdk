@@ -26,9 +26,9 @@ void main() {
 
 testClasses() async {
   test(String mainSource,
-      {List<String> directlyInstantiated: const <String>[],
-      List<String> abstractlyInstantiated: const <String>[],
-      List<String> indirectlyInstantiated: const <String>[]}) async {
+      {List<String> directlyInstantiated = const <String>[],
+      List<String> abstractlyInstantiated = const <String>[],
+      List<String> indirectlyInstantiated = const <String>[]}) async {
     CompilationResult result = await runCompiler(memorySourceFiles: {
       'main.dart': """
 import 'package:js/js.dart';

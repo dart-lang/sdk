@@ -31,11 +31,11 @@ import '../fasta/hybrid_file_system.dart' show HybridFileSystem;
 ///
 /// Wraps [kernelForProgram] with some default testing options (see [setup]).
 Future<CompilerResult?> compileScript(dynamic scriptOrSources,
-    {String fileName: 'main.dart',
-    List<String> additionalDills: const [],
+    {String fileName = 'main.dart',
+    List<String> additionalDills = const [],
     CompilerOptions? options,
-    bool retainDataForTesting: false,
-    bool requireMain: true}) async {
+    bool retainDataForTesting = false,
+    bool requireMain = true}) async {
   options ??= new CompilerOptions();
   Map<String, dynamic> sources;
   if (scriptOrSources is String) {
@@ -54,7 +54,7 @@ Future<CompilerResult?> compileScript(dynamic scriptOrSources,
 /// Wraps [kernelForModule] with some default testing options (see [setup]).
 Future<Component?> compileUnit(
     List<String> inputs, Map<String, dynamic> sources,
-    {List<String> additionalDills: const [], CompilerOptions? options}) async {
+    {List<String> additionalDills = const [], CompilerOptions? options}) async {
   options ??= new CompilerOptions();
   await setup(options, sources, additionalDills: additionalDills);
   return (await kernelForModule(inputs.map(toTestUri).toList(), options))
@@ -65,9 +65,9 @@ Future<Component?> compileUnit(
 ///
 /// Wraps [summaryFor] with some default testing options (see [setup]).
 Future<List<int>?> summarize(List<String> inputs, Map<String, dynamic> sources,
-    {List<String> additionalDills: const [],
+    {List<String> additionalDills = const [],
     CompilerOptions? options,
-    bool truncate: false}) async {
+    bool truncate = false}) async {
   options ??= new CompilerOptions();
   await setup(options, sources, additionalDills: additionalDills);
   return await summaryFor(inputs.map(toTestUri).toList(), options,
@@ -86,7 +86,7 @@ Future<List<int>?> summarize(List<String> inputs, Map<String, dynamic> sources,
 ///
 ///   * specify the location of the sdk summaries.
 Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
-    {List<String> additionalDills: const []}) async {
+    {List<String> additionalDills = const []}) async {
   MemoryFileSystem fs = createMemoryFileSystem();
   sources.forEach((name, data) {
     MemoryFileSystemEntity entity = fs.entityForUri(toTestUri(name));

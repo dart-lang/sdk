@@ -68,7 +68,7 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   }
 
   @override
-  Member? getInterfaceMember(Class class_, Name name, {bool setter: false}) {
+  Member? getInterfaceMember(Class class_, Name name, {bool setter = false}) {
     return null;
   }
 

@@ -954,7 +954,7 @@ List<NonSimplicityIssue> getNonSimplicityIssuesForTypeVariables(
 /// in the triplet is the context.
 List<NonSimplicityIssue> getNonSimplicityIssuesForDeclaration(
     TypeDeclarationBuilder declaration,
-    {bool performErrorRecovery: true}) {
+    {bool performErrorRecovery = true}) {
   List<NonSimplicityIssue> issues = <NonSimplicityIssue>[];
   if (declaration is ClassBuilder && declaration.typeVariables != null) {
     issues.addAll(getInboundReferenceIssues(declaration.typeVariables!));

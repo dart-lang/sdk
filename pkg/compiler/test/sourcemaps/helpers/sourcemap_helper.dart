@@ -164,7 +164,7 @@ class RecordingSourceMapper implements SourceMapper {
   }
 
   @override
-  void registerPop(int codeOffset, {bool isEmpty: false}) {
+  void registerPop(int codeOffset, {bool isEmpty = false}) {
     sourceMapper.registerPop(codeOffset, isEmpty: isEmpty);
   }
 }
@@ -320,7 +320,7 @@ class SourceMapProcessor {
   SourceFileManager sourceFileManager;
 
   /// Creates a processor for the Dart file [uri].
-  SourceMapProcessor(Uri uri, {this.outputToFile: false}) {
+  SourceMapProcessor(Uri uri, {this.outputToFile = false}) {
     inputUri = Uri.base.resolveUri(uri);
     jsPath = 'out.js';
     targetUri = Uri.base.resolve(jsPath);
@@ -329,7 +329,9 @@ class SourceMapProcessor {
 
   /// Computes the [SourceMapInfo] for the compiled elements.
   Future<SourceMaps> process(List<String> options,
-      {bool verbose: true, bool perElement: true, bool forMain: false}) async {
+      {bool verbose = true,
+      bool perElement = true,
+      bool forMain = false}) async {
     OutputProvider outputProvider = outputToFile
         ? new CloningOutputProvider(targetUri, sourceMapFileUri)
         : new OutputProvider();
@@ -478,7 +480,7 @@ class _LocationRecorder implements SourceMapper, LocationMap {
       String inlinedMethodName) {}
 
   @override
-  void registerPop(int codeOffset, {bool isEmpty: false}) {}
+  void registerPop(int codeOffset, {bool isEmpty = false}) {}
 
   @override
   Iterable<js.Node> get nodes => _nodeMap.keys;
@@ -539,7 +541,7 @@ class CodePointComputer extends TraceListener {
     register(kind, node);
   }
 
-  void register(StepKind kind, js.Node node, {bool expectInfo: true}) {
+  void register(StepKind kind, js.Node node, {bool expectInfo = true}) {
     String dartCodeFromSourceLocation(SourceLocation sourceLocation) {
       SourceFile sourceFile =
           sourceFileManager.getSourceFile(sourceLocation.sourceUri);
@@ -598,7 +600,7 @@ class CodePoint {
 
   CodePoint(this.kind, this.jsCode, this.targetOffset, this.sourceLocation,
       this.dartCode,
-      {this.isMissing: false});
+      {this.isMissing = false});
 
   @override
   String toString() {

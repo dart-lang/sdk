@@ -76,8 +76,8 @@ abstract class IncrementalKernelGenerator {
   /// Component.
   Future<IncrementalCompilerResult> computeDelta(
       {List<Uri>? entryPoints,
-      bool fullComponent: false,
-      bool trackNeededDillLibraries: false});
+      bool fullComponent = false,
+      bool trackNeededDillLibraries = false});
 
   /// Remove the file associated with the given file [uri] from the set of
   /// valid files.  This guarantees that those files will be re-read on the

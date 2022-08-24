@@ -44,10 +44,10 @@ const bool kDumpClassHierarchy =
 Component transformComponent(
     Target target, CoreTypes coreTypes, Component component,
     {PragmaAnnotationParser? matcher,
-    bool treeShakeSignatures: true,
-    bool treeShakeWriteOnlyFields: true,
-    bool treeShakeProtobufs: false,
-    bool useRapidTypeAnalysis: true}) {
+    bool treeShakeSignatures = true,
+    bool treeShakeWriteOnlyFields = true,
+    bool treeShakeProtobufs = false,
+    bool useRapidTypeAnalysis = true}) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component, coreTypes,
           onAmbiguousSupertypes: ignoreAmbiguousSupertypes)
@@ -337,7 +337,7 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   InferredType? _convertType(Type type,
-      {bool skipCheck: false, bool receiverNotInt: false}) {
+      {bool skipCheck = false, bool receiverNotInt = false}) {
     Class? concreteClass;
     Constant? constantValue;
     bool isInt = false;
@@ -388,7 +388,7 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   void _setInferredType(TreeNode node, Type type,
-      {bool skipCheck: false, bool receiverNotInt: false}) {
+      {bool skipCheck = false, bool receiverNotInt = false}) {
     final inferredType = _convertType(type,
         skipCheck: skipCheck, receiverNotInt: receiverNotInt);
     if (inferredType != null) {
@@ -725,7 +725,7 @@ class TreeShaker {
     this.typeFlowAnalysis,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy, {
-    this.treeShakeWriteOnlyFields: true,
+    this.treeShakeWriteOnlyFields = true,
   }) : _finalizableTypes = new FinalizableTypes(
             coreTypes, typeFlowAnalysis.libraryIndex, hierarchy) {
     fieldMorpher = new FieldMorpher(this);

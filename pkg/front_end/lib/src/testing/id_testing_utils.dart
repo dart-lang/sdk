@@ -43,7 +43,7 @@ Member getEnclosingMember(TreeNode? node) {
 /// Finds the first [Library] in [component] with the given import [uri].
 ///
 /// If [required] is `true` an error is thrown if no library was found.
-Library? lookupLibrary(Component component, Uri uri, {bool required: true}) {
+Library? lookupLibrary(Component component, Uri uri, {bool required = true}) {
   for (Library library in component.libraries) {
     if (library.importUri == uri) {
       return library;
@@ -58,7 +58,7 @@ Library? lookupLibrary(Component component, Uri uri, {bool required: true}) {
 /// Finds the first [Class] in [library] with the given [className].
 ///
 /// If [required] is `true` an error is thrown if no class was found.
-Class? lookupClass(Library library, String className, {bool required: true}) {
+Class? lookupClass(Library library, String className, {bool required = true}) {
   for (Class cls in library.classes) {
     if (cls.name == className) {
       return cls;
@@ -74,7 +74,7 @@ Class? lookupClass(Library library, String className, {bool required: true}) {
 ///
 /// If [required] is `true` an error is thrown if no class was found.
 Extension? lookupExtension(Library library, String extensionName,
-    {bool required: true}) {
+    {bool required = true}) {
   for (Extension extension in library.extensions) {
     if (extension.name == extensionName) {
       return extension;
@@ -92,7 +92,7 @@ Extension? lookupExtension(Library library, String extensionName,
 ///
 /// If [required] is `true` an error is thrown if no member was found.
 Member? lookupLibraryMember(Library library, String memberName,
-    {bool required: true}) {
+    {bool required = true}) {
   for (Member member in library.members) {
     if (getMemberName(member) == memberName) {
       return member;
@@ -108,7 +108,8 @@ Member? lookupLibraryMember(Library library, String memberName,
 /// [memberName] as computed by [getMemberName].
 ///
 /// If [required] is `true` an error is thrown if no member was found.
-Member? lookupClassMember(Class cls, String memberName, {bool required: true}) {
+Member? lookupClassMember(Class cls, String memberName,
+    {bool required = true}) {
   for (Member member in cls.members) {
     if (getMemberName(member) == memberName) {
       return member;
@@ -122,7 +123,7 @@ Member? lookupClassMember(Class cls, String memberName, {bool required: true}) {
 
 LibraryBuilder? lookupLibraryBuilder(
     InternalCompilerResult compilerResult, Library library,
-    {bool required: true}) {
+    {bool required = true}) {
   SourceLoader loader = compilerResult.kernelTargetForTesting!.loader;
   LibraryBuilder? builder = loader.lookupLibraryBuilder(library.importUri);
   if (builder == null && required) {
@@ -133,7 +134,7 @@ LibraryBuilder? lookupLibraryBuilder(
 
 TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
     InternalCompilerResult compilerResult, Library library,
-    {bool required: true}) {
+    {bool required = true}) {
   SourceLibraryBuilder builder =
       lookupLibraryBuilder(compilerResult, library, required: required)
           as SourceLibraryBuilder;
@@ -142,7 +143,7 @@ TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
 
 ClassBuilder? lookupClassBuilder(
     InternalCompilerResult compilerResult, Class cls,
-    {bool required: true}) {
+    {bool required = true}) {
   TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
       compilerResult, cls.enclosingLibrary,
       required: required);
@@ -155,7 +156,7 @@ ClassBuilder? lookupClassBuilder(
 
 ExtensionBuilder? lookupExtensionBuilder(
     InternalCompilerResult compilerResult, Extension extension,
-    {bool required: true}) {
+    {bool required = true}) {
   TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
       compilerResult, extension.enclosingLibrary,
       required: required);
@@ -171,7 +172,7 @@ ExtensionBuilder? lookupExtensionBuilder(
 /// [cls] using [memberName] as its name.
 MemberBuilder? lookupClassMemberBuilder(InternalCompilerResult compilerResult,
     Class cls, Member member, String memberName,
-    {bool required: true}) {
+    {bool required = true}) {
   ClassBuilder? classBuilder =
       lookupClassBuilder(compilerResult, cls, required: required);
   MemberBuilder? memberBuilder;
@@ -191,7 +192,7 @@ MemberBuilder? lookupClassMemberBuilder(InternalCompilerResult compilerResult,
 
 MemberBuilder? lookupMemberBuilder(
     InternalCompilerResult compilerResult, Member member,
-    {bool required: true}) {
+    {bool required = true}) {
   MemberBuilder? memberBuilder;
   if (member.isExtensionMember) {
     String memberName = member.name.text;
@@ -238,8 +239,8 @@ MemberBuilder? lookupExtensionMemberBuilder(
     Extension extension,
     Member member,
     String memberName,
-    {bool isSetter: false,
-    bool required: true}) {
+    {bool isSetter = false,
+    bool required = true}) {
   ExtensionBuilder? extensionBuilder =
       lookupExtensionBuilder(compilerResult, extension, required: required);
   MemberBuilder? memberBuilder;
@@ -256,7 +257,7 @@ MemberBuilder? lookupExtensionMemberBuilder(
 /// Returns a textual representation of the constant [node] to be used in
 /// testing.
 String constantToText(Constant node,
-    {TypeRepresentation typeRepresentation: TypeRepresentation.legacy}) {
+    {TypeRepresentation typeRepresentation = TypeRepresentation.legacy}) {
   StringBuffer sb = new StringBuffer();
   new ConstantToTextVisitor(sb, typeRepresentation).visit(node);
   return sb.toString();
@@ -733,7 +734,7 @@ String typeVariableBuilderToText(TypeVariableBuilder typeVariable) {
 }
 
 /// Returns a textual representation of [errors] to be used in testing.
-String errorsToText(List<FormattedMessage> errors, {bool useCodes: false}) {
+String errorsToText(List<FormattedMessage> errors, {bool useCodes = false}) {
   if (useCodes) {
     return errors.map((m) => m.code).join(',');
   } else {

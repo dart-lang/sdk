@@ -10,10 +10,10 @@ class Class {
   final bool defaultValue;
 
   @patch
-  Class.generative({this.defaultValue: true});
+  Class.generative({this.defaultValue = true});
 
   @patch
-  const Class.constGenerative({this.defaultValue: true});
+  const Class.constGenerative({this.defaultValue = true});
 }
 
 @patch

@@ -45,7 +45,7 @@ class TestRandomAccessFileOutputProvider implements api.CompilerOutput {
 CompileFunc oldCompileFunc;
 
 Future<Null> test(List<String> arguments, List<String> expectedOutput,
-    {List<String> groupOutputs: const <String>[]}) async {
+    {List<String> groupOutputs = const <String>[]}) async {
   List<String> options = new List<String>.from(arguments)
     ..add('--platform-binaries=$sdkPlatformBinariesPath')
     ..add('--libraries-spec=$sdkLibrariesSpecificationUri');

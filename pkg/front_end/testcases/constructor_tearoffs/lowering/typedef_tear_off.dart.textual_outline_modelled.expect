@@ -12,7 +12,7 @@ class B<X> {
 expect(expected, actual) {}
 final bool inSoundMode = <int?>[] is! List<int>;
 main() {}
-throws(Function() f, {bool inSoundModeOnly: false}) {}
+throws(Function() f, {bool inSoundModeOnly = false}) {}
 typedef DA1 = A;
 typedef DA2<X extends num> = A;
 typedef DB1 = B<String>;

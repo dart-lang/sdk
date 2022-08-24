@@ -131,7 +131,7 @@ class ComputeKernelResult {
 ///
 /// Returns whether or not the summary was successfully output.
 Future<ComputeKernelResult> computeKernel(List<String> args,
-    {bool isWorker: false,
+    {bool isWorker = false,
     StringBuffer? outputBuffer,
     Map<Uri, List<int>>? inputDigests,
     fe.InitializedCompilerState? previousState}) async {

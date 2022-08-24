@@ -37,7 +37,7 @@ main() async {
   });
 }
 
-runTest(List<String> options, {bool trust: true}) async {
+runTest(List<String> options, {bool trust = true}) async {
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': source}, options: options);
   Expect.isTrue(result.isSuccess);

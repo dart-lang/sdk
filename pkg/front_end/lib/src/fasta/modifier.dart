@@ -120,7 +120,7 @@ class Modifier {
 
   /// Returns [modifier] with [abstractMask] added if [isAbstract] and
   /// [modifiers] doesn't contain [externalMask].
-  static int addAbstractMask(int modifiers, {bool isAbstract: false}) {
+  static int addAbstractMask(int modifiers, {bool isAbstract = false}) {
     if (isAbstract && (modifiers & externalMask) == 0) {
       modifiers |= abstractMask;
     }

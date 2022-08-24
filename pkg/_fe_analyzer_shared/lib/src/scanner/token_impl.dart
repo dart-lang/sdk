@@ -40,7 +40,7 @@ class StringTokenImpl extends SimpleToken implements StringToken {
    * is canonicalized before the token is created.
    */
   StringTokenImpl.fromString(TokenType type, String value, int charOffset,
-      {bool canonicalize: false, CommentToken? precedingComments})
+      {bool canonicalize = false, CommentToken? precedingComments})
       : valueOrLazySubstring =
             canonicalize ? canonicalizedString(value) : value,
         super(type, charOffset, precedingComments);
@@ -51,7 +51,7 @@ class StringTokenImpl extends SimpleToken implements StringToken {
    */
   StringTokenImpl.fromSubstring(
       TokenType type, String data, int start, int end, int charOffset,
-      {bool canonicalize: false, CommentToken? precedingComments})
+      {bool canonicalize = false, CommentToken? precedingComments})
       : super(type, charOffset, precedingComments) {
     int length = end - start;
     if (length <= LAZY_THRESHOLD) {
@@ -166,7 +166,7 @@ class LanguageVersionTokenImpl extends CommentTokenImpl
 
   LanguageVersionTokenImpl.fromSubstring(
       String string, int start, int end, int tokenStart, this.major, this.minor,
-      {bool canonicalize: false})
+      {bool canonicalize = false})
       : super.fromSubstring(
             TokenType.SINGLE_LINE_COMMENT, string, start, end, tokenStart,
             canonicalize: canonicalize);

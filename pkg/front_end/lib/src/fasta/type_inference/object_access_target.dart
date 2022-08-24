@@ -626,7 +626,7 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
 
   ExtensionAccessTarget(this.receiverType, this.member, this.tearoffTarget,
       this.extensionMethodKind, this.inferredExtensionTypeArguments,
-      {bool isPotentiallyNullable: false})
+      {bool isPotentiallyNullable = false})
       : super.internal(isPotentiallyNullable
             ? ObjectAccessTargetKind.nullableExtensionMember
             : ObjectAccessTargetKind.extensionMember);

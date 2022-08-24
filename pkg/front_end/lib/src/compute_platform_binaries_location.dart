@@ -74,7 +74,7 @@ String? computePlatformDillName(
 /// Computes the location of platform binaries, that is, compiled `.dill` files
 /// of the platform libraries that are used to avoid recompiling those
 /// libraries.
-Uri computePlatformBinariesLocation({bool forceBuildDir: false}) {
+Uri computePlatformBinariesLocation({bool forceBuildDir = false}) {
   String? resolvedExecutable = Platform.environment['resolvedExecutable'];
   // The directory of the Dart VM executable.
   Uri vmDirectory = Uri.base

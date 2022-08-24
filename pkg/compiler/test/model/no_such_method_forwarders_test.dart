@@ -114,7 +114,7 @@ main() {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
 
     void check(String className,
-        {bool hasMethod, bool isAbstract: false, String declaringClass}) {
+        {bool hasMethod, bool isAbstract = false, String declaringClass}) {
       MemberEntity member =
           findClassMember(closedWorld, className, 'method', required: false);
       if (hasMethod) {

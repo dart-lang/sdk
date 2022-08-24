@@ -422,8 +422,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       {int? fileOffset,
       DartType? declaredContextType,
       DartType? runtimeCheckedType,
-      bool isVoidAllowed: false,
-      bool coerceExpression: true,
+      bool isVoidAllowed = false,
+      bool coerceExpression = true,
       Template<Message Function(DartType, DartType, bool)>? errorTemplate,
       Template<Message Function(DartType, DartType, bool)>?
           nullabilityErrorTemplate,
@@ -457,8 +457,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       {int? fileOffset,
       DartType? declaredContextType,
       DartType? runtimeCheckedType,
-      bool isVoidAllowed: false,
-      bool coerceExpression: true,
+      bool isVoidAllowed = false,
+      bool coerceExpression = true,
       Template<Message Function(DartType, DartType, bool)>? errorTemplate,
       Template<Message Function(DartType, DartType, bool)>?
           nullabilityErrorTemplate,
@@ -950,9 +950,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// reporting that the receiver does not have a member by the given name.
   ObjectAccessTarget? _findExtensionMember(
       DartType receiverType, Class classNode, Name name, int fileOffset,
-      {bool setter: false,
+      {bool setter = false,
       ObjectAccessTarget? defaultTarget,
-      bool isPotentiallyNullableAccess: false}) {
+      bool isPotentiallyNullableAccess = false}) {
     Name otherName = name;
     bool otherIsSetter;
     if (name == indexGetName) {
@@ -1109,8 +1109,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ObjectAccessTarget findInterfaceMember(
       DartType receiverType, Name name, int fileOffset,
       {required CallSiteAccessKind callSiteAccessKind,
-      bool instrumented: true,
-      bool includeExtensionMethods: false}) {
+      bool instrumented = true,
+      bool includeExtensionMethods = false}) {
     // ignore: unnecessary_null_comparison
     assert(receiverType != null && isKnown(receiverType));
 
@@ -1408,7 +1408,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// based on the static type of the initializer expression, given by
   /// [initializerType].
   DartType inferDeclarationType(DartType initializerType,
-      {bool forSyntheticVariable: false}) {
+      {bool forSyntheticVariable = false}) {
     if (forSyntheticVariable) {
       return normalizeNullabilityInLibrary(
           initializerType, libraryBuilder.library);
@@ -1463,13 +1463,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       FunctionType calleeType,
       ArgumentsImpl arguments,
       {List<VariableDeclaration>? hoistedExpressions,
-      bool isSpecialCasedBinaryOperator: false,
-      bool isSpecialCasedTernaryOperator: false,
+      bool isSpecialCasedBinaryOperator = false,
+      bool isSpecialCasedTernaryOperator = false,
       DartType? receiverType,
-      bool skipTypeArgumentInference: false,
-      bool isConst: false,
-      bool isImplicitExtensionMember: false,
-      bool isImplicitCall: false,
+      bool skipTypeArgumentInference = false,
+      bool isConst = false,
+      bool isImplicitExtensionMember = false,
+      bool isImplicitCall = false,
       Member? staticTarget,
       bool isExtensionMemberInvocation = false}) {
     int extensionTypeParameterCount = getExtensionTypeParameterCount(arguments);
@@ -1510,13 +1510,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       FunctionType calleeType,
       Arguments arguments,
       List<VariableDeclaration>? hoistedExpressions,
-      {bool isSpecialCasedBinaryOperator: false,
-      bool isSpecialCasedTernaryOperator: false,
+      {bool isSpecialCasedBinaryOperator = false,
+      bool isSpecialCasedTernaryOperator = false,
       DartType? receiverType,
-      bool skipTypeArgumentInference: false,
-      bool isConst: false,
-      bool isImplicitExtensionMember: false,
-      bool isImplicitCall: false,
+      bool skipTypeArgumentInference = false,
+      bool isConst = false,
+      bool isImplicitExtensionMember = false,
+      bool isImplicitCall = false,
       Member? staticTarget}) {
     FunctionType extensionFunctionType = new FunctionType(
         [calleeType.positionalParameters.first],
@@ -1587,15 +1587,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       FunctionType calleeType,
       ArgumentsImpl arguments,
       List<VariableDeclaration>? hoistedExpressions,
-      {bool isSpecialCasedBinaryOperator: false,
-      bool isSpecialCasedTernaryOperator: false,
+      {bool isSpecialCasedBinaryOperator = false,
+      bool isSpecialCasedTernaryOperator = false,
       DartType? receiverType,
-      bool skipTypeArgumentInference: false,
-      bool isConst: false,
-      bool isImplicitExtensionMember: false,
+      bool skipTypeArgumentInference = false,
+      bool isConst = false,
+      bool isImplicitExtensionMember = false,
       required bool isImplicitCall,
       Member? staticTarget,
-      bool isExtensionMemberInvocation: false}) {
+      bool isExtensionMemberInvocation = false}) {
     // [receiverType] must be provided for special-cased operators.
     assert(!isSpecialCasedBinaryOperator && !isSpecialCasedTernaryOperator ||
         receiverType != null);

@@ -92,10 +92,10 @@ abstract class LibraryBuilder implements ModifierBuilder {
   /// arguments passed to this method.
   FormattedMessage? addProblem(
       Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled: false,
+      {bool wasHandled = false,
       List<LocatedMessage>? context,
       Severity? severity,
-      bool problemOnLibrary: false});
+      bool problemOnLibrary = false});
 
   /// Returns true if the export scope was modified.
   bool addToExportScope(String name, Builder member, [int charOffset = -1]);
@@ -104,7 +104,7 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   Builder computeAmbiguousDeclaration(
       String name, Builder declaration, Builder other, int charOffset,
-      {bool isExport: false, bool isImport: false});
+      {bool isExport = false, bool isImport = false});
 
   /// Looks up [constructorName] in the class named [className].
   ///
@@ -119,7 +119,7 @@ abstract class LibraryBuilder implements ModifierBuilder {
   /// unnamed constructor. it's an error if [constructorName] starts with
   /// `"_"`, and [bypassLibraryPrivacy] is false.
   MemberBuilder getConstructor(String className,
-      {String constructorName, bool bypassLibraryPrivacy: false});
+      {String constructorName, bool bypassLibraryPrivacy = false});
 
   void becomeCoreLibrary();
 
@@ -133,7 +133,7 @@ abstract class LibraryBuilder implements ModifierBuilder {
   ///
   /// If [required] is `true` and no member is found an internal problem is
   /// reported.
-  Builder? lookupLocalMember(String name, {bool required: false});
+  Builder? lookupLocalMember(String name, {bool required = false});
 
   Builder? lookup(String name, int charOffset, Uri fileUri);
 
@@ -222,10 +222,10 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   @override
   FormattedMessage? addProblem(
       Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled: false,
+      {bool wasHandled = false,
       List<LocatedMessage>? context,
       Severity? severity,
-      bool problemOnLibrary: false}) {
+      bool problemOnLibrary = false}) {
     fileUri ??= this.fileUri;
 
     return loader.addProblem(message, charOffset, length, fileUri,
@@ -259,7 +259,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   MemberBuilder getConstructor(String className,
-      {String? constructorName, bool bypassLibraryPrivacy: false}) {
+      {String? constructorName, bool bypassLibraryPrivacy = false}) {
     constructorName ??= "";
     if (constructorName.startsWith("_") && !bypassLibraryPrivacy) {
       return internalProblem(
@@ -313,7 +313,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   }
 
   @override
-  Builder? lookupLocalMember(String name, {bool required: false}) {
+  Builder? lookupLocalMember(String name, {bool required = false}) {
     Builder? builder = scope.lookupLocalMember(name, setter: false);
     if (required && builder == null) {
       internalProblem(

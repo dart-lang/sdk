@@ -95,7 +95,8 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
 /// Extra libraries apart from the main library are passed to the front-end as
 /// additional dills, which places them last in the library list, causing them
 /// to have very high (and often changing) selector IDs.
-String kernelLibraryToString(Library library, {bool removeSelectorIds: false}) {
+String kernelLibraryToString(Library library,
+    {bool removeSelectorIds = false}) {
   final StringBuffer buffer = new StringBuffer();
   final printer = new Printer(buffer, showMetadata: true);
   printer.writeLibraryFile(library);

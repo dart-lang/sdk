@@ -105,11 +105,11 @@ class Scope extends MutableScope {
       Set<ExtensionBuilder>? extensions,
       Scope? parent,
       required String debugName,
-      this.isModifiable: true})
+      this.isModifiable = true})
       : super(local, setters = setters ?? const <String, MemberBuilder>{},
             extensions, parent, debugName);
 
-  Scope.top({bool isModifiable: false})
+  Scope.top({bool isModifiable = false})
       : this(
             local: <String, Builder>{},
             setters: <String, MemberBuilder>{},
@@ -123,7 +123,7 @@ class Scope extends MutableScope {
             debugName: "immutable",
             isModifiable: false);
 
-  Scope.nested(Scope parent, String debugName, {bool isModifiable: true})
+  Scope.nested(Scope parent, String debugName, {bool isModifiable = true})
       : this(
             local: <String, Builder>{},
             setters: <String, MemberBuilder>{},
@@ -368,7 +368,7 @@ class Scope extends MutableScope {
     super._extensions = scope._extensions;
   }
 
-  Scope createNestedScope(String debugName, {bool isModifiable: true}) {
+  Scope createNestedScope(String debugName, {bool isModifiable = true}) {
     return new Scope.nested(this, debugName, isModifiable: isModifiable);
   }
 
@@ -426,7 +426,7 @@ class Scope extends MutableScope {
   }
 
   Builder? lookup(String name, int charOffset, Uri fileUri,
-      {bool isInstanceScope: true}) {
+      {bool isInstanceScope = true}) {
     recordUse(name, charOffset);
     Builder? builder =
         lookupIn(name, charOffset, fileUri, _local, isInstanceScope);
@@ -443,7 +443,7 @@ class Scope extends MutableScope {
   }
 
   Builder? lookupSetter(String name, int charOffset, Uri fileUri,
-      {bool isInstanceScope: true}) {
+      {bool isInstanceScope = true}) {
     recordUse(name, charOffset);
     Builder? builder =
         lookupIn(name, charOffset, fileUri, _setters, isInstanceScope);
@@ -733,7 +733,7 @@ class ConstructorScope {
 
 abstract class LazyScope extends Scope {
   LazyScope(Map<String, Builder> local, Map<String, MemberBuilder> setters,
-      Scope? parent, String debugName, {bool isModifiable: true})
+      Scope? parent, String debugName, {bool isModifiable = true})
       : super(
             local: local,
             setters: setters,

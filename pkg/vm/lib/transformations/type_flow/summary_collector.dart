@@ -592,7 +592,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   Summary createSummary(Member member,
-      {fieldSummaryType: FieldSummaryType.kInitializer}) {
+      {fieldSummaryType = FieldSummaryType.kInitializer}) {
     final String summaryName =
         "${member}${fieldSummaryType == FieldSummaryType.kFieldGuard ? " (guard)" : ""}";
     debugPrint("===== $summaryName =====");
@@ -884,7 +884,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   Args<TypeExpr> _visitArguments(TypeExpr? receiver, Arguments arguments,
-      {bool passTypeArguments: false}) {
+      {bool passTypeArguments = false}) {
     final List<TypeExpr> args = <TypeExpr>[];
     if (passTypeArguments) {
       for (var type in arguments.types) {
@@ -917,7 +917,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   Parameter _declareParameter(
       String name, DartType? type, Expression? initializer,
-      {bool isReceiver: false}) {
+      {bool isReceiver = false}) {
     Type? staticType;
     if (type != null) {
       staticType = _typesBuilder.fromStaticType(type, !isReceiver);

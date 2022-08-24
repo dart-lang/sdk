@@ -19,9 +19,9 @@ class LegacyClass extends Class implements Interface {
 
   int method6c([int a, int b]) => 0;
 
-  int method8a(int a, {int b: 0}) => 0;
+  int method8a(int a, {int b = 0}) => 0;
 
-  int method8b({int a, int b: 0}) => 0;
+  int method8b({int a, int b = 0}) => 0;
 
   int method10a(int a, {int b}) => 0;
 

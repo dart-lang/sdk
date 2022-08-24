@@ -35,7 +35,7 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose: false}) {
+      {bool verbose = false}) {
     if (member.isField) {
       KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
       DartTypes dartTypes = frontendStrategy.commonElements.dartTypes;

@@ -378,7 +378,7 @@ class LibraryInfo {
   final bool isSupported;
 
   const LibraryInfo(this.name, this.uri, this.patches,
-      {this.isSupported: true});
+      {this.isSupported = true});
 
   /// The import uri for the defined library.
   Uri get importUri => Uri.parse('dart:${name}');

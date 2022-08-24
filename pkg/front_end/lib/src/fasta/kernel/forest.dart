@@ -311,7 +311,7 @@ class Forest {
       Statement? expressionEffects,
       Expression body,
       Expression? problem,
-      {bool isAsync: false}) {
+      {bool isAsync = false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new ForInElement(variable, iterable, synthesizedAssignment,
@@ -328,7 +328,7 @@ class Forest {
       Statement? expressionEffects,
       MapLiteralEntry body,
       Expression? problem,
-      {bool isAsync: false}) {
+      {bool isAsync = false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new ForInMapEntry(variable, iterable, synthesizedAssignment,
@@ -534,7 +534,7 @@ class Forest {
 
   /// Return a representation of a return statement.
   Statement createReturnStatement(int fileOffset, Expression? expression,
-      {bool isArrow: true}) {
+      {bool isArrow = true}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new ReturnStatementImpl(isArrow, expression)
@@ -649,11 +649,11 @@ class Forest {
   VariableDeclaration createVariableDeclaration(int fileOffset, String? name,
       {Expression? initializer,
       DartType? type,
-      bool isFinal: false,
-      bool isConst: false,
-      bool isInitializingFormal: false,
-      bool isCovariantByDeclaration: false,
-      bool isLocalFunction: false}) {
+      bool isFinal = false,
+      bool isConst = false,
+      bool isInitializingFormal = false,
+      bool isCovariantByDeclaration = false,
+      bool isLocalFunction = false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new VariableDeclarationImpl(name,
@@ -690,8 +690,8 @@ class Forest {
       List<VariableDeclaration>? positionalParameters,
       List<VariableDeclaration>? namedParameters,
       int? requiredParameterCount,
-      DartType returnType: const DynamicType(),
-      AsyncMarker asyncMarker: AsyncMarker.Sync,
+      DartType returnType = const DynamicType(),
+      AsyncMarker asyncMarker = AsyncMarker.Sync,
       AsyncMarker? dartAsyncMarker}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
@@ -779,7 +779,7 @@ class Forest {
 
   Expression createPropertySet(
       int fileOffset, Expression receiver, Name name, Expression value,
-      {required bool forEffect, bool readOnlyReceiver: false}) {
+      {required bool forEffect, bool readOnlyReceiver = false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new PropertySet(receiver, name, value,

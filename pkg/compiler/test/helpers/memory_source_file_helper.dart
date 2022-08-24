@@ -64,6 +64,6 @@ class MemorySourceFileProvider extends SourceFileProvider {
 
   @override
   Future<api.Input> readFromUri(Uri resourceUri,
-          {api.InputKind inputKind: api.InputKind.UTF8}) =>
+          {api.InputKind inputKind = api.InputKind.UTF8}) =>
       readBytesFromUri(resourceUri, inputKind);
 }

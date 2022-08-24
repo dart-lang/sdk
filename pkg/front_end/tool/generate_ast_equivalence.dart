@@ -440,7 +440,7 @@ class $visitorName$visitorTypeParameters
   final $strategyName strategy;
 
   $visitorName({
-      this.strategy: const $strategyName()});
+      this.strategy = const $strategyName()});
 ''');
   }
 
@@ -523,8 +523,8 @@ class $visitorName$visitorTypeParameters
     return result;
   }
 
-  /// Returns `true` if [a] and [b] are equivalent, either by existing 
-  /// assumption or as defined by their corresponding canonical names. 
+  /// Returns `true` if [a] and [b] are equivalent, either by existing
+  /// assumption or as defined by their corresponding canonical names.
   /// Inequivalence is _not_ registered.
   bool $matchNamedNodes(NamedNode? a, NamedNode? b) {
     return identical(a, b) ||
@@ -549,7 +549,7 @@ class $visitorName$visitorTypeParameters
   }
 
   /// Returns `true` if [a] and [b] are equivalent, either by existing
-  /// assumption or as defined by their corresponding canonical names. 
+  /// assumption or as defined by their corresponding canonical names.
   /// Inequivalence is _not_ registered.
   bool $matchReferences(Reference? a, Reference? b) {
     return identical(a, b) ||
@@ -871,7 +871,7 @@ class $visitorName$visitorTypeParameters
   ///
   /// If [f] returns `false`, the returned result is marked as having
   /// inequivalences even when non have being registered.
-  EquivalenceResult inSubState(bool Function() f, {bool isAsserting: false}) {
+  EquivalenceResult inSubState(bool Function() f, {bool isAsserting = false}) {
     CheckingState _oldState = $checkingState;
     $checkingState = $checkingState.createSubState(isAsserting: isAsserting);
     bool hasInequivalences = f();
@@ -944,7 +944,7 @@ class $visitorName$visitorTypeParameters
 EquivalenceResult checkEquivalence(
     Node a,
     Node b,
-    {$strategyName strategy: const $strategyName()}) {
+    {$strategyName strategy = const $strategyName()}) {
   EquivalenceVisitor visitor = new EquivalenceVisitor(
       strategy: strategy);
   visitor.$checkNodes(a, b, 'root');

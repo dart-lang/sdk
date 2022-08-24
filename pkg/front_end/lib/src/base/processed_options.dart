@@ -298,7 +298,7 @@ class ProcessedOptions {
 
   /// Runs various validations checks on the input options. For instance,
   /// if an option is a path to a file, it checks that the file exists.
-  Future<bool> validateOptions({bool errorOnMissingInput: true}) async {
+  Future<bool> validateOptions({bool errorOnMissingInput = true}) async {
     if (verbose) print(debugString());
 
     if (errorOnMissingInput && inputs.isEmpty) {
@@ -473,7 +473,7 @@ class ProcessedOptions {
   ///
   /// This is an asynchronous method since file system operations may be
   /// required to locate/read the packages file as well as SDK metadata.
-  Future<UriTranslator> getUriTranslator({bool bypassCache: false}) async {
+  Future<UriTranslator> getUriTranslator({bool bypassCache = false}) async {
     if (bypassCache) {
       _uriTranslator = null;
       _packages = null;

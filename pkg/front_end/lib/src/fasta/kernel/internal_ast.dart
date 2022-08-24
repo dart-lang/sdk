@@ -356,7 +356,7 @@ class SwitchCaseImpl extends SwitchCase {
 
   SwitchCaseImpl(
       List<Expression> expressions, List<int> expressionOffsets, Statement body,
-      {bool isDefault: false, required this.hasLabel})
+      {bool isDefault = false, required this.hasLabel})
       // ignore: unnecessary_null_comparison
       : assert(hasLabel != null),
         super(expressions, expressionOffsets, body, isDefault: isDefault);
@@ -779,7 +779,7 @@ class FactoryConstructorInvocation extends StaticInvocation
   bool hasBeenInferred = false;
 
   FactoryConstructorInvocation(Procedure target, Arguments arguments,
-      {bool isConst: false})
+      {bool isConst = false})
       : super(target, arguments, isConst: isConst);
 
   @override
@@ -819,7 +819,7 @@ class TypeAliasedConstructorInvocation extends ConstructorInvocation
 
   TypeAliasedConstructorInvocation(
       this.typeAliasBuilder, Constructor target, Arguments arguments,
-      {bool isConst: false})
+      {bool isConst = false})
       : super(target, arguments, isConst: isConst);
 
   @override
@@ -859,7 +859,7 @@ class TypeAliasedFactoryInvocation extends StaticInvocation
 
   TypeAliasedFactoryInvocation(
       this.typeAliasBuilder, Procedure target, Arguments arguments,
-      {bool isConst: false})
+      {bool isConst = false})
       : super(target, arguments, isConst: isConst);
 
   @override
@@ -1019,7 +1019,7 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
 
   IntJudgment(int value, this.literal) : super(value);
 
-  double? asDouble({bool negated: false}) {
+  double? asDouble({bool negated = false}) {
     if (value == 0 && negated) {
       return -0.0;
     }
@@ -1057,7 +1057,7 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
 
   ShadowLargeIntLiteral(this.literal, this.fileOffset) : super(0);
 
-  double? asDouble({bool negated: false}) {
+  double? asDouble({bool negated = false}) {
     BigInt? intValue = BigInt.tryParse(negated ? '-${literal}' : literal);
     if (intValue == null) {
       return null;
@@ -1070,7 +1070,7 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
         : null;
   }
 
-  int? asInt64({bool negated: false}) {
+  int? asInt64({bool negated = false}) {
     return int.tryParse(negated ? '-${literal}' : literal);
   }
 
@@ -1561,19 +1561,19 @@ class VariableDeclarationImpl extends VariableDeclaration {
   bool isStaticLate;
 
   VariableDeclarationImpl(String? name,
-      {this.forSyntheticToken: false,
-      bool hasDeclaredInitializer: false,
+      {this.forSyntheticToken = false,
+      bool hasDeclaredInitializer = false,
       Expression? initializer,
       DartType? type,
-      bool isFinal: false,
-      bool isConst: false,
-      bool isInitializingFormal: false,
-      bool isCovariantByDeclaration: false,
-      bool isLocalFunction: false,
-      bool isLate: false,
-      bool isRequired: false,
-      bool isLowered: false,
-      this.isStaticLate: false})
+      bool isFinal = false,
+      bool isConst = false,
+      bool isInitializingFormal = false,
+      bool isCovariantByDeclaration = false,
+      bool isLocalFunction = false,
+      bool isLate = false,
+      bool isRequired = false,
+      bool isLowered = false,
+      this.isStaticLate = false})
       : isImplicitlyTyped = type == null,
         isLocalFunction = isLocalFunction,
         super(name,

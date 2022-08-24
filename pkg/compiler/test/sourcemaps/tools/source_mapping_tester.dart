@@ -31,7 +31,7 @@ main(List<String> arguments) {
 }
 
 void test(List<String> arguments,
-    {WhiteListFunction whiteListFunction: emptyWhiteListFunction}) {
+    {WhiteListFunction whiteListFunction = emptyWhiteListFunction}) {
   Set<String> configurations = new Set<String>();
   Map<String, Uri> tests = <String, Uri>{};
   if (!parseArguments(arguments, configurations, tests)) {
@@ -72,7 +72,7 @@ void test(List<String> arguments,
 
 bool parseArguments(
     List<String> arguments, Set<String> configurations, Map<String, Uri> tests,
-    {bool measure: false}) {
+    {bool measure = false}) {
   Set<String> extra = arguments.contains('--file') ? new Set<String>() : null;
 
   for (String argument in arguments) {
@@ -151,7 +151,7 @@ Map<String, Uri> _computeTestFiles() {
 
 Future<TestResult> runTests(
     String config, String filename, Uri uri, List<String> options,
-    {bool verbose: true}) async {
+    {bool verbose = true}) async {
   SourceMapProcessor processor = new SourceMapProcessor(uri);
   SourceMaps sourceMaps = await processor
       .process(['--csp', Flags.disableInlining, ...options], verbose: verbose);

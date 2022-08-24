@@ -347,7 +347,7 @@ class Suite {
     this.testingRootPath, {
     required this.shardCount,
     this.path,
-    this.requiresGit: false,
+    this.requiresGit = false,
   });
 }
 

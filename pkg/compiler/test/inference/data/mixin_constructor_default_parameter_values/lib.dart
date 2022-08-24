@@ -26,7 +26,7 @@ class C {
 
   /*member: C.b:[exact=C]*/
   C.b(int /*[exact=JSUInt31]*/ x,
-      {var /*Union([exact=JSString], [exact=_SECRET])*/ b: const _SECRET()})
+      {var /*Union([exact=JSString], [exact=_SECRET])*/ b = const _SECRET()})
       : this.x = x,
         this.y = b;
 

@@ -27,7 +27,7 @@ ArgParser createArgParser() {
 }
 
 show<T>(ArgResults argResults, DataComputer<T> dataComputer,
-    {List<String> options: const <String>[]}) async {
+    {List<String> options = const <String>[]}) async {
   dataComputer.setup();
 
   if (argResults.wasParsed('colors')) {

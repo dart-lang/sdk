@@ -33,7 +33,7 @@ class HierarchyBasedTypeEnvironment extends TypeEnvironment {
   }
 
   @override
-  Member? getInterfaceMember(Class cls, Name name, {bool setter: false}) {
+  Member? getInterfaceMember(Class cls, Name name, {bool setter = false}) {
     return hierarchy.getInterfaceMember(cls, name, setter: setter);
   }
 }

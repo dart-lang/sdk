@@ -1320,7 +1320,7 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   T _wrap<T>(String description, T callback(),
-      {bool isQuery: false, bool? isPure}) {
+      {bool isQuery = false, bool? isPure}) {
     isPure ??= isQuery;
     print(description);
     T result;

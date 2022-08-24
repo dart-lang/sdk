@@ -27,10 +27,10 @@ abstract class Loader {
   /// intrinsic severity of the message.
   FormattedMessage? addProblem(
       Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled: false,
+      {bool wasHandled = false,
       List<LocatedMessage>? context,
       Severity? severity,
-      bool problemOnLibrary: false,
+      bool problemOnLibrary = false,
       List<Uri>? involvedFiles});
 
   ClassBuilder computeClassBuilderFromTargetClass(Class cls);

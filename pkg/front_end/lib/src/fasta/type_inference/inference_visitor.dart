@@ -58,7 +58,7 @@ abstract class InferenceVisitor {
   /// the expression type and calls the appropriate specialized "infer" method.
   ExpressionInferenceResult inferExpression(
       Expression expression, DartType typeContext, bool typeNeeded,
-      {bool isVoidAllowed: false, bool forEffect: false});
+      {bool isVoidAllowed = false, bool forEffect = false});
 
   /// Performs type inference on the given [statement].
   ///
@@ -111,7 +111,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult _inferExpression(
       Expression expression, DartType typeContext, bool typeNeeded,
-      {bool isVoidAllowed: false, bool forEffect: false}) {
+      {bool isVoidAllowed = false, bool forEffect = false}) {
     registerIfUnreachableForTesting(expression);
 
     // `null` should never be used as the type context.  An instance of
@@ -166,7 +166,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult inferExpression(
       Expression expression, DartType typeContext, bool typeNeeded,
-      {bool isVoidAllowed: false, bool forEffect: false}) {
+      {bool isVoidAllowed = false, bool forEffect = false}) {
     ExpressionInferenceResult result = _inferExpression(
         expression, typeContext, typeNeeded,
         isVoidAllowed: isVoidAllowed, forEffect: forEffect);
@@ -186,7 +186,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult inferNullAwareExpression(
       Expression expression, DartType typeContext, bool typeNeeded,
-      {bool isVoidAllowed: false, bool forEffect: false}) {
+      {bool isVoidAllowed = false, bool forEffect = false}) {
     ExpressionInferenceResult result = _inferExpression(
         expression, typeContext, typeNeeded,
         isVoidAllowed: isVoidAllowed, forEffect: forEffect);
@@ -1246,7 +1246,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       VariableDeclaration variable,
       Expression iterable,
       Statement? expressionEffects,
-      {bool isAsync: false}) {
+      {bool isAsync = false}) {
     DartType elementType;
     bool typeNeeded = false;
     bool typeChecksNeeded = !isTopLevel;
@@ -1310,7 +1310,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult inferForInIterable(
       Expression iterable, DartType elementType, bool typeNeeded,
-      {bool isAsync: false}) {
+      {bool isAsync = false}) {
     Class iterableClass =
         isAsync ? coreTypes.streamClass : coreTypes.iterableClass;
     DartType context =
@@ -1378,7 +1378,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression iterable,
       Expression? syntheticAssignment,
       Statement? expressionEffects,
-      {bool isAsync: false,
+      {bool isAsync = false,
       required bool hasProblem}) {
     // ignore: unnecessary_null_comparison
     assert(hasProblem != null);
@@ -6771,7 +6771,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         result.add(isSetVariable);
       }
 
-      Expression createVariableRead({bool needsPromotion: false}) {
+      Expression createVariableRead({bool needsPromotion = false}) {
         if (needsPromotion) {
           return new VariableGet(node, node.type)..fileOffset = fileOffset;
         } else {

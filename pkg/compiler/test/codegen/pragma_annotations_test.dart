@@ -48,7 +48,7 @@ runTest() async {
   Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
 
   void test(String name,
-      {bool expectNoInline: false, bool expectTryInline: false}) {
+      {bool expectNoInline = false, bool expectTryInline = false}) {
     LibraryEntity mainApp = closedWorld.elementEnvironment.mainLibrary;
     FunctionEntity method =
         closedWorld.elementEnvironment.lookupLibraryMember(mainApp, name);

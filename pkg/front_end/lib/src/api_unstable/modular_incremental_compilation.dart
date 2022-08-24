@@ -46,16 +46,16 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     List<Uri> additionalDills,
     Map<Uri, List<int>> workerInputDigests,
     Target target,
-    {bool compileSdk: false,
-    Uri? sdkRoot: null,
+    {bool compileSdk = false,
+    Uri? sdkRoot = null,
     required FileSystem fileSystem,
     required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
-    Map<String, String> environmentDefines: const {},
+    Map<String, String> environmentDefines = const {},
     bool? outlineOnly,
-    bool omitPlatform: false,
-    bool trackNeededDillLibraries: false,
-    bool verbose: false,
-    NnbdMode nnbdMode: NnbdMode.Weak}) async {
+    bool omitPlatform = false,
+    bool trackNeededDillLibraries = false,
+    bool verbose = false,
+    NnbdMode nnbdMode = NnbdMode.Weak}) async {
   bool isRetry = false;
   while (true) {
     try {

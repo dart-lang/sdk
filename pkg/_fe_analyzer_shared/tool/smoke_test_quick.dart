@@ -24,7 +24,7 @@ main(List<String> args) async {
 }
 
 Future<void> run(String script, List<String> scriptArguments,
-    {bool filter: true}) async {
+    {bool filter = true}) async {
   List<String> arguments = [];
   arguments.add("$script");
   arguments.addAll(scriptArguments);

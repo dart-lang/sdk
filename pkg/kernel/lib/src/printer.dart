@@ -63,16 +63,16 @@ class AstTextStrategy {
   final int? maxConstantDepth;
 
   const AstTextStrategy(
-      {this.includeLibraryNamesInTypes: false,
-      this.includeLibraryNamesInMembers: false,
-      this.includeAuxiliaryProperties: false,
-      this.useMultiline: true,
-      this.indentation: '  ',
-      this.maxStatementDepth: 50,
-      this.maxStatementsLength: null,
-      this.maxExpressionDepth: 50,
-      this.maxExpressionsLength: null,
-      this.maxConstantDepth: 10});
+      {this.includeLibraryNamesInTypes = false,
+      this.includeLibraryNamesInMembers = false,
+      this.includeAuxiliaryProperties = false,
+      this.useMultiline = true,
+      this.indentation = '  ',
+      this.maxStatementDepth = 50,
+      this.maxStatementsLength = null,
+      this.maxExpressionDepth = 50,
+      this.maxExpressionsLength = null,
+      this.maxConstantDepth = 10});
 }
 
 class AstPrinter {
@@ -101,7 +101,7 @@ class AstPrinter {
     _sb.write(value);
   }
 
-  void writeClassName(Reference? reference, {bool forType: false}) {
+  void writeClassName(Reference? reference, {bool forType = false}) {
     _sb.write(qualifiedClassNameToStringByReference(reference,
         includeLibraryName: forType
             ? _strategy.includeLibraryNamesInTypes
@@ -369,7 +369,7 @@ class AstPrinter {
   ///
   /// If [includeTypeArguments] is `true` type arguments in [node] are included.
   /// Otherwise only the positional and named arguments are included.
-  void writeArguments(Arguments node, {bool includeTypeArguments: true}) {
+  void writeArguments(Arguments node, {bool includeTypeArguments = true}) {
     node.toTextInternal(this, includeTypeArguments: includeTypeArguments);
   }
 
@@ -382,10 +382,10 @@ class AstPrinter {
   /// If [isLate] and [type] are provided, these values are used instead of
   /// the corresponding properties on [node].
   void writeVariableDeclaration(VariableDeclaration node,
-      {bool includeModifiersAndType: true,
+      {bool includeModifiersAndType = true,
       bool? isLate,
       DartType? type,
-      bool includeInitializer: true}) {
+      bool includeInitializer = true}) {
     if (includeModifiersAndType) {
       if (node.isRequired) {
         _sb.write('required ');

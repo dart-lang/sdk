@@ -102,8 +102,8 @@ Future<Null> writeComponentToFile(Component component, Uri uri,
 /// Serialize the libraries in [component] that match [filter].
 Uint8List serializeComponent(Component component,
     {bool Function(Library library)? filter,
-    bool includeSources: true,
-    bool includeOffsets: true}) {
+    bool includeSources = true,
+    bool includeOffsets = true}) {
   ByteSink byteSink = new ByteSink();
   BinaryPrinter printer = new BinaryPrinter(byteSink,
       libraryFilter: filter,

@@ -6,7 +6,7 @@
 library test;
 
 class C {
-  static m({int a: 0}) {}
+  static m({int a = 0}) {}
 }
 
 void test() {

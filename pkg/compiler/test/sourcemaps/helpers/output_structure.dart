@@ -679,7 +679,7 @@ class Interval {
     return new Interval(Math.min(from, index), Math.max(to, index + 1));
   }
 
-  bool inWindow(int index, {int windowSize: 0}) {
+  bool inWindow(int index, {int windowSize = 0}) {
     return from - windowSize <= index && index < to + windowSize;
   }
 

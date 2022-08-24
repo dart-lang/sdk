@@ -317,7 +317,7 @@ class Parser {
   // implicit create expression without the special casing.
   final bool useImplicitCreationExpression;
 
-  Parser(this.listener, {this.useImplicitCreationExpression: true})
+  Parser(this.listener, {this.useImplicitCreationExpression = true})
       : assert(listener != null); // ignore:unnecessary_null_comparison
 
   bool get inGenerator {

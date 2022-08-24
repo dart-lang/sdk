@@ -13,6 +13,6 @@ typedef dynamic G<T>(T v);
  constants=[InstantiationConstant([int*],FunctionConstant(getFoo))=1{b}],
  member_unit=1{b}
 */
-m(int x, {G<int> f: getFoo}) {
+m(int x, {G<int> f = getFoo}) {
   print(f(x));
 }

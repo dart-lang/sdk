@@ -231,7 +231,7 @@ class CustomizedDartLibrarySupport implements DartLibrarySupport {
   final Set<String> unsupported;
 
   const CustomizedDartLibrarySupport(
-      {this.supported: const {}, this.unsupported: const {}});
+      {this.supported = const {}, this.unsupported = const {}});
 
   @override
   bool computeDartLibrarySupport(String libraryName,
@@ -514,16 +514,16 @@ abstract class Target {
 
   Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
       Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isField: false,
-      bool isLocalVariable: false,
-      bool isDynamic: false,
-      bool isSuper: false,
-      bool isStatic: false,
-      bool isConstructor: false,
-      bool isTopLevel: false});
+      {bool isMethod = false,
+      bool isGetter = false,
+      bool isSetter = false,
+      bool isField = false,
+      bool isLocalVariable = false,
+      bool isDynamic = false,
+      bool isSuper = false,
+      bool isStatic = false,
+      bool isConstructor = false,
+      bool isTopLevel = false});
 
   /// Configure the given [Component] in a target specific way.
   /// Returns the configured component.
@@ -621,16 +621,16 @@ class NoneTarget extends Target {
   @override
   Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
       Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isField: false,
-      bool isLocalVariable: false,
-      bool isDynamic: false,
-      bool isSuper: false,
-      bool isStatic: false,
-      bool isConstructor: false,
-      bool isTopLevel: false}) {
+      {bool isMethod = false,
+      bool isGetter = false,
+      bool isSetter = false,
+      bool isField = false,
+      bool isLocalVariable = false,
+      bool isDynamic = false,
+      bool isSuper = false,
+      bool isStatic = false,
+      bool isConstructor = false,
+      bool isTopLevel = false}) {
     return new InvalidExpression(null);
   }
 
@@ -779,8 +779,8 @@ class TestTargetFlags extends TargetFlags {
       this.forceNoExplicitGetterCallsForTesting,
       this.forceConstructorTearOffLoweringForTesting,
       bool enableNullSafety = false,
-      this.supportedDartLibraries: const {},
-      this.unsupportedDartLibraries: const {}})
+      this.supportedDartLibraries = const {},
+      this.unsupportedDartLibraries = const {}})
       : super(
             trackWidgetCreation: trackWidgetCreation,
             enableNullSafety: enableNullSafety);

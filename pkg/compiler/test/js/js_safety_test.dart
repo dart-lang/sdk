@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/js/placeholder_safety.dart';
 
-void test(String source, int expected, {List notNull: const []}) {
+void test(String source, int expected, {List notNull = const []}) {
   var predicate = (int pos) => !notNull.contains(pos);
   js.Template template = js.js.parseForeignJS(source);
   int actual = PlaceholderSafetyAnalysis.analyze(template.ast, predicate);

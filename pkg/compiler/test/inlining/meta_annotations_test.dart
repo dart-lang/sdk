@@ -43,7 +43,7 @@ main() {
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
 
     void test(String name,
-        {bool expectNoInline: false, bool expectTryInline: false}) {
+        {bool expectNoInline = false, bool expectTryInline = false}) {
       LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
       FunctionEntity method =
           elementEnvironment.lookupLibraryMember(mainLibrary, name);

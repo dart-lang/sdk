@@ -961,7 +961,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   /// expression that promotes the expression to [_type]. This is needed for a
   /// sound encoding of fields with type variable type of undetermined
   /// nullability.
-  Expression _createFieldRead({bool needsPromotion: false}) {
+  Expression _createFieldRead({bool needsPromotion = false}) {
     assert(_type != null, "Type has not been computed for field $name.");
     if (needsPromotion) {
       VariableDeclaration variable = new VariableDeclaration.forValue(
@@ -1434,7 +1434,7 @@ class _SynthesizedFieldClassMember implements ClassMember {
   final bool isInternalImplementation;
 
   _SynthesizedFieldClassMember(this.fieldBuilder, this._member, this._kind,
-      {this.forSetter: false, required this.isInternalImplementation})
+      {this.forSetter = false, required this.isInternalImplementation})
       // ignore: unnecessary_null_comparison
       : assert(isInternalImplementation != null);
 

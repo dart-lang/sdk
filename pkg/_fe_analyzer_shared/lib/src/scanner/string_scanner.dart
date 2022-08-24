@@ -39,7 +39,7 @@ class StringScanner extends AbstractScanner {
 
   StringScanner(String string,
       {ScannerConfiguration? configuration,
-      bool includeComments: false,
+      bool includeComments = false,
       LanguageVersionChanged? languageVersionChanged})
       : string = ensureZeroTermination(string),
         super(configuration, includeComments, languageVersionChanged);

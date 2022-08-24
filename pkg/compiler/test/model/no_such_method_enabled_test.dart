@@ -27,13 +27,13 @@ class NoSuchMethodInfo {
 
   const NoSuchMethodInfo(this.className,
       {this.superClassName,
-      this.hasThrowingSyntax: false,
-      this.hasForwardingSyntax: false,
-      this.isThrowing: false,
-      this.isDefault: false,
-      this.isOther: false,
-      this.isComplexNoReturn: false,
-      this.isComplexReturn: false});
+      this.hasThrowingSyntax = false,
+      this.hasForwardingSyntax = false,
+      this.isThrowing = false,
+      this.isDefault = false,
+      this.isOther = false,
+      this.isComplexNoReturn = false,
+      this.isComplexReturn = false});
 }
 
 class NoSuchMethodTest {
@@ -42,7 +42,7 @@ class NoSuchMethodTest {
   final bool isNoSuchMethodUsed;
 
   const NoSuchMethodTest(this.code, this.methods,
-      {this.isNoSuchMethodUsed: false});
+      {this.isNoSuchMethodUsed = false});
 }
 
 const List<NoSuchMethodTest> TESTS = const <NoSuchMethodTest>[

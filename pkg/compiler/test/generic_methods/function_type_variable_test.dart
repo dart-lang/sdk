@@ -133,7 +133,7 @@ main() {
     }
 
     testRelations(DartType a, DartType b,
-        {bool areEqual: false, bool isSubtype: false}) {
+        {bool areEqual = false, bool isSubtype = false}) {
       if (areEqual) {
         isSubtype = true;
       }

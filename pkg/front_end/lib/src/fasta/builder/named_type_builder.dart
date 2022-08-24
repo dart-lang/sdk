@@ -119,7 +119,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
       Uri? fileUri,
       int? charOffset,
       required InstanceTypeVariableAccessState instanceTypeVariableAccess,
-      bool performTypeCanonicalization: false}) {
+      bool performTypeCanonicalization = false}) {
     bool isExplicit = true;
     if (arguments != null) {
       for (TypeBuilder argument in arguments) {
@@ -150,7 +150,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
       this.fileUri,
       this.charOffset,
       required InstanceTypeVariableAccessState instanceTypeVariableAccess,
-      bool performTypeCanonicalization: false,
+      bool performTypeCanonicalization = false,
       TypeDeclarationBuilder? declaration})
       : assert(name is String || name is QualifiedName),
         this._instanceTypeVariableAccess = instanceTypeVariableAccess,
@@ -631,7 +631,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilder {
       Uri? fileUri,
       int? charOffset,
       required InstanceTypeVariableAccessState instanceTypeVariableAccess,
-      bool performTypeCanonicalization: false})
+      bool performTypeCanonicalization = false})
       : super._(
             name: name,
             nullabilityBuilder: nullabilityBuilder,
@@ -710,7 +710,7 @@ class _InferredNamedTypeBuilder extends NamedTypeBuilder
       Uri? fileUri,
       int? charOffset,
       required InstanceTypeVariableAccessState instanceTypeVariableAccess,
-      bool performTypeCanonicalization: false})
+      bool performTypeCanonicalization = false})
       : super._(
             name: name,
             nullabilityBuilder: nullabilityBuilder,

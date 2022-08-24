@@ -152,7 +152,7 @@ abstract class TypeEnvironment extends Types {
   /// True if [member] is a binary operator whose return type is defined by
   /// the both operand types.
   bool isSpecialCasedBinaryOperator(Procedure member,
-      {bool isNonNullableByDefault: false}) {
+      {bool isNonNullableByDefault = false}) {
     if (isNonNullableByDefault) {
       Class? class_ = member.enclosingClass;
       // TODO(johnniwinther): Do we need to recognize backend implementation
@@ -184,7 +184,7 @@ abstract class TypeEnvironment extends Types {
   /// True if [member] is a ternary operator whose return type is defined by
   /// the least upper bound of the operand types.
   bool isSpecialCasedTernaryOperator(Procedure member,
-      {bool isNonNullableByDefault: false}) {
+      {bool isNonNullableByDefault = false}) {
     if (isNonNullableByDefault) {
       Class? class_ = member.enclosingClass;
       if (class_ == coreTypes.intClass || class_ == coreTypes.numClass) {
@@ -199,7 +199,7 @@ abstract class TypeEnvironment extends Types {
   /// (see [isSpecialCasedBinaryOperator]) given the static type of the
   /// operands.
   DartType getTypeOfSpecialCasedBinaryOperator(DartType type1, DartType type2,
-      {bool isNonNullableByDefault: false}) {
+      {bool isNonNullableByDefault = false}) {
     if (isNonNullableByDefault) {
       // Let e be an expression of one of the forms e1 + e2, e1 - e2, e1 * e2,
       // e1 % e2 or e1.remainder(e2), where the static type of e1 is a non-Never
@@ -303,7 +303,7 @@ abstract class TypeEnvironment extends Types {
   ///
   /// If multiple members with that name are inherited and not overridden, the
   /// member from the first declared supertype is returned.
-  Member? getInterfaceMember(Class cls, Name name, {bool setter: false});
+  Member? getInterfaceMember(Class cls, Name name, {bool setter = false});
 }
 
 /// Tri-state logical result of a nullability-aware subtype check.

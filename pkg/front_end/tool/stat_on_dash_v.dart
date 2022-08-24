@@ -122,7 +122,7 @@ void main(List<String> args) {
 }
 
 /// Returns ms or µs or throws if ms not found.
-int findMs(String s, {bool inMs: true}) {
+int findMs(String s, {bool inMs = true}) {
   // Find " in " followed by numbers possibly followed by (a dot and more
   // numbers) followed by "ms"; e.g. " in 42.3ms"
 

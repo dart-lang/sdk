@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Class {
-  external Class.generative({bool defaultValue: true});
-  external const Class.constGenerative({bool defaultValue: true});
+  external Class.generative({bool defaultValue = true});
+  external const Class.constGenerative({bool defaultValue = true});
 }
 
 class Class2 {

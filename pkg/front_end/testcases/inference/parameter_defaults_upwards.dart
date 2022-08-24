@@ -12,11 +12,11 @@ class C<T> {
 
 void optional_toplevel([x = /*@typeArgs=int*/ const [0]]) {}
 
-void named_toplevel({x: /*@typeArgs=int*/ const [0]}) {}
+void named_toplevel({x = /*@typeArgs=int*/ const [0]}) {}
 
 main() {
   void optional_local([/*@ type=dynamic */ x = /*@typeArgs=int*/ const [0]]) {}
-  void named_local({/*@ type=dynamic */ x: /*@typeArgs=int*/ const [0]}) {}
+  void named_local({/*@ type=dynamic */ x = /*@typeArgs=int*/ const [0]}) {}
   var /*@type=C<dynamic>*/ c_optional_toplevel =
       new /*@ typeArgs=dynamic */ C.optional(optional_toplevel);
   var /*@type=C<dynamic>*/ c_named_toplevel =
@@ -30,5 +30,5 @@ main() {
           [/*@type=Object?*/ x = /*@typeArgs=int*/ const [0]]) {});
   var /*@type=C<Object?>*/ c_named_closure = new /*@typeArgs=Object?*/ C.named(
       /*@returnType=void*/ (
-          {/*@type=Object?*/ x: /*@typeArgs=int*/ const [0]}) {});
+          {/*@type=Object?*/ x = /*@typeArgs=int*/ const [0]}) {});
 }

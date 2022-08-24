@@ -52,7 +52,7 @@ void test(DartTypes dartTypes, String specString,
     NativeThrowBehavior expectedThrows,
     bool expectedNew,
     bool expectedGvn,
-    bool expectError: false}) {
+    bool expectError = false}) {
   List actualReturns = [];
   List actualCreates = [];
   SideEffects actualSideEffects;
@@ -91,7 +91,7 @@ void test(DartTypes dartTypes, String specString,
 }
 
 void testWithSideEffects(DartTypes dartTypes, String specString,
-    {List returns, List creates, bool expectError: false}) {
+    {List returns, List creates, bool expectError = false}) {
   void sideEffectsTest(String newSpecString, SideEffects expectedSideEffects,
       {bool sideEffectsExpectError}) {
     test(dartTypes, newSpecString,

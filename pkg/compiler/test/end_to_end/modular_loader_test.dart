@@ -70,7 +70,7 @@ main() {
 
 /// Generate a component for a modular complation unit.
 Future<List<int>> compileUnit(List<String> inputs, Map<String, dynamic> sources,
-    {List<String> deps: const []}) async {
+    {List<String> deps = const []}) async {
   var fs = MemoryFileSystem(_defaultDir);
   sources.forEach((name, data) {
     var entity = fs.entityForUri(toTestUri(name));

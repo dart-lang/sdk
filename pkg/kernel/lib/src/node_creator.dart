@@ -59,13 +59,13 @@ class NodeCreator {
 
   /// Creates a [NodeCreator] requested to create nodes of the specified kinds.
   NodeCreator({
-    Iterable<ExpressionKind> expressions: ExpressionKind.values,
-    Iterable<StatementKind> statements: StatementKind.values,
-    Iterable<DartTypeKind> dartTypes: DartTypeKind.values,
-    Iterable<ConstantKind> constants: ConstantKind.values,
-    Iterable<InitializerKind> initializers: InitializerKind.values,
-    Iterable<MemberKind> members: MemberKind.values,
-    Iterable<NodeKind> nodes: NodeKind.values,
+    Iterable<ExpressionKind> expressions = ExpressionKind.values,
+    Iterable<StatementKind> statements = StatementKind.values,
+    Iterable<DartTypeKind> dartTypes = DartTypeKind.values,
+    Iterable<ConstantKind> constants = ConstantKind.values,
+    Iterable<InitializerKind> initializers = InitializerKind.values,
+    Iterable<MemberKind> members = MemberKind.values,
+    Iterable<NodeKind> nodes = NodeKind.values,
   })  : _pendingExpressions = new Map<ExpressionKind, int>.fromIterables(
             expressions, new List<int>.filled(expressions.length, 0)),
         _pendingStatements = new Map<StatementKind, int>.fromIterables(
@@ -336,7 +336,7 @@ class NodeCreator {
   /// If no such [LibraryDependency] exists in [_neededLibraryDependencies], a
   /// new [LibraryDependency] is created and added to
   /// [_neededLibraryDependencies].
-  LibraryDependency _needLibraryDependency({bool deferred: false}) {
+  LibraryDependency _needLibraryDependency({bool deferred = false}) {
     for (LibraryDependency libraryDependency in _neededLibraryDependencies) {
       if (!deferred || libraryDependency.isDeferred) {
         return libraryDependency;

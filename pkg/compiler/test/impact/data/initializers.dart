@@ -116,7 +116,7 @@ testDefaultValuesPositional([bool value = false]) {}
   inst:JSBool,
   param:bool*]
 */
-testDefaultValuesNamed({bool value: false}) {}
+testDefaultValuesNamed({bool value = false}) {}
 
 class ClassFieldInitializer1 {
   /*member: ClassFieldInitializer1.field:type=[inst:JSNull]*/

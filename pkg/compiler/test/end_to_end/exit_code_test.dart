@@ -212,7 +212,7 @@ void main() {
   entry.enableWriteString = false;
 
   Map<String, int> _expectedExitCode(
-      {bool beforeRun: false, bool fatalWarnings: false}) {
+      {bool beforeRun = false, bool fatalWarnings = false}) {
     if (beforeRun) {
       return {
         '': 0,

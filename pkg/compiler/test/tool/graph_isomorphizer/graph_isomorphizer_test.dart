@@ -48,7 +48,7 @@ void verifyGeneratedFile(
 }
 
 GraphIsomorphizer generateFiles(List<String> graphFileLines,
-    {String outDirectory: '.'}) {
+    {String outDirectory = '.'}) {
   Map<int, List<List<int>>> names = {};
   int maxBit = namesFromGraphFileLines(graphFileLines, names);
   var graphIsomorphizer =

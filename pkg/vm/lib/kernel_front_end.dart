@@ -362,18 +362,18 @@ class KernelCompilationResults {
 ///
 Future<KernelCompilationResults> compileToKernel(
     Uri source, CompilerOptions options,
-    {List<Uri> additionalSources: const <Uri>[],
-    bool includePlatform: false,
-    List<String> deleteToStringPackageUris: const <String>[],
-    bool aot: false,
-    bool useGlobalTypeFlowAnalysis: false,
-    bool useRapidTypeAnalysis: true,
+    {List<Uri> additionalSources = const <Uri>[],
+    bool includePlatform = false,
+    List<String> deleteToStringPackageUris = const <String>[],
+    bool aot = false,
+    bool useGlobalTypeFlowAnalysis = false,
+    bool useRapidTypeAnalysis = true,
     required Map<String, String> environmentDefines,
-    bool enableAsserts: true,
-    bool useProtobufTreeShakerV2: false,
-    bool minimalKernel: false,
-    bool treeShakeWriteOnlyFields: false,
-    String? fromDillFile: null}) async {
+    bool enableAsserts = true,
+    bool useProtobufTreeShakerV2 = false,
+    bool minimalKernel = false,
+    bool treeShakeWriteOnlyFields = false,
+    String? fromDillFile = null}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
       new ErrorDetector(previousErrorHandler: options.onDiagnostic);
@@ -435,7 +435,7 @@ Future<KernelCompilationResults> compileToKernel(
 
 Set<Library> createLoadedLibrariesSet(
     List<Component>? loadedComponents, Component? sdkComponent,
-    {bool includePlatform: false}) {
+    {bool includePlatform = false}) {
   final Set<Library> loadedLibraries = {};
   if (loadedComponents != null) {
     for (Component c in loadedComponents) {
@@ -465,9 +465,9 @@ Future runGlobalTransformations(
     bool enableAsserts,
     bool useProtobufTreeShakerV2,
     ErrorDetector errorDetector,
-    {bool minimalKernel: false,
-    bool treeShakeWriteOnlyFields: false,
-    bool useRapidTypeAnalysis: true}) async {
+    {bool minimalKernel = false,
+    bool treeShakeWriteOnlyFields = false,
+    bool useRapidTypeAnalysis = true}) async {
   assert(!target.flags.supportMirrors);
   if (errorDetector.hasCompilationErrors) return;
 

@@ -38,7 +38,7 @@ String typeSchemaToString(DartType schema) {
 class TypeSchemaPrinter extends Printer {
   TypeSchemaPrinter(StringSink sink,
       {NameSystem? syntheticNames,
-      bool showOffsets: false,
+      bool showOffsets = false,
       ImportTable? importTable,
       Annotator? annotator})
       : super(sink,

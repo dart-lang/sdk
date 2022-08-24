@@ -57,7 +57,7 @@ void main(List<String> arguments) {
 }
 
 Future runTest(int index, String code,
-    {bool writeJs, bool verbose: false, bool useNewSourceInfo: false}) async {
+    {bool writeJs, bool verbose = false, bool useNewSourceInfo = false}) async {
   print("--$index------------------------------------------------------------");
   print("Compiling dart2js ${useNewSourceInfo ? Flags.useNewSourceInfo : ''}\n"
       "${code}");

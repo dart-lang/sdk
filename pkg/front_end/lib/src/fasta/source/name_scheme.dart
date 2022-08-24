@@ -48,9 +48,9 @@ class NameScheme {
   static String createFieldName(FieldNameType type, String name,
       {required bool isInstanceMember,
       required String? className,
-      bool isExtensionMethod: false,
+      bool isExtensionMethod = false,
       String? extensionName,
-      bool isSynthesized: false}) {
+      bool isSynthesized = false}) {
     assert(isSynthesized || type == FieldNameType.Field,
         "Unexpected field name type for non-synthesized field: $type");
     // ignore: unnecessary_null_comparison
