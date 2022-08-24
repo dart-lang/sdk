@@ -29,9 +29,15 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     with LspPluginRequestHandlerMixin {
+  /// A [Future] used by tests to allow inserting a delay between resolving
+  /// the initial unit and the completion code running.
+  @visibleForTesting
+  static Future? delayAfterResolveForTests;
+
   /// Whether to include symbols from libraries that have not been imported.
   final bool suggestFromUnimportedLibraries;
 
@@ -109,6 +115,9 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       );
     });
 
+    if (delayAfterResolveForTests != null) {
+      await delayAfterResolveForTests;
+    }
     if (token.isCancellationRequested) {
       return cancelled();
     }
@@ -431,16 +440,31 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       if (capabilities.completionSnippets &&
           snippetsEnabled &&
           isEditableFile) {
-        unrankedResults =
-            await performance.runAsync('getSnippets', (performance) async {
-          final snippets = await _getDartSnippetItems(
-            clientCapabilities: capabilities,
-            unit: unit,
-            offset: offset,
-            lineInfo: unit.lineInfo,
-          );
-          return snippets.where(fuzzy.completionItemMatches).toList();
-        });
+        // Snippets may need to obtain resolved units to produce edits in files.
+        // If files have been modified since we started, these will throw but
+        // we should not bring down the entire completion request, just exclude
+        // the snippets and set isIncomplete=true.
+        //
+        // VS Code assumes we will continue to service a completion request
+        // even when documents are modified (as the user is typing).
+        try {
+          unrankedResults =
+              await performance.runAsync('getSnippets', (performance) async {
+            final snippets = await _getDartSnippetItems(
+              clientCapabilities: capabilities,
+              unit: unit,
+              offset: offset,
+              lineInfo: unit.lineInfo,
+            );
+            return snippets.where(fuzzy.completionItemMatches).toList();
+          });
+        } on AbortCompletion {
+          isIncomplete = true;
+          unrankedResults = [];
+        } on InconsistentAnalysisException {
+          isIncomplete = true;
+          unrankedResults = [];
+        }
       } else {
         unrankedResults = [];
       }
@@ -455,9 +479,9 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           rankedItems: rankedResults,
           unrankedItems: unrankedResults));
     } on AbortCompletion {
-      return success(_CompletionResults.empty());
+      return success(_CompletionResults.emptyIncomplete());
     } on InconsistentAnalysisException {
-      return success(_CompletionResults.empty());
+      return success(_CompletionResults.emptyIncomplete());
     }
   }
 
@@ -685,6 +709,10 @@ class _CompletionResults {
   });
 
   _CompletionResults.empty() : this(targetPrefix: '', isIncomplete: false);
+
+  /// An empty result set marked as incomplete because an error occurred.
+  _CompletionResults.emptyIncomplete()
+      : this(targetPrefix: '', isIncomplete: true);
 
   _CompletionResults.unranked(
     List<CompletionItem> unrankedItems, {
