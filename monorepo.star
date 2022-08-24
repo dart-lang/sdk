@@ -7,27 +7,27 @@ Currently only triggered manually, while prototyping.
 """
 
 load("//lib/dart.star", "dart")
-load("//lib/defaults.star", "defaults", "linux")
 load("//lib/priority.star", "priority")
 
-luci.builder(
+dart.ci_sandbox_builder(
     name = "monorepo-engine-v2",
-    build_numbers = False,
-    bucket = "try",
-    dimensions = defaults.dimensions(linux),
+    channels = [],
     executable = dart.flutter_recipe("engine_v2/engine_v2"),
     execution_timeout = 60 * time.minute,
     experiments = {"luci.non_production": 100},
+    notifies = None,
     priority = priority.high,
+    schedule = "triggered",
 )
 
-luci.builder(
+dart.ci_sandbox_builder(
     name = "monorepo-builder-v2",
-    build_numbers = False,
-    bucket = "try",
-    dimensions = defaults.dimensions([linux, {"pool": "dart.tests"}]),
+    channels = [],
+    dimensions = {"pool": "dart.tests"},
     executable = dart.flutter_recipe("engine_v2/builder_v2"),
     execution_timeout = 60 * time.minute,
     experiments = {"luci.non_production": 100},
+    notifies = None,
     priority = priority.high,
+    schedule = "triggered",
 )
