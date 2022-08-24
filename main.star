@@ -654,3 +654,5 @@ dart.try_builder(
     recipe = "roller/monorepo",
     execution_timeout = 30 * time.minute,
 )
+
+exec("//monorepo.star")

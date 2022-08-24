@@ -39,6 +39,14 @@ def _recipe(name):
         use_bbagent = True,
     )
 
+def _flutter_recipe(name):
+    return luci.recipe(
+        name = name,
+        cipd_package = "flutter/recipe_bundles/flutter.googlesource.com/recipes",
+        cipd_version = "refs/heads/main",
+        use_bbagent = True,
+    )
+
 def _with_goma(goma, dimensions, properties):
     """Decorates the properties to setup goma.
 
@@ -300,6 +308,7 @@ dart = struct(
     ci_builder = _ci_builder,
     ci_sandbox_builder = _ci_sandbox_builder,
     try_builder = _try_builder,
+    flutter_recipe = _flutter_recipe,
     poller = _poller,
     channels = _CHANNELS,
     release_channels = _RELEASE_CHANNELS,
