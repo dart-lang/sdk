@@ -675,6 +675,12 @@ class Forest {
       ..fileOffset = initializer.fileOffset;
   }
 
+  VariableDeclarationImpl createVariableDeclarationForHoisting(
+      Expression expression) {
+    return new VariableDeclarationImpl.forValue(expression)
+      ..fileOffset = expression.fileOffset;
+  }
+
   Let createLet(VariableDeclaration variable, Expression body) {
     return new Let(variable, body);
   }

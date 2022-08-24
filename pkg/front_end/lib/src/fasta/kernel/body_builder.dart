@@ -77,6 +77,8 @@ import '../fasta_codes.dart'
         Message,
         Template,
         noLength,
+        templateDuplicatedRecordLiteralFieldName,
+        templateDuplicatedRecordLiteralFieldNameContext,
         templateExperimentNotEnabledOffByDefault;
 import '../identifiers.dart'
     show Identifier, InitializedIdentifier, QualifiedName, flattenName;
@@ -3963,6 +3965,16 @@ class BodyBuilder extends StackListenerImpl
   @override
   void endRecordLiteral(Token token, int count) {
     debugEvent("RecordLiteral");
+    assert(checkState(
+        token,
+        repeatedKinds(
+            unionOfKinds([
+              ValueKinds.Generator,
+              ValueKinds.Expression,
+              ValueKinds.ProblemBuilder,
+              ValueKinds.NamedExpression,
+            ]),
+            count)));
 
     if (!libraryFeatures.records.isEnabled) {
       addProblem(
@@ -3972,15 +3984,48 @@ class BodyBuilder extends StackListenerImpl
           noLength);
     }
 
-    // TODO: Actual implementation of record literals.
-    // For now we pretend it's an empty list.
-    for (int i = count - 1; i >= 0; i--) {
-      pop();
+    // Pop all elements. This will put them in evaluation order.
+    List<Object?>? elements =
+        const FixedNullableList<Object>().pop(stack, count);
+    if (elements == null) {
+      push(new ParserRecovery(token.charOffset));
+      return;
     }
-    ListLiteral node = forest.createListLiteral(
-        TreeNode.noOffset, implicitTypeArgument, [],
-        isConst: constantContext == ConstantContext.inferred);
-    push(node);
+
+    List<Object> originalElementOrder = [];
+    List<Expression> positional = [];
+    List<NamedExpression> named = [];
+    Map<String, NamedExpression>? namedElements;
+    for (Object? element in elements) {
+      if (element is NamedExpression) {
+        namedElements ??= {};
+        NamedExpression? existingExpression = namedElements[element.name];
+        if (existingExpression != null) {
+          existingExpression.value = buildProblem(
+              templateDuplicatedRecordLiteralFieldName
+                  .withArguments(element.name),
+              element.fileOffset,
+              element.name.length,
+              context: [
+                templateDuplicatedRecordLiteralFieldNameContext
+                    .withArguments(element.name)
+                    .withLocation(
+                        uri, existingExpression.fileOffset, element.name.length)
+              ])
+            ..parent = existingExpression;
+        } else {
+          originalElementOrder.add(element);
+          namedElements[element.name] = element;
+          named.add(element);
+        }
+      } else {
+        Expression expression = toValue(element);
+        positional.add(expression);
+        originalElementOrder.add(expression);
+      }
+    }
+    push(new InternalRecordLiteral(
+        positional, named, namedElements, originalElementOrder));
   }
 
   void buildLiteralSet(List<TypeBuilder>? typeArguments, Token? constKeyword,

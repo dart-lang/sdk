@@ -356,6 +356,17 @@ DuplicatedRecordTypeFieldNameContext:
   problemMessage: "This is the existing record type field named '#name'."
   severity: CONTEXT
 
+DuplicatedRecordLiteralFieldName:
+  problemMessage: "Duplicated record literal field name '#name'."
+  correctionMessage: "Try renaming or removing one of the named record literal fields."
+  experiments: records
+  script: |
+    dynamic field = (a: 0, a: 1);
+
+DuplicatedRecordLiteralFieldNameContext:
+  problemMessage: "This is the existing record literal field named '#name'."
+  severity: CONTEXT
+
 EmptyOptionalParameterList:
   problemMessage: "Optional parameter lists cannot be empty."
   correctionMessage: "Try adding an optional parameter to the list."

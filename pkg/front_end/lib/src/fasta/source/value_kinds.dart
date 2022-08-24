@@ -81,6 +81,8 @@ class ValueKinds {
   static const ValueKind ModifiersOrNull =
       const SingleValueKind<List<type.Modifier>>(NullValue.Modifiers);
   static const ValueKind Name = const SingleValueKind<String>();
+  static const ValueKind NamedExpression =
+      const SingleValueKind<type.NamedExpression>();
   static const ValueKind NameListOrNull =
       const SingleValueKind<List<String>>(NullValue.IdentifierList);
   static const ValueKind NameOrNull =

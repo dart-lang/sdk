@@ -67,6 +67,8 @@ nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError
 nnbd/issue42603: TypeCheckError
 nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
+records/record_literal: TypeCheckError
+records/record_literal_errors: TypeCheckError
 value_class/copy_with_call_sites: RuntimeError # Expected
 value_class/simple: RuntimeError # Expected
 value_class/value_extends_non_value: RuntimeError # Expected

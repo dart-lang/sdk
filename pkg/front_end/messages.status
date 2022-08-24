@@ -213,6 +213,7 @@ DuplicatedModifier/script1: Fail
 DuplicatedName/example: Fail
 DuplicatedNamedArgument/example: Fail
 DuplicatedParameterName/example: Fail
+DuplicatedRecordLiteralFieldName/analyzerCode: Fail
 DuplicatedRecordTypeFieldName/analyzerCode: Fail
 Encoding/analyzerCode: Fail
 EnumAbstractMember/analyzerCode: Fail

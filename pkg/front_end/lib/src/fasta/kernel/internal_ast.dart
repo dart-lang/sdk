@@ -418,6 +418,7 @@ enum InternalExpressionKind {
   IfNullSuperIndexSet,
   IndexGet,
   IndexSet,
+  InternalRecordLiteral,
   LoadLibraryTearOff,
   LocalPostIncDec,
   MethodInvocation,
@@ -4939,5 +4940,64 @@ class AugmentSuperSet extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write('augment super = ');
     printer.writeExpression(value);
+  }
+}
+
+class InternalRecordLiteral extends InternalExpression {
+  final List<Expression> positional;
+  final List<NamedExpression> named;
+  final Map<String, NamedExpression>? namedElements;
+  final List<Object /*Expression|NamedExpression*/ > originalElementOrder;
+
+  InternalRecordLiteral(this.positional, this.named, this.namedElements,
+      this.originalElementOrder);
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    return visitor.visitInternalRecordLiteral(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.InternalRecordLiteral;
+
+  @override
+  void transformChildren(Transformer v) {
+    unsupported("${transformChildren}.accept on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
+        -1, null);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  String toString() {
+    return "InternalRecordLiteral(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('(');
+    String comma = '';
+    for (Object element in originalElementOrder) {
+      printer.write(comma);
+      if (element is NamedExpression) {
+        printer.write(element.name);
+        printer.write(': ');
+        printer.writeExpression(element.value);
+      } else {
+        printer.writeExpression(element as Expression);
+      }
+      comma = ', ';
+    }
+    printer.write(')');
   }
 }
