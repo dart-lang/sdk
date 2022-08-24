@@ -8,7 +8,7 @@
 
 // ignore_for_file: constant_identifier_names
 
-const String PROTOCOL_VERSION = '1.33.3';
+const String PROTOCOL_VERSION = '1.33.4';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -246,6 +246,7 @@ const String EDIT_REQUEST_SORT_MEMBERS = 'edit.sortMembers';
 const String EDIT_REQUEST_SORT_MEMBERS_FILE = 'file';
 const String EDIT_RESPONSE_BULK_FIXES_DETAILS = 'details';
 const String EDIT_RESPONSE_BULK_FIXES_EDITS = 'edits';
+const String EDIT_RESPONSE_BULK_FIXES_MESSAGE = 'message';
 const String EDIT_RESPONSE_FORMAT_EDITS = 'edits';
 const String EDIT_RESPONSE_FORMAT_IF_ENABLED_EDITS = 'edits';
 const String EDIT_RESPONSE_FORMAT_SELECTION_LENGTH = 'selectionLength';

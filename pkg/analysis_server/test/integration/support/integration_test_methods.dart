@@ -1741,6 +1741,10 @@ abstract class IntegrationTestMixin {
   ///
   /// Returns
   ///
+  /// message: String
+  ///
+  ///   An optional message explaining unapplied fixes.
+  ///
   /// edits: List<SourceFileEdit>
   ///
   ///   A list of source edits to apply the recommended changes.

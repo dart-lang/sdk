@@ -203,6 +203,32 @@ linter:
           ]));
     });
 
+    test('--dry-run --code (single: undefined)', () async {
+      p = project(
+        mainSrc: '''
+var x = "";
+class A {
+  A a() => new A();
+}
+''',
+        analysisOptions: '''
+linter:
+  rules:
+    - _undefined_
+    - unnecessary_new
+''',
+      );
+      var result = await runFix(['--dry-run', '--code', '_undefined_', '.'],
+          workingDir: p!.dirPath);
+      expect(result.exitCode, 3);
+      expect(result.stderr, isEmpty);
+      expect(
+          result.stdout,
+          stringContainsInOrder([
+            "Unable to compute fixes: The diagnostic '_undefined_' is undefined.",
+          ]));
+    });
+
     test('--apply lib/main.dart', () async {
       p = project(
         mainSrc: '''
@@ -255,6 +281,53 @@ linter:
             'lib${Platform.pathSeparator}main.dart',
             '  prefer_single_quotes $bullet 1 fix',
             '1 fix made in 1 file.',
+          ]));
+    });
+
+    test('--apply --code (undefined)', () async {
+      p = project(
+        mainSrc: '',
+      );
+      var result = await runFix(['--apply', '--code', '_undefined_', '.'],
+          workingDir: p!.dirPath);
+      expect(result.exitCode, 3);
+      expect(result.stderr, isEmpty);
+      expect(
+          result.stdout,
+          stringContainsInOrder([
+            "Unable to compute fixes: The diagnostic '_undefined_' is undefined.",
+          ]));
+    });
+
+    test('--apply --code (multiple: one undefined)', () async {
+      p = project(
+        mainSrc: '''
+var x = "";
+class A {
+  A a() => new A();
+}
+''',
+        analysisOptions: '''
+linter:
+  rules:
+    - _undefined_
+    - unnecessary_new
+''',
+      );
+      var result = await runFix([
+        '--apply',
+        '--code',
+        '_undefined_',
+        '--code',
+        'unnecessary_new',
+        '.'
+      ], workingDir: p!.dirPath);
+      expect(result.exitCode, 3);
+      expect(result.stderr, isEmpty);
+      expect(
+          result.stdout,
+          stringContainsInOrder([
+            "Unable to compute fixes: The diagnostic '_undefined_' is undefined.",
           ]));
     });
 
