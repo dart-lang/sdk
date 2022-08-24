@@ -34,7 +34,7 @@ class EventStreamProvider<T extends Event> {
    * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
    *   from MDN.
    */
-  Stream<T> forTarget(EventTarget? e, {bool useCapture: false}) =>
+  Stream<T> forTarget(EventTarget? e, {bool useCapture = false}) =>
       new _EventStream<T>(e, _eventType, useCapture);
 
   /**
@@ -59,7 +59,7 @@ class EventStreamProvider<T extends Event> {
    * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
    *   from MDN.
    */
-  ElementStream<T> forElement(Element e, {bool useCapture: false}) {
+  ElementStream<T> forElement(Element e, {bool useCapture = false}) {
     return new _ElementEventStreamImpl<T>(e, _eventType, useCapture);
   }
 
@@ -79,7 +79,7 @@ class EventStreamProvider<T extends Event> {
    *   from MDN.
    */
   ElementStream<T> _forElementList(ElementList<Element> e,
-      {bool useCapture: false}) {
+      {bool useCapture = false}) {
     return new _ElementListEventStreamImpl<T>(e, _eventType, useCapture);
   }
 
@@ -433,16 +433,16 @@ class _CustomEventStreamProvider<T extends Event>
   final _eventTypeGetter;
   const _CustomEventStreamProvider(this._eventTypeGetter);
 
-  Stream<T> forTarget(EventTarget? e, {bool useCapture: false}) {
+  Stream<T> forTarget(EventTarget? e, {bool useCapture = false}) {
     return new _EventStream<T>(e, _eventTypeGetter(e), useCapture);
   }
 
-  ElementStream<T> forElement(Element e, {bool useCapture: false}) {
+  ElementStream<T> forElement(Element e, {bool useCapture = false}) {
     return new _ElementEventStreamImpl<T>(e, _eventTypeGetter(e), useCapture);
   }
 
   ElementStream<T> _forElementList(ElementList<Element> e,
-      {bool useCapture: false}) {
+      {bool useCapture = false}) {
     return new _ElementListEventStreamImpl<T>(
         e, _eventTypeGetter(e), useCapture);
   }

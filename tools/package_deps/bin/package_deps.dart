@@ -75,7 +75,6 @@ void main(List<String> arguments) {
     }
 
     // TODO(devoncarew): Find unused entries in the DEPS file.
-
   }
 
   if (validateFailure) {

@@ -11,7 +11,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * the returned Future will complete with an error if a directory already
    * exists with the specified `path`.
    */
-  Future<Entry> createDirectory(String path, {bool exclusive: false}) {
+  Future<Entry> createDirectory(String path, {bool exclusive = false}) {
     return _getDirectory(path, options:
         {'create': true, 'exclusive': exclusive});
   }
@@ -39,7 +39,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * the returned Future will complete with an error if a file already
    * exists at the specified `path`.
    */
-  Future<Entry> createFile(String path, {bool exclusive: false}) {
+  Future<Entry> createFile(String path, {bool exclusive = false}) {
     return _getFile(path, options: {'create': true, 'exclusive': exclusive});
   }
 

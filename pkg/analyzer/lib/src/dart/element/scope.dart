@@ -85,20 +85,6 @@ class FormalParameterScope extends EnclosedScope {
   }
 }
 
-class ImportedElement {
-  final Element element;
-
-  /// This flag is set to `true` if [element] is available using import
-  /// directives where every imported library re-exports the element, and
-  /// every such `export` directive is marked as deprecated.
-  final bool isFromDeprecatedExport;
-
-  ImportedElement({
-    required this.element,
-    required this.isFromDeprecatedExport,
-  });
-}
-
 /// The scope defined by an interface element.
 class InterfaceScope extends EnclosedScope {
   InterfaceScope(super.parent, InterfaceElement element) {
@@ -158,8 +144,10 @@ class LocalScope extends EnclosedScope {
 
 class PrefixScope implements Scope {
   final LibraryOrAugmentationElementImpl _container;
-  final Map<String, ImportedElement> _getters = {};
-  final Map<String, ImportedElement> _setters = {};
+  final Map<String, Element> _getters = {};
+  final Map<String, Element> _setters = {};
+  Set<String>? _settersFromDeprecatedExport;
+  Set<String>? _gettersFromDeprecatedExport;
   final Set<ExtensionElement> _extensions = {};
   LibraryElement? _deferredLibrary;
 
@@ -176,12 +164,8 @@ class PrefixScope implements Scope {
             final reference = exportedReference.reference;
             if (combinators.allows(reference.name)) {
               final element = elementFactory.elementOfReference(reference)!;
-              final importedElement = ImportedElement(
-                element: element,
-                isFromDeprecatedExport:
-                    _isFromDeprecatedExport(importedLibrary, exportedReference),
-              );
-              _add(importedElement);
+              _add(element,
+                  _isFromDeprecatedExport(importedLibrary, exportedReference));
             }
           }
           if (import.prefix is DeferredImportElementPrefix) {
@@ -199,48 +183,56 @@ class PrefixScope implements Scope {
       return ScopeLookupResultImpl(deferredLibrary.loadLibraryFunction, null);
     }
 
-    var getter = _getters[id];
-    var setter = _setters[id];
-    return PrefixScopeLookupResult(getter, setter);
+    return PrefixScopeLookupResult(
+        _getters[id],
+        _setters[id],
+        _gettersFromDeprecatedExport?.contains(id) ?? false,
+        _settersFromDeprecatedExport?.contains(id) ?? false);
   }
 
-  void _add(ImportedElement imported) {
-    final element = imported.element;
+  void _add(Element element, bool isFromDeprecatedExport) {
     if (element is PropertyAccessorElement && element.isSetter) {
-      _addTo(map: _setters, incoming: imported);
+      _addTo(element, isFromDeprecatedExport, isSetter: true);
     } else {
-      _addTo(map: _getters, incoming: imported);
+      _addTo(element, isFromDeprecatedExport, isSetter: false);
       if (element is ExtensionElement) {
         _extensions.add(element);
       }
     }
   }
 
-  void _addTo({
-    required Map<String, ImportedElement> map,
-    required ImportedElement incoming,
-  }) {
-    final id = incoming.element.displayName;
+  void _addTo(Element element, bool isDeprecatedExport,
+      {required bool isSetter}) {
+    final map = isSetter ? _setters : _getters;
+    final id = element.displayName;
     final existing = map[id];
 
     if (existing == null) {
-      map[id] = incoming;
+      map[id] = element;
+      if (isDeprecatedExport) {
+        if (isSetter) {
+          (_settersFromDeprecatedExport ??= {}).add(id);
+        } else {
+          (_gettersFromDeprecatedExport ??= {}).add(id);
+        }
+      }
       return;
     }
 
-    if (existing.element == incoming.element) {
-      map[id] = ImportedElement(
-        element: incoming.element,
-        isFromDeprecatedExport:
-            existing.isFromDeprecatedExport && incoming.isFromDeprecatedExport,
-      );
+    final deprecatedSet =
+        isSetter ? _settersFromDeprecatedExport : _gettersFromDeprecatedExport;
+    final wasFromDeprecatedExport = deprecatedSet?.contains(id) ?? false;
+    if (existing == element) {
+      if (wasFromDeprecatedExport && !isDeprecatedExport) {
+        deprecatedSet!.remove(id);
+      }
       return;
     }
 
-    map[id] = ImportedElement(
-      element: _merge(existing.element, incoming.element),
-      isFromDeprecatedExport: false,
-    );
+    map[id] = _merge(existing, element);
+    if (wasFromDeprecatedExport) {
+      deprecatedSet!.remove(id);
+    }
   }
 
   Element _merge(Element existing, Element other) {
@@ -305,20 +297,35 @@ class PrefixScope implements Scope {
   }
 }
 
-class PrefixScopeLookupResult implements ScopeLookupResult {
-  final ImportedElement? importedGetter;
-  final ImportedElement? importedSetter;
+class PrefixScopeLookupResult extends ScopeLookupResultImpl {
+  static const int getterIsFromDeprecatedExportBit = 1 << 0;
+  static const int setterIsFromDeprecatedExportBit = 1 << 1;
+
+  final int _deprecatedBits;
 
   PrefixScopeLookupResult(
-    this.importedGetter,
-    this.importedSetter,
-  );
+    super.importedGetter,
+    super.importedSetter,
+    bool getterIsFromDeprecatedExport,
+    bool setterIsFromDeprecatedExport,
+  ) : _deprecatedBits = (getterIsFromDeprecatedExport
+                ? getterIsFromDeprecatedExportBit
+                : 0) |
+            (setterIsFromDeprecatedExport
+                ? setterIsFromDeprecatedExportBit
+                : 0);
 
-  @override
-  Element? get getter => importedGetter?.element;
+  /// This flag is set to `true` if [getter] is available using import
+  /// directives where every imported library re-exports the element, and
+  /// every such `export` directive is marked as deprecated.
+  bool get getterIsFromDeprecatedExport =>
+      (_deprecatedBits & getterIsFromDeprecatedExportBit) != 0;
 
-  @override
-  Element? get setter => importedSetter?.element;
+  /// This flag is set to `true` if [setter] is available using import
+  /// directives where every imported library re-exports the element, and
+  /// every such `export` directive is marked as deprecated.
+  bool get setterIsFromDeprecatedExport =>
+      (_deprecatedBits & setterIsFromDeprecatedExportBit) != 0;
 }
 
 class ScopeLookupResultImpl implements ScopeLookupResult {

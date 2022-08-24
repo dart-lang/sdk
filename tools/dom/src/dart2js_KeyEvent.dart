@@ -94,15 +94,15 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** Programmatically create a new KeyEvent (and KeyboardEvent). */
   factory KeyEvent(String type,
       {Window? view,
-      bool canBubble: true,
-      bool cancelable: true,
-      int keyCode: 0,
-      int charCode: 0,
-      int location: 1,
-      bool ctrlKey: false,
-      bool altKey: false,
-      bool shiftKey: false,
-      bool metaKey: false,
+      bool canBubble = true,
+      bool cancelable = true,
+      int keyCode = 0,
+      int charCode = 0,
+      int location = 1,
+      bool ctrlKey = false,
+      bool altKey = false,
+      bool shiftKey = false,
+      bool metaKey = false,
       EventTarget? currentTarget}) {
     if (view == null) {
       view = window;

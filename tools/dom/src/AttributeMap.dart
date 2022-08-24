@@ -273,7 +273,7 @@ class _DataAttributeMap extends MapBase<String, String> {
    * and capitalizing the following letter. Optionally [startUppercase] to
    * capitalize the first letter.
    */
-  String _toCamelCase(String hyphenedName, {bool startUppercase: false}) {
+  String _toCamelCase(String hyphenedName, {bool startUppercase = false}) {
     var segments = hyphenedName.split('-');
     int start = startUppercase ? 0 : 1;
     for (int i = start; i < segments.length; i++) {

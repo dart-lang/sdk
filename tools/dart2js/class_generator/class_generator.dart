@@ -448,7 +448,7 @@ class PlainJavaScriptClassGenerator extends JavaScriptClassGenerator {
   }
 
   void emitMethod(int classId, String methodName, Function bodyEmitter,
-      {bool emitArgument: true}) {
+      {bool emitArgument = true}) {
     String argumentString = emitArgument ? argumentName : "";
     if (useMethodsObject) {
       writeln("$methodName: function($argumentString)");
@@ -576,7 +576,7 @@ class Es6ClassGenerator extends JavaScriptClassGenerator {
 class DartClassGenerator extends ClassGenerator {
   final bool shouldUseNewEmitter;
 
-  DartClassGenerator(Config config, {this.shouldUseNewEmitter: false})
+  DartClassGenerator(Config config, {this.shouldUseNewEmitter = false})
       : super(config);
 
   void emitClasses() {
@@ -637,8 +637,9 @@ class DartClassGenerator extends ClassGenerator {
     }
     print("compiling");
     print("dart2jsPath: $dart2jsPath");
-    ProcessResult result = await Process
-        .run(dart2jsPath, [dartFile, "--out=$outFile"], environment: env);
+    ProcessResult result = await Process.run(
+        dart2jsPath, [dartFile, "--out=$outFile"],
+        environment: env);
     if (result.exitCode != 0) {
       print("compilation failed");
       print(result.stdout);
@@ -649,7 +650,7 @@ class DartClassGenerator extends ClassGenerator {
     return outFile;
   }
 
-  Future measureDart(String filePrefix, {bool useSnapshot: false}) async {
+  Future measureDart(String filePrefix, {bool useSnapshot = false}) async {
     String dartFile = writeFile(filePrefix);
     String command = Platform.executable;
     Stopwatch watch = new Stopwatch();
