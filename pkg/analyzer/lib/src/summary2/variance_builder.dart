@@ -6,11 +6,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
+import 'package:analyzer/src/summary2/record_type_builder.dart';
 
 class VarianceBuilder {
   final Linker _linker;
@@ -103,6 +105,14 @@ class VarianceBuilder {
         typeFormals: type.typeFormals,
         parameters: type.parameters,
       );
+    } else if (type is RecordTypeBuilder) {
+      var result = Variance.unrelated;
+      for (final field in type.node.fields) {
+        result = result.meet(
+          _compute(variable, field.type.typeOrThrow),
+        );
+      }
+      return result;
     }
     return Variance.unrelated;
   }

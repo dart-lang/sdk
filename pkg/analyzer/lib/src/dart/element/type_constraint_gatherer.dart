@@ -331,6 +331,10 @@ class TypeConstraintGatherer {
       return _functionType(P, Q, leftSchema);
     }
 
+    if (P is RecordTypeImpl && Q is RecordTypeImpl) {
+      return _recordType(P, Q, leftSchema);
+    }
+
     return false;
   }
 
@@ -594,6 +598,58 @@ class TypeConstraintGatherer {
       }
       if ((variance.isContravariant || variance.isInvariant) &&
           !trySubtypeMatch(N, M, leftSchema)) {
+        _constraints.length = rewind;
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /// If `P` is `(M0, ..., Mk)` and `Q` is `(N0, ..., Nk)`, then the match
+  /// holds under constraints `C0 + ... + Ck`:
+  ///   If `Mi` is a subtype match for `Ni` with respect to L under
+  ///   constraints `Ci`.
+  bool _recordType(RecordTypeImpl P, RecordTypeImpl Q, bool leftSchema) {
+    if (P.nullabilitySuffix != NullabilitySuffix.none) {
+      return false;
+    }
+
+    if (Q.nullabilitySuffix != NullabilitySuffix.none) {
+      return false;
+    }
+
+    final positionalP = P.positionalFields;
+    final positionalQ = Q.positionalFields;
+    if (positionalP.length != positionalQ.length) {
+      return false;
+    }
+
+    final namedP = P.namedFields;
+    final namedQ = Q.namedFields;
+    if (namedP.length != namedQ.length) {
+      return false;
+    }
+
+    final rewind = _constraints.length;
+
+    for (var i = 0; i < positionalP.length; i++) {
+      final fieldP = positionalP[i];
+      final fieldQ = positionalQ[i];
+      if (!trySubtypeMatch(fieldP.type, fieldQ.type, leftSchema)) {
+        _constraints.length = rewind;
+        return false;
+      }
+    }
+
+    for (var i = 0; i < namedP.length; i++) {
+      final fieldP = namedP[i];
+      final fieldQ = namedQ[i];
+      if (fieldP.name != fieldQ.name) {
+        _constraints.length = rewind;
+        return false;
+      }
+      if (!trySubtypeMatch(fieldP.type, fieldQ.type, leftSchema)) {
         _constraints.length = rewind;
         return false;
       }

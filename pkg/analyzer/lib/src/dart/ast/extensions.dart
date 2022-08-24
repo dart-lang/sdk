@@ -191,6 +191,15 @@ extension ListOfFormalParameterExtension on List<FormalParameter> {
   }
 }
 
+extension RecordTypeAnnotationExtension on RecordTypeAnnotation {
+  List<RecordTypeAnnotationField> get fields {
+    return [
+      ...positionalFields,
+      ...?namedFields?.fields,
+    ];
+  }
+}
+
 extension TypeAnnotationExtension on TypeAnnotation {
   /// Return the static type of this type annotation.
   ///

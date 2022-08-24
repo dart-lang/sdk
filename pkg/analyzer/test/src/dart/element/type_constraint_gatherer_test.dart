@@ -917,6 +917,220 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     _checkMatch([T], unknownType, numNone, true, ['_ <: T <: _']);
   }
 
+  test_recordType_differentShape() {
+    _checkNotMatch(
+      [T],
+      recordTypeNone(
+        positionalTypes: [T_none, intNone],
+      ),
+      recordTypeNone(
+        positionalTypes: [intNone],
+      ),
+      true,
+    );
+
+    _checkNotMatch(
+      [T],
+      recordTypeNone(
+        positionalTypes: [T_none],
+      ),
+      recordTypeNone(
+        positionalTypes: [intNone, intNone],
+      ),
+      true,
+    );
+
+    _checkNotMatch(
+      [T],
+      recordTypeNone(
+        namedTypes: {'f1': T_none},
+      ),
+      recordTypeNone(
+        namedTypes: {'f2': intNone},
+      ),
+      true,
+    );
+
+    _checkNotMatch(
+      [T],
+      recordTypeNone(
+        namedTypes: {'f1': T_none, 'f2': intNone},
+      ),
+      recordTypeNone(
+        namedTypes: {'f1': intNone},
+      ),
+      true,
+    );
+
+    _checkNotMatch(
+      [T],
+      recordTypeNone(
+        namedTypes: {'f1': T_none},
+      ),
+      recordTypeNone(
+        namedTypes: {'f1': intNone, 'f2': intNone},
+      ),
+      true,
+    );
+
+    _checkNotMatch(
+      [T],
+      recordTypeNone(
+        positionalTypes: [intNone],
+        namedTypes: {'f2': T_none},
+      ),
+      recordTypeNone(
+        namedTypes: {'f1': intNone, 'f2': intNone},
+      ),
+      true,
+    );
+  }
+
+  test_recordType_sameShape_named() {
+    _checkMatch(
+      [T],
+      recordTypeNone(
+        namedTypes: {'f1': T_none},
+      ),
+      recordTypeNone(
+        namedTypes: {'f1': intNone},
+      ),
+      true,
+      ['_ <: T <: int'],
+    );
+
+    _checkMatch(
+      [T],
+      recordTypeNone(
+        namedTypes: {'f1': intNone},
+      ),
+      recordTypeNone(
+        namedTypes: {'f1': T_none},
+      ),
+      false,
+      ['int <: T <: _'],
+    );
+
+    _checkNotMatch(
+      [T],
+      recordTypeNone(
+        namedTypes: {'f1': intNone},
+      ),
+      recordTypeNone(
+        namedTypes: {'f1': stringNone},
+      ),
+      false,
+    );
+
+    _checkMatch(
+      [T],
+      recordTypeNone(
+        namedTypes: {'f1': intNone, 'f2': T_none},
+      ),
+      recordTypeNone(
+        namedTypes: {'f1': numNone, 'f2': stringNone},
+      ),
+      true,
+      ['_ <: T <: String'],
+    );
+
+    _checkMatch(
+      [T],
+      recordTypeNone(
+        namedTypes: {'f1': intNone, 'f2': stringNone},
+      ),
+      recordTypeNone(
+        namedTypes: {'f1': numNone, 'f2': T_none},
+      ),
+      false,
+      ['String <: T <: _'],
+    );
+
+    _checkNotMatch(
+      [T],
+      recordTypeNone(
+        namedTypes: {'f1': T_none, 'f2': intNone},
+        positionalTypes: [T_none, intNone],
+      ),
+      recordTypeNone(
+        namedTypes: {'f1': intNone, 'f2': stringNone},
+      ),
+      true,
+    );
+  }
+
+  test_recordType_sameShape_positional() {
+    _checkMatch(
+      [T],
+      recordTypeNone(
+        positionalTypes: [T_none],
+      ),
+      recordTypeNone(
+        positionalTypes: [numNone],
+      ),
+      true,
+      ['_ <: T <: num'],
+    );
+
+    _checkMatch(
+      [T],
+      recordTypeNone(
+        positionalTypes: [intNone],
+      ),
+      recordTypeNone(
+        positionalTypes: [T_none],
+      ),
+      false,
+      ['int <: T <: _'],
+    );
+
+    _checkNotMatch(
+      [T],
+      recordTypeNone(
+        positionalTypes: [intNone],
+      ),
+      recordTypeNone(
+        positionalTypes: [stringNone],
+      ),
+      false,
+    );
+
+    _checkMatch(
+      [T],
+      recordTypeNone(
+        positionalTypes: [intNone, T_none],
+      ),
+      recordTypeNone(
+        positionalTypes: [numNone, stringNone],
+      ),
+      true,
+      ['_ <: T <: String'],
+    );
+
+    _checkMatch(
+      [T],
+      recordTypeNone(
+        positionalTypes: [intNone, stringNone],
+      ),
+      recordTypeNone(
+        positionalTypes: [numNone, T_none],
+      ),
+      false,
+      ['String <: T <: _'],
+    );
+
+    _checkNotMatch(
+      [T],
+      recordTypeNone(
+        positionalTypes: [T_none, intNone],
+      ),
+      recordTypeNone(
+        positionalTypes: [numNone, stringNone],
+      ),
+      true,
+    );
+  }
+
   test_right_functionClass() {
     _checkMatch(
       [T],

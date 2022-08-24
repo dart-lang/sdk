@@ -3002,15 +3002,15 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
     }
 
     final match = _START_TAG_REGEXP.firstMatch(svg);
-    var parentElement;
+    Element parentElement;
     if (match != null && match.group(1)!.toLowerCase() == 'svg') {
-      parentElement = document.body;
+      parentElement = document.body!;
     } else {
       parentElement = new SvgSvgElement();
     }
     var fragment = parentElement.createFragment(svg,
         validator: validator, treeSanitizer: treeSanitizer);
-    return fragment.nodes.where((e) => e is SvgElement).single;
+    return fragment.nodes.where((e) => e is SvgElement).single as SvgElement;
   }
 
   CssClassSet get classes => new AttributeClassSet(this);

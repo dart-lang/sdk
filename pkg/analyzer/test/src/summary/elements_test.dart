@@ -6190,6 +6190,28 @@ library
 ''');
   }
 
+  test_class_notSimplyBounded_circularity_via_typeAlias_recordType() async {
+    var library = await buildLibrary('''
+class C<T extends A> {}
+typedef A = (C, int);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: dynamic
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+    typeAliases
+      notSimplyBounded A @32
+        aliasedType: (C<dynamic>, int)
+''');
+  }
+
   test_class_notSimplyBounded_circularity_via_typedef() async {
     // C's type parameter T is not simply bounded because its bound, F, expands
     // to `dynamic F(C)`, which refers to C.
@@ -37657,6 +37679,92 @@ library
 ''');
   }
 
+  test_typeAlias_typeParameters_variance_record_contravariant() async {
+    var library = await buildLibrary(r'''
+typedef A<T> = (void Function(T), int);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          contravariant T @10
+            defaultType: dynamic
+        aliasedType: (void Function(T), int)
+''');
+  }
+
+  test_typeAlias_typeParameters_variance_record_contravariant2() async {
+    var library = await buildLibrary(r'''
+typedef A<T> = (void Function(T), int);
+typedef B<T> = List<A<T>>;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          contravariant T @10
+            defaultType: dynamic
+        aliasedType: (void Function(T), int)
+      B @48
+        typeParameters
+          contravariant T @50
+            defaultType: dynamic
+        aliasedType: List<(void Function(T), int)>
+''');
+  }
+
+  test_typeAlias_typeParameters_variance_record_covariant() async {
+    var library = await buildLibrary(r'''
+typedef A<T> = (T, int);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+        aliasedType: (T, int)
+''');
+  }
+
+  test_typeAlias_typeParameters_variance_record_invariant() async {
+    var library = await buildLibrary(r'''
+typedef A<T> = (T Function(T), int);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          invariant T @10
+            defaultType: dynamic
+        aliasedType: (T Function(T), int)
+''');
+  }
+
+  test_typeAlias_typeParameters_variance_record_unrelated() async {
+    var library = await buildLibrary(r'''
+typedef A<T> = (int, String);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          unrelated T @10
+            defaultType: dynamic
+        aliasedType: (int, String)
+''');
+  }
+
   test_typedef_function_generic() async {
     var library = await buildLibrary(
         'typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);');
@@ -38487,6 +38595,46 @@ void f2(Never?<aliasElement: self::@typeAlias::A2, aliasArguments: [int]> a) {}
 ''');
   }
 
+  test_typedef_nonFunction_aliasElement_recordType() async {
+    var library = await buildLibrary(r'''
+typedef A1 = (int, String);
+typedef A2<T, U> = (T, U);
+void f1(A1 a) {}
+void f2(A2<int, String> a) {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A1 @8
+        aliasedType: (int, String)
+      A2 @36
+        typeParameters
+          covariant T @39
+            defaultType: dynamic
+          covariant U @42
+            defaultType: dynamic
+        aliasedType: (T, U)
+    functions
+      f1 @60
+        parameters
+          requiredPositional a @66
+            type: (int, String)
+              alias: self::@typeAlias::A1
+        returnType: void
+      f2 @77
+        parameters
+          requiredPositional a @96
+            type: (int, String)
+              alias: self::@typeAlias::A2
+                typeArguments
+                  int
+                  String
+        returnType: void
+''');
+  }
+
   test_typedef_nonFunction_aliasElement_typeParameterType() async {
     var library = await buildLibrary(r'''
 typedef A<T> = T;
@@ -39306,6 +39454,22 @@ library
           requiredPositional a @27
             type: void
         returnType: void
+''');
+  }
+
+  test_typedef_selfReference_recordType() async {
+    var library = await buildLibrary(r'''
+typedef F = (F, int) Function();
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      notSimplyBounded F @8
+        aliasedType: (dynamic, dynamic) Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: (dynamic, int)
 ''');
   }
 
