@@ -49,6 +49,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
     if (!opType.isPrefixed) {
       if (opType.includeReturnValueSuggestions ||
           opType.includeTypeNameSuggestions ||
+          opType.includeAnnotationSuggestions ||
           opType.includeVoidReturnSuggestions ||
           opType.includeConstructorSuggestions ||
           suggestLocalFields) {
@@ -420,15 +421,24 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         builder.suggestInterface(element);
       }
 
+      final includeConstructors = opType.includeConstructorSuggestions ||
+          opType.includeAnnotationSuggestions;
+      final includeOnlyConstConstructors =
+          opType.includeAnnotationSuggestions &&
+              !opType.includeConstructorSuggestions;
       if (!opType.isPrefixed &&
-          opType.includeConstructorSuggestions &&
+          includeConstructors &&
           element is ClassElement &&
           // TODO(scheglov) Remove when separated EnumElement from ClassElement
           element is! EnumElement) {
         for (final constructor in element.constructors) {
-          if (!element.isAbstract || constructor.isFactory) {
-            builder.suggestConstructor(constructor);
+          if (element.isAbstract && !constructor.isFactory) {
+            continue;
           }
+          if (includeOnlyConstConstructors && !constructor.isConst) {
+            continue;
+          }
+          builder.suggestConstructor(constructor);
         }
       }
 

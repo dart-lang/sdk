@@ -34,6 +34,7 @@ abstract class AbstractOpTypeTest extends AbstractContextTest {
   Future<void> assertOpType(
       {bool caseLabel = false,
       String? completionLocation,
+      bool annotations = false,
       bool constructors = false,
       bool namedArgs = false,
       bool prefixed = false,
@@ -64,6 +65,7 @@ abstract class AbstractOpTypeTest extends AbstractContextTest {
         opType.includeReturnValueSuggestions == returnValue &&
         opType.includeStatementLabelSuggestions == statementLabel &&
         opType.inStaticMethodBody == staticMethodBody &&
+        opType.includeAnnotationSuggestions == annotations &&
         opType.includeTypeNameSuggestions == typeNames &&
         opType.includeVarNameSuggestions == varNames &&
         opType.includeVoidReturnSuggestions == voidReturn;
@@ -139,25 +141,18 @@ class A {
 }
 ''');
     await assertOpType(
-        completionLocation: 'Annotation_name',
-        constructors: true,
-        returnValue: true,
-        typeNames: true);
+      completionLocation: 'Annotation_name',
+      annotations: true,
+    );
   }
 
-  @failingTest
   Future<void> test_annotation_notBeforeDeclaration() async {
     // SimpleIdentifier  Annotation  MethodDeclaration  ClassDeclaration
     addTestSource('class C { @A^ }');
     await assertOpType(
-        constructors: true,
-        completionLocation: 'Annotation_name',
-        returnValue: true,
-        typeNames: true);
-    // TODO(danrubel): This test fails because the @A is dropped from the AST.
-    // Ideally we generate a synthetic field and associate the annotation
-    // with that field, but doing so breaks test_constructorAndMethodNameCollision.
-    // See https://dart-review.googlesource.com/c/sdk/+/65760/3/pkg/analyzer/lib/src/fasta/ast_builder.dart#2395
+      completionLocation: 'Annotation_name',
+      annotations: true,
+    );
   }
 
   Future<void> test_argumentList_constructor_named_resolved_1_0() async {

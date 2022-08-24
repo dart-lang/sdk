@@ -103,6 +103,41 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     );
   }
 
+  Future<void> test_annotation_beforeMember() async {
+    final content = '''
+class B {
+  @^
+  int a = 1;
+}
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final completions =
+        await getCompletion(mainFileUri, positionFromMarker(content));
+    final labels = completions.map((c) => c.label).toList();
+    expect(labels, contains('override'));
+    expect(labels, contains('deprecated'));
+    expect(labels, contains('Deprecated(…)'));
+  }
+
+  Future<void> test_annotation_endOfClass() async {
+    final content = '''
+class B {
+  @^
+}
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final completions =
+        await getCompletion(mainFileUri, positionFromMarker(content));
+    final labels = completions.map((c) => c.label).toList();
+    expect(labels, contains('override'));
+    expect(labels, contains('deprecated'));
+    expect(labels, contains('Deprecated(…)'));
+  }
+
   Future<void> test_comment() async {
     final content = '''
     // foo ^

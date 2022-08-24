@@ -225,6 +225,12 @@ class DartCompletionManager {
         kinds.add(protocol.ElementKind.SETTER);
         kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
       }
+      if (opType.includeAnnotationSuggestions) {
+        kinds.add(protocol.ElementKind.CONSTRUCTOR);
+        // Top-level properties.
+        kinds.add(protocol.ElementKind.GETTER);
+        kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
+      }
     }
   }
 
