@@ -235,7 +235,7 @@ class File : public ReferenceCounted<File> {
 
   static bool Exists(Namespace* namespc, const char* path);
   static bool ExistsUri(Namespace* namespc, const char* uri);
-  static bool Create(Namespace* namespc, const char* path);
+  static bool Create(Namespace* namespc, const char* path, bool exclusive);
   static bool CreateLink(Namespace* namespc,
                          const char* path,
                          const char* target);

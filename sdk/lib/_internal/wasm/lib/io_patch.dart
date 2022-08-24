@@ -112,7 +112,7 @@ class _File {
   }
 
   @patch
-  static _create(_Namespace namespace, Uint8List path) {
+  static _create(_Namespace namespace, Uint8List path, bool exclusive) {
     throw new UnsupportedError("File._create");
   }
 

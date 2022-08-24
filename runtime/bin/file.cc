@@ -508,13 +508,15 @@ void FUNCTION_NAME(File_Lock)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
+  Dart_Handle exclusive_handle = Dart_GetNativeArgument(args, 2);
   bool result;
   OSError os_error;
   {
     TypedDataScope data(path_handle);
     ASSERT(data.type() == Dart_TypedData_kUint8);
     const char* path = data.GetCString();
-    result = File::Create(namespc, path);
+    bool exclusive = DartUtils::GetBooleanValue(exclusive_handle);
+    result = File::Create(namespc, path, exclusive);
     if (!result) {
       // Errors must be caught before TypedDataScope data is destroyed.
       os_error.Reload();
@@ -901,11 +903,14 @@ CObject* File::CreateRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 2) || !request[1]->IsUint8Array()) {
+  if ((request.Length() != 3) || !request[1]->IsUint8Array() ||
+      !request[2]->IsBool()) {
     return CObject::IllegalArgumentError();
   }
   CObjectUint8Array filename(request[1]);
-  return File::Create(namespc, reinterpret_cast<const char*>(filename.Buffer()))
+  CObjectBool exclusive(request[2]);
+  return File::Create(namespc, reinterpret_cast<const char*>(filename.Buffer()),
+                      exclusive.Value())
              ? CObject::True()
              : CObject::NewOSError();
 }
