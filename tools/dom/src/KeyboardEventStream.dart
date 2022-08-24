@@ -65,7 +65,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
 
   /** Return a stream for KeyEvents for the specified target. */
   // Note: this actually functions like a factory constructor.
-  CustomStream<KeyEvent> forTarget(EventTarget? e, {bool useCapture: false}) {
+  CustomStream<KeyEvent> forTarget(EventTarget? e, {bool useCapture = false}) {
     var handler =
         new _KeyboardEventHandler.initializeAllEventListeners(_type, e);
     return handler._stream;
