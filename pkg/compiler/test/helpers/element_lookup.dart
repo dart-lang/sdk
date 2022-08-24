@@ -37,7 +37,7 @@ ClassEntity findClass(JClosedWorld closedWorld, String name) {
 
 MemberEntity findClassMember(
     JClosedWorld closedWorld, String className, String memberName,
-    {bool required: true}) {
+    {bool required = true}) {
   bool isSetter = false;
   if (memberName.endsWith('=')) {
     memberName = memberName.substring(0, memberName.length - 1);

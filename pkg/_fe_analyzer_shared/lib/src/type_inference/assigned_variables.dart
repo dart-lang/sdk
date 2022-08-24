@@ -96,7 +96,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   ///
   /// See [beginNode] for more details.
   AssignedVariablesNodeInfo deferNode(
-      {bool isClosureOrLateVariableInitializer: false}) {
+      {bool isClosureOrLateVariableInitializer = false}) {
     assert(!_isFinished);
     AssignedVariablesNodeInfo info = _stack.removeLast();
     info.read.removeAll(info.declared);
@@ -153,7 +153,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// to [storeInfo].
   ///
   /// See [beginNode] for more details.
-  void endNode(Node node, {bool isClosureOrLateVariableInitializer: false}) {
+  void endNode(Node node, {bool isClosureOrLateVariableInitializer = false}) {
     assert(!_isFinished);
     storeInfo(
         node,

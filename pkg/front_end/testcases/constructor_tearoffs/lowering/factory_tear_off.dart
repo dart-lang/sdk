@@ -100,7 +100,6 @@ testArgs() {
   dynamic f4b = Class4.new;
   throws(() => f4b(42, 87));
 
-
   var f5a = Class5.new;
   var c5a = f5a(42);
   expect(42, c5a.field1);
@@ -149,7 +148,7 @@ expect(expected, actual) {
   if (expected != actual) throw 'Expected $expected, actual $actual';
 }
 
-throws(Function() f, {bool inSoundModeOnly: false}) {
+throws(Function() f, {bool inSoundModeOnly = false}) {
   try {
     f();
   } catch (e) {

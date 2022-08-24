@@ -24,7 +24,7 @@ class IncrementalExpectation {
   final bool hasCompileTimeError;
 
   const IncrementalExpectation(this.messages,
-      {this.commitChangesShouldFail: false, this.hasCompileTimeError: false});
+      {this.commitChangesShouldFail = false, this.hasCompileTimeError = false});
 
   factory IncrementalExpectation.fromJson(String json) {
     var data = const JsonDecoder().convert(json);

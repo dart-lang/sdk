@@ -302,10 +302,10 @@ class CompilerOptions {
   }
 
   bool equivalent(CompilerOptions other,
-      {bool ignoreOnDiagnostic: true,
-      bool ignoreVerbose: true,
-      bool ignoreVerify: true,
-      bool ignoreDebugDump: true}) {
+      {bool ignoreOnDiagnostic = true,
+      bool ignoreVerbose = true,
+      bool ignoreVerify = true,
+      bool ignoreDebugDump = true}) {
     if (sdkRoot != other.sdkRoot) return false;
     if (librariesSpecificationUri != other.librariesSpecificationUri) {
       return false;
@@ -541,7 +541,8 @@ class Verbosity {
   /// If [name] isn't recognized and [onError] isn't provided, an error is
   /// thrown.
   static Verbosity parseArgument(String name,
-      {void Function(String)? onError, Verbosity defaultValue: Verbosity.all}) {
+      {void Function(String)? onError,
+      Verbosity defaultValue = Verbosity.all}) {
     for (Verbosity verbosity in values) {
       if (name == verbosity.name) {
         return verbosity;

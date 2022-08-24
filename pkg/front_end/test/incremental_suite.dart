@@ -1868,7 +1868,7 @@ Result<TestData>? checkExpectFile(TestData data, int worldNum,
 /// while we're trying to figure out if it's useful or not.
 Result<TestData>? checkClassHierarchy(IncrementalCompilerResult compilerResult,
     TestData data, int worldNum, Context context,
-    {bool checkExpectFile: false}) {
+    {bool checkExpectFile = false}) {
   ClassHierarchy? classHierarchy = compilerResult.classHierarchy;
   if (classHierarchy is! ClosedWorldClassHierarchy) {
     return new Result<TestData>(
@@ -2605,7 +2605,7 @@ class TestIncrementalCompiler extends IncrementalCompiler {
   Future<IncrementalCompilerResult> computeDelta(
       {List<Uri>? entryPoints,
       bool fullComponent = false,
-      bool trackNeededDillLibraries: false,
+      bool trackNeededDillLibraries = false,
       bool? simulateTransformer}) async {
     IncrementalCompilerResult result = await super.computeDelta(
         entryPoints: entryPoints,

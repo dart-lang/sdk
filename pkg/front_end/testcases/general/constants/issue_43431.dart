@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Foo {
-  const Foo({bool x: true});
+  const Foo({bool x = true});
   const x = Foo();
 }
 

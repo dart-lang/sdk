@@ -288,7 +288,7 @@ class PrecedenceInfoTest {
   }
 
   void test_name() {
-    void assertName(String? source, String name, {int offset: 0}) {
+    void assertName(String? source, String name, {int offset = 0}) {
       if (source == null || source.isEmpty) return;
       var token = scanString(source, includeComments: true).tokens;
       while (token is ErrorToken || token.offset < offset) {

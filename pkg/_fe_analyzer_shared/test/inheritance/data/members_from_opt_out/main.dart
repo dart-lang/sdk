@@ -34,10 +34,10 @@ abstract class Interface {
   int? method4c([int? a, int? b]);
 
   /*member: Interface.method5a:int Function(int, {int b})*/
-  int method5a(int a, {int b: 0});
+  int method5a(int a, {int b = 0});
 
   /*member: Interface.method5b:int Function({int a, int b})*/
-  int method5b({int a: 0, int b: 0});
+  int method5b({int a = 0, int b = 0});
 
   /*member: Interface.method6a:int? Function(int?, {int? b})*/
   int? method6a(int? a, {int? b});
@@ -266,10 +266,10 @@ class Class2b extends LegacyClass implements Interface {
   int? method4c([int? a, int? b]) => 0;
 
   /*member: Class2b.method5a:int Function(int, {int b})*/
-  int method5a(int a, {int b: 0}) => 0;
+  int method5a(int a, {int b = 0}) => 0;
 
   /*member: Class2b.method5b:int Function({int a, int b})*/
-  int method5b({int a: 0, int b: 0}) => 0;
+  int method5b({int a = 0, int b = 0}) => 0;
 
   /*member: Class2b.method6a:int? Function(int?, {int? b})*/
   int? method6a(int? a, {int? b}) => 0;

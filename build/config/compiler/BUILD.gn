@@ -377,10 +377,7 @@ config("compiler") {
     } else if (is_linux) {
       toolchain_stamp_file =
           "//buildtools/linux-x64/clang/.versions/clang.cipd_version"
-    } else if (is_mac && host_cpu == "arm64") {
-      toolchain_stamp_file =
-          "//buildtools/mac-arm64/clang/.versions/clang.cipd_version"
-    } else if (is_mac) {
+    } else {
       toolchain_stamp_file =
           "//buildtools/mac-x64/clang/.versions/clang.cipd_version"
     }
@@ -551,7 +548,6 @@ if (is_win) {
       "-Wno-microsoft-unqualified-friend",
       "-Wno-unknown-argument",  # icu
       "-Wno-unused-value",  # crashpad
-      "-Wno-deprecated-non-prototype",  # zlib
     ]
   } else {
     default_warning_flags += [
@@ -583,7 +579,6 @@ if (is_win) {
     default_warning_flags += [
       "-Wno-tautological-constant-compare",
       "-Wno-unused-but-set-variable",  # icu
-      "-Wno-deprecated-non-prototype",  # zlib
     ]
   } else {
     default_warning_flags +=

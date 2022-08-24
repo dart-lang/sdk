@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/snippets/dart/class_declaration.dart';
 import 'package:analysis_server/src/services/snippets/dart/do_statement.dart';
@@ -2731,6 +2734,43 @@ void f() {
   } while (${1:condition});
 }
 ''');
+  }
+
+  /// Snippets completions may abort if documents are modified (because they
+  /// need to obtain resolved units when building edits) but they should not
+  /// prevent non-Snippet completion results from being returned (because this
+  /// happens frequently while typing).
+  Future<void> test_snippets_failureDoesNotPreventNonSnippets() async {
+    final content = '''
+void f() {
+  ^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initializeWithSnippetSupport();
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+
+    // User a Completer to control when the completion handler starts computing.
+    final completer = Completer<void>();
+    CompletionHandler.delayAfterResolveForTests = completer.future;
+
+    // Start the completion request but don't await it yet.
+    final completionRequest =
+        getCompletionList(mainFileUri, positionFromMarker(content));
+    // Modify the document to ensure the snippet requests will fail to build
+    // edits and then allow the handler to continue.
+    await replaceFile(222, mainFileUri, '');
+    completer.complete();
+
+    // Wait for the results.
+    final result = await completionRequest;
+
+    // Ensure we flagged that we did not return everything but we still got
+    // results.
+    expect(result.isIncomplete, isTrue);
+    expect(result.items, isNotEmpty);
   }
 
   Future<void>

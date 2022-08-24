@@ -354,6 +354,8 @@ CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME:
   status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_DEFINITION:
   status: needsEvaluation
+CompileTimeErrorCode.DUPLICATE_FIELD_NAME:
+  status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER:
   status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT:

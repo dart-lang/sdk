@@ -2,9 +2,9 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/mixin_constructors_with_default_values.dart:9:15: Error: Type variables can't be used in static members.
-//   C({a: 0, b: T}) : trace = "a: $a, b: $b";
-//               ^
+// pkg/front_end/testcases/general/mixin_constructors_with_default_values.dart:9:17: Error: Type variables can't be used in static members.
+//   C({a = 0, b = T}) : trace = "a: $a, b: $b";
+//                 ^
 //
 import self as self;
 import "dart:core" as core;

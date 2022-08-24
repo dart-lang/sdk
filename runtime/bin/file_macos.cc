@@ -337,8 +337,12 @@ bool File::ExistsUri(Namespace* namespc, const char* uri) {
   return File::Exists(namespc, path.get());
 }
 
-bool File::Create(Namespace* namespc, const char* name) {
-  int fd = TEMP_FAILURE_RETRY(open(name, O_RDONLY | O_CREAT, 0666));
+bool File::Create(Namespace* namespc, const char* name, bool exclusive) {
+  int flags = O_RDONLY | O_CREAT;
+  if (exclusive) {
+    flags |= O_EXCL;
+  }
+  int fd = TEMP_FAILURE_RETRY(open(name, flags, 0666));
   if (fd < 0) {
     return false;
   }

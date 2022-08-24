@@ -61,6 +61,29 @@ class DiagnosticFactory {
     );
   }
 
+  /// Return a diagnostic indicating that [duplicateField] reuses a name
+  /// already used by [originalField].
+  AnalysisError duplicateFieldDefinition(Source source,
+      NamedExpression duplicateField, NamedExpression originalField) {
+    var duplicateNode = duplicateField.name.label;
+    var duplicateName = duplicateNode.name;
+    return AnalysisError(
+      source,
+      duplicateNode.offset,
+      duplicateNode.length,
+      CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+      [duplicateName],
+      [
+        DiagnosticMessageImpl(
+            filePath: source.fullName,
+            length: duplicateName.length,
+            message: 'The first ',
+            offset: originalField.name.label.offset,
+            url: source.uri.toString()),
+      ],
+    );
+  }
+
   /// Return a diagnostic indicating that the [duplicateElement] (in a constant
   /// set) is a duplicate of the [originalElement].
   AnalysisError equalElementsInConstSet(

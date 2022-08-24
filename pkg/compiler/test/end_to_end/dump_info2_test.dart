@@ -135,7 +135,7 @@ main() {
   });
 }
 
-runTests({bool useBinary: false}) async {
+runTests({bool useBinary = false}) async {
   await infoTest(TEST_BASIC, useBinary, (info) {
     Expect.isTrue(info.functions.isNotEmpty);
     Expect.isTrue(info.libraries.isNotEmpty);

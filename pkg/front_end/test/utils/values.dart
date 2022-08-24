@@ -71,7 +71,7 @@ class ListValue<E> extends Value<List<E>> {
   final Value<E> elementReader;
   final bool supportSingleton;
 
-  const ListValue(this.elementReader, {this.supportSingleton: false});
+  const ListValue(this.elementReader, {this.supportSingleton = false});
 
   @override
   List<E> read(dynamic value, {String context = ''}) {

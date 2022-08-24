@@ -141,7 +141,7 @@ class ObjectSlots {
         }
       }
       ASSERT(contains_only_tagged_words ||
-             cid != kArrayCid && cid != kImmutableArrayCid);
+             (cid != kArrayCid && cid != kImmutableArrayCid));
 #endif  // defined(DEBUG)
 
       contains_only_tagged_words_[cid] = contains_only_tagged_words;

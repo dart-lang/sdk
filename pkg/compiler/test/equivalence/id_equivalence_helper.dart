@@ -124,14 +124,14 @@ void reportError(
 /// Actual data is computed using [computeMemberData].
 Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
     Map<String, String> memorySourceFiles, DataComputer<T> dataComputer,
-    {List<String> options: const <String>[],
-    bool verbose: false,
-    bool testFrontend: false,
-    bool printCode: false,
-    bool forUserLibrariesOnly: true,
-    bool skipUnprocessedMembers: false,
-    bool skipFailedCompilations: false,
-    Iterable<Id> globalIds: const <Id>[],
+    {List<String> options = const <String>[],
+    bool verbose = false,
+    bool testFrontend = false,
+    bool printCode = false,
+    bool forUserLibrariesOnly = true,
+    bool skipUnprocessedMembers = false,
+    bool skipFailedCompilations = false,
+    Iterable<Id> globalIds = const <Id>[],
     Future<void> verifyCompiler(String test, Compiler compiler)}) async {
   OutputCollector outputCollector = new OutputCollector();
   DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
@@ -368,7 +368,7 @@ class Dart2jsCompiledData<T> extends CompiledData<T> {
 
   @override
   void reportError(Uri uri, int offset, String message,
-      {bool succinct: false}) {
+      {bool succinct = false}) {
     compiler.reporter.reportErrorMessage(
         computeSourceSpanFromUriOffset(uri, offset),
         MessageKind.GENERIC,
@@ -400,14 +400,14 @@ class TestConfig {
 /// If [forUserSourceFilesOnly] is true, we examine the elements in the main
 /// file and any supporting libraries.
 Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
-    {List<String> skip: const <String>[],
+    {List<String> skip = const <String>[],
     bool filterActualData(IdValue idValue, ActualData<T> actualData),
-    List<String> options: const <String>[],
-    List<String> args: const <String>[],
-    bool forUserLibrariesOnly: true,
+    List<String> options = const <String>[],
+    List<String> args = const <String>[],
+    bool forUserLibrariesOnly = true,
     Callback setUpFunction,
-    int shards: 1,
-    int shardIndex: 0,
+    int shards = 1,
+    int shardIndex = 0,
     void onTest(Uri uri),
     List<TestConfig> testedConfigs = const [],
     Map<String, List<String>> perTestOptions = const {},
@@ -498,11 +498,11 @@ Future<TestResult<T>> runTestForConfiguration<T>(
     TestData testData,
     List<String> options,
     {bool filterActualData(IdValue idValue, ActualData<T> actualData),
-    bool verbose: false,
-    bool succinct: false,
-    bool printCode: false,
-    bool forUserLibrariesOnly: true,
-    bool testAfterFailures: false,
+    bool verbose = false,
+    bool succinct = false,
+    bool printCode = false,
+    bool forUserLibrariesOnly = true,
+    bool testAfterFailures = false,
     Future<void> verifyCompiler(String test, Compiler compiler)}) async {
   MemberAnnotations<IdValue> annotations =
       testData.expectedMaps[testConfiguration.marker];

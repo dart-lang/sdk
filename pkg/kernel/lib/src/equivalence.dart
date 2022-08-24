@@ -23,7 +23,7 @@ part 'equivalence_helpers.dart';
 class EquivalenceVisitor implements Visitor1<bool, Node> {
   final EquivalenceStrategy strategy;
 
-  EquivalenceVisitor({this.strategy: const EquivalenceStrategy()});
+  EquivalenceVisitor({this.strategy = const EquivalenceStrategy()});
 
   @override
   bool defaultNode(Node node, Node other) {
@@ -1307,7 +1307,7 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   ///
   /// If [f] returns `false`, the returned result is marked as having
   /// inequivalences even when non have being registered.
-  EquivalenceResult inSubState(bool Function() f, {bool isAsserting: false}) {
+  EquivalenceResult inSubState(bool Function() f, {bool isAsserting = false}) {
     CheckingState _oldState = _checkingState;
     _checkingState = _checkingState.createSubState(isAsserting: isAsserting);
     bool hasInequivalences = f();
@@ -1366,7 +1366,7 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
 ///
 /// Returns an [EquivalenceResult] containing the found inequivalences.
 EquivalenceResult checkEquivalence(Node a, Node b,
-    {EquivalenceStrategy strategy: const EquivalenceStrategy()}) {
+    {EquivalenceStrategy strategy = const EquivalenceStrategy()}) {
   EquivalenceVisitor visitor = new EquivalenceVisitor(strategy: strategy);
   visitor.checkNodes(a, b, 'root');
   return visitor.toResult();

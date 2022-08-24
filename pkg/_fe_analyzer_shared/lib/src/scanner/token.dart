@@ -415,9 +415,9 @@ class Keyword extends TokenType {
    * Initialize a newly created keyword.
    */
   const Keyword(int index, String lexeme, String name, this.keywordStyle,
-      {bool isModifier: false,
-      bool isTopLevelKeyword: false,
-      int precedence: NO_PRECEDENCE})
+      {bool isModifier = false,
+      bool isTopLevelKeyword = false,
+      int precedence = NO_PRECEDENCE})
       : super(index, lexeme, name, precedence, KEYWORD_TOKEN,
             isModifier: isModifier, isTopLevelKeyword: isTopLevelKeyword);
 
@@ -1684,12 +1684,12 @@ class TokenType {
   const TokenType(
       this.index, this.lexeme, this.name, this.precedence, this.kind,
       {this.binaryOperatorOfCompoundAssignment,
-      this.isBinaryOperator: false,
-      this.isModifier: false,
-      this.isOperator: false,
-      this.isTopLevelKeyword: false,
-      this.isUserDefinableOperator: false,
-      String? stringValue: 'unspecified'})
+      this.isBinaryOperator = false,
+      this.isModifier = false,
+      this.isOperator = false,
+      this.isTopLevelKeyword = false,
+      this.isUserDefinableOperator = false,
+      String? stringValue = 'unspecified'})
       : this.stringValue = stringValue == 'unspecified' ? lexeme : stringValue;
 
   /**

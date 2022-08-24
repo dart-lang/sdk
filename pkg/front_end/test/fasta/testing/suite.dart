@@ -265,10 +265,10 @@ class FolderOptions {
       this.forceStaticFieldLowering,
       this.forceNoExplicitGetterCalls,
       this.forceConstructorTearOffLowering,
-      this.nnbdAgnosticMode: false,
-      this.defines: const {},
-      this.noVerify: false,
-      this.target: "vm",
+      this.nnbdAgnosticMode = false,
+      this.defines = const {},
+      this.noVerify = false,
+      this.target = "vm",
       // can be null
       this.overwriteCurrentSdkVersion})
       // ignore: unnecessary_null_comparison
@@ -2199,7 +2199,7 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
 
 Set<Uri> createUserLibrariesImportUriSet(
     Component component, UriTranslator uriTranslator,
-    {Set<Library> excludedLibraries: const {}}) {
+    {Set<Library> excludedLibraries = const {}}) {
   Set<Uri> knownUris =
       component.libraries.map((Library library) => library.importUri).toSet();
   Set<Uri> userLibraries = component.libraries
@@ -2246,7 +2246,7 @@ CompileMode compileModeFromName(String? name) {
 class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
   final CompileMode compileMode;
 
-  const Outline(this.compileMode, {this.updateComments: false});
+  const Outline(this.compileMode, {this.updateComments = false});
 
   final bool updateComments;
 

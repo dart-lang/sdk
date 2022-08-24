@@ -361,10 +361,10 @@ class FrontendCompiler implements CompilerInterface {
       {this.printerFactory,
       this.transformer,
       this.unsafePackageSerialization,
-      this.incrementalSerialization: true,
-      this.useDebuggerModuleNames: false,
-      this.emitDebugMetadata: false,
-      this.emitDebugSymbols: false}) {
+      this.incrementalSerialization = true,
+      this.useDebuggerModuleNames = false,
+      this.emitDebugMetadata = false,
+      this.emitDebugSymbols = false}) {
     _outputStream ??= stdout;
     printerFactory ??= new BinaryPrinterFactory();
   }
@@ -731,7 +731,7 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   writeDillFile(KernelCompilationResults results, String filename,
-      {bool filterExternal: false,
+      {bool filterExternal = false,
       IncrementalSerializer incrementalSerializer}) async {
     final Component component = results.component;
     final IOSink sink = File(filename).openWrite();

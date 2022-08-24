@@ -11,11 +11,11 @@ class Constant {
 }
 
 abstract class Interface {
-  Future<void> method({Constant c: Constant.a});
+  Future<void> method({Constant c = Constant.a});
   Future<void> method2();
 }
 
 class Class implements Interface {
-  Future<void> method({c: Constant.a}) async {}
+  Future<void> method({c = Constant.a}) async {}
   Future<void> method2() async {}
 }

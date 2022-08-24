@@ -137,14 +137,14 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
   }
 
   @override
-  Member? getInterfaceMember(Class cls, Name name, {bool setter: false}) {
+  Member? getInterfaceMember(Class cls, Name name, {bool setter = false}) {
     return getNodeFromClass(cls)
         .getInterfaceMember(name, setter)
         ?.getMember(this);
   }
 
   ClassMember? getInterfaceClassMember(Class cls, Name name,
-      {bool setter: false}) {
+      {bool setter = false}) {
     return getNodeFromClass(cls).getInterfaceMember(name, setter);
   }
 

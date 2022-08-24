@@ -508,7 +508,7 @@ class AstModel {
 /// the package config file.
 ///
 /// If [printDump] is `true`, a dump of the model printed to stdout.
-Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump: false}) async {
+Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
   bool errorsFound = false;
   CompilerOptions options = new CompilerOptions();
   options.sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);

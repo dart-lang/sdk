@@ -245,7 +245,7 @@ bool isEqual(List<int> a, List<int> b) {
   return false;
 }
 
-String toText(List<int> data, {bool skipInterfaceTarget: false}) {
+String toText(List<int> data, {bool skipInterfaceTarget = false}) {
   Component component = new Component();
   new BinaryBuilder(data).readComponent(component);
   StringBuffer buffer = new StringBuffer();
@@ -291,8 +291,8 @@ CompilerOptions getOptions(Uri sdkRoot) {
 class PrinterPrime extends Printer {
   PrinterPrime(StringSink sink,
       {NameSystem? syntheticNames,
-      bool showOffsets: false,
-      bool showMetadata: false,
+      bool showOffsets = false,
+      bool showMetadata = false,
       ImportTable? importTable,
       Annotator? annotator,
       Map<String, MetadataRepository<dynamic>>? metadata})

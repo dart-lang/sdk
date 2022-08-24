@@ -359,8 +359,8 @@ class CompileTask {
 
   Future<KernelTarget> buildOutline(
       {Uri? output,
-      bool omitPlatform: false,
-      bool supportAdditionalDills: true,
+      bool omitPlatform = false,
+      bool supportAdditionalDills = true,
       Benchmarker? benchmarker}) async {
     KernelTarget kernelTarget =
         await _createKernelTarget(benchmarker: benchmarker);
@@ -382,8 +382,8 @@ class CompileTask {
 
   Future<BuildResult> _buildOutline(KernelTarget kernelTarget,
       {Uri? output,
-      bool omitPlatform: false,
-      bool supportAdditionalDills: true}) async {
+      bool omitPlatform = false,
+      bool supportAdditionalDills = true}) async {
     DillTarget dillTarget = kernelTarget.dillTarget;
     Benchmarker? benchmarker = dillTarget.benchmarker;
 
@@ -443,8 +443,8 @@ class CompileTask {
   }
 
   Future<Uri> compile(
-      {bool omitPlatform: false,
-      bool supportAdditionalDills: true,
+      {bool omitPlatform = false,
+      bool supportAdditionalDills = true,
       Benchmarker? benchmarker}) async {
     c.options.reportNullSafetyCompilationModeInfo();
     KernelTarget kernelTarget =

@@ -67,10 +67,10 @@ runTest() async {
   }
 
   void test(String name,
-      {bool expectNoInline: false,
-      AbstractValue expectedParameterType: null,
-      AbstractValue expectedReturnType: null,
-      bool expectAssumeDynamic: false}) {
+      {bool expectNoInline = false,
+      AbstractValue expectedParameterType = null,
+      AbstractValue expectedReturnType = null,
+      bool expectAssumeDynamic = false}) {
     LibraryEntity mainApp = closedWorld.elementEnvironment.mainLibrary;
     FunctionEntity method =
         closedWorld.elementEnvironment.lookupLibraryMember(mainApp, name);

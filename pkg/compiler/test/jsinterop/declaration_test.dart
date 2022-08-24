@@ -377,13 +377,13 @@ class Test {
   final List<MessageKind> warnings;
 
   const Test(this.name, this._source,
-      {this.errors: const <MessageKind>[],
-      this.warnings: const <MessageKind>[]})
+      {this.errors = const <MessageKind>[],
+      this.warnings = const <MessageKind>[]})
       : _sources = null;
 
   const Test.multi(this.name, this._sources,
-      {this.errors: const <MessageKind>[],
-      this.warnings: const <MessageKind>[]})
+      {this.errors = const <MessageKind>[],
+      this.warnings = const <MessageKind>[]})
       : _source = null;
 
   String get source => _source ?? _sources['main.dart'];

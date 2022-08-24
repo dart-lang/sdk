@@ -674,8 +674,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void enterScope(
       {List<TypeParameter>? typeParameters,
-      bool memberScope: false,
-      bool variableScope: false}) {
+      bool memberScope = false,
+      bool variableScope = false}) {
     if (typeParameters != null) {
       _typeParameterIndexer.enter(typeParameters);
     }
@@ -691,8 +691,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void leaveScope(
       {List<TypeParameter>? typeParameters,
-      bool memberScope: false,
-      bool variableScope: false}) {
+      bool memberScope = false,
+      bool variableScope = false}) {
     if (variableScope) {
       _variableIndexer!.popScope();
     }

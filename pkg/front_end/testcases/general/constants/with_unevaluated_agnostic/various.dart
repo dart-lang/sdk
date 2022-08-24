@@ -29,8 +29,9 @@ class Foo<E> {
   final E value;
 
   const Foo(this.value,
-      {this.saved2: const bool.fromEnvironment("foo", defaultValue: barFromEnv),
-      bool x: const bool.fromEnvironment("foo", defaultValue: barFromEnv)})
+      {this.saved2 =
+          const bool.fromEnvironment("foo", defaultValue: barFromEnv),
+      bool x = const bool.fromEnvironment("foo", defaultValue: barFromEnv)})
       : saved = x;
 }
 

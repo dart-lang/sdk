@@ -19,7 +19,7 @@ class NaiveTypeChecker extends type_checker.TypeChecker {
   final FailureListener failures;
 
   factory NaiveTypeChecker(FailureListener failures, Component component,
-      {bool ignoreSdk: false}) {
+      {bool ignoreSdk = false}) {
     CoreTypes coreTypes = new CoreTypes(component);
     return new NaiveTypeChecker._(
         failures,

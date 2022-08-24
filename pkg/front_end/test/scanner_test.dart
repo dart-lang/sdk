@@ -1510,7 +1510,7 @@ abstract class ScannerTestBase {
   }
 
   Token _scan(String source,
-      {ScannerConfiguration? configuration, bool ignoreErrors: false}) {
+      {ScannerConfiguration? configuration, bool ignoreErrors = false}) {
     ErrorListener listener = new ErrorListener();
     Token token =
         scanWithListener(source, listener, configuration: configuration);

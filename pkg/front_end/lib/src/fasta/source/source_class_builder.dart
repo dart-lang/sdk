@@ -414,7 +414,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   /// builder.
   ///
   /// If [isSuper] is `true`, constructors in the superclass are searched.
-  Constructor? lookupConstructor(Name name, {bool isSuper: false}) {
+  Constructor? lookupConstructor(Name name, {bool isSuper = false}) {
     if (name.text == "new") {
       name = new Name("", name.library);
     }
@@ -1280,7 +1280,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   void reportVariancePositionIfInvalid(
       int variance, TypeParameter typeParameter, Uri fileUri, int fileOffset,
-      {bool isReturnType: false}) {
+      {bool isReturnType = false}) {
     SourceLibraryBuilder library = this.libraryBuilder;
     if (!typeParameter.isLegacyCovariant &&
         !Variance.greaterThanOrEqual(variance, typeParameter.variance)) {

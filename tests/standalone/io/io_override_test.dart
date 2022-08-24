@@ -47,8 +47,9 @@ class FileMock extends FileSystemEntity implements File {
 
   static FileMock createFile(String path) => new FileMock(path);
 
-  Future<File> create({bool recursive: false}) => throw "";
-  void createSync({bool recursive: false}) {}
+  Future<File> create({bool recursive: false, bool exclusive: false}) =>
+      throw "";
+  void createSync({bool recursive: false, bool exclusive: false}) {}
   Future<File> rename(String newPath) => throw "";
   File renameSync(String newPath) => throw "";
   Future<File> copy(String newPath) => throw "";

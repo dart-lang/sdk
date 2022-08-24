@@ -77,6 +77,8 @@ import '../fasta_codes.dart'
         Message,
         Template,
         noLength,
+        templateDuplicatedRecordLiteralFieldName,
+        templateDuplicatedRecordLiteralFieldNameContext,
         templateExperimentNotEnabledOffByDefault;
 import '../identifiers.dart'
     show Identifier, InitializedIdentifier, QualifiedName, flattenName;
@@ -609,7 +611,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
 
-  void _enterLocalState({bool inLateLocalInitializer: false}) {
+  void _enterLocalState({bool inLateLocalInitializer = false}) {
     _localInitializerState =
         _localInitializerState.prepend(inLateLocalInitializer);
   }
@@ -2698,9 +2700,9 @@ class BodyBuilder extends StackListenerImpl
   @override
   Expression buildUnresolvedError(String name, int charOffset,
       {Member? candidate,
-      bool isSuper: false,
+      bool isSuper = false,
       required UnresolvedKind kind,
-      bool isStatic: false,
+      bool isStatic = false,
       Arguments? arguments,
       Expression? rhs,
       LocatedMessage? message,
@@ -2781,8 +2783,8 @@ class BodyBuilder extends StackListenerImpl
   }
 
   Message warnUnresolvedMember(Name name, int charOffset,
-      {bool isSuper: false,
-      bool reportWarning: true,
+      {bool isSuper = false,
+      bool reportWarning = true,
       List<LocatedMessage>? context}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoMember.withArguments(name.text)
@@ -2796,8 +2798,8 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   Message warnUnresolvedGet(Name name, int charOffset,
-      {bool isSuper: false,
-      bool reportWarning: true,
+      {bool isSuper = false,
+      bool reportWarning = true,
       List<LocatedMessage>? context}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoGetter.withArguments(name.text)
@@ -2811,8 +2813,8 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   Message warnUnresolvedSet(Name name, int charOffset,
-      {bool isSuper: false,
-      bool reportWarning: true,
+      {bool isSuper = false,
+      bool reportWarning = true,
       List<LocatedMessage>? context}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoSetter.withArguments(name.text)
@@ -2826,8 +2828,8 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   Message warnUnresolvedMethod(Name name, int charOffset,
-      {bool isSuper: false,
-      bool reportWarning: true,
+      {bool isSuper = false,
+      bool reportWarning = true,
       List<LocatedMessage>? context}) {
     String plainName = name.text;
 
@@ -2850,7 +2852,7 @@ class BodyBuilder extends StackListenerImpl
     return message;
   }
 
-  Message warnUnresolvedConstructor(Name name, {bool isSuper: false}) {
+  Message warnUnresolvedConstructor(Name name, {bool isSuper = false}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoConstructor.withArguments(name.text)
         : fasta.templateConstructorNotFound.withArguments(name.text);
@@ -2866,14 +2868,14 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  Member? lookupSuperMember(Name name, {bool isSetter: false}) {
+  Member? lookupSuperMember(Name name, {bool isSetter = false}) {
     return (declarationBuilder as ClassBuilder).lookupInstanceMember(
         hierarchy, name,
         isSetter: isSetter, isSuper: true);
   }
 
   @override
-  Constructor? lookupConstructor(Name name, {bool isSuper: false}) {
+  Constructor? lookupConstructor(Name name, {bool isSuper = false}) {
     return sourceClassBuilder!.lookupConstructor(name, isSuper: isSuper);
   }
 
@@ -2915,7 +2917,7 @@ class BodyBuilder extends StackListenerImpl
   /// [charOffset] as the file offset.
   @override
   VariableGet createVariableGet(VariableDeclaration variable, int charOffset,
-      {bool forNullGuardedAccess: false}) {
+      {bool forNullGuardedAccess = false}) {
     if (!(variable as VariableDeclarationImpl).isLocalFunction) {
       typeInferrer.assignedVariables.read(variable);
     }
@@ -2945,7 +2947,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   Expression_Generator_Builder scopeLookup(
       Scope scope, String name, Token token,
-      {bool isQualified: false, PrefixBuilder? prefix}) {
+      {bool isQualified = false, PrefixBuilder? prefix}) {
     int charOffset = offsetForToken(token);
     if (token.isSynthetic) {
       return new ParserErrorGenerator(this, token, fasta.messageSyntheticToken);
@@ -3963,6 +3965,16 @@ class BodyBuilder extends StackListenerImpl
   @override
   void endRecordLiteral(Token token, int count) {
     debugEvent("RecordLiteral");
+    assert(checkState(
+        token,
+        repeatedKinds(
+            unionOfKinds([
+              ValueKinds.Generator,
+              ValueKinds.Expression,
+              ValueKinds.ProblemBuilder,
+              ValueKinds.NamedExpression,
+            ]),
+            count)));
 
     if (!libraryFeatures.records.isEnabled) {
       addProblem(
@@ -3972,15 +3984,48 @@ class BodyBuilder extends StackListenerImpl
           noLength);
     }
 
-    // TODO: Actual implementation of record literals.
-    // For now we pretend it's an empty list.
-    for (int i = count - 1; i >= 0; i--) {
-      pop();
+    // Pop all elements. This will put them in evaluation order.
+    List<Object?>? elements =
+        const FixedNullableList<Object>().pop(stack, count);
+    if (elements == null) {
+      push(new ParserRecovery(token.charOffset));
+      return;
     }
-    ListLiteral node = forest.createListLiteral(
-        TreeNode.noOffset, implicitTypeArgument, [],
-        isConst: constantContext == ConstantContext.inferred);
-    push(node);
+
+    List<Object> originalElementOrder = [];
+    List<Expression> positional = [];
+    List<NamedExpression> named = [];
+    Map<String, NamedExpression>? namedElements;
+    for (Object? element in elements) {
+      if (element is NamedExpression) {
+        namedElements ??= {};
+        NamedExpression? existingExpression = namedElements[element.name];
+        if (existingExpression != null) {
+          existingExpression.value = buildProblem(
+              templateDuplicatedRecordLiteralFieldName
+                  .withArguments(element.name),
+              element.fileOffset,
+              element.name.length,
+              context: [
+                templateDuplicatedRecordLiteralFieldNameContext
+                    .withArguments(element.name)
+                    .withLocation(
+                        uri, existingExpression.fileOffset, element.name.length)
+              ])
+            ..parent = existingExpression;
+        } else {
+          originalElementOrder.add(element);
+          namedElements[element.name] = element;
+          named.add(element);
+        }
+      } else {
+        Expression expression = toValue(element);
+        positional.add(expression);
+        originalElementOrder.add(expression);
+      }
+    }
+    push(new InternalRecordLiteral(
+        positional, named, namedElements, originalElementOrder));
   }
 
   void buildLiteralSet(List<TypeBuilder>? typeArguments, Token? constKeyword,
@@ -5125,10 +5170,10 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   Expression buildStaticInvocation(Member target, Arguments arguments,
-      {Constness constness: Constness.implicit,
+      {Constness constness = Constness.implicit,
       TypeAliasBuilder? typeAliasBuilder,
-      int charOffset: -1,
-      int charLength: noLength}) {
+      int charOffset = -1,
+      int charLength = noLength}) {
     // The argument checks for the initial target of redirecting factories
     // invocations are skipped in Dart 1.
     List<TypeParameter> typeParameters = target.function!.typeParameters;
@@ -7133,7 +7178,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   Expression buildProblem(Message message, int charOffset, int length,
       {List<LocatedMessage>? context,
-      bool suppressMessage: false,
+      bool suppressMessage = false,
       Expression? expression}) {
     if (!suppressMessage) {
       addProblem(message, charOffset, length,
@@ -7216,7 +7261,7 @@ class BodyBuilder extends StackListenerImpl
   Statement buildProblemStatement(Message message, int charOffset,
       {List<LocatedMessage>? context,
       int? length,
-      bool suppressMessage: false}) {
+      bool suppressMessage = false}) {
     length ??= noLength;
     return new ExpressionStatement(buildProblem(message, charOffset, length,
         context: context, suppressMessage: suppressMessage));
@@ -7533,7 +7578,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   Expression buildMethodInvocation(
       Expression receiver, Name name, Arguments arguments, int offset,
-      {bool isConstantExpression: false, bool isNullAware: false}) {
+      {bool isConstantExpression = false, bool isNullAware = false}) {
     if (constantContext != ConstantContext.none &&
         !isConstantExpression &&
         !libraryFeatures.constFunctions.isEnabled) {
@@ -7561,9 +7606,9 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   Expression buildSuperInvocation(Name name, Arguments arguments, int offset,
-      {bool isConstantExpression: false,
-      bool isNullAware: false,
-      bool isImplicitCall: false}) {
+      {bool isConstantExpression = false,
+      bool isNullAware = false,
+      bool isImplicitCall = false}) {
     if (constantContext != ConstantContext.none &&
         !isConstantExpression &&
         !libraryFeatures.constFunctions.isEnabled) {
@@ -7595,7 +7640,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled: false,
+      {bool wasHandled = false,
       List<LocatedMessage>? context,
       Severity? severity}) {
     libraryBuilder.addProblem(message, charOffset, length, uri,
@@ -7604,7 +7649,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void addProblemErrorIfConst(Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage>? context}) {
+      {bool wasHandled = false, List<LocatedMessage>? context}) {
     // TODO(askesc): Instead of deciding on the severity, this method should
     // take two messages: one to use when a constant expression is
     // required and one to use otherwise.
@@ -7619,7 +7664,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   Expression buildProblemErrorIfConst(
       Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage>? context}) {
+      {bool wasHandled = false, List<LocatedMessage>? context}) {
     addProblemErrorIfConst(message, charOffset, length,
         wasHandled: wasHandled, context: context);
     String text = libraryBuilder.loader.target.context
@@ -7693,7 +7738,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   String constructorNameForDiagnostics(String name,
-      {String? className, bool isSuper: false}) {
+      {String? className, bool isSuper = false}) {
     if (className == null) {
       Class cls = sourceClassBuilder!.cls;
       if (isSuper) {

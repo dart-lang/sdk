@@ -2461,7 +2461,7 @@ class LocalState {
   }
 
   LocalState mergeFlow(InferrerEngine inferrer, LocalState other,
-      {bool ignoreAborts: false}) {
+      {bool ignoreAborts = false}) {
     seenReturnOrThrow = false;
     seenBreakOrContinue = false;
 

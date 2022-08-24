@@ -685,7 +685,7 @@ class TestMinimizer {
 
   Uint8List _rewriteImportsExportsToUri(
       Uint8List oldData, Uri newUri, Uri oldUri, bool nnbd,
-      {bool convertExportToImport: false}) {
+      {bool convertExportToImport = false}) {
     CompilationUnitEnd ast = getAST(oldData,
         includeBody: false,
         includeComments: false,
@@ -799,7 +799,7 @@ worlds:
     }
   }
 
-  Uri _getUri(Token uriToken, Uri uri, {bool resolvePackage: true}) {
+  Uri _getUri(Token uriToken, Uri uri, {bool resolvePackage = true}) {
     String uriString = uriToken.lexeme;
     uriString = uriString.substring(1, uriString.length - 1);
     Uri uriTokenUri = uri.resolve(uriString);
@@ -906,7 +906,7 @@ worlds:
   }
 
   Future<void> _tryToRemoveUnreferencedFileContent(Component initialComponent,
-      {bool deleteFile: false}) async {
+      {bool deleteFile = false}) async {
     // Check if there now are any unused files.
     if (_latestComponent == null) return;
     Set<Uri> neededUris = _latestComponent!.uriToSource.keys.toSet();
@@ -941,7 +941,7 @@ worlds:
 
   Future<void> _deleteContent(
       List<Uri> uris, int uriIndex, bool limitTo1, Component initialComponent,
-      {bool deleteFile: false}) async {
+      {bool deleteFile = false}) async {
     String extraMessageText = "all content of ";
     if (deleteFile) extraMessageText = "";
 
@@ -1773,7 +1773,7 @@ worlds:
         enableTripleShift: false);
   }
 
-  bool _isUriNnbd(Uri uri, {bool crashOnFail: true}) {
+  bool _isUriNnbd(Uri uri, {bool crashOnFail = true}) {
     Uri asImportUri = _getImportUri(uri);
     LibraryBuilder? libraryBuilder = _latestCrashingIncrementalCompiler!
         .kernelTargetForTesting!.loader

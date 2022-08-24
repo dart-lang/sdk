@@ -297,8 +297,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   Printer(this.sink,
       {NameSystem? syntheticNames,
-      this.showOffsets: false,
-      this.showMetadata: false,
+      this.showOffsets = false,
+      this.showMetadata = false,
       this.importTable,
       this.annotator,
       this.metadata})
@@ -763,7 +763,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   void writeFunction(FunctionNode function,
-      {name, List<Initializer>? initializers, bool terminateLine: true}) {
+      {name, List<Initializer>? initializers, bool terminateLine = true}) {
     if (name is String) {
       writeWord(name);
     } else if (name is Name) {
@@ -823,7 +823,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     }
   }
 
-  void writeFunctionBody(Statement body, {bool terminateLine: true}) {
+  void writeFunctionBody(Statement body, {bool terminateLine = true}) {
     if (body is Block && body.statements.isEmpty) {
       ensureSpace();
       writeSymbol('{}');
@@ -942,7 +942,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   void writeList<T>(Iterable<T> nodes, void callback(T x),
-      {String separator: ','}) {
+      {String separator = ','}) {
     bool first = true;
     for (T node in nodes) {
       if (first) {
@@ -1080,7 +1080,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     }
   }
 
-  void writeAnnotationList(List<Expression> nodes, {bool separateLines: true}) {
+  void writeAnnotationList(List<Expression> nodes,
+      {bool separateLines = true}) {
     for (Expression node in nodes) {
       if (separateLines) {
         writeIndentation();
@@ -2442,7 +2443,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   void writeVariableDeclaration(VariableDeclaration node,
-      {bool useVarKeyword: false}) {
+      {bool useVarKeyword = false}) {
     if (showOffsets) writeWord("[${node.fileOffset}]");
     if (showMetadata) writeMetadata(node);
     writeAnnotationList(node.annotations, separateLines: false);

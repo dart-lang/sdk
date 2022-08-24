@@ -1110,7 +1110,8 @@ class GenericInterfacesInfoImpl implements GenericInterfacesInfo {
         RuntimeTypeTranslatorImpl.forClosedTypes(coreTypes, this);
   }
 
-  List<DartType> flattenedTypeArgumentsFor(Class klass, {bool useCache: true}) {
+  List<DartType> flattenedTypeArgumentsFor(Class klass,
+      {bool useCache = true}) {
     final cached = useCache ? cachedFlattenedTypeArgs[klass] : null;
     if (cached != null) return cached;
 
@@ -1699,7 +1700,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
 
   @override
   Type applyCall(Call? callSite, Selector selector, Args<Type> args,
-      {bool isResultUsed: true, bool processImmediately: true}) {
+      {bool isResultUsed = true, bool processImmediately = true}) {
     _Invocation invocation = _invocationsCache.getInvocation(selector, args);
 
     // Test if tracing is enabled to avoid expensive message formatting.

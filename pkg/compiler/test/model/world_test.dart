@@ -71,7 +71,7 @@ testClassSets() async {
 
   void checkClasses(String property, ClassEntity cls,
       Iterable<ClassEntity> foundClasses, List<ClassEntity> expectedClasses,
-      {bool exact: true}) {
+      {bool exact = true}) {
     for (ClassEntity expectedClass in expectedClasses) {
       Expect.isTrue(
           foundClasses.contains(expectedClass),
@@ -92,7 +92,7 @@ testClassSets() async {
 
   void check(String property, ClassEntity cls,
       Iterable<ClassEntity> foundClasses, List<ClassEntity> expectedClasses,
-      {bool exact: true,
+      {bool exact = true,
       void forEach(ClassEntity cls, ForEachFunction f),
       int getCount(ClassEntity cls)}) {
     checkClasses(property, cls, foundClasses, expectedClasses, exact: exact);
@@ -118,14 +118,14 @@ testClassSets() async {
   }
 
   void testSubclasses(ClassEntity cls, List<ClassEntity> expectedClasses,
-      {bool exact: true}) {
+      {bool exact = true}) {
     check('subclassesOf', cls, closedWorld.classHierarchy.subclassesOf(cls),
         expectedClasses,
         exact: exact);
   }
 
   void testStrictSubclasses(ClassEntity cls, List<ClassEntity> expectedClasses,
-      {bool exact: true}) {
+      {bool exact = true}) {
     check('strictSubclassesOf', cls,
         closedWorld.classHierarchy.strictSubclassesOf(cls), expectedClasses,
         exact: exact,
@@ -134,7 +134,7 @@ testClassSets() async {
   }
 
   void testStrictSubtypes(ClassEntity cls, List<ClassEntity> expectedClasses,
-      {bool exact: true}) {
+      {bool exact = true}) {
     check('strictSubtypesOf', cls,
         closedWorld.classHierarchy.strictSubtypesOf(cls), expectedClasses,
         exact: exact,
@@ -143,7 +143,7 @@ testClassSets() async {
   }
 
   void testMixinUses(ClassEntity cls, List<ClassEntity> expectedClasses,
-      {bool exact: true}) {
+      {bool exact = true}) {
     check('mixinUsesOf', cls, closedWorld.mixinUsesOf(cls), expectedClasses,
         exact: exact);
   }
@@ -365,8 +365,8 @@ testNativeClasses() async {
       ClassEntity lubOfInstantiatedSubtypes,
       int instantiatedSubclassCount,
       int instantiatedSubtypeCount,
-      List<ClassEntity> subclasses: const <ClassEntity>[],
-      List<ClassEntity> subtypes: const <ClassEntity>[]}) {
+      List<ClassEntity> subclasses = const <ClassEntity>[],
+      List<ClassEntity> subtypes = const <ClassEntity>[]}) {
     ClassSet classSet = closedWorld.classHierarchy.getClassSet(cls);
     ClassHierarchyNode node = classSet.node;
 

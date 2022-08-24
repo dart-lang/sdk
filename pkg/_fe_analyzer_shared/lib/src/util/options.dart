@@ -303,7 +303,7 @@ class Option<T> {
   final List<String> aliases;
 
   const Option(this.flag, this.spec,
-      {this.isDefines: false, this.aliases: const []});
+      {this.isDefines = false, this.aliases = const []});
 
   T read(ParsedOptions parsedOptions) =>
       (isDefines ? parsedOptions.defines : parsedOptions.options[flag]) as T;

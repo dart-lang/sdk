@@ -22,7 +22,7 @@ abstract class TypeChecker {
   Library? currentLibrary;
   InterfaceType? currentThisType;
 
-  TypeChecker(this.coreTypes, this.hierarchy, {this.ignoreSdk: true})
+  TypeChecker(this.coreTypes, this.hierarchy, {this.ignoreSdk = true})
       : environment = new TypeEnvironment(coreTypes, hierarchy);
 
   void checkComponent(Component component) {
@@ -299,7 +299,7 @@ class TypeCheckingVisitor
   }
 
   DartType handleCall(Arguments arguments, DartType functionType,
-      {Substitution receiver: Substitution.empty,
+      {Substitution receiver = Substitution.empty,
       List<TypeParameter>? typeParameters}) {
     if (functionType is FunctionType) {
       typeParameters ??= functionType.typeParameters;

@@ -20,7 +20,7 @@ class Class2 {
   final int field;
 
   Class2._(this.field);
-  factory Class2({int field: 42}) => new Class2._(field);
+  factory Class2({int field = 42}) => new Class2._(field);
 }
 
 void testDefaultValues() {
@@ -61,7 +61,7 @@ expect(expected, actual) {
   if (expected != actual) throw 'Expected $expected, actual $actual';
 }
 
-throws(Function() f, {bool inSoundModeOnly: false}) {
+throws(Function() f, {bool inSoundModeOnly = false}) {
   try {
     f();
   } catch (e) {

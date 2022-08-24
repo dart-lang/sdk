@@ -200,7 +200,7 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
   /// Returns null if scanner doesn't return any Token.
   static ParserTestListenerWithMessageFormatting? doListenerParsing(
       Uri uri, String suiteName, String shortName,
-      {bool addTrace: false, bool annotateLines: false}) {
+      {bool addTrace = false, bool annotateLines = false}) {
     List<int> lineStarts = <int>[];
     Token firstToken = scanUri(uri, shortName, lineStarts: lineStarts);
 
@@ -362,7 +362,7 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
 }
 
 StringBuffer tokenStreamToString(Token firstToken, List<int> lineStarts,
-    {bool addTypes: false}) {
+    {bool addTypes = false}) {
   StringBuffer sb = new StringBuffer();
   Token? token = firstToken;
 

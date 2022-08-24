@@ -50,6 +50,7 @@ import 'package:analyzer/src/dart/resolver/postfix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
+import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/simple_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/this_lookup.dart';
@@ -247,6 +248,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   late final PropertyElementResolver _propertyElementResolver =
       PropertyElementResolver(this);
+
+  late final RecordLiteralResolver _recordLiteralResolver =
+      RecordLiteralResolver(resolver: this);
 
   late final AnnotationResolver _annotationResolver = AnnotationResolver(this);
 
@@ -2215,6 +2219,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
     }
     typeAnalyzer.visitRecordLiteral(node, contextType: contextType);
+    _recordLiteralResolver.reportDuplicateFieldDefinitions(node);
   }
 
   @override

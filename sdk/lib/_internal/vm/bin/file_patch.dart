@@ -11,7 +11,8 @@ class _File {
   external static _exists(_Namespace namespace, Uint8List rawPath);
   @patch
   @pragma("vm:external-name", "File_Create")
-  external static _create(_Namespace namespace, Uint8List rawPath);
+  external static _create(
+      _Namespace namespace, Uint8List rawPath, bool exclusive);
   @patch
   @pragma("vm:external-name", "File_CreateLink")
   external static _createLink(

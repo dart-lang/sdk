@@ -20,12 +20,12 @@ main(List<String> args) {
 }
 
 Future checkTests(Directory dataDir,
-    {List<String> options: const <String>[],
-    List<String> args: const <String>[],
-    Directory libDirectory: null,
-    bool forUserLibrariesOnly: true,
-    int shards: 1,
-    int shardIndex: 0,
+    {List<String> options = const <String>[],
+    List<String> args = const <String>[],
+    Directory libDirectory = null,
+    bool forUserLibrariesOnly = true,
+    int shards = 1,
+    int shardIndex = 0,
     void onTest(Uri uri)}) async {
   args = args.toList();
   bool shouldContinue = args.remove('-c');

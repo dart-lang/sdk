@@ -623,7 +623,7 @@ class BinaryBuilder {
   /// each concatenated dill - each of which knowing where in the combined dill
   /// it came from. If [createView] is false null will be returned.
   List<SubComponentView>? readComponent(Component component,
-      {bool checkCanonicalNames: false, bool createView: false}) {
+      {bool checkCanonicalNames = false, bool createView = false}) {
     return Timeline.timeSync<List<SubComponentView>?>(
         "BinaryBuilder.readComponent", () {
       _checkEmptyInput();
@@ -698,7 +698,7 @@ class BinaryBuilder {
   /// This should *only* be used when there is a reason to not allow
   /// concatenated files.
   void readSingleFileComponent(Component component,
-      {bool checkCanonicalNames: false}) {
+      {bool checkCanonicalNames = false}) {
     List<int> componentFileSizes = _indexComponents();
     if (componentFileSizes.isEmpty) throw fail("invalid component data");
     _readOneComponent(component, componentFileSizes[0]);
@@ -807,7 +807,7 @@ class BinaryBuilder {
 
   SubComponentView? _readOneComponent(
       Component component, int componentFileSize,
-      {bool createView: false}) {
+      {bool createView = false}) {
     _componentStartOffset = _byteOffset;
 
     final int magic = readUint32();
@@ -1843,7 +1843,7 @@ class BinaryBuilder {
   }
 
   FunctionNode readFunctionNode(
-      {bool lazyLoadBody: false, int outerEndOffset: -1}) {
+      {bool lazyLoadBody = false, int outerEndOffset = -1}) {
     int tag = readByte();
     assert(tag == Tag.FunctionNode);
     int offset = readOffset();
@@ -3030,7 +3030,7 @@ class BinaryBuilder {
     return readAndCheckOptionTag() ? readDartType() : null;
   }
 
-  DartType readDartType({bool forSupertype: false}) {
+  DartType readDartType({bool forSupertype = false}) {
     int tag = readByte();
     switch (tag) {
       case Tag.TypedefType:
@@ -3445,7 +3445,7 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
 
   @override
   FunctionNode readFunctionNode(
-      {bool lazyLoadBody: false, int outerEndOffset: -1}) {
+      {bool lazyLoadBody = false, int outerEndOffset = -1}) {
     final int nodeOffset = _byteOffset;
     final FunctionNode result = super.readFunctionNode(
         lazyLoadBody: lazyLoadBody, outerEndOffset: outerEndOffset);

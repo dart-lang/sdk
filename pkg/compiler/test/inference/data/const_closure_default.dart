@@ -28,19 +28,19 @@ defaultFn6(/*[exact=JSUInt31]*/ a) => a;
 foo1([/*[subclass=Closure]*/ fn = defaultFn1]) => fn(54);
 
 /*member: foo2:[null|subclass=Object]*/
-foo2({/*[subclass=Closure]*/ fn: defaultFn2}) => fn(54);
+foo2({/*[subclass=Closure]*/ fn = defaultFn2}) => fn(54);
 
 /*member: foo3:[null|subclass=Object]*/
 foo3([/*[subclass=Closure]*/ fn = defaultFn3]) => fn(54);
 
 /*member: foo4:[null|subclass=Object]*/
-foo4({/*[subclass=Closure]*/ fn: defaultFn4}) => fn(54);
+foo4({/*[subclass=Closure]*/ fn = defaultFn4}) => fn(54);
 
 /*member: foo5:[null|subclass=Object]*/
 foo5([/*[null|subclass=Object]*/ fn = defaultFn5]) => fn(54);
 
 /*member: foo6:[null|subclass=Object]*/
-foo6({/*[null|subclass=Object]*/ fn: defaultFn6}) => fn(54);
+foo6({/*[null|subclass=Object]*/ fn = defaultFn6}) => fn(54);
 
 /*member: main:[null]*/
 main() {

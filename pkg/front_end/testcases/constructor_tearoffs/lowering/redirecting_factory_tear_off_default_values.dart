@@ -19,7 +19,7 @@ class Class1 {
 class Class2 {
   final int field;
 
-  Class2._({this.field: 42});
+  Class2._({this.field = 42});
   factory Class2({int field}) = Class2._;
 }
 
@@ -61,7 +61,7 @@ expect(expected, actual) {
   if (expected != actual) throw 'Expected $expected, actual $actual';
 }
 
-throws(Function() f, {bool inSoundModeOnly: false}) {
+throws(Function() f, {bool inSoundModeOnly = false}) {
   try {
     f();
   } catch (e) {

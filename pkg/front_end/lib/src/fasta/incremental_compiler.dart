@@ -281,8 +281,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   @override
   Future<IncrementalCompilerResult> computeDelta(
       {List<Uri>? entryPoints,
-      bool fullComponent: false,
-      bool trackNeededDillLibraries: false}) async {
+      bool fullComponent = false,
+      bool trackNeededDillLibraries = false}) async {
     while (_currentlyCompiling != null) {
       await _currentlyCompiling!.future;
     }

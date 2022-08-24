@@ -622,9 +622,9 @@ class Summary {
   int calleeTime = 0;
 
   Summary(this.name,
-      {this.parameterCount: 0,
-      this.positionalParameterCount: 0,
-      this.requiredParameterCount: 0});
+      {this.parameterCount = 0,
+      this.positionalParameterCount = 0,
+      this.requiredParameterCount = 0});
 
   List<Statement> get statements => _statements;
 

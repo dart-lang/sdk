@@ -47,7 +47,7 @@ import 'dill_type_alias_builder.dart' show DillTypeAliasBuilder;
 class LazyLibraryScope extends LazyScope {
   DillLibraryBuilder? libraryBuilder;
 
-  LazyLibraryScope.top({bool isModifiable: false})
+  LazyLibraryScope.top({bool isModifiable = false})
       : super(<String, Builder>{}, <String, MemberBuilder>{}, null, "top",
             isModifiable: isModifiable);
 
@@ -290,7 +290,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   @override
   Builder computeAmbiguousDeclaration(
       String name, Builder builder, Builder other, int charOffset,
-      {bool isExport: false, bool isImport: false}) {
+      {bool isExport = false, bool isImport = false}) {
     if (builder == other) return builder;
     if (builder is InvalidTypeDeclarationBuilder) return builder;
     if (other is InvalidTypeDeclarationBuilder) return other;
@@ -313,7 +313,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     isReadyToBuild = true;
   }
 
-  void markAsReadyToFinalizeExports({bool suppressFinalizationErrors: false}) {
+  void markAsReadyToFinalizeExports({bool suppressFinalizationErrors = false}) {
     isReadyToFinalizeExports = true;
     this.suppressFinalizationErrors = suppressFinalizationErrors;
   }

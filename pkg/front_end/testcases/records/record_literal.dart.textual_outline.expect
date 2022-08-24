@@ -1,0 +1,6 @@
+method() {}
+sorting() {}
+
+class Class {
+  method() {}
+}

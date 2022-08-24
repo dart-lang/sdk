@@ -209,7 +209,7 @@ class MatchExpectation
   /// be serialized, deserialized, and the textual representation of that is
   /// compared. It is still the original component that is returned though.
   const MatchExpectation(this.suffix,
-      {this.serializeFirst: false, required this.isLastMatchStep})
+      {this.serializeFirst = false, required this.isLastMatchStep})
       // ignore: unnecessary_null_comparison
       : assert(isLastMatchStep != null);
 

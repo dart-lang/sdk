@@ -1130,6 +1130,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode DUPLICATE_FIELD_NAME = CompileTimeErrorCode(
+    'DUPLICATE_FIELD_NAME',
+    "The field name '{0}' is already used.",
+    correctionMessage: "Try renaming the field.",
+  );
+
   ///  Parameters:
   ///  0: the name of the parameter that was duplicated
   static const CompileTimeErrorCode DUPLICATE_NAMED_ARGUMENT =

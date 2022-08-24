@@ -2757,6 +2757,60 @@ Message _withArgumentsDuplicatedParameterNameCause(String name) {
 const Template<
     Message Function(
         String
+            name)> templateDuplicatedRecordLiteralFieldName = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Duplicated record literal field name '#name'.""",
+    correctionMessageTemplate:
+        r"""Try renaming or removing one of the named record literal fields.""",
+    withArguments: _withArgumentsDuplicatedRecordLiteralFieldName);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedRecordLiteralFieldName =
+    const Code<Message Function(String name)>(
+  "DuplicatedRecordLiteralFieldName",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedRecordLiteralFieldName(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeDuplicatedRecordLiteralFieldName,
+      problemMessage: """Duplicated record literal field name '${name}'.""",
+      correctionMessage:
+          """Try renaming or removing one of the named record literal fields.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateDuplicatedRecordLiteralFieldNameContext =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""This is the existing record literal field named '#name'.""",
+        withArguments: _withArgumentsDuplicatedRecordLiteralFieldNameContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeDuplicatedRecordLiteralFieldNameContext =
+    const Code<Message Function(String name)>(
+        "DuplicatedRecordLiteralFieldNameContext",
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedRecordLiteralFieldNameContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeDuplicatedRecordLiteralFieldNameContext,
+      problemMessage:
+          """This is the existing record literal field named '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
             name)> templateDuplicatedRecordTypeFieldName = const Template<
         Message Function(String name)>(
     problemMessageTemplate: r"""Duplicated record type field name '#name'.""",

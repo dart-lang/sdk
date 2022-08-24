@@ -1221,8 +1221,8 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 
   Class(
       {required this.name,
-      bool isAbstract: false,
-      bool isAnonymousMixin: false,
+      bool isAbstract = false,
+      bool isAnonymousMixin = false,
       this.supertype,
       this.mixedInType,
       List<TypeParameter>? typeParameters,
@@ -1704,7 +1704,7 @@ class ExtensionMemberDescriptor {
   ExtensionMemberDescriptor(
       {required this.name,
       required this.kind,
-      bool isStatic: false,
+      bool isStatic = false,
       required this.member}) {
     this.isStatic = isStatic;
   }
@@ -2150,13 +2150,13 @@ class Field extends Member {
   Reference get fieldReference => super.reference;
 
   Field.mutable(Name name,
-      {this.type: const DynamicType(),
+      {this.type = const DynamicType(),
       this.initializer,
-      bool isCovariantByDeclaration: false,
-      bool isFinal: false,
-      bool isStatic: false,
-      bool isLate: false,
-      int transformerFlags: 0,
+      bool isCovariantByDeclaration = false,
+      bool isFinal = false,
+      bool isStatic = false,
+      bool isLate = false,
+      int transformerFlags = 0,
       required Uri fileUri,
       Reference? fieldReference,
       Reference? getterReference,
@@ -2177,18 +2177,18 @@ class Field extends Member {
   }
 
   Field.immutable(Name name,
-      {this.type: const DynamicType(),
+      {this.type = const DynamicType(),
       this.initializer,
-      bool isCovariantByDeclaration: false,
-      bool isFinal: false,
-      bool isConst: false,
-      bool isStatic: false,
-      bool isLate: false,
-      int transformerFlags: 0,
+      bool isCovariantByDeclaration = false,
+      bool isFinal = false,
+      bool isConst = false,
+      bool isStatic = false,
+      bool isLate = false,
+      int transformerFlags = 0,
       required Uri fileUri,
       Reference? fieldReference,
       Reference? getterReference,
-      bool isEnumElement: false})
+      bool isEnumElement = false})
       : this.getterReference = getterReference ?? new Reference(),
         this.setterReference = null,
         super(name, fileUri, fieldReference) {
@@ -2427,11 +2427,11 @@ class Constructor extends Member {
 
   Constructor(this.function,
       {required Name name,
-      bool isConst: false,
-      bool isExternal: false,
-      bool isSynthetic: false,
+      bool isConst = false,
+      bool isExternal = false,
+      bool isSynthetic = false,
       List<Initializer>? initializers,
-      int transformerFlags: 0,
+      int transformerFlags = 0,
       required Uri fileUri,
       Reference? reference})
       : this.initializers = initializers ?? <Initializer>[],
@@ -2603,9 +2603,9 @@ class RedirectingFactory extends Member {
 
   RedirectingFactory(this.targetReference,
       {required Name name,
-      bool isConst: false,
-      bool isExternal: false,
-      int transformerFlags: 0,
+      bool isConst = false,
+      bool isExternal = false,
+      int transformerFlags = 0,
       List<DartType>? typeArguments,
       required this.function,
       required Uri fileUri,
@@ -2968,16 +2968,16 @@ class Procedure extends Member {
   FunctionType? signatureType;
 
   Procedure(Name name, ProcedureKind kind, FunctionNode function,
-      {bool isAbstract: false,
-      bool isStatic: false,
-      bool isExternal: false,
-      bool isConst: false,
-      bool isExtensionMember: false,
-      bool isSynthetic: false,
-      int transformerFlags: 0,
+      {bool isAbstract = false,
+      bool isStatic = false,
+      bool isExternal = false,
+      bool isConst = false,
+      bool isExtensionMember = false,
+      bool isSynthetic = false,
+      int transformerFlags = 0,
       required Uri fileUri,
       Reference? reference,
-      ProcedureStubKind stubKind: ProcedureStubKind.Regular,
+      ProcedureStubKind stubKind = ProcedureStubKind.Regular,
       Member? stubTarget})
       : this._byReferenceRenamed(name, kind, function,
             isAbstract: isAbstract,
@@ -2994,16 +2994,16 @@ class Procedure extends Member {
                 getMemberReferenceBasedOnProcedureKind(stubTarget, kind));
 
   Procedure._byReferenceRenamed(Name name, this.kind, this.function,
-      {bool isAbstract: false,
-      bool isStatic: false,
-      bool isExternal: false,
-      bool isConst: false,
-      bool isExtensionMember: false,
-      bool isSynthetic: false,
-      int transformerFlags: 0,
+      {bool isAbstract = false,
+      bool isStatic = false,
+      bool isExternal = false,
+      bool isConst = false,
+      bool isExtensionMember = false,
+      bool isSynthetic = false,
+      int transformerFlags = 0,
       required Uri fileUri,
       Reference? reference,
-      this.stubKind: ProcedureStubKind.Regular,
+      this.stubKind = ProcedureStubKind.Regular,
       this.stubTargetReference})
       // ignore: unnecessary_null_comparison
       : assert(kind != null),
@@ -3748,8 +3748,8 @@ class FunctionNode extends TreeNode {
       List<VariableDeclaration>? positionalParameters,
       List<VariableDeclaration>? namedParameters,
       int? requiredParameterCount,
-      this.returnType: const DynamicType(),
-      this.asyncMarker: AsyncMarker.Sync,
+      this.returnType = const DynamicType(),
+      this.asyncMarker = AsyncMarker.Sync,
       AsyncMarker? dartAsyncMarker,
       this.futureValueType})
       : this.positionalParameters =
@@ -5384,7 +5384,7 @@ class Arguments extends TreeNode {
   }
 
   @override
-  void toTextInternal(AstPrinter printer, {bool includeTypeArguments: true}) {
+  void toTextInternal(AstPrinter printer, {bool includeTypeArguments = true}) {
     if (includeTypeArguments) {
       printer.writeTypeArguments(types);
     }
@@ -6600,7 +6600,8 @@ class StaticInvocation extends InvocationExpression {
   @override
   Name get name => target.name;
 
-  StaticInvocation(Procedure target, Arguments arguments, {bool isConst: false})
+  StaticInvocation(Procedure target, Arguments arguments,
+      {bool isConst = false})
       : this.byReference(
             // An invocation doesn't refer to the setter.
             getNonNullableMemberReferenceGetter(target),
@@ -6608,7 +6609,7 @@ class StaticInvocation extends InvocationExpression {
             isConst: isConst);
 
   StaticInvocation.byReference(this.targetReference, this.arguments,
-      {this.isConst: false}) {
+      {this.isConst = false}) {
     arguments.parent = this;
   }
 
@@ -6688,7 +6689,7 @@ class ConstructorInvocation extends InvocationExpression {
   Name get name => target.name;
 
   ConstructorInvocation(Constructor target, Arguments arguments,
-      {bool isConst: false})
+      {bool isConst = false})
       : this.byReference(
             // A constructor doesn't refer to the setter.
             getNonNullableMemberReferenceGetter(target),
@@ -6696,7 +6697,7 @@ class ConstructorInvocation extends InvocationExpression {
             isConst: isConst);
 
   ConstructorInvocation.byReference(this.targetReference, this.arguments,
-      {this.isConst: false}) {
+      {this.isConst = false}) {
     arguments.parent = this;
   }
 
@@ -7177,7 +7178,7 @@ class ListConcatenation extends Expression {
   DartType typeArgument;
   final List<Expression> lists;
 
-  ListConcatenation(this.lists, {this.typeArgument: const DynamicType()}) {
+  ListConcatenation(this.lists, {this.typeArgument = const DynamicType()}) {
     setParents(lists, this);
   }
 
@@ -7247,7 +7248,7 @@ class SetConcatenation extends Expression {
   DartType typeArgument;
   final List<Expression> sets;
 
-  SetConcatenation(this.sets, {this.typeArgument: const DynamicType()}) {
+  SetConcatenation(this.sets, {this.typeArgument = const DynamicType()}) {
     setParents(sets, this);
   }
 
@@ -7319,8 +7320,8 @@ class MapConcatenation extends Expression {
   final List<Expression> maps;
 
   MapConcatenation(this.maps,
-      {this.keyType: const DynamicType(),
-      this.valueType: const DynamicType()}) {
+      {this.keyType = const DynamicType(),
+      this.valueType = const DynamicType()}) {
     setParents(maps, this);
   }
 
@@ -8269,7 +8270,7 @@ class ListLiteral extends Expression {
   final List<Expression> expressions;
 
   ListLiteral(this.expressions,
-      {this.typeArgument: const DynamicType(), this.isConst: false}) {
+      {this.typeArgument = const DynamicType(), this.isConst = false}) {
     // ignore: unnecessary_null_comparison
     assert(typeArgument != null);
     setParents(expressions, this);
@@ -8333,7 +8334,7 @@ class SetLiteral extends Expression {
   final List<Expression> expressions;
 
   SetLiteral(this.expressions,
-      {this.typeArgument: const DynamicType(), this.isConst: false}) {
+      {this.typeArgument = const DynamicType(), this.isConst = false}) {
     // ignore: unnecessary_null_comparison
     assert(typeArgument != null);
     setParents(expressions, this);
@@ -8398,9 +8399,9 @@ class MapLiteral extends Expression {
   final List<MapLiteralEntry> entries;
 
   MapLiteral(this.entries,
-      {this.keyType: const DynamicType(),
-      this.valueType: const DynamicType(),
-      this.isConst: false}) {
+      {this.keyType = const DynamicType(),
+      this.valueType = const DynamicType(),
+      this.isConst = false}) {
     // ignore: unnecessary_null_comparison
     assert(keyType != null);
     // ignore: unnecessary_null_comparison
@@ -9756,7 +9757,7 @@ class ForInStatement extends Statement {
   bool isAsync; // True if this is an 'await for' loop.
 
   ForInStatement(this.variable, this.iterable, this.body,
-      {this.isAsync: false}) {
+      {this.isAsync = false}) {
     variable.parent = this;
     iterable.parent = this;
     body.parent = this;
@@ -10004,7 +10005,7 @@ class SwitchCase extends TreeNode {
   bool isDefault;
 
   SwitchCase(this.expressions, this.expressionOffsets, Statement? body,
-      {this.isDefault: false}) {
+      {this.isDefault = false}) {
     setParents(expressions, this);
     if (body != null) {
       this.body = body..parent = this;
@@ -10265,7 +10266,7 @@ class TryCatch extends Statement {
   List<Catch> catches;
   bool isSynthetic;
 
-  TryCatch(this.body, this.catches, {this.isSynthetic: false}) {
+  TryCatch(this.body, this.catches, {this.isSynthetic = false}) {
     body.parent = this;
     setParents(catches, this);
   }
@@ -10326,7 +10327,7 @@ class Catch extends TreeNode {
   Statement body;
 
   Catch(this.exception, this.body,
-      {this.guard: const DynamicType(), this.stackTrace}) {
+      {this.guard = const DynamicType(), this.stackTrace}) {
     // ignore: unnecessary_null_comparison
     assert(guard != null);
     exception?.parent = this;
@@ -10509,7 +10510,7 @@ class YieldStatement extends Statement {
   Expression expression;
   int flags = 0;
 
-  YieldStatement(this.expression, {bool isYieldStar: false}) {
+  YieldStatement(this.expression, {bool isYieldStar = false}) {
     expression.parent = this;
     this.isYieldStar = isYieldStar;
   }
@@ -10612,16 +10613,16 @@ class VariableDeclaration extends Statement implements Annotatable {
 
   VariableDeclaration(this.name,
       {this.initializer,
-      this.type: const DynamicType(),
-      int flags: -1,
-      bool isFinal: false,
-      bool isConst: false,
-      bool isInitializingFormal: false,
-      bool isCovariantByDeclaration: false,
-      bool isLate: false,
-      bool isRequired: false,
-      bool isLowered: false,
-      bool hasDeclaredInitializer: false}) {
+      this.type = const DynamicType(),
+      int flags = -1,
+      bool isFinal = false,
+      bool isConst = false,
+      bool isInitializingFormal = false,
+      bool isCovariantByDeclaration = false,
+      bool isLate = false,
+      bool isRequired = false,
+      bool isLowered = false,
+      bool hasDeclaredInitializer = false}) {
     // ignore: unnecessary_null_comparison
     assert(type != null);
     initializer?.parent = this;
@@ -10641,13 +10642,13 @@ class VariableDeclaration extends Statement implements Annotatable {
 
   /// Creates a synthetic variable with the given expression as initializer.
   VariableDeclaration.forValue(this.initializer,
-      {bool isFinal: true,
-      bool isConst: false,
-      bool isInitializingFormal: false,
-      bool isLate: false,
-      bool isRequired: false,
-      bool isLowered: false,
-      this.type: const DynamicType()}) {
+      {bool isFinal = true,
+      bool isConst = false,
+      bool isInitializingFormal = false,
+      bool isLate = false,
+      bool isRequired = false,
+      bool isLowered = false,
+      this.type = const DynamicType()}) {
     // ignore: unnecessary_null_comparison
     assert(type != null);
     initializer?.parent = this;
@@ -11550,8 +11551,8 @@ class FunctionType extends DartType {
 
   FunctionType(List<DartType> positionalParameters, this.returnType,
       this.declaredNullability,
-      {this.namedParameters: const <NamedType>[],
-      this.typeParameters: const <TypeParameter>[],
+      {this.namedParameters = const <NamedType>[],
+      this.typeParameters = const <TypeParameter>[],
       int? requiredParameterCount})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =
@@ -12043,7 +12044,7 @@ class NamedType extends Node implements Comparable<NamedType> {
   final DartType type;
   final bool isRequired;
 
-  const NamedType(this.name, this.type, {this.isRequired: false});
+  const NamedType(this.name, this.type, {this.isRequired = false});
 
   @override
   bool operator ==(Object other) => equals(other, null);
@@ -14184,12 +14185,12 @@ abstract class BinarySink {
 
   void enterScope(
       {List<TypeParameter> typeParameters,
-      bool memberScope: false,
-      bool variableScope: false});
+      bool memberScope = false,
+      bool variableScope = false});
   void leaveScope(
       {List<TypeParameter> typeParameters,
-      bool memberScope: false,
-      bool variableScope: false});
+      bool memberScope = false,
+      bool variableScope = false});
 }
 
 abstract class BinarySource {

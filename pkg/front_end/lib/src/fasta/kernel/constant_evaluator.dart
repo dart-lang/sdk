@@ -927,7 +927,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       {this.enableTripleShift = false,
       this.enableConstFunctions = false,
       this.errorOnUnevaluatedConstant = false,
-      this.evaluationMode: EvaluationMode.weak})
+      this.evaluationMode = EvaluationMode.weak})
       : numberSemantics = backend.numberSemantics,
         coreTypes = typeEnvironment.coreTypes,
         canonicalizationCache = <Constant, Constant>{},

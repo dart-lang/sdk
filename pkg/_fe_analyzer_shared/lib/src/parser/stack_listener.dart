@@ -523,7 +523,7 @@ abstract class StackListener extends Listener {
   }
 
   void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage> context});
+      {bool wasHandled = false, List<LocatedMessage> context});
 }
 
 abstract class Stack {

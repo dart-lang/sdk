@@ -28,7 +28,7 @@ class Class {
   /*member: Class.state2:constant=ConstructedConstant(Enum(_name=StringConstant("c"),index=IntConstant(2)))*/
   final Enum state2;
 
-  Class({this.state1: 1, this.state2: Enum.c});
+  Class({this.state1 = 1, this.state2 = Enum.c});
 
   @pragma('dart2js:noInline')
   method1a() {

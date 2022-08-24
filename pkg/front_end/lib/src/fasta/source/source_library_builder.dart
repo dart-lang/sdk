@@ -563,7 +563,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// [offset] and [length] refers to the offset and length of the source code
   /// specifying the language version.
   void registerExplicitLanguageVersion(Version version,
-      {int offset: 0, int length: noLength}) {
+      {int offset = 0, int length = noLength}) {
     if (_languageVersion.isExplicit) {
       // If more than once language version exists we use the first.
       return;
@@ -600,7 +600,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void beginNestedDeclaration(TypeParameterScopeKind kind, String name,
-      {bool hasMembers: true}) {
+      {bool hasMembers = true}) {
     currentTypeParameterScopeBuilder =
         currentTypeParameterScopeBuilder.createNested(kind, name, hasMembers);
   }
@@ -624,7 +624,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   bool uriIsValid(Uri uri) => !uri.isScheme(MALFORMED_URI_SCHEME);
 
-  Uri resolve(Uri baseUri, String? uri, int uriOffset, {isPart: false}) {
+  Uri resolve(Uri baseUri, String? uri, int uriOffset, {isPart = false}) {
     if (uri == null) {
       addProblem(messageExpectedUri, uriOffset, noLength, fileUri);
       return new Uri(scheme: MALFORMED_URI_SCHEME);
@@ -650,7 +650,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   String? computeAndValidateConstructorName(Object? name, int charOffset,
-      {isFactory: false}) {
+      {isFactory = false}) {
     String className = currentTypeParameterScopeBuilder.name;
     String prefix;
     String? suffix;
@@ -1046,7 +1046,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   /// Builds the core AST structure of this library as needed for the outline.
   Library buildOutlineNodes(LibraryBuilder coreLibrary,
-      {bool modifyTarget: true}) {
+      {bool modifyTarget = true}) {
     // TODO(johnniwinther): Avoid the need to process patch libraries before
     // the origin. Currently, settings performed by the patch are overridden
     // by the origin. For instance, the `Map` class is abstract in the origin
@@ -1703,10 +1703,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   FormattedMessage? addProblem(
       Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled: false,
+      {bool wasHandled = false,
       List<LocatedMessage>? context,
       Severity? severity,
-      bool problemOnLibrary: false}) {
+      bool problemOnLibrary = false}) {
     FormattedMessage? formattedMessage = super.addProblem(
         message, charOffset, length, fileUri,
         wasHandled: wasHandled,
@@ -2116,7 +2116,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       {List<MetadataBuilder>? metadata,
       String? name,
       List<TypeVariableBuilder>? typeVariables,
-      int modifiers: 0,
+      int modifiers = 0,
       List<TypeBuilder>? interfaces,
       required bool isMacro,
       required bool isAugmentation}) {
@@ -3201,7 +3201,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   Builder computeAmbiguousDeclaration(
       String name, Builder declaration, Builder other, int charOffset,
-      {bool isExport: false, bool isImport: false}) {
+      {bool isExport = false, bool isImport = false}) {
     // TODO(ahe): Can I move this to Scope or Prefix?
     if (declaration == other) return declaration;
     if (declaration is InvalidTypeDeclarationBuilder) return declaration;

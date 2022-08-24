@@ -97,7 +97,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   FormalParameterBuilder(this.metadata, this.kind, this.modifiers, this.type,
       this.name, LibraryBuilder? compilationUnit, int charOffset,
-      {Uri? fileUri, this.isExtensionThis: false})
+      {Uri? fileUri, this.isExtensionThis = false})
       : this.fileUri = fileUri ?? compilationUnit?.fileUri,
         super(compilationUnit, charOffset) {
     type.registerInferredTypeListener(this);

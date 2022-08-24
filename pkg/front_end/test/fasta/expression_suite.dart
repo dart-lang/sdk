@@ -209,7 +209,7 @@ class MatchProcedureExpectations extends Step<List<TestCase>, Null, Context> {
   final bool updateExpectations;
 
   const MatchProcedureExpectations(this.suffix,
-      {this.updateExpectations: false});
+      {this.updateExpectations = false});
 
   @override
   String get name => "match expectations";

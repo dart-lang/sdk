@@ -22,7 +22,7 @@ void main() {
   });
 }
 
-runTests({bool strongMode: false}) async {
+runTests({bool strongMode = false}) async {
   var env = await TypeEnvironment.create(r"""
       ///        A
       ///       / \
@@ -65,7 +65,7 @@ runTests({bool strongMode: false}) async {
   ClassEntity Function_ = env.getElement("Function");
 
   void checkClass(ClassEntity cls, List<ClassEntity> expectedSubtypes,
-      {bool checkSubset: false}) {
+      {bool checkSubset = false}) {
     ClassSet node = world.classHierarchy.getClassSet(cls);
     Set<ClassEntity> actualSubtypes = node.subtypes().toSet();
     if (checkSubset) {

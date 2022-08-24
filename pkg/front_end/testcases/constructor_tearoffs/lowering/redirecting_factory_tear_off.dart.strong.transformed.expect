@@ -2,43 +2,43 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:101:8: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:100:8: Error: Too few positional arguments: 1 required, 0 given.
 //     f3a(); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:102:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:101:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 // Try removing the extra positional arguments.
 //     f3a(42, 87); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:117:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:116:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 // Try removing the extra positional arguments.
 //     f4a(42, 87); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:131:8: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:129:8: Error: Too few positional arguments: 1 required, 0 given.
 //     f5a(); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:132:8: Error: Too many positional arguments: 2 allowed, but 3 found.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:130:8: Error: Too many positional arguments: 2 allowed, but 3 found.
 // Try removing the extra positional arguments.
 //     f5a(42, 87, 123); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:144:8: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:142:8: Error: Too few positional arguments: 1 required, 0 given.
 //     f6a(); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:145:8: Error: Required named parameter 'field3' must be provided.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:143:8: Error: Required named parameter 'field3' must be provided.
 //     f6a(42); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:146:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:144:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 // Try removing the extra positional arguments.
 //     f6a(42, 87); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:147:8: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:145:8: Error: Too few positional arguments: 1 required, 0 given.
 //     f6a(field1: 87, field2: 87); // error
 //        ^
 //
@@ -191,10 +191,10 @@ static method testArgs() → dynamic {
   self::Class3 c3a = f3a(42){(core::int) → self::Class3};
   self::expect(42, c3a.{self::Class3::field}{core::int});
   () → Null {
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:101:8: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:100:8: Error: Too few positional arguments: 1 required, 0 given.
     f3a(); // error
        ^" in f3a{<inapplicable>}.();
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:102:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:101:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     f3a(42, 87); // error
        ^" in f3a{<inapplicable>}.(42, 87);
@@ -210,7 +210,7 @@ Try removing the extra positional arguments.
   self::Class4 c4b = f4a(42){([core::int?]) → self::Class4};
   self::expect(42, c4b.{self::Class4::field}{core::int?});
   () → Null {
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:117:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:116:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     f4a(42, 87); // error
        ^" in f4a{<inapplicable>}.(42, 87);
@@ -225,10 +225,10 @@ Try removing the extra positional arguments.
   self::expect(87, c5b.{self::Class5::field1}{core::int});
   self::expect(42, c5b.{self::Class5::field2}{core::int?});
   () → Null {
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:131:8: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:129:8: Error: Too few positional arguments: 1 required, 0 given.
     f5a(); // error
        ^" in f5a{<inapplicable>}.();
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:132:8: Error: Too many positional arguments: 2 allowed, but 3 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:130:8: Error: Too many positional arguments: 2 allowed, but 3 found.
 Try removing the extra positional arguments.
     f5a(42, 87, 123); // error
        ^" in f5a{<inapplicable>}.(42, 87, 123);
@@ -242,17 +242,17 @@ Try removing the extra positional arguments.
   self::expect(null, c6a.{self::Class6::field2}{core::int?});
   self::expect(87, c6a.{self::Class6::field3}{core::int});
   () → Null {
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:144:8: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:142:8: Error: Too few positional arguments: 1 required, 0 given.
     f6a(); // error
        ^" in f6a{<inapplicable>}.();
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:145:8: Error: Required named parameter 'field3' must be provided.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:143:8: Error: Required named parameter 'field3' must be provided.
     f6a(42); // error
        ^" in f6a{<inapplicable>}.(42);
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:146:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:144:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     f6a(42, 87); // error
        ^" in f6a{<inapplicable>}.(42, 87);
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:147:8: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:145:8: Error: Too few positional arguments: 1 required, 0 given.
     f6a(field1: 87, field2: 87); // error
        ^" in f6a{<inapplicable>}.(field1: 87, field2: 87);
   };

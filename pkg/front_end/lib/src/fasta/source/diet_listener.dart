@@ -1212,7 +1212,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage>? context}) {
+      {bool wasHandled = false, List<LocatedMessage>? context}) {
     libraryBuilder.addProblem(message, charOffset, length, uri,
         wasHandled: wasHandled, context: context);
   }

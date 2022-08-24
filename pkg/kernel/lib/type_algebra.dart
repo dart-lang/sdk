@@ -294,7 +294,7 @@ abstract class Substitution {
   /// Returns the substitution for [parameter]
   DartType? getSubstitute(TypeParameter parameter, bool upperBound);
 
-  DartType substituteType(DartType node, {bool contravariant: false}) {
+  DartType substituteType(DartType node, {bool contravariant = false}) {
     return new _TopSubstitutor(this, contravariant).visit(node);
   }
 
@@ -394,7 +394,7 @@ class _NullSubstitution extends Substitution {
   }
 
   @override
-  DartType substituteType(DartType node, {bool contravariant: false}) => node;
+  DartType substituteType(DartType node, {bool contravariant = false}) => node;
 
   @override
   Supertype substituteSupertype(Supertype node) => node;

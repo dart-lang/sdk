@@ -8,7 +8,7 @@
 /// of the [windowSize] lines before and after are printed and the mismatch line
 /// number is returned. If identical, nothing is printed and `null` is returned.
 int checkEqualContentAndShowDiff(String text1, String text2,
-    {int windowSize: 20,
+    {int windowSize = 20,
     bool Function(int, List<String>, List<String>) filter}) {
   List<String> lines1 = text1.split('\n');
   List<String> lines2 = text2.split('\n');

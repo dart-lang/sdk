@@ -3050,8 +3050,8 @@ class Result {
 
 class _MockedBinaryPrinter extends Mock implements BinaryPrinter {}
 
-class _MockedBinaryPrinterFactory extends Mock implements BinaryPrinterFactory {
-}
+class _MockedBinaryPrinterFactory extends Mock
+    implements BinaryPrinterFactory {}
 
 class _MockedCompiler extends Mock implements CompilerInterface {}
 
@@ -3161,7 +3161,7 @@ class FrontendServer {
   /// frontend server.
   // TODO(johnniwinther): Use (required) named arguments.
   void recompile(Uri invalidatedUri,
-      {String boundaryKey: 'abc',
+      {String boundaryKey = 'abc',
       List<Uri> invalidatedUris,
       String entryPoint}) {
     invalidatedUris ??= [if (invalidatedUri != null) invalidatedUri];
@@ -3186,7 +3186,7 @@ class FrontendServer {
   /// frontend server.
   // TODO(johnniwinther): Use (required) named arguments.
   void compileExpression(String expression, Uri library,
-      {String boundaryKey: 'abc', String className: '', bool isStatic}) {
+      {String boundaryKey = 'abc', String className = '', bool isStatic}) {
     // 'compile-expression <boundarykey>
     // expression
     // definitions (one per line)
@@ -3217,7 +3217,7 @@ class FrontendServer {
   // TODO(johnniwinther): Use (required) named arguments.
   void compileExpressionToJs(String expression, String libraryUri, int line,
       int column, String moduleName,
-      {String boundaryKey: 'abc'}) {
+      {String boundaryKey = 'abc'}) {
     // 'compile-expression-to-js <boundarykey>
     // libraryUri
     // line

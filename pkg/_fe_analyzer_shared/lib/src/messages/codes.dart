@@ -31,7 +31,7 @@ class Code<T> {
   final Severity severity;
 
   const Code(this.name,
-      {this.index: -1, this.analyzerCodes, this.severity: Severity.error});
+      {this.index = -1, this.analyzerCodes, this.severity = Severity.error});
 
   String toString() => name;
 }

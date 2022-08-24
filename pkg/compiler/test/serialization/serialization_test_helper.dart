@@ -102,12 +102,12 @@ void finishCompileAndCompare(
 
 runTest(
     {Uri entryPoint,
-    Map<String, String> memorySourceFiles: const <String, String>{},
+    Map<String, String> memorySourceFiles = const <String, String>{},
     Uri packageConfig,
     Uri librariesSpecificationUri,
     List<String> options,
-    SerializationStrategy strategy: const BytesInMemorySerializationStrategy(),
-    bool useDataKinds: false}) async {
+    SerializationStrategy strategy = const BytesInMemorySerializationStrategy(),
+    bool useDataKinds = false}) async {
   var commonOptions = options + ['--out=out.js'];
   OutputCollector collector = new OutputCollector();
   CompilationResult result = await runCompiler(

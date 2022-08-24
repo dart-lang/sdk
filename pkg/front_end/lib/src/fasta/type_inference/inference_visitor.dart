@@ -58,7 +58,7 @@ abstract class InferenceVisitor {
   /// the expression type and calls the appropriate specialized "infer" method.
   ExpressionInferenceResult inferExpression(
       Expression expression, DartType typeContext, bool typeNeeded,
-      {bool isVoidAllowed: false, bool forEffect: false});
+      {bool isVoidAllowed = false, bool forEffect = false});
 
   /// Performs type inference on the given [statement].
   ///
@@ -111,7 +111,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult _inferExpression(
       Expression expression, DartType typeContext, bool typeNeeded,
-      {bool isVoidAllowed: false, bool forEffect: false}) {
+      {bool isVoidAllowed = false, bool forEffect = false}) {
     registerIfUnreachableForTesting(expression);
 
     // `null` should never be used as the type context.  An instance of
@@ -166,7 +166,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult inferExpression(
       Expression expression, DartType typeContext, bool typeNeeded,
-      {bool isVoidAllowed: false, bool forEffect: false}) {
+      {bool isVoidAllowed = false, bool forEffect = false}) {
     ExpressionInferenceResult result = _inferExpression(
         expression, typeContext, typeNeeded,
         isVoidAllowed: isVoidAllowed, forEffect: forEffect);
@@ -186,7 +186,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult inferNullAwareExpression(
       Expression expression, DartType typeContext, bool typeNeeded,
-      {bool isVoidAllowed: false, bool forEffect: false}) {
+      {bool isVoidAllowed = false, bool forEffect = false}) {
     ExpressionInferenceResult result = _inferExpression(
         expression, typeContext, typeNeeded,
         isVoidAllowed: isVoidAllowed, forEffect: forEffect);
@@ -1246,7 +1246,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       VariableDeclaration variable,
       Expression iterable,
       Statement? expressionEffects,
-      {bool isAsync: false}) {
+      {bool isAsync = false}) {
     DartType elementType;
     bool typeNeeded = false;
     bool typeChecksNeeded = !isTopLevel;
@@ -1310,7 +1310,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult inferForInIterable(
       Expression iterable, DartType elementType, bool typeNeeded,
-      {bool isAsync: false}) {
+      {bool isAsync = false}) {
     Class iterableClass =
         isAsync ? coreTypes.streamClass : coreTypes.iterableClass;
     DartType context =
@@ -1378,7 +1378,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression iterable,
       Expression? syntheticAssignment,
       Statement? expressionEffects,
-      {bool isAsync: false,
+      {bool isAsync = false,
       required bool hasProblem}) {
     // ignore: unnecessary_null_comparison
     assert(hasProblem != null);
@@ -6771,7 +6771,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         result.add(isSetVariable);
       }
 
-      Expression createVariableRead({bool needsPromotion: false}) {
+      Expression createVariableRead({bool needsPromotion = false}) {
         if (needsPromotion) {
           return new VariableGet(node, node.type)..fileOffset = fileOffset;
         } else {
@@ -7160,6 +7160,145 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ParenthesizedExpression node, DartType typeContext) {
     return inferExpression(node.expression, typeContext, true,
         isVoidAllowed: true);
+  }
+
+  ExpressionInferenceResult visitInternalRecordLiteral(
+      InternalRecordLiteral node, DartType typeContext) {
+    List<Expression> positional = node.positional;
+    List<NamedExpression> named = node.named;
+    Map<String, NamedExpression>? namedElements = node.namedElements;
+    List<Object> originalElementOrder = node.originalElementOrder;
+    List<VariableDeclaration>? hoistedExpressions;
+
+    List<DartType> positionalTypes;
+    // ignore: UNUSED_LOCAL_VARIABLE
+    List<NamedType> namedTypes;
+
+    if (namedElements == null) {
+      positionalTypes = [];
+      namedTypes = [];
+      for (int index = 0; index < positional.length; index++) {
+        Expression expression = positional[index];
+        ExpressionInferenceResult expressionResult = inferExpression(
+            expression,
+            // TODO(johnniwinther,cstefantsova): Provide the right type context.
+            const UnknownType(),
+            true);
+        positionalTypes.add(expressionResult.inferredType);
+        positional[index] = expressionResult.expression;
+      }
+    } else {
+      List<String> sortedNames = namedElements.keys.toList()..sort();
+
+      positionalTypes =
+          new List<DartType>.filled(positional.length, const UnknownType());
+      Map<String, DartType> namedElementTypes = {};
+
+      // Index into [sortedNames] of the named element we expected to find
+      // next, for the named elements to be sorted. This also used to detect
+      // when all named elements have been seen, even when they are not sorted.
+      int nameIndex = sortedNames.length - 1;
+
+      // Index into [positional] of the positional element we find next.
+      int positionalIndex = positional.length - 1;
+
+      // Set to `true` if we need to hoist all preceding elements.
+      bool needsHoisting = false;
+
+      // Set to `true` if named elements need to be sorted. This implies that
+      // we will need to hoist preceding elements.
+      bool namedNeedsSorting = false;
+
+      // We run through the elements in reverse order to determine which
+      // expressions we need to hoist. When we observe an element out of order,
+      // either positional after named or unsorted named, all preceding
+      // elements must be hoisted to retain the original evaluation order.
+      for (int index = originalElementOrder.length - 1; index >= 0; index--) {
+        Object element = originalElementOrder[index];
+        if (element is NamedExpression) {
+          ExpressionInferenceResult expressionResult = inferExpression(
+              element.value,
+              // TODO(johnniwinther,cstefantsova): Provide the right type
+              //  context.
+              const UnknownType(),
+              true);
+          Expression expression = expressionResult.expression;
+          DartType type = expressionResult.inferredType;
+          // TODO(johnniwinther): Should we use [isPureExpression] as is, make
+          // it include (simple) literals, or add a new predicate?
+          if (needsHoisting && !isPureExpression(expression)) {
+            // We hoist the value of the [NamedExpression] into a synthesized
+            // variable, and replace the value with a read of the variable.
+            VariableDeclaration variable = createVariable(expression, type);
+            hoistedExpressions ??= [];
+            hoistedExpressions.add(variable);
+            element.value = createVariableGet(variable)..parent = element;
+          } else {
+            element.value = expression..parent = element;
+          }
+          namedElementTypes[element.name] = type;
+          if (!namedNeedsSorting && element.name != sortedNames[nameIndex]) {
+            // Named elements are not sorted, so we need to hoist and sort them.
+            namedNeedsSorting = true;
+            needsHoisting = true;
+          }
+          nameIndex--;
+        } else {
+          ExpressionInferenceResult expressionResult = inferExpression(
+              element as Expression,
+              // TODO(johnniwinther,cstefantsova): Provide the right type
+              //  context.
+              const UnknownType(),
+              true);
+          Expression expression = expressionResult.expression;
+          DartType type = expressionResult.inferredType;
+          // TODO(johnniwinther): Should we use [isPureExpression] as is, make
+          // it include (simple) literals, or add a new predicate?
+          if (needsHoisting && !isPureExpression(expression)) {
+            // We hoist the positional element into a synthesized variable, and
+            // replace the element in [positional] with a read of the variable.
+            VariableDeclaration variable = createVariable(expression, type);
+            hoistedExpressions ??= [];
+            hoistedExpressions.add(variable);
+            positional[positionalIndex] = createVariableGet(variable);
+          } else {
+            positional[positionalIndex] = expression;
+            if (nameIndex >= 0) {
+              // We have not seen all named elements yet, so we must hoist the
+              // remaining named elements and the preceding positional elements.
+              needsHoisting = true;
+            }
+          }
+          positionalTypes[positionalIndex] = type;
+          positionalIndex--;
+        }
+      }
+      namedTypes =
+          new List<NamedType>.generate(sortedNames.length, (int index) {
+        String name = sortedNames[index];
+        return new NamedType(name, namedElementTypes[name]!);
+      });
+      if (namedNeedsSorting) {
+        // The [named] elements need to be sorted.
+        named = [];
+        for (String name in sortedNames) {
+          named.add(namedElements[name]!);
+        }
+      }
+    }
+
+    Expression result;
+    // TODO(johnniwinther): Create a [RecordLiteral].
+    // For now we pretend it's a dynamic call to 'foo'.
+    result = new DynamicInvocation(DynamicAccessKind.Invalid, new NullLiteral(),
+        new Name('foo'), new Arguments(positional, named: named));
+
+    if (hoistedExpressions != null) {
+      for (VariableDeclaration variable in hoistedExpressions) {
+        result = createLet(variable, result);
+      }
+    }
+    return new ExpressionInferenceResult(const InvalidType(), result);
   }
 
   void reportNonNullableInNullAwareWarningIfNeeded(

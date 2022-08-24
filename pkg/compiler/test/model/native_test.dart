@@ -206,7 +206,7 @@ main() {
 }
 
 runTest(String fileName, String location, Map<String, Kind> expectations,
-    {List<String> skipList: const <String>[]}) async {
+    {List<String> skipList = const <String>[]}) async {
   print('--------------------------------------------------------------------');
   print('Testing $fileName');
   print('--------------------------------------------------------------------');
@@ -261,7 +261,7 @@ runPositiveTest(Uri entryPoint, Map<String, String> sources,
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
   void checkClass(ClassEntity cls,
-      {bool isNative: false, bool isJsInterop: false}) {
+      {bool isNative = false, bool isJsInterop = false}) {
     if (isJsInterop) {
       isNative = true;
     }
@@ -276,7 +276,7 @@ runPositiveTest(Uri entryPoint, Map<String, String> sources,
   }
 
   void checkMember(MemberEntity member,
-      {bool isNative: false, bool isJsInterop: false}) {
+      {bool isNative = false, bool isJsInterop = false}) {
     if (isJsInterop) {
       isNative = true;
     }

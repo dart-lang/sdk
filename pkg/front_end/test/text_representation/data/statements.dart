@@ -601,7 +601,7 @@ dart.core::int localFunction(dynamic a, {dynamic b = 0, required dynamic c}) {
 /*limited.member: stmtFunctionDeclarationNamed:
 int localFunction(dynamic a, {dynamic b = 0, required dynamic c}) { return 0; }*/
 stmtFunctionDeclarationNamed() {
-  int localFunction(a, {b: 0, required c}) {
+  int localFunction(a, {b = 0, required c}) {
     return 0;
   }
 }

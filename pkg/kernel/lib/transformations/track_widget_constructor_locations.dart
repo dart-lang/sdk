@@ -205,7 +205,7 @@ class _WidgetCallSiteTransformer extends Transformer {
 
   void _addLocationArgument(
       InvocationExpression node, FunctionNode function, Class constructedClass,
-      {bool isConst: false}) {
+      {bool isConst = false}) {
     _maybeAddCreationLocationArgument(
       node.arguments,
       function,
@@ -233,7 +233,7 @@ class _WidgetCallSiteTransformer extends Transformer {
     InvocationExpression node,
     FunctionNode function,
     Class constructedClass, {
-    bool isConst: false,
+    bool isConst = false,
   }) {
     // For factory constructors we need to use the location specified as an
     // argument to the factory constructor rather than the location

@@ -48,7 +48,7 @@ Future<NnbdMode> _getNNBDMode(Uri script, Uri packageConfigUri) async {
 }
 
 Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
-    {String filter, int shards: 1, int shard: 0}) async {
+    {String filter, int shards = 1, int shard = 0}) async {
   if (flutterDir == null || !(new Directory(flutterDir).existsSync())) {
     throw "Didn't get a valid flutter directory to work with.";
   }

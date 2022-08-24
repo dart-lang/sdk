@@ -21,7 +21,7 @@ class Link<T> implements Iterable<T> {
 
   void printOn(StringBuffer buffer, [separatedBy]) {}
 
-  List<T> toList({bool growable: true}) {
+  List<T> toList({bool growable = true}) {
     List<T> result = <T>[];
     for (Link<T> link = this; !link.isEmpty; link = link.tail!) {
       result.add(link.head);
@@ -37,7 +37,7 @@ class Link<T> implements Iterable<T> {
   /// Invokes `fn` for every item in the linked list and returns the results
   /// in a [List].
   /// TODO(scheglov) Rewrite to `List<E>`, or remove.
-  List<E?> mapToList<E>(E fn(T item), {bool growable: true}) {
+  List<E?> mapToList<E>(E fn(T item), {bool growable = true}) {
     List<E?> result;
     if (!growable) {
       result = new List<E?>.filled(slowLength(), null);

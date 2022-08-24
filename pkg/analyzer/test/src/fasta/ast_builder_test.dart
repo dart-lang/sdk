@@ -165,6 +165,25 @@ ClassDeclaration
         withOffsets: true);
   }
 
+  void test_class_extendsClause_recordType() {
+    var parseResult = parseStringWithErrors(r'''
+class C extends (int, int) {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.classDeclaration('class C');
+    assertParsedNodeText(
+        node,
+        r'''
+ClassDeclaration
+  classKeyword: class @0
+  name: C @6
+  leftBracket: { @27
+  rightBracket: } @28
+''',
+        withOffsets: true);
+  }
+
   void test_class_macro() {
     var parseResult = parseStringWithErrors(r'''
 macro class A {}

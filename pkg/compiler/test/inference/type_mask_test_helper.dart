@@ -25,7 +25,7 @@ AbstractValue simplify(AbstractValue value, AbstractValueDomain domain) {
 }
 
 TypeMask interceptorOrComparable(JClosedWorld closedWorld,
-    {bool nullable: false}) {
+    {bool nullable = false}) {
   // TODO(johnniwinther): The mock libraries are missing 'Comparable' and
   // therefore consider the union of for instance 'String' and 'num' to be
   // 'Interceptor' and not 'Comparable'. Maybe the union mask should be changed

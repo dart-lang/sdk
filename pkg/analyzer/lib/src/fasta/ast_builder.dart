@@ -3077,10 +3077,15 @@ class AstBuilder extends StackListener {
       pop();
       typeCount--;
     }
-    var supertype = pop() as NamedType?;
-    if (supertype != null) {
+    var supertype = pop() as TypeAnnotation?;
+    if (supertype is NamedType) {
       push(ast.extendsClause(extendsKeyword!, supertype));
     } else {
+      // TODO(brianwilkerson) Produce a diagnostic indicating that the type
+      //  annotation is either missing or an invalid kind. Also, consider
+      //  (a) extending `ExtendsClause` to accept any type annotation for
+      //  recovery purposes, and (b) extending the parser to parse a generic
+      //  function type at this location.
       push(NullValue.ExtendsClause);
     }
   }

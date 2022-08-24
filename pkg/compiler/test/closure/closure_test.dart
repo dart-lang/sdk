@@ -34,7 +34,7 @@ class ClosureDataComputer extends DataComputer<String> {
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
-      {bool verbose: false}) {
+      {bool verbose = false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     GlobalLocalsMap localsMap =
@@ -78,7 +78,7 @@ class ClosureIrChecker extends IrDataExtractor<String> {
       this._localsMap,
       this.closureDataLookup,
       this._closedWorld,
-      {this.verbose: false})
+      {this.verbose = false})
       : super(reporter, actualMap) {
     pushMember(member);
   }

@@ -9,7 +9,7 @@ import 'package:kernel/kernel.dart';
 class CommandLineHelper {
   static void requireExactlyOneArgument(
       List<String> args, void Function() usage,
-      {bool requireFileExists: false}) {
+      {bool requireFileExists = false}) {
     if (args.length != 1) {
       print("Expected exactly 1 argument, got ${args.length}.");
       usage();

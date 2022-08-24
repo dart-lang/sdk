@@ -127,7 +127,7 @@ class CollectionTransformer extends Transformer {
 
   TreeNode _translateListOrSet(
       Expression node, DartType elementType, List<Expression> elements,
-      {bool isSet: false}) {
+      {bool isSet = false}) {
     // Translate elements in place up to the first non-expression, if any.
     int index = 0;
     for (; index < elements.length; ++index) {
@@ -712,7 +712,7 @@ class CollectionTransformer extends Transformer {
 
   TreeNode _translateConstListOrSet(
       Expression node, DartType elementType, List<Expression> elements,
-      {bool isSet: false}) {
+      {bool isSet = false}) {
     // Translate elements in place up to the first non-expression, if any.
     int i = 0;
     for (; i < elements.length; ++i) {
@@ -916,7 +916,7 @@ class CollectionTransformer extends Transformer {
 
   MapLiteral _createMapLiteral(int fileOffset, DartType keyType,
       DartType valueType, List<MapLiteralEntry> entries,
-      {bool isConst: false}) {
+      {bool isConst = false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
@@ -927,7 +927,7 @@ class CollectionTransformer extends Transformer {
 
   ListLiteral _createListLiteral(
       int fileOffset, DartType elementType, List<Expression> elements,
-      {bool isConst: false}) {
+      {bool isConst = false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
@@ -938,7 +938,7 @@ class CollectionTransformer extends Transformer {
 
   Expression _createSetLiteral(
       int fileOffset, DartType elementType, List<Expression> elements,
-      {bool isConst: false}) {
+      {bool isConst = false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
@@ -1025,7 +1025,8 @@ class CollectionTransformer extends Transformer {
       ..isInvariant = true;
   }
 
-  Expression _createEqualsNull(Expression expression, {bool notEquals: false}) {
+  Expression _createEqualsNull(Expression expression,
+      {bool notEquals = false}) {
     // ignore: unnecessary_null_comparison
     assert(expression != null);
     assert(expression.fileOffset != TreeNode.noOffset);
@@ -1127,7 +1128,7 @@ class CollectionTransformer extends Transformer {
 
   ForInStatement _createForInStatement(int fileOffset,
       VariableDeclaration variable, Expression iterable, Statement body,
-      {bool isAsync: false}) {
+      {bool isAsync = false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);

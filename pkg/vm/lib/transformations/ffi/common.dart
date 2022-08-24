@@ -1118,7 +1118,7 @@ class FfiTransformer extends Transformer {
 
   void ensureNativeTypeToDartType(
       DartType nativeType, DartType dartType, TreeNode reportErrorOn,
-      {bool allowHandle: false}) {
+      {bool allowHandle = false}) {
     final DartType correspondingDartType = convertNativeTypeToDartType(
         nativeType,
         allowCompounds: true,
@@ -1145,8 +1145,8 @@ class FfiTransformer extends Transformer {
   }
 
   void ensureNativeTypeValid(DartType nativeType, TreeNode reportErrorOn,
-      {bool allowHandle: false,
-      bool allowCompounds: false,
+      {bool allowHandle = false,
+      bool allowCompounds = false,
       bool allowInlineArray = false}) {
     if (!_nativeTypeValid(nativeType,
         allowCompounds: allowCompounds,
@@ -1165,7 +1165,7 @@ class FfiTransformer extends Transformer {
   /// The Dart type system does not enforce that NativeFunction return and
   /// parameter types are only NativeTypes, so we need to check this.
   bool _nativeTypeValid(DartType nativeType,
-      {bool allowCompounds: false,
+      {bool allowCompounds = false,
       bool allowHandle = false,
       bool allowInlineArray = false}) {
     return convertNativeTypeToDartType(nativeType,

@@ -190,7 +190,7 @@ class DillClassBuilder extends ClassBuilderImpl {
 
   @override
   void forEachConstructor(void Function(String, MemberBuilder) f,
-      {bool includeInjectedConstructors: false}) {
+      {bool includeInjectedConstructors = false}) {
     constructorScope.forEach(f);
   }
 
