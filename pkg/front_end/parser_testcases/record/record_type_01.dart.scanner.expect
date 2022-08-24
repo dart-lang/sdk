@@ -20,13 +20,19 @@ print("sync named async with int return type taking 2 parameters");
 print("sync named async with record type return type taking 2 parameters");
 }
 
+(int x, int y) async (int x, int y) => print("sync named async with record type return type taking 2 parameters");
+
 (int x, int y) {
 print("sync unnamed taking 2 parameters");
 }();
 
+(int x, int y) => print("sync unnamed taking 2 parameters");
+
 (int x, int y) async {
 print("async unnamed taking 2 parameters");
 }();
+
+(int x, int y) async => print("async unnamed taking 2 parameters");
 }
 
 
@@ -52,12 +58,18 @@ print[StringToken]([BeginToken]"sync named async with int return type taking 2 p
 print[StringToken]([BeginToken]"sync named async with record type return type taking 2 parameters"[StringToken])[SimpleToken];[SimpleToken]
 }[SimpleToken]
 
+([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] async[KeywordToken] ([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"sync named async with record type return type taking 2 parameters"[StringToken])[SimpleToken];[SimpleToken]
+
 ([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] {[BeginToken]
 print[StringToken]([BeginToken]"sync unnamed taking 2 parameters"[StringToken])[SimpleToken];[SimpleToken]
 }[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
 
+([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"sync unnamed taking 2 parameters"[StringToken])[SimpleToken];[SimpleToken]
+
 ([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] async[KeywordToken] {[BeginToken]
 print[StringToken]([BeginToken]"async unnamed taking 2 parameters"[StringToken])[SimpleToken];[SimpleToken]
 }[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] async[KeywordToken] =>[SimpleToken] print[StringToken]([BeginToken]"async unnamed taking 2 parameters"[StringToken])[SimpleToken];[SimpleToken]
 }[SimpleToken]
 [SimpleToken]
