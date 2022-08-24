@@ -912,7 +912,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
             currentParent, "Type $node references an anonymous mixin class.");
       }
     }
-    defaultDartType(node);
   }
 
   @override

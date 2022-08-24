@@ -2754,6 +2754,59 @@ Message _withArgumentsDuplicatedParameterNameCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateDuplicatedRecordTypeFieldName = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate: r"""Duplicated record type field name '#name'.""",
+    correctionMessageTemplate:
+        r"""Try renaming or removing one of the named record type fields.""",
+    withArguments: _withArgumentsDuplicatedRecordTypeFieldName);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedRecordTypeFieldName =
+    const Code<Message Function(String name)>(
+  "DuplicatedRecordTypeFieldName",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedRecordTypeFieldName(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeDuplicatedRecordTypeFieldName,
+      problemMessage: """Duplicated record type field name '${name}'.""",
+      correctionMessage:
+          """Try renaming or removing one of the named record type fields.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateDuplicatedRecordTypeFieldNameContext =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""This is the existing record type field named '#name'.""",
+        withArguments: _withArgumentsDuplicatedRecordTypeFieldNameContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeDuplicatedRecordTypeFieldNameContext =
+    const Code<Message Function(String name)>(
+        "DuplicatedRecordTypeFieldNameContext",
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedRecordTypeFieldNameContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeDuplicatedRecordTypeFieldNameContext,
+      problemMessage:
+          """This is the existing record type field named '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEmptyNamedParameterList = messageEmptyNamedParameterList;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

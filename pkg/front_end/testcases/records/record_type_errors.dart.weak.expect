@@ -1,0 +1,160 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:5:2: Error: Record type fields list cannot be empty.
+// Try adding a record type field to the list.
+// () emptyType = throw '';
+//  ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:6:5: Error: Record type fields list cannot contain only one element without a named field.
+// Try adding another record type field to the list or add a named field.
+// (int) singleType = throw '';
+//     ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:7:14: Error: Expected an identifier, but got '}'.
+// Try inserting an identifier before '}'.
+// (int, {String}) missingName = throw '';
+//              ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:8:2: Error: Expected a type, but got 'var'.
+// (var a, {var b}) missingType = throw '';
+//  ^^^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:8:2: Error: Expected ')' before this.
+// (var a, {var b}) missingType = throw '';
+//  ^^^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:8:16: Error: Record type fields list cannot contain only one element without a named field.
+// Try adding another record type field to the list or add a named field.
+// (var a, {var b}) missingType = throw '';
+//                ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:9:8: Error: Record type named fields list cannot be empty.
+// Try adding a record type named field to the list.
+// (int, {}) emptyNamedFields = throw '';
+//        ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:10:17: Error: Duplicated record type field name 'a'.
+// Try renaming or removing one of the named record type fields.
+// ({int a, String a}) duplicateNamedFields = throw '';
+//                 ^
+// pkg/front_end/testcases/records/record_type_errors.dart:10:7: Context: This is the existing record type field named 'a'.
+// ({int a, String a}) duplicateNamedFields = throw '';
+//       ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:11:17: Error: Duplicated record type field name 'a'.
+// Try renaming or removing one of the named record type fields.
+// ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//                 ^
+// pkg/front_end/testcases/records/record_type_errors.dart:11:7: Context: This is the existing record type field named 'a'.
+// ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//       ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:11:27: Error: Duplicated record type field name 'a'.
+// Try renaming or removing one of the named record type fields.
+// ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//                           ^
+// pkg/front_end/testcases/records/record_type_errors.dart:11:7: Context: This is the existing record type field named 'a'.
+// ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//       ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:11:42: Error: Duplicated record type field name 'b'.
+// Try renaming or removing one of the named record type fields.
+// ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//                                          ^
+// pkg/front_end/testcases/records/record_type_errors.dart:11:35: Context: This is the existing record type field named 'b'.
+// ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//                                   ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:8:2: Error: This couldn't be parsed.
+// (var a, {var b}) missingType = throw '';
+//  ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:14:4: Error: Record type fields list cannot be empty.
+// Try adding a record type field to the list.
+//   () emptyType = throw '';
+//    ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:15:7: Error: Record type fields list cannot contain only one element without a named field.
+// Try adding another record type field to the list or add a named field.
+//   (int) singleType = throw '';
+//       ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:16:16: Error: Expected an identifier, but got '}'.
+// Try inserting an identifier before '}'.
+//   (int, {String}) missingName = throw '';
+//                ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:17:4: Error: Expected a type, but got 'var'.
+//   (var a, {var b}) missingType = throw '';
+//    ^^^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:17:4: Error: This couldn't be parsed.
+//   (var a, {var b}) missingType = throw '';
+//    ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:17:4: Error: Expected ')' before this.
+//   (var a, {var b}) missingType = throw '';
+//    ^^^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:17:18: Error: Record type fields list cannot contain only one element without a named field.
+// Try adding another record type field to the list or add a named field.
+//   (var a, {var b}) missingType = throw '';
+//                  ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:18:10: Error: Record type named fields list cannot be empty.
+// Try adding a record type named field to the list.
+//   (int, {}) emptyNamedFields = throw '';
+//          ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:19:19: Error: Duplicated record type field name 'a'.
+// Try renaming or removing one of the named record type fields.
+//   ({int a, String a}) duplicateNamedFields = throw '';
+//                   ^
+// pkg/front_end/testcases/records/record_type_errors.dart:19:9: Context: This is the existing record type field named 'a'.
+//   ({int a, String a}) duplicateNamedFields = throw '';
+//         ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:20:19: Error: Duplicated record type field name 'a'.
+// Try renaming or removing one of the named record type fields.
+//   ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//                   ^
+// pkg/front_end/testcases/records/record_type_errors.dart:20:9: Context: This is the existing record type field named 'a'.
+//   ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//         ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:20:29: Error: Duplicated record type field name 'a'.
+// Try renaming or removing one of the named record type fields.
+//   ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//                             ^
+// pkg/front_end/testcases/records/record_type_errors.dart:20:9: Context: This is the existing record type field named 'a'.
+//   ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//         ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:20:44: Error: Duplicated record type field name 'b'.
+// Try renaming or removing one of the named record type fields.
+//   ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//                                            ^
+// pkg/front_end/testcases/records/record_type_errors.dart:20:37: Context: This is the existing record type field named 'b'.
+//   ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//                                     ^
+//
+import self as self;
+
+static field invalid-type emptyType = throw "";
+static field invalid-type singleType = throw "";
+static field invalid-type missingName = throw "";
+static field invalid-type missingType = throw "";
+static field invalid-type emptyNamedFields = throw "";
+static field invalid-type duplicateNamedFields = throw "";
+static field invalid-type duplicateNamedFields2 = throw "";
+static method method() → void {
+  invalid-type emptyType = throw "";
+  invalid-type singleType = throw "";
+  invalid-type missingName = throw "";
+  invalid-type missingType = throw "";
+  invalid-type emptyNamedFields = throw "";
+  invalid-type duplicateNamedFields = throw "";
+  invalid-type duplicateNamedFields2 = throw "";
+}

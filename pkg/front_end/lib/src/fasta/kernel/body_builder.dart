@@ -52,6 +52,7 @@ import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
+import '../builder/invalid_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -60,6 +61,7 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
+import '../builder/record_type_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
@@ -4310,6 +4312,12 @@ class BodyBuilder extends StackListenerImpl
   void endRecordType(
       Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
     debugEvent("RecordType");
+    assert(checkState(leftBracket, [
+      if (hasNamedFields) ValueKinds.RecordTypeFieldBuilderListOrNull,
+      ...repeatedKinds(ValueKinds.RecordTypeFieldBuilder,
+          hasNamedFields ? count - 1 : count),
+    ]));
+
     if (!libraryFeatures.records.isEnabled) {
       addProblem(
           templateExperimentNotEnabledOffByDefault
@@ -4322,25 +4330,64 @@ class BodyBuilder extends StackListenerImpl
       reportErrorIfNullableType(questionMark);
     }
 
-    // TODO: Implement record type. This currently pushes a dummy type.
+    List<RecordTypeFieldBuilder>? namedFields;
+    if (hasNamedFields) {
+      namedFields =
+          pop(NullValue.RecordTypeFieldList) as List<RecordTypeFieldBuilder>?;
+    }
+    List<RecordTypeFieldBuilder>? positionalFields =
+        const FixedNullableList<RecordTypeFieldBuilder>().popNonNullable(stack,
+            hasNamedFields ? count - 1 : count, dummyRecordTypeFieldBuilder);
 
-    push(libraryBuilder.addVoidType(leftBracket.charOffset));
+    push(new RecordTypeBuilder(
+      positionalFields,
+      namedFields,
+      questionMark != null
+          ? libraryBuilder.nullableBuilder
+          : libraryBuilder.nonNullableBuilder,
+      uri,
+      leftBracket.charOffset,
+    ));
   }
 
   @override
   void endRecordTypeEntry() {
-    // TODO: Implement record type entry.
     debugEvent("RecordTypeEntry");
+    assert(checkState(null, [
+      unionOfKinds([
+        ValueKinds.IdentifierOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+      unionOfKinds([
+        ValueKinds.TypeBuilder,
+        ValueKinds.ParserRecovery,
+      ]),
+      ValueKinds.AnnotationListOrNull,
+    ]));
 
-    pop(); // identifier - name of field - or null.
-    pop(); // named type - type of field.
-    pop(); // List of metadata expressions - or null.
+    Object? name = pop();
+    Object? type = pop();
+    // TODO(johnniwinther): How should we handle annotations?
+    pop(NullValue.Metadata); // Annotations.
+    push(new RecordTypeFieldBuilder(
+        [],
+        type is ParserRecovery
+            ? new InvalidTypeBuilder(uri, type.charOffset)
+            : type as TypeBuilder,
+        name is Identifier ? name.name : null,
+        name is Identifier ? name.charOffset : TreeNode.noOffset));
   }
 
   @override
   void endRecordTypeNamedFields(int count, Token leftBracket) {
     debugEvent("RecordTypeNamedFields");
-    // TODO: Implement record type named fields.
+    assert(checkState(leftBracket, [
+      ...repeatedKinds(ValueKinds.RecordTypeFieldBuilder, count),
+    ]));
+    List<RecordTypeFieldBuilder>? fields =
+        const FixedNullableList<RecordTypeFieldBuilder>()
+            .popNonNullable(stack, count, dummyRecordTypeFieldBuilder);
+    push(fields ?? NullValue.RecordTypeFieldList);
   }
 
   @override

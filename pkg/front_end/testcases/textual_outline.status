@@ -136,6 +136,8 @@ rasta/issue_000046: FormatterCrash
 rasta/issue_000047: FormatterCrash
 rasta/malformed_const_constructor: FormatterCrash
 rasta/mandatory_parameter_initializer: FormatterCrash
+records/record_type: FormatterCrash
+records/record_type_errors: FormatterCrash
 regress/ambiguous_builder_01: FormatterCrash
 regress/issue_29942: FormatterCrash
 regress/issue_29944: FormatterCrash

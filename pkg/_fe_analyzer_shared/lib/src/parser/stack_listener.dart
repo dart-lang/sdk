@@ -63,6 +63,7 @@ enum NullValue {
   OperatorList,
   ParameterDefaultValue,
   Prefix,
+  RecordTypeFieldList,
   ShowClause,
   StringLiteral,
   SwitchScope,

@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::int annotation = 1;
+static field invalid-type topLevelFieldType;
+static method topLevelMethodReturnType() → invalid-type
+  ;
+static method topLevelSetterType(invalid-type value) → void
+  ;
+static method topLevelMethodParameterType(invalid-type o) → void
+  ;
+static method method() → void
+  ;
