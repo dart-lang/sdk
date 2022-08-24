@@ -1,5 +1,9 @@
 # Changelog
 
+## 9.4.0
+- Update to version `3.61` of the spec.
+- Add `isolateGroupId` property to `@Isolate` and `Isolate`.
+
 ## 9.3.0
 - Update to version `3.60` of the spec.
 - Add `gcType` property to `Event`.

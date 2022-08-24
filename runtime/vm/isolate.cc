@@ -3115,6 +3115,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddProperty("name", name());
   jsobj.AddPropertyF("number", "%" Pd64 "", static_cast<int64_t>(main_port()));
   jsobj.AddProperty("isSystemIsolate", is_system_isolate());
+  jsobj.AddPropertyF("isolateGroupId", ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING,
+                     group()->id());
   if (ref) {
     return;
   }

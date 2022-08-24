@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.60
+# Dart VM Service Protocol 3.61
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.60_ of the Dart VM Service Protocol. This
+This document describes of _version 3.61_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -3174,6 +3174,9 @@ class @Isolate extends Response {
   // Specifies whether the isolate was spawned by the VM or embedder for
   // internal use. If `false`, this isolate is likely running user code.
   bool isSystemIsolate;
+
+  // The id of the isolate group that this isolate belongs to.
+  string isolateGroupId;
 }
 ```
 
@@ -3194,6 +3197,9 @@ class Isolate extends Response {
   // Specifies whether the isolate was spawned by the VM or embedder for
   // internal use. If `false`, this isolate is likely running user code.
   bool isSystemIsolate;
+
+  // The id of the isolate group that this isolate belongs to.
+  string isolateGroupId;
 
   // The list of isolate flags provided to this isolate. See Dart_IsolateFlags
   // in dart_api.h for the list of accepted isolate flags.
@@ -4386,5 +4392,6 @@ version | comments
 3.58 | Added optional `local` parameter to `lookupResolvedPackageUris` RPC.
 3.59 | Added `abstract` property to `@Function` and `Function`.
 3.60 | Added `gcType` property to `Event`.
+3.61 | Added `isolateGroupId` property to `@Isolate` and `Isolate`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
