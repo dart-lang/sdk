@@ -373,7 +373,19 @@ TypeParamOrArgInfo computeTypeParamOrArg(Token token,
       return simpleTypeArgument1GtEq;
     }
   } else if (optional('(', next)) {
-    return noTypeParamOrArg;
+    bool recordType = false;
+    if (isPossibleRecordType(next)) {
+      TypeInfo type = computeType(beginGroup, false);
+      if (type is ComplexTypeInfo &&
+          (type.recordType || type.gftReturnTypeHasRecordType) &&
+          !type.recovered) {
+        // Looks like a record type.
+        recordType = true;
+      }
+    }
+    if (!recordType) {
+      return noTypeParamOrArg;
+    }
   }
 
   // TODO(danrubel): Consider adding additional const for common situations.

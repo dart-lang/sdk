@@ -712,24 +712,27 @@ class ComplexTypeInfo implements TypeInfo {
         getOrSet = true;
         next = next.next!;
       }
-      if (!next.isIdentifier) {
-        // This could for instance be `(int x, int y) {`.
-        return noType;
-      }
-      Token afterIdentifier = next.next!;
-      // TODO(jensj): Are there any other instances where it's a valid
-      // (optional) record type?
-      if (!isOneOfOrEof(afterIdentifier, const [";", "=", "(", ",", ")"])) {
-        if (getOrSet && isOneOfOrEof(afterIdentifier, const ["=>", "{"])) {
-          // With a getter/setter in the mix we can accept more stuff, e.g.
-          // these would be fine:
-          // - `(` unchecked content `)` `get` identifier `=>`.
-          // - `(` unchecked content `)` `get` identifier `{`.
-          // TODO(jensj): A setter would need parenthesis so technically
-          // couldn't look like this, but I don't think any other valid thing
-          // could either. Should we handle that specifically?
-        } else {
-          // This could for instance be `(int x, int y) async {`.
+      if (next.isIdentifier) {
+        Token afterIdentifier = next.next!;
+        // TODO(jensj): Are there any other instances where it's a valid
+        // (optional) record type?
+        if (!isOneOfOrEof(afterIdentifier, const [";", "=", "(", ",", ")"])) {
+          if (getOrSet && isOneOfOrEof(afterIdentifier, const ["=>", "{"])) {
+            // With a getter/setter in the mix we can accept more stuff, e.g.
+            // these would be fine:
+            // - `(` unchecked content `)` `get` identifier `=>`.
+            // - `(` unchecked content `)` `get` identifier `{`.
+            // TODO(jensj): A setter would need parenthesis so technically
+            // couldn't look like this, but I don't think any other valid thing
+            // could either. Should we handle that specifically?
+          } else {
+            // This could for instance be `(int x, int y) async {`.
+            return noType;
+          }
+        }
+      } else {
+        // Is it e.g. List<(int, int)> or Map<(int, int), (String, String)>?
+        if (!isOneOfOrEof(next, const [",", ">"])) {
           return noType;
         }
       }

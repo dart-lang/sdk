@@ -102,6 +102,16 @@ main() {
   //                                     ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
   // [cfe] This requires the experimental 'records' language feature to be enabled.
+
+  List<(int, int)> listOfRecords = [];
+  //   ^
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+  // [cfe] This requires the experimental 'records' language feature to be enabled.
+
+  var listOfRecords2 = <(int, int)>[];
+  //                    ^
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+  // [cfe] This requires the experimental 'records' language feature to be enabled.
 }
 
 (int a, String b) get topLevelGetterType => throw '';

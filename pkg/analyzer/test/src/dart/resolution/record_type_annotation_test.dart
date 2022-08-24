@@ -341,7 +341,6 @@ RecordTypeAnnotation
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49769')
   test_typeArgument() async {
     await assertNoErrorsInCode(r'''
 void f() {
