@@ -1,0 +1,79 @@
+(int a, String b) set(int x) => (42, "fortytwo");
+
+
+void set set((int a, String b) x) => (42, "fortytwo");
+
+
+(int a, String b) get set => (42, "fortytwo");
+
+
+void set topLevelSetter((int a, String b) x) => (42, "fortytwo");
+
+class Foo {
+
+(int a, String b) set(int x) => (42, "fortytwo");
+
+
+void set set((int a, String b) x) => (42, "fortytwo");
+
+
+(int a, String b) get set => (42, "fortytwo");
+
+
+void set instanceSetter((int a, String b) x) => (42, "fortytwo");
+}
+
+class Bar {
+
+static (int a, String b) set(int x) => (42, "fortytwo");
+
+
+static void set set((int a, String b) x) => (42, "fortytwo");
+
+
+static (int a, String b) get set => (42, "fortytwo");
+
+
+static void set staticSetter((int a, String b) x) => (42, "fortytwo");
+}
+
+
+([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] set[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] =>[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] "fortytwo"[StringToken])[SimpleToken];[SimpleToken]
+
+
+void[KeywordToken] set[KeywordToken] set[KeywordToken]([BeginToken]([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] x[StringToken])[SimpleToken] =>[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] "fortytwo"[StringToken])[SimpleToken];[SimpleToken]
+
+
+([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] get[KeywordToken] set[KeywordToken] =>[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] "fortytwo"[StringToken])[SimpleToken];[SimpleToken]
+
+
+void[KeywordToken] set[KeywordToken] topLevelSetter[StringToken]([BeginToken]([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] x[StringToken])[SimpleToken] =>[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] "fortytwo"[StringToken])[SimpleToken];[SimpleToken]
+
+class[KeywordToken] Foo[StringToken] {[BeginToken]
+
+([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] set[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] =>[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] "fortytwo"[StringToken])[SimpleToken];[SimpleToken]
+
+
+void[KeywordToken] set[KeywordToken] set[KeywordToken]([BeginToken]([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] x[StringToken])[SimpleToken] =>[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] "fortytwo"[StringToken])[SimpleToken];[SimpleToken]
+
+
+([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] get[KeywordToken] set[KeywordToken] =>[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] "fortytwo"[StringToken])[SimpleToken];[SimpleToken]
+
+
+void[KeywordToken] set[KeywordToken] instanceSetter[StringToken]([BeginToken]([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] x[StringToken])[SimpleToken] =>[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] "fortytwo"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] Bar[StringToken] {[BeginToken]
+
+static[KeywordToken] ([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] set[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] =>[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] "fortytwo"[StringToken])[SimpleToken];[SimpleToken]
+
+
+static[KeywordToken] void[KeywordToken] set[KeywordToken] set[KeywordToken]([BeginToken]([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] x[StringToken])[SimpleToken] =>[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] "fortytwo"[StringToken])[SimpleToken];[SimpleToken]
+
+
+static[KeywordToken] ([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] get[KeywordToken] set[KeywordToken] =>[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] "fortytwo"[StringToken])[SimpleToken];[SimpleToken]
+
+
+static[KeywordToken] void[KeywordToken] set[KeywordToken] staticSetter[StringToken]([BeginToken]([BeginToken]int[StringToken] a[StringToken],[SimpleToken] String[StringToken] b[StringToken])[SimpleToken] x[StringToken])[SimpleToken] =>[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] "fortytwo"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

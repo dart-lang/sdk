@@ -705,7 +705,14 @@ class ComplexTypeInfo implements TypeInfo {
       if (optional('?', next)) {
         next = next.next!;
       }
-      if (!(next.isIdentifier)) {
+      bool getOrSet = false;
+      if (next.isKeyword &&
+          (optional("get", next) || optional("set", next)) &&
+          next.next!.isIdentifier) {
+        getOrSet = true;
+        next = next.next!;
+      }
+      if (!next.isIdentifier) {
         // This could for instance be `(int x, int y) {`.
         return noType;
       }
@@ -713,8 +720,18 @@ class ComplexTypeInfo implements TypeInfo {
       // TODO(jensj): Are there any other instances where it's a valid
       // (optional) record type?
       if (!isOneOfOrEof(afterIdentifier, const [";", "=", "(", ",", ")"])) {
-        // This could for instance be `(int x, int y) async {`.
-        return noType;
+        if (getOrSet && isOneOfOrEof(afterIdentifier, const ["=>", "{"])) {
+          // With a getter/setter in the mix we can accept more stuff, e.g.
+          // these would be fine:
+          // - `(` unchecked content `)` `get` identifier `=>`.
+          // - `(` unchecked content `)` `get` identifier `{`.
+          // TODO(jensj): A setter would need parenthesis so technically
+          // couldn't look like this, but I don't think any other valid thing
+          // could either. Should we handle that specifically?
+        } else {
+          // This could for instance be `(int x, int y) async {`.
+          return noType;
+        }
       }
     }
     assert(optional(')', token));

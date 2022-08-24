@@ -96,7 +96,20 @@ main() {
 //                                                                ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
+
+  final (int x, int y) finalRecordType = (42, 42);
+  //    ^
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+  // [cfe] This requires the experimental 'records' language feature to be enabled.
+  //                                     ^
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+  // [cfe] This requires the experimental 'records' language feature to be enabled.
 }
+
+(int a, String b) get topLevelGetterType => throw '';
+// [error column 1, length 1]
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'records' language feature to be enabled.
 
 (int, int) foo((int, {bool b}) inputRecord, int x) {
 // [error column 1, length 1]
@@ -121,6 +134,24 @@ class Bar {
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 //                         ^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'records' language feature to be enabled.
+
+  static (int x, int y) staticRecordType = (42, 42);
+  //     ^
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+  // [cfe] This requires the experimental 'records' language feature to be enabled.
+  //                                       ^
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+  // [cfe] This requires the experimental 'records' language feature to be enabled.
+
+  (int a, String b) get instanceGetterType => throw '';
+//^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'records' language feature to be enabled.
+
+  static (int a, String b) get staticGetterType => throw '';
+//       ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
 }

@@ -19,12 +19,18 @@ void foo() {
   (int x, int y) async (int x, int y) {
     print("sync named async with record type return type taking 2 parameters");
   }
+  
+  (int x, int y) async (int x, int y) => print("sync named async with record type return type taking 2 parameters");
 
   (int x, int y) {
     print("sync unnamed taking 2 parameters");
   }();
 
+  (int x, int y) => print("sync unnamed taking 2 parameters");
+
   (int x, int y) async {
     print("async unnamed taking 2 parameters");
   }();
+
+  (int x, int y) async => print("async unnamed taking 2 parameters");
 }
