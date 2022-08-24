@@ -3361,6 +3361,9 @@ CompileTimeErrorCode:
       int x = 0;
       int y = 1;
       ```
+  DUPLICATE_FIELD_NAME:
+    problemMessage: The field name '{0}' is already used.
+    correctionMessage: Try renaming the field.
   DUPLICATE_FIELD_FORMAL_PARAMETER:
     problemMessage: "The field '{0}' can't be initialized by multiple parameters in the same constructor."
     correctionMessage: Try removing one of the parameters, or using different fields.

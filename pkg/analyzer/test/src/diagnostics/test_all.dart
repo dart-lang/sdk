@@ -153,6 +153,7 @@ import 'duplicate_constructor_name_test.dart' as duplicate_constructor_name;
 import 'duplicate_definition_test.dart' as duplicate_definition;
 import 'duplicate_field_formal_parameter_test.dart'
     as duplicate_field_formal_parameter;
+import 'duplicate_field_name_test.dart' as duplicate_field_name;
 import 'duplicate_hidden_name_test.dart' as duplicate_hidden_name;
 import 'duplicate_ignore_test.dart' as duplicate_ignore;
 import 'duplicate_import_test.dart' as duplicate_import;
@@ -904,6 +905,7 @@ main() {
     duplicate_constructor_default.main();
     duplicate_constructor_name.main();
     duplicate_definition.main();
+    duplicate_field_name.main();
     duplicate_field_formal_parameter.main();
     duplicate_hidden_name.main();
     duplicate_ignore.main();
