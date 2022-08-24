@@ -4804,6 +4804,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         case TypeUse.variableType:
         case TypeUse.typeParameterBound:
         case TypeUse.parameterType:
+        case TypeUse.recordEntryType:
         case TypeUse.fieldType:
         case TypeUse.returnType:
         case TypeUse.isType:
