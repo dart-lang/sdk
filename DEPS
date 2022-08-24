@@ -111,7 +111,7 @@ vars = {
   "dartdoc_rev": "b3d4aa002d36c28b0af114abd0997b8521c27b11",
   "devtools_rev": "d131d19091f6b89ac89486bd92440a25a523e8b0",
   "ffi_rev": "fb5f2667826c0900e551d19101052f84e35f41bf",
-  "file_rev": "0132eeedea2933513bf230513a766a8baeab0c4f", # b/243151015
+  "file_rev": "b2e31cb6ef40b223701dbfa0b907fe58468484d7",
   "fixnum_rev": "e0b17cc1f639c55a9c24947392c64b5a68992535",
   "glob_rev": "1d51fcc172e5adfbae6e82c3f8f119774cb2fca2",
   "html_rev": "8243e967caad9932c13971af3b2a7c8f028383d5",
