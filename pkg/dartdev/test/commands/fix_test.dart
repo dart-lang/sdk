@@ -171,6 +171,11 @@ linter:
             'lib${Platform.pathSeparator}main.dart',
             '  annotate_overrides $bullet 1 fix',
             '  prefer_single_quotes $bullet 2 fixes',
+            'To fix an individual diagnostic, run one of the following commands:',
+            '  dart fix --apply --code annotate_overrides .',
+            '  dart fix --apply --code prefer_single_quotes .',
+            'To fix all diagnostics, run:',
+            '  dart fix --apply .',
           ]));
     });
 

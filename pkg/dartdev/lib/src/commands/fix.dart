@@ -7,6 +7,7 @@ import 'dart:io' as io;
 
 import 'package:analysis_server_client/protocol.dart' hide AnalysisError;
 import 'package:cli_util/cli_logging.dart' show Progress;
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
 import '../analysis_server.dart';
@@ -29,6 +30,9 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
 
   /// A map from the absolute path of a file to the updated content of the file.
   final Map<String, String> fileContentCache = {};
+
+  /// The target (path) specified on the command line.
+  late String argsTarget;
 
   FixCommand({bool verbose = false}) : super(cmdName, cmdDescription, verbose) {
     argParser.addFlag('dry-run',
@@ -80,7 +84,8 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     }
     var codes = args['code'];
 
-    var target = _getTarget(args.rest);
+    var rest = args.rest;
+    var target = _getTarget(rest);
     if (!target.existsSync()) {
       var entity = target.isDirectory ? 'Directory' : 'File';
       usageException("$entity doesn't exist: ${target.path}");
@@ -89,6 +94,8 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     if (inTestMode && !target.isDirectory) {
       usageException('Golden comparison requires a directory argument.');
     }
+
+    argsTarget = rest.isNotEmpty ? rest.first : '';
 
     var fixPath = target.path;
 
@@ -177,6 +184,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
         log.stdout('$fixCount proposed ${_pluralFix(fixCount)} '
             'in $fileCount ${pluralize("file", fileCount)}.');
         _printDetails(detailsMap, dir);
+        _printApplyFixDetails(detailsMap);
       } else {
         var applyFixesProgress = log.progress('Applying fixes');
         _writeFiles();
@@ -330,6 +338,24 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
   }
 
   String _pluralFix(int count) => count == 1 ? 'fix' : 'fixes';
+
+  void _printApplyFixDetails(Map<String, BulkFix> detailsMap) {
+    var codes = <String>{};
+    for (var fixes in detailsMap.values) {
+      for (var fix in fixes.fixes) {
+        codes.add(fix.code);
+      }
+    }
+
+    log.stdout(
+        'To fix an individual diagnostic, run one of the following commands:');
+    for (var code in codes.sorted()) {
+      log.stdout('  dart fix --apply --code $code $argsTarget');
+    }
+
+    log.stdout('To fix all diagnostics, run:');
+    log.stdout('  dart fix --apply $argsTarget');
+  }
 
   void _printDetails(Map<String, BulkFix> detailsMap, io.Directory workingDir) {
     String relative(String absolutePath) {
