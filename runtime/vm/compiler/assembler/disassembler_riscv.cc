@@ -42,7 +42,7 @@ class RISCVDisassembler {
       DisassembleInstruction(instr);
       return instr.length();
     } else {
-      uint32_t parcel = *reinterpret_cast<uint32_t*>(pc);
+      uint32_t parcel = LoadUnaligned(reinterpret_cast<uint32_t*>(pc));
       Instr instr(parcel);
       DisassembleInstruction(instr);
       return instr.length();
@@ -1573,7 +1573,7 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
                    *reinterpret_cast<uint16_t*>(pc));
   } else if (instr_size == 4) {
     Utils::SNPrint(hex_buffer, hex_size, "%08x",
-                   *reinterpret_cast<uint32_t*>(pc));
+                   LoadUnaligned(reinterpret_cast<uint32_t*>(pc)));
   }
   if (out_instr_size) {
     *out_instr_size = instr_size;

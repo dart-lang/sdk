@@ -437,8 +437,10 @@ class AssemblerBuffer : public ValueObject {
   template <typename T>
   void Emit(T value) {
     ASSERT(HasEnsuredCapacity());
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
+    defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
     // Variable-length instructions in ia32/x64 have unaligned immediates.
+    // Instruction parcels in RISC-V are only 2-byte aligned.
     StoreUnaligned(reinterpret_cast<T*>(cursor_), value);
 #else
     // Other architecture have aligned, fixed-length instructions.
@@ -460,8 +462,10 @@ class AssemblerBuffer : public ValueObject {
   T Load(intptr_t position) {
     ASSERT(position >= 0 &&
            position <= (Size() - static_cast<intptr_t>(sizeof(T))));
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
+    defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
     // Variable-length instructions in ia32/x64 have unaligned immediates.
+    // Instruction parcels in RISC-V are only 2-byte aligned.
     return LoadUnaligned(reinterpret_cast<T*>(contents_ + position));
 #else
     // Other architecture have aligned, fixed-length instructions.
@@ -473,8 +477,10 @@ class AssemblerBuffer : public ValueObject {
   void Store(intptr_t position, T value) {
     ASSERT(position >= 0 &&
            position <= (Size() - static_cast<intptr_t>(sizeof(T))));
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
+    defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
     // Variable-length instructions in ia32/x64 have unaligned immediates.
+    // Instruction parcels in RISC-V are only 2-byte aligned.
     StoreUnaligned(reinterpret_cast<T*>(contents_ + position), value);
 #else
     // Other architecture have aligned, fixed-length instructions.

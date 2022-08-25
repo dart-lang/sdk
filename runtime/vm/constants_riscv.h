@@ -637,7 +637,8 @@ enum ScaleFactor {
 const uword kBreakInstructionFiller = 0;  // trap or c.trap
 
 inline int32_t SignExtend(int N, int32_t value) {
-  return (value << (32 - N)) >> (32 - N);
+  return static_cast<int32_t>(static_cast<uint32_t>(value) << (32 - N)) >>
+         (32 - N);
 }
 
 inline intx_t sign_extend(int32_t x) {
@@ -905,6 +906,17 @@ DEFINE_FUNCT_ENCODING(uint32_t, Shamt, 20, 0x3F)
 DEFINE_FUNCT_ENCODING(RoundingMode, RoundingMode, 12, 0x7)
 #undef DEFINE_FUNCT_ENCODING
 
+inline intx_t ImmLo(intx_t imm) {
+  return static_cast<intx_t>(static_cast<uintx_t>(imm) << (XLEN - 12)) >>
+         (XLEN - 12);
+}
+inline intx_t ImmHi(intx_t imm) {
+  return static_cast<intx_t>(static_cast<uintx_t>(imm) -
+                             static_cast<uintx_t>(ImmLo(imm)))
+             << (XLEN - 32) >>
+         (XLEN - 32);
+}
+
 inline bool IsBTypeImm(intptr_t imm) {
   return Utils::IsInt(12, imm) && Utils::IsAligned(imm, 2);
 }
@@ -952,7 +964,7 @@ inline bool IsITypeImm(intptr_t imm) {
 }
 inline uint32_t EncodeITypeImm(intptr_t imm) {
   ASSERT(IsITypeImm(imm));
-  return imm << 20;
+  return static_cast<uint32_t>(imm) << 20;
 }
 inline intptr_t DecodeITypeImm(uint32_t encoded) {
   return SignExtend(12, encoded >> 20);

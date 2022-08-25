@@ -17,7 +17,7 @@ class PoolPointerCall : public ValueObject {
   PoolPointerCall(uword pc, const Code& code)
       : end_(pc), object_pool_(ObjectPool::Handle(code.GetObjectPool())) {
     ASSERT(*reinterpret_cast<uint16_t*>(end_ - 2) == 0x9082);  // jalr ra
-    uint32_t load_entry = *reinterpret_cast<uint32_t*>(end_ - 6);
+    uint32_t load_entry = LoadUnaligned(reinterpret_cast<uint32_t*>(end_ - 6));
 #if XLEN == 32
     ASSERT((load_entry == 0x00362083) ||  // lw ra, entry(code)
            (load_entry == 0x00b62083));   // lw ra, unchecked_entry(code)
