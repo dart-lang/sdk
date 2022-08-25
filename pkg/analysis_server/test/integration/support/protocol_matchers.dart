@@ -1447,7 +1447,6 @@ final Matcher isRequestError = LazyMatcher(() => MatchesJsonObject(
 ///   SERVER_ERROR
 ///   SORT_MEMBERS_INVALID_FILE
 ///   SORT_MEMBERS_PARSE_ERRORS
-///   UNDEFINED_DIAGNOSTIC_CODE
 ///   UNKNOWN_REQUEST
 ///   UNSUPPORTED_FEATURE
 /// }
@@ -1484,7 +1483,6 @@ final Matcher isRequestErrorCode = MatchesEnum('RequestErrorCode', [
   'SERVER_ERROR',
   'SORT_MEMBERS_INVALID_FILE',
   'SORT_MEMBERS_PARSE_ERRORS',
-  'UNDEFINED_DIAGNOSTIC_CODE',
   'UNKNOWN_REQUEST',
   'UNSUPPORTED_FEATURE'
 ]);
@@ -2316,12 +2314,16 @@ final Matcher isEditBulkFixesParams = LazyMatcher(() => MatchesJsonObject(
 /// edit.bulkFixes result
 ///
 /// {
+///   "message": String
 ///   "edits": List<SourceFileEdit>
 ///   "details": List<BulkFix>
 /// }
-final Matcher isEditBulkFixesResult = LazyMatcher(() => MatchesJsonObject(
-    'edit.bulkFixes result',
-    {'edits': isListOf(isSourceFileEdit), 'details': isListOf(isBulkFix)}));
+final Matcher isEditBulkFixesResult =
+    LazyMatcher(() => MatchesJsonObject('edit.bulkFixes result', {
+          'message': isString,
+          'edits': isListOf(isSourceFileEdit),
+          'details': isListOf(isBulkFix)
+        }));
 
 /// edit.formatIfEnabled params
 ///

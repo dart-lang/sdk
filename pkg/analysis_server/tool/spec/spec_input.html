@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.33.3</version>
+  <version>1.33.4</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -2446,6 +2446,12 @@
       </field>
     </params>
     <result>
+      <field name="message">
+        <p>
+          An optional message explaining unapplied fixes.
+        </p>
+        <ref>String</ref>
+      </field>
       <field name="edits">
         <list>
           <ref>SourceFileEdit</ref>
@@ -5339,12 +5345,6 @@
         <p>
           An "edit.sortMembers" request specified a Dart file that has
           scan or parse errors.
-        </p>
-      </value>
-      <value>
-        <code>UNDEFINED_DIAGNOSTIC_CODE</code>
-        <p>
-          A request specified a diagnostic code that is undefined.
         </p>
       </value>
       <value>

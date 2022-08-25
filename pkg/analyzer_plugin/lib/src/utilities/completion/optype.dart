@@ -33,6 +33,11 @@ class OpType {
   /// have a non-[void] return type should be suggested.
   bool includeReturnValueSuggestions = false;
 
+  /// Indicates whether top-level fields and const constructors that are valid
+  /// annotations should be suggested. This is a subset of
+  /// [includeReturnValueSuggestions].
+  bool includeAnnotationSuggestions = false;
+
   /// Indicates whether named arguments should be suggested.
   bool includeNamedArgumentSuggestions = false;
 
@@ -112,6 +117,7 @@ class OpType {
     return !isPrefixed &&
         (includeReturnValueSuggestions ||
             includeTypeNameSuggestions ||
+            includeAnnotationSuggestions ||
             includeVoidReturnSuggestions ||
             includeConstructorSuggestions);
   }
@@ -157,17 +163,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitAnnotation(Annotation node) {
     if (identical(entity, node.name)) {
       optype.completionLocation = 'Annotation_name';
-      optype.includeTypeNameSuggestions = true;
-      optype.includeReturnValueSuggestions = true;
+      optype.includeAnnotationSuggestions = true;
     } else if (identical(entity, node.constructorName)) {
       // There is no location for the constructor name because only named
       // constructors are valid.
-      // TODO(brianwilkerson) The following looks wrong. I think we want to set
-      //  includeConstructorSuggestions = true, but not type names or return
-      //  values. On the other hand, I can't construct a test case that reaches
-      //  this point, so perhaps we should just remove this branch.
-      optype.includeTypeNameSuggestions = true;
-      optype.includeReturnValueSuggestions = true;
+      optype.includeAnnotationSuggestions = true;
       optype.isPrefixed = true;
     }
   }
@@ -361,7 +361,20 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     // Make suggestions in the body of the class declaration
-    if (node.members.contains(entity) || identical(entity, node.rightBracket)) {
+    final entity = this.entity;
+    final isMember = node.members.contains(entity);
+    final isClosingBrace = identical(entity, node.rightBracket);
+    final isAnnotation = isClosingBrace &&
+        entity is Token &&
+        _isPotentialAnnotation(entity.previous);
+
+    // Annotations being typed before a closing brace will not be parsed as
+    // annotations (and not be handled by `visitAnnotation`) so need special
+    // handling.
+    if (isAnnotation) {
+      optype.completionLocation = 'Annotation_name';
+      optype.includeAnnotationSuggestions = true;
+    } else if (isMember || isClosingBrace) {
       optype.completionLocation = 'ClassDeclaration_member';
       optype.includeTypeNameSuggestions = true;
     }
@@ -1421,6 +1434,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       }
     }
     return false;
+  }
+
+  /// Checks whether [token] is potentially an identifier for an annotation.
+  bool _isPotentialAnnotation(Token? token) {
+    // For this token to be a potential annotation, it must be prefixed by an @.
+    return token!.previous!.type == TokenType.AT;
   }
 
   static bool _isParameterOfGenericFunctionType(FormalParameter node) {

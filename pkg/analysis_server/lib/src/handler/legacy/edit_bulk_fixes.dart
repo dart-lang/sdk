@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
@@ -43,7 +42,8 @@ class EditBulkFixes extends LegacyHandler {
       if (codes != null) {
         for (var code in codes) {
           if (!_errorCodes.contains(code) && !_lintCodes.contains(code)) {
-            server.sendResponse(Response.undefinedDiagnostic(request, code));
+            sendResult(EditBulkFixesResult(
+                "The diagnostic '$code' is undefined.", [], []));
             return;
           }
         }
@@ -62,7 +62,7 @@ class EditBulkFixes extends LegacyHandler {
       var changeBuilder = await processor.fixErrors(collection.contexts);
 
       sendResult(EditBulkFixesResult(
-          changeBuilder.sourceChange.edits, processor.fixDetails));
+          '', changeBuilder.sourceChange.edits, processor.fixDetails));
     } catch (exception, stackTrace) {
       // TODO(brianwilkerson) Move exception handling outside [handle].
       server.sendServerErrorNotification('Exception while getting bulk fixes',

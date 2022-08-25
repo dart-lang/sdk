@@ -147,9 +147,9 @@ class B extends A {
     addTestFile('''
 ''');
 
-    var request = _getRequest();
-    var response = await handleRequest(request);
-    expect(response.error?.message, "The diagnostic 'foo_bar' is undefined.");
+    var result = await _getBulkFixes();
+    expect(result.details, hasLength(0));
+    expect(result.message, "The diagnostic 'foo_bar' is undefined.");
   }
 }
 

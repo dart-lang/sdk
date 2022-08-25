@@ -1286,6 +1286,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--no-clang",
+            "--no-goma",
             "--use-qemu",
             "--use-mallinfo2",
             "dart_precompiled_runtime",

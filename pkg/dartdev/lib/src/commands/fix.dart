@@ -122,12 +122,16 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       io.exit(1);
     });
 
-    Future<Map<String, BulkFix>> applyAllEdits() async {
+    Future<_FixRequestResult> applyAllEdits() async {
       var detailsMap = <String, BulkFix>{};
       List<SourceFileEdit> edits;
       var pass = 0;
       do {
         var fixes = await server.requestBulkFixes(fixPath, inTestMode, codes);
+        var message = fixes.message;
+        if (message.isNotEmpty) {
+          return _FixRequestResult(message: message);
+        }
         _mergeDetails(detailsMap, fixes.details);
         edits = fixes.edits;
         _applyEdits(server, edits);
@@ -135,10 +139,11 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
         // TODO(brianwilkerson) Be more intelligent about detecting infinite
         //  loops so that we can increase [maxPasses].
       } while (pass < maxPasses && edits.isNotEmpty);
-      return detailsMap;
+      return _FixRequestResult(details: detailsMap);
     }
 
-    var detailsMap = await applyAllEdits();
+    var result = await applyAllEdits();
+    var detailsMap = result.details;
     await server.shutdown();
 
     if (computeFixesProgress != null) {
@@ -152,6 +157,13 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       log.stdout('Passed: ${result.passCount}, Failed: ${result.failCount}');
       return result.failCount > 0 ? 1 : 0;
     } else if (detailsMap.isEmpty) {
+      var message = result.message;
+      if (message.isNotEmpty) {
+        log.stdout('Unable to compute fixes: $message');
+        // todo(pq): consider another code
+        // (also consider encoding this in the server result)
+        return 3;
+      }
       log.stdout('Nothing to fix!');
     } else {
       var fileCount = detailsMap.length;
@@ -367,6 +379,13 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       file.writeAsStringSync(entry.value);
     }
   }
+}
+
+class _FixRequestResult {
+  String message;
+  Map<String, BulkFix> details;
+  _FixRequestResult({this.message = '', Map<String, BulkFix>? details})
+      : details = details ?? {};
 }
 
 /// The result of running tests in a given directory.

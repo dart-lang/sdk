@@ -51,6 +51,8 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
     }
     if (opType.includeConstructorSuggestions) {
       _addConstructorSuggestions(element);
+    } else if (opType.includeAnnotationSuggestions) {
+      _addConstructorSuggestions(element, onlyConst: true);
     }
     if (opType.includeReturnValueSuggestions) {
       final typeSystem = request.libraryElement.typeSystem;
@@ -114,7 +116,8 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
 
   @override
   void visitPropertyAccessorElement(PropertyAccessorElement element) {
-    if (opType.includeReturnValueSuggestions) {
+    if (opType.includeReturnValueSuggestions ||
+        (opType.includeAnnotationSuggestions && element.variable.isConst)) {
       var parent = element.enclosingElement3;
       if (parent is ClassElement || parent is ExtensionElement) {
         builder.suggestAccessor(element, inheritanceDistance: 0.0);
@@ -139,7 +142,12 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   }
 
   /// Add constructor suggestions for the given class.
-  void _addConstructorSuggestions(ClassElement element) {
+  ///
+  /// If [onlyConst] is `true`, only `const` constructors will be suggested.
+  void _addConstructorSuggestions(
+    ClassElement element, {
+    bool onlyConst = false,
+  }) {
     if (element is EnumElement) {
       return;
     }
@@ -149,6 +157,9 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
         continue;
       }
       if (element.isAbstract && !constructor.isFactory) {
+        continue;
+      }
+      if (onlyConst && !constructor.isConst) {
         continue;
       }
       builder.suggestConstructor(constructor, kind: kind, prefix: prefix);
