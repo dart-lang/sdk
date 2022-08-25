@@ -20,8 +20,8 @@ namespace kernel {
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
-static const uint32_t kMinSupportedKernelFormatVersion = 85;
-static const uint32_t kMaxSupportedKernelFormatVersion = 85;
+static const uint32_t kMinSupportedKernelFormatVersion = 86;
+static const uint32_t kMaxSupportedKernelFormatVersion = 86;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -99,6 +99,10 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 85;
   V(ConstructorTearOff, 60)                                                    \
   V(TypedefTearOff, 83)                                                        \
   V(RedirectingFactoryTearOff, 84)                                             \
+  V(RecordIndexGet, 101)                                                       \
+  V(RecordNameGet, 102)                                                        \
+  V(RecordLiteral, 104)                                                        \
+  V(ConstRecordLiteral, 105)                                                   \
   V(ExpressionStatement, 61)                                                   \
   V(Block, 62)                                                                 \
   V(EmptyStatement, 63)                                                        \
@@ -123,6 +127,7 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 85;
   V(TypedefType, 87)                                                           \
   V(NeverType, 98)                                                             \
   V(IntersectionType, 99)                                                      \
+  V(RecordType, 100)                                                           \
   V(InvalidType, 90)                                                           \
   V(DynamicType, 91)                                                           \
   V(VoidType, 92)                                                              \
@@ -178,6 +183,7 @@ enum ConstantTag {
   kTypedefTearOffConstant = 14,
   kConstructorTearOffConstant = 15,
   kRedirectingFactoryTearOffConstant = 16,
+  kRecordConstant = 17,
 };
 
 // Keep in sync with package:kernel/lib/ast.dart

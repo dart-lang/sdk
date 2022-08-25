@@ -43,6 +43,15 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
   }
 
   @override
+  DartType? visitRecordType(RecordType node) {
+    // By analogy with FunctionType.
+    if (node.declaredNullability == Nullability.nonNullable) {
+      return null;
+    }
+    return node.withDeclaredNullability(Nullability.nonNullable);
+  }
+
+  @override
   DartType? visitFutureOrType(FutureOrType node) {
     // NonNull(FutureOr<T>) = FutureOr<T>
     //

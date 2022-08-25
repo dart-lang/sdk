@@ -573,6 +573,26 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitRecordLiteral(RecordLiteral node) {
+    for (int i = 0; i < node.positional.length; ++i) {
+      node.positional[i] = checkAndDowncastExpression(
+          node.positional[i], node.recordType.positional[i]);
+    }
+    for (int i = 0; i < node.named.length; ++i) {
+      DartType? namedFieldType;
+      for (NamedType namedType in node.recordType.named) {
+        if (namedType.name == node.named[i].name) {
+          namedFieldType = namedType.type;
+        }
+      }
+      node.named[i].value =
+          checkAndDowncastExpression(node.named[i].value, namedFieldType!);
+    }
+    return new RecordType(node.recordType.positional, node.recordType.named,
+        currentLibrary!.nonNullable);
+  }
+
+  @override
   DartType visitLogicalExpression(LogicalExpression node) {
     node.left = checkAndDowncastExpression(
         node.left, environment.coreTypes.boolLegacyRawType);
@@ -817,6 +837,41 @@ class TypeCheckingVisitor
     DartType value = visitExpression(node.value);
     checkAssignable(node.value, value, node.variable.type);
     return value;
+  }
+
+  @override
+  DartType visitRecordIndexGet(RecordIndexGet node) {
+    DartType receiverType = visitExpression(node.receiver);
+    assert(
+        receiverType is RecordType,
+        "Encountered RecordIndexGet with non-record receiver: "
+        "'${receiverType.runtimeType}'.");
+    RecordType recordType = receiverType as RecordType;
+    assert(
+        node.index < recordType.positional.length,
+        "Encountered RecordIndexGet with index out of range: "
+        "'${node.index}'.");
+    return recordType.positional[node.index];
+  }
+
+  @override
+  DartType visitRecordNameGet(RecordNameGet node) {
+    DartType recordType = visitExpression(node.receiver);
+    assert(
+        recordType is RecordType,
+        "Encountered RecordNameGet with non-record receiver: "
+        "'${recordType.runtimeType}'.");
+    DartType? result;
+    for (NamedType namedType in (recordType as RecordType).named) {
+      if (namedType.name == node.name) {
+        result = namedType.type;
+      }
+    }
+    assert(
+        result != null,
+        "Encountered RecordNameGet with non-existent name key: "
+        "'${node.name}'.");
+    return result!;
   }
 
   @override

@@ -79,6 +79,17 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitRecordType(RecordType node) {
+    for (DartType parameter in node.positional) {
+      if (parameter.accept(this)) return true;
+    }
+    for (NamedType parameter in node.named) {
+      if (parameter.type.accept(this)) return true;
+    }
+    return false;
+  }
+
+  @override
   bool visitInterfaceType(InterfaceType node) {
     int oldVariance = _variance;
     for (int i = 0; i < node.typeArguments.length; i++) {

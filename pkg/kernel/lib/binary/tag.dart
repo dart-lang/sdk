@@ -80,6 +80,10 @@ class Tag {
   static const int TypedefTearOff = 83;
   static const int RedirectingFactoryTearOff = 84;
 
+  static const int RecordIndexGet = 101;
+  static const int RecordNameGet = 102;
+  static const int RecordLiteral = 104;
+  static const int ConstRecordLiteral = 105;
   static const int SetLiteral = 109;
   static const int ConstSetLiteral = 110;
   static const int ListConcatenation = 111;
@@ -141,6 +145,12 @@ class Tag {
   static const int SimpleFunctionType = 97;
   static const int NeverType = 98;
   static const int IntersectionType = 99;
+  static const int RecordType = 100;
+
+  // 101 is occupied by [RecordIndexGet] (expression).
+  // 102 is occupied by [RecordNameGet] (expression).
+  // 104 is occupied by [RecordLiteral] (expression).
+  // 105 is occupied by [ConstRecordLiteral] (expression).
 
   static const int ConstantExpression = 106;
 
@@ -180,7 +190,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 85;
+  static const int BinaryFormatVersion = 86;
 }
 
 abstract class ConstantTag {
@@ -202,6 +212,7 @@ abstract class ConstantTag {
   static const int TypedefTearOffConstant = 14;
   static const int ConstructorTearOffConstant = 15;
   static const int RedirectingFactoryTearOffConstant = 16;
+  static const int RecordConstant = 17;
 }
 
 const int sdkHashLength = 10; // Bytes, a Git "short hash".

@@ -1874,6 +1874,23 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
+  void visitRecordLiteral(RecordLiteral node) {
+    if (node.isConst) {
+      writeWord('const');
+      writeSpace();
+    }
+    writeSymbol('(');
+    writeList(node.positional, writeNode);
+    if (node.named.isNotEmpty) {
+      if (node.positional.isNotEmpty) writeComma();
+      writeSymbol('{');
+      writeList(node.named, writeNode);
+      writeSymbol('}');
+    }
+    writeSymbol(')');
+  }
+
+  @override
   void visitAwaitExpression(AwaitExpression node) {
     writeWord('await');
     writeExpression(node.operand);
@@ -3073,6 +3090,9 @@ class Precedence implements ExpressionVisitor<int> {
   int visitMapLiteral(MapLiteral node) => PRIMARY;
 
   @override
+  int visitRecordLiteral(RecordLiteral node) => PRIMARY;
+
+  @override
   int visitAwaitExpression(AwaitExpression node) => PREFIX;
 
   @override
@@ -3113,6 +3133,12 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) => PRIMARY;
+
+  @override
+  int visitRecordIndexGet(RecordIndexGet node) => PRIMARY;
+
+  @override
+  int visitRecordNameGet(RecordNameGet node) => PRIMARY;
 
   @override
   int visitAbstractSuperPropertySet(AbstractSuperPropertySet node) =>

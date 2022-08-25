@@ -270,6 +270,36 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
   }
 
   @override
+  Constant? visitRecordConstant(RecordConstant node) {
+    RecordType? recordType = computeConstCanonicalType(
+            node.recordType, _evaluator.coreTypes,
+            isNonNullableByDefault: _evaluator.isNonNullableByDefault)
+        as RecordType?;
+    List<Constant>? positional;
+    for (int index = 0; index < node.positional.length; index++) {
+      Constant? field = visitConstant(node.positional[index]);
+      if (field != null) {
+        positional ??= node.positional.toList(growable: false);
+        positional[index] = field;
+      }
+    }
+    List<ConstantRecordNamedField>? named;
+    for (int index = 0; index < node.named.length; index++) {
+      ConstantRecordNamedField namedField = node.named[index];
+      Constant? value = visitConstant(namedField.value);
+      if (value != null) {
+        named ??= node.named.toList(growable: false);
+        named[index] = new ConstantRecordNamedField(namedField.name, value);
+      }
+    }
+    if (recordType != null || positional != null || named != null) {
+      return new RecordConstant(positional ?? node.positional,
+          named ?? node.named, recordType ?? node.recordType);
+    }
+    return null;
+  }
+
+  @override
   Constant? visitInstanceConstant(InstanceConstant node) {
     List<DartType>? typeArguments;
     for (int index = 0; index < node.typeArguments.length; index++) {
@@ -768,6 +798,14 @@ class ConstantsTransformer extends RemovingTransformer {
       return evaluateAndTransformWithContext(node, node);
     }
     return super.visitListLiteral(node, removalSentinel);
+  }
+
+  @override
+  TreeNode visitRecordLiteral(RecordLiteral node, TreeNode? removalSentinel) {
+    if (node.isConst) {
+      return evaluateAndTransformWithContext(node, node);
+    }
+    return super.visitRecordLiteral(node, removalSentinel);
   }
 
   @override
@@ -1464,6 +1502,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     }
     seenUnevaluatedChild = wasOrBecameUnevaluated;
     return builder.build();
+  }
+
+  @override
+  Constant visitRecordLiteral(RecordLiteral node) {
+    // TODO(cstefantsova): Implement RecordConstantBuilder and this method.
+    throw new UnimplementedError();
   }
 
   @override
@@ -2775,6 +2819,45 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         node,
         templateConstEvalInvalidPropertyGet.withArguments(
             node.name.text, receiver, isNonNullableByDefault));
+  }
+
+  @override
+  Constant visitRecordIndexGet(RecordIndexGet node) {
+    final Constant receiver = _evaluateSubexpression(node.receiver);
+    if (receiver is AbortConstant) return receiver;
+    if (receiver is RecordConstant && enableConstFunctions) {
+      if (node.index >= receiver.positional.length) {
+        return new _AbortDueToThrowConstant(node, new StateError('No element'));
+      }
+      return receiver.positional[node.index];
+    }
+    return createEvaluationErrorConstant(
+        node,
+        templateConstEvalInvalidRecordIndexGet.withArguments(
+            "${node.index}", receiver, isNonNullableByDefault));
+  }
+
+  @override
+  Constant visitRecordNameGet(RecordNameGet node) {
+    final Constant receiver = _evaluateSubexpression(node.receiver);
+    if (receiver is AbortConstant) return receiver;
+    if (receiver is RecordConstant && enableConstFunctions) {
+      Constant? result;
+      for (ConstantRecordNamedField field in receiver.named) {
+        if (field.name == node.name) {
+          result = field.value;
+        }
+      }
+      if (result == null) {
+        return new _AbortDueToThrowConstant(node, new StateError('No element'));
+      } else {
+        return result;
+      }
+    }
+    return createEvaluationErrorConstant(
+        node,
+        templateConstEvalInvalidRecordNameGet.withArguments(
+            node.name, receiver, isNonNullableByDefault));
   }
 
   @override

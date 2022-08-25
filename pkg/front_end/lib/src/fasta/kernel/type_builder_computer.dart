@@ -186,4 +186,9 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   TypeBuilder visitTypedefType(TypedefType node) {
     throw "Not implemented";
   }
+
+  @override
+  TypeBuilder visitRecordType(RecordType node) {
+    throw "Not implemented";
+  }
 }

@@ -297,6 +297,11 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
   }
 
   @override
+  ConstantValue visitRecordConstant(ir.RecordConstant node) {
+    return defaultConstant(node);
+  }
+
+  @override
   ConstantValue visitSymbolConstant(ir.SymbolConstant node) {
     return constant_system.createSymbol(elementMap.commonElements, node.name);
   }

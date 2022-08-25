@@ -931,6 +931,43 @@ class NodeCreator {
       case ExpressionKind.VariableSet:
         return VariableSet(_needVariableDeclaration(), _createExpression())
           ..fileOffset = _needFileOffset();
+      case ExpressionKind.RecordIndexGet:
+        return RecordIndexGet(_createExpression(),
+            _createDartTypeFromKind(DartTypeKind.RecordType) as RecordType, 0)
+          ..fileOffset = _needFileOffset();
+      case ExpressionKind.RecordNameGet:
+        return RecordNameGet(
+            _createExpression(),
+            _createDartTypeFromKind(DartTypeKind.RecordType) as RecordType,
+            _createName().text)
+          ..fileOffset = _needFileOffset();
+      case ExpressionKind.RecordLiteral:
+        return _createOneOf(_pendingExpressions, kind, index, [
+          () => RecordLiteral([_createExpression()], [],
+              RecordType([_createDartType()], [], Nullability.nonNullable),
+              isConst: false)
+            ..fileOffset = _needFileOffset(),
+          () => RecordLiteral(
+              [],
+              [NamedExpression('foo', _createExpression())],
+              RecordType([], [NamedType('foo', _createDartType())],
+                  Nullability.nonNullable),
+              isConst: false)
+            ..fileOffset = _needFileOffset(),
+          () => RecordLiteral(
+              [_createExpression()],
+              [NamedExpression('foo', _createExpression())],
+              RecordType(
+                  [_createDartType()],
+                  [NamedType('foo', _createDartType())],
+                  Nullability.nonNullable),
+              isConst: false)
+            ..fileOffset = _needFileOffset(),
+          () => RecordLiteral([_createExpression()], [],
+              RecordType([_createDartType()], [], Nullability.nonNullable),
+              isConst: true)
+            ..fileOffset = _needFileOffset(),
+        ]);
     }
   }
 
@@ -1117,6 +1154,11 @@ class NodeCreator {
           // TODO(johnniwinther): Create non-trivial cases.
           () => FunctionType([], _createDartType(), Nullability.nonNullable),
         ]);
+      case DartTypeKind.RecordType:
+        return _createOneOf(_pendingDartTypes, kind, index, [
+          // TODO(cstefantsova): Create non-trivial cases.
+          () => RecordType([], [], Nullability.nonNullable),
+        ]);
       case DartTypeKind.FutureOrType:
         return FutureOrType(_createDartType(), Nullability.nonNullable);
       case DartTypeKind.InterfaceType:
@@ -1220,6 +1262,33 @@ class NodeCreator {
                 ConstantMapEntry(_createConstant(), _createConstant()),
                 ConstantMapEntry(_createConstant(), _createConstant())
               ]),
+        ]);
+      case ConstantKind.RecordConstant:
+        return _createOneOf(_pendingConstants, kind, index, [
+          () => RecordConstant(
+              [], [], RecordType([], [], Nullability.nonNullable)),
+          () => RecordConstant(
+              [_createConstant(), _createConstant()],
+              [],
+              RecordType([_createDartType(), _createDartType()], [],
+                  Nullability.nonNullable)),
+          () => RecordConstant(
+                  [],
+                  [
+                    ConstantRecordNamedField('a', _createConstant()),
+                    ConstantRecordNamedField('b', _createConstant())
+                  ],
+                  RecordType([], [
+                    NamedType('a', _createDartType()),
+                    NamedType('b', _createDartType())
+                  ], Nullability.nonNullable)),
+          () => RecordConstant(
+              [_createConstant()],
+              [ConstantRecordNamedField('a', _createConstant())],
+              RecordType(
+                  [_createDartType()],
+                  [NamedType('a', _createDartType())],
+                  Nullability.nonNullable)),
         ]);
       case ConstantKind.NullConstant:
         return NullConstant();

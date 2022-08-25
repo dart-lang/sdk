@@ -124,6 +124,8 @@ ConstEvalInvalidEqualsOperandType/analyzerCode: Fail
 ConstEvalInvalidEqualsOperandType/example: Fail
 ConstEvalInvalidMethodInvocation/example: Fail
 ConstEvalInvalidPropertyGet/example: Fail
+ConstEvalInvalidRecordIndexGet/example: Fail
+ConstEvalInvalidRecordNameGet/example: Fail
 ConstEvalInvalidStaticInvocation/example: Fail
 ConstEvalInvalidStringInterpolationOperand/example: Fail
 ConstEvalInvalidSymbolName/example: Fail
@@ -476,6 +478,8 @@ IncrementalCompilerIllegalParameter/analyzerCode: Fail
 IncrementalCompilerIllegalParameter/example: Fail
 IncrementalCompilerIllegalTypeParameter/analyzerCode: Fail
 IncrementalCompilerIllegalTypeParameter/example: Fail
+IndexOutOfBoundInRecordIndexGet/analyzerCode: Fail
+IndexOutOfBoundInRecordIndexGet/example: Fail
 InitializerForStaticField/example: Fail
 InitializerOutsideConstructor/example: Fail
 InputFileNotFound/analyzerCode: Fail
@@ -575,14 +579,14 @@ JsInteropNonExternalMember/analyzerCode: Fail # Web compiler specific
 JsInteropNonExternalMember/example: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/example: Fail # Web compiler specific
-JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
-JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsageNotAllowed/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsageNotAllowed/example: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/example: Fail # Web compiler specific
+JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
+JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
 LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.
@@ -644,6 +648,8 @@ MultipleVarianceModifiers/example: Fail # All trigger multiple errors for varian
 MultipleWith/part_wrapped_script: Fail
 MultipleWith/script: Fail
 NameNotFound/example: Fail
+NameNotFoundInRecordNameGet/analyzerCode: Fail
+NameNotFoundInRecordNameGet/example: Fail
 NamedFunctionExpression/example: Fail
 NamedMixinOverride/analyzerCode: Fail
 NamedMixinOverride/example: Fail

@@ -367,6 +367,8 @@ class BinaryBuilder {
         return _readListConstant();
       case ConstantTag.SetConstant:
         return _readSetConstant();
+      case ConstantTag.RecordConstant:
+        return _readRecordConstant();
       case ConstantTag.InstanceConstant:
         return _readInstanceConstant();
       case ConstantTag.InstantiationConstant:
@@ -436,6 +438,19 @@ class BinaryBuilder {
     final DartType typeArgument = readDartType();
     List<Constant> entries = _readConstantReferenceList();
     return new SetConstant(typeArgument, entries);
+  }
+
+  Constant _readRecordConstant() {
+    List<Constant> positional = _readConstantReferenceList();
+    final int namedLength = readUInt30();
+    final List<ConstantRecordNamedField> named =
+        new List<ConstantRecordNamedField>.generate(namedLength, (_) {
+      final String name = readString();
+      final Constant value = readConstantReference();
+      return new ConstantRecordNamedField(name, value);
+    }, growable: useGrowableLists);
+    final RecordType recordType = readDartType() as RecordType;
+    return new RecordConstant(positional, named, recordType);
   }
 
   Constant _readInstanceConstant() {
@@ -1997,6 +2012,10 @@ class BinaryBuilder {
         return _readInstanceTearOff();
       case Tag.DynamicGet:
         return _readDynamicGet();
+      case Tag.RecordIndexGet:
+        return _readRecordIndexGet();
+      case Tag.RecordNameGet:
+        return _readRecordNameGet();
       case Tag.InstanceSet:
         return _readInstanceSet();
       case Tag.DynamicSet:
@@ -2113,6 +2132,10 @@ class BinaryBuilder {
         return _readMapLiteral();
       case Tag.ConstMapLiteral:
         return _readConstMapLiteral();
+      case Tag.RecordLiteral:
+        return _readRecordLiteral();
+      case Tag.ConstRecordLiteral:
+        return _readConstRecordLiteral();
       case Tag.AwaitExpression:
         return _readAwaitExpression();
       case Tag.FunctionExpression:
@@ -2197,6 +2220,22 @@ class BinaryBuilder {
     int offset = readOffset();
     return new DynamicGet(kind, readExpression(), readName())
       ..fileOffset = offset;
+  }
+
+  Expression _readRecordIndexGet() {
+    int offset = readOffset();
+    Expression receiver = readExpression();
+    RecordType receiverType = readDartType() as RecordType;
+    int index = readUInt30();
+    return RecordIndexGet(receiver, receiverType, index)..fileOffset = offset;
+  }
+
+  Expression _readRecordNameGet() {
+    int offset = readOffset();
+    Expression receiver = readExpression();
+    RecordType receiverType = readDartType() as RecordType;
+    String name = readString();
+    return RecordNameGet(receiver, receiverType, name)..fileOffset = offset;
   }
 
   Expression _readInstanceSet() {
@@ -2631,6 +2670,24 @@ class BinaryBuilder {
       ..fileOffset = offset;
   }
 
+  Expression _readRecordLiteral() {
+    int offset = readOffset();
+    List<Expression> positional = readExpressionList();
+    List<NamedExpression> named = readNamedExpressionList();
+    RecordType recordType = readDartType() as RecordType;
+    return new RecordLiteral(positional, named, recordType, isConst: false)
+      ..fileOffset = offset;
+  }
+
+  Expression _readConstRecordLiteral() {
+    int offset = readOffset();
+    List<Expression> positional = readExpressionList();
+    List<NamedExpression> named = readNamedExpressionList();
+    RecordType recordType = readDartType() as RecordType;
+    return new RecordLiteral(positional, named, recordType, isConst: true)
+      ..fileOffset = offset;
+  }
+
   Expression _readAwaitExpression() {
     int offset = readOffset();
     return new AwaitExpression(readExpression())..fileOffset = offset;
@@ -3055,6 +3112,8 @@ class BinaryBuilder {
         return _readTypeParameterType();
       case Tag.IntersectionType:
         return _readIntersectionType();
+      case Tag.RecordType:
+        return _readRecordType();
       default:
         throw fail('unexpected dart type tag: $tag');
     }
@@ -3152,6 +3211,14 @@ class BinaryBuilder {
     TypeParameterType left = readDartType() as TypeParameterType;
     DartType right = readDartType();
     return new IntersectionType(left, right);
+  }
+
+  DartType _readRecordType() {
+    int nullabilityIndex = readByte();
+    List<DartType> positional = readDartTypeList();
+    List<NamedType> named = readNamedTypeList();
+    return new RecordType(
+        positional, named, Nullability.values[nullabilityIndex]);
   }
 
   List<TypeParameter> readAndPushTypeParameterList(

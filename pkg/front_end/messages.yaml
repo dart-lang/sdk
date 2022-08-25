@@ -167,6 +167,14 @@ ConstEvalInvalidPropertyGet:
   problemMessage: "The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression."
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
+ConstEvalInvalidRecordIndexGet:
+  problemMessage: "The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression."
+  analyzerCode: CONST_EVAL_THROWS_EXCEPTION
+
+ConstEvalInvalidRecordNameGet:
+  problemMessage: "The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression."
+  analyzerCode: CONST_EVAL_THROWS_EXCEPTION
+
 ConstEvalInvalidStringInterpolationOperand:
   problemMessage: |
     The constant value '#constant' can't be used as part of a string interpolation in a constant expression.
@@ -5717,3 +5725,9 @@ NoAugmentSuperWriteTarget:
 
 NoAugmentSuperInvokeTarget:
   problemMessage: "Cannot call 'augment super'."
+
+IndexOutOfBoundInRecordIndexGet:
+  problemMessage: "Index #count is out of range 0..#count2 of positional fields of records #type."
+
+NameNotFoundInRecordNameGet:
+  problemMessage: "Field name #string isn't found in records of type #type."

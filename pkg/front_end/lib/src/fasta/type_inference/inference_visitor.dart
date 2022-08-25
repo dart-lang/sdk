@@ -2229,6 +2229,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  ExpressionInferenceResult visitRecordLiteral(
+      RecordLiteral node, DartType typeContext) {
+    // TODO(cstefantsova): Implement this method.
+    return new ExpressionInferenceResult(node.recordType, node);
+  }
+
+  @override
   ExpressionInferenceResult visitLogicalExpression(
       LogicalExpression node, DartType typeContext) {
     InterfaceType boolType = coreTypes.boolRawType(libraryBuilder.nonNullable);
@@ -6026,6 +6033,87 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.forwardExpression(
         expressionInferenceResult.nullAwareAction, node);
     return expressionInferenceResult;
+  }
+
+  @override
+  ExpressionInferenceResult visitRecordIndexGet(
+      RecordIndexGet node, DartType typeContext) {
+    ExpressionInferenceResult result =
+        inferNullAwareExpression(node.receiver, const UnknownType(), true);
+
+    Link<NullAwareGuard> nullAwareGuards = result.nullAwareGuards;
+    Expression receiver = result.nullAwareAction;
+    DartType receiverType = result.nullAwareActionType;
+
+    node.receiver = receiver..parent = node;
+
+    if (receiverType is RecordType) {
+      if (node.index < receiverType.positional.length) {
+        DartType resultType = receiverType.positional[node.index];
+        return createNullAwareExpressionInferenceResult(
+            resultType, node, nullAwareGuards);
+      } else {
+        return wrapExpressionInferenceResultInProblem(
+            createNullAwareExpressionInferenceResult(
+                const InvalidType(), node, nullAwareGuards),
+            templateIndexOutOfBoundInRecordIndexGet.withArguments(
+                node.index,
+                receiverType.positional.length,
+                receiverType,
+                isNonNullableByDefault),
+            node.fileOffset,
+            noLength);
+      }
+    } else {
+      return wrapExpressionInferenceResultInProblem(
+          createNullAwareExpressionInferenceResult(
+              const InvalidType(), node, nullAwareGuards),
+          templateInternalProblemUnsupported.withArguments("RecordIndexGet"),
+          node.fileOffset,
+          noLength);
+    }
+  }
+
+  @override
+  ExpressionInferenceResult visitRecordNameGet(
+      RecordNameGet node, DartType typeContext) {
+    ExpressionInferenceResult result =
+        inferNullAwareExpression(node.receiver, const UnknownType(), true);
+
+    Link<NullAwareGuard> nullAwareGuards = result.nullAwareGuards;
+    Expression receiver = result.nullAwareAction;
+    DartType receiverType = result.nullAwareActionType;
+
+    node.receiver = receiver..parent = node;
+
+    if (receiverType is RecordType) {
+      DartType? resultType;
+      for (NamedType namedType in receiverType.named) {
+        if (namedType.name == node.name) {
+          resultType = namedType.type;
+          break;
+        }
+      }
+      if (resultType != null) {
+        return createNullAwareExpressionInferenceResult(
+            resultType, node, nullAwareGuards);
+      } else {
+        return wrapExpressionInferenceResultInProblem(
+            createNullAwareExpressionInferenceResult(
+                const InvalidType(), node, nullAwareGuards),
+            templateNameNotFoundInRecordNameGet.withArguments(
+                node.name, receiverType, isNonNullableByDefault),
+            node.fileOffset,
+            noLength);
+      }
+    } else {
+      return wrapExpressionInferenceResultInProblem(
+          createNullAwareExpressionInferenceResult(
+              const InvalidType(), node, nullAwareGuards),
+          templateInternalProblemUnsupported.withArguments("RecordIndexGet"),
+          node.fileOffset,
+          noLength);
+    }
   }
 
   ExpressionInferenceResult visitAugmentSuperGet(

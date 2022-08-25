@@ -4283,6 +4283,118 @@ class VariableSet extends Expression {
   }
 }
 
+class RecordIndexGet extends Expression {
+  Expression receiver;
+  RecordType receiverType;
+  final int index;
+
+  RecordIndexGet(this.receiver, this.receiverType, this.index);
+
+  @override
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    DartType receiverType = receiver.getStaticType(context);
+    assert(
+        receiverType is RecordType && index < receiverType.positional.length);
+    return (receiverType as RecordType).positional[index];
+  }
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitRecordIndexGet(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitRecordIndexGet(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    receiver.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    receiver = v.transform(receiver);
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {}
+
+  @override
+  String toString() {
+    return "RecordIndexGet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write("[${index}]");
+  }
+}
+
+class RecordNameGet extends Expression {
+  Expression receiver;
+  RecordType receiverType;
+  final String name;
+
+  RecordNameGet(this.receiver, this.receiverType, this.name);
+
+  @override
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    DartType receiverType = receiver.getStaticType(context);
+    assert(receiverType is RecordType);
+
+    RecordType recordType = receiverType as RecordType;
+    DartType? result;
+    for (NamedType namedType in recordType.named) {
+      if (namedType.name == name) {
+        result = namedType.type;
+        break;
+      }
+    }
+    assert(result != null);
+
+    return result!;
+  }
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitRecordNameGet(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitRecordNameGet(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    receiver.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    receiver = v.transform(receiver);
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {}
+
+  @override
+  String toString() {
+    return "RecordNameGet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write("['${name}']");
+  }
+}
+
 enum DynamicAccessKind {
   /// An access on a receiver of type dynamic.
   ///
@@ -8542,6 +8654,96 @@ class MapLiteralEntry extends TreeNode {
   }
 }
 
+class RecordLiteral extends Expression {
+  bool isConst;
+  final List<Expression> positional;
+  final List<NamedExpression> named;
+  RecordType recordType;
+
+  RecordLiteral(this.positional, this.named, this.recordType,
+      {this.isConst = false})
+      : assert(positional.length == recordType.positional.length &&
+            recordType.named
+                .map((f) => f.name)
+                .toSet()
+                .containsAll(named.map((f) => f.name))),
+        assert(() {
+          // Assert that the named fields are sorted.
+          for (int i = 1; i < named.length; i++) {
+            if (named[i].name.compareTo(named[i - 1].name) < 0) {
+              return false;
+            }
+          }
+          return true;
+        }(),
+            "Named fields of a RecordLiterals aren't sorted lexicographically: "
+            "${named.map((f) => f.name).join(", ")}");
+
+  @override
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    return recordType;
+  }
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitRecordLiteral(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitRecordLiteral(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    visitList(positional, v);
+    visitList(named, v);
+    recordType.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    v.transformList(positional, this);
+    v.transformList(named, this);
+    recordType = v.visitDartType(recordType) as RecordType;
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {}
+
+  @override
+  String toString() {
+    return "RecordType(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    if (isConst) {
+      printer.write("const ");
+    }
+    printer.write("(");
+    for (int index = 0; index < positional.length; index++) {
+      if (index > 0) {
+        printer.write(", ");
+      }
+      printer.writeExpression(positional[index]);
+    }
+    if (named.isNotEmpty) {
+      if (positional.isNotEmpty) {
+        printer.write(", ");
+      }
+      for (int index = 0; index < named.length; index++) {
+        if (index > 0) {
+          printer.write(", ");
+        }
+        printer.writeNamedExpression(named[index]);
+      }
+    }
+    printer.write(")");
+  }
+}
+
 /// Expression of form `await x`.
 class AwaitExpression extends Expression {
   Expression operand;
@@ -12593,6 +12795,116 @@ class TypeParameterType extends DartType {
   }
 }
 
+class RecordType extends DartType {
+  final List<DartType> positional;
+  final List<NamedType> named;
+
+  @override
+  final Nullability declaredNullability;
+
+  RecordType(this.positional, this.named, this.declaredNullability)
+      : assert(() {
+          // Assert that the named field types are sorted.
+          for (int i = 1; i < named.length; i++) {
+            if (named[i].name.compareTo(named[i - 1].name) < 0) {
+              return false;
+            }
+          }
+          return true;
+        }(),
+            "Named field types aren't sorted lexicographically "
+            "in a RecordType: ${named}");
+
+  @override
+  Nullability get nullability => declaredNullability;
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) {
+    return v.visitRecordType(this);
+  }
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
+    return v.visitRecordType(this, arg);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    visitList(positional, v);
+    visitList(named, v);
+  }
+
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is RecordType) {
+      if (nullability != other.nullability) return false;
+      for (int index = 0; index < positional.length; index++) {
+        if (!positional[index].equals(other.positional[index], assumptions)) {
+          return false;
+        }
+      }
+      for (int index = 0; index < named.length; index++) {
+        if (!named[index].equals(other.named[index], assumptions)) {
+          return false;
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode {
+    int hash = 1237;
+    for (int i = 0; i < positional.length; ++i) {
+      hash = 0x3fffffff & (hash * 31 + positional[i].hashCode);
+    }
+    for (int i = 0; i < named.length; ++i) {
+      hash = 0x3fffffff & (hash * 31 + named[i].hashCode);
+    }
+    hash = 0x3fffffff & (hash * 31 + nullability.index);
+    return hash;
+  }
+
+  @override
+  RecordType withDeclaredNullability(Nullability declaredNullability) {
+    return declaredNullability == this.declaredNullability
+        ? this
+        : new RecordType(this.positional, this.named, declaredNullability);
+  }
+
+  @override
+  String toString() {
+    return "RecordType(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write("(");
+    printer.writeTypes(positional);
+    if (named.isNotEmpty) {
+      if (positional.isNotEmpty) {
+        printer.write(", ");
+      }
+      printer.write("{");
+      for (int i = 0; i < named.length; i++) {
+        if (i > 0) {
+          printer.write(", ");
+        }
+        printer.writeNamedType(named[i]);
+      }
+      printer.write("}");
+    }
+    printer.write(")");
+  }
+}
+
 /// Value set for variance of a type parameter X in a type term T.
 class Variance {
   /// Used when X does not occur free in T.
@@ -13408,6 +13720,116 @@ class SetConstant extends Constant {
   @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.setType(typeArgument, context.nonNullable);
+}
+
+class RecordConstant extends Constant {
+  final List<Constant> positional;
+  final List<ConstantRecordNamedField> named;
+  final RecordType recordType;
+
+  RecordConstant(this.positional, this.named, this.recordType);
+
+  @override
+  void visitChildren(Visitor v) {
+    recordType.accept(v);
+    for (final Constant entry in positional) {
+      entry.acceptReference(v);
+    }
+    for (final ConstantRecordNamedField entry in named) {
+      entry.value.acceptReference(v);
+    }
+  }
+
+  @override
+  R accept<R>(ConstantVisitor<R> v) => v.visitRecordConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitRecordConstant(this, arg);
+
+  @override
+  R acceptReference<R>(Visitor<R> v) => v.visitRecordConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitRecordConstantReference(this, arg);
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write("const (");
+    for (int i = 0; i < positional.length; i++) {
+      if (i > 0) {
+        printer.write(", ");
+      }
+      printer.writeConstant(positional[i]);
+    }
+    if (named.isNotEmpty) {
+      if (positional.isNotEmpty) {
+        printer.write(", ");
+      }
+      printer.write("{");
+      for (int i = 0; i < named.length; i++) {
+        if (i > 0) {
+          printer.write(", ");
+        }
+        printer.writeConstantRecordNamedField(named[i]);
+      }
+      printer.write("}");
+    }
+    printer.write(")");
+  }
+
+  @override
+  String toString() => "RecordConstant(${toStringInternal()})";
+
+  @override
+  late final int hashCode = _Hash.combineFinish(recordType.hashCode,
+      _Hash.combineListHash(named, _Hash.combineListHash(positional)));
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RecordConstant &&
+          other.recordType == recordType &&
+          listEquals(other.positional, positional) &&
+          listEquals(other.named, named));
+
+  @override
+  DartType getType(StaticTypeContext context) => recordType;
+}
+
+class ConstantRecordNamedField {
+  final String name;
+  final Constant value;
+
+  ConstantRecordNamedField(this.name, this.value);
+
+  @override
+  String toString() => "ConstantRecordNamedField(${toStringInternal()})";
+
+  @override
+  int get hashCode => _Hash.hash2(name, value);
+
+  @override
+  bool operator ==(Object other) {
+    return other is ConstantRecordNamedField &&
+        other.name == name &&
+        other.value == value;
+  }
+
+  String toStringInternal() => toText(defaultAstTextStrategy);
+
+  String toText(AstTextStrategy strategy) {
+    AstPrinter printer = new AstPrinter(strategy);
+    printer.writeConstantRecordNamedField(this);
+    return printer.getText();
+  }
+
+  void toTextInternal(AstPrinter printer) {
+    printer.write(name);
+    printer.write(": ");
+    printer.writeConstant(value);
+  }
 }
 
 class InstanceConstant extends Constant {

@@ -370,6 +370,16 @@ class _AllFreeTypeVariablesVisitor implements DartTypeVisitor<void> {
   }
 
   @override
+  void visitRecordType(RecordType node) {
+    for (DartType positional in node.positional) {
+      positional.accept(this);
+    }
+    for (NamedType named in node.named) {
+      named.type.accept(this);
+    }
+  }
+
+  @override
   void visitTypeParameterType(TypeParameterType node) {
     if (!boundVariables.contains(node.parameter)) {
       freeTypeVariables.add(node.parameter);
@@ -923,6 +933,11 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitRecordType(RecordType node) {
+    return node.positional.any(visit) || node.named.any(visitNamedType);
+  }
+
+  @override
   bool visitTypeParameterType(TypeParameterType node) {
     return variables.contains(node.parameter);
   }
@@ -997,6 +1012,11 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
         visit(node.returnType);
     variables.removeAll(node.typeParameters);
     return result;
+  }
+
+  @override
+  bool visitRecordType(RecordType node) {
+    return node.positional.any(visit) || node.named.any(visitNamedType);
   }
 
   @override
@@ -1075,6 +1095,11 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
         visit(node.returnType);
     boundVariables.removeAll(node.typeParameters);
     return result;
+  }
+
+  @override
+  bool visitRecordType(RecordType node) {
+    return node.positional.any(visit) || node.named.any(visitNamedType);
   }
 
   @override
@@ -1157,6 +1182,11 @@ class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitRecordType(RecordType node) {
+    return node.positional.isNotEmpty || node.named.isNotEmpty;
+  }
+
+  @override
   bool visitFutureOrType(FutureOrType node) => false;
 
   @override
@@ -1226,6 +1256,11 @@ class _NullabilityConstructorUnwrapper
 
   @override
   DartType visitFunctionType(FunctionType node, CoreTypes coreTypes) {
+    return node.withDeclaredNullability(Nullability.nonNullable);
+  }
+
+  @override
+  DartType visitRecordType(RecordType node, CoreTypes coreTypes) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
@@ -1529,6 +1564,13 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
 
   @override
   bool visitFunctionType(FunctionType node) {
+    assert(node.declaredNullability != Nullability.undetermined);
+    return node.declaredNullability == Nullability.nullable ||
+        node.declaredNullability == Nullability.legacy;
+  }
+
+  @override
+  bool visitRecordType(RecordType node) {
     assert(node.declaredNullability != Nullability.undetermined);
     return node.declaredNullability == Nullability.nullable ||
         node.declaredNullability == Nullability.legacy;
