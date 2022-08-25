@@ -402,6 +402,30 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
   }
 
   @override
+  void visitRecordConstant(RecordConstant node) {
+    sb.write('Record(');
+    String comma = '';
+    for (Constant field in node.positional) {
+      sb.write(comma);
+      field.accept(this);
+      comma = ',';
+    }
+    if (node.named.isNotEmpty) {
+      sb.write(comma);
+      sb.write('{');
+      comma = '';
+      for (ConstantRecordNamedField namedField in node.named) {
+        sb.write(comma);
+        sb.write('${namedField.name}:');
+        namedField.value.accept(this);
+        comma = ',';
+      }
+      sb.write('}');
+    }
+    sb.write(')');
+  }
+
+  @override
   void visitInstanceConstant(InstanceConstant node) {
     sb.write('Instance(');
     sb.write(node.classNode.name);
@@ -630,6 +654,34 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
         visit(namedParameter.type);
         sb.write(' ');
         sb.write(namedParameter.name);
+        comma = commaText;
+      }
+      sb.write('}');
+    }
+    sb.write(')');
+    sb.write(nullabilityToText(node.nullability, typeRepresentation));
+  }
+
+  @override
+  void visitRecordType(RecordType node) {
+    sb.write('(');
+    String comma = '';
+    visitList(node.positional);
+    if (node.positional.isNotEmpty) {
+      comma = commaText;
+    }
+    if (node.named.isNotEmpty) {
+      sb.write(comma);
+      sb.write('{');
+      comma = '';
+      for (NamedType namedType in node.named) {
+        sb.write(comma);
+        if (namedType.isRequired) {
+          sb.write('required ');
+        }
+        visit(namedType.type);
+        sb.write(' ');
+        sb.write(namedType.name);
         comma = commaText;
       }
       sb.write('}');

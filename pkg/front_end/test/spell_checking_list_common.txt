@@ -1103,6 +1103,7 @@ exempt
 exercise
 exhaustive
 exist
+existent
 existing
 exists
 exit

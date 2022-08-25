@@ -3188,6 +3188,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         : typeRep;
   }
 
+  @override
+  js_ast.Expression visitRecordType(type) => defaultDartType(type);
+
   /// Emits an expression that lets you access statics on a [type] from code.
   js_ast.Expression _emitConstructorAccess(InterfaceType type) {
     return _emitJSInterop(type.classNode) ??
@@ -4635,6 +4638,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitInstanceGet(InstanceGet node) {
     return _emitPropertyGet(
         node.receiver, node.interfaceTarget, node.name.text);
+  }
+
+  @override
+  js_ast.Expression visitRecordIndexGet(RecordIndexGet node) {
+    return defaultExpression(node);
+  }
+
+  @override
+  js_ast.Expression visitRecordNameGet(RecordNameGet node) {
+    return defaultExpression(node);
   }
 
   @override
@@ -6316,6 +6329,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
+  js_ast.Expression visitRecordLiteral(RecordLiteral node) =>
+      defaultExpression(node);
+
+  @override
   js_ast.Expression visitAwaitExpression(AwaitExpression node) =>
       js_ast.Yield(_visitExpression(node.operand));
 
@@ -6644,6 +6661,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitSetConstant(SetConstant node) => _emitConstSet(
       node.typeArgument, node.entries.map(visitConstant).toList());
+
+  @override
+  js_ast.Expression visitRecordConstant(RecordConstant node) =>
+      defaultConstant(node);
 
   @override
   js_ast.Expression visitInstanceConstant(InstanceConstant node) {

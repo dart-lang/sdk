@@ -88,6 +88,37 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
         newReturnType, newPositionalParameters, newNamedParameters);
   }
 
+  @override
+  DartType? visitRecordType(RecordType node, int variance) {
+    Nullability? newNullability = visitNullability(node);
+
+    DartType? visitType(DartType? type, int variance) {
+      return type?.accept1(this, variance);
+    }
+
+    List<DartType>? newPositional = null;
+    for (int i = 0; i < node.positional.length; i++) {
+      DartType? newType = visitType(node.positional[i],
+          Variance.combine(variance, Variance.contravariant));
+      if (newType != null) {
+        newPositional ??= node.positional.toList(growable: false);
+        newPositional[i] = newType;
+      }
+    }
+    List<NamedType>? newNamed = null;
+    for (int i = 0; i < node.named.length; i++) {
+      DartType? newType = visitType(node.named[i].type,
+          Variance.combine(variance, Variance.contravariant));
+      NamedType? newNamedType = createNamedType(node.named[i], newType);
+      if (newNamedType != null) {
+        newNamed ??= node.named.toList(growable: false);
+        newNamed[i] = newNamedType;
+      }
+    }
+
+    return createRecordType(node, newNullability, newPositional, newNamed);
+  }
+
   NamedType? createNamedType(NamedType node, DartType? newType) {
     if (newType == null) {
       return null;
@@ -117,6 +148,17 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
           namedParameters: newNamedParameters ?? node.namedParameters,
           typeParameters: newTypeParameters ?? node.typeParameters,
           requiredParameterCount: node.requiredParameterCount);
+    }
+  }
+
+  DartType? createRecordType(RecordType node, Nullability? newNullability,
+      List<DartType>? newPositional, List<NamedType>? newNamed) {
+    if (newNullability == null && newPositional == null && newNamed == null) {
+      // No nullability or types had to be substituted.
+      return null;
+    } else {
+      return new RecordType(newPositional ?? node.positional,
+          newNamed ?? node.named, newNullability ?? node.nullability);
     }
   }
 

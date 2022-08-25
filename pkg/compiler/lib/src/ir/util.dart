@@ -210,6 +210,15 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitRecordType(ir.RecordType node) {
+    if (visitList(node.positional)) return true;
+    for (ir.NamedType namedType in node.named) {
+      if (visit(namedType.type)) return true;
+    }
+    return false;
+  }
+
+  @override
   bool visitInterfaceType(ir.InterfaceType node) {
     return visitList(node.typeArguments);
   }

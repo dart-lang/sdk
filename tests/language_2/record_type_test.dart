@@ -4,6 +4,8 @@
 
 // @dart = 2.9
 
+// SharedOptions=--enable-experiment=records
+
 main() {
   (int, int) record1 = (1, 2);
 //^
@@ -197,8 +199,8 @@ class Bar {
 //^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
-  //                     ^
-  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
+//                       ^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'records' language feature to be enabled.
 }
 

@@ -172,6 +172,33 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
   }
 
   @override
+  Constant? visitRecordConstant(RecordConstant node) {
+    RecordType? recordType = visitDartType(node.recordType) as RecordType?;
+    List<Constant>? positional;
+    for (int i = 0; i < node.positional.length; i++) {
+      Constant? entry = visitConstant(node.positional[i]);
+      if (entry != null) {
+        (positional ??= List.of(node.positional))[i] = entry;
+      }
+    }
+    List<ConstantRecordNamedField>? named;
+    for (int i = 0; i < node.named.length; i++) {
+      ConstantRecordNamedField namedField = node.named[i];
+      Constant? value = visitConstant(namedField.value);
+      if (value != null) {
+        (named ??= List.of(node.named))[i] =
+            ConstantRecordNamedField(namedField.name, value);
+      }
+    }
+    if (recordType == null && positional == null && named == null) {
+      return null;
+    } else {
+      return RecordConstant(positional ?? node.positional, named ?? node.named,
+          recordType ?? node.recordType);
+    }
+  }
+
+  @override
   Constant? visitTypeLiteralConstant(TypeLiteralConstant node) {
     DartType? type = visitDartType(node.type);
     return type == null ? null : TypeLiteralConstant(type);

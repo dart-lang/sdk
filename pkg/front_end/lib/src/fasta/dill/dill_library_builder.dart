@@ -88,6 +88,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     lazyExportScope.libraryBuilder = this;
   }
 
+  @override
+  LibraryBuilder get origin => this;
+
   void ensureLoaded() {
     if (!isReadyToBuild) throw new StateError("Not ready to build.");
     if (isBuilt && !isBuiltAndMarked) {

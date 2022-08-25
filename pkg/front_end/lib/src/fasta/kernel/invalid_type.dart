@@ -118,4 +118,15 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
       IntersectionType node, Set<TypedefType> visitedTypedefs) {
     return node.right.accept1(this, visitedTypedefs);
   }
+
+  @override
+  bool visitRecordType(RecordType node, Set<TypedefType> visitedTypedefs) {
+    for (DartType type in node.positional) {
+      if (type.accept1(this, visitedTypedefs)) return true;
+    }
+    for (NamedType namedType in node.named) {
+      if (namedType.type.accept1(this, visitedTypedefs)) return true;
+    }
+    return false;
+  }
 }

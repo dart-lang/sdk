@@ -1161,6 +1161,15 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
   bool visitTypedefType(TypedefType node) {
     return anyTypeVariables(node.typeArguments);
   }
+
+  @override
+  bool visitRecordType(RecordType node) {
+    if (anyTypeVariables(node.positional)) return true;
+    for (NamedType namedType in node.named) {
+      if (namedType.type.accept(this)) return true;
+    }
+    return false;
+  }
 }
 
 /// A representation of a found non-simplicity issue in bounds

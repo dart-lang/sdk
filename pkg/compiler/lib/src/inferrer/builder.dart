@@ -726,6 +726,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
   }
 
   @override
+  TypeInformation visitRecordLiteral(ir.RecordLiteral node) {
+    return defaultExpression(node);
+  }
+
+  @override
   TypeInformation visitReturnStatement(ir.ReturnStatement node) {
     ir.Node expression = node.expression;
     recordReturnType(expression == null ? _types.nullType : visit(expression));
@@ -2320,6 +2325,11 @@ class TypeInformationConstantVisitor
     return builder.createSetTypeInformation(ConstantReference(expression, node),
         node.entries.map((e) => visitConstant(e)),
         isConst: true);
+  }
+
+  @override
+  TypeInformation visitRecordConstant(ir.RecordConstant node) {
+    return defaultConstant(node);
   }
 
   @override

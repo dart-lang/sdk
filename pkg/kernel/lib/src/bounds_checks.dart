@@ -832,6 +832,25 @@ class VarianceCalculator
   }
 
   @override
+  int visitRecordType(RecordType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
+    int result = Variance.unrelated;
+    for (DartType positionalType in node.positional) {
+      result = Variance.meet(
+          result,
+          computeVariance(typeParameter, positionalType,
+              computedVariances: computedVariances));
+    }
+    for (NamedType namedType in node.named) {
+      result = Variance.meet(
+          result,
+          computeVariance(typeParameter, namedType.type,
+              computedVariances: computedVariances));
+    }
+    return result;
+  }
+
+  @override
   int visitNeverType(NeverType node,
       Map<TypeParameter, Map<DartType, int>> computedVariances) {
     return Variance.unrelated;

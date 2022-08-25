@@ -97,6 +97,27 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
+  void visitRecordType(ir.RecordType node, StringBuffer sb) {
+    sb.write('Record');
+    sb.write('(');
+    _writeTypes(node.positional, sb);
+    if (node.named.isNotEmpty) {
+      if (node.positional.isNotEmpty) {
+        sb.write(',');
+      }
+      String comma = '';
+      for (ir.NamedType namedType in node.named) {
+        sb.write(comma);
+        sb.write(namedType.name);
+        sb.write(': ');
+        writeType(namedType.type, sb);
+        comma = ',';
+      }
+    }
+    sb.write(')');
+  }
+
+  @override
   void visitInterfaceType(ir.InterfaceType node, StringBuffer sb) {
     sb.write(node.classNode.name);
     _writeTypeArguments(node.typeArguments, sb);

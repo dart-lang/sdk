@@ -301,6 +301,11 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
   }
 
   @override
+  void visitRecordConstant(ir.RecordConstant node) {
+    return defaultConstant(node);
+  }
+
+  @override
   void visitSymbolConstant(ir.SymbolConstant node) {
     // TODO(johnniwinther): Handle the library reference.
     registry.registerSymbolLiteral(node.name);

@@ -174,7 +174,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   final Library library;
 
-  final SourceLibraryBuilder? _origin;
+  final SourceLibraryBuilder? _immediateOrigin;
 
   final List<SourceFunctionBuilder> nativeMethods = <SourceFunctionBuilder>[];
 
@@ -307,7 +307,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
         referencesFromIndexed =
             referencesFrom == null ? null : new IndexedLibrary(referencesFrom),
-        _origin = origin,
+        _immediateOrigin = origin,
         _omittedTypeDeclarationBuilders = omittedTypes,
         super(
             fileUri,
@@ -1587,7 +1587,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
-  SourceLibraryBuilder get origin => _origin ?? this;
+  bool get isPatch => _immediateOrigin != null;
+
+  @override
+  SourceLibraryBuilder get origin {
+    SourceLibraryBuilder? origin = _immediateOrigin;
+    if (origin != null && origin.isPart) {
+      origin = origin.partOfLibrary as SourceLibraryBuilder;
+    }
+    return origin?.origin ?? this;
+  }
 
   @override
   Uri get importUri => library.importUri;

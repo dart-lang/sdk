@@ -2,201 +2,71 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// SharedOptions=--enable-experiment=records
+
 main() {
   (int, int) record1 = (1, 2);
-//^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
-//                     ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
   print(record1);
   (int x, int y) record1Named = (1, 2);
-//^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
-//                              ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
   print(record1Named);
 
   (int, int, ) record2 = (1, 2);
-//^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
-//                       ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
   print(record2);
 
   (int x, int y, ) record2Named = (1, 2);
-//^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
-//                                ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
   print(record2Named);
 
   (int, int, {int a, int b}) record3 = (1, 2, a: 3, b: 4);
-//^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
-//                                     ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
   print(record3);
 
   (int x, int y, {int a, int b}) record3Named = (1, 2, a: 3, b: 4);
-//^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
-//                                              ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
   print(record3Named);
 
   (int, int, {int a, int b, }) record4 = (1, 2, a: 3, b: 4);
-//^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
-//                                       ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
   print(record4);
 
   (int x, int y, {int a, int b, }) record4Named = (1, 2, a: 3, b: 4);
-//^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
-//                                                ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
   print(record4Named);
 
   print(foo((42, b: true), 42));
-  //        ^
-  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
 
   Bar b = new Bar();
   print(b.foo(42));
   (int, int) Function ((int, int) a) z1 = ((int, int) a) { return (42, 42); };
-//^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
-//                     ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
-//                                         ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
-//                                                                ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
 
   final (int x, int y) finalRecordType = (42, 42);
-  //    ^
-  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
-  //                                     ^
-  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
 
   List<(int, int)> listOfRecords = [];
-  //   ^
-  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
 
   var listOfRecords2 = <(int, int)>[];
-  //                    ^
-  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
 }
 
 (int, T) f1<T>(T t) {
-// [error column 1, length 1]
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
   return (42, t);
-  //     ^
-  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
 }
 
 (int, T) f2<T>(T t) => (42, t);
-// [error column 1, length 1]
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
-//                     ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
 
 (int a, String b) get topLevelGetterType => throw '';
-// [error column 1, length 1]
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
 
 (int, int) foo((int, {bool b}) inputRecord, int x) {
-// [error column 1, length 1]
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
-//             ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
   if (inputRecord.b) return (42, 42);
-  //                        ^
-  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
   return (1, 1, );
-  //     ^
-  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
 }
 
 class Bar {
   (int, int) foo(int x) => (42, 42);
-//^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
-//                         ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
 
   static (int x, int y) staticRecordType = (42, 42);
-  //     ^
-  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
-  //                                       ^
-  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
 
   (int a, String b) get instanceGetterType => throw '';
-//^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
 
   static (int a, String b) get staticGetterType => throw '';
-//       ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
 
   (int, T) f1<T>(T t) {
-//^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
     return (42, t);
-    //     ^
-    // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-    // [cfe] This requires the experimental 'records' language feature to be enabled.
   }
 
   (int, T) f2<T>(T t) => (42, t);
-//^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
-  //                     ^
-  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the experimental 'records' language feature to be enabled.
 }
 

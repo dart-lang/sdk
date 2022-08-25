@@ -150,6 +150,18 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitRecordIndexGet(RecordIndexGet node) {
+    visited.add(ExpressionKind.RecordIndexGet);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRecordNameGet(RecordNameGet node) {
+    visited.add(ExpressionKind.RecordNameGet);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitDynamicGet(DynamicGet node) {
     visited.add(ExpressionKind.DynamicGet);
     node.visitChildren(this);
@@ -448,6 +460,12 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitMapLiteral(MapLiteral node) {
     visited.add(ExpressionKind.MapLiteral);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRecordLiteral(RecordLiteral node) {
+    visited.add(ExpressionKind.RecordLiteral);
     node.visitChildren(this);
   }
 
@@ -756,6 +774,12 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitRecordType(RecordType node) {
+    visited.add(DartTypeKind.RecordType);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     visited.add(NodeKind.NamedType);
     node.visitChildren(this);
@@ -820,6 +844,12 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitSetConstant(SetConstant node) {
     visited.add(ConstantKind.SetConstant);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRecordConstant(RecordConstant node) {
+    visited.add(ConstantKind.RecordConstant);
     node.visitChildren(this);
   }
 
@@ -941,6 +971,12 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitSetConstantReference(SetConstant node) {
     visited.add(ConstantKind.SetConstant);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRecordConstantReference(RecordConstant node) {
+    visited.add(ConstantKind.RecordConstant);
     node.visitChildren(this);
   }
 
@@ -1076,6 +1112,9 @@ enum ExpressionKind {
   Not,
   NullCheck,
   NullLiteral,
+  RecordIndexGet,
+  RecordLiteral,
+  RecordNameGet,
   RedirectingFactoryTearOff,
   Rethrow,
   SetConcatenation,
@@ -1131,6 +1170,7 @@ enum DartTypeKind {
   InvalidType,
   NeverType,
   NullType,
+  RecordType,
   TypeParameterType,
   TypedefType,
   VoidType,
@@ -1146,6 +1186,7 @@ enum ConstantKind {
   ListConstant,
   MapConstant,
   NullConstant,
+  RecordConstant,
   RedirectingFactoryTearOffConstant,
   SetConstant,
   StaticTearOffConstant,

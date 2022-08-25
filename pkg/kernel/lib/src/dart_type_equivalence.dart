@@ -101,6 +101,59 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   }
 
   @override
+  bool visitRecordType(RecordType node, DartType other) {
+    if (other is RecordType) {
+      if (!_checkAndRegisterNullabilities(
+          node.declaredNullability, other.declaredNullability)) {
+        return false;
+      }
+
+      // Perform simple number checks before the checks on parts.
+      if (node.positional.length != other.positional.length) {
+        return false;
+      }
+      if (node.named.length != other.named.length) {
+        return false;
+      }
+
+      bool result = true;
+
+      for (int i = 0; result && i < node.positional.length; ++i) {
+        if (!node.positional[i].accept1(this, other.positional[i])) {
+          result = false;
+        }
+      }
+
+      // The named fields of [RecordType]s are supposed to be sorted, so we can
+      // use a linear search to compare them.
+      int nodeIndex = 0;
+      int otherIndex = 0;
+      while (result && nodeIndex < node.named.length) {
+        NamedType nodeNamedType = node.named[nodeIndex];
+        NamedType otherNamedType = other.named[otherIndex];
+        int comparisonResult =
+            nodeNamedType.name.compareTo(otherNamedType.name);
+        if (comparisonResult == 0) {
+          // nodeNamedType.name == otherNamedType.name
+          result = nodeNamedType.type.accept1(this, otherNamedType.type);
+          otherIndex++;
+          nodeIndex++;
+        } else if (comparisonResult < 0) {
+          // nodeNamedType.name < otherNamedType.name
+          nodeIndex++;
+        } else {
+          // nodeNamedType.name > otherNamedType.name
+          // 'otherNamedType.name' is not found in 'node.named'.
+          result = false;
+        }
+      }
+
+      return result;
+    }
+    return false;
+  }
+
+  @override
   bool visitInterfaceType(InterfaceType node, DartType other) {
     // First, check Object*, Object?.
     if (equateTopTypes && coreTypes.isTop(node)) {
