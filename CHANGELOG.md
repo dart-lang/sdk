@@ -106,6 +106,7 @@ Updated the Linter to `1.27.0`, which includes changes that
 
 - Remove remaining support for `.packages` files. The flag
   `--legacy-packages-file` is no longer supported.
+- Support a new field `funding` in pubspec.yaml.
 
 #### dart2js
 

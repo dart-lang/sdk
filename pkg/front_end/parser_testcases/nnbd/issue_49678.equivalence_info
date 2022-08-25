@@ -1,0 +1,8 @@
+files:
+  - issue_49678.dart
+  - issue_49678_prime.dart
+filters:
+  - ignoreListenerArguments
+ignored:
+  - beginParenthesizedExpressionOrRecordLiteral
+  - endParenthesizedExpression

@@ -6,8 +6,8 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-String paddedHex(int value, [int bytes = 0]) =>
-    value.toRadixString(16).padLeft(2 * bytes, '0');
+String paddedHex(int value, [int? bytes]) =>
+    value.toRadixString(16).padLeft(2 * (bytes ?? 0), '0');
 
 class Reader {
   final ByteData bdata;
@@ -35,23 +35,25 @@ class Reader {
         _endian = endian,
         bdata = ByteData.sublistView(File(path).readAsBytesSync());
 
-  /// Returns a reader focused on a different portion of the underlying buffer.
-  /// If size is not provided, then the new reader extends to the end of the
-  /// buffer.
-  Reader refocusedCopy(int pos, [int? size]) {
-    assert(pos >= 0 && pos < bdata.buffer.lengthInBytes);
+  // Similar to the sublistView constructor for classes in dart:typed-data.
+  // That is, it creates a new reader that views a subset of the underlying
+  // buffer currently viewed by [this]. Thus, [pos] and [size] are relative
+  // to the view of [this], not to the underlying buffer as a whole.
+  Reader shrink(int pos, [int? size]) {
+    assert(pos >= 0 && pos <= length);
     if (size != null) {
-      assert(size >= 0 && (pos + size) <= bdata.buffer.lengthInBytes);
+      assert(size >= 0 && (pos + size) <= length);
     } else {
-      size = bdata.buffer.lengthInBytes - pos;
+      size = length - pos;
     }
-    return Reader.fromTypedData(ByteData.view(bdata.buffer, pos, size),
+    return Reader.fromTypedData(ByteData.sublistView(bdata, pos, pos + size),
         wordSize: _wordSize, endian: _endian);
   }
 
   int get start => bdata.offsetInBytes;
   int get offset => _offset;
   int get length => bdata.lengthInBytes;
+  int get remaining => length - offset;
   bool get done => _offset >= length;
 
   Uint8List get bytes => Uint8List.sublistView(bdata);
@@ -65,7 +67,7 @@ class Reader {
   int readBytes(int size, {bool signed = false}) {
     if (_offset + size > length) {
       throw ArgumentError('attempt to read $size bytes with only '
-          '${length - _offset} bytes remaining in the reader');
+          '$remaining bytes remaining in the reader');
     }
     final start = _offset;
     _offset += size;
@@ -93,7 +95,7 @@ class Reader {
   ByteData readRawBytes(int size) {
     if (offset + size > length) {
       throw ArgumentError('attempt to read $size bytes with only '
-          '${length - _offset} bytes remaining in the reader');
+          '$remaining bytes remaining in the reader');
     }
     final start = _offset;
     _offset += size;
@@ -206,19 +208,19 @@ class Reader {
       ..writeln();
     buffer
       ..write('Start:  0x')
-      ..write(paddedHex(start, _wordSize ?? 0))
+      ..write(paddedHex(start, _wordSize))
       ..write(' (')
       ..write(start)
       ..writeln(')');
     buffer
       ..write('Offset: 0x')
-      ..write(paddedHex(offset, _wordSize ?? 0))
+      ..write(paddedHex(offset, _wordSize))
       ..write(' (')
       ..write(offset)
       ..writeln(')');
     buffer
       ..write('Length: 0x')
-      ..write(paddedHex(length, _wordSize ?? 0))
+      ..write(paddedHex(length, _wordSize))
       ..write(' (')
       ..write(length)
       ..writeln(')');

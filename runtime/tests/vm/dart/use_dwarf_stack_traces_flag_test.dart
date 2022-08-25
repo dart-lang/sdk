@@ -12,6 +12,7 @@ import "dart:io";
 
 import 'package:expect/expect.dart';
 import 'package:native_stack_traces/native_stack_traces.dart';
+import 'package:native_stack_traces/src/macho.dart';
 import 'package:path/path.dart' as path;
 
 import 'use_flag_test_helper.dart';
@@ -110,56 +111,99 @@ main(List<String> args) async {
     // Check with DWARF in generated snapshot.
     await compareTraces(nonDwarfTrace1, output1, output2, scriptDwarfSnapshot);
 
-    // Currently there are no appropriate buildtools on the simulator trybots as
-    // normally they compile to ELF and don't need them for compiling assembly
-    // snapshots.
-    if ((Platform.isLinux || Platform.isMacOS) && !isSimulator) {
-      final scriptAssembly = path.join(tempDir, 'dwarf_assembly.S');
-      final scriptDwarfAssemblyDebugInfo =
-          path.join(tempDir, 'dwarf_assembly_info.so');
-      final scriptDwarfAssemblySnapshot =
-          path.join(tempDir, 'dwarf_assembly.so');
-      // We get a separate .dSYM bundle on MacOS.
-      final scriptDwarfAssemblyDebugSnapshot =
-          scriptDwarfAssemblySnapshot + (Platform.isMacOS ? '.dSYM' : '');
-
-      await run(genSnapshot, <String>[
-        // We test --dwarf-stack-traces-mode, not --dwarf-stack-traces, because
-        // the latter is a handler that sets the former and also may change
-        // other flags. This way, we limit the difference between the two
-        // snapshots and also directly test the flag saved as a VM global flag.
-        '--dwarf-stack-traces-mode',
-        '--save-debugging-info=$scriptDwarfAssemblyDebugInfo',
-        '--snapshot-kind=app-aot-assembly',
-        '--assembly=$scriptAssembly',
-        scriptDill,
-      ]);
-
-      await assembleSnapshot(scriptAssembly, scriptDwarfAssemblySnapshot,
-          debug: true);
-
-      // Run the resulting Dwarf-AOT compiled script.
-      final assemblyOutput1 = await runTestProgram(aotRuntime, <String>[
-        '--dwarf-stack-traces-mode',
-        scriptDwarfAssemblySnapshot,
-        scriptDill,
-      ]);
-      final assemblyOutput2 = await runTestProgram(aotRuntime, <String>[
-        '--no-dwarf-stack-traces-mode',
-        scriptDwarfAssemblySnapshot,
-        scriptDill,
-      ]);
-
-      // Check with DWARF in assembled snapshot.
-      await compareTraces(nonDwarfTrace1, assemblyOutput1, assemblyOutput2,
-          scriptDwarfAssemblyDebugSnapshot,
-          fromAssembly: true);
-      // Check with DWARF from separate debugging information.
-      await compareTraces(nonDwarfTrace1, assemblyOutput1, assemblyOutput2,
-          scriptDwarfAssemblyDebugInfo,
-          fromAssembly: true);
-    }
+    await testAssembly(tempDir, scriptDill, nonDwarfTrace1);
   });
+}
+
+const _lipoBinary = "/usr/bin/lipo";
+
+Future<void> testAssembly(
+    String tempDir, String scriptDill, List<String> nonDwarfTrace) async {
+  // Currently there are no appropriate buildtools on the simulator trybots as
+  // normally they compile to ELF and don't need them for compiling assembly
+  // snapshots.
+  if (isSimulator || (!Platform.isLinux && !Platform.isMacOS)) return;
+
+  final scriptAssembly = path.join(tempDir, 'dwarf_assembly.S');
+  final scriptDwarfAssemblyDebugInfo =
+      path.join(tempDir, 'dwarf_assembly_info.so');
+  final scriptDwarfAssemblySnapshot = path.join(tempDir, 'dwarf_assembly.so');
+  // We get a separate .dSYM bundle on MacOS.
+  final scriptDwarfAssemblyDebugSnapshot =
+      scriptDwarfAssemblySnapshot + (Platform.isMacOS ? '.dSYM' : '');
+
+  await run(genSnapshot, <String>[
+    // We test --dwarf-stack-traces-mode, not --dwarf-stack-traces, because
+    // the latter is a handler that sets the former and also may change
+    // other flags. This way, we limit the difference between the two
+    // snapshots and also directly test the flag saved as a VM global flag.
+    '--dwarf-stack-traces-mode',
+    '--save-debugging-info=$scriptDwarfAssemblyDebugInfo',
+    '--snapshot-kind=app-aot-assembly',
+    '--assembly=$scriptAssembly',
+    scriptDill,
+  ]);
+
+  await assembleSnapshot(scriptAssembly, scriptDwarfAssemblySnapshot,
+      debug: true);
+
+  // Run the resulting Dwarf-AOT compiled script.
+  final assemblyOutput1 = await runTestProgram(aotRuntime, <String>[
+    '--dwarf-stack-traces-mode',
+    scriptDwarfAssemblySnapshot,
+    scriptDill,
+  ]);
+  final assemblyOutput2 = await runTestProgram(aotRuntime, <String>[
+    '--no-dwarf-stack-traces-mode',
+    scriptDwarfAssemblySnapshot,
+    scriptDill,
+  ]);
+
+  // Check with DWARF in assembled snapshot.
+  await compareTraces(nonDwarfTrace, assemblyOutput1, assemblyOutput2,
+      scriptDwarfAssemblyDebugSnapshot,
+      fromAssembly: true);
+  // Check with DWARF from separate debugging information.
+  await compareTraces(nonDwarfTrace, assemblyOutput1, assemblyOutput2,
+      scriptDwarfAssemblyDebugInfo,
+      fromAssembly: true);
+
+  // Next comes tests for MacOS universal binaries.
+  if (!Platform.isMacOS) return;
+
+  // Test this before continuing.
+  if (!await File(_lipoBinary).exists()) {
+    Expect.fail("missing lipo binary");
+  }
+
+  // Create empty MachO files (just a header) for each of the possible
+  // architectures.
+  final emptyFiles = <String, String>{};
+  for (final arch in _machOArchNames.values) {
+    // Don't create an empty file for the current architecture.
+    if (arch == dartNameForCurrentArchitecture) continue;
+    final contents = emptyMachOForArchitecture(arch);
+    Expect.isNotNull(contents);
+    final emptyPath = path.join(tempDir, "empty_$arch.so");
+    await File(emptyPath).writeAsBytes(contents!, flush: true);
+    emptyFiles[arch] = emptyPath;
+  }
+
+  Future<void> testUniversalBinary(
+      String binaryPath, List<String> machoFiles) async {
+    await run(
+        _lipoBinary, <String>[...machoFiles, '-create', '-output', binaryPath]);
+    await compareTraces(
+        nonDwarfTrace, assemblyOutput1, assemblyOutput2, binaryPath,
+        fromAssembly: true);
+  }
+
+  final scriptDwarfAssemblyDebugSnapshotFile =
+      MachO.handleDSYM(scriptDwarfAssemblyDebugSnapshot);
+  await testUniversalBinary(path.join(tempDir, "ub-single"),
+      <String>[scriptDwarfAssemblyDebugSnapshotFile]);
+  await testUniversalBinary(path.join(tempDir, "ub-multiple"),
+      <String>[...emptyFiles.values, scriptDwarfAssemblyDebugSnapshotFile]);
 }
 
 class DwarfTestOutput {
@@ -206,21 +250,22 @@ Future<void> compareTraces(List<String> nonDwarfTrace, DwarfTestOutput output1,
 
   // Check that build IDs match for traces from running ELF snapshots.
   if (!fromAssembly) {
-    Expect.isNotNull(dwarf!.buildId);
-    print('Dwarf build ID: "${dwarf.buildId!}"');
+    final dwarfBuildId = dwarf!.buildId();
+    Expect.isNotNull(dwarfBuildId);
+    print('Dwarf build ID: "${dwarfBuildId!}"');
     // We should never generate an all-zero build ID.
-    Expect.notEquals(dwarf.buildId, "00000000000000000000000000000000");
+    Expect.notEquals(dwarfBuildId, "00000000000000000000000000000000");
     // This is a common failure case as well, when HashBitsContainer ends up
     // hashing over seemingly empty sections.
-    Expect.notEquals(dwarf.buildId, "01000000010000000100000001000000");
+    Expect.notEquals(dwarfBuildId, "01000000010000000100000001000000");
     final buildId1 = buildId(output1.trace);
     Expect.isFalse(buildId1.isEmpty);
     print('Trace 1 build ID: "${buildId1}"');
-    Expect.equals(dwarf.buildId, buildId1);
+    Expect.equals(dwarfBuildId, buildId1);
     final buildId2 = buildId(output2.trace);
     Expect.isFalse(buildId2.isEmpty);
     print('Trace 2 build ID: "${buildId2}"');
-    Expect.equals(dwarf.buildId, buildId2);
+    Expect.equals(dwarfBuildId, buildId2);
   }
 
   final decoder = DwarfStackTraceDecoder(dwarf!);
@@ -388,3 +433,21 @@ final _dsoBaseRE = RegExp(r'isolate_dso_base: ([a-f\d]+)');
 
 Iterable<int> dsoBaseAddresses(Iterable<String> lines) =>
     parseUsingAddressRegExp(_dsoBaseRE, lines);
+
+// We only list architectures supported by the current CpuType enum in
+// pkg:native_stack_traces/src/macho.dart.
+const _machOArchNames = <String, String>{
+  "ARM": "arm",
+  "ARM64": "arm64",
+  "IA32": "ia32",
+  "X64": "x64",
+};
+
+String? get dartNameForCurrentArchitecture {
+  for (final entry in _machOArchNames.entries) {
+    if (buildDir.endsWith(entry.key)) {
+      return entry.value;
+    }
+  }
+  return null;
+}

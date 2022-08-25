@@ -14,13 +14,18 @@ abstract class DwarfContainerSymbol {
 }
 
 abstract class DwarfContainer {
+  /// Returns the architecture of the container as reported by Dart (e.g.,
+  /// 'x64' or 'arm'). Returns null if the architecture of the container does
+  /// not match any expected Dart architecture.
+  String? get architecture;
+
   Reader debugInfoReader(Reader containerReader);
   Reader lineNumberInfoReader(Reader containerReader);
   Reader abbreviationsTableReader(Reader containerReader);
   DwarfContainerSymbol? staticSymbolAt(int address);
 
-  int get vmStartAddress;
-  int get isolateStartAddress;
+  int? get vmStartAddress;
+  int? get isolateStartAddress;
 
   String? get buildId;
 
@@ -28,4 +33,11 @@ abstract class DwarfContainer {
   DwarfContainerStringTable? get debugLineStringTable;
 
   void writeToStringBuffer(StringBuffer buffer);
+
+  @override
+  String toString() {
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
+  }
 }

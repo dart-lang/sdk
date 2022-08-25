@@ -8,6 +8,7 @@ import 'dart:io' as io;
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:native_stack_traces/native_stack_traces.dart';
+import 'package:native_stack_traces/src/macho.dart' show CpuType;
 import 'package:path/path.dart' as path;
 
 ArgParser _createBaseDebugParser(ArgParser parser) => parser
@@ -39,6 +40,11 @@ final ArgParser _findParser =
           abbr: 'x',
           negatable: false,
           help: 'Always parse integers as hexadecimal')
+      ..addOption('architecture',
+          abbr: 'a',
+          help: 'Architecture on which the program is run',
+          allowed: CpuType.values.map((v) => v.dartName),
+          valueHelp: 'ARCH')
       ..addOption('vm_start',
           help: 'Absolute address for start of VM instructions',
           valueHelp: 'PC')
@@ -217,7 +223,7 @@ void find(ArgResults options) {
     return usageError('need both VM start and isolate start');
   }
 
-  var vmStart = dwarf.vmStartAddress;
+  var vmStart = dwarf.vmStartAddress();
   if (options['vm_start'] != null) {
     final address = tryParseIntAddress(options['vm_start']);
     if (address == null) {
@@ -226,8 +232,12 @@ void find(ArgResults options) {
     }
     vmStart = address;
   }
+  if (vmStart == null) {
+    return usageError('no VM start address found, one must be specified '
+        'with --vm_start');
+  }
 
-  var isolateStart = dwarf.isolateStartAddress;
+  var isolateStart = dwarf.isolateStartAddress();
   if (options['isolate_start'] != null) {
     final address = tryParseIntAddress(options['isolate_start']);
     if (address == null) {
@@ -236,8 +246,15 @@ void find(ArgResults options) {
     }
     isolateStart = address;
   }
+  if (isolateStart == null) {
+    return usageError('no isolate start address found, one must be specified '
+        'with --isolate_start');
+  }
 
-  final header = StackTraceHeader.fromStarts(isolateStart, vmStart);
+  final arch = options['architecture'];
+
+  final header =
+      StackTraceHeader.fromStarts(isolateStart, vmStart, architecture: arch);
 
   final locations = <PCOffset>[];
   for (final String s in [
@@ -253,7 +270,7 @@ void find(ArgResults options) {
   for (final offset in locations) {
     final addr = dwarf.virtualAddressOf(offset);
     final frames = dwarf
-        .callInfoFor(addr, includeInternalFrames: verbose)
+        .callInfoForPCOffset(offset, includeInternalFrames: verbose)
         ?.map((CallInfo c) => '  $c');
     final addrString =
         addr > 0 ? '0x${addr.toRadixString(16)}' : addr.toString();
@@ -307,7 +324,7 @@ Future<void> dump(ArgResults options) async {
   }
   final dwarf = _loadFromFile(options.rest.first, usageError);
   if (dwarf == null) {
-    return usageError("'${options.rest.first}' contains no DWARF information");
+    return;
   }
 
   final output = options['output'] != null
