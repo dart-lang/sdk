@@ -45,10 +45,12 @@ class StackTraceHeader {
   bool? get compressedPointers => _compressed;
   bool? get usingSimulator => _simulated;
 
-  static StackTraceHeader fromStarts(int isolateStart, int vmStart) =>
+  static StackTraceHeader fromStarts(int isolateStart, int vmStart,
+          {String? architecture}) =>
       StackTraceHeader()
         .._isolateStart = isolateStart
-        .._vmStart = vmStart;
+        .._vmStart = vmStart
+        .._arch = architecture;
 
   /// Try and parse the given line as one of the recognized lines in the
   /// header of a non-symbolic stack trace.

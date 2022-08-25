@@ -1,3 +1,10 @@
+## 0.5.2
+
+- Adjusted logic for finding the DWARF MachO file in a dSYM.
+- Added support for retrieving DWARF information from universal
+  macOS binaries using the new architecture information.
+- Added logic to handle unknown DW_AT, DW_FORM, and DW_TAG codes.
+
 ## 0.5.1
 
 - Parse new OS and architecture information from non-symbolic stack
