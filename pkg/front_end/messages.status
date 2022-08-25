@@ -888,7 +888,7 @@ UndefinedExtensionSetter/example: Fail
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
 UnmatchedAugmentationClassMember/analyzerCode: Fail
-UnmatchedAugmentationClassMember/example: Fail
+UnmatchedAugmentationClassMember/part_wrapped_script: Fail # Uses imports
 UnmatchedToken/part_wrapped_script1: Fail
 UnmatchedToken/part_wrapped_script3: Fail
 UnmatchedToken/script1: Fail

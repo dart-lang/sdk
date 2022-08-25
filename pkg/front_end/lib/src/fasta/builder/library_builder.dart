@@ -44,6 +44,9 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   List<Export> get exporters;
 
+  @override
+  LibraryBuilder get origin;
+
   abstract LibraryBuilder? partOfLibrary;
 
   LibraryBuilder get nameOriginBuilder;
@@ -380,6 +383,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   StringBuffer printOn(StringBuffer buffer) {
-    return buffer..write(name ?? (isPart ? fileUri : importUri));
+    return buffer..write(isPart || isPatch ? fileUri : importUri);
   }
 }

@@ -5622,6 +5622,15 @@ MacroClassNotDeclaredMacro:
 UnmatchedAugmentationClassMember:
   problemMessage: "Augmentation member '#name' doesn't match a member in the augmented class."
   correctionMessage: "Try changing the name to an existing member or removing the 'augment' modifier."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      class Class {}
+    lib.dart:
+      augment class Class {
+        augment void method() {}
+      }
 
 NonAugmentationClassMemberConflict:
   problemMessage: "Member '#name' conflicts with an existing member of the same name in the augmented class."
