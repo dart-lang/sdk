@@ -23,10 +23,13 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
+import 'package:collection/collection.dart';
 
 /// A fix producer that produces changes that will fix multiple diagnostics in
 /// one or more files.
@@ -128,6 +131,12 @@ class BulkFixProcessor {
     ],
   };
 
+  static final Set<String> _errorCodes =
+      errorCodeValues.map((ErrorCode code) => code.name.toLowerCase()).toSet();
+
+  static final Set<String> _lintCodes =
+      Registry.ruleRegistry.rules.map((rule) => rule.name).toSet();
+
   /// The service used to report errors when building fixes.
   final InstrumentationService instrumentationService;
 
@@ -168,16 +177,58 @@ class BulkFixProcessor {
     return details;
   }
 
-  /// Return a change builder that has been used to create fixes for the
-  /// diagnostics in the libraries in the given [contexts].
-  Future<ChangeBuilder> fixErrors(List<AnalysisContext> contexts) async {
+  /// Return a [BulkFixRequestResult] that includes a change builder that has
+  /// been used to create fixes for the diagnostics in the libraries in the
+  /// given [contexts].
+  Future<BulkFixRequestResult> fixErrors(List<AnalysisContext> contexts) async {
+    // Ensure specified codes are defined.
+    final codes = this.codes;
+    if (codes != null) {
+      var undefinedCodes = <String>[];
+      for (var code in codes) {
+        if (!_errorCodes.contains(code) && !_lintCodes.contains(code)) {
+          undefinedCodes.add(code);
+        }
+      }
+      if (undefinedCodes.isNotEmpty) {
+        var count = undefinedCodes.length;
+        var diagnosticCodes = undefinedCodes.quotedAndCommaSeparatedWithAnd;
+        return BulkFixRequestResult.error(
+            "The ${'diagnostic'.pluralized(count)} $diagnosticCodes ${count.isAre} not defined by the analyzer.");
+      }
+    }
+
+    var lints = codes?.where(_lintCodes.contains).toList() ?? [];
+
     for (var context in contexts) {
+      var lintCodesChecked = false;
       var pathContext = context.contextRoot.resourceProvider.pathContext;
       for (var path in context.contextRoot.analyzedFiles()) {
         if (!file_paths.isDart(pathContext, path) ||
             file_paths.isGenerated(path)) {
           continue;
         }
+
+        // Check that defined lints are enabled.
+        if (!lintCodesChecked) {
+          var missingLints = <String>[];
+          for (var lint in lints) {
+            if (context.analysisOptions.lintRules
+                .none((rule) => rule.name == lint)) {
+              missingLints.add(lint);
+            }
+          }
+          if (missingLints.isNotEmpty) {
+            var count = missingLints.length;
+            var lintCodes = missingLints.quotedAndCommaSeparatedWithAnd;
+            return BulkFixRequestResult.error(
+                "The ${'lint'.pluralized(count)} $lintCodes ${count.isAre} not enabled; add ${count.itThem} to your analysis options and try again.");
+          }
+
+          // Only check codes once per context.
+          lintCodesChecked = true;
+        }
+
         var library = await context.currentSession.getResolvedLibrary(path);
         if (library is ResolvedLibraryResult) {
           await _fixErrorsInLibrary(library);
@@ -185,7 +236,7 @@ class BulkFixProcessor {
       }
     }
 
-    return builder;
+    return BulkFixRequestResult(builder);
   }
 
   /// Return a change builder that has been used to create fixes for the
@@ -415,6 +466,13 @@ class BulkFixProcessor {
   }
 }
 
+class BulkFixRequestResult {
+  final ChangeBuilder? builder;
+  final String? errorMessage;
+  BulkFixRequestResult(this.builder) : errorMessage = null;
+  BulkFixRequestResult.error(this.errorMessage) : builder = null;
+}
+
 /// Maps changes to library paths.
 class ChangeMap {
   /// Map of paths to maps of codes to counts.
@@ -425,4 +483,13 @@ class ChangeMap {
     var changes = libraryMap.putIfAbsent(libraryPath, () => {});
     changes.update(code, (value) => value + 1, ifAbsent: () => 1);
   }
+}
+
+extension on String {
+  String pluralized(int count) => count == 1 ? toString() : '${toString()}s';
+}
+
+extension on int {
+  String get isAre => this == 1 ? 'is' : 'are';
+  String get itThem => this == 1 ? 'it' : 'them';
 }
