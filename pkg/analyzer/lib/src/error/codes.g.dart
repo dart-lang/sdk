@@ -1130,9 +1130,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the duplicated name
   static const CompileTimeErrorCode DUPLICATE_FIELD_NAME = CompileTimeErrorCode(
     'DUPLICATE_FIELD_NAME',
-    "The field name '{0}' is already used.",
+    "The field name '{0}' is already used in this record.",
     correctionMessage: "Try renaming the field.",
   );
 
@@ -2277,6 +2279,34 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The name of a factory constructor must be the same as the name of the "
         "immediately enclosing class.",
     hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode INVALID_FIELD_NAME_FROM_OBJECT =
+      CompileTimeErrorCode(
+    'INVALID_FIELD_NAME',
+    "Record field names can't be the same as a member from 'Object'.",
+    correctionMessage: "Try using a different name for the field.",
+    uniqueName: 'INVALID_FIELD_NAME_FROM_OBJECT',
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode INVALID_FIELD_NAME_POSITIONAL =
+      CompileTimeErrorCode(
+    'INVALID_FIELD_NAME',
+    "Record field names can't be a dollar sign followed by digits because "
+        "those are used to access positional fields.",
+    correctionMessage: "Try using a different name for the field.",
+    uniqueName: 'INVALID_FIELD_NAME_POSITIONAL',
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode INVALID_FIELD_NAME_PRIVATE =
+      CompileTimeErrorCode(
+    'INVALID_FIELD_NAME',
+    "Record field names can't be private.",
+    correctionMessage: "Try removing the leading underscore.",
+    uniqueName: 'INVALID_FIELD_NAME_PRIVATE',
   );
 
   ///  Parameters:

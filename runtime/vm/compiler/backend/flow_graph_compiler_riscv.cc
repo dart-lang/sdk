@@ -671,8 +671,8 @@ void FlowGraphCompiler::EmitDispatchTableCall(
   // for checking purposes.
   ASSERT(cid_reg != TMP);
   intx_t imm = offset << compiler::target::kWordSizeLog2;
-  intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-  intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+  intx_t lo = ImmLo(imm);
+  intx_t hi = ImmHi(imm);
   __ slli(TMP, cid_reg, compiler::target::kWordSizeLog2);
   if (hi != 0) {
     __ lui(TMP2, hi);

@@ -728,7 +728,8 @@ void Assembler::AddImmediate(Register dest,
   }
   if (Operand::CanHold(imm, width, &op) == Operand::Immediate) {
     add(dest, rn, op, sz);
-  } else if (Operand::CanHold(-imm, width, &op) == Operand::Immediate) {
+  } else if (Operand::CanHold(-static_cast<uint64_t>(imm), width, &op) ==
+             Operand::Immediate) {
     sub(dest, rn, op, sz);
   } else {
     // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
@@ -748,7 +749,8 @@ void Assembler::AddImmediateSetFlags(Register dest,
   if (Operand::CanHold(imm, width, &op) == Operand::Immediate) {
     // Handles imm == kMinInt64.
     adds(dest, rn, op, sz);
-  } else if (Operand::CanHold(-imm, width, &op) == Operand::Immediate) {
+  } else if (Operand::CanHold(-static_cast<uint64_t>(imm), width, &op) ==
+             Operand::Immediate) {
     ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
     subs(dest, rn, op, sz);
   } else {
@@ -769,7 +771,8 @@ void Assembler::SubImmediateSetFlags(Register dest,
   if (Operand::CanHold(imm, width, &op) == Operand::Immediate) {
     // Handles imm == kMinInt64.
     subs(dest, rn, op, sz);
-  } else if (Operand::CanHold(-imm, width, &op) == Operand::Immediate) {
+  } else if (Operand::CanHold(-static_cast<uint64_t>(imm), width, &op) ==
+             Operand::Immediate) {
     ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
     adds(dest, rn, op, sz);
   } else {

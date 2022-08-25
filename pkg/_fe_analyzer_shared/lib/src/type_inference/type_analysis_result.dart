@@ -24,6 +24,15 @@ abstract class ExpressionTypeAnalysisResult<Type extends Object> {
   Type resolveShorting();
 }
 
+/// Container for the result of running type analysis on an integer literal.
+class IntTypeAnalysisResult<Type extends Object>
+    extends SimpleTypeAnalysisResult<Type> {
+  /// Whether the integer literal was converted to a double.
+  final bool convertedToDouble;
+
+  IntTypeAnalysisResult({required super.type, required this.convertedToDouble});
+}
+
 /// Container for the result of running type analysis on an expression that does
 /// not contain any null shorting.
 class SimpleTypeAnalysisResult<Type extends Object>

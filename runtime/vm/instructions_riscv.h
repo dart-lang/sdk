@@ -196,8 +196,8 @@ class PcRelativePatternBase : public ValueObject {
     Instr auipc(*reinterpret_cast<uint32_t*>(pc_));
     Instr jalr(*reinterpret_cast<uint32_t*>(pc_ + 4));
     intx_t imm = distance;
-    intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-    intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+    intx_t lo = ImmLo(imm);
+    intx_t hi = ImmHi(imm);
     *reinterpret_cast<uint32_t*>(pc_) =
         EncodeUTypeImm(hi) | EncodeRd(auipc.rd()) | EncodeOpcode(AUIPC);
     *reinterpret_cast<uint32_t*>(pc_ + 4) =

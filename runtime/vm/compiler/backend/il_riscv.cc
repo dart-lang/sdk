@@ -7547,8 +7547,8 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   const intptr_t entry_offset = __ CodeSize();
   intx_t imm = -entry_offset;
-  intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-  intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+  intx_t lo = ImmLo(imm);
+  intx_t hi = ImmHi(imm);
   __ auipc(target_address_reg, hi);
   __ add(target_address_reg, target_address_reg, offset_reg);
   __ jr(target_address_reg, lo);

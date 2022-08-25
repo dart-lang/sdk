@@ -2219,7 +2219,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
     }
     typeAnalyzer.visitRecordLiteral(node, contextType: contextType);
-    _recordLiteralResolver.reportDuplicateFieldDefinitions(node);
+    _recordLiteralResolver
+      ..reportDuplicateFieldDefinitions(node)
+      ..reportInvalidFieldNames(node);
   }
 
   @override
