@@ -716,12 +716,19 @@ class ComplexTypeInfo implements TypeInfo {
         Token afterIdentifier = next.next!;
         // TODO(jensj): Are there any other instances where it's a valid
         // (optional) record type?
-        if (!isOneOfOrEof(afterIdentifier, const [";", "=", "(", ",", ")"])) {
+        // * `;` e.g. field definition like `(int, int) x;`-
+        // * `=` e.g. field definition like `(int, int) x = (42, 42);`.
+        // * `<` e.g. method definition like `(int, int) x<T>(T t) {}`.
+        // * `(` e.g. method definition like `(int, int) x() {}`.
+        // * `,` e.g. non-last parameter like `void x((int, int) y, int z) {}`.
+        // * `)` e.g. last parameter like `void x((int, int) y) {}`.
+        if (!isOneOfOrEof(
+            afterIdentifier, const [";", "=", "<", "(", ",", ")"])) {
           if (getOrSet && isOneOfOrEof(afterIdentifier, const ["=>", "{"])) {
             // With a getter/setter in the mix we can accept more stuff, e.g.
             // these would be fine:
-            // - `(` unchecked content `)` `get` identifier `=>`.
-            // - `(` unchecked content `)` `get` identifier `{`.
+            // * `=>`: e.g. `(int, int) get x => (42, 42);`.
+            // * `{`: e.g. `(int, int) get x { }`.
             // TODO(jensj): A setter would need parenthesis so technically
             // couldn't look like this, but I don't think any other valid thing
             // could either. Should we handle that specifically?
