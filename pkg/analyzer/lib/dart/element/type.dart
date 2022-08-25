@@ -436,10 +436,10 @@ abstract class ParameterizedType implements DartType {
 abstract class RecordType implements DartType {
   @Deprecated('Use element2 instead')
   @override
-  RecordElement get element;
+  Element? get element;
 
   @override
-  RecordElement get element2;
+  Element? get element2;
 
   /// The named fields (might be empty).
   List<RecordTypeNamedField> get namedFields;
@@ -453,9 +453,6 @@ abstract class RecordType implements DartType {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class RecordTypeField {
-  /// The declaration of the field.
-  RecordFieldElement get element;
-
   /// The type of the field.
   DartType get type;
 }
@@ -465,9 +462,6 @@ abstract class RecordTypeField {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class RecordTypeNamedField implements RecordTypeField {
-  @override
-  RecordNamedFieldElement get element;
-
   /// The name of the field.
   String get name;
 }
@@ -476,10 +470,7 @@ abstract class RecordTypeNamedField implements RecordTypeField {
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class RecordTypePositionalField implements RecordTypeField {
-  @override
-  RecordPositionalFieldElement get element;
-}
+abstract class RecordTypePositionalField implements RecordTypeField {}
 
 /// The type introduced by a type parameter.
 ///

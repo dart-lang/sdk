@@ -1828,8 +1828,8 @@ class ResolutionReader {
         );
       } else if (type is RecordTypeImpl) {
         return RecordTypeImpl(
-          element2: type.element2,
-          fieldTypes: type.fieldTypes,
+          positionalFields: type.positionalFields,
+          namedFields: type.namedFields,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
             element: aliasElement,
@@ -1995,27 +1995,25 @@ class ResolutionReader {
 
   RecordTypeImpl _readRecordType() {
     final positionalFields = readTypedList(() {
-      return RecordPositionalFieldElementImpl(
-        name: _reader.readOptionalStringReference(),
-        nameOffset: -1,
+      return RecordTypePositionalFieldImpl(
         type: readRequiredType(),
       );
     });
 
     final namedFields = readTypedList(() {
-      return RecordNamedFieldElementImpl(
+      return RecordTypeNamedFieldImpl(
         name: _reader.readStringReference(),
-        nameOffset: -1,
         type: readRequiredType(),
       );
     });
 
     final nullabilitySuffix = _readNullability();
 
-    return RecordElementImpl(
+    return RecordTypeImpl(
       positionalFields: positionalFields,
       namedFields: namedFields,
-    ).instantiate(nullabilitySuffix: nullabilitySuffix);
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 
   AstNode _readRequiredNode() {

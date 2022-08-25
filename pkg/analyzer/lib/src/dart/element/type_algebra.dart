@@ -548,15 +548,28 @@ abstract class _TypeSubstitutor
   @override
   DartType visitRecordType(covariant RecordTypeImpl type) {
     final before = useCounter;
-    final fieldTypes = _mapList(type.fieldTypes);
+
+    final positionalFields = type.positionalFields.map((field) {
+      return RecordTypePositionalFieldImpl(
+        type: field.type.accept(this),
+      );
+    }).toList();
+
+    final namedFields = type.namedFields.map((field) {
+      return RecordTypeNamedFieldImpl(
+        name: field.name,
+        type: field.type.accept(this),
+      );
+    }).toList();
+
     final alias = _mapAlias(type.alias);
     if (useCounter == before) {
       return type;
     }
 
     return RecordTypeImpl(
-      element2: type.element2,
-      fieldTypes: fieldTypes,
+      positionalFields: positionalFields,
+      namedFields: namedFields,
       nullabilitySuffix: type.nullabilitySuffix,
       alias: alias,
     );

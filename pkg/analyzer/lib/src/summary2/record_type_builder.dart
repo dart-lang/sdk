@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
@@ -62,25 +61,21 @@ class RecordTypeBuilder extends TypeBuilder {
     DartType? dynamicType,
   }) {
     final positionalFields = node.positionalFields.map((field) {
-      return RecordPositionalFieldElementImpl(
-        name: field.name?.lexeme,
-        nameOffset: -1,
+      return RecordTypePositionalFieldImpl(
         type: dynamicType ?? _buildFieldType(field),
       );
     }).toList();
 
     final namedFields = node.namedFields?.fields.map((field) {
-      return RecordNamedFieldElementImpl(
+      return RecordTypeNamedFieldImpl(
         name: field.name.lexeme,
-        nameOffset: -1,
         type: dynamicType ?? _buildFieldType(field),
       );
     }).toList();
 
-    return node.type = RecordElementImpl(
+    return node.type = RecordTypeImpl(
       positionalFields: positionalFields,
       namedFields: namedFields ?? const [],
-    ).instantiate(
       nullabilitySuffix: node.question != null
           ? NullabilitySuffix.question
           : NullabilitySuffix.none,

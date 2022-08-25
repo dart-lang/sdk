@@ -7,7 +7,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -221,27 +221,34 @@ class StaticTypeAnalyzer {
   }
 
   void visitRecordLiteral(RecordLiteralImpl node, {DartType? contextType}) {
-    var positionalFields = <RecordPositionalFieldElementImpl>[];
-    var namedFields = <RecordNamedFieldElementImpl>[];
-    for (var field in node.fields) {
-      var fieldType = field.typeOrThrow;
+    final positionalFields = <RecordTypePositionalFieldImpl>[];
+    final namedFields = <RecordTypeNamedFieldImpl>[];
+    for (final field in node.fields) {
+      final fieldType = field.typeOrThrow;
       if (field is NamedExpression) {
-        var label = field.name.label;
-        namedFields.add(RecordNamedFieldElementImpl(
-            name: label.name, nameOffset: label.offset, type: fieldType));
+        namedFields.add(
+          RecordTypeNamedFieldImpl(
+            name: field.name.label.name,
+            type: fieldType,
+          ),
+        );
       } else {
-        positionalFields.add(RecordPositionalFieldElementImpl(
-            name: '', nameOffset: -1, type: fieldType));
+        positionalFields.add(
+          RecordTypePositionalFieldImpl(
+            type: fieldType,
+          ),
+        );
       }
     }
-    var element = RecordElementImpl(
-        positionalFields: positionalFields, namedFields: namedFields);
-    element.isSynthetic = true;
-    // TODO(brianwilkerson) Figure out how to get the element for the compilation unit.
-    // element.enclosingElement = (node.root as CompilationUnit).declaredElement!;
     _inferenceHelper.recordStaticType(
-        node, element.instantiate(nullabilitySuffix: NullabilitySuffix.none),
-        contextType: contextType);
+      node,
+      RecordTypeImpl(
+        positionalFields: positionalFields,
+        namedFields: namedFields,
+        nullabilitySuffix: NullabilitySuffix.none,
+      ),
+      contextType: contextType,
+    );
   }
 
   /// The Dart Language Specification, 12.9: <blockquote>The static type of a rethrow expression is

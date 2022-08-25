@@ -559,52 +559,23 @@ mixin ElementsTypesMixin {
     );
   }
 
-  RecordElementImpl recordElement({
-    List<DartType> positionalTypes = const [],
-    Map<String, DartType> namedTypes = const {},
-  }) {
-    return RecordElementImpl(
-      positionalFields: positionalTypes.map(
-        (fieldType) {
-          return recordPositionalField(type: fieldType);
-        },
-      ).toList(),
-      namedFields: namedTypes.entries.map((entry) {
-        return recordNamedField(name: entry.key, type: entry.value);
-      }).toList(),
-    );
-  }
-
-  RecordNamedFieldElementImpl recordNamedField({
-    required String name,
-    required DartType type,
-  }) {
-    return RecordNamedFieldElementImpl(
-      name: name,
-      nameOffset: -1,
-      type: type,
-    );
-  }
-
-  RecordPositionalFieldElementImpl recordPositionalField({
-    required DartType type,
-  }) {
-    return RecordPositionalFieldElementImpl(
-      name: null,
-      nameOffset: -1,
-      type: type,
-    );
-  }
-
   RecordTypeImpl recordType({
     List<DartType> positionalTypes = const [],
     Map<String, DartType> namedTypes = const {},
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    return recordElement(
-      positionalTypes: positionalTypes,
-      namedTypes: namedTypes,
-    ).instantiate(
+    return RecordTypeImpl(
+      positionalFields: positionalTypes.map((type) {
+        return RecordTypePositionalFieldImpl(
+          type: type,
+        );
+      }).toList(),
+      namedFields: namedTypes.entries.map((entry) {
+        return RecordTypeNamedFieldImpl(
+          name: entry.key,
+          type: entry.value,
+        );
+      }).toList(),
       nullabilitySuffix: nullabilitySuffix,
     );
   }

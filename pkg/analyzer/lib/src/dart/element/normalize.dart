@@ -148,8 +148,17 @@ class NormalizeHelper {
     // NORM(Record(T0, ..., Tn)) = Record(R0, ..., Rn) where Ri is NORM(Ti)
     if (T is RecordTypeImpl) {
       return RecordTypeImpl(
-        element2: T.element2,
-        fieldTypes: T.fieldTypes.map(_normalize).toList(),
+        positionalFields: T.positionalFields.map((field) {
+          return RecordTypePositionalFieldImpl(
+            type: _normalize(field.type),
+          );
+        }).toList(),
+        namedFields: T.namedFields.map((field) {
+          return RecordTypeNamedFieldImpl(
+            name: field.name,
+            type: _normalize(field.type),
+          );
+        }).toList(),
         nullabilitySuffix: NullabilitySuffix.none,
       );
     }

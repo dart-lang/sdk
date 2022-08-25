@@ -994,57 +994,36 @@ abstract class RecordTypeFieldImpl implements RecordTypeField {
 
 class RecordTypeImpl extends TypeImpl implements RecordType {
   @override
-  final RecordElementImpl element2;
+  final List<RecordTypePositionalFieldImpl> positionalFields;
 
-  /// The types of all fields, first positional, then named.
-  final List<DartType> fieldTypes;
+  @override
+  final List<RecordTypeNamedFieldImpl> namedFields;
 
   @override
   final NullabilitySuffix nullabilitySuffix;
 
   RecordTypeImpl({
-    required this.element2,
-    required this.fieldTypes,
+    required this.positionalFields,
+    required List<RecordTypeNamedFieldImpl> namedFields,
     required this.nullabilitySuffix,
     InstantiatedTypeAliasElement? alias,
-  }) : super(element2, alias: alias);
+  })  : namedFields = _sortNamedFields(namedFields),
+        super(null, alias: alias);
 
   @override
-  RecordElementImpl get element => element2;
+  Element? get element2 => null;
 
   @override
   int get hashCode {
     return Object.hash(
-      element2.positionalFields,
-      element2.namedFieldsSorted.length,
+      positionalFields.length,
+      namedFields.length,
     );
   }
 
   @Deprecated('Check element, or use getDisplayString()')
   @override
   String? get name => null;
-
-  @override
-  List<RecordTypeNamedField> get namedFields {
-    final baseIndex = element.positionalFields.length;
-    return element.namedFieldsSorted.mapIndexed((index, field) {
-      return RecordTypeNamedFieldImpl(
-        element: field,
-        name: field.name,
-        type: fieldTypes[baseIndex + index],
-      );
-    }).toList();
-  }
-
-  @override
-  List<RecordTypePositionalField> get positionalFields {
-    return element.positionalFields.mapIndexed((index, field) {
-      return RecordTypePositionalFieldImpl(
-        element: field,
-        type: fieldTypes[index],
-      );
-    }).toList();
-  }
 
   @override
   bool operator ==(Object other) {
@@ -1065,6 +1044,13 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
     if (thisPositional.length != otherPositional.length) {
       return false;
     }
+    for (var i = 0; i < thisPositional.length; i++) {
+      final thisField = thisPositional[i];
+      final otherField = otherPositional[i];
+      if (thisField.type != otherField.type) {
+        return false;
+      }
+    }
 
     final thisNamed = namedFields;
     final otherNamed = other.namedFields;
@@ -1074,12 +1060,13 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
     for (var i = 0; i < thisNamed.length; i++) {
       final thisField = thisNamed[i];
       final otherField = otherNamed[i];
-      if (thisField.name != otherField.name) {
+      if (thisField.name != otherField.name ||
+          thisField.type != otherField.type) {
         return false;
       }
     }
 
-    return TypeImpl.equalArrays(other.fieldTypes, fieldTypes);
+    return true;
   }
 
   @override
@@ -1105,23 +1092,41 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
     }
 
     return RecordTypeImpl(
-      element2: element2,
-      fieldTypes: fieldTypes,
+      positionalFields: positionalFields,
+      namedFields: namedFields,
       nullabilitySuffix: nullabilitySuffix,
     );
+  }
+
+  /// Returns [fields], if already sorted, or the sorted copy.
+  static List<RecordTypeNamedFieldImpl> _sortNamedFields(
+    List<RecordTypeNamedFieldImpl> fields,
+  ) {
+    var isSorted = true;
+    String? lastName;
+    for (final field in fields) {
+      final name = field.name;
+      if (lastName != null && lastName.compareTo(name) > 0) {
+        isSorted = false;
+        break;
+      }
+      lastName = name;
+    }
+
+    if (isSorted) {
+      return fields;
+    }
+
+    return fields.sortedBy((field) => field.name);
   }
 }
 
 class RecordTypeNamedFieldImpl extends RecordTypeFieldImpl
     implements RecordTypeNamedField {
   @override
-  final RecordNamedFieldElementImpl element;
-
-  @override
   final String name;
 
   RecordTypeNamedFieldImpl({
-    required this.element,
     required this.name,
     required super.type,
   });
@@ -1129,11 +1134,7 @@ class RecordTypeNamedFieldImpl extends RecordTypeFieldImpl
 
 class RecordTypePositionalFieldImpl extends RecordTypeFieldImpl
     implements RecordTypePositionalField {
-  @override
-  final RecordPositionalFieldElementImpl element;
-
   RecordTypePositionalFieldImpl({
-    required this.element,
     required super.type,
   });
 }
