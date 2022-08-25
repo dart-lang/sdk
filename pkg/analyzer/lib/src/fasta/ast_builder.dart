@@ -2298,7 +2298,7 @@ class AstBuilder extends StackListener {
 
     ImplementsClauseImpl? implementsClause;
     if (implementsKeyword != null) {
-      var interfaces = pop() as List<NamedType>;
+      var interfaces = popTypeList();
       implementsClause = ast.implementsClause(implementsKeyword, interfaces);
     }
     var withClause = pop(NullValue.WithClause) as WithClauseImpl;
@@ -2813,7 +2813,7 @@ class AstBuilder extends StackListener {
   @override
   void endTypeList(int count) {
     debugEvent("TypeList");
-    push(popTypedList<NamedType>(count) ?? NullValue.TypeList);
+    push(popTypedList<TypeAnnotation>(count) ?? NullValue.TypeList);
   }
 
   @override
@@ -3144,7 +3144,7 @@ class AstBuilder extends StackListener {
   @override
   void handleClassWithClause(Token withKeyword) {
     assert(optional('with', withKeyword));
-    var mixinTypes = pop() as List<NamedType>;
+    var mixinTypes = popTypeList();
     push(ast.withClause(withKeyword, mixinTypes));
   }
 
@@ -3391,7 +3391,7 @@ class AstBuilder extends StackListener {
   @override
   void handleEnumWithClause(Token withKeyword) {
     assert(optional('with', withKeyword));
-    var mixinTypes = pop() as List<NamedType>;
+    var mixinTypes = popTypeList();
     push(ast.withClause(withKeyword, mixinTypes));
   }
 
@@ -3641,7 +3641,9 @@ class AstBuilder extends StackListener {
     debugEvent("Implements");
 
     if (implementsKeyword != null) {
-      var interfaces = popTypedList2<NamedType>(interfacesCount);
+      var types = popTypedList2<TypeAnnotation>(interfacesCount);
+      // TODO(brianwilkerson) Report diagnostics for any type that's filtered out.
+      var interfaces = types.whereType<NamedType>().toList();
       push(ast.implementsClause(implementsKeyword, interfaces));
     } else {
       push(NullValue.IdentifierList);
@@ -4018,8 +4020,10 @@ class AstBuilder extends StackListener {
     debugEvent("MixinOn");
 
     if (onKeyword != null) {
-      var types = popTypedList2<NamedType>(typeCount);
-      push(ast.onClause(onKeyword, types));
+      var types = popTypedList2<TypeAnnotation>(typeCount);
+      // TODO(brianwilkerson) Report diagnostics for any type that's filtered out.
+      var onTypes = types.whereType<NamedType>().toList();
+      push(ast.onClause(onKeyword, onTypes));
     } else {
       push(NullValue.IdentifierList);
     }
@@ -4038,7 +4042,7 @@ class AstBuilder extends StackListener {
   @override
   void handleNamedMixinApplicationWithClause(Token withKeyword) {
     assert(optionalOrNull('with', withKeyword));
-    var mixinTypes = pop() as List<NamedType>;
+    var mixinTypes = popTypeList();
     push(ast.withClause(withKeyword, mixinTypes));
   }
 
@@ -4548,6 +4552,16 @@ class AstBuilder extends StackListener {
     return tailList.whereNotNull().toList();
   }
 
+  /// TODO(scheglov) This is probably not optimal.
+  List<T> popTypedList2<T>(int count) {
+    var result = <T>[];
+    for (var i = 0; i < count; i++) {
+      var element = stack.pop(null) as T;
+      result.add(element);
+    }
+    return result.reversed.toList();
+  }
+
   // List<T?>? popTypedList<T>(int count, [List<T>? list]) {
   //   if (count == 0) return null;
   //   assert(stack.length >= count);
@@ -4557,14 +4571,10 @@ class AstBuilder extends StackListener {
   //   return tailList;
   // }
 
-  /// TODO(scheglov) This is probably not optimal.
-  List<T> popTypedList2<T>(int count) {
-    var result = <T>[];
-    for (var i = 0; i < count; i++) {
-      var element = stack.pop(null) as T;
-      result.add(element);
-    }
-    return result.reversed.toList();
+  List<NamedType> popTypeList() {
+    var types = pop() as List<TypeAnnotation>;
+    // TODO(brianwilkerson) Report diagnostics for any type that's filtered out.
+    return types.whereType<NamedType>().toList();
   }
 
   void pushForControlFlowInfo(Token? awaitToken, Token forToken,

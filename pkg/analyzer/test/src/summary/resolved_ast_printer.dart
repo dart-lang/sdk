@@ -457,6 +457,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    _writeln('ExtensionDeclaration');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement2);
+      }
+    });
+  }
+
+  @override
   void visitExtensionOverride(ExtensionOverride node) {
     _writeln('ExtensionOverride');
     _withIndent(() {
