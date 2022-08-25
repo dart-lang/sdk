@@ -10,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
     show EqualityInfo, FlowAnalysis, Operations;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:test/test.dart';
 
@@ -132,6 +133,9 @@ Statement if_(Expression condition, List<Statement> ifTrue,
         [List<Statement>? ifFalse]) =>
     new _If(condition, block(ifTrue), ifFalse == null ? null : block(ifFalse));
 
+Expression intLiteral(int value, {bool? expectConversionToDouble}) =>
+    new _IntLiteral(value, expectConversionToDouble: expectConversionToDouble);
+
 Statement labeled(Statement Function(LabeledStatement) callback) {
   var labeledStatement = LabeledStatement._();
   labeledStatement._body = callback(labeledStatement);
@@ -181,6 +185,16 @@ abstract class Expression extends Node {
   /// If `this` is an expression `x`, creates the expression `x as typeStr`.
   Expression as_(String typeStr) => new _As(this, Type(typeStr));
 
+  /// Wraps `this` in such a way that, when the test is run, it will verify that
+  /// the context provided when analyzing the expression matches
+  /// [expectedContext].
+  Expression checkContext(String expectedContext) =>
+      _CheckExpressionContext(this, expectedContext);
+
+  /// Wraps `this` in such a way that, when the test is run, it will verify that
+  /// the IR produced matches [expectedIr].
+  Expression checkIr(String expectedIr) => _CheckExpressionIr(this, expectedIr);
+
   /// Creates an [Expression] that, when analyzed, will behave the same as
   /// `this`, but after visiting it, will verify that the type of the expression
   /// was [expectedType].
@@ -197,6 +211,11 @@ abstract class Expression extends Node {
 
   /// If `this` is an expression `x`, creates the expression `x ?? other`.
   Expression ifNull(Expression other) => new _IfNull(this, other);
+
+  /// Creates a [Statement] that, when analyzed, will analyze `this`, supplying
+  /// a context type of [context].
+  Statement inContext(String context) =>
+      _ExpressionInContext(this, Type(context));
 
   /// If `this` is an expression `x`, creates the expression `x is typeStr`.
   ///
@@ -240,13 +259,16 @@ class Harness with TypeOperations<Type> implements Operations<Var, Type> {
   static const Map<String, bool> _coreSubtypes = const {
     'bool <: int': false,
     'bool <: Object': true,
+    'double <: double?': true,
     'double <: Object': true,
     'double <: Object?': true,
     'double <: num': true,
     'double <: num?': true,
     'double <: int': false,
     'double <: int?': false,
+    'double <: String': false,
     'int <: double': false,
+    'int <: double?': false,
     'int <: int?': true,
     'int <: Iterable': false,
     'int <: List': false,
@@ -258,6 +280,7 @@ class Harness with TypeOperations<Type> implements Operations<Var, Type> {
     'int <: Object': true,
     'int <: Object?': true,
     'int <: String': false,
+    'int <: ?': true,
     'int? <: int': false,
     'int? <: Null': false,
     'int? <: num': false,
@@ -631,6 +654,10 @@ abstract class PromotableLValue extends LValue implements Promotable {
 abstract class Statement extends Node {
   Statement() : super._();
 
+  /// Wraps `this` in such a way that, when the test is run, it will verify that
+  /// the IR produced matches [expectedIr].
+  Statement checkIr(String expectedIr) => _CheckStatementIr(this, expectedIr);
+
   void preVisit(AssignedVariables<Node, Var> assignedVariables);
 
   /// If `this` is a statement `x`, creates a pseudo-expression that models
@@ -873,6 +900,54 @@ class _CheckAssigned extends Statement {
   }
 }
 
+class _CheckExpressionContext extends Expression {
+  final Expression inner;
+
+  final String expectedContext;
+
+  _CheckExpressionContext(this.inner, this.expectedContext);
+
+  @override
+  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    inner.preVisit(assignedVariables);
+  }
+
+  @override
+  String toString() => '$inner (should be in context $expectedContext)';
+
+  @override
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    expect(context.type, expectedContext);
+    var result =
+        h.typeAnalyzer.analyzeParenthesizedExpression(this, inner, context);
+    return result;
+  }
+}
+
+class _CheckExpressionIr extends Expression {
+  final Expression inner;
+
+  final String expectedIr;
+
+  _CheckExpressionIr(this.inner, this.expectedIr);
+
+  @override
+  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    inner.preVisit(assignedVariables);
+  }
+
+  @override
+  String toString() => '$inner (should produce IR $expectedIr)';
+
+  @override
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    var result =
+        h.typeAnalyzer.analyzeParenthesizedExpression(this, inner, context);
+    h.irBuilder.check(expectedIr);
+    return result;
+  }
+}
+
 class _CheckExpressionType extends Expression {
   final Expression target;
   final String expectedType;
@@ -940,6 +1015,28 @@ class _CheckReachable extends Statement {
   void visit(Harness h) {
     expect(h.flow.isReachable, expectedReachable, reason: '$_creationTrace');
     h.irBuilder.atom('null');
+  }
+}
+
+class _CheckStatementIr extends Statement {
+  final Statement inner;
+
+  final String expectedIr;
+
+  _CheckStatementIr(this.inner, this.expectedIr);
+
+  @override
+  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    inner.preVisit(assignedVariables);
+  }
+
+  @override
+  String toString() => '$inner (should produce IR $expectedIr)';
+
+  @override
+  void visit(Harness h) {
+    h.typeAnalyzer.dispatchStatement(inner);
+    h.irBuilder.check(expectedIr);
   }
 }
 
@@ -1103,6 +1200,27 @@ class _Equal extends Expression {
         h.typeAnalyzer.analyzeBinaryExpression(this, lhs, operatorName, rhs);
     h.irBuilder.apply(operatorName, 2);
     return result;
+  }
+}
+
+class _ExpressionInContext extends Statement {
+  final Expression expr;
+
+  final Type context;
+
+  _ExpressionInContext(this.expr, this.context);
+
+  @override
+  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    expr.preVisit(assignedVariables);
+  }
+
+  @override
+  String toString() => '$expr (in context $context);';
+
+  @override
+  void visit(Harness h) {
+    h.typeAnalyzer.analyzeExpression(expr, context);
   }
 }
 
@@ -1292,6 +1410,33 @@ class _IfNull extends Expression {
   }
 }
 
+class _IntLiteral extends Expression {
+  final int value;
+
+  /// `true` or `false` if we should assert that int->double conversion either
+  /// does, or does not, happen.  `null` if no assertion should be done.
+  final bool? expectConversionToDouble;
+
+  _IntLiteral(this.value, {this.expectConversionToDouble});
+
+  @override
+  void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+
+  @override
+  String toString() => '$value';
+
+  @override
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    var result = h.typeAnalyzer.analyzeIntLiteral(context);
+    if (expectConversionToDouble != null) {
+      expect(result.convertedToDouble, expectConversionToDouble);
+    }
+    h.irBuilder
+        .atom(result.convertedToDouble ? '${value.toDouble()}f' : '$value');
+    return result;
+  }
+}
+
 class _Is extends Expression {
   final Expression target;
   final Type type;
@@ -1381,7 +1526,8 @@ enum _LValueDisposition {
   readWrite,
 }
 
-class _MiniAstTypeAnalyzer {
+class _MiniAstTypeAnalyzer
+    with TypeAnalyzer<Node, Statement, Expression, Var, Type> {
   final Harness _harness;
 
   Statement? _currentBreakTarget;
@@ -1392,20 +1538,32 @@ class _MiniAstTypeAnalyzer {
 
   late final Type boolType = Type('bool');
 
+  @override
+  late final Type doubleType = Type('double');
+
+  @override
   late final Type dynamicType = Type('dynamic');
+
+  @override
+  late final Type intType = Type('int');
 
   late final Type neverType = Type('Never');
 
   late final Type nullType = Type('Null');
 
+  @override
   late final Type unknownType = Type('?');
 
   _MiniAstTypeAnalyzer(this._harness);
 
+  @override
   FlowAnalysis<Node, Statement, Expression, Var, Type> get flow =>
       _harness.flow;
 
   Type get thisType => _harness._thisType!;
+
+  @override
+  TypeOperations<Type> get typeOperations => _harness;
 
   void analyzeAssertStatement(Expression condition, Expression? message) {
     flow.assert_begin();
@@ -1513,7 +1671,11 @@ class _MiniAstTypeAnalyzer {
   Type analyzeExpression(Expression expression, [Type? context]) {
     // TODO(paulberry): make the [context] argument required.
     context ??= unknownType;
-    return dispatchExpression(expression, context).resolveShorting();
+    var result = dispatchExpression(expression, context);
+    if (flow.operations.isNever(result.provisionalType)) {
+      flow.handleExit();
+    }
+    return result.resolveShorting();
   }
 
   void analyzeExpressionStatement(Expression expression) {
@@ -1710,16 +1872,12 @@ class _MiniAstTypeAnalyzer {
     flow.whileStatement_end();
   }
 
+  @override
   ExpressionTypeAnalysisResult<Type> dispatchExpression(
           Expression expression, Type context) =>
-      _irBuilder.guard(expression, () {
-        var result = expression.visit(_harness, context);
-        if (flow.operations.isNever(result.provisionalType)) {
-          flow.handleExit();
-        }
-        return result;
-      });
+      _irBuilder.guard(expression, () => expression.visit(_harness, context));
 
+  @override
   void dispatchStatement(Statement statement) =>
       _irBuilder.guard(statement, () => statement.visit(_harness));
 
@@ -1753,6 +1911,9 @@ class _MiniAstTypeAnalyzer {
       Node node, Type receiverType, String memberName) {
     return _harness.getMember(receiverType, memberName);
   }
+
+  @override
+  String toString() => _irBuilder.toString();
 
   /// Computes the type that should be inferred for an implicitly typed variable
   /// whose initializer expression has static type [type].

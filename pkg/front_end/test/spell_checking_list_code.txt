@@ -45,6 +45,7 @@ allocator
 altered
 analogous
 analogy
+analyzes
 annotate
 ansi
 answering
@@ -664,6 +665,7 @@ instanceof
 instantiator
 integrate
 intends
+intention
 intentionally
 interested
 interfere
