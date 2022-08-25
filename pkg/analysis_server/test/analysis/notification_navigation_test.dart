@@ -972,6 +972,97 @@ class SecondClass {
     assertHasRegionTarget('FirstClass(', 'FirstClass {');
   }
 
+  Future<void> test_inComment_enumMember_qualified() async {
+    addTestFile('''
+/// [A.one].
+enum A {
+  one,
+}
+    ''');
+
+    await prepareNavigation();
+    assertHasRegionTarget('A.', 'A {');
+    assertHasRegionTarget('one]', 'one,');
+  }
+
+  Future<void> test_inComment_extensionMember() async {
+    addTestFile('''
+/// [myField]
+extension on String {
+  String get myField => '';
+}
+    ''');
+
+    await prepareNavigation();
+    assertHasRegionTarget('myField]', 'myField =>');
+  }
+
+  Future<void> test_inComment_extensionMember_qualified() async {
+    addTestFile('''
+/// [StringExtension.myField]
+extension StringExtension on String {
+  String get myField => '';
+}
+    ''');
+
+    await prepareNavigation();
+    assertHasRegionTarget('StringExtension.', 'StringExtension on');
+    assertHasRegionTarget('myField]', 'myField =>');
+  }
+
+  Future<void> test_inComment_instanceMember_qualified() async {
+    addTestFile('''
+/// [A.myField].
+class A {
+  final String myField = '';
+}
+    ''');
+
+    await prepareNavigation();
+    assertHasRegionTarget('A.', 'A {');
+    assertHasRegionTarget('myField]', 'myField =');
+  }
+
+  Future<void> test_inComment_instanceMember_qualified_inherited() async {
+    addTestFile('''
+class A {
+  final String myField = '';
+}
+/// [B.myField].
+class B extends A {}
+    ''');
+
+    await prepareNavigation();
+    assertHasRegionTarget('B.', 'B extends');
+    assertHasRegionTarget('myField]', 'myField =');
+  }
+
+  Future<void> test_inComment_namedConstructor_qualified() async {
+    addTestFile('''
+/// [A.named].
+class A {
+  A.named();
+}
+    ''');
+
+    await prepareNavigation();
+    assertHasRegionTarget('A.named]', 'A {');
+    assertHasRegionTarget('named]', 'named(');
+  }
+
+  Future<void> test_inComment_staticMember_qualified() async {
+    addTestFile('''
+/// [A.myStaticField].
+class A {
+  static final String myStaticField = '';
+}
+    ''');
+
+    await prepareNavigation();
+    assertHasRegionTarget('A.', 'A {');
+    assertHasRegionTarget('myStaticField]', 'myStaticField =');
+  }
+
   Future<void> test_instanceCreation_implicit() async {
     addTestFile('''
 class A {

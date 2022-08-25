@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
@@ -69,7 +70,11 @@ class CommentReferenceResolver {
 
     if (!hasNewKeyword) {
       if (prefixElement is ClassElement) {
-        name.staticElement = prefixElement.getMethod(name.name) ??
+        name.staticElement = _resolver.inheritance.getMember2(
+              prefixElement,
+              Name(prefixElement.library.source.uri, name.name),
+            ) ??
+            prefixElement.getMethod(name.name) ??
             prefixElement.getGetter(name.name) ??
             prefixElement.getSetter(name.name) ??
             prefixElement.getNamedConstructor(name.name);

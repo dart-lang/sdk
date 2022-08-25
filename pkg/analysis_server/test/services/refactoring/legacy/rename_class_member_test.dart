@@ -470,6 +470,8 @@ class A {
 
   Future<void> test_createChange_FieldElement() async {
     await indexTestUnit('''
+/// [A.test]
+/// [B.test]
 class A {
   int test = 0; // marker
   void f() {
@@ -505,6 +507,8 @@ void f() {
     refactoring.newName = 'newName';
     // validate change
     return assertSuccessfulRefactoring('''
+/// [A.newName]
+/// [B.newName]
 class A {
   int newName = 0; // marker
   void f() {
@@ -642,6 +646,9 @@ void f(A a) {
 
   Future<void> test_createChange_MethodElement() async {
     await indexTestUnit('''
+/// [A.test]
+/// [B.test]
+/// [F.test]
 class A {
   test() {}
 }
@@ -657,17 +664,20 @@ class D implements A {
 class E {
   test() {}
 }
+class F extends A {}
 void f() {
   A a = new A();
   B b = new B();
   C c = new C();
   D d = new D();
   E e = new E();
+  F f = new F();
   a.test();
   b.test();
   c.test();
   d.test();
   e.test();
+  f.test();
 }
 ''');
     // configure refactoring
@@ -678,6 +688,9 @@ void f() {
     refactoring.newName = 'newName';
     // validate change
     return assertSuccessfulRefactoring('''
+/// [A.newName]
+/// [B.newName]
+/// [F.newName]
 class A {
   newName() {}
 }
@@ -693,17 +706,20 @@ class D implements A {
 class E {
   test() {}
 }
+class F extends A {}
 void f() {
   A a = new A();
   B b = new B();
   C c = new C();
   D d = new D();
   E e = new E();
+  F f = new F();
   a.newName();
   b.newName();
   c.newName();
   d.newName();
   e.test();
+  f.newName();
 }
 ''');
   }
@@ -914,6 +930,9 @@ void f(A a) {
 
   Future<void> test_createChange_PropertyAccessorElement_getter() async {
     await indexTestUnit('''
+/// [A.test]
+/// [B.test]
+/// [C.test]
 class A {
   get test {} // marker
   set test(x) {}
@@ -926,6 +945,7 @@ class B extends A {
   get test {}
   set test(x) {}
 }
+class C extends A {}
 void f() {
   A a = new A();
   print(a.test);
@@ -934,6 +954,10 @@ void f() {
   B b = new B();
   print(b.test);
   b.test = 2;
+
+  C c = new C();
+  print(c.test);
+  c.test = 2;
 }
 ''');
     // configure refactoring
@@ -943,6 +967,9 @@ void f() {
     refactoring.newName = 'newName';
     // validate change
     return assertSuccessfulRefactoring('''
+/// [A.newName]
+/// [B.newName]
+/// [C.newName]
 class A {
   get newName {} // marker
   set newName(x) {}
@@ -955,6 +982,7 @@ class B extends A {
   get newName {}
   set newName(x) {}
 }
+class C extends A {}
 void f() {
   A a = new A();
   print(a.newName);
@@ -963,12 +991,19 @@ void f() {
   B b = new B();
   print(b.newName);
   b.newName = 2;
+
+  C c = new C();
+  print(c.newName);
+  c.newName = 2;
 }
 ''');
   }
 
   Future<void> test_createChange_PropertyAccessorElement_setter() async {
     await indexTestUnit('''
+/// [A.test]
+/// [B.test]
+/// [C.test]
 class A {
   get test {}
   set test(x) {} // marker
@@ -981,6 +1016,7 @@ class B extends A {
   get test {}
   set test(x) {}
 }
+class C extends A {}
 void f() {
   A a = new A();
   print(a.test);
@@ -989,6 +1025,10 @@ void f() {
   B b = new B();
   print(b.test);
   b.test = 2;
+
+  C c = new C();
+  print(c.test);
+  c.test = 2;
 }
 ''');
     // configure refactoring
@@ -998,6 +1038,9 @@ void f() {
     refactoring.newName = 'newName';
     // validate change
     return assertSuccessfulRefactoring('''
+/// [A.newName]
+/// [B.newName]
+/// [C.newName]
 class A {
   get newName {}
   set newName(x) {} // marker
@@ -1010,6 +1053,7 @@ class B extends A {
   get newName {}
   set newName(x) {}
 }
+class C extends A {}
 void f() {
   A a = new A();
   print(a.newName);
@@ -1018,6 +1062,10 @@ void f() {
   B b = new B();
   print(b.newName);
   b.newName = 2;
+
+  C c = new C();
+  print(c.newName);
+  c.newName = 2;
 }
 ''');
   }
