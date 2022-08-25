@@ -225,7 +225,7 @@ linter:
       expect(
           result.stdout,
           stringContainsInOrder([
-            "Unable to compute fixes: The diagnostic '_undefined_' is undefined.",
+            "Unable to compute fixes: The diagnostic '_undefined_' is not defined by the analyzer.",
           ]));
     });
 
@@ -295,7 +295,33 @@ linter:
       expect(
           result.stdout,
           stringContainsInOrder([
-            "Unable to compute fixes: The diagnostic '_undefined_' is undefined.",
+            "Unable to compute fixes: The diagnostic '_undefined_' is not defined by the analyzer.",
+          ]));
+    });
+
+    test('--apply --code (not enabled)', () async {
+      p = project(
+        mainSrc: '''
+var x = "";
+class A {
+  A a() => new A();
+}
+''',
+        analysisOptions: '''
+linter:
+  rules:
+    - unnecessary_new
+''',
+      );
+      var result = await runFix(
+          ['--apply', '--code', 'prefer_single_quotes', '.'],
+          workingDir: p!.dirPath);
+      expect(result.exitCode, 3);
+      expect(result.stderr, isEmpty);
+      expect(
+          result.stdout,
+          stringContainsInOrder([
+            "Unable to compute fixes: The lint 'prefer_single_quotes' is not enabled; add it to your analysis options and try again.",
           ]));
     });
 
@@ -327,7 +353,7 @@ linter:
       expect(
           result.stdout,
           stringContainsInOrder([
-            "Unable to compute fixes: The diagnostic '_undefined_' is undefined.",
+            "Unable to compute fixes: The diagnostic '_undefined_' is not defined by the analyzer.",
           ]));
     });
 

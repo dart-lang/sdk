@@ -114,6 +114,24 @@ main() {
   // [cfe] This requires the experimental 'records' language feature to be enabled.
 }
 
+(int, T) f1<T>(T t) {
+// [error column 1, length 1]
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'records' language feature to be enabled.
+  return (42, t);
+  //     ^
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+  // [cfe] This requires the experimental 'records' language feature to be enabled.
+}
+
+(int, T) f2<T>(T t) => (42, t);
+// [error column 1, length 1]
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'records' language feature to be enabled.
+//                     ^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'records' language feature to be enabled.
+
 (int a, String b) get topLevelGetterType => throw '';
 // [error column 1, length 1]
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
@@ -162,5 +180,23 @@ class Bar {
 //       ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
+
+  (int, T) f1<T>(T t) {
+//^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'records' language feature to be enabled.
+    return (42, t);
+    //     ^
+    // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+    // [cfe] This requires the experimental 'records' language feature to be enabled.
+  }
+
+  (int, T) f2<T>(T t) => (42, t);
+//^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'records' language feature to be enabled.
+  //                     ^
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+  // [cfe] This requires the experimental 'records' language feature to be enabled.
 }
 

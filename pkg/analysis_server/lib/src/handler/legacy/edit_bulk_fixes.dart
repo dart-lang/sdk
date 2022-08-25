@@ -8,19 +8,11 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/src/lint/registry.dart';
 
 /// The handler for the `edit.bulkFixes` request.
 class EditBulkFixes extends LegacyHandler {
-  static final Set<String> _errorCodes =
-      errorCodeValues.map((ErrorCode code) => code.name.toLowerCase()).toSet();
-
-  static final Set<String> _lintCodes =
-      Registry.ruleRegistry.rules.map((rule) => rule.name).toSet();
-
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditBulkFixes(super.server, super.request, super.cancellationToken);
@@ -39,16 +31,6 @@ class EditBulkFixes extends LegacyHandler {
       }
 
       var codes = params.codes?.map((e) => e.toLowerCase()).toList();
-      if (codes != null) {
-        for (var code in codes) {
-          if (!_errorCodes.contains(code) && !_lintCodes.contains(code)) {
-            sendResult(EditBulkFixesResult(
-                "The diagnostic '$code' is undefined.", [], []));
-            return;
-          }
-        }
-      }
-
       var collection = AnalysisContextCollectionImpl(
         includedPaths: params.included,
         resourceProvider: server.resourceProvider,
@@ -58,11 +40,14 @@ class EditBulkFixes extends LegacyHandler {
           collection.contexts.map((c) => c.currentSession).toList());
       var processor = BulkFixProcessor(server.instrumentationService, workspace,
           useConfigFiles: params.inTestMode ?? false, codes: codes);
-
-      var changeBuilder = await processor.fixErrors(collection.contexts);
-
-      sendResult(EditBulkFixesResult(
-          '', changeBuilder.sourceChange.edits, processor.fixDetails));
+      var result = await processor.fixErrors(collection.contexts);
+      var message = result.errorMessage;
+      if (message != null) {
+        sendResult(EditBulkFixesResult(message, [], []));
+      } else {
+        sendResult(EditBulkFixesResult(
+            '', result.builder!.sourceChange.edits, processor.fixDetails));
+      }
     } catch (exception, stackTrace) {
       // TODO(brianwilkerson) Move exception handling outside [handle].
       server.sendServerErrorNotification('Exception while getting bulk fixes',

@@ -184,6 +184,27 @@ ClassDeclaration
         withOffsets: true);
   }
 
+  void test_class_implementsClause_recordType() {
+    var parseResult = parseStringWithErrors(r'''
+class C implements (int, int) {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.classDeclaration('class C');
+    assertParsedNodeText(
+        node,
+        r'''
+ClassDeclaration
+  classKeyword: class @0
+  name: C @6
+  implementsClause: ImplementsClause
+    implementsKeyword: implements @8
+  leftBracket: { @30
+  rightBracket: } @31
+''',
+        withOffsets: true);
+  }
+
   void test_class_macro() {
     var parseResult = parseStringWithErrors(r'''
 macro class A {}
@@ -199,6 +220,27 @@ ClassDeclaration
   leftBracket: {
   rightBracket: }
 ''');
+  }
+
+  void test_class_withClause_recordType() {
+    var parseResult = parseStringWithErrors(r'''
+class C with (int, int) {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.classDeclaration('class C');
+    assertParsedNodeText(
+        node,
+        r'''
+ClassDeclaration
+  classKeyword: class @0
+  name: C @6
+  withClause: WithClause
+    withKeyword: with @8
+  leftBracket: { @24
+  rightBracket: } @25
+''',
+        withOffsets: true);
   }
 
   void test_classAlias_macro() {
@@ -226,6 +268,61 @@ ClassTypeAlias
           token: M
   semicolon: ;
 ''');
+  }
+
+  void test_classTypeAlias_implementsClause_recordType() {
+    var parseResult = parseStringWithErrors(r'''
+class C = Object with M implements (int, int);
+mixin M {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.classTypeAlias('class C');
+    assertParsedNodeText(
+        node,
+        r'''
+ClassTypeAlias
+  typedefKeyword: class @0
+  name: C @6
+  equals: = @8
+  superclass: NamedType
+    name: SimpleIdentifier
+      token: Object @10
+  withClause: WithClause
+    withKeyword: with @17
+    mixinTypes
+      NamedType
+        name: SimpleIdentifier
+          token: M @22
+  implementsClause: ImplementsClause
+    implementsKeyword: implements @24
+  semicolon: ; @45
+''',
+        withOffsets: true);
+  }
+
+  void test_classTypeAlias_withClause_recordType() {
+    var parseResult = parseStringWithErrors(r'''
+class C = Object with (int, int);
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.classTypeAlias('class C');
+    assertParsedNodeText(
+        node,
+        r'''
+ClassTypeAlias
+  typedefKeyword: class @0
+  name: C @6
+  equals: = @8
+  superclass: NamedType
+    name: SimpleIdentifier
+      token: Object @10
+  withClause: WithClause
+    withKeyword: with @17
+  semicolon: ; @32
+''',
+        withOffsets: true);
   }
 
   void test_constructor_factory_misnamed() {
@@ -500,6 +597,38 @@ EnumDeclaration
 ''');
   }
 
+  void test_extension_onClause_recordType() {
+    var parseResult = parseStringWithErrors(r'''
+extension E on (int, int) {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.extensionDeclaration('extension E');
+    assertParsedNodeText(
+        node,
+        r'''
+ExtensionDeclaration
+  extensionKeyword: extension @0
+  name: E @10
+  onKeyword: on @12
+  extendedType: RecordTypeAnnotation
+    leftParenthesis: ( @15
+    positionalFields
+      RecordTypeAnnotationPositionalField
+        type: NamedType
+          name: SimpleIdentifier
+            token: int @16
+      RecordTypeAnnotationPositionalField
+        type: NamedType
+          name: SimpleIdentifier
+            token: int @21
+    rightParenthesis: ) @24
+  leftBracket: { @26
+  rightBracket: } @27
+''',
+        withOffsets: true);
+  }
+
   void test_getter_sameNameAsClass() {
     var parseResult = parseStringWithErrors(r'''
 class A {
@@ -538,6 +667,55 @@ LibraryAugmentationDirective
     literal: 'a.dart'
   semicolon: ;
 ''');
+  }
+
+  void test_mixin_implementsClause_recordType() {
+    var parseResult = parseStringWithErrors(r'''
+class C {}
+mixin M on C implements (int, int) {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.mixinDeclaration('mixin M');
+    assertParsedNodeText(
+        node,
+        r'''
+MixinDeclaration
+  mixinKeyword: mixin @11
+  name: M @17
+  onClause: OnClause
+    onKeyword: on @19
+    superclassConstraints
+      NamedType
+        name: SimpleIdentifier
+          token: C @22
+  implementsClause: ImplementsClause
+    implementsKeyword: implements @24
+  leftBracket: { @46
+  rightBracket: } @47
+''',
+        withOffsets: true);
+  }
+
+  void test_mixin_onClause_recordType() {
+    var parseResult = parseStringWithErrors(r'''
+mixin M on (int, int) {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.mixinDeclaration('mixin M');
+    assertParsedNodeText(
+        node,
+        r'''
+MixinDeclaration
+  mixinKeyword: mixin @0
+  name: M @6
+  onClause: OnClause
+    onKeyword: on @8
+  leftBracket: { @22
+  rightBracket: } @23
+''',
+        withOffsets: true);
   }
 
   void test_recordLiteral() {
