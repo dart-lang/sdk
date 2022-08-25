@@ -3362,8 +3362,11 @@ CompileTimeErrorCode:
       int y = 1;
       ```
   DUPLICATE_FIELD_NAME:
-    problemMessage: The field name '{0}' is already used.
+    problemMessage: The field name '{0}' is already used in this record.
     correctionMessage: Try renaming the field.
+    comment: |-
+       Parameters:
+       0: the duplicated name
   DUPLICATE_FIELD_FORMAL_PARAMETER:
     problemMessage: "The field '{0}' can't be initialized by multiple parameters in the same constructor."
     correctionMessage: Try removing one of the parameters, or using different fields.
@@ -6970,6 +6973,21 @@ CompileTimeErrorCode:
         static A a() => throw 0;
       }
       ```
+  INVALID_FIELD_NAME_FROM_OBJECT:
+    sharedName: INVALID_FIELD_NAME
+    problemMessage: Record field names can't be the same as a member from 'Object'.
+    correctionMessage: Try using a different name for the field.
+    comment: No parameters.
+  INVALID_FIELD_NAME_PRIVATE:
+    sharedName: INVALID_FIELD_NAME
+    problemMessage: Record field names can't be private.
+    correctionMessage: Try removing the leading underscore.
+    comment: No parameters.
+  INVALID_FIELD_NAME_POSITIONAL:
+    sharedName: INVALID_FIELD_NAME
+    problemMessage: Record field names can't be a dollar sign followed by digits because those are used to access positional fields.
+    correctionMessage: Try using a different name for the field.
+    comment: No parameters.
   INVALID_IMPLEMENTATION_OVERRIDE:
     problemMessage: "'{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}' ('{4}')."
     hasPublishedDocs: true

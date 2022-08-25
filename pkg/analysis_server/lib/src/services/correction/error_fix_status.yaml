@@ -24,8 +24,8 @@
 #   issue created for it.
 #
 # Stats:
-# - 734 "needsEvaluation"
-# -  43 "needsFix"
+# - 739 "needsEvaluation"
+# -  45 "needsFix"
 # - 284 "hasFix"
 # -  47 "noFix"
 
@@ -599,6 +599,12 @@ CompileTimeErrorCode.INVALID_CONSTANT:
 CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT:
   status: needsEvaluation
 CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL:
   status: needsEvaluation
 CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE:
   status: needsEvaluation

@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class DuplicateFieldNameTest extends PubPackageResolutionTest {
-  test_duplicated() async {
+  void test_duplicated() async {
     await assertErrorsInCode(r'''
 var r = (a: 1, a: 2);
 ''', [
@@ -24,7 +24,7 @@ var r = (a: 1, a: 2);
     ]);
   }
 
-  test_notDuplicated() async {
+  void test_notDuplicated() async {
     await assertNoErrorsInCode(r'''
 var r = (a: 1, b: 2);
 ''');
