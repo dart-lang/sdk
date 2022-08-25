@@ -4,6 +4,8 @@
 
 // @dart = 2.9
 
+// SharedOptions=--enable-experiment=records
+
 main() {
   var record1 = (1, 2, a: 3, b: 4);
   //            ^
