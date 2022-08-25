@@ -102,8 +102,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   })  : parameters = _sortNamedParameters(parameters),
         super(null, alias: alias);
 
+  @Deprecated('Use element2 instead')
   @override
-  Element? get element2 => null;
+  Null get element => null;
+
+  @override
+  Null get element2 => null;
 
   @override
   int get hashCode {
@@ -1010,8 +1014,12 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   })  : namedFields = _sortNamedFields(namedFields),
         super(null, alias: alias);
 
+  @Deprecated('Use element2 instead')
   @override
-  Element? get element2 => null;
+  Null get element => null;
+
+  @override
+  Null get element2 => null;
 
   @override
   int get hashCode {
@@ -1448,8 +1456,12 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   /// Prevent the creation of instances of this class.
   VoidTypeImpl._() : super(null);
 
+  @Deprecated('Use element2 instead')
   @override
-  Element? get element2 => null;
+  Null get element => null;
+
+  @override
+  Null get element2 => null;
 
   @override
   int get hashCode => 2;
