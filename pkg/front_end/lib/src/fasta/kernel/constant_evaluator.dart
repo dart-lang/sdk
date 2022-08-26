@@ -1507,7 +1507,10 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   @override
   Constant visitRecordLiteral(RecordLiteral node) {
     // TODO(cstefantsova): Implement RecordConstantBuilder and this method.
-    throw new UnimplementedError();
+    return createExpressionErrorConstant(
+        node,
+        templateNotConstantExpression
+            .withArguments('Record literal constants not supported.'));
   }
 
   @override

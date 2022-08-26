@@ -8677,7 +8677,10 @@ class RecordLiteral extends Expression {
           return true;
         }(),
             "Named fields of a RecordLiterals aren't sorted lexicographically: "
-            "${named.map((f) => f.name).join(", ")}");
+            "${named.map((f) => f.name).join(", ")}") {
+    setParents(positional, this);
+    setParents(named, this);
+  }
 
   @override
   DartType getStaticType(StaticTypeContext context) =>

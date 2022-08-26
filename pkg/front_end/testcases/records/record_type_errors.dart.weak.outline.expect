@@ -68,12 +68,13 @@ library /*isNonNullableByDefault*/;
 //                                   ^
 //
 import self as self;
+import "dart:core" as core;
 
-static field invalid-type emptyType;
-static field invalid-type singleType;
+static field () emptyType;
+static field (core::int) singleType;
 static field invalid-type missingName;
-static field invalid-type missingType;
-static field invalid-type emptyNamedFields;
+static field (invalid-type) missingType;
+static field (core::int) emptyNamedFields;
 static field invalid-type duplicateNamedFields;
 static field invalid-type duplicateNamedFields2;
 static method method() → void

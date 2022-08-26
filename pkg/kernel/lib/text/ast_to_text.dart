@@ -2668,6 +2668,24 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
+  void visitRecordType(RecordType node) {
+    writeSymbol('(');
+    writeList(node.positional, writeType);
+    if (node.positional.isNotEmpty && node.named.isNotEmpty) {
+      writeComma(',');
+    }
+    if (node.named.isNotEmpty) {
+      writeSymbol('{');
+      writeList(node.named, writeNode);
+      writeSymbol('}');
+    }
+    writeSymbol(')');
+    writeNullability(node.declaredNullability);
+    // Disallow a word immediately after the record type.
+    state = WORD;
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     writeModifier(node.isRequired, 'required');
     writeWord(node.name);

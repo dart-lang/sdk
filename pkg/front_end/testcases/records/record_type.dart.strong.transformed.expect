@@ -3,17 +3,17 @@ import self as self;
 import "dart:core" as core;
 
 static const field core::int annotation = #C1;
-static field invalid-type topLevelFieldType = throw "";
-static method topLevelMethodReturnType() → invalid-type
+static field (core::int, core::String) topLevelFieldType = throw "";
+static method topLevelMethodReturnType() → (core::int, {required b: core::String})
   return throw "";
-static method topLevelSetterType(invalid-type value) → void {}
-static method topLevelMethodParameterType(invalid-type o) → void {}
+static method topLevelSetterType(({required a: core::int, required b: core::String}) value) → void {}
+static method topLevelMethodParameterType((core::String, core::int) o) → void {}
 static method method() → void {
-  invalid-type topLevelFieldType = throw "";
-  function topLevelMethodReturnType() → invalid-type
+  (core::int, core::String) topLevelFieldType = throw "";
+  function topLevelMethodReturnType() → (core::int, {required b: core::String})
     return throw "";
-  function topLevelSetterType(invalid-type value) → void {}
-  function topLevelMethodParameterType(invalid-type o) → void {}
+  function topLevelSetterType(({required a: core::int, required b: core::String}) value) → void {}
+  function topLevelMethodParameterType((core::String, core::int) o) → void {}
 }
 
 constants  {

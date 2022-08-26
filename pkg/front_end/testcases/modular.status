@@ -82,5 +82,3 @@ nnbd_mixed/issue41567: TypeCheckError
 nnbd_mixed/messages_with_types_opt_in: TypeCheckError
 nnbd_mixed/messages_with_types_opt_out: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
-records/record_literal: TypeCheckError
-records/record_literal_errors: TypeCheckError
