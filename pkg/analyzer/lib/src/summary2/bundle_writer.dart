@@ -811,12 +811,11 @@ class ResolutionSink extends _SummaryDataWriter {
     writeByte(Tag.RecordType);
 
     writeList<RecordTypePositionalField>(type.positionalFields, (field) {
-      _writeOptionalStringReference(field.element.name);
       writeType(field.type);
     });
 
     writeList<RecordTypeNamedField>(type.namedFields, (field) {
-      _writeStringReference(field.element.name);
+      _writeStringReference(field.name);
       writeType(field.type);
     });
 

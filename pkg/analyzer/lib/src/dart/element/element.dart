@@ -6192,131 +6192,6 @@ abstract class PropertyInducingElementTypeInference {
   void perform();
 }
 
-class RecordElementImpl extends _ExistingElementImpl implements RecordElement {
-  @override
-  final List<RecordPositionalFieldElementImpl> positionalFields;
-
-  @override
-  final List<RecordNamedFieldElementImpl> namedFields;
-
-  /// Maybe copy of [namedFields] lexically sorted by names.
-  final List<RecordNamedFieldElementImpl> namedFieldsSorted;
-
-  RecordElementImpl({
-    required this.positionalFields,
-    required this.namedFields,
-  })  : namedFieldsSorted = _sortNamedFields(namedFields),
-        super(null, -1) {
-    for (final field in positionalFields) {
-      field.enclosingElement = this;
-    }
-    for (final field in namedFields) {
-      field.enclosingElement = this;
-    }
-  }
-
-  @override
-  ElementKind get kind => ElementKind.RECORD;
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitRecordElement(this);
-  }
-
-  @override
-  RecordTypeImpl instantiate({
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return RecordTypeImpl(
-      element2: this,
-      fieldTypes: [
-        ...positionalFields.map((field) => field.type),
-        ...namedFieldsSorted.map((field) => field.type),
-      ],
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(positionalFields, visitor);
-    safelyVisitChildren(namedFields, visitor);
-  }
-
-  /// Returns [fields], if already sorted, or the sorted copy.
-  static List<RecordNamedFieldElementImpl> _sortNamedFields(
-    List<RecordNamedFieldElementImpl> fields,
-  ) {
-    var isSorted = true;
-    String? lastName;
-    for (final field in fields) {
-      final name = field.name;
-      if (lastName != null && lastName.compareTo(name) > 0) {
-        isSorted = false;
-        break;
-      }
-      lastName = name;
-    }
-
-    if (isSorted) {
-      return fields;
-    }
-
-    return fields.sortedBy((field) => field.name);
-  }
-}
-
-abstract class RecordFieldElementImpl extends _ExistingElementImpl
-    implements RecordFieldElement {
-  @override
-  DartType type;
-
-  RecordFieldElementImpl({
-    required String? name,
-    required int nameOffset,
-    required this.type,
-  }) : super(name, nameOffset);
-
-  @override
-  RecordElementImpl get enclosingElement3 =>
-      super.enclosingElement3 as RecordElementImpl;
-
-  @override
-  ElementKind get kind => ElementKind.RECORD;
-}
-
-class RecordNamedFieldElementImpl extends RecordFieldElementImpl
-    implements RecordNamedFieldElement {
-  RecordNamedFieldElementImpl({
-    required String super.name,
-    required super.nameOffset,
-    required super.type,
-  });
-
-  @override
-  String get name => super.name!;
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitRecordNamedFieldElement(this);
-  }
-}
-
-class RecordPositionalFieldElementImpl extends RecordFieldElementImpl
-    implements RecordPositionalFieldElement {
-  RecordPositionalFieldElementImpl({
-    required super.name,
-    required super.nameOffset,
-    required super.type,
-  });
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitRecordPositionalFieldElement(this);
-  }
-}
-
 /// A concrete implementation of a [ShowElementCombinator].
 class ShowElementCombinatorImpl implements ShowElementCombinator {
   @override
@@ -6630,8 +6505,8 @@ class TypeAliasElementImpl extends _ExistingElementImpl
       );
     } else if (type is RecordTypeImpl) {
       return RecordTypeImpl(
-        element2: type.element2,
-        fieldTypes: type.fieldTypes,
+        positionalFields: type.positionalFields,
+        namedFields: type.namedFields,
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
           element: this,

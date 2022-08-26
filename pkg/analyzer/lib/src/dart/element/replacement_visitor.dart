@@ -142,16 +142,20 @@ class ReplacementVisitor
   RecordTypeImpl? createRecordType({
     required RecordTypeImpl type,
     required InstantiatedTypeAliasElement? newAlias,
-    required List<DartType>? newFieldTypes,
+    required List<RecordTypePositionalFieldImpl>? newPositionalFields,
+    required List<RecordTypeNamedFieldImpl>? newNamedFields,
     required NullabilitySuffix? newNullability,
   }) {
-    if (newAlias == null && newFieldTypes == null && newNullability == null) {
+    if (newAlias == null &&
+        newPositionalFields == null &&
+        newNamedFields == null &&
+        newNullability == null) {
       return null;
     }
 
     return RecordTypeImpl(
-      element2: type.element2,
-      fieldTypes: newFieldTypes ?? type.fieldTypes,
+      positionalFields: newPositionalFields ?? type.positionalFields,
+      namedFields: newNamedFields ?? type.namedFields,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
       alias: newAlias ?? type.alias,
     );
@@ -459,12 +463,38 @@ class ReplacementVisitor
       }
     }
 
-    final newFieldTypes = _typeList(type.fieldTypes);
+    List<RecordTypePositionalFieldImpl>? newPositionalFields;
+    final positionalFields = type.positionalFields;
+    for (var i = 0; i < positionalFields.length; i++) {
+      final field = positionalFields[i];
+      final newType = field.type.accept(this);
+      if (newType != null) {
+        newPositionalFields ??= positionalFields.toList(growable: false);
+        newPositionalFields[i] = RecordTypePositionalFieldImpl(
+          type: newType,
+        );
+      }
+    }
+
+    List<RecordTypeNamedFieldImpl>? newNamedFields;
+    final namedFields = type.namedFields;
+    for (var i = 0; i < namedFields.length; i++) {
+      final field = namedFields[i];
+      final newType = field.type.accept(this);
+      if (newType != null) {
+        newNamedFields ??= namedFields.toList(growable: false);
+        newNamedFields[i] = RecordTypeNamedFieldImpl(
+          name: field.name,
+          type: newType,
+        );
+      }
+    }
 
     return createRecordType(
       type: type,
       newAlias: newAlias,
-      newFieldTypes: newFieldTypes,
+      newPositionalFields: newPositionalFields,
+      newNamedFields: newNamedFields,
       newNullability: newNullability,
     );
   }
@@ -521,19 +551,6 @@ class ReplacementVisitor
     List<DartType>? newArguments;
     for (var i = 0; i < arguments.length; i++) {
       var substitution = visitTypeArgument(parameters[i], arguments[i]);
-      if (substitution != null) {
-        newArguments ??= arguments.toList(growable: false);
-        newArguments[i] = substitution;
-      }
-    }
-
-    return newArguments;
-  }
-
-  List<DartType>? _typeList(List<DartType> arguments) {
-    List<DartType>? newArguments;
-    for (var i = 0; i < arguments.length; i++) {
-      var substitution = arguments[i].accept(this);
       if (substitution != null) {
         newArguments ??= arguments.toList(growable: false);
         newArguments[i] = substitution;

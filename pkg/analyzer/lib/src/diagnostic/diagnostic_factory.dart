@@ -63,7 +63,7 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateField] reuses a name
   /// already used by [originalField].
-  AnalysisError duplicateFieldDefinition(Source source,
+  AnalysisError duplicateFieldDefinitionInLiteral(Source source,
       NamedExpression duplicateField, NamedExpression originalField) {
     var duplicateNode = duplicateField.name.label;
     var duplicateName = duplicateNode.name;
@@ -79,6 +79,34 @@ class DiagnosticFactory {
             length: duplicateName.length,
             message: 'The first ',
             offset: originalField.name.label.offset,
+            url: source.uri.toString()),
+      ],
+    );
+  }
+
+  /// Return a diagnostic indicating that [duplicateField] reuses a name
+  /// already used by [originalField].
+  ///
+  /// This method requires that both the [duplicateField] and [originalField]
+  /// have a non-null `name`.
+  AnalysisError duplicateFieldDefinitionInType(
+      Source source,
+      RecordTypeAnnotationField duplicateField,
+      RecordTypeAnnotationField originalField) {
+    var duplicateNode = duplicateField.name!;
+    var duplicateName = duplicateNode.lexeme;
+    return AnalysisError(
+      source,
+      duplicateNode.offset,
+      duplicateNode.length,
+      CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+      [duplicateName],
+      [
+        DiagnosticMessageImpl(
+            filePath: source.fullName,
+            length: duplicateName.length,
+            message: 'The first ',
+            offset: originalField.name!.offset,
             url: source.uri.toString()),
       ],
     );

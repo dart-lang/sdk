@@ -55,7 +55,10 @@ class RecursiveTypeVisitor extends UnifyingTypeVisitor<bool> {
 
   @override
   bool visitRecordType(covariant RecordTypeImpl type) {
-    return visitChildren(type.fieldTypes);
+    return visitChildren([
+      ...type.positionalFields.map((field) => field.type),
+      ...type.namedFields.map((field) => field.type),
+    ]);
   }
 
   @override

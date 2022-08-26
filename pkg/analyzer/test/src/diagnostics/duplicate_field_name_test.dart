@@ -9,12 +9,13 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DuplicateFieldNameTest);
+    defineReflectiveTests(DuplicateFieldName_RecordLiteralTest);
+    defineReflectiveTests(DuplicateFieldName_RecordTypeAnnotationTest);
   });
 }
 
 @reflectiveTest
-class DuplicateFieldNameTest extends PubPackageResolutionTest {
+class DuplicateFieldName_RecordLiteralTest extends PubPackageResolutionTest {
   void test_duplicated() async {
     await assertErrorsInCode(r'''
 var r = (a: 1, a: 2);
@@ -27,6 +28,55 @@ var r = (a: 1, a: 2);
   void test_notDuplicated() async {
     await assertNoErrorsInCode(r'''
 var r = (a: 1, b: 2);
+''');
+  }
+}
+
+@reflectiveTest
+class DuplicateFieldName_RecordTypeAnnotationTest
+    extends PubPackageResolutionTest {
+  void test_duplicated_named() async {
+    await assertErrorsInCode(r'''
+void f(({int a, int a}) r) {}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_FIELD_NAME, 20, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 13, 1)]),
+    ]);
+  }
+
+  void test_duplicated_positional() async {
+    await assertErrorsInCode(r'''
+void f((int a, int a) r) {}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_FIELD_NAME, 19, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
+    ]);
+  }
+
+  void test_duplicated_positionalAndNamed() async {
+    await assertErrorsInCode(r'''
+void f((int a, {int a}) r) {}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_FIELD_NAME, 20, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
+    ]);
+  }
+
+  void test_notDuplicated_named() async {
+    await assertNoErrorsInCode(r'''
+void f(({int a, int b}) r) {}
+''');
+  }
+
+  void test_notDuplicated_positional() async {
+    await assertNoErrorsInCode(r'''
+void f((int a, int b) r) {}
+''');
+  }
+
+  void test_notDuplicated_positionalAndNamed() async {
+    await assertNoErrorsInCode(r'''
+void f((int a, {int b}) r) {}
 ''');
   }
 }

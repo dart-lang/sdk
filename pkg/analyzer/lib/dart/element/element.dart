@@ -1061,12 +1061,6 @@ abstract class ElementVisitor<R> {
 
   R? visitPropertyAccessorElement(PropertyAccessorElement element);
 
-  R? visitRecordElement(RecordElement element);
-
-  R? visitRecordNamedFieldElement(RecordNamedFieldElement element);
-
-  R? visitRecordPositionalFieldElement(RecordPositionalFieldElement element);
-
   R? visitSuperFormalParameterElement(SuperFormalParameterElement element);
 
   R? visitTopLevelVariableElement(TopLevelVariableElement element);
@@ -2253,54 +2247,6 @@ abstract class PropertyInducingElement implements VariableElement {
   /// associated with it will be synthetic.
   PropertyAccessorElement? get setter;
 }
-
-/// A record shape, declared or synthesized. There might be multiple
-/// declarations of the same record shape in the code under analysis, even in
-/// the same file. A record shape can be synthesized from two or more other
-/// record shapes, e.g. with `a ?? b`.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class RecordElement implements _ExistingElement {
-  /// The named fields (might be empty).
-  List<RecordNamedFieldElement> get namedFields;
-
-  /// The positional fields (might be empty).
-  List<RecordPositionalFieldElement> get positionalFields;
-
-  /// Returns [RecordType] with [nullabilitySuffix] and declared field types.
-  RecordType instantiate({
-    required NullabilitySuffix nullabilitySuffix,
-  });
-}
-
-/// A field in a [RecordElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class RecordFieldElement implements _ExistingElement {
-  @override
-  RecordElement get enclosingElement3;
-
-  /// The type of the field.
-  DartType get type;
-}
-
-/// A named field in a [RecordElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class RecordNamedFieldElement implements RecordFieldElement {
-  /// The name of the field.
-  @override
-  String get name;
-}
-
-/// A positional field in a [RecordElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class RecordPositionalFieldElement implements RecordFieldElement {}
 
 /// A combinator that cause some of the names in a namespace to be visible (and
 /// the rest hidden) when being imported.

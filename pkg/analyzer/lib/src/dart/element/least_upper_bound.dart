@@ -924,15 +924,19 @@ class LeastUpperBoundHelper {
       return _typeSystem.typeProvider.recordType;
     }
 
-    final fieldTypes = <DartType>[];
-
+    final positionalFields = <RecordTypePositionalFieldImpl>[];
     for (var i = 0; i < positional1.length; i++) {
       final field1 = positional1[i];
       final field2 = positional2[i];
       final type = getLeastUpperBound(field1.type, field2.type);
-      fieldTypes.add(type);
+      positionalFields.add(
+        RecordTypePositionalFieldImpl(
+          type: type,
+        ),
+      );
     }
 
+    final namedFields = <RecordTypeNamedFieldImpl>[];
     for (var i = 0; i < named1.length; i++) {
       final field1 = named1[i];
       final field2 = named2[i];
@@ -940,12 +944,17 @@ class LeastUpperBoundHelper {
         return _typeSystem.typeProvider.recordType;
       }
       final type = getLeastUpperBound(field1.type, field2.type);
-      fieldTypes.add(type);
+      namedFields.add(
+        RecordTypeNamedFieldImpl(
+          name: field1.name,
+          type: type,
+        ),
+      );
     }
 
     return RecordTypeImpl(
-      element2: T1.element2,
-      fieldTypes: fieldTypes,
+      positionalFields: positionalFields,
+      namedFields: namedFields,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }

@@ -196,17 +196,6 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
       visitVariableElement(element);
 
   @override
-  R? visitRecordElement(RecordElement element) => visitElement(element);
-
-  @override
-  R? visitRecordNamedFieldElement(RecordNamedFieldElement element) =>
-      visitElement(element);
-
-  @override
-  R? visitRecordPositionalFieldElement(RecordPositionalFieldElement element) =>
-      visitElement(element);
-
-  @override
   R? visitSuperFormalParameterElement(SuperFormalParameterElement element) =>
       visitParameterElement(element);
 
@@ -392,24 +381,6 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
-  R? visitRecordElement(RecordElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R? visitRecordNamedFieldElement(RecordNamedFieldElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R? visitRecordPositionalFieldElement(RecordPositionalFieldElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
   R? visitSuperFormalParameterElement(SuperFormalParameterElement element) {
     element.visitChildren(this);
     return null;
@@ -525,16 +496,6 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R? visitPropertyAccessorElement(PropertyAccessorElement element) => null;
 
   @override
-  R? visitRecordElement(RecordElement element) => null;
-
-  @override
-  R? visitRecordNamedFieldElement(RecordNamedFieldElement element) => null;
-
-  @override
-  R? visitRecordPositionalFieldElement(RecordPositionalFieldElement element) =>
-      null;
-
-  @override
   R? visitSuperFormalParameterElement(SuperFormalParameterElement element) =>
       null;
 
@@ -641,17 +602,6 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R? visitPropertyAccessorElement(PropertyAccessorElement element) =>
-      _throw(element);
-
-  @override
-  R? visitRecordElement(RecordElement element) => _throw(element);
-
-  @override
-  R? visitRecordNamedFieldElement(RecordNamedFieldElement element) =>
-      _throw(element);
-
-  @override
-  R? visitRecordPositionalFieldElement(RecordPositionalFieldElement element) =>
       _throw(element);
 
   @override

@@ -10,30 +10,30 @@ import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-/// Helper for resolving [RecordLiteral]s.
-class RecordLiteralResolver {
+/// Helper for resolving [RecordTypeAnnotation]s.
+class RecordTypeAnnotationResolver {
   /// A regular expression used to match positional field names.
   static final RegExp positionalFieldName = RegExp(r'^\$[0-9]+$');
 
   final ResolverVisitor _resolver;
 
-  RecordLiteralResolver({
+  RecordTypeAnnotationResolver({
     required ResolverVisitor resolver,
   }) : _resolver = resolver;
 
   ErrorReporter get errorReporter => _resolver.errorReporter;
 
-  /// Report any named fields in the record literal [node] that use a previously
+  /// Report any named fields in the record type [node] that use a previously
   /// defined name.
-  void reportDuplicateFieldDefinitions(RecordLiteralImpl node) {
-    var usedNames = <String, NamedExpression>{};
+  void reportDuplicateFieldDefinitions(RecordTypeAnnotationImpl node) {
+    var usedNames = <String, RecordTypeAnnotationField>{};
     for (var field in node.fields) {
-      if (field is NamedExpression) {
-        var name = field.name.label.name;
+      var name = field.name?.lexeme;
+      if (name != null) {
         var previousField = usedNames[name];
         if (previousField != null) {
           errorReporter.reportError(DiagnosticFactory()
-              .duplicateFieldDefinitionInLiteral(
+              .duplicateFieldDefinitionInType(
                   errorReporter.source, field, previousField));
         } else {
           usedNames[name] = field;
@@ -42,33 +42,41 @@ class RecordLiteralResolver {
     }
   }
 
-  /// Report any fields in the record literal [node] that use an invalid name.
-  void reportInvalidFieldNames(RecordLiteralImpl node) {
+  /// Report any fields in the record type [node] that use an invalid name.
+  void reportInvalidFieldNames(RecordTypeAnnotationImpl node) {
     var fields = node.fields;
     for (var field in fields) {
-      if (field is NamedExpression) {
-        var nameNode = field.name.label;
-        var name = nameNode.name;
+      var nameToken = field.name;
+      if (nameToken != null) {
+        var name = nameToken.lexeme;
         if (name.startsWith('_')) {
-          errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, nameNode);
+          errorReporter.reportErrorForToken(
+              CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, nameToken);
         } else if (positionalFieldName.hasMatch(name)) {
-          errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, nameNode);
+          errorReporter.reportErrorForToken(
+              CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, nameToken);
         } else {
           var objectElement = _resolver.typeProvider.objectElement;
           if (objectElement.getGetter(name) != null ||
               objectElement.getMethod(name) != null) {
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, nameNode);
+            errorReporter.reportErrorForToken(
+                CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, nameToken);
           }
         }
       }
     }
   }
 
-  void resolve(RecordLiteralImpl node, {required DartType? contextType}) {
-    // TODO(brianwilkerson) Move resolution from the `visitRecordLiteral`
+  void resolve(RecordTypeAnnotationImpl node,
+      {required DartType? contextType}) {
+    // TODO(brianwilkerson) Move resolution from the `visitRecordTypeAnnotation`
     //  methods of `ResolverVisitor` and `StaticTypeAnalyzer` to this class.
   }
+}
+
+extension on RecordTypeAnnotation {
+  List<RecordTypeAnnotationField> get fields => [
+        ...positionalFields,
+        ...?namedFields?.fields,
+      ];
 }
