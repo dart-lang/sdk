@@ -138,6 +138,8 @@ class AstBinaryReader {
         return _readPrefixedIdentifier();
       case Tag.PropertyAccess:
         return _readPropertyAccess();
+      case Tag.RecordLiteral:
+        return _readRecordLiteral();
       case Tag.RedirectingConstructorInvocation:
         return _readRedirectingConstructorInvocation();
       case Tag.SetOrMapLiteral:
@@ -1022,6 +1024,17 @@ class AstBinaryReader {
     }
 
     var node = astFactory.propertyAccess(target, operator, propertyName);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  RecordLiteralImpl _readRecordLiteral() {
+    final fields = _readNodeList<Expression>();
+    final node = RecordLiteralImpl(
+      leftParenthesis: Tokens.openParenthesis(),
+      fields: fields,
+      rightParenthesis: Tokens.closeParenthesis(),
+    );
     _readExpressionResolution(node);
     return node;
   }

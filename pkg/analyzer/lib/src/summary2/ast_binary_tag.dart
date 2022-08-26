@@ -86,6 +86,7 @@ class Tag {
   static const int PrefixExpression = 79;
   static const int PrefixedIdentifier = 32;
   static const int PropertyAccess = 62;
+  static const int RecordLiteral = 105;
   static const int RedirectingConstructorInvocation = 54;
   static const int SetOrMapLiteral = 65;
   static const int ShowCombinator = 33;

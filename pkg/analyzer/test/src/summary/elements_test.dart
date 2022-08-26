@@ -17355,6 +17355,76 @@ library
 ''');
   }
 
+  test_defaultValue_recordLiteral_named() async {
+    var library = await buildLibrary('''
+void f({({int f1, bool f2}) x = (f1: 1, f2: true)}) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          optionalNamed x @28
+            type: ({int f1, bool f2})
+            constantInitializer
+              RecordLiteral
+                leftParenthesis: ( @32
+                fields
+                  NamedExpression
+                    name: Label
+                      label: SimpleIdentifier
+                        token: f1 @33
+                        staticElement: <null>
+                        staticType: null
+                      colon: : @35
+                    expression: IntegerLiteral
+                      literal: 1 @37
+                      staticType: int
+                  NamedExpression
+                    name: Label
+                      label: SimpleIdentifier
+                        token: f2 @40
+                        staticElement: <null>
+                        staticType: null
+                      colon: : @42
+                    expression: BooleanLiteral
+                      literal: true @44
+                      staticType: bool
+                rightParenthesis: ) @48
+                staticType: ({int f1, bool f2})
+        returnType: void
+''');
+  }
+
+  test_defaultValue_recordLiteral_positional() async {
+    var library = await buildLibrary('''
+void f({(int, bool) x = (1, true)}) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          optionalNamed x @20
+            type: (int, bool)
+            constantInitializer
+              RecordLiteral
+                leftParenthesis: ( @24
+                fields
+                  IntegerLiteral
+                    literal: 1 @25
+                    staticType: int
+                  BooleanLiteral
+                    literal: true @28
+                    staticType: bool
+                rightParenthesis: ) @32
+                staticType: (int, bool)
+        returnType: void
+''');
+  }
+
   test_defaultValue_refersToExtension_method_inside() async {
     var library = await buildLibrary('''
 class A {}
@@ -40571,6 +40641,34 @@ library
     accessors
       synthetic static get v @-1
         returnType: int
+''');
+  }
+
+  test_variable_initializer_recordType() async {
+    var library = await buildLibrary('''
+const x = (1, true);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @6
+        type: (int, bool)
+        constantInitializer
+          RecordLiteral
+            leftParenthesis: ( @10
+            fields
+              IntegerLiteral
+                literal: 1 @11
+                staticType: int
+              BooleanLiteral
+                literal: true @14
+                staticType: bool
+            rightParenthesis: ) @18
+            staticType: (int, bool)
+    accessors
+      synthetic static get x @-1
+        returnType: (int, bool)
 ''');
   }
 
