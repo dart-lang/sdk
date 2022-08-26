@@ -260,9 +260,9 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     // actually return data from b. If asked to read b throw.
     fe.InitializedCompilerState helper = fe.initializeCompiler(
         null,
-        toUri(parsedArgs['dart-sdk-summary']),
-        toUri(parsedArgs['libraries-file']),
-        toUri(parsedArgs['packages-file']),
+        toUriNullable(parsedArgs['dart-sdk-summary']),
+        toUriNullable(parsedArgs['libraries-file']),
+        toUriNullable(parsedArgs['packages-file']),
         [...summaryInputs, ...linkedInputs],
         target,
         fileSystem,
