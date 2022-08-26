@@ -25,8 +25,8 @@ library from "org-dartlang-test:///main.dart" as main {
 //   ^^^^^^^
 //
 
-  class A1#1 extends dart.core::Object {
-    constructor foo2() → main::A1#1
+  class A1#1#0 extends dart.core::Object {
+    constructor foo2() → main::A1#1#0
       : super dart.core::Object::•() {}
   }
   class A1 extends dart.core::Object {

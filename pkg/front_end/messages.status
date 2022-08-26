@@ -664,11 +664,11 @@ NeverValueWarning/analyzerCode: Fail
 NeverValueWarning/example: Fail
 NewAsSelector/analyzerCode: Fail
 NoAugmentSuperInvokeTarget/analyzerCode: Fail
-NoAugmentSuperInvokeTarget/example: Fail
+NoAugmentSuperInvokeTarget/part_wrapped_script: Fail # Uses imports
 NoAugmentSuperReadTarget/analyzerCode: Fail
-NoAugmentSuperReadTarget/example: Fail
+NoAugmentSuperReadTarget/part_wrapped_script: Fail # Uses imports
 NoAugmentSuperWriteTarget/analyzerCode: Fail
-NoAugmentSuperWriteTarget/example: Fail
+NoAugmentSuperWriteTarget/part_wrapped_script: Fail # Uses imports
 NoFormals/example: Fail
 NoSuchNamedParameter/example: Fail
 NoUnnamedConstructorInObject/analyzerCode: Fail
@@ -677,8 +677,16 @@ NonAgnosticConstant/analyzerCode: Fail
 NonAgnosticConstant/example: Fail
 NonAsciiIdentifier/expression: Fail
 NonAsciiIdentifier/part_wrapped_expression: Fail
+NonAugmentationClassConflict/analyzerCode: Fail
+NonAugmentationClassConflict/part_wrapped_script: Crash # TODO(johnniwinther): Investigate this.
 NonAugmentationClassMemberConflict/analyzerCode: Fail
-NonAugmentationClassMemberConflict/example: Fail
+NonAugmentationClassMemberConflict/part_wrapped_script: Fail # Uses imports
+NonAugmentationConstructorConflict/analyzerCode: Fail
+NonAugmentationConstructorConflict/part_wrapped_script: Fail # Uses imports
+NonAugmentationLibraryConflict/analyzerCode: Fail
+NonAugmentationLibraryConflict/part_wrapped_script: Crash # TODO(johnniwinther): Investigate this.
+NonAugmentationLibraryMemberConflict/analyzerCode: Fail
+NonAugmentationLibraryMemberConflict/part_wrapped_script: Fail # Uses imports
 NonConstConstructor/example: Fail
 NonConstFactory/example: Fail
 NonInstanceTypeVariableUse/example: Fail
@@ -893,8 +901,16 @@ UndefinedExtensionSetter/analyzerCode: Fail
 UndefinedExtensionSetter/example: Fail
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
+UnmatchedAugmentationClass/analyzerCode: Fail
+UnmatchedAugmentationClass/part_wrapped_script: Crash # TODO(johnniwinther): Investigate this.
 UnmatchedAugmentationClassMember/analyzerCode: Fail
 UnmatchedAugmentationClassMember/part_wrapped_script: Fail # Uses imports
+UnmatchedAugmentationConstructor/analyzerCode: Fail
+UnmatchedAugmentationConstructor/part_wrapped_script: Fail # Uses imports
+UnmatchedAugmentationDeclaration/analyzerCode: Fail
+UnmatchedAugmentationDeclaration/example: Fail
+UnmatchedAugmentationLibraryMember/analyzerCode: Fail
+UnmatchedAugmentationLibraryMember/part_wrapped_script: Fail # Uses imports
 UnmatchedToken/part_wrapped_script1: Fail
 UnmatchedToken/part_wrapped_script3: Fail
 UnmatchedToken/script1: Fail

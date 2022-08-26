@@ -294,3 +294,22 @@ abstract class BuilderImpl implements Builder {
   @override
   bool get isDuplicate => next != null;
 }
+
+extension BuilderExtension on Builder {
+  /// Returns the 'duplicate index' for this builder, which is the number of
+  /// builders declared prior this.
+  ///
+  /// For a non-duplicate builder, this is 0.
+  int get duplicateIndex {
+    if (next != null) {
+      int count = 0;
+      Builder? current = next;
+      while (current != null) {
+        count++;
+        current = current.next;
+      }
+      return count;
+    }
+    return 0;
+  }
+}

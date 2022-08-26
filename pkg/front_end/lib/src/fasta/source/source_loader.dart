@@ -1289,14 +1289,10 @@ severity: $severity
     }
     ticker.logMs("Resolved parts");
 
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        library.applyPatches();
-      }
-    }
     for (SourceLibraryBuilder patchLibrary in patchLibraries) {
       _builders.remove(patchLibrary.fileUri);
       patchLibrary.origin.addPatchLibrary(patchLibrary);
+      patchLibrary.applyPatches();
     }
     _sourceLibraryBuilders = sourceLibraries;
     assert(

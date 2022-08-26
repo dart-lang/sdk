@@ -171,7 +171,12 @@ static method /* from org-dartlang-testcase:///augment_super_lib.dart */ topLeve
   self::_#topLevelMethod#augment0();
   #C1;
 }
-static method topLevelMethodErrors() → void {}
+static method /* from org-dartlang-testcase:///augment_super_lib.dart */ topLevelMethodErrors() → void {
+  core::int local;
+  invalid-expression "pkg/front_end/testcases/macros/augment_super_lib.dart:12:3: Error: Undefined name 'augment'.
+  augment; // Error
+  ^^^^^^^";
+}
 static get /* from org-dartlang-testcase:///augment_super_lib.dart */ topLevelProperty() → core::List<core::int> {
   return block {
     final core::List<core::int> #t1 = core::List::of<core::int>(self::_#topLevelProperty#augment0);
@@ -195,12 +200,6 @@ static set /* from org-dartlang-testcase:///augment_super_lib.dart */ nullableTo
   ^" == null ?{invalid-type} self::_#nullableTopLevelProperty#augment0 = value : null;
 }
 static method main() → dynamic {}
-static method /* from org-dartlang-testcase:///augment_super_lib.dart */ topLevelMethodError() → void {
-  core::int local;
-  invalid-expression "pkg/front_end/testcases/macros/augment_super_lib.dart:12:3: Error: Undefined name 'augment'.
-  augment; // Error
-  ^^^^^^^";
-}
 static method /* from org-dartlang-testcase:///augment_super_lib.dart */ injectedTopLevelMethod() → void {
   invalid-expression "pkg/front_end/testcases/macros/augment_super_lib.dart:44:3: Error: 'augment super' is only allowed in member augmentations.
   augment super(); // Error

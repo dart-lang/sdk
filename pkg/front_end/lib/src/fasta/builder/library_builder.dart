@@ -10,7 +10,7 @@ import 'package:kernel/ast.dart' show Library, Nullability;
 
 import '../combinator.dart' show CombinatorBuilder;
 
-import '../problems.dart' show internalProblem, unsupported;
+import '../problems.dart' show internalProblem;
 
 import '../export.dart' show Export;
 
@@ -139,9 +139,6 @@ abstract class LibraryBuilder implements ModifierBuilder {
   Builder? lookupLocalMember(String name, {bool required = false});
 
   Builder? lookup(String name, int charOffset, Uri fileUri);
-
-  /// If this is a patch library, apply its patches to [origin].
-  void applyPatches();
 
   void recordAccess(int charOffset, int length, Uri fileUri);
 
@@ -331,12 +328,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   @override
   Builder? lookup(String name, int charOffset, Uri fileUri) {
     return scope.lookup(name, charOffset, fileUri);
-  }
-
-  @override
-  void applyPatches() {
-    if (!isPatch) return;
-    unsupported("${runtimeType}.applyPatches", -1, fileUri);
   }
 
   @override

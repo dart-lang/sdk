@@ -5640,12 +5640,124 @@ UnmatchedAugmentationClassMember:
         augment void method() {}
       }
 
+UnmatchedAugmentationLibraryMember:
+  problemMessage: "Augmentation member '#name' doesn't match a member in the augmented library."
+  correctionMessage: "Try changing the name to an existing member or removing the 'augment' modifier."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+    lib.dart:
+      augment void method() {}
+
+UnmatchedAugmentationClass:
+  problemMessage: "Augmentation class '#name' doesn't match a class in the augmented library."
+  correctionMessage: "Try changing the name to an existing class or removing the 'augment' modifier."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+    lib.dart:
+      augment class Class {}
+
+UnmatchedAugmentationDeclaration:
+  problemMessage: "Augmentation '#name' doesn't match a declaration in the augmented library."
+  correctionMessage: "Try changing the name to an existing declaration or removing the 'augment' modifier."
+  experiments: macros
+
+UnmatchedAugmentationConstructor:
+  problemMessage: "Augmentation constructor '#name' doesn't match a constructor in the augmented class."
+  correctionMessage: "Try changing the name to an existing constructor or removing the 'augment' modifier."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      class Class {
+        Class.name1();
+      }
+    lib.dart:
+      augment class Class {
+        augment Class.name2();
+      }
+
+
 NonAugmentationClassMemberConflict:
   problemMessage: "Member '#name' conflicts with an existing member of the same name in the augmented class."
-  correctionMessage: "Try changing the name to an existing member or adding an 'augment' modifier."
+  correctionMessage: "Try changing the name of the member or adding an 'augment' modifier."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      class Class {
+        void method() {}
+      }
+    lib.dart:
+      augment class Class {
+        void method() {}
+      }
 
-NonAugmentationClassMemberConflictCause:
+NonAugmentationLibraryMemberConflict:
+  problemMessage: "Member '#name' conflicts with an existing member of the same name in the augmented library."
+  correctionMessage: "Try changing the name of the member or adding an 'augment' modifier."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      void method() {}
+    lib.dart:
+      void method() {}
+
+NonAugmentationLibraryConflict:
+  problemMessage: "Declaration '#name' conflicts with an existing declaration of the same name in the augmented library."
+  correctionMessage: "Try changing the name of the declaration."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      void method() {}
+    lib.dart:
+      class method {}
+
+NonAugmentationClassConflict:
+  problemMessage: "Class '#name' conflicts with an existing class of the same name in the augmented library."
+  correctionMessage: "Try changing the name of the class or adding an 'augment' modifier."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      class Class {}
+    lib.dart:
+      class Class {}
+
+NonAugmentationConstructorConflict:
+  problemMessage: "Constructor '#name' conflicts with an existing constructor of the same name in the augmented class."
+  correctionMessage: "Try changing the name of the constructor or adding an 'augment' modifier."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      class Class {
+        Class.name();
+      }
+    lib.dart:
+      augment class Class {
+        Class.name();
+      }
+
+NonAugmentationMemberConflictCause:
   problemMessage: "This is the existing member."
+  severity: CONTEXT
+
+NonAugmentationClassConflictCause:
+  problemMessage: "This is the existing class."
+  severity: CONTEXT
+
+NonAugmentationDeclarationConflictCause:
+  problemMessage: "This is the existing declaration."
+  severity: CONTEXT
+
+NonAugmentationConstructorConflictCause:
+  problemMessage: "This is the existing constructor."
   severity: CONTEXT
 
 OptionalSuperParameterWithoutInitializer:
@@ -5719,12 +5831,39 @@ MixinApplicationNoConcreteMemberContext:
 
 NoAugmentSuperReadTarget:
   problemMessage: "Cannot read from 'augment super'."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      void set setter(value) {}
+    lib.dart:
+      augment void set setter(value) {
+        augment super;
+      }
 
 NoAugmentSuperWriteTarget:
   problemMessage: "Cannot write to 'augment super'."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      void method() {}
+    lib.dart:
+      augment void method() {
+        augment super = 42;
+      }
 
 NoAugmentSuperInvokeTarget:
   problemMessage: "Cannot call 'augment super'."
+  experiments: macros
+  script:
+    main.dart:
+      import augment 'lib.dart';
+      void set setter(value) {}
+    lib.dart:
+      augment void set setter(value) {
+        augment super();
+      }
 
 IndexOutOfBoundInRecordIndexGet:
   problemMessage: "Index #count is out of range 0..#count2 of positional fields of records #type."

@@ -31,8 +31,8 @@ library /*isNonNullableByDefault*/;
 //     for (PropertyState<Object, Object>> state in _states) ;
 //                                               ^^
 //
-// pkg/front_end/testcases/general/issue42997.dart:12:41: Error: The getter 'state' isn't defined for the class 'PropertyState#1<I, O>'.
-//  - 'PropertyState#1' is from 'pkg/front_end/testcases/general/issue42997.dart'.
+// pkg/front_end/testcases/general/issue42997.dart:12:41: Error: The getter 'state' isn't defined for the class 'PropertyState#1#0<I, O>'.
+//  - 'PropertyState#1#0' is from 'pkg/front_end/testcases/general/issue42997.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'state'.
 //     for (PropertyState<Object, Object>> state in _states) ;
 //                                         ^^^^^
@@ -46,8 +46,8 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class PropertyState#1<I extends core::Object? = dynamic, O extends core::Object? = dynamic> extends core::Object {
-  synthetic constructor •() → self::PropertyState#1<self::PropertyState#1::I%, self::PropertyState#1::O%>
+class PropertyState#1#0<I extends core::Object? = dynamic, O extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::PropertyState#1#0<self::PropertyState#1#0::I%, self::PropertyState#1#0::O%>
     : super core::Object::•()
     ;
   method dispose() → void {
@@ -61,8 +61,8 @@ class PropertyState#1<I extends core::Object? = dynamic, O extends core::Object?
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '>>' operator.
     for (PropertyState<Object, Object>> state in _states) ;
-                                     ^^" in #C1{<unresolved>}.>>(invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:41: Error: The getter 'state' isn't defined for the class 'PropertyState#1<I, O>'.
- - 'PropertyState#1' is from 'pkg/front_end/testcases/general/issue42997.dart'.
+                                     ^^" in #C1{<unresolved>}.>>(invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:41: Error: The getter 'state' isn't defined for the class 'PropertyState#1#0<I, O>'.
+ - 'PropertyState#1#0' is from 'pkg/front_end/testcases/general/issue42997.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'state'.
     for (PropertyState<Object, Object>> state in _states) ;
                                         ^^^^^" in this{<unresolved>}.state))

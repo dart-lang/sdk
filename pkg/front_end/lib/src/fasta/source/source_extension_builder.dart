@@ -39,6 +39,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   SourceExtensionBuilder? _origin;
   SourceExtensionBuilder? patchForTesting;
 
+  MergedClassMemberScope? _mergedScope;
+
   @override
   final List<TypeVariableBuilder>? typeParameters;
 
@@ -77,6 +79,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
 
   @override
   SourceExtensionBuilder get origin => _origin ?? this;
+
+  // TODO(johnniwinther): Add merged scope for extensions.
+  MergedClassMemberScope get mergedScope => _mergedScope ??= isPatch
+      ? origin.mergedScope
+      : throw new UnimplementedError("SourceExtensionBuilder.mergedScope");
 
   @override
   Extension get extension => isPatch ? origin._extension : _extension;

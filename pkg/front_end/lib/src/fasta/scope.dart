@@ -15,14 +15,7 @@ import 'builder/library_builder.dart';
 import 'builder/member_builder.dart';
 import 'builder/name_iterator.dart';
 import 'builder/type_variable_builder.dart';
-import 'fasta_codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        messageInternalProblemExtendingUnmodifiableScope,
-        templateAccessError,
-        templateDuplicatedDeclarationUse,
-        templateDuplicatedNamePreviouslyUsedCause;
+import 'fasta_codes.dart';
 import 'kernel/body_builder.dart' show JumpTarget;
 import 'kernel/hierarchy/class_member.dart' show ClassMember;
 import 'kernel/kernel_helper.dart';
@@ -1211,6 +1204,14 @@ extension IteratorExtension<T extends Builder> on Iterator<T> {
       f(current);
     }
   }
+
+  List<T> toList() {
+    List<T> list = [];
+    while (moveNext()) {
+      list.add(current);
+    }
+    return list;
+  }
 }
 
 extension NameIteratorExtension<T extends Builder> on NameIterator<T> {
@@ -1218,5 +1219,310 @@ extension NameIteratorExtension<T extends Builder> on NameIterator<T> {
     while (moveNext()) {
       f(name, current);
     }
+  }
+}
+
+abstract class MergedScope<T extends Builder> {
+  final T _origin;
+  final Scope _originScope;
+  Map<T, Scope> _augmentationScopes = {};
+
+  MergedScope(this._origin, this._originScope);
+
+  SourceLibraryBuilder get originLibrary;
+
+  void _addBuilderToMergedScope(T parentBuilder, String name,
+      Builder newBuilder, Builder? existingBuilder,
+      {required bool setter}) {
+    if (parentBuilder.isAugmentation) {
+      if (existingBuilder != null) {
+        if (newBuilder.isAugmentation) {
+          existingBuilder.applyPatch(newBuilder);
+        } else {
+          newBuilder.isConflictingAugmentationMember = true;
+          Message message;
+          Message context;
+          if (newBuilder is SourceMemberBuilder &&
+              existingBuilder is SourceMemberBuilder) {
+            if (_origin is SourceLibraryBuilder) {
+              message = templateNonAugmentationLibraryMemberConflict
+                  .withArguments(name);
+            } else {
+              message = templateNonAugmentationClassMemberConflict
+                  .withArguments(name);
+            }
+            context = messageNonAugmentationMemberConflictCause;
+          } else if (newBuilder is SourceClassBuilder &&
+              existingBuilder is SourceClassBuilder) {
+            message = templateNonAugmentationClassConflict.withArguments(name);
+            context = messageNonAugmentationClassConflictCause;
+          } else {
+            if (_origin is SourceLibraryBuilder) {
+              message =
+                  templateNonAugmentationLibraryConflict.withArguments(name);
+            } else {
+              message = templateNonAugmentationClassMemberConflict
+                  .withArguments(name);
+            }
+            context = messageNonAugmentationMemberConflictCause;
+          }
+          originLibrary.addProblem(
+              message, newBuilder.charOffset, name.length, newBuilder.fileUri,
+              context: [
+                context.withLocation(existingBuilder.fileUri!,
+                    existingBuilder.charOffset, name.length)
+              ]);
+        }
+      } else {
+        if (newBuilder.isAugmentation) {
+          Message message;
+          if (newBuilder is SourceMemberBuilder) {
+            if (_origin is SourceLibraryBuilder) {
+              message = templateUnmatchedAugmentationLibraryMember
+                  .withArguments(name);
+            } else {
+              message =
+                  templateUnmatchedAugmentationClassMember.withArguments(name);
+            }
+          } else if (newBuilder is SourceClassBuilder) {
+            message = templateUnmatchedAugmentationClass.withArguments(name);
+          } else {
+            message =
+                templateUnmatchedAugmentationDeclaration.withArguments(name);
+          }
+          originLibrary.addProblem(
+              message, newBuilder.charOffset, name.length, newBuilder.fileUri);
+        } else {
+          _originScope.addLocalMember(name, newBuilder, setter: setter);
+          for (Scope augmentationScope in _augmentationScopes.values) {
+            _addBuilderToAugmentationScope(augmentationScope, name, newBuilder,
+                setter: setter);
+          }
+        }
+      }
+    } else {
+      if (existingBuilder != null) {
+        // Patch libraries implicitly assume matching members are patch
+        // members.
+        existingBuilder.applyPatch(newBuilder);
+      } else {
+        _addInjectedPatchMember(name, newBuilder);
+      }
+    }
+  }
+
+  void _addBuilderToAugmentationScope(
+      Scope augmentationScope, String name, Builder member,
+      {required bool setter}) {
+    Builder? augmentationMember =
+        augmentationScope.lookupLocalMember(name, setter: setter);
+    if (augmentationMember == null) {
+      augmentationScope.addLocalMember(name, member, setter: setter);
+    }
+  }
+
+  void _addAugmentationScope(T parentBuilder, Scope scope) {
+    // Include all augmentation scope members to the origin scope.
+    scope.forEachLocalMember((String name, Builder member) {
+      _addBuilderToMergedScope(parentBuilder, name, member,
+          _originScope.lookupLocalMember(name, setter: false),
+          setter: false);
+    });
+    scope.forEachLocalSetter((String name, Builder member) {
+      _addBuilderToMergedScope(parentBuilder, name, member,
+          _originScope.lookupLocalMember(name, setter: true),
+          setter: true);
+    });
+
+    // Include all origin scope members in the augmentation scope.
+    _originScope.forEachLocalMember((String name, Builder originMember) {
+      _addBuilderToAugmentationScope(scope, name, originMember, setter: false);
+    });
+    _originScope.forEachLocalSetter((String name, Builder originMember) {
+      _addBuilderToAugmentationScope(scope, name, originMember, setter: true);
+    });
+
+    _augmentationScopes[parentBuilder] = scope;
+  }
+
+  void _addInjectedPatchMember(String name, Builder newBuilder);
+}
+
+class MergedLibraryScope extends MergedScope<SourceLibraryBuilder> {
+  MergedLibraryScope(SourceLibraryBuilder origin) : super(origin, origin.scope);
+
+  @override
+  SourceLibraryBuilder get originLibrary => _origin;
+
+  void addAugmentationScope(SourceLibraryBuilder builder) {
+    _addAugmentationScope(builder, builder.scope);
+  }
+
+  @override
+  void _addInjectedPatchMember(String name, Builder newBuilder) {
+    if (name.startsWith('_')) {
+      injectMemberFromPatch(name, newBuilder);
+    } else {
+      exportMemberFromPatch(name, newBuilder);
+    }
+  }
+
+  void injectMemberFromPatch(String name, Builder member) {
+    if (member.isSetter) {
+      assert(
+          _originScope.lookupLocalMember(name, setter: true) == null,
+          "Setter $name already bound to "
+          "${_originScope.lookupLocalMember(name, setter: true)}, "
+          "trying to add $member.");
+      _originScope.addLocalMember(name, member as MemberBuilder, setter: true);
+    } else {
+      assert(
+          _originScope.lookupLocalMember(name, setter: false) == null,
+          "Member $name already bound to "
+          "${_originScope.lookupLocalMember(name, setter: false)}, "
+          "trying to add $member.");
+      _originScope.addLocalMember(name, member, setter: false);
+    }
+  }
+
+  void exportMemberFromPatch(String name, Builder member) {
+    if (!originLibrary.importUri.isScheme("dart") ||
+        !originLibrary.importUri.path.startsWith("_")) {
+      originLibrary.addProblem(
+          templatePatchInjectionFailed.withArguments(
+              name, originLibrary.importUri),
+          member.charOffset,
+          noLength,
+          member.fileUri);
+    }
+    // Platform-private libraries, such as "dart:_internal" have special
+    // semantics: public members are injected into the origin library.
+    // TODO(ahe): See if we can remove this special case.
+
+    // If this member already exist in the origin library scope, it should
+    // have been marked as patch.
+    assert((member.isSetter &&
+            _originScope.lookupLocalMember(name, setter: true) == null) ||
+        (!member.isSetter &&
+            _originScope.lookupLocalMember(name, setter: false) == null));
+    originLibrary.addToExportScope(name, member);
+  }
+}
+
+class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
+  final ConstructorScope _originConstructorScope;
+  Map<SourceClassBuilder, ConstructorScope> _augmentationConstructorScopes = {};
+
+  MergedClassMemberScope(SourceClassBuilder origin)
+      : _originConstructorScope = origin.constructorScope,
+        super(origin, origin.scope);
+
+  @override
+  SourceLibraryBuilder get originLibrary => _origin.libraryBuilder;
+
+  void _addAugmentationConstructorScope(
+      SourceClassBuilder classBuilder, ConstructorScope constructorScope) {
+    constructorScope.forEach((String name, MemberBuilder newConstructor) {
+      MemberBuilder? existingConstructor =
+          _originConstructorScope.lookupLocalMember(name);
+      if (classBuilder.isAugmentation) {
+        if (existingConstructor != null) {
+          if (newConstructor.isAugmentation) {
+            existingConstructor.applyPatch(newConstructor);
+          } else {
+            newConstructor.isConflictingAugmentationMember = true;
+            originLibrary.addProblem(
+                templateNonAugmentationConstructorConflict
+                    .withArguments(newConstructor.fullNameForErrors),
+                newConstructor.charOffset,
+                noLength,
+                newConstructor.fileUri,
+                context: [
+                  messageNonAugmentationConstructorConflictCause.withLocation(
+                      existingConstructor.fileUri!,
+                      existingConstructor.charOffset,
+                      noLength)
+                ]);
+          }
+        } else {
+          if (newConstructor.isAugmentation) {
+            originLibrary.addProblem(
+                templateUnmatchedAugmentationConstructor
+                    .withArguments(newConstructor.fullNameForErrors),
+                newConstructor.charOffset,
+                noLength,
+                newConstructor.fileUri);
+          } else {
+            _originConstructorScope.addLocalMember(name, newConstructor);
+            for (ConstructorScope augmentationConstructorScope
+                in _augmentationConstructorScopes.values) {
+              _addConstructorToAugmentationScope(
+                  augmentationConstructorScope, name, newConstructor);
+            }
+          }
+        }
+      } else {
+        if (existingConstructor != null) {
+          // Patch libraries implicitly assume matching members are patch
+          // members.
+          existingConstructor.applyPatch(newConstructor);
+        } else {
+          // Members injected into patch are not part of the origin scope.
+        }
+      }
+    });
+    _originConstructorScope
+        .forEach((String name, MemberBuilder originConstructor) {
+      _addConstructorToAugmentationScope(
+          constructorScope, name, originConstructor);
+    });
+  }
+
+  void _addConstructorToAugmentationScope(
+      ConstructorScope augmentationConstructorScope,
+      String name,
+      MemberBuilder constructor) {
+    Builder? augmentationConstructor =
+        augmentationConstructorScope.lookupLocalMember(name);
+    if (augmentationConstructor == null) {
+      augmentationConstructorScope.addLocalMember(name, constructor);
+    }
+  }
+
+  // TODO(johnniwinther): Check for conflicts between constructors and class
+  //  members.
+  void addAugmentationScope(SourceClassBuilder builder) {
+    _addAugmentationScope(builder, builder.scope);
+    _addAugmentationConstructorScope(builder, builder.constructorScope);
+  }
+
+  @override
+  void _addInjectedPatchMember(String name, Builder newBuilder) {
+    // Members injected into patch are not part of the origin scope.
+  }
+}
+
+extension on Builder {
+  bool get isAugmentation {
+    Builder self = this;
+    if (self is SourceLibraryBuilder) {
+      return self.isAugmentation;
+    } else if (self is SourceClassBuilder) {
+      return self.isAugmentation;
+    } else if (self is SourceMemberBuilder) {
+      return self.isAugmentation;
+    } else {
+      return false;
+    }
+  }
+
+  void set isConflictingAugmentationMember(bool value) {
+    Builder self = this;
+    if (self is SourceMemberBuilder) {
+      self.isConflictingAugmentationMember = value;
+    } else if (self is SourceClassBuilder) {
+      self.isConflictingAugmentationMember = value;
+    }
+    // TODO(johnniwinther): Handle all cases here.
   }
 }
