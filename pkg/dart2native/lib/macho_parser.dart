@@ -267,11 +267,7 @@ class MachOFile {
 
     // Pad the header according to the offset.
     final int paddingAmount = headerMaxOffset - stream.positionSync();
-    if (paddingAmount < 0) {
-      throw FormatException(
-          "The MachO header overlaps with the first ${-paddingAmount} bytes of "
-          "the section contents");
-    } else if (paddingAmount > 0) {
+    if (paddingAmount > 0) {
       stream.writeFromSync(List.filled(paddingAmount, 0));
     }
   }
