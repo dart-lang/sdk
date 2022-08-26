@@ -34938,6 +34938,19 @@ library
 ''');
   }
 
+  test_recordType_topFunction_returnType_empty() async {
+    var library = await buildLibrary('''
+() f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @3
+        returnType: ()
+''');
+  }
+
   test_recordType_topFunction_returnType_generic() async {
     var library = await buildLibrary('''
 (int, T) f<T>() {}
