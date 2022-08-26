@@ -277,20 +277,16 @@ extension IntStringRecordExtension on (int, String) {
 }
 
 void f((int, String) r) {
-  (r).foo;
+  r.foo;
 }
 ''');
 
     final node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ParenthesizedExpression
-    leftParenthesis: (
-    expression: SimpleIdentifier
-      token: r
-      staticElement: self::@function::f::@parameter::r
-      staticType: (int, String)
-    rightParenthesis: )
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
@@ -308,20 +304,16 @@ extension BiRecordExtension<T, U> on (T, U) {
 }
 
 void f((int, String) r) {
-  (r).foo;
+  r.foo;
 }
 ''');
 
     final node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ParenthesizedExpression
-    leftParenthesis: (
-    expression: SimpleIdentifier
-      token: r
-      staticElement: self::@function::f::@parameter::r
-      staticType: (int, String)
-    rightParenthesis: )
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier
@@ -337,20 +329,16 @@ PropertyAccess
   test_ofRecordType_namedField() async {
     await assertNoErrorsInCode('''
 void f(({int foo}) r) {
-  (r).foo;
+  r.foo;
 }
 ''');
 
     final node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ParenthesizedExpression
-    leftParenthesis: (
-    expression: SimpleIdentifier
-      token: r
-      staticElement: self::@function::f::@parameter::r
-      staticType: ({int foo})
-    rightParenthesis: )
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
     staticType: ({int foo})
   operator: .
   propertyName: SimpleIdentifier
@@ -364,20 +352,16 @@ PropertyAccess
   test_ofRecordType_namedField_nullAware() async {
     await assertNoErrorsInCode('''
 void f(({int foo})? r) {
-  (r)?.foo;
+  r?.foo;
 }
 ''');
 
     final node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ParenthesizedExpression
-    leftParenthesis: (
-    expression: SimpleIdentifier
-      token: r
-      staticElement: self::@function::f::@parameter::r
-      staticType: ({int foo})?
-    rightParenthesis: )
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
     staticType: ({int foo})?
   operator: ?.
   propertyName: SimpleIdentifier
@@ -391,20 +375,16 @@ PropertyAccess
   test_ofRecordType_Object_hashCode() async {
     await assertNoErrorsInCode('''
 void f(({int foo}) r) {
-  (r).hashCode;
+  r.hashCode;
 }
 ''');
 
     final node = findNode.propertyAccess('hashCode;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ParenthesizedExpression
-    leftParenthesis: (
-    expression: SimpleIdentifier
-      token: r
-      staticElement: self::@function::f::@parameter::r
-      staticType: ({int foo})
-    rightParenthesis: )
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
     staticType: ({int foo})
   operator: .
   propertyName: SimpleIdentifier
@@ -418,22 +398,18 @@ PropertyAccess
   test_ofRecordType_unresolved() async {
     await assertErrorsInCode('''
 void f(({int foo}) r) {
-  (r).bar;
+  r.bar;
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 3),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
     ]);
 
     final node = findNode.propertyAccess('bar;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ParenthesizedExpression
-    leftParenthesis: (
-    expression: SimpleIdentifier
-      token: r
-      staticElement: self::@function::f::@parameter::r
-      staticType: ({int foo})
-    rightParenthesis: )
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
     staticType: ({int foo})
   operator: .
   propertyName: SimpleIdentifier
@@ -449,22 +425,18 @@ PropertyAccess
   test_ofRecordType_unresolved_positionalField() async {
     await assertErrorsInCode('''
 void f((int foo, String) r) {
-  (r).foo;
+  r.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 36, 3),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 34, 3),
     ]);
 
     final node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ParenthesizedExpression
-    leftParenthesis: (
-    expression: SimpleIdentifier
-      token: r
-      staticElement: self::@function::f::@parameter::r
-      staticType: (int, String)
-    rightParenthesis: )
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
     staticType: (int, String)
   operator: .
   propertyName: SimpleIdentifier

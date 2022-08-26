@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -23,8 +24,26 @@ class PrefixedIdentifierResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
-  void resolve(PrefixedIdentifierImpl node, {required DartType? contextType}) {
+  PropertyAccessImpl? resolve(
+    PrefixedIdentifierImpl node, {
+    required DartType? contextType,
+  }) {
     node.prefix.accept(_resolver);
+
+    final prefixElement = node.prefix.staticElement;
+    if (prefixElement is! PrefixElement) {
+      final prefixType = node.prefix.staticType;
+      // TODO(scheglov) It would be nice to rewrite all such cases.
+      if (prefixType is RecordType) {
+        final propertyAccess = PropertyAccessImpl(
+          node.prefix,
+          node.period,
+          node.identifier,
+        );
+        NodeReplacer.replace(node, propertyAccess);
+        return propertyAccess;
+      }
+    }
 
     var resolver = PropertyElementResolver(_resolver);
     var result = resolver.resolvePrefixedIdentifier(
@@ -40,7 +59,7 @@ class PrefixedIdentifierResolver {
 
     if (element is ExtensionElement) {
       _setExtensionIdentifierType(node);
-      return;
+      return null;
     }
 
     if (identical(node.prefix.staticType, NeverTypeImpl.instance)) {
@@ -48,7 +67,7 @@ class PrefixedIdentifierResolver {
           contextType: contextType);
       _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance,
           contextType: contextType);
-      return;
+      return null;
     }
 
     DartType type = DynamicTypeImpl.instance;
@@ -62,12 +81,12 @@ class PrefixedIdentifierResolver {
         node.staticType = type;
         identifier.staticType = type;
       }
-      return;
+      return null;
     } else if (element is DynamicElementImpl) {
       var type = _typeProvider.typeType;
       node.staticType = type;
       identifier.staticType = type;
-      return;
+      return null;
     } else if (element is TypeAliasElement) {
       if (node.parent is NamedType) {
         // no type
@@ -76,7 +95,7 @@ class PrefixedIdentifierResolver {
         node.staticType = type;
         identifier.staticType = type;
       }
-      return;
+      return null;
     } else if (element is MethodElement) {
       type = element.type;
     } else if (element is PropertyAccessorElement) {
@@ -101,6 +120,7 @@ class PrefixedIdentifierResolver {
     }
     _inferenceHelper.recordStaticType(identifier, type, contextType: null);
     _inferenceHelper.recordStaticType(node, type, contextType: contextType);
+    return null;
   }
 
   /// Return the type that should be recorded for a node that resolved to the given accessor.
