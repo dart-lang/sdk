@@ -2299,8 +2299,7 @@ class DartObjectImplTest {
   ) {
     return DartObjectImpl(
       _typeSystem,
-      _typeProvider.recordElement.instantiate(
-          typeArguments: [], nullabilitySuffix: NullabilitySuffix.none),
+      _typeProvider.recordType,
       RecordState(positionalFields, namedFields),
     );
   }

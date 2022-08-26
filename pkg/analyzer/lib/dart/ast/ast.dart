@@ -4083,8 +4083,17 @@ abstract class PropertyAccess
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class RecordLiteral implements Literal {
+  /// Return the token representing the 'const' keyword, or `null` if the
+  /// literal is not a constant.
+  Token? get constKeyword;
+
   /// Return the syntactic elements used to compute the fields of the record.
   NodeList<Expression> get fields;
+
+  /// Return `true` if this literal is a constant expression, either because the
+  /// keyword `const` was explicitly provided or because no keyword was provided
+  /// and this expression is in a constant context.
+  bool get isConst;
 
   /// Return the left parenthesis.
   Token get leftParenthesis;

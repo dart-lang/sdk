@@ -1013,6 +1013,41 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   @override
+  DartObjectImpl? visitRecordLiteral(RecordLiteral node) {
+    if (!node.isConst) {
+      // TODO(brianwilkerson) Merge the error codes into a single error code or
+      //  declare a new error code specific to records.
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL, node);
+      return null;
+    }
+    var nodeType = node.staticType;
+    if (nodeType == null) {
+      return null;
+    }
+    var positionalFields = <DartObjectImpl>[];
+    var namedFields = <String, DartObjectImpl>{};
+    for (var field in node.fields) {
+      if (field is NamedExpression) {
+        var name = field.name.label.name;
+        var value = field.expression.accept(this);
+        if (value == null) {
+          return null;
+        }
+        namedFields[name] = value;
+      } else {
+        var value = field.accept(this);
+        if (value == null) {
+          return null;
+        }
+        positionalFields.add(value);
+      }
+    }
+    return DartObjectImpl(
+        typeSystem, nodeType, RecordState(positionalFields, namedFields));
+  }
+
+  @override
   DartObjectImpl? visitSetOrMapLiteral(SetOrMapLiteral node) {
     // Note: due to dartbug.com/33441, it's possible that a set/map literal
     // resynthesized from a summary will have neither its `isSet` or `isMap`
