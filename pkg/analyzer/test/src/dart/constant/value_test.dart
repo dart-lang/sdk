@@ -902,6 +902,71 @@ class DartObjectImplTest {
     _assertIdentical(_boolValue(true), _nullValue(), _nullValue());
   }
 
+  void test_identical_record_mixed_true() {
+    _assertIdentical(
+        _boolValue(null),
+        _recordValue([_intValue(1)], {'a': _intValue(2)}),
+        _recordValue([_intValue(1)], {'a': _intValue(2)}));
+  }
+
+  void test_identical_record_named_false_differentKeys() {
+    _assertIdentical(_boolValue(false), _recordValue([], {'a': _intValue(1)}),
+        _recordValue([], {'b': _intValue(1)}));
+  }
+
+  void test_identical_record_named_false_differentKeysAndValues() {
+    _assertIdentical(_boolValue(false), _recordValue([], {'a': _intValue(1)}),
+        _recordValue([], {'b': _intValue(2)}));
+  }
+
+  void test_identical_record_named_false_differentLength() {
+    _assertIdentical(_boolValue(false), _recordValue([], {'a': _intValue(1)}),
+        _recordValue([], {'a': _intValue(1), 'b': _intValue(1)}));
+  }
+
+  void test_identical_record_named_false_differentValues() {
+    _assertIdentical(_boolValue(false), _recordValue([], {'a': _intValue(1)}),
+        _recordValue([], {'a': _intValue(2)}));
+  }
+
+  void test_identical_record_named_true() {
+    _assertIdentical(_boolValue(null), _recordValue([], {'a': _intValue(1)}),
+        _recordValue([], {'a': _intValue(1)}));
+  }
+
+  void test_identical_record_named_unknown() {
+    _assertIdentical(_boolValue(null), _recordValue([], {'a': _intValue(1)}),
+        _recordValue([], {'a': _intValue(null)}));
+  }
+
+  void test_identical_record_positional_false_differentLength() {
+    _assertIdentical(
+        _boolValue(false),
+        _recordValue([_intValue(1), _intValue(2), _intValue(3)], {}),
+        _recordValue([_intValue(1), _intValue(2)], {}));
+  }
+
+  void test_identical_record_positional_false_differentOrder() {
+    _assertIdentical(
+        _boolValue(false),
+        _recordValue([_intValue(1), _intValue(2)], {}),
+        _recordValue([_intValue(2), _intValue(1)], {}));
+  }
+
+  void test_identical_record_positional_true() {
+    _assertIdentical(
+        _boolValue(null),
+        _recordValue([_intValue(1), _intValue(2)], {}),
+        _recordValue([_intValue(1), _intValue(2)], {}));
+  }
+
+  void test_identical_record_positional_unknown() {
+    _assertIdentical(
+        _boolValue(null),
+        _recordValue([_intValue(1), _intValue(null)], {}),
+        _recordValue([_intValue(1), _intValue(null)], {}));
+  }
+
   void test_identical_string_false() {
     _assertIdentical(
         _boolValue(false), _stringValue("abc"), _stringValue("def"));
@@ -2225,6 +2290,18 @@ class DartObjectImplTest {
       _typeSystem,
       _typeProvider.nullType,
       NullState.NULL_STATE,
+    );
+  }
+
+  DartObjectImpl _recordValue(
+    List<DartObjectImpl> positionalFields,
+    Map<String, DartObjectImpl> namedFields,
+  ) {
+    return DartObjectImpl(
+      _typeSystem,
+      _typeProvider.recordElement.instantiate(
+          typeArguments: [], nullabilitySuffix: NullabilitySuffix.none),
+      RecordState(positionalFields, namedFields),
     );
   }
 

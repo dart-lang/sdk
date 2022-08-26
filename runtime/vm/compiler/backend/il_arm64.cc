@@ -1486,13 +1486,15 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         R1, reinterpret_cast<int64_t>(DLRT_GetThreadForNativeCallback));
   }
 
+  const intptr_t callback_id = marshaller_.dart_signature().FfiCallbackId();
+
   if (!NativeCallbackTrampolines::Enabled()) {
     // Create another frame to align the frame before continuing in "native"
     // code.
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(0);
 
-    __ LoadImmediate(R0, callback_id_);
+    __ LoadImmediate(R0, callback_id);
     __ blr(R1);
     __ mov(THR, R0);
 
@@ -1549,7 +1551,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadCompressedFieldFromOffset(
       CODE_REG, R0,
       compiler::target::Array::data_offset() +
-          callback_id_ * compiler::target::kCompressedWordSize);
+          callback_id * compiler::target::kCompressedWordSize);
 
   // Put the code object in the reserved slot.
   __ StoreToOffset(CODE_REG, FPREG,

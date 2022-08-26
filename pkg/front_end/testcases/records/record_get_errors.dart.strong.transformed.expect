@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/records/record_get_errors.dart:6:11: Error: The getter '$2' isn't defined for the class '(int, String)'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named '$2'.
+//   (0, "").$2;
+//           ^^
+//
+// pkg/front_end/testcases/records/record_get_errors.dart:7:23: Error: The getter 'c' isn't defined for the class '(int, {String a, bool b})'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'c'.
+//   (0, a: "", b: true).c;
+//                       ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method method() → dynamic {
+  invalid-expression "pkg/front_end/testcases/records/record_get_errors.dart:6:11: Error: The getter '\$2' isn't defined for the class '(int, String)'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named '\$2'.
+  (0, \"\").\$2;
+          ^^" in (0, ""){<unresolved>}.$2;
+  invalid-expression "pkg/front_end/testcases/records/record_get_errors.dart:7:23: Error: The getter 'c' isn't defined for the class '(int, {String a, bool b})'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'c'.
+  (0, a: \"\", b: true).c;
+                      ^" in (0, {a: "", b: true}){<unresolved>}.c;
+}

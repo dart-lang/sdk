@@ -4288,7 +4288,9 @@ class RecordIndexGet extends Expression {
   RecordType receiverType;
   final int index;
 
-  RecordIndexGet(this.receiver, this.receiverType, this.index);
+  RecordIndexGet(this.receiver, this.receiverType, this.index) {
+    receiver.parent = this;
+  }
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -4330,7 +4332,7 @@ class RecordIndexGet extends Expression {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver);
-    printer.write("[${index}]");
+    printer.write(".\$${index}");
   }
 }
 
@@ -4339,7 +4341,9 @@ class RecordNameGet extends Expression {
   RecordType receiverType;
   final String name;
 
-  RecordNameGet(this.receiver, this.receiverType, this.name);
+  RecordNameGet(this.receiver, this.receiverType, this.name) {
+    receiver.parent = this;
+  }
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -4391,7 +4395,7 @@ class RecordNameGet extends Expression {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver);
-    printer.write("['${name}']");
+    printer.write(".${name}");
   }
 }
 
@@ -8677,7 +8681,10 @@ class RecordLiteral extends Expression {
           return true;
         }(),
             "Named fields of a RecordLiterals aren't sorted lexicographically: "
-            "${named.map((f) => f.name).join(", ")}");
+            "${named.map((f) => f.name).join(", ")}") {
+    setParents(positional, this);
+    setParents(named, this);
+  }
 
   @override
   DartType getStaticType(StaticTypeContext context) =>

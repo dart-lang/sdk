@@ -2234,7 +2234,7 @@ class BinaryBuilder {
     int offset = readOffset();
     Expression receiver = readExpression();
     RecordType receiverType = readDartType() as RecordType;
-    String name = readString();
+    String name = readStringReference();
     return RecordNameGet(receiver, receiverType, name)..fileOffset = offset;
   }
 

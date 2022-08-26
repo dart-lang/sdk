@@ -34859,6 +34859,69 @@ library
 ''');
   }
 
+  test_recordType_class_typeParameter_bound() async {
+    var library = await buildLibrary('''
+class A<T extends (int, String)> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            bound: (int, String)
+            defaultType: (int, String)
+        constructors
+          synthetic @-1
+''');
+  }
+
+  test_recordType_extension_onType() async {
+    var library = await buildLibrary('''
+extension IntStringExtension on (int, String) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      IntStringExtension @10
+        extendedType: (int, String)
+''');
+  }
+
+  test_recordType_functionType_formalParameter() async {
+    var library = await buildLibrary('''
+void f(void Function((int, String) a) b) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional b @38
+            type: void Function((int, String))
+        returnType: void
+''');
+  }
+
+  test_recordType_functionType_returnType() async {
+    var library = await buildLibrary('''
+void f((int, String) Function() a) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional a @32
+            type: (int, String) Function()
+        returnType: void
+''');
+  }
+
   test_recordType_topFunction_formalParameter() async {
     var library = await buildLibrary('''
 void f((int, String) a) {}
@@ -34872,6 +34935,34 @@ library
           requiredPositional a @21
             type: (int, String)
         returnType: void
+''');
+  }
+
+  test_recordType_topFunction_returnType_empty() async {
+    var library = await buildLibrary('''
+() f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @3
+        returnType: ()
+''');
+  }
+
+  test_recordType_topFunction_returnType_generic() async {
+    var library = await buildLibrary('''
+(int, T) f<T>() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @9
+        typeParameters
+          covariant T @11
+        returnType: (int, T)
 ''');
   }
 
@@ -34898,6 +34989,19 @@ library
     functions
       f @20
         returnType: ({int a, String b})
+''');
+  }
+
+  test_recordType_topFunction_returnType_nested() async {
+    var library = await buildLibrary('''
+((int, String), (bool, double)) f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @32
+        returnType: ((int, String), (bool, double))
 ''');
   }
 
@@ -39467,7 +39571,7 @@ library
   definingUnit
     typeAliases
       notSimplyBounded F @8
-        aliasedType: (dynamic, dynamic) Function()
+        aliasedType: (dynamic, int) Function()
         aliasedElement: GenericFunctionTypeElement
           returnType: (dynamic, int)
 ''');

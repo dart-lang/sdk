@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart'
-    show DartType, InvalidType, NamedType, Supertype;
+    show DartType, InvalidType, NamedType, RecordType, Supertype;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/unaliasing.dart';
 
@@ -176,8 +176,17 @@ abstract class RecordTypeBuilder extends TypeBuilder {
       namedEntries.sort();
     }
 
-    // TODO(johnniwinther): Create [RecordType] node.
-    return const InvalidType();
+    if (library is SourceLibraryBuilder &&
+        !library.libraryFeatures.records.isEnabled) {
+      // TODO(johnniwinther): Remove this when backends can handle record types
+      // without crashing.
+      return const InvalidType();
+    }
+
+    // TODO(johnniwinther): Should we create an [InvalidType] if there is <= 1
+    // entries?
+    return new RecordType(positionalEntries, namedEntries ?? [],
+        nullabilityBuilder.build(library));
   }
 
   @override

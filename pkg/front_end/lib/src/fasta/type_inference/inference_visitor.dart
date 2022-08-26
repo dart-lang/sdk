@@ -10,6 +10,7 @@ import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../../api_prototype/experimental_flags.dart';
 import '../../base/instrumentation.dart'
     show
         InstrumentationValueForMember,
@@ -6020,6 +6021,32 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType receiverType = result.nullAwareActionType;
 
     node.receiver = receiver..parent = node;
+
+    if (receiverType is RecordType) {
+      // TODO(johnniwinther): Handle nullable record types and null shorting.
+      String name = node.name.text;
+      if (name.startsWith('\$')) {
+        int? index = int.tryParse(name.substring(1));
+        if (index != null) {
+          if (index < receiverType.positional.length) {
+            DartType fieldType = receiverType.positional[index];
+            return new ExpressionInferenceResult(
+                fieldType,
+                new RecordIndexGet(receiver, receiverType, index)
+                  ..fileOffset = node.fileOffset);
+          }
+        }
+      }
+      for (NamedType field in receiverType.named) {
+        if (field.name == name) {
+          return new ExpressionInferenceResult(
+              field.type,
+              new RecordNameGet(receiver, receiverType, name)
+                ..fileOffset = node.fileOffset);
+        }
+      }
+    }
+
     PropertyGetInferenceResult propertyGetInferenceResult = _computePropertyGet(
         node.fileOffset, receiver, receiverType, node.name, typeContext,
         isThisReceiver: node.receiver is ThisExpression);
@@ -7375,18 +7402,32 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
 
+    DartType type;
     Expression result;
-    // TODO(johnniwinther): Create a [RecordLiteral].
-    // For now we pretend it's a dynamic call to 'foo'.
-    result = new DynamicInvocation(DynamicAccessKind.Invalid, new NullLiteral(),
-        new Name('foo'), new Arguments(positional, named: named));
-
+    if (!libraryBuilder.libraryFeatures.records.isEnabled) {
+      // TODO(johnniwinther): Remove this when backends can handle record
+      // literals and types without crashing.
+      type = const InvalidType();
+      result = new InvalidExpression(templateExperimentNotEnabledOffByDefault
+          .withArguments(ExperimentalFlag.records.name)
+          .withoutLocation()
+          .problemMessage);
+    } else {
+      result = new RecordLiteral(
+          positional,
+          named,
+          type = new RecordType(
+              positionalTypes, namedTypes, libraryBuilder.nonNullable),
+          // TODO(johnniwinther): Support const literals.
+          isConst: false)
+        ..fileOffset = node.fileOffset;
+    }
     if (hoistedExpressions != null) {
       for (VariableDeclaration variable in hoistedExpressions) {
         result = createLet(variable, result);
       }
     }
-    return new ExpressionInferenceResult(const InvalidType(), result);
+    return new ExpressionInferenceResult(type, result);
   }
 
   void reportNonNullableInNullAwareWarningIfNeeded(

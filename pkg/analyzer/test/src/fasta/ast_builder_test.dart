@@ -785,6 +785,21 @@ RecordLiteral
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49826')
+  void test_recordTypeAnnotation_empty() {
+    var parseResult = parseStringWithErrors(r'''
+() f() {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.recordTypeAnnotation('() f');
+    assertParsedNodeText(node, r'''
+RecordTypeAnnotation
+  leftParenthesis: (
+  rightParenthesis: )
+''');
+  }
+
   void test_recordTypeAnnotation_mixed() {
     var parseResult = parseStringWithErrors(r'''
 void f((int, bool, {int a, bool b}) r) {}
@@ -944,6 +959,29 @@ RecordTypeAnnotation
       type: NamedType
         name: SimpleIdentifier
           token: bool
+  rightParenthesis: )
+''');
+  }
+
+  void test_recordTypeAnnotation_topFunction_returnType_withTypeParameter() {
+    var parseResult = parseStringWithErrors(r'''
+(int, T) f<T>() {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.recordTypeAnnotation('(int');
+    assertParsedNodeText(node, r'''
+RecordTypeAnnotation
+  leftParenthesis: (
+  positionalFields
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: SimpleIdentifier
+          token: T
   rightParenthesis: )
 ''');
   }

@@ -7656,16 +7656,22 @@ bool Function::FfiCSignatureReturnsStruct() const {
 
 int32_t Function::FfiCallbackId() const {
   ASSERT(IsFfiTrampoline());
+  if (FfiCallbackTarget() == Object::null()) {
+    return -1;
+  }
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
-  return FfiTrampolineData::Cast(obj).callback_id();
-}
-
-void Function::SetFfiCallbackId(int32_t value) const {
-  ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(data());
-  ASSERT(!obj.IsNull());
-  FfiTrampolineData::Cast(obj).set_callback_id(value);
+  const FfiTrampolineData& trampoline_data = FfiTrampolineData::Cast(obj);
+  int32_t callback_id = trampoline_data.callback_id();
+#if defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(callback_id >= 0);
+#else
+  if (callback_id < 0) {
+    callback_id = Thread::Current()->AllocateFfiCallbackId();
+    trampoline_data.set_callback_id(callback_id);
+  }
+#endif
+  return callback_id;
 }
 
 bool Function::FfiIsLeaf() const {
@@ -10610,7 +10616,7 @@ FfiTrampolineDataPtr FfiTrampolineData::New() {
       FfiTrampolineData::kClassId, FfiTrampolineData::InstanceSize(),
       Heap::kOld, FfiTrampolineData::ContainsCompressedPointers());
   FfiTrampolineDataPtr data = static_cast<FfiTrampolineDataPtr>(raw);
-  data->untag()->callback_id_ = 0;
+  data->untag()->callback_id_ = -1;
   data->untag()->is_leaf_ = false;
   return data;
 }

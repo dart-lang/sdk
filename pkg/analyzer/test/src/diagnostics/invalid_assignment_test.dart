@@ -460,6 +460,40 @@ void f(Never x) {
     ]);
   }
 
+  void test_recordType_localVariable_initializer() async {
+    await assertErrorsInCode('''
+void f() {
+  (int, int) r = (a: 1, b: 2);
+  print(r);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 28, 12),
+    ]);
+  }
+
+  void test_recordType_parameter() async {
+    await assertErrorsInCode('''
+void f((int a, int b) r) {
+  r = (a: 1, b: 2);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 33, 12),
+    ]);
+  }
+
+  void test_recordType_setter() async {
+    await assertErrorsInCode('''
+void f(C c) {
+  c.r = (a: 1, b: 2);
+}
+class C {
+  (int, int)? r;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 22, 12),
+    ]);
+  }
+
   test_topLevelVariable_never_null() async {
     await assertErrorsInCode('''
 Never x = throw 0;

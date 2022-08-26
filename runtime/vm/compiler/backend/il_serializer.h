@@ -88,6 +88,7 @@ class NativeCallingConvention;
   V(Environment*)                                                              \
   V(const Field&)                                                              \
   V(const ICData*)                                                             \
+  V(const Instance&)                                                           \
   V(int8_t)                                                                    \
   V(int16_t)                                                                   \
   V(int32_t)                                                                   \

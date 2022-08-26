@@ -141,20 +141,21 @@ library /*isNonNullableByDefault*/;
 //                                     ^
 //
 import self as self;
+import "dart:core" as core;
 
-static field invalid-type emptyType = throw "";
-static field invalid-type singleType = throw "";
+static field () emptyType = throw "";
+static field (core::int) singleType = throw "";
 static field invalid-type missingName = throw "";
-static field invalid-type missingType = throw "";
-static field invalid-type emptyNamedFields = throw "";
+static field (invalid-type) missingType = throw "";
+static field (core::int) emptyNamedFields = throw "";
 static field invalid-type duplicateNamedFields = throw "";
 static field invalid-type duplicateNamedFields2 = throw "";
 static method method() → void {
-  invalid-type emptyType = throw "";
-  invalid-type singleType = throw "";
+  () emptyType = throw "";
+  (core::int) singleType = throw "";
   invalid-type missingName = throw "";
-  invalid-type missingType = throw "";
-  invalid-type emptyNamedFields = throw "";
+  (invalid-type) missingType = throw "";
+  (core::int) emptyNamedFields = throw "";
   invalid-type duplicateNamedFields = throw "";
   invalid-type duplicateNamedFields2 = throw "";
 }

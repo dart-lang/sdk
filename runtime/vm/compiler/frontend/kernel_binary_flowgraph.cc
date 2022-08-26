@@ -6146,18 +6146,11 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
   compiler::ffi::NativeFunctionTypeFromFunctionType(zone_, native_sig, &error);
   ReportIfNotNull(error);
 
-  const Function& result =
-      Function::ZoneHandle(Z, compiler::ffi::NativeCallbackFunction(
-                                  native_sig, target, exceptional_return));
+  const Function& result = Function::ZoneHandle(
+      Z,
+      compiler::ffi::NativeCallbackFunction(
+          native_sig, target, exceptional_return, /*register_function=*/true));
   code += Constant(result);
-
-  auto& ffi_callback_functions = GrowableObjectArray::Handle(Z);
-  ffi_callback_functions ^= IG->object_store()->ffi_callback_functions();
-  if (ffi_callback_functions.IsNull()) {
-    ffi_callback_functions ^= GrowableObjectArray::New();
-    IG->object_store()->set_ffi_callback_functions(ffi_callback_functions);
-  }
-  ffi_callback_functions.Add(result);
 
   return code;
 }

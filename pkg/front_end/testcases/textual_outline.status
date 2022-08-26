@@ -141,6 +141,7 @@ rasta/mandatory_parameter_initializer: FormatterCrash
 records/record_literal_errors: FormatterCrash
 records/record_type: FormatterCrash
 records/record_type_errors: FormatterCrash
+records/record_type_unsupported: FormatterCrash
 regress/ambiguous_builder_01: FormatterCrash
 regress/issue_29942: FormatterCrash
 regress/issue_29944: FormatterCrash

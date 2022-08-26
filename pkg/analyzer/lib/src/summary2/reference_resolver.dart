@@ -390,12 +390,12 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotation(covariant RecordTypeAnnotationImpl node) {
-    final builder = RecordTypeBuilder(_typeSystem, node);
-    node.type = builder;
-    nodesToBuildType.addTypeBuilder(builder);
-
     node.positionalFields.accept(this);
     node.namedFields?.accept(this);
+
+    final builder = RecordTypeBuilder.of(_typeSystem, node);
+    node.type = builder;
+    nodesToBuildType.addTypeBuilder(builder);
   }
 
   @override

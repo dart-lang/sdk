@@ -18,6 +18,7 @@ import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
+import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:front_end/src/fasta/kernel/macro/macro.dart';
@@ -76,6 +77,7 @@ final summaryArgsParser = new ArgParser()
       ],
       help: 'Build kernel for the vm, flutter, flutter_runner, dart2js or ddc')
   ..addOption('dart-sdk-summary')
+  ..addMultiOption('redirect')
   ..addMultiOption('input-summary')
   ..addMultiOption('input-linked')
   ..addMultiOption('multi-root')
@@ -152,8 +154,11 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   // system hides this from the front end.
   var multiRoots = parsedArgs['multi-root'].map(Uri.base.resolve).toList();
   if (multiRoots.isEmpty) multiRoots.add(Uri.base);
-  var fileSystem = new MultiRootFileSystem(parsedArgs['multi-root-scheme'],
-      multiRoots, fe.StandardFileSystem.instance);
+  MultiRootFileSystem mrfs = new MultiRootFileSystem(
+      parsedArgs['multi-root-scheme'],
+      multiRoots,
+      fe.StandardFileSystem.instance);
+  FileSystem fileSystem = mrfs;
   var sources = (parsedArgs['source'] as List<String>).map(toUri).toList();
   var excludeNonSources = parsedArgs['exclude-non-sources'] as bool;
 
@@ -232,6 +237,48 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   List<Uri> summaryInputs =
       (parsedArgs['input-summary'] as List<String>).map(toUri).toList();
 
+  Map<Uri, Uri> redirectsToFrom = {};
+  for (String redirect in parsedArgs['redirect']) {
+    List<String> split = redirect.split("|");
+    if (split.length != 2) throw "Invalid redirect input: '$redirect'";
+    redirectsToFrom[toUri(split[1])] = toUri(split[0]);
+  }
+  if (redirectsToFrom.isNotEmpty) {
+    // If redirecting from a->b and we were asked to compile b, we want
+    // the output to look like we compiled a.
+    List<Uri> newSources = [];
+    for (Uri source in sources) {
+      newSources.add(redirectsToFrom[source] ?? source);
+    }
+    // Dart2jsSummaryTarget and DevCompilerSummaryTarget has a pointer to
+    // sources, so to keep it up to date we'll clear and add instead of
+    // overwriting.
+    sources.clear();
+    sources.addAll(newSources);
+
+    // Make the filesystem map from a to b, so that if asked to read a,
+    // actually return data from b. If asked to read b throw.
+    fe.InitializedCompilerState helper = fe.initializeCompiler(
+        null,
+        toUri(parsedArgs['dart-sdk-summary']),
+        toUri(parsedArgs['libraries-file']),
+        toUri(parsedArgs['packages-file']),
+        [...summaryInputs, ...linkedInputs],
+        target,
+        fileSystem,
+        parsedArgs['enable-experiment'] as List<String>,
+        {},
+        verbose: false,
+        nnbdMode: nnbdMode);
+    var uriTranslator = await helper.processedOpts.getUriTranslator();
+    _FakeFileSystem ffs = fileSystem = new _FakeFileSystem(fileSystem);
+    for (MapEntry<Uri, Uri> entry in redirectsToFrom.entries) {
+      ffs.addRedirect(
+          uriTranslator.translate(entry.value, false) ?? entry.value,
+          uriTranslator.translate(entry.key, false) ?? entry.key);
+    }
+  }
+
   fe.InitializedCompilerState state;
   bool usingIncrementalCompiler = false;
   bool recordUsedInputs = parsedArgs["used-inputs"] != null;
@@ -264,8 +311,8 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         {
           "target=$targetName",
           "trackWidgetCreation=$trackWidgetCreation",
-          "multiRootScheme=${fileSystem.markerScheme}",
-          "multiRootRoots=${fileSystem.roots}",
+          "multiRootScheme=${mrfs.markerScheme}",
+          "multiRootRoots=${mrfs.roots}",
         },
         sdkSummaryUri,
         toUriNullable(parsedArgs['packages-file']),
@@ -459,6 +506,25 @@ void makeStable(Component c) {
       return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
     });
     library.problemsAsJson?.sort();
+  }
+}
+
+class _FakeFileSystem extends FileSystem {
+  final Map<Uri, Uri> redirectsFromTo = {};
+  final Set<Uri> redirectsTo = {};
+  final FileSystem fs;
+  _FakeFileSystem(this.fs);
+
+  void addRedirect(Uri from, Uri to) {
+    redirectsTo.add(to);
+    redirectsFromTo[from] = to;
+  }
+
+  @override
+  FileSystemEntity entityForUri(Uri uri) {
+    if (redirectsTo.contains(uri)) throw "$uri is a redirection target.";
+    uri = redirectsFromTo[uri] ?? uri;
+    return fs.entityForUri(uri);
   }
 }
 

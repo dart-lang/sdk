@@ -2178,6 +2178,27 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
+  void visitRecordIndexGet(RecordIndexGet node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.\$${node.index}');
+    writeSymbol('{');
+    writeType(node.receiverType.positional[node.index]);
+    writeSymbol('}');
+  }
+
+  @override
+  void visitRecordNameGet(RecordNameGet node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.${node.name}');
+    writeSymbol('{');
+    // TODO(johnniwinther): Should we store the result type in the node?
+    writeType(node.receiverType.named
+        .singleWhere((element) => element.name == node.name)
+        .type);
+    writeSymbol('}');
+  }
+
+  @override
   void visitExpressionStatement(ExpressionStatement node) {
     writeIndentation();
     writeExpression(node.expression);
@@ -2665,6 +2686,24 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   @override
   void visitFunctionType(FunctionType node) {
     writeFunctionType(node);
+  }
+
+  @override
+  void visitRecordType(RecordType node) {
+    writeSymbol('(');
+    writeList(node.positional, writeType);
+    if (node.positional.isNotEmpty && node.named.isNotEmpty) {
+      writeComma(',');
+    }
+    if (node.named.isNotEmpty) {
+      writeSymbol('{');
+      writeList(node.named, writeNode);
+      writeSymbol('}');
+    }
+    writeSymbol(')');
+    writeNullability(node.declaredNullability);
+    // Disallow a word immediately after the record type.
+    state = WORD;
   }
 
   @override

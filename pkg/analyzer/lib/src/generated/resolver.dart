@@ -2120,7 +2120,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node,
       {DartType? contextType}) {
-    _prefixedIdentifierResolver.resolve(node, contextType: contextType);
+    final rewrittenPropertyAccess =
+        _prefixedIdentifierResolver.resolve(node, contextType: contextType);
+    if (rewrittenPropertyAccess != null) {
+      rewrittenPropertyAccess.accept(this);
+      return;
+    }
     _insertImplicitCallReference(
         insertGenericFunctionInstantiation(node, contextType: contextType),
         contextType: contextType);

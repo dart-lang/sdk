@@ -328,6 +328,23 @@ class CanonicalInstanceTraits {
   static ObjectPtr NewKey(const CanonicalInstanceKey& obj);
 };
 
+struct CanonicalFfiCallbackFunctionTraits {
+  static uint32_t Hash(const Object& key) { return Function::Cast(key).Hash(); }
+  static const char* Name() { return "CanonicalFfiCallbackFunctionTraits"; }
+  static bool IsMatch(const Object& x, const Object& y) {
+    const auto& f1 = Function::Cast(x);
+    const auto& f2 = Function::Cast(y);
+    return (f1.FfiCallbackTarget() == f2.FfiCallbackTarget() &&
+            f1.FfiCSignature() == f2.FfiCSignature() &&
+            f1.FfiCallbackExceptionalReturn() ==
+                f2.FfiCallbackExceptionalReturn());
+  }
+  static bool ReportStats() { return false; }
+};
+
+using FfiCallbackFunctionSet =
+    UnorderedHashSet<CanonicalFfiCallbackFunctionTraits>;
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CANONICAL_TABLES_H_

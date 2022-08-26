@@ -242,15 +242,16 @@ void BranchInstr::ReadExtra(FlowGraphDeserializer* d) {
 template <>
 void FlowGraphSerializer::WriteTrait<const compiler::ffi::CallbackMarshaller&>::
     Write(FlowGraphSerializer* s, const compiler::ffi::CallbackMarshaller& x) {
-  UNIMPLEMENTED();
+  s->Write<const Function&>(x.dart_signature());
 }
 
 template <>
 const compiler::ffi::CallbackMarshaller& FlowGraphDeserializer::ReadTrait<
     const compiler::ffi::CallbackMarshaller&>::Read(FlowGraphDeserializer* d) {
-  UNIMPLEMENTED();
+  const Function& dart_signature = d->Read<const Function&>();
+  const char* error = nullptr;
   return *compiler::ffi::CallbackMarshaller::FromFunction(
-      d->zone(), Function::null_function(), nullptr);
+      d->zone(), dart_signature, &error);
 }
 
 template <>
@@ -830,14 +831,18 @@ void FlowGraphSerializer::WriteTrait<const Function&>::Write(
       return;
     }
     case UntaggedFunction::kFfiTrampoline: {
-      if (x.FfiCallbackTarget() != Object::null()) {
-        UNIMPLEMENTED();
-      }
-      s->Write<const String&>(String::Handle(zone, x.name()));
-      s->Write<const FunctionType&>(FunctionType::Handle(zone, x.signature()));
+      s->Write<const Function&>(Function::Handle(zone, x.FfiCallbackTarget()));
       s->Write<const FunctionType&>(
           FunctionType::Handle(zone, x.FfiCSignature()));
-      s->Write<bool>(x.FfiIsLeaf());
+      if (x.FfiCallbackTarget() != Object::null()) {
+        s->Write<const Instance&>(
+            Instance::Handle(zone, x.FfiCallbackExceptionalReturn()));
+      } else {
+        s->Write<const String&>(String::Handle(zone, x.name()));
+        s->Write<const FunctionType&>(
+            FunctionType::Handle(zone, x.signature()));
+        s->Write<bool>(x.FfiIsLeaf());
+      }
       return;
     }
     default:
@@ -914,13 +919,22 @@ const Function& FlowGraphDeserializer::ReadTrait<const Function&>::Read(
                                   target.GetDynamicInvocationForwarder(name));
     }
     case UntaggedFunction::kFfiTrampoline: {
-      const String& name = d->Read<const String&>();
-      const FunctionType& signature = d->Read<const FunctionType&>();
+      const Function& callback_target = d->Read<const Function&>();
       const FunctionType& c_signature = d->Read<const FunctionType&>();
-      const bool is_leaf = d->Read<bool>();
-      return Function::ZoneHandle(
-          zone, compiler::ffi::TrampolineFunction(name, signature, c_signature,
-                                                  is_leaf));
+      if (!callback_target.IsNull()) {
+        const Instance& exceptional_return = d->Read<const Instance&>();
+        return Function::ZoneHandle(
+            zone, compiler::ffi::NativeCallbackFunction(
+                      c_signature, callback_target, exceptional_return,
+                      /*register_function=*/true));
+      } else {
+        const String& name = d->Read<const String&>();
+        const FunctionType& signature = d->Read<const FunctionType&>();
+        const bool is_leaf = d->Read<bool>();
+        return Function::ZoneHandle(
+            zone, compiler::ffi::TrampolineFunction(name, signature,
+                                                    c_signature, is_leaf));
+      }
     }
     default:
       UNIMPLEMENTED();
@@ -1981,6 +1995,7 @@ InstancePtr FlowGraphDeserializer::MaybeCanonicalize(
   V(Array, Object::null_array())                                               \
   V(Field, Field::Handle(d->zone()))                                           \
   V(FunctionType, Object::null_function_type())                                \
+  V(Instance, Object::null_instance())                                         \
   V(String, Object::null_string())                                             \
   V(TypeArguments, Object::null_type_arguments())                              \
   V(TypeParameters, TypeParameters::Handle(d->zone()))

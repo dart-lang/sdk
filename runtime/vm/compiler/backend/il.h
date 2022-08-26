@@ -2151,10 +2151,8 @@ class NativeEntryInstr : public FunctionEntryInstr {
                    GraphEntryInstr* graph_entry,
                    intptr_t block_id,
                    intptr_t try_index,
-                   intptr_t deopt_id,
-                   intptr_t callback_id)
+                   intptr_t deopt_id)
       : FunctionEntryInstr(graph_entry, block_id, try_index, deopt_id),
-        callback_id_(callback_id),
         marshaller_(marshaller) {}
 
   DECLARE_INSTRUCTION(NativeEntry)
@@ -2162,7 +2160,6 @@ class NativeEntryInstr : public FunctionEntryInstr {
   PRINT_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
-  F(const intptr_t, callback_id_)                                              \
   F(const compiler::ffi::CallbackMarshaller&, marshaller_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(NativeEntryInstr,
@@ -9667,6 +9664,7 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
         function_name_(function_name),
         exception_type_(exception_type) {
     ASSERT(function_name.IsNotTemporaryScopedHandle());
+    ASSERT(function_name.IsSymbol());
     SetInputAt(0, value);
   }
 
